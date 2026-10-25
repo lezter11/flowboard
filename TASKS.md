@@ -23,6 +23,14 @@ For FND-01 only, Architect authorizes Backend to add the minimal root package/wo
 ## Product sequence and UI gates
 
 1. S1 Account, ownership, projects, invitations and RBAC. Owner and Manager have the authority confirmed in FEATURE_SPEC; manager is project-scoped.
+   - [x] ACC-01 — Backend: Sign in and session (cookie extraction, DB session store, /session, /logout). Audited at 10.0/10.0.
+   - [x] RBAC-01 — Backend: Owner manager member viewer matrix (inheritance, project memberships, sibling privacy 404). Audited at 10.0/10.0.
+   - [x] ACC-04 — Backend: Create workspace and owner (single owner atomicity, idempotency replay duplicate protection). Audited at 10.0/10.0.
+   - [x] PRJ-01 — Backend: Create multiple projects (owner-restricted creation, sibling project privacy, role-scoped lists). Audited at 10.0/10.0.
+   - [ ] ACC-02, ACC-03, ACC-05, ACC-06 — Account lifecycle, profile, preferences, context switcher.
+   - [ ] PRJ-02, PRJ-03, PRJ-05 — Project list/nav, settings, people directory.
+   - [ ] INV-01 to INV-08 — Project invitations, email delivery, acceptance, role change, revoke/leave.
+   - [ ] RBAC-02 to RBAC-05 — Ancestry enforcement, lock protocol, picker privacy, inheritance disclosure.
 2. S2 Board/column/card CRUD, popup fields, Move/drag, query/filter/My tasks and basic UX.
 3. S3 Comments/mentions, full card activity, owner/project feeds and durable inbox.
 4. S4 Private image uploads/proxy/gallery and exact 24-hour trash/restore/purge.

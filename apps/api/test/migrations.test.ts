@@ -25,11 +25,13 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
     await pool.end();
   });
 
-  await t.test('1. Runs migration 0001_initial.sql and records applied version', async () => {
+  await t.test('1. Runs migrations and records applied versions', async () => {
     const result = await runMigrations(pool);
-    assert.equal(result.applied.length, 1);
+    assert.equal(result.applied.length >= 2, true);
     assert.equal(result.applied[0]?.version, '0001');
     assert.equal(result.applied[0]?.name, '0001_initial.sql');
+    assert.equal(result.applied[1]?.version, '0002');
+    assert.equal(result.applied[1]?.name, '0002_sessions.sql');
 
     // Verify schema_migrations table has the record
     const client = await pool.connect();
@@ -38,6 +40,11 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
       assert.equal(queryRes.rows.length, 1);
       assert.equal(queryRes.rows[0].version, '0001');
       assert.equal(queryRes.rows[0].name, '0001_initial.sql');
+
+      const queryRes2 = await client.query('SELECT version, name FROM schema_migrations WHERE version = $1', ['0002']);
+      assert.equal(queryRes2.rows.length, 1);
+      assert.equal(queryRes2.rows[0].version, '0002');
+      assert.equal(queryRes2.rows[0].name, '0002_sessions.sql');
     } finally {
       client.release();
     }

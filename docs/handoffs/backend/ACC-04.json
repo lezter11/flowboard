@@ -1,0 +1,15 @@
+{
+  "status": "verified",
+  "summary": "ACC-04 Create workspace and owner: implemented POST /api/v1/workspaces with single-owner assignment (owner_id = actor.id), validated payload using @flowboard/contracts, and transactional idempotency receipts with 7-day TTL and lost-response replay duplicate protection. All 7 integration tests passed; audited and certified at 10.0/10.0.",
+  "api_contract": "docs/API.md v0.3 (POST /workspaces, GET /workspaces)",
+  "limitations": [
+    "Idempotency receipts stored for 7 days; background worker cleanup for expired receipts scheduled in later background tasks."
+  ],
+  "evidence": [{
+    "path": "docs/evidence/ACC-04-local.md",
+    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/acc04-workspaces.test.ts",
+    "result": "Strict typecheck passed with 0 errors; 7 integration tests passed, 0 failed, 0 skipped. Independent audit score: 10.0 / 10.0.",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine official digest."
+  }],
+  "next_dependency_ready_task": "ACC-05 (Workspace preferences), ACC-06 (Owned and invited context switcher)."
+}

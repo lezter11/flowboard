@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import type pg from 'pg';
 import {
   correlationMiddleware,
   timingMiddleware,
@@ -9,13 +10,22 @@ import {
   DEFAULT_BODY_LIMIT_BYTES,
   DEFAULT_DEADLINE_MS,
 } from './middleware/index.ts';
+import { sessionRoutes } from './routes/session.ts';
+import { workspacesRoutes } from './routes/workspaces.ts';
+import { projectsRoutes } from './routes/projects.ts';
+import { setGlobalPool } from '../adapters/postgres.ts';
 
 export interface CreateAppOptions {
   bodyLimitBytes?: number;
   deadlineMs?: number;
+  pool?: pg.Pool;
 }
 
-export function createApp(probeDatabase: () => Promise<void>, options?: CreateAppOptions) {
+export function createApp(probeDatabase: () => Promise<void> = async () => {}, options?: CreateAppOptions) {
+  if (options?.pool) {
+    setGlobalPool(options.pool);
+  }
+
   const app = new Hono<{ Variables: { requestId: string } }>();
 
   // 1. Correlation middleware: assigns or validates x-request-id and sets requestId in context
@@ -55,6 +65,11 @@ export function createApp(probeDatabase: () => Promise<void>, options?: CreateAp
       );
     }
   });
+
+  // Mount API v1 routes
+  app.route('/api/v1/session', sessionRoutes);
+  app.route('', workspacesRoutes);
+  app.route('', projectsRoutes);
 
   // Central not-found and error handling
   app.notFound(notFoundHandler);

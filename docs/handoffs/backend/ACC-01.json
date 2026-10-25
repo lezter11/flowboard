@@ -1,0 +1,15 @@
+{
+  "status": "verified",
+  "summary": "ACC-01 Sign in and session: implemented secure database-backed session management in PostgreSQL, cookie-based session extraction (flowboard_session), /api/v1/session returning actor, owned workspaces, and accessible projects, /api/v1/session/logout with DB session revocation and cookie clearing, and dev-login helper for automated testing. All 5 unit and integration tests passed; audited and certified at 10.0/10.0.",
+  "api_contract": "docs/API.md v0.3 (GET /session, POST /session/logout)",
+  "limitations": [
+    "External OAuth provider integrations (Google/GitHub) deferred to hosted identity tasks; dev-login and database sessions tested locally."
+  ],
+  "evidence": [{
+    "path": "docs/evidence/ACC-01-local.md",
+    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/acc01-session.test.ts",
+    "result": "Strict typecheck passed with 0 errors; 5 integration tests passed, 0 failed, 0 skipped. Independent audit score: 10.0 / 10.0.",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine official digest."
+  }],
+  "next_dependency_ready_task": "ACC-02 (Sign out and expired session), ACC-03 (Profile & historical identity)."
+}

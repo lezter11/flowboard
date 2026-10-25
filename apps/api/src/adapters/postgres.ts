@@ -1,8 +1,44 @@
 import { Kysely, PostgresDialect, sql } from 'kysely';
 import pg from 'pg';
+import { localDatabaseUrl } from '../runtime/local-config.ts';
 
 // No product tables exist in FND-01. Typed domain tables arrive in FND-03.
 export type HarnessDatabase = Kysely<Record<string, never>>;
+
+let globalPool: pg.Pool | null = null;
+
+export function createPool(connectionString: string, maxConnections = 4): pg.Pool {
+  const pool = new pg.Pool({
+    connectionString,
+    max: maxConnections,
+    connectionTimeoutMillis: 2_000,
+    idleTimeoutMillis: 5_000,
+    statement_timeout: 3_000,
+    query_timeout: 4_000,
+    application_name: 'flowboard-api',
+  });
+  pool.on('error', () => console.error('Idle PostgreSQL connection failed'));
+  return pool;
+}
+
+export function getPool(connectionString?: string): pg.Pool {
+  if (!globalPool) {
+    const connStr = localDatabaseUrl(connectionString ?? process.env['DATABASE_URL']);
+    globalPool = createPool(connStr, 4);
+  }
+  return globalPool;
+}
+
+export function setGlobalPool(pool: pg.Pool | null): void {
+  globalPool = pool;
+}
+
+export async function closePool(): Promise<void> {
+  if (globalPool) {
+    await globalPool.end();
+    globalPool = null;
+  }
+}
 
 export function createDatabase(connectionString: string, maxConnections: number): HarnessDatabase {
   const pool = new pg.Pool({

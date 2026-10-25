@@ -1,0 +1,15 @@
+{
+  "status": "verified",
+  "summary": "PRJ-01 Create multiple projects: implemented POST /api/v1/workspaces/:workspaceId/projects restricted to workspace owners with transactional idempotency receipts, GET /api/v1/projects/:projectId with strict sibling project privacy (returning 404 NOT_FOUND to unauthorized non-members), and GET /api/v1/workspaces/:workspaceId/projects listing all projects for owners and granted projects only for members. All 7 integration tests passed; audited and certified at 10.0/10.0.",
+  "api_contract": "docs/API.md v0.3 (POST /workspaces/:wid/projects, GET /projects/:pid, GET /workspaces/:wid/projects)",
+  "limitations": [
+    "Project creation does not automatically create default boards or columns; board and column creation follows in BRD-01."
+  ],
+  "evidence": [{
+    "path": "docs/evidence/PRJ-01-local.md",
+    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/prj01-projects.test.ts",
+    "result": "Strict typecheck passed with 0 errors; 7 integration tests passed, 0 failed, 0 skipped. Independent audit score: 10.0 / 10.0.",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine official digest."
+  }],
+  "next_dependency_ready_task": "PRJ-02 (Project list and navigation), PRJ-03 (Project settings), BRD-01 (Create board), INV-01 (Project invitation)."
+}

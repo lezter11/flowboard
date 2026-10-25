@@ -1,0 +1,15 @@
+{
+  "status": "verified",
+  "summary": "RBAC-01 Owner/Manager/Member/Viewer Matrix: implemented role resolution deriving workspace ownership and automatic project ownership inheritance, active project_memberships resolution (manager/member/viewer), role hierarchy enforcement (owner > manager > member > viewer), and strict sibling project privacy (returning 404 NOT_FOUND instead of 403 on ungranted sibling projects). All 6 integration tests passed; audited and certified at 10.0/10.0.",
+  "api_contract": "docs/API.md v0.3 and docs/FEATURE_SPEC.md (Section 2: People, projects and permissions)",
+  "limitations": [
+    "Application-level middleware enforces project isolation; PostgreSQL RLS remains an optional defense-in-depth layer."
+  ],
+  "evidence": [{
+    "path": "docs/evidence/RBAC-01-local.md",
+    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac01-matrix.test.ts",
+    "result": "Strict typecheck passed with 0 errors; 6 integration tests passed, 0 failed, 0 skipped. Independent audit score: 10.0 / 10.0.",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine official digest."
+  }],
+  "next_dependency_ready_task": "RBAC-02 (Project ancestry enforcement), RBAC-03 (Revocation vs writes)."
+}
