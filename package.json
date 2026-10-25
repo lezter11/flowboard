@@ -2,13 +2,16 @@
   "name": "flowboard",
   "private": true,
   "type": "module",
-  "workspaces": ["apps/api"],
+  "workspaces": [
+    "apps/api",
+    "packages/contracts"
+  ],
   "engines": { "node": ">=24.15.0 <25" },
   "packageManager": "npm@11.12.1",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "npm run build --workspace @flowboard/api",
-    "test": "npm run test --workspace @flowboard/api",
+    "test": "npm run test --workspace @flowboard/api && npm run test --workspace @flowboard/contracts",
     "dev:api": "npm run dev:node --workspace @flowboard/api",
     "dev:worker": "npm run dev:worker --workspace @flowboard/api",
     "db:up": "docker compose -f database/compose.local.yaml up -d --wait",

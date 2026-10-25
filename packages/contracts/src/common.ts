@@ -1,0 +1,139 @@
+import { z } from 'zod';
+
+export const STANDARD_ERROR_CODES = [
+  'UNAUTHORIZED',
+  'FORBIDDEN',
+  'NOT_FOUND',
+  'CONFLICT',
+  'STALE_VERSION',
+  'STALE_CURSOR',
+  'RESTORE_WINDOW_EXPIRED',
+  'RESTORE_DESTINATION_REQUIRED',
+  'READ_ONLY_CONTEXT',
+  'PREVIEW_EXPIRED',
+  'PREVIEW_STALE',
+  'COMMIT_IN_PROGRESS',
+  'ALREADY_FINALIZED',
+  'VALIDATION_ERROR',
+  'BAD_REQUEST',
+  'PAYLOAD_TOO_LARGE',
+  'RATE_LIMITED',
+  'DATABASE_UNAVAILABLE',
+  'INTERNAL_ERROR',
+] as const;
+
+export const standardErrorCodeSchema = z.enum(STANDARD_ERROR_CODES);
+export type StandardErrorCode = z.infer<typeof standardErrorCodeSchema>;
+
+export const errorDetailSchema = z.object({
+  code: z.string(),
+  message: z.string(),
+  requestId: z.string(),
+  details: z.record(z.unknown()).optional(),
+});
+export type ErrorDetail = z.infer<typeof errorDetailSchema>;
+
+export const errorEnvelopeSchema = z.object({
+  error: errorDetailSchema,
+});
+export type ErrorEnvelope = z.infer<typeof errorEnvelopeSchema>;
+
+export function createDataEnvelopeSchema<T extends z.ZodTypeAny>(dataSchema: T) {
+  return z.object({
+    data: dataSchema,
+  });
+}
+
+export function createPaginatedEnvelopeSchema<T extends z.ZodTypeAny>(itemSchema: T) {
+  return z.object({
+    data: z.array(itemSchema),
+    nextCursor: z.string().nullable(),
+  });
+}
+
+export function isValidGregorianDate(dateStr: string): boolean {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) return false;
+  const parts = dateStr.split('-');
+  const yearStr = parts[0];
+  const monthStr = parts[1];
+  const dayStr = parts[2];
+  if (yearStr === undefined || monthStr === undefined || dayStr === undefined) return false;
+  const year = Number(yearStr);
+  const month = Number(monthStr);
+  const day = Number(dayStr);
+  if (month < 1 || month > 12) return false;
+  if (day < 1) return false;
+  const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+  const daysInMonth = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+  const maxDay = daysInMonth[month - 1];
+  if (maxDay === undefined || day > maxDay) return false;
+  return true;
+}
+
+export const dateOnlySchema = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be in YYYY-MM-DD format')
+  .refine(isValidGregorianDate, { message: 'Must be a valid Gregorian calendar date' });
+export type DateOnly = z.infer<typeof dateOnlySchema>;
+
+export const nullableDateOnlySchema = dateOnlySchema.nullable();
+export type NullableDateOnly = z.infer<typeof nullableDateOnlySchema>;
+
+export const utcIsoTimestampSchema = z
+  .string()
+  .refine(
+    (val) => {
+      if (!val.endsWith('Z')) return false;
+      const d = new Date(val);
+      if (Number.isNaN(d.getTime())) return false;
+      return val.includes('T');
+    },
+    { message: 'Must be a valid UTC ISO 8601 timestamp string ending in Z' },
+  );
+export type UtcIsoTimestamp = z.infer<typeof utcIsoTimestampSchema>;
+
+export const idempotencyKeySchema = z
+  .string()
+  .regex(
+    /^[A-Za-z0-9._:-]{16,128}$/,
+    'Idempotency key must be 16 to 128 ASCII characters consisting of A-Z, a-z, 0-9, dot, underscore, colon, or hyphen',
+  );
+export type IdempotencyKey = z.infer<typeof idempotencyKeySchema>;
+
+export const roleSchema = z.enum(['owner', 'manager', 'member', 'viewer']);
+export type Role = z.infer<typeof roleSchema>;
+
+export const projectRoleSchema = z.enum(['manager', 'member', 'viewer']);
+export type ProjectRole = z.infer<typeof projectRoleSchema>;
+
+export const personDisplaySchema = z.object({
+  id: z.string().min(1),
+  displayName: z.string().trim().min(1).max(100),
+  avatarUrl: z.string().url().nullable(),
+  activeInProject: z.boolean(),
+  scopedRole: roleSchema.optional(),
+  assignable: z.boolean().optional(),
+  mentionable: z.boolean().optional(),
+});
+export type PersonDisplay = z.infer<typeof personDisplaySchema>;
+
+export const mutationReceiptSchema = z.object({
+  id: z.string(),
+  version: z.number().int().nonnegative().optional(),
+  structureVersion: z.number().int().nonnegative().optional(),
+  snapshotVersion: z.number().int().nonnegative().optional(),
+  operationId: z.string().optional(),
+});
+export type MutationReceipt = z.infer<typeof mutationReceiptSchema>;
+
+export const mutationResponseSchema = z.object({
+  data: mutationReceiptSchema,
+  replayed: z.boolean(),
+});
+export type MutationResponse = z.infer<typeof mutationResponseSchema>;
+
+export const paginationQuerySchema = z.object({
+  cursor: z.string().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50).optional(),
+});
+export type PaginationQuery = z.infer<typeof paginationQuerySchema>;

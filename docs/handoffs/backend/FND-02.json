@@ -1,0 +1,16 @@
+{
+  "status": "verified",
+  "summary": "FND-02 shared API v0.3 schemas and multi-tenant fixtures: modular Zod schemas and derived TypeScript types in @flowboard/contracts, OpenAPI 3.1 catalog covering all 36 endpoints, Gregorian date validation, UTF-16 mention validation, 24h trash models, Excel import preview models, and complete multi-tenant test fixtures covering sibling-project isolation. Strict typecheck passed; 41/41 unit tests passed; audited and scored 9.8/10.0 by validation subagent.",
+  "api_contract": "docs/API.md v0.3 and packages/contracts/src/openapi/index.ts",
+  "limitations": [
+    "Contracts define in-memory runtime schema validation and boundary types; database persistence and SQL constraints are implemented in FND-03.",
+    "Session derivation and authentication middleware consume these contracts in FND-04 and S1."
+  ],
+  "evidence": [{
+    "path": "docs/evidence/FND-02-local.md",
+    "command": "npm run typecheck && npm test --workspace @flowboard/contracts",
+    "result": "Strict typecheck passed with 0 errors; 41 unit tests passed across 19 suites, 0 failed, 0 skipped. Independent audit rating: 9.8 / 10.0.",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, TypeScript 7.0.2, Zod 3.24.2."
+  }],
+  "next_dependency_ready_task": "FND-03: PostgreSQL schema and migrations for workspaces, projects, memberships, boards, cards, 24h trash, receipts, and outbox."
+}

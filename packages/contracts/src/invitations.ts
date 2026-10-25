@@ -1,0 +1,55 @@
+import { z } from 'zod';
+import {
+  createDataEnvelopeSchema,
+  createPaginatedEnvelopeSchema,
+  projectRoleSchema,
+  utcIsoTimestampSchema,
+} from './common.ts';
+
+export const createInvitationInputSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .email('Invalid email address format')
+    .max(254, 'Email must not exceed 254 characters')
+    .toLowerCase(),
+  role: projectRoleSchema,
+});
+export type CreateInvitationInput = z.infer<typeof createInvitationInputSchema>;
+
+export const acceptInvitationInputSchema = z.object({
+  token: z.string().trim().min(16, 'Invitation token is too short').max(128, 'Invitation token is too long'),
+});
+export type AcceptInvitationInput = z.infer<typeof acceptInvitationInputSchema>;
+
+export const invitationStatusSchema = z.enum(['pending', 'accepted', 'revoked', 'expired']);
+export type InvitationStatus = z.infer<typeof invitationStatusSchema>;
+
+export const invitationSchema = z.object({
+  id: z.string().min(1),
+  projectId: z.string().min(1),
+  email: z.string().email(),
+  role: projectRoleSchema,
+  status: invitationStatusSchema,
+  invitedBy: z.string().min(1),
+  expiresAt: utcIsoTimestampSchema,
+  createdAt: utcIsoTimestampSchema,
+  updatedAt: utcIsoTimestampSchema,
+});
+export type Invitation = z.infer<typeof invitationSchema>;
+
+export const invitationResponseSchema = createDataEnvelopeSchema(invitationSchema);
+export type InvitationResponse = z.infer<typeof invitationResponseSchema>;
+
+export const invitationListResponseSchema = createPaginatedEnvelopeSchema(invitationSchema);
+export type InvitationListResponse = z.infer<typeof invitationListResponseSchema>;
+
+export const acceptInvitationResultSchema = z.object({
+  projectId: z.string().min(1),
+  role: projectRoleSchema,
+  membershipId: z.string().min(1),
+});
+export type AcceptInvitationResult = z.infer<typeof acceptInvitationResultSchema>;
+
+export const acceptInvitationResponseSchema = createDataEnvelopeSchema(acceptInvitationResultSchema);
+export type AcceptInvitationResponse = z.infer<typeof acceptInvitationResponseSchema>;

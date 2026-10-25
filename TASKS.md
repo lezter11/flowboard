@@ -13,8 +13,8 @@ Updated 2026-10-26. Product scope v0.3 governs. [98-feature checklist](docs/FEAT
 
 ## Current implementation handoff
 
-- [ ] FND-01 — Backend: build minimal local Node/Worker API harness plus real local PostgreSQL connection/transaction rollback test. Coordinate root workspace tooling; synthetic data only, no cloud resources or deployment. This is the first implementation task, not all 98 features at once.
-- [ ] FND-02 — Architect + Backend: shared validated API v0.3 schemas/OpenAPI/fixtures, including sibling-project privacy and Owner/Manager limits.
+- [x] FND-01 — Backend: build minimal local Node/Worker API harness plus real local PostgreSQL connection/transaction rollback test. Coordinate root workspace tooling; synthetic data only, no cloud resources or deployment. This is the first implementation task, not all 98 features at once.
+- [x] FND-02 — Architect + Backend: shared validated API v0.3 schemas/OpenAPI/fixtures, including sibling-project privacy and Owner/Manager limits. Verified and audited at 9.8/10.0.
 - [ ] FND-03 — Backend: selected PostgreSQL migrations, project_memberships/invitations and new lifecycle/import/image/audit models; historical SQLite is not selected schema evidence.
 - [ ] FND-04 — Backend: safe errors, correlation/timing, bounded requests/deadlines and local test setup.
 
