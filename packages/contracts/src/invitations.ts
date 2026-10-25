@@ -35,6 +35,7 @@ export const invitationSchema = z.object({
   expiresAt: utcIsoTimestampSchema,
   createdAt: utcIsoTimestampSchema,
   updatedAt: utcIsoTimestampSchema,
+  token: z.string().optional(),
 });
 export type Invitation = z.infer<typeof invitationSchema>;
 
@@ -45,9 +46,11 @@ export const invitationListResponseSchema = createPaginatedEnvelopeSchema(invita
 export type InvitationListResponse = z.infer<typeof invitationListResponseSchema>;
 
 export const acceptInvitationResultSchema = z.object({
+  success: z.boolean().optional(),
   projectId: z.string().min(1),
+  workspaceId: z.string().min(1).optional(),
   role: projectRoleSchema,
-  membershipId: z.string().min(1),
+  membershipId: z.string().min(1).optional(),
 });
 export type AcceptInvitationResult = z.infer<typeof acceptInvitationResultSchema>;
 

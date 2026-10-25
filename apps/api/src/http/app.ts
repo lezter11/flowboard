@@ -13,6 +13,8 @@ import {
 import { sessionRoutes } from './routes/session.ts';
 import { workspacesRoutes } from './routes/workspaces.ts';
 import { projectsRoutes } from './routes/projects.ts';
+import { invitationsRoutes } from './routes/invitations.ts';
+import { membersRoutes } from './routes/members.ts';
 import { setGlobalPool } from '../adapters/postgres.ts';
 
 export interface CreateAppOptions {
@@ -70,6 +72,8 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
   app.route('/api/v1/session', sessionRoutes);
   app.route('', workspacesRoutes);
   app.route('', projectsRoutes);
+  app.route('/api/v1', invitationsRoutes);
+  app.route('/api/v1', membersRoutes);
 
   // Central not-found and error handling
   app.notFound(notFoundHandler);

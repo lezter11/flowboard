@@ -29,7 +29,13 @@ For FND-01 only, Architect authorizes Backend to add the minimal root package/wo
    - [x] PRJ-01 — Backend: Create multiple projects (owner-restricted creation, sibling project privacy, role-scoped lists). Audited at 10.0/10.0.
    - [ ] ACC-02, ACC-03, ACC-05, ACC-06 — Account lifecycle, profile, preferences, context switcher.
    - [ ] PRJ-02, PRJ-03, PRJ-05 — Project list/nav, settings, people directory.
-   - [ ] INV-01 to INV-08 — Project invitations, email delivery, acceptance, role change, revoke/leave.
+   - [x] INV-01 — Backend: Project invitation (Owner/PM invitation permissions, SHA-256 token hashing, outbox event). Audited at 10.0/10.0.
+   - [ ] INV-02 — Project invitation delivery (outbox delivery worker).
+   - [x] INV-03 — Backend: Accept matching invitation (FOR UPDATE row lock, matching email check, active membership creation). Audited at 10.0/10.0.
+   - [ ] INV-04, INV-05 — Resend/revoke invitations, pending invitations list.
+   - [x] INV-06 — Backend: Change member roles (Owner appoints/removes managers, PM modifies member/viewer, self/peer protection, OCC with expectedVersion). Audited at 10.0/10.0.
+   - [x] INV-07 — Backend: Remove project access (immediate revocation sets status 'removed', subsequent calls return 404 NOT_FOUND). Audited at 10.0/10.0.
+   - [ ] INV-08 — Leave a project.
    - [ ] RBAC-02 to RBAC-05 — Ancestry enforcement, lock protocol, picker privacy, inheritance disclosure.
 2. S2 Board/column/card CRUD, popup fields, Move/drag, query/filter/My tasks and basic UX.
 3. S3 Comments/mentions, full card activity, owner/project feeds and durable inbox.

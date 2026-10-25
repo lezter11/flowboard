@@ -1,0 +1,15 @@
+{
+  "status": "verified",
+  "summary": "INV-07 Remove project access: implemented DELETE /api/v1/projects/:projectId/members/:userId enabling Workspace Owner to remove any project member and Project Managers to remove members/viewers only. Enforces peer/self protection (PMs cannot remove peer managers, owner, or themselves), transitions row status to 'removed' with version increment, and enforces immediate revocation where subsequent project requests return 404 NOT_FOUND. All automated integration tests pass against local PostgreSQL.",
+  "api_contract": "docs/API.md (DELETE /projects/:pid/members/:uid)",
+  "limitations": [
+    "Voluntary self-leave is handled in INV-08."
+  ],
+  "evidence": [{
+    "path": "docs/evidence/INV-07-local.md",
+    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/inv06-inv07.test.ts",
+    "result": "Strict typecheck passed with 0 errors; all tests in inv06-inv07 test suite passed (13 passed, 0 failed, 0 skipped).",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+  }],
+  "next_dependency_ready_task": "INV-08 (Leave a project), PRJ-05 (Project people directory)."
+}

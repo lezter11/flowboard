@@ -1,0 +1,15 @@
+{
+  "status": "verified",
+  "summary": "INV-03 Accept matching invitation: implemented POST /api/v1/invitations/accept validating incoming single-use token against SHA-256 hash in project_invitations under row-level FOR UPDATE lock. Enforces strict email match between authenticated session and invitation recipient (mismatch returns 403 EMAIL_MISMATCH without membership creation), handles expired tokens (transitioning status to expired and returning 400 INVITATION_EXPIRED), and atomically updates invitation status to accepted while upserting active project_memberships. All automated integration tests pass against local PostgreSQL.",
+  "api_contract": "docs/API.md (POST /invitations/accept)",
+  "limitations": [
+    "Requires active authenticated session with verified email."
+  ],
+  "evidence": [{
+    "path": "docs/evidence/INV-03-local.md",
+    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/inv01-inv03.test.ts",
+    "result": "Strict typecheck passed with 0 errors; all tests in inv01-inv03 test suite passed (8 passed, 0 failed, 0 skipped).",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+  }],
+  "next_dependency_ready_task": "INV-06 (Change member roles), INV-07 (Remove project access), INV-08 (Leave a project)."
+}
