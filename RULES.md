@@ -56,3 +56,13 @@ For a tiny answer, compress these into a few labeled sentences. Progress updates
 Follow docs/FEATURE_SPEC.md and docs/features.tsv. New user scope requires explicit project grants, Owner/Project Manager administration, full card activity, exact 24-hour restore, private images and XLSX preview/commit. Never implement older workspace-wide access or card-archive-only defaults.
 
 Backend verifies each feature and writes docs/handoffs/backend/ID.json plus real evidence before UI implementation consumes it. UI writes separate ui evidence; Architect writes integration evidence. Run scripts/render_feature_checklist.py; do not manually check generated boxes or equate a specification/template with an implemented API. Coordinate regeneration, never overwrite another role's evidence. No secrets or live-user data in fixtures. Use Luna for requested future research subagents unless the user changes that preference.
+
+## Subagent task execution and validation gate
+
+When executing any task or parallel tasks, follow the subagent branching workflow:
+1. **Criteria Definition:** Define clear, pre-established evaluation criteria scored out of 10.0 with an explicit passing threshold (>= 8.5 / 10.0) before starting implementation.
+2. **Parallel Task Branching:** When multiple independent tasks are ready (e.g. FND-03 and FND-04), launch dedicated subagent branches in parallel for each task stream.
+3. **Implementation & Assembly:** Implementation subagents execute their respective tasks, produce verifiable code, migrations, and test suites, and report back.
+4. **Independent Validation Auditor:** Launch a dedicated validation auditor subagent for each task to evaluate the completed work against the pre-established criteria, compute a numerical rating, and verify that all tests pass.
+5. **Quality Gate:** If a task scores below 8.5 / 10.0, it must be reworked and re-audited until it scores >= 8.5 before concluding the work, publishing role handoffs, and updating checklist records.
+

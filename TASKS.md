@@ -15,8 +15,8 @@ Updated 2026-10-26. Product scope v0.3 governs. [98-feature checklist](docs/FEAT
 
 - [x] FND-01 — Backend: build minimal local Node/Worker API harness plus real local PostgreSQL connection/transaction rollback test. Coordinate root workspace tooling; synthetic data only, no cloud resources or deployment. This is the first implementation task, not all 98 features at once.
 - [x] FND-02 — Architect + Backend: shared validated API v0.3 schemas/OpenAPI/fixtures, including sibling-project privacy and Owner/Manager limits. Verified and audited at 9.8/10.0.
-- [ ] FND-03 — Backend: selected PostgreSQL migrations, project_memberships/invitations and new lifecycle/import/image/audit models; historical SQLite is not selected schema evidence.
-- [ ] FND-04 — Backend: safe errors, correlation/timing, bounded requests/deadlines and local test setup.
+- [x] FND-03 — Backend: selected PostgreSQL migrations, project_memberships/invitations and new lifecycle/import/image/audit models. Verified with 7 integration tests in apps/api/test/migrations.test.ts; audited at 10.0/10.0.
+- [x] FND-04 — Backend: safe errors, correlation/timing, bounded requests/deadlines and local test setup. Verified with 20 unit tests across 9 suites in apps/api/test/observability.test.ts; audited at 10.0/10.0.
 
 For FND-01 only, Architect authorizes Backend to add the minimal root package/workspace/TypeScript/test configuration needed by apps/api, since no UI package exists yet. No other chat edits these implementation files during this task. Shared contracts remain coordinated in FND-02. If local PostgreSQL/Docker is unavailable, record the specific prerequisite and complete unaffected setup; do not substitute mocks and call database verification complete.
 

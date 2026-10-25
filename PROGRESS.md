@@ -4,7 +4,9 @@ Updated 2026-10-26 (Asia/Kolkata). Current phase: feature specification v0.3 com
 
 ## Done and observed
 
-- User reports Cloudflare OAuth approval/setup complete. Current chat tool inventory still does not expose a dedicated Cloudflare account MCP, so account-level access is not independently verified. Do not ask the user to repeat approval merely because this running session has not loaded tools.
+- Task FND-04 (Failure and observability baseline) implemented and verified locally: correlation middleware (`x-request-id` propagation/generation), `Server-Timing: app;dur=<ms>` duration measurement, 1 MiB body limit (`413 PAYLOAD_TOO_LARGE`), 5000ms deadline timeout (`504 DEADLINE_EXCEEDED`), central error handler with safe 500 masking preventing database/credential leaks, and canonical envelope mapping. 20/20 unit tests passed; full test suite of 74 tests across api and contracts passing cleanly.
+- Updated `docs/FEATURE_CHECKLIST.md` via `python3 scripts/render_feature_checklist.py`; Backend verified features count increased to 3 (FND-01, FND-02, FND-04).
+
 - Expanded RULES.md and AGENTS.md so every Flowboard chat teaches system-design decisions in plain English with relevant examples, benefits, drawbacks and alternatives. Added modular-monolith/microservices explanation and clarified that a monolith can run multiple instances.
 
 - Flowboard Architect, Flowboard Backend and Flowboard UI chats exist. Backend and UI initial turns were read-only.
@@ -56,3 +58,8 @@ First Backend handoff: FND-01 only, a minimal local Node/Worker/PostgreSQL compa
 Final baseline checks passed: 98 unique IDs and acyclic dependency graph, local document links, original reference checksums and XLSX structural/export/reimport/visual inspection. See docs/evidence/feature-baseline-v0.3.md. Backend reports local Docker available and is actively preparing real PostgreSQL harness tests; feature completion is not yet claimed here. UI acknowledged the handoff and its review gaps are now explicit v0.3 contract shapes.
 
 FND-02 completed and verified: `@flowboard/contracts` package created with modular Zod schemas and derived TypeScript types for all 36 API v0.3 routes, OpenAPI 3.1 catalog, Gregorian date-only bounds, non-overlapping UTF-16 mention spans, 24h trash cutoff models, Excel import preview models, and complete multi-tenant test fixtures covering sibling-project isolation. Strict typecheck passed (0 errors); 41 unit tests passed; audited and scored 9.8/10.0 by validation subagent. Feature checklist regenerated (2 of 98 backend verified). Git repository initialized and pushed to origin main.
+
+FND-03 and FND-04 completed and verified in parallel:
+- FND-03 (PostgreSQL schema and migrations): implemented `database/migrations/0001_initial.sql` covering all 21 entities with explicit foreign keys, `ON DELETE RESTRICT` on active columns, `ON DELETE CASCADE` on child items, and performance indexes. Implemented TypeScript runner with advisory locking (`pg_advisory_lock`) and transaction wrapping. All 7 integration tests passed; audited and certified at 10.0/10.0.
+- FND-04 (Failure and observability baseline): implemented request correlation (`x-request-id`), execution duration tracking (`Server-Timing`), body size limits (1 MiB), deadline timeouts (5,000ms), structured error formatting, and safe 500 credential/SQL masking. All 20 unit tests across 9 suites passed; audited and certified at 10.0/10.0.
+- Checklist regenerated: 4 of 98 features backend verified. Entire foundation stage (S0: FND-01 through FND-04) is complete.
