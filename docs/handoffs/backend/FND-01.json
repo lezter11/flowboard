@@ -1,0 +1,20 @@
+{
+  "status": "verified",
+  "summary": "FND-01 local foundation only: pinned strict TypeScript Hono Node/Worker entry points, disposable PostgreSQL 17.11, actual pg/Kysely query and rollback plus committed positive control in both Node and local workerd. Clean lockfile installation and npm run check passed: five tests, none skipped.",
+  "api_contract": "docs/API.md v0.3 remains unchanged; local infrastructure-only /health/live and /health/ready shapes, safe 503 and unknown-route 404 are documented in docs/evidence/FND-01-local.md. Product schemas are FND-02.",
+  "limitations": [
+    "Local verification only; no hosted Hyperdrive pooling/cache, Neon/TLS, Cloudflare deployment, CPU or latency benchmark.",
+    "No authentication, project RBAC, product schema/migrations or feature handlers; health routes carry no private product data.",
+    "PostgreSQL uses disposable memory-backed synthetic data; this is not durability, recovery or concurrency evidence.",
+    "Worker compatibility date pinned to installed workerd-supported 2026-10-19; test-only rollback entry point is excluded from the normal build.",
+    "No Git repository existed, so there is no commit revision; package lockfile hash and exact environment are recorded in the evidence document.",
+    "UI and integrated acceptance remain separately owned and unverified."
+  ],
+  "evidence": [{
+    "path": "docs/evidence/FND-01-local.md",
+    "command": "npm ci --cache /private/tmp/flowboard-npm-cache --no-audit --no-fund; docker compose -f database/compose.local.yaml up -d --wait; npm run check",
+    "result": "Clean install passed; PostgreSQL healthy; strict typecheck and Node/Worker local dry-run builds passed; 5 tests passed, 0 failed, 0 skipped. Rollback result on both runtimes: seenInside=1, afterRollback=0, afterCommit=1. Compiled Node readiness smoke check also passed; public table count remained zero.",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, Docker Desktop 4.83.0/engine 29.6.2, PostgreSQL 17.11 pinned official image digest; Hono 4.13.14, Kysely 0.29.7, pg 8.23.1, Wrangler 4.152.0/workerd 1.20261019.1. Synthetic session-local temporary rows only."
+  }],
+  "next_dependency_ready_task": "FND-02 with Architect: validated API v0.3 schemas, generated OpenAPI and project-isolation fixtures."
+}

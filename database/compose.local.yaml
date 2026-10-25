@@ -1,0 +1,20 @@
+name: flowboard-fnd01
+services:
+  postgres:
+    image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    environment:
+      POSTGRES_USER: flowboard_harness
+      POSTGRES_PASSWORD: flowboard_local_only
+      POSTGRES_DB: flowboard_harness
+    ports:
+      - "127.0.0.1:55432:5432"
+    # Disposable synthetic database; stopping/removing it loses all data.
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U flowboard_harness -d flowboard_harness"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+    mem_limit: 256m
+    cpus: 1

@@ -1,0 +1,23 @@
+{
+  "name": "flowboard",
+  "private": true,
+  "type": "module",
+  "workspaces": ["apps/api"],
+  "engines": { "node": ">=24.15.0 <25" },
+  "packageManager": "npm@11.12.1",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "npm run build --workspace @flowboard/api",
+    "test": "npm run test --workspace @flowboard/api",
+    "dev:api": "npm run dev:node --workspace @flowboard/api",
+    "dev:worker": "npm run dev:worker --workspace @flowboard/api",
+    "db:up": "docker compose -f database/compose.local.yaml up -d --wait",
+    "db:down": "docker compose -f database/compose.local.yaml down",
+    "check": "npm run typecheck && npm run build && npm test"
+  },
+  "devDependencies": {
+    "@types/node": "24.19.2",
+    "@types/pg": "8.23.1",
+    "typescript": "7.0.2"
+  }
+}

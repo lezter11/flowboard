@@ -1,0 +1,99 @@
+id	stage	area	feature	acceptance	depends_on	ui_required
+FND-01	S0	Foundation	Local backend harness	Pinned Node/Worker entry points and local PostgreSQL query/rollback run reproducibly; no cloud account required.		no
+FND-02	S0	Foundation	Shared API schemas and fixtures	Validated request/response schemas and generated OpenAPI agree; fixtures include two projects with distinct members.	FND-01	no
+FND-03	S0	Foundation	PostgreSQL schema and migrations	Clean install and upgrade enforce workspace/project ancestry, versions, uniqueness and receipt/outbox relationships.	FND-01	no
+FND-04	S0	Foundation	Failure and observability baseline	Request IDs, safe errors, deadlines, rate/body limits and structured timing work without exposing secrets.	FND-01	no
+ACC-01	S1	Account	Sign in and session	Chosen OAuth login creates one identity/session; unsupported callbacks fail closed and private data needs a valid session.	FND-02,FND-03	yes
+ACC-02	S1	Account	Sign out and expired session	Logout revokes server session; expired tabs retain safe drafts but cannot keep reading or writing protected data.	ACC-01	yes
+ACC-03	S1	Account	Profile and historical identity	Name/avatar updates display correctly; historical actors remain attributable after grant removal without leaking private account fields.	ACC-01	yes
+ACC-04	S1	Account	Create workspace and owner	Account creates a workspace and exactly one owner atomically; a lost response replay does not create a second workspace.	ACC-01	yes
+ACC-05	S1	Account	Workspace preferences	Owner sets workspace name/timezone; date-only deadlines retain their selected day and shared overdue semantics.	ACC-04	yes
+ACC-06	S1	Account	Owned and invited context switcher	Show only owned containers and explicitly granted projects; being owner elsewhere grants no extra rights here.	ACC-04,RBAC-01	yes
+ACC-07	S6	Account	Owner transfer	Only current owner transfers to an eligible account atomically; no interval has zero/multiple owners and no stale grant escalates.	ACC-04,RBAC-01	yes
+PRJ-01	S1	Projects	Create multiple projects	Owner creates named projects inside their workspace; each has independent membership and boards.	ACC-04	yes
+PRJ-02	S1	Projects	Project list and navigation	Owned projects and invited projects are paginated and scoped; hidden projects leak no name, count or existence.	PRJ-01,RBAC-01	yes
+PRJ-03	S1	Projects	Project settings	Owner/manager updates project name/description using expected version; managers cannot alter workspace ownership.	PRJ-01,RBAC-01	yes
+PRJ-04	S6	Projects	Archive and reopen project	Owner archives project as read-only and can reopen; data/history remain, trash deadlines continue and new imports/writes stop.	PRJ-01,DEL-01	yes
+PRJ-05	S1	Projects	Project people directory	Owner/manager sees authorized project members; picker exposes only eligible identities and never enumerates unrelated projects.	RBAC-01	yes
+INV-01	S1	Invitations	Project invitation	Owner invites manager/member/viewer; project manager invites member/viewer only; invitation names the exact project and inherited boards.	PRJ-01,RBAC-01	yes
+INV-02	S1	Invitations	Invitation delivery	Durable invite delivery uses a configured email adapter; failure is visible and retryable without logging the secret link.	INV-01,FND-04	yes
+INV-03	S1	Invitations	Accept matching invitation	Signed-in verified email must match unexpired, hashed, single-use project token; wrong email grants nothing.	INV-01,ACC-01	yes
+INV-04	S1	Invitations	Resend and revoke invitation	Authorized resend rotates token; revoke invalidates it; races create at most one grant and invitation outcome.	INV-01	yes
+INV-05	S1	Invitations	Pending invitations list	Owner sees all own projects; manager sees own project invitations; expired/accepted/revoked states and next actions are clear.	INV-01	yes
+INV-06	S1	Invitations	Change member roles	Owner appoints/removes managers; manager changes member/viewer roles only and cannot promote self or a peer manager.	INV-03,RBAC-01	yes
+INV-07	S1	Invitations	Remove project access	Owner removes any grant; manager removes member/viewer in own project; next API/file/import/replay access fails after revocation.	INV-03,RBAC-01	yes
+INV-08	S1	Invitations	Leave a project	Invitee can leave their own grant with confirmation; owner cannot leave ownership and historical authorship remains.	INV-03	yes
+RBAC-01	S1	Access	Owner manager member viewer matrix	Every endpoint derives active ownership/project grant from session; manager authority is project-scoped and member/viewer cannot administer.	FND-02,FND-03	no
+RBAC-02	S1	Access	Project ancestry enforcement	Guessing sibling board/card/comment/file/import IDs returns a consistent private not-found response with no metadata leakage.	RBAC-01	no
+RBAC-03	S1	Access	Revocation versus writes	Grant/owner lock protocol serializes a write against role removal; no write commits after a preceding revocation wins.	RBAC-01	no
+RBAC-04	S1	Access	Picker and notification privacy	Search, people, assignees, mentions, inbox and historical identity responses expose only the actor's authorized project context.	RBAC-01	no
+RBAC-05	S1	Access	Project inheritance disclosure	Board invitation action explicitly grants project access to all its boards; no hidden board-only permission exception exists.	INV-01	yes
+BRD-01	S2	Boards	Create board	Owner/manager creates a board with default columns atomically inside an authorized project.	PRJ-01,RBAC-01	yes
+BRD-02	S2	Boards	Board list and settings	List only accessible project boards; owner/manager renames a board without breaking card IDs/links.	BRD-01	yes
+BRD-03	S2	Boards	Bounded consistent board snapshot	Metadata, counts and first column pages share one snapshot; caps/cursors are explicit and all filters count beyond the visible page.	BRD-01,FND-02	yes
+BRD-04	S2	Boards	Add and rename columns	Owner/manager configures unique normalized names, colors and todo/active/done categories with expected board version.	BRD-01	yes
+BRD-05	S2	Boards	Reorder columns	Pointer and click/tap/keyboard ordering persist atomically; missing/duplicate/foreign IDs and stale revisions fail clearly.	BRD-04	yes
+BRD-06	S2	Boards	Remove empty column	Owner/manager cannot remove final column or any column referenced by active/restorable cards; no silent card deletion/move occurs.	BRD-04,FND-03	yes
+BRD-07	S2	Boards	Card pagination and column counts	Load more retains canonical order without duplicates; empty column and empty filtered column are distinct and stale cursors refresh.	BRD-03	yes
+BRD-08	S6	Boards	Archive and reopen board	Owner/manager makes board read-only or reopens it; no card is deleted and pending trash deadlines continue.	BRD-01,DEL-01	yes
+CRD-01	S2	Cards	Quick create card	Member/manager/owner creates title in an active authorized column; required field and retry failures retain draft and create once.	BRD-01,RBAC-01	yes
+CRD-02	S2	Cards	Compact card summary	Show title, priority, due date, assignees and accurate comment/image counts without loading full descriptions/history.	CRD-01	yes
+CRD-03	S2	Cards	Open detail dialog and deep link	Card link loads an authorized popup/drawer or direct-page view with focus restoration and recoverable missing/loading states.	CRD-01	yes
+CRD-04	S2	Cards	Edit title and description	Explicit Save validates plain text and expected card version; Cancel/discard never overwrites saved state.	CRD-03	yes
+CRD-05	S2	Cards	Priority and due date	Five priority values and optional date-only deadline save/reset consistently; invalid calendar dates fail and overdue excludes done cards.	CRD-04	yes
+CRD-06	S2	Cards	Assign project teammates	Assign zero/multiple active eligible project users or owner; removed identities stay labeled historical and cannot be newly assigned.	CRD-04,PRJ-05	yes
+CRD-07	S2	Cards	Drag across and within columns	Server validates neighbors and versions, changes rank/history atomically and returns canonical position; failure restores server order.	CRD-01,BRD-03	yes
+CRD-08	S2	Cards	Click tap and keyboard Move	Visible Move chooses column plus first/last/before/after via bounded placement read; equivalent outcome without dragging.	CRD-07	yes
+CRD-09	S2	Cards	Filtered movement	Explain disabled ambiguous drag while filters apply; Move uses full destination order rather than renumbering visible cards only.	CRD-08	yes
+CRD-10	S2	Cards	Concurrent edits and move conflicts	Stale field/order version returns 409 without partial side effects; preserve draft and allow deliberate refresh/reapply.	CRD-04,CRD-07	yes
+CRD-11	S2	Cards	Save pending errors and unsaved drafts	Save affects fields only; comment/upload actions are independent; retries keep command identity and closing protects unsaved work.	CRD-04	yes
+CRD-12	S6	Cards	Move undo	Undo is a new authorized versioned move; it succeeds once or explains conflict without overwriting intervening work.	CRD-07	yes
+COM-01	S3	Discussion	Comment read and pagination	Project readers see chronological comments with author displays; stable cursors do not expose other project content.	CRD-03,RBAC-01	yes
+COM-02	S3	Discussion	Post comment	Member/manager/owner posts plain text independently of card Save; atomic event/outbox/receipt and lost-response retry create one comment.	COM-01	yes
+COM-03	S3	Discussion	Mention project teammate	Accessible picker resolves active project identities; validated UTF-16 spans produce mentions and literal at-name text does not notify.	COM-02,PRJ-05	yes
+COM-04	S3	Discussion	Edit own comment	Author updates with expected version; edit activity persists and v1 edits do not resend mention notifications.	COM-02	yes
+COM-05	S3	Discussion	Delete and moderate comment	Author or owner/manager tombstones a comment, records action and hides body from normal reads; other members cannot moderate.	COM-02	yes
+COM-06	S3	Discussion	Independent comment drafts	Typing, mention selection and post error survive field saves/refetch; no comment posts accidentally through Enter in a picker.	COM-03	yes
+ATT-01	S4	Images	Image upload staging	Authorized editor requests bounded upload and sees progress/cancel; private staging cannot attach files across projects.	CRD-03,RBAC-01	yes
+ATT-02	S4	Images	Validate and finalize image	Accept validated PNG/JPEG/WebP bytes with size/dimension/count caps; reject SVG/HTML/spoofed MIME and finalize only after verification.	ATT-01	no
+ATT-03	S4	Images	Card image gallery	Finalized images show filename/size/thumbnail and preview; failed or pending upload is not shown as a saved attachment.	ATT-02	yes
+ATT-04	S4	Images	Private image delivery	Authenticated proxy checks current project access on every fetch; no public bucket/long-lived URL or project-revocation bypass.	ATT-02	no
+ATT-05	S4	Images	Remove attached image	Uploader or owner/manager removes image with confirmation/history; removed images are absent from active card and cleanup is retryable.	ATT-03	yes
+ATT-06	S4	Images	Orphan cleanup and storage limits	Expired uploads/unreferenced objects are cleaned safely; quotas fail visibly without breaking existing saved card fields.	ATT-02	no
+ATT-07	S4	Images	Attachment lifecycle in trash	Trashing card preserves finalized files until restore cutoff; restore recovers them and purge never destroys a successfully restored card's images.	ATT-03,DEL-01	no
+AUD-01	S3	Activity	Card activity timeline	Owner sees create, field change, assignment, move, comment and actor/server timestamp chronologically with stable pagination.	CRD-04,COM-02	yes
+AUD-02	S3	Activity	Field and movement history	Record safe before/after field values and from/to columns; historical name changes and removed people remain understandable.	AUD-01	no
+AUD-03	S3	Activity	Owner cross-project activity	Owner filters owned workspace activity by project/card/actor/action/date; invited users cannot access sibling-project audit data.	AUD-01	yes
+AUD-04	S3	Activity	Manager and member audit scopes	Manager sees project activity/access changes; member/viewer sees card activity only for granted project; workspace security log is owner-only.	AUD-01,RBAC-01	yes
+AUD-05	S4	Activity	Lifecycle import and image events	Trash/restore/purge/import/image events are traceable; no secret token or raw file appears in audit payloads.	AUD-01,DEL-01	no
+AUD-06	S3	Activity	Append-only history and redaction	No user edits audit facts; sensitive/deleted bodies are redacted under retention rules while actor/action/time facts persist.	AUD-01	no
+DEL-01	S4	Trash	Delete card with 24-hour recovery	Owner/manager confirms Delete, moves card to trash with server deletedAt/restoreUntil and immediately excludes it from active counts/search.	CRD-01,RBAC-01	yes
+DEL-02	S4	Trash	Project trash list	Owner/manager lists trashed cards with actor/deadline and restore action; member/viewer cannot browse trash.	DEL-01	yes
+DEL-03	S4	Trash	Restore before deadline	Owner/manager restores same ID/content/comments/finalized images strictly before server cutoff; no-op repeats do not extend deadline.	DEL-02	yes
+DEL-04	S4	Trash	Restore destination conflict	Original valid column/nearest surviving position is default; absent/read-only destination requires explicit authorized active target or reopening board.	DEL-03	yes
+DEL-05	S4	Trash	Expired restore denial	At or after deletedAt plus exactly 24 hours restore returns stable expired response even if cleanup has not run.	DEL-01	no
+DEL-06	S4	Trash	Purge and restore races	Conditional state/version and job fencing allow one winner; cleanup cannot purge restored data or files.	DEL-03	no
+DEL-07	S4	Trash	Content purge and audit retention	After cutoff remove recoverable content/files via retryable cleanup; retain minimal audit/duplicate tombstones with no deleted body.	DEL-06	no
+DEL-08	S4	Trash	Deleted card interaction guards	Trashed/expired cards reject edits/moves/comments/new uploads; UI explains disappearance while retaining safe unsent drafts.	DEL-01	yes
+IMP-01	S5	Excel import	Download Excel template	Versioned seven-column Cards template plus Instructions downloads without example rows in the import sheet.	BRD-01	yes
+IMP-02	S5	Excel import	Choose authorized import target	Owner/manager chooses one project/board and default column; upload cannot create projects/users/grants or override destination.	IMP-01,RBAC-01	yes
+IMP-03	S5	Excel import	Bounded literal workbook parsing	Accept supported XLSX only, enforce compressed/expanded/cell/row limits and reject formulas/macros/external package links without evaluating them.	IMP-02	no
+IMP-04	S5	Excel import	Map and validate template fields	Exact seven headers map shared card validators; status/date/email errors name row/field and no invalid value is silently guessed.	IMP-03,CRD-06	yes
+IMP-05	S5	Excel import	Preview new existing and conflict rows	Preview counts new/already-imported/conflicting/invalid rows, displays mapping and writes no cards; user corrects errors before confirming.	IMP-04	yes
+IMP-06	S5	Excel import	Explicit atomic confirmation	Bind preview to actor/target/digest/expiry; revalidate grant/columns/assignees and create all new rows in one bounded transaction or none.	IMP-05,FND-03	yes
+IMP-07	S5	Excel import	External ID and retry deduplication	Board-scoped text External ID preserves zeros; duplicate upload/race creates once, changed ID payload conflicts and deleted imports never resurrect silently.	IMP-06	no
+IMP-08	S5	Excel import	Date and multi-assignee conversion	Real 1900/1904 Excel dates or strict ISO map to date-only values; semicolon emails resolve active eligible project users only.	IMP-04	no
+IMP-09	S5	Excel import	Results and safe error download	Result links created cards and row outcomes; safe report cannot execute spreadsheet formulas or leak another project's data.	IMP-06	yes
+IMP-10	S5	Excel import	Cancel expire and clean preview	Cancel before commit/expiry cleans temporary content; once transaction begins show actual final result rather than promise cancellation.	IMP-05	yes
+IMP-11	S5	Excel import	Import provenance and activity	Import receipt links actor/batch/rows/created cards, while each card behaves like a normal card with a creation activity event.	IMP-06,AUD-01	yes
+NTF-01	S3	Notifications	Durable in-app mention inbox	One event/recipient notification appears after commit; no self-mention or duplicate logical delivery and no stale private preview leak.	COM-03	no
+NTF-02	S3	Notifications	Inbox read state and deep link	Actor opens accessible project/card and marks read; removed-access notifications are redacted/hidden and never reveal content.	NTF-01	yes
+NTF-03	S3	Notifications	Outbox retry and failed-work recovery	Lease/fenced consumer retries bounded jobs and quarantines failures; restart/duplicate handling does not lose accepted notification intent.	NTF-01,FND-04	no
+QRY-01	S2	Discovery	Project-scoped search	Title search returns authorized active cards only with pagination and safe historical people mapping.	BRD-03,RBAC-01	yes
+QRY-02	S2	Discovery	Assignee priority date column filters	Filters combine predictably, distinguish total/matching counts and exclude trash; no global project discovery through query parameters.	QRY-01	yes
+QRY-03	S2	Discovery	My assigned tasks	Show actor's assignments across only accessible projects, grouped by project and due state; removed access disappears on next request.	CRD-06,QRY-01	yes
+UX-01	S2	Experience	Empty loading failed and forbidden states	First project/empty board/no matches/loading/offline/validation/permission errors have accurate actions and preserve relevant drafts.	BRD-03	yes
+UX-02	S2	Experience	Accessible movement and dialog	Keyboard and click/tap complete all essential operations; focus, announcements, labels and color-independent cues are verified in browser.	CRD-08,CRD-03	yes
+UX-03	S2	Experience	Narrow viewport and long content	Board scroll and detail layout work at narrow width/zoom; long titles, many assignees and image/comment lists remain usable.	CRD-03	yes
+UX-04	S2	Experience	Refresh reconnect and safe polling	Pause hidden-tab polling, refresh on focus and reconcile versions; no optimistic duplicate/older response overwrites newer data.	BRD-03,CRD-10	yes
+UX-05	S6	Experience	Performance and full workflow acceptance	Representative Worker/Node warm/cold benchmarks, project isolation, exact restore boundary and repeated import pass documented gates.	IMP-06,DEL-06,ATT-04,UX-02	no

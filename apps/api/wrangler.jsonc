@@ -1,0 +1,14 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "flowboard-api-local",
+  "main": "src/runtime/worker.ts",
+  "compatibility_date": "2026-10-19",
+  "compatibility_flags": ["nodejs_compat"],
+  "dev": { "ip": "127.0.0.1", "port": 8787 },
+  "hyperdrive": [{
+    "binding": "HYPERDRIVE",
+    // Local-only placeholder: no Cloudflare resource has been provisioned.
+    "id": "00000000000000000000000000000000",
+    "localConnectionString": "postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55432/flowboard_harness"
+  }]
+}
