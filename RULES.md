@@ -60,9 +60,9 @@ Backend verifies each feature and writes docs/handoffs/backend/ID.json plus real
 ## Subagent task execution and validation gate
 
 When executing any task or parallel tasks, follow the subagent branching workflow:
-1. **Criteria Definition:** Define clear, pre-established evaluation criteria scored out of 10.0 with an explicit passing threshold (>= 8.5 / 10.0) before starting implementation.
+1. **Criteria Definition:** Follow [BACKEND_REVIEW_GATE.md](BACKEND_REVIEW_GATE.md). Define acceptance criteria before implementation. Backend closure requires an unrounded weighted score strictly greater than 8.5/10, every category minimum, no hard blockers and real passing evidence. Exactly 8.5 fails.
 2. **Parallel Task Branching:** When multiple independent tasks are ready (e.g. FND-03 and FND-04), launch dedicated subagent branches in parallel for each task stream.
 3. **Implementation & Assembly:** Implementation subagents execute their respective tasks, produce verifiable code, migrations, and test suites, and report back.
 4. **Independent Validation Auditor:** Launch a dedicated validation auditor subagent for each task to evaluate the completed work against the pre-established criteria, compute a numerical rating, and verify that all tests pass.
-5. **Quality Gate:** If a task scores below 8.5 / 10.0, it must be reworked and re-audited until it scores >= 8.5 before concluding the work, publishing role handoffs, and updating checklist records.
+5. **Quality Gate:** Fix failed acceptance and re-review a new immutable target. Keep every failed round. Stop automatic retries after three failures and escalate while keeping the task open. Backend handoffs require a valid independent `reviewPath`; run `scripts/check_backend_review.py` and regenerate the checklist. Historical scores alone do not pass. The procedural validator cannot prove an agent's identity or the truth of a test log; Architect must inspect independent evidence.
 

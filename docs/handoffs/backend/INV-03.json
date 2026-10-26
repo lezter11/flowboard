@@ -1,4 +1,5 @@
 {
+  "reviewPath": "docs/reviews/INV-03/221af067260b4d4117cdb5f543ab7eb4b7865a2110468b2bb851d72e1c008339-round-1.json",
   "status": "verified",
   "summary": "INV-03 Accept matching invitation: implemented POST /api/v1/invitations/accept validating incoming single-use token against SHA-256 hash in project_invitations under row-level FOR UPDATE lock. Enforces strict email match between authenticated session and invitation recipient (mismatch returns 403 EMAIL_MISMATCH without membership creation), handles expired tokens (transitioning status to expired and returning 400 INVITATION_EXPIRED), and atomically updates invitation status to accepted while upserting active project_memberships. All automated integration tests pass against local PostgreSQL.",
   "api_contract": "docs/API.md (POST /invitations/accept)",

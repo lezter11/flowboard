@@ -505,6 +505,340 @@ test('RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)', async (t) => {
     }
   });
 
+  await t.test('RBAC-03: Concurrency Probe 1: Mounted updateProjectSettings serializes with concurrent actor revocation', async () => {
+    // 1. Create a dedicated project and manager
+    const probeManager = await createDevUserAndSession('probe.manager@flowboard.example', 'Probe Manager', pool);
+    const probeManagerCookie = `flowboard_session=${probeManager.session.id}`;
+    const probeProjectId = 'prj_probe_concurrency_1';
+
+    const clientSetup = await pool.connect();
+    try {
+      await clientSetup.query(
+        `INSERT INTO projects (id, workspace_id, name, description, archived, version, created_at, updated_at)
+         VALUES ($1, $2, 'Original Project Name', 'Before concurrent edit', FALSE, 1, NOW(), NOW())`,
+        [probeProjectId, wsMainId],
+      );
+      await clientSetup.query(
+        `INSERT INTO project_memberships (id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at)
+         VALUES ('pm_probe_mgr', $1, $2, $3, 'manager', 'active', 1, NOW(), NOW())`,
+        [probeProjectId, wsMainId, probeManager.user.id],
+      );
+    } finally {
+      clientSetup.release();
+    }
+
+    // 2. Set up query interception on pool.connect to pause Connection 1 after acquiring the FOR SHARE grant lock
+    let enteredSignal: () => void = () => {};
+    const entered = new Promise<void>((resolve) => {
+      enteredSignal = resolve;
+    });
+    let releaseSignal: () => void = () => {};
+    const release = new Promise<void>((resolve) => {
+      releaseSignal = resolve;
+    });
+
+    const originalConnect = pool.connect.bind(pool);
+    let armed = true;
+
+    pool.connect = ((...args: any[]) => {
+      if (typeof args[0] === 'function') {
+        return (originalConnect as any)(...args);
+      }
+      return (async () => {
+        const client = await (originalConnect as any)(...args);
+        const originalQuery = client.query.bind(client);
+        const originalRelease = client.release.bind(client);
+
+        client.query = async (...qArgs: any[]) => {
+          const queryText = typeof qArgs[0] === 'string' ? qArgs[0] : qArgs[0]?.text ?? '';
+          const res = await (originalQuery as any)(...qArgs);
+
+          // Intercept right after acquiring FOR SHARE lock on project_memberships
+          if (armed && queryText.includes('FOR SHARE') && qArgs[1]?.[1] === probeManager.user.id) {
+            armed = false;
+            enteredSignal();
+            await release;
+          }
+          return res;
+        };
+
+        client.release = (...rArgs: any[]) => {
+          client.query = originalQuery;
+          return originalRelease(...rArgs);
+        };
+
+        return client;
+      })();
+    }) as any;
+
+    try {
+      // 3. Connection 1: probeManager calls mounted PATCH /api/v1/projects/:projectId
+      const updatePromise = app.request(`/api/v1/projects/${probeProjectId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: probeManagerCookie,
+          'Idempotency-Key': 'key_probe_concurrency_patch_01',
+        },
+        body: JSON.stringify({
+          name: 'Updated By Probe Manager',
+          expectedVersion: 1,
+        }),
+      });
+
+      // Wait until Connection 1 has acquired FOR SHARE lock and is waiting on release
+      await entered;
+
+      // 4. Connection 2: Owner attempts to remove probeManager's membership via mounted DELETE
+      // Because Connection 1 holds FOR SHARE lock, Connection 2's FOR UPDATE row lock MUST block
+      let removalFinished = false;
+      const removalPromise = Promise.resolve(
+        app.request(`/api/v1/projects/${probeProjectId}/members/${probeManager.user.id}`, {
+          method: 'DELETE',
+          headers: {
+            Cookie: ownerCookie,
+            'Idempotency-Key': 'key_probe_concurrency_del_owner',
+          },
+        }),
+      ).then((res) => {
+        removalFinished = true;
+        return res;
+      });
+
+      // Wait 50ms and assert that Connection 2 has NOT finished (it is blocked in PostgreSQL)
+      await new Promise((resolve) => setTimeout(resolve, 50));
+      assert.equal(removalFinished, false, 'Owner removal DELETE must block while writer holds FOR SHARE grant lock');
+
+      // 5. Release Connection 1 so update completes and commits
+      releaseSignal();
+
+      // Connection 1 finishes with 200 OK
+      const updateRes = await updatePromise;
+      assert.equal(updateRes.status, 200);
+      const updateBody = await updateRes.json();
+      assert.equal(updateBody.data.name, 'Updated By Probe Manager');
+
+      // Now Connection 2 unblocks and finishes with 200 OK
+      const removalRes = await removalPromise;
+      assert.equal(removalRes.status, 200);
+      assert.equal(removalFinished, true);
+
+      // 6. Direct DB verification:
+      // Project name is updated to 'Updated By Probe Manager'
+      // Membership status is now 'removed'
+      const clientVerify = await pool.connect();
+      try {
+        const prjCheck = await clientVerify.query<{ name: string; version: number }>(
+          'SELECT name, version FROM projects WHERE id = $1',
+          [probeProjectId],
+        );
+        assert.equal(prjCheck.rows[0]?.name, 'Updated By Probe Manager');
+        assert.equal(prjCheck.rows[0]?.version, 2);
+
+        const memCheck = await clientVerify.query<{ status: string }>(
+          'SELECT status FROM project_memberships WHERE project_id = $1 AND user_id = $2',
+          [probeProjectId, probeManager.user.id],
+        );
+        assert.equal(memCheck.rows[0]?.status, 'removed');
+      } finally {
+        clientVerify.release();
+      }
+
+      // 7. Verify subsequent writes from probeManager are rejected with 404 NOT_FOUND
+      const subsequentUpdate = await app.request(`/api/v1/projects/${probeProjectId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: probeManagerCookie,
+          'Idempotency-Key': 'key_probe_concurrency_patch_subsequent',
+        },
+        body: JSON.stringify({
+          name: 'Stale Attempt After Removal',
+          expectedVersion: 2,
+        }),
+      });
+      assert.equal(subsequentUpdate.status, 404);
+      const subBody = await subsequentUpdate.json();
+      assert.equal(subBody.error.code, 'NOT_FOUND');
+    } finally {
+      pool.connect = originalConnect;
+    }
+  });
+
+  await t.test('RBAC-03: Concurrency Probe 2: Manager starts removeProjectMember while Owner concurrently promotes target; deletion rejected with 403 FORBIDDEN', async () => {
+    // 1. Create a dedicated project, manager, and member target
+    const probeManager2 = await createDevUserAndSession('probe.mgr2@flowboard.example', 'Probe Manager 2', pool);
+    const probeManager2Cookie = `flowboard_session=${probeManager2.session.id}`;
+
+    const probeTargetMember = await createDevUserAndSession('probe.target@flowboard.example', 'Probe Target Member', pool);
+    const probeProjectId2 = 'prj_probe_concurrency_2';
+
+    const clientSetup = await pool.connect();
+    try {
+      await clientSetup.query(
+        `INSERT INTO projects (id, workspace_id, name, description, archived, version, created_at, updated_at)
+         VALUES ($1, $2, 'Probe Target Project', 'Target role test', FALSE, 1, NOW(), NOW())`,
+        [probeProjectId2, wsMainId],
+      );
+      await clientSetup.query(
+        `INSERT INTO project_memberships (id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at)
+         VALUES ('pm_probe_mgr2', $1, $2, $3, 'manager', 'active', 1, NOW(), NOW()),
+                ('pm_probe_target', $1, $2, $4, 'member', 'active', 1, NOW(), NOW())`,
+        [probeProjectId2, wsMainId, probeManager2.user.id, probeTargetMember.user.id],
+      );
+    } finally {
+      clientSetup.release();
+    }
+
+    // 2. Scenario 2A: Owner promotes member to manager and commits. Manager then calls DELETE -> rejected with 403
+    const promoteRes = await app.request(`/api/v1/projects/${probeProjectId2}/members/${probeTargetMember.user.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: ownerCookie,
+        'Idempotency-Key': 'key_probe_promote_target_mgr',
+      },
+      body: JSON.stringify({
+        role: 'manager',
+        status: 'active',
+        expectedVersion: 1,
+      }),
+    });
+    assert.equal(promoteRes.status, 200);
+
+    const deleteAfterPromotionRes = await app.request(`/api/v1/projects/${probeProjectId2}/members/${probeTargetMember.user.id}`, {
+      method: 'DELETE',
+      headers: {
+        Cookie: probeManager2Cookie,
+        'Idempotency-Key': 'key_probe_del_after_prom_denied',
+      },
+    });
+    assert.equal(deleteAfterPromotionRes.status, 403);
+    const delBody = await deleteAfterPromotionRes.json();
+    assert.equal(delBody.error.code, 'FORBIDDEN');
+    assert.match(delBody.error.message, /Project managers cannot modify other managers/);
+
+    // 3. Scenario 2B: Interleaved race condition test:
+    // Reset target back to member
+    let targetVersion = 3;
+    const clientReset = await pool.connect();
+    try {
+      const resetRes = await clientReset.query<{ version: number }>(
+        `UPDATE project_memberships SET role = 'member', status = 'active', version = version + 1 WHERE project_id = $1 AND user_id = $2 RETURNING version`,
+        [probeProjectId2, probeTargetMember.user.id],
+      );
+      targetVersion = resetRes.rows[0]!.version;
+    } finally {
+      clientReset.release();
+    }
+
+    // Manager starts DELETE. We pause Manager's transaction right after acquiring their grant lock,
+    // before acquiring the target row lock.
+    let enteredSignal: () => void = () => {};
+    const entered = new Promise<void>((resolve) => {
+      enteredSignal = resolve;
+    });
+    let releaseSignal: () => void = () => {};
+    const release = new Promise<void>((resolve) => {
+      releaseSignal = resolve;
+    });
+
+    const originalConnect = pool.connect.bind(pool);
+    let armed = true;
+
+    pool.connect = ((...args: any[]) => {
+      if (typeof args[0] === 'function') {
+        return (originalConnect as any)(...args);
+      }
+      return (async () => {
+        const client = await (originalConnect as any)(...args);
+        const originalQuery = client.query.bind(client);
+        const originalRelease = client.release.bind(client);
+
+        client.query = async (...qArgs: any[]) => {
+          const queryText = typeof qArgs[0] === 'string' ? qArgs[0] : qArgs[0]?.text ?? '';
+          const res = await (originalQuery as any)(...qArgs);
+
+          // Pause right after acquiring FOR SHARE lock on manager's membership grant
+          if (
+            armed &&
+            queryText.includes('FOR SHARE') &&
+            qArgs[1]?.[1] === probeManager2.user.id
+          ) {
+            armed = false;
+            enteredSignal();
+            await release;
+          }
+          return res;
+        };
+
+        client.release = (...rArgs: any[]) => {
+          client.query = originalQuery;
+          return originalRelease(...rArgs);
+        };
+
+        return client;
+      })();
+    }) as any;
+
+    try {
+      // Manager starts DELETE on Connection 1
+      const managerDeletePromise = app.request(`/api/v1/projects/${probeProjectId2}/members/${probeTargetMember.user.id}`, {
+        method: 'DELETE',
+        headers: {
+          Cookie: probeManager2Cookie,
+          'Idempotency-Key': 'key_probe_del_target_race_mgr',
+        },
+      });
+
+      // Wait until Manager has started DELETE and acquired their grant lock
+      await entered;
+
+      // In parallel on Connection 2, Owner promotes target to manager via mounted handler:
+      const ownerPromoteRes = await app.request(
+        `/api/v1/projects/${probeProjectId2}/members/${probeTargetMember.user.id}`,
+        {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+            Cookie: ownerCookie,
+            'Idempotency-Key': 'key_probe_promote_target_race_owner',
+          },
+          body: JSON.stringify({
+            role: 'manager',
+            status: 'active',
+            expectedVersion: targetVersion,
+          }),
+        },
+      );
+      assert.equal(ownerPromoteRes.status, 200);
+
+      // Resume Manager's DELETE
+      releaseSignal();
+
+      // Manager's DELETE must fail with 403 FORBIDDEN (predicate role IN ('member', 'viewer') protects row)
+      const managerDeleteRes = await managerDeletePromise;
+      assert.equal(managerDeleteRes.status, 403);
+      const resBody = await managerDeleteRes.json();
+      assert.equal(resBody.error.code, 'FORBIDDEN');
+
+      // Verify final target membership in database: role is 'manager', status is 'active' (NOT removed)
+      const clientVerify = await pool.connect();
+      try {
+        const targetCheck = await clientVerify.query<{ role: string; status: string }>(
+          'SELECT role, status FROM project_memberships WHERE project_id = $1 AND user_id = $2',
+          [probeProjectId2, probeTargetMember.user.id],
+        );
+        assert.equal(targetCheck.rows[0]?.role, 'manager');
+        assert.equal(targetCheck.rows[0]?.status, 'active');
+      } finally {
+        clientVerify.release();
+      }
+    } finally {
+      pool.connect = originalConnect;
+    }
+  });
+
   // ==========================================================================
   // RBAC-04: Picker and Notification Privacy Tests
   // ==========================================================================

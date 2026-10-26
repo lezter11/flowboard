@@ -1,5 +1,17 @@
 # Flowboard ordered tasks
 
+## Audit hold — 2026-10-26
+
+The backend at `a7153456294b166f2c0c1684d6b257a6f35caa76` fails independent acceptance. Preserve older implementation claims as history; they do not authorize new UI integration or deployment. Follow BACKEND_REVIEW_GATE.md and docs/reviews/README.md. Historical handoffs need independent review before reapproval.
+
+- [ ] R1: Remove unconditional email-only session issuance from the normal application; choose and verify real identity. Test actual mounted routes and claimed runtimes.
+- [x] R2: Prevent pending invitations from restoring deliberately removed access; test self-invites, existing members and fresh authorized reinvites.
+- [ ] R3: Serialize actual protected writes with actor-grant revocation and target-role changes; test concurrent PostgreSQL requests through mounted handlers.
+- [x] R4: Inject one coherent DB dependency into Node/Worker product routes, health checks and shutdown; test authenticated Worker product routes.
+- [x] R5: Reconcile mandatory idempotency, invitation response schemas, logout status, receipt expiry/token copies and bounded lists with the shared API contract. Preserve requirements unless Architect records a deliberate change.
+- [ ] R6: Strengthen PostgreSQL ancestry/owner constraints and migration failure/concurrency evidence; distinguish dormant table design from implemented features.
+- [ ] R7: Re-review affected features with immutable manifests, passing evidence and independent records; then resume Backend → UI → integration one feature at a time.
+
 Updated 2026-10-26. Product scope v0.3 governs. [98-feature checklist](docs/FEATURE_CHECKLIST.md), [detailed flows](docs/FEATURE_SPEC.md), [import rules](docs/IMPORT_SPEC.md), [API](docs/API.md) and [handoff rules](docs/handoffs/README.md) are required reading.
 
 ## Planning completed

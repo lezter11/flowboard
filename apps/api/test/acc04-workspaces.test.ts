@@ -5,6 +5,7 @@ import { createApp } from '../src/http/app.ts';
 import { getPool, closePool } from '../src/adapters/postgres.ts';
 import { createSession } from '../src/adapters/session.ts';
 import { workspaceSchema, workspaceListResponseSchema } from '@flowboard/contracts';
+import { saveReceipt } from '../src/adapters/idempotency.ts';
 
 test('ACC-04: Create workspace and owner & Idempotency Replay Suite', async (t) => {
   const pool = getPool();
@@ -228,5 +229,148 @@ test('ACC-04: Create workspace and owner & Idempotency Replay Suite', async (t) 
     assert.equal(parsed.data[0]?.name, 'Acme Global');
     assert.equal(parsed.data[0]?.ownerId, aliceUserId);
     assert.equal(parsed.nextCursor, null);
+  });
+
+  await t.test('8. Duplicate-key concurrency: parallel identical HTTP requests succeed without 500 error', async () => {
+    const concurrentKey = 'idem_key_ws_concurrent_01_test';
+    const payload = JSON.stringify({ name: 'Acme Concurrent', timezone: 'UTC' });
+
+    // Fire two identical requests in parallel
+    const [resA, resB] = await Promise.all([
+      app.request('/api/v1/workspaces', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: aliceCookie,
+          'Idempotency-Key': concurrentKey,
+        },
+        body: payload,
+      }),
+      app.request('/api/v1/workspaces', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: aliceCookie,
+          'Idempotency-Key': concurrentKey,
+        },
+        body: payload,
+      }),
+    ]);
+
+    // Both must be 201 Created (one normal, one replayed)
+    assert.equal(resA.status, 201);
+    assert.equal(resB.status, 201);
+
+    const bodyA = await resA.json();
+    const bodyB = await resB.json();
+
+    // Verify same workspace id
+    assert.equal(bodyA.data.id, bodyB.data.id);
+    assert.equal(bodyA.data.name, 'Acme Concurrent');
+    assert.equal(bodyB.data.name, 'Acme Concurrent');
+
+    // Exactly one replayed = false and one replayed = true
+    const replayedValues = [bodyA.replayed, bodyB.replayed].sort();
+    assert.deepEqual(replayedValues, [false, true]);
+  });
+
+  await t.test('9. Duplicate-key concurrency inside saveReceipt: gracefully re-reads winner without 500 error', async () => {
+    const parallelKey = 'idem_key_ws_save_collision_test';
+    const methodPath = '/api/v1/workspaces';
+    const body = { name: 'Direct Winner Test', timezone: 'UTC' };
+    const responsePayload = { data: { id: 'ws_winner_direct', name: 'Direct Winner Test' } };
+
+    const client1 = await pool.connect();
+    const client2 = await pool.connect();
+
+    try {
+      await client1.query('BEGIN');
+      await client2.query('BEGIN');
+
+      // Client 1 saves receipt and commits first
+      const save1 = await saveReceipt(
+        client1,
+        aliceUserId,
+        'actor',
+        aliceUserId,
+        parallelKey,
+        methodPath,
+        body,
+        201,
+        responsePayload,
+      );
+      assert.equal(save1, null); // winner inserted successfully
+      await client1.query('COMMIT');
+
+      // Client 2 attempts to save identical receipt in parallel (simulating race collision)
+      const save2 = await saveReceipt(
+        client2,
+        aliceUserId,
+        'actor',
+        aliceUserId,
+        parallelKey,
+        methodPath,
+        body,
+        201,
+        responsePayload,
+      );
+      await client2.query('COMMIT');
+
+      // Client 2 handles conflict gracefully and re-reads winner receipt
+      assert.ok(save2);
+      assert.equal(save2.replayed, true);
+      assert.equal(save2.statusCode, 201);
+      assert.deepEqual(save2.responseBody, responsePayload);
+    } finally {
+      client1.release();
+      client2.release();
+    }
+  });
+
+  await t.test('10. Expired idempotency receipt: key with expired TTL can be safely reused as new request', async () => {
+    const expiredKey = 'idem_key_ws_expired_reuse_test';
+    const client = await pool.connect();
+
+    try {
+      // 1. Insert an expired receipt (expired 1 hour ago)
+      await client.query(
+        `INSERT INTO idempotency_receipts (
+          id, actor_id, scope_type, scope_id, idempotency_key,
+          method_path_hash, body_hash, status_code, response_body,
+          expires_at, created_at
+        ) VALUES (
+          'rcp_expired_test_01', $1, 'actor', $1, $2,
+          'old_path_hash', 'old_body_hash', 201, '{"data":{"id":"ws_old"}}',
+          NOW() - INTERVAL '1 hour', NOW() - INTERVAL '2 hours'
+        )`,
+        [aliceUserId, expiredKey],
+      );
+
+      // 2. Client makes a new request using the expired key -> treated as new, not replayed
+      const res = await app.request('/api/v1/workspaces', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: aliceCookie,
+          'Idempotency-Key': expiredKey,
+        },
+        body: JSON.stringify({ name: 'Acme Fresh After Expiry', timezone: 'UTC' }),
+      });
+
+      assert.equal(res.status, 201);
+      const resBody = await res.json();
+      assert.equal(resBody.replayed, false);
+      assert.equal(resBody.data.name, 'Acme Fresh After Expiry');
+
+      // 3. Receipt is updated with fresh expiry
+      const checkRcp = await client.query<{ expires_at: Date }>(
+        'SELECT expires_at FROM idempotency_receipts WHERE actor_id = $1 AND idempotency_key = $2',
+        [aliceUserId, expiredKey],
+      );
+      assert.equal(checkRcp.rows.length, 1);
+      assert.ok(new Date(checkRcp.rows[0]!.expires_at).getTime() > Date.now());
+    } finally {
+      client.release();
+    }
   });
 });

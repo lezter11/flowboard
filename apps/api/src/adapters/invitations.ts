@@ -88,7 +88,49 @@ export async function createInvitation(
     throw HttpError.forbidden('Only workspace owners can invite managers.', 'FORBIDDEN');
   }
 
-  // 3. Generate 32-byte cryptographically secure random token and its SHA-256 hash
+  // 3. Fencing: Ensure recipient email is not workspace owner or an active project member
+  const ownerUserRes = await client.query<{ id: string }>(
+    `SELECT id FROM users WHERE id = $1 AND LOWER(email) = LOWER($2)`,
+    [project.owner_id, normalizedEmail],
+  );
+  if (ownerUserRes.rows.length > 0) {
+    throw HttpError.badRequest(
+      'User is already an active member of this project.',
+      'ALREADY_MEMBER',
+    );
+  }
+
+  const activeMemberRes = await client.query<{ id: string }>(
+    `SELECT pm.id
+     FROM project_memberships pm
+     JOIN users u ON pm.user_id = u.id
+     WHERE pm.project_id = $1 AND LOWER(u.email) = LOWER($2) AND pm.status = 'active'`,
+    [projectId, normalizedEmail],
+  );
+
+  if (activeMemberRes.rows.length > 0) {
+    throw HttpError.badRequest(
+      'User is already an active member of this project.',
+      'ALREADY_MEMBER',
+    );
+  }
+
+  // 4. Check for active pending invitation for this email in this project
+  const pendingInvRes = await client.query<{ id: string }>(
+    `SELECT id
+     FROM project_invitations
+     WHERE project_id = $1 AND LOWER(email) = LOWER($2) AND status = 'pending' AND expires_at > NOW()`,
+    [projectId, normalizedEmail],
+  );
+
+  if (pendingInvRes.rows.length > 0) {
+    throw HttpError.badRequest(
+      'An active invitation already exists for this email. Resend the existing invitation instead of creating a duplicate.',
+      'INVITATION_ALREADY_EXISTS',
+    );
+  }
+
+  // 5. Generate 32-byte cryptographically secure random token and its SHA-256 hash
   const rawToken = crypto.randomBytes(32).toString('hex');
   const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
 
@@ -159,10 +201,14 @@ export async function createInvitation(
   const responsePayload = {
     data: {
       id: invitation.id,
+      projectId: invitation.projectId,
       email: invitation.email,
       role: invitation.role,
       status: invitation.status,
+      invitedBy: invitation.invitedBy,
       expiresAt: invitation.expiresAt,
+      createdAt: invitation.createdAt,
+      updatedAt: invitation.updatedAt,
       token: rawToken,
     },
   };
@@ -247,6 +293,49 @@ export async function acceptInvitation(
       'Authenticated email does not match invitation recipient.',
       'EMAIL_MISMATCH',
     );
+  }
+
+  // 4b. Verify workspace owner cannot accept project invitations
+  const wsRes = await client.query<{ owner_id: string }>(
+    `SELECT owner_id FROM workspaces WHERE id = $1`,
+    [invitation.workspace_id],
+  );
+  if (wsRes.rows[0]?.owner_id === actor.id) {
+    throw HttpError.badRequest(
+      'User is already an active member of this project.',
+      'ALREADY_MEMBER',
+    );
+  }
+
+  // 4c. Verify existing project membership status and revocation timestamp fence
+  const existingMemberRes = await client.query<{
+    id: string;
+    status: string;
+    updated_at: Date;
+  }>(
+    `SELECT id, status, updated_at
+     FROM project_memberships
+     WHERE project_id = $1 AND user_id = $2
+     FOR UPDATE`,
+    [invitation.project_id, actor.id],
+  );
+
+  if (existingMemberRes.rows.length > 0) {
+    const existingMember = existingMemberRes.rows[0]!;
+    if (existingMember.status === 'active') {
+      throw HttpError.badRequest(
+        'User is already an active member of this project.',
+        'ALREADY_MEMBER',
+      );
+    }
+    if (existingMember.status === 'removed') {
+      if (new Date(invitation.created_at).getTime() <= new Date(existingMember.updated_at).getTime()) {
+        throw HttpError.badRequest(
+          'This invitation was issued before project access was revoked. A fresh invitation from a project administrator is required.',
+          'INVITATION_SUPERSEDED',
+        );
+      }
+    }
   }
 
   // 5. Transactional state transition and membership upsert
@@ -462,10 +551,14 @@ export async function resendInvitation(
   const responsePayload = {
     data: {
       id: invitation.id,
+      projectId: invitation.projectId,
       email: invitation.email,
       role: invitation.role,
       status: invitation.status,
+      invitedBy: invitation.invitedBy,
       expiresAt: invitation.expiresAt,
+      createdAt: invitation.createdAt,
+      updatedAt: invitation.updatedAt,
       token: rawToken,
     },
   };
@@ -784,6 +877,21 @@ export async function leaveProject(
      WHERE id = $1`,
     [membership.id],
   );
+
+  // 3b. Look up user's email and atomically revoke pending invitations for that email in this project
+  const userRes = await client.query<{ email: string }>(
+    'SELECT email FROM users WHERE id = $1',
+    [actor.id],
+  );
+  const actorEmail = userRes.rows[0]?.email;
+  if (actorEmail) {
+    await client.query(
+      `UPDATE project_invitations
+       SET status = 'revoked', updated_at = NOW()
+       WHERE project_id = $1 AND LOWER(email) = LOWER($2) AND status = 'pending'`,
+      [projectId, actorEmail],
+    );
+  }
 
   // 4. Save idempotency receipt
   const methodPath = `/api/v1/projects/${projectId}/leave`;

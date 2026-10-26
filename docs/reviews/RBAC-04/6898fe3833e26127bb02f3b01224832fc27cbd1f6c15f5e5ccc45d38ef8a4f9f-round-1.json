@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "RBAC-04"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/RBAC-04/criteria.json",
+  "startedAt": "2026-10-26T05:31:35Z",
+  "completedAt": "2026-10-26T05:39:00Z",
+  "implementer": {
+    "actorId": "builder",
+    "sessionId": "builder-session-id",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-reviewer",
+    "sessionId": "b54e0975-7baf-4cac-99fe-0f396b9bb498",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/RBAC-04/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/RBAC-04/criteria.json",
+      "docs/reviews/RBAC-04/reviewer-session.md",
+      "docs/reviews/RBAC-04/test.log",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/http/routes/projects.ts",
+      "apps/api/test/rbac-advanced.test.ts"
+    ],
+    "files": {
+      "docs/reviews/RBAC-04/criteria.json": "6469508cafbecee8aa69a6c7399997f49a0c755359caab64d64ceecb636c4e0b",
+      "docs/reviews/RBAC-04/reviewer-session.md": "8206d0a8cb37c72d077444c09b193381ff8b52dbd656fc53be99984749e45836",
+      "docs/reviews/RBAC-04/test.log": "b3b0f518d9b228ece9d36893ca912a9504003dee783853587ce6295cd67eab49",
+      "apps/api/src/adapters/rbac.ts": "ec5768a8c2612710d61181995aee7a34bb079fe7302ac7c6b39a3d7437925d01",
+      "apps/api/src/http/routes/projects.ts": "54727ede18f2c9b7a8964556bb50e4ac1dc90549e17c01aa2bb5f2f55128c894",
+      "apps/api/test/rbac-advanced.test.ts": "befaa7518b4d1b6d48012944fc64c76742bbb97520cb7f2ecdc7ebb2d8f9f0e2"
+    },
+    "digest": "6898fe3833e26127bb02f3b01224832fc27cbd1f6c15f5e5ccc45d38ef8a4f9f"
+  },
+  "criteriaResults": {
+    "Picker privacy: Purpose assignee returns only workspace owner and active managers/members; viewers and removed members are excluded": "pass",
+    "Mention privacy: Purpose mention returns workspace owner and active managers/members/viewers; removed members are excluded": "pass",
+    "Sibling project isolation: Users who are only members of sibling projects are NEVER returned in people pickers": "pass",
+    "Boundary enforcement: Non-project members querying project people receive 404 NOT_FOUND": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "6898fe3833e26127bb02f3b01224832fc27cbd1f6c15f5e5ccc45d38ef8a4f9f",
+      "evidencePath": "docs/reviews/RBAC-04/test.log"
+    },
+    {
+      "id": "rbac-advanced-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac-advanced.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "6898fe3833e26127bb02f3b01224832fc27cbd1f6c15f5e5ccc45d38ef8a4f9f",
+      "evidencePath": "docs/reviews/RBAC-04/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict sibling project isolation; sibling members are never leaked. Non-members receive 404 NOT_FOUND. Purpose filtering separates assignees from mentionees, excluding viewers from assignment.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-04/reviewer-session.md",
+        "docs/reviews/RBAC-04/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.7",
+      "reason": "Assignee purpose returns active owner/manager/members; mention purpose includes viewers; removed members are excluded across all query purposes.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-04/reviewer-session.md",
+        "docs/reviews/RBAC-04/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "SQL CTE joins project context and project memberships with DISTINCT ON deduplication prioritizing workspace owner status.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-04/reviewer-session.md",
+        "docs/reviews/RBAC-04/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.8",
+      "reason": "Typecheck clean. Tests in rbac-advanced.test.ts cover adapter functions getEligibleAssignees/Mentionees and HTTP GET /api/v1/projects/:projectId/people.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-04/reviewer-session.md",
+        "docs/reviews/RBAC-04/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.5",
+      "reason": "Unified getProjectPeople adapter handling display, mention, and assignee filtering with clean cursor-based pagination.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-04/reviewer-session.md",
+        "docs/reviews/RBAC-04/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.5",
+      "reason": "Bounded result sets with default limit of 50 and maximum 100, cursor pagination, and case-insensitive query search.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-04/reviewer-session.md",
+        "docs/reviews/RBAC-04/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.7",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

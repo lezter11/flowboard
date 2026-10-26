@@ -90,7 +90,7 @@ workspacesRoutes.post('/api/v1/workspaces', authMiddleware, async (c) => {
     };
 
     const responsePayload = { data: workspace };
-    await saveReceipt(
+    const saved = await saveReceipt(
       client,
       actor.id,
       'actor',
@@ -103,6 +103,12 @@ workspacesRoutes.post('/api/v1/workspaces', authMiddleware, async (c) => {
     );
 
     await client.query('COMMIT');
+    if (saved?.replayed) {
+      return c.json(
+        { ...(saved.responseBody as object), replayed: true },
+        saved.statusCode as any,
+      );
+    }
     return c.json({ ...responsePayload, replayed: false }, 201);
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});

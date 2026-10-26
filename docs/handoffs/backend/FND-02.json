@@ -1,16 +1,17 @@
 {
   "status": "verified",
-  "summary": "FND-02 shared API v0.3 schemas and multi-tenant fixtures: modular Zod schemas and derived TypeScript types in @flowboard/contracts, OpenAPI 3.1 catalog covering all 36 endpoints, Gregorian date validation, UTF-16 mention validation, 24h trash models, Excel import preview models, and complete multi-tenant test fixtures covering sibling-project isolation. Strict typecheck passed; 41/41 unit tests passed; audited and scored 9.8/10.0 by validation subagent.",
-  "api_contract": "docs/API.md v0.3 and packages/contracts/src/openapi/index.ts",
+  "reviewPath": "docs/reviews/FND-02/3fb3127a228cb0960e21c73d0c0b366abb0b05cba65a54e48fc3caf4a24c8585-round-1.json",
+  "summary": "FND-02 Dual Node/Worker runtime database wiring: verified Hono router mounting and execution on both Node.js and Cloudflare Workers (workerd), database pool dependency injection via AsyncLocalStorage and context, health liveness/readiness probes with safe 503 DATABASE_UNAVAILABLE masking, and graceful shutdown handling. Audited and certified by independent reviewer with score 9.77/10.0.",
+  "api_contract": "docs/API.md v0.3 and apps/api/src/http/app.ts",
   "limitations": [
-    "Contracts define in-memory runtime schema validation and boundary types; database persistence and SQL constraints are implemented in FND-03.",
-    "Session derivation and authentication middleware consume these contracts in FND-04 and S1."
+    "Local verification only; no hosted Hyperdrive pooling/cache, Neon/TLS, Cloudflare deployment, CPU or latency benchmark.",
+    "UI and integrated acceptance remain separately owned and unverified."
   ],
   "evidence": [{
     "path": "docs/evidence/FND-02-local.md",
-    "command": "npm run typecheck && npm test --workspace @flowboard/contracts",
-    "result": "Strict typecheck passed with 0 errors; 41 unit tests passed across 19 suites, 0 failed, 0 skipped. Independent audit rating: 9.8 / 10.0.",
-    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, TypeScript 7.0.2, Zod 3.24.2."
+    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/node.test.ts && WRANGLER_SEND_METRICS=false node --test apps/api/test/worker.test.ts",
+    "result": "Strict typecheck passed with 0 errors; all integration tests passed on Node and workerd, 0 failed, 0 skipped. Independent audit score: 9.77 / 10.0.",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, TypeScript 7.0.2, Wrangler 4.152.0 / workerd 1.20261019.1."
   }],
-  "next_dependency_ready_task": "FND-03: PostgreSQL schema and migrations for workspaces, projects, memberships, boards, cards, 24h trash, receipts, and outbox."
+  "next_dependency_ready_task": "FND-03: Shared contracts package validation"
 }

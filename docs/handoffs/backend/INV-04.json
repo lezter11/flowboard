@@ -1,4 +1,5 @@
 {
+  "reviewPath": "docs/reviews/INV-04/5c8b7c2cfb1bf4f6c919c6a3405171c0c19172f92b1f9ddfde9c2a70520b3efc-round-1.json",
   "status": "verified",
   "summary": "INV-04 Resend and revoke invitation: implemented POST /api/v1/projects/:projectId/invitations/:invitationId/resend and POST /api/v1/projects/:projectId/invitations/:invitationId/revoke. Workspace Owner can resend/revoke any invitation; Project Managers can resend/revoke member and viewer invitations only (manager target returns 403 FORBIDDEN). Resending rotates the cryptographic token with a fresh 32-byte secret and SHA-256 hash, refreshes expires_at to +7 days, transitions status back to pending, invalidates the prior token, and emits a new outbox event. Revoking sets status to revoked, preventing any subsequent acceptance. Both routes support idempotency key replay. All automated integration tests pass against local PostgreSQL.",
   "api_contract": "docs/API.md (POST /projects/:pid/invitations/:iid/resend or /revoke)",

@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "RBAC-03"
+  ],
+  "mandatoryCriteria": [
+    "Row-level locking protocol: Write transactions acquire FOR SHARE lock on actor's project_memberships row (or verify workspace ownership) before mutating project resources",
+    "Revocation serialization: Role revocation or removal acquires an exclusive lock; concurrent writes wait and re-read committed membership state",
+    "Immediate abortion on removed status: If actor's status is 'removed', write mutation transaction immediately aborts with 404 NOT_FOUND",
+    "No write commit after revocation: A write cannot commit after a preceding revocation transaction commits; strict serialization",
+    "R3 Audit compliance: Tested with concurrent requests through real PostgreSQL connection pool exercising row-level locks"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "rbac-advanced-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac-advanced.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: acquireWriteGrantLock adapter, row-level locking protocol on project_memberships, transaction boundaries, and concurrent revocation tests on PostgreSQL. Out-of-scope: Individual card mutation business logic is handled under CRD-01."
+}

@@ -1,0 +1,21 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "INV-01"
+  ],
+  "mandatoryCriteria": [
+    "Owner invitation authority: Workspace owner can invite manager, member, and viewer roles to any project within their workspace via POST /api/v1/projects/:projectId/invitations",
+    "Project Manager authority limit: Project Manager can invite member and viewer roles only; attempting to invite a manager returns 403 FORBIDDEN",
+    "Role boundary enforcement: Project members and viewers cannot invite; unauthorized attempts return 403 FORBIDDEN",
+    "Sibling project privacy: Outsiders and non-members attempting to invite to an ungranted project receive 404 NOT_FOUND",
+    "Cryptographic token hashing: Single-use invitation token with 256-bit entropy is generated and stored solely as a SHA-256 hash in project_invitations with 7-day expiry; raw token is never persisted or logged",
+    "Transactional outbox creation: Invitation creation atomically writes a durable email delivery intent record to the outbox table in the same PostgreSQL transaction",
+    "R2 & R5 audit compliance: Rejects invitation attempts for existing active project members and self-invites; Idempotency-Key is enforced with transactional receipt",
+    "Validation and error envelopes: Malformed emails, missing roles, or unknown payload attributes fail with standard 400 or 422 error envelopes"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "inv01-inv03-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv01-inv03.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: POST /api/v1/projects/:projectId/invitations endpoint, role-based authorization guards, SHA-256 token hashing, transactional outbox record insertion, idempotency receipts, and PostgreSQL state checks across Node and Worker. Out-of-scope: Background outbox queue worker execution is handled under INV-02."
+}

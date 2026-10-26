@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "RBAC-05"
+  ],
+  "mandatoryCriteria": [
+    "Access summary disclosure: Discloses project role and board inheritance model (boards inherit project grants)",
+    "Workspace owner resolution: Workspace owner actor role is reported as owner with inherited = true",
+    "Sibling and outsider isolation: Non-members querying project access summary receive 404 NOT_FOUND without metadata leakage",
+    "Authentication enforcement: Unauthenticated requests receive 401 UNAUTHORIZED"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "rbac-advanced-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac-advanced.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Project access summary endpoint, role inheritance disclosure, and privacy boundary. Out-of-scope: Custom permission overrides per board."
+}

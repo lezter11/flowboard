@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta name="description" content="Flowboard project overview. Design prototype with synthetic data." />
+  <title>Project overview — Flowboard design prototype</title>
+  <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../detail.css" />
+  <link rel="stylesheet" href="screens.css" />
+</head>
+<body data-page="project">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app">
+    <aside class="rail" id="rail" aria-label="Workspace navigation"></aside>
+    <div class="rail-scrim" id="railScrim" hidden></div>
+    <div class="workspace">
+      <header class="topbar" id="topbar"></header>
+      <main class="page" id="main">
+        <div id="projectContent">
+          <div class="page-head">
+            <div class="page-head-copy">
+              <p class="eyebrow" id="projectEyebrow">Acme Corp <span class="badge">Project overview</span></p>
+              <div class="row" style="align-items:flex-start;gap:12px;margin-top:4px;">
+                <span class="project-mark gold" id="projectMark" aria-hidden="true">WR</span>
+                <div>
+                  <h1 id="projectTitle">Website Redesign</h1>
+                  <p class="page-sub" id="projectSub"><span>Loading project…</span></p>
+                </div>
+              </div>
+            </div>
+            <div class="page-actions" id="projectActions"></div>
+          </div>
+
+          <div id="projectBanner"></div>
+
+          <div class="summary compact" id="projectSummary" aria-label="Project summary">
+            <div class="summary-stat"><span class="label">Boards</span><span class="value" id="pStatBoards">—</span></div>
+            <div class="summary-stat"><span class="label">Cards</span><span class="value" id="pStatCards">—</span></div>
+            <div class="summary-stat"><span class="label">People</span><span class="value" id="pStatPeople">—</span></div>
+            <div class="summary-stat"><span class="label">In trash</span><span class="value" id="pStatTrash">—</span></div>
+            <div class="summary-stat"><span class="label">Due in 7 days</span><span class="value" id="pStatSoon">—</span></div>
+            <div class="summary-stat alert"><span class="label">Overdue</span><span class="value" id="pStatOverdue">—</span></div>
+          </div>
+
+          <div class="split-layout">
+            <div class="stack">
+              <section class="panel" aria-labelledby="boardsTitle">
+                <div class="panel-head">
+                  <div class="panel-head-copy">
+                    <h2 class="panel-title" id="boardsTitle">Boards</h2>
+                    <p class="panel-sub">Every board inherits project access. There are no board-only grants.</p>
+                  </div>
+                  <div class="panel-actions" id="boardsActions"></div>
+                </div>
+                <div class="panel-body" id="boardsPanel"></div>
+              </section>
+
+              <section class="panel" aria-labelledby="recentTitle">
+                <div class="panel-head">
+                  <div class="panel-head-copy">
+                    <h2 class="panel-title" id="recentTitle">Recent activity</h2>
+                    <p class="panel-sub" id="recentSub">Card events and project access events.</p>
+                  </div>
+                  <div class="panel-actions"><a class="btn sm" id="viewActivityLink" href="activity.html">View all</a></div>
+                </div>
+                <div class="panel-body" id="recentPanel"></div>
+              </section>
+
+              <section class="panel" aria-labelledby="teamTitle">
+                <div class="panel-head">
+                  <div class="panel-head-copy">
+                    <h2 class="panel-title" id="teamTitle">Project team</h2>
+                    <p class="panel-sub">Roles are per project. A workspace membership is not a project grant.</p>
+                  </div>
+                  <div class="panel-actions" id="teamActions"></div>
+                </div>
+                <div class="panel-body" id="teamPanel"></div>
+              </section>
+            </div>
+
+            <aside class="stack" id="projectAside" aria-label="Project context"></aside>
+          </div>
+        </div>
+
+        <section id="projectDenied" hidden></section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="data.js"></script>
+  <script src="screens.js"></script>
+  <script src="project.js"></script>
+</body>
+</html>

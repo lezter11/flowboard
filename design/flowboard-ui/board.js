@@ -1,0 +1,792 @@
+/* Flowboard UI artifact — board rendering, filters, quick add, drag and role preview. */
+(function () {
+  "use strict";
+
+  const { state, columns, cards, people, helpers, can } = FB;
+  const $ = (selector, root) => (root || document).querySelector(selector);
+  const $$ = (selector, root) => Array.from((root || document).querySelectorAll(selector));
+  const escape = helpers.escapeHTML;
+
+  let boardEl;
+  let searchTimer = null;
+  let dragId = null;
+
+  const icon = (name, cls) =>
+    `<svg class="icon${cls ? " " + cls : ""}" aria-hidden="true"><use href="#i-${name}"></use></svg>`;
+
+  function avatarHTML(personId, extra) {
+    const person = FB.person(personId);
+    if (!person) return "";
+    return `<span class="avatar ${person.tone}${extra ? " " + extra : ""}" title="${escape(person.name)}" aria-hidden="true">${person.initials}</span>`;
+  }
+
+  function personName(personId) {
+    const person = FB.person(personId);
+    return person ? person.name : "Unknown";
+  }
+
+  function filtersActive() {
+    return Boolean(state.filters.q || state.filters.assignees.length || state.filters.due !== "any");
+  }
+
+  function matchesFilters(card) {
+    const q = state.filters.q.trim().toLowerCase();
+    if (q) {
+      const haystack = [
+        card.title,
+        card.description,
+        card.key,
+        card.assignees.map(personName).join(" ")
+      ].join(" ").toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+
+    const selected = state.filters.assignees;
+    if (selected.length) {
+      const wantsUnassigned = selected.includes("unassigned");
+      const wantsPerson = selected.some((id) => id !== "unassigned");
+      const matchesPerson = card.assignees.some((id) => selected.includes(id));
+      if (!(wantsUnassigned && card.assignees.length === 0) && !(wantsPerson && matchesPerson)) return false;
+    }
+
+    const due = state.filters.due;
+    if (due !== "any") {
+      if (FB.isDone(card)) return false;
+      if (due === "none" && card.due) return false;
+      if (due !== "none") {
+        if (!card.due) return false;
+        const days = helpers.daysUntil(card.due);
+        if (due === "overdue" && days >= 0) return false;
+        if (due === "soon" && (days < 0 || days > 7)) return false;
+      }
+    }
+
+    return true;
+  }
+
+  function visibleCards() {
+    return cards.filter(matchesFilters);
+  }
+
+  function cardHTML(card) {
+    const due = helpers.dueInfo(card);
+    const draggable = can("move") && !filtersActive();
+    const priority = card.priority && card.priority !== "none"
+      ? `<span class="card-priority priority-${card.priority}">${escape(card.priority[0].toUpperCase() + card.priority.slice(1))}</span>`
+      : "";
+
+    const media = card.images.slice(0, 2).map((img) =>
+      `<span class="card-thumb" style="background-image:url('${img.src}')" title="${escape(img.label)}">
+        <span class="lock">${icon("lock", "icon-sm")}</span>
+      </span>`
+    ).join("");
+    const extraMedia = card.images.length > 2
+      ? `<span class="card-more-media" title="${card.images.length - 2} more private images">+${card.images.length - 2}</span>`
+      : "";
+
+    const assigneeStack = card.assignees.length
+      ? `<span class="avatar-stack">${card.assignees.slice(0, 2).map((id) => avatarHTML(id)).join("")}${
+          card.assignees.length > 2
+            ? `<span class="avatar" title="${card.assignees.length - 2} more assignees">+${card.assignees.length - 2}</span>`
+            : ""
+        }</span>`
+      : `<span class="avatar empty" title="Unassigned">${icon("users", "icon-sm")}</span>`;
+
+    const meta = [];
+    if (due) {
+      meta.push(`<span class="due is-${due.state}"${due.detail ? ` title="${escape(due.detail)}"` : ""}>
+        ${icon("calendar")}${escape(due.label)}
+      </span>`);
+    }
+    if (card.comments.length) {
+      meta.push(`<span class="meta-chip" title="${card.comments.length} comments">${icon("message")}${card.comments.length}</span>`);
+    }
+    if (card.images.length) {
+      meta.push(`<span class="meta-chip" title="${card.images.length} private images">${icon("image")}${card.images.length}</span>`);
+    }
+
+    const moveButton = can("move")
+      ? `<button class="card-move" type="button" data-action="move" data-card-id="${card.id}" aria-label="Move card: ${escape(card.title)}" title="Move card">
+          ${icon("move")}
+        </button>`
+      : "";
+
+    return `<article class="card" data-card-id="${card.id}"${draggable ? ' draggable="true"' : ""}>
+      <div class="card-head">
+        <span class="card-key">${escape(card.key)}</span>
+        ${priority}
+        ${moveButton}
+      </div>
+      <div class="card-body" role="button" tabindex="0" data-action="open" data-card-id="${card.id}" aria-label="Open card: ${escape(card.title)}">
+        <h3 class="card-title">${escape(card.title)}</h3>
+        ${card.description ? `<p class="card-desc">${escape(card.description)}</p>` : ""}
+        ${media ? `<div class="card-media">${media}${extraMedia}</div>` : ""}
+        <div class="card-meta">
+          ${meta.join("")}
+          <span class="spacer"></span>
+          ${assigneeStack}
+        </div>
+      </div>
+    </article>`;
+  }
+
+  function emptyHTML(column, hasAnyCards) {
+    if (filtersActive() && hasAnyCards) {
+      return `<div class="column-empty no-match">${icon("search")}
+        <strong>No cards match</strong>
+        <span>Try clearing a filter.</span>
+      </div>`;
+    }
+    return `<div class="column-empty">${icon("board")}
+      <strong>No cards yet</strong>
+      <span>Add the first card to this column.</span>
+    </div>`;
+  }
+
+  function quickAddHTML(column) {
+    if (state.composerColumn !== column.id) {
+      return `<div class="quick-add">
+        <button class="quick-add-trigger" type="button" data-action="add-open" data-column-id="${column.id}">
+          ${icon("plus")}Add a card
+        </button>
+      </div>`;
+    }
+    return `<div class="quick-add">
+      <form class="quick-add-form" data-quick-add="${column.id}">
+        <label class="sr-only" for="quickAdd-${column.id}">New card title in ${escape(column.name)}</label>
+        <textarea id="quickAdd-${column.id}" rows="2" maxlength="200" placeholder="Card title…" data-quick-add-input>${escape(state.quickAddText || "")}</textarea>
+        <div class="quick-add-actions">
+          <span class="hint">Enter to add · Esc to cancel</span>
+          <button class="btn ghost sm" type="button" data-action="add-cancel">Cancel</button>
+          <button class="btn primary sm" type="submit">Add card</button>
+        </div>
+      </form>
+    </div>`;
+  }
+
+  function columnHTML(column) {
+    const all = cards.filter((card) => card.columnId === column.id);
+    const visible = visibleCards().filter((card) => card.columnId === column.id);
+    const isCompleted = column.id === "col_completed";
+    const collapse = isCompleted && !filtersActive() && !state.expandedCompleted && visible.length > 5;
+    const shown = collapse ? visible.slice(0, 5) : visible;
+    const hiddenCount = visible.length - shown.length;
+    const countLabel = filtersActive() ? `${visible.length} of ${all.length} cards` : `${all.length} cards`;
+
+    const headerAdd = can("edit")
+      ? `<button class="icon-btn" type="button" data-action="add-open" data-column-id="${column.id}" aria-label="Add a card to ${escape(column.name)}" title="Add a card">${icon("plus")}</button>`
+      : "";
+    const headerSettings = can("manageBoard")
+      ? `<button class="icon-btn" type="button" data-action="column-settings" data-column-id="${column.id}" aria-label="Settings for ${escape(column.name)}" title="Column settings">${icon("more")}</button>`
+      : "";
+
+    const showMore = hiddenCount > 0
+      ? `<button class="show-more" type="button" data-action="show-more">${icon("chevron-down")}Show ${hiddenCount} more</button>`
+      : isCompleted && !filtersActive() && state.expandedCompleted && all.length > 5
+        ? `<button class="show-more" type="button" data-action="show-less">${icon("chevron-down")}Show less</button>`
+        : "";
+
+    return `<section class="column" data-column-id="${column.id}" data-tone="${column.tone}" aria-labelledby="colTitle-${column.id}">
+      <header class="column-head">
+        <span class="column-dot" aria-hidden="true"></span>
+        <h2 class="column-title" id="colTitle-${column.id}">${escape(column.name)}</h2>
+        <span class="column-count" title="${countLabel}" aria-label="${countLabel}">${filtersActive() ? visible.length : all.length}</span>
+        <div class="column-actions">${headerAdd}${headerSettings}</div>
+      </header>
+      <div class="column-body">
+        <div class="column-cards" data-drop-zone="${column.id}">
+          ${shown.map(cardHTML).join("")}
+          ${shown.length === 0 ? emptyHTML(column, all.length > 0) : ""}
+        </div>
+        ${showMore}
+        ${can("edit") ? quickAddHTML(column) : ""}
+      </div>
+    </section>`;
+  }
+
+  function renderBoard() {
+    if (!boardEl) return;
+    boardEl.innerHTML = columns.map(columnHTML).join("");
+  }
+
+  function renderSummary() {
+    const active = cards.filter((card) => !FB.isDone(card));
+    const soon = active.filter((card) => card.due && helpers.daysUntil(card.due) >= 0 && helpers.daysUntil(card.due) <= 7).length;
+    const overdue = active.filter((card) => card.due && helpers.daysUntil(card.due) < 0).length;
+    const done = cards.filter(FB.isDone).length;
+
+    $("#statTotal").textContent = cards.length;
+    $("#statSoon").textContent = soon;
+    $("#statOverdue").textContent = overdue;
+    $("#statDone").textContent = done;
+    $("#boardSubCount").textContent = `${cards.length} cards`;
+
+    const distribution = $("#distribution");
+    const legend = $("#distLegend");
+    distribution.innerHTML = columns.map((column) => {
+      const count = cards.filter((card) => card.columnId === column.id).length;
+      return count ? `<span class="dist-${column.tone}" style="flex:${count}" title="${escape(column.name)}: ${count}"></span>` : "";
+    }).join("");
+    distribution.setAttribute("aria-label", columns.map((column) => {
+      const count = cards.filter((card) => card.columnId === column.id).length;
+      return `${column.name}: ${count}`;
+    }).join(", "));
+    legend.innerHTML = columns.map((column) => {
+      const count = cards.filter((card) => card.columnId === column.id).length;
+      return `<span><i class="dist-${column.tone}"></i>${escape(column.name)} ${count}</span>`;
+    }).join("");
+  }
+
+  function syncFilterUI() {
+    const selected = state.filters.assignees;
+    const active = filtersActive();
+    const assigneeBtn = $("#assigneeFilterBtn");
+    const dueBtn = $("#dueFilterBtn");
+    const assigneeBadge = $("#assigneeFilterCount");
+    const dueBadge = $("#dueFilterCount");
+
+    assigneeBtn.classList.toggle("has-active", selected.length > 0);
+    dueBtn.classList.toggle("has-active", state.filters.due !== "any");
+    assigneeBadge.hidden = selected.length === 0;
+    assigneeBadge.textContent = selected.length;
+    dueBadge.hidden = state.filters.due === "any";
+    dueBadge.textContent = "1";
+    $("#clearFilters").hidden = !active;
+    $("#searchField").classList.toggle("has-value", Boolean(state.filters.q));
+    $("#filterHint").classList.toggle("is-visible", active && can("move"));
+
+    const visible = visibleCards().length;
+    const note = $("#resultNote");
+    note.innerHTML = active
+      ? `<strong>${visible}</strong> of ${cards.length} cards match`
+      : `${cards.length} cards in ${columns.length} columns`;
+
+    $$('input[name="assigneeFilter"]').forEach((input) => {
+      input.checked = selected.includes(input.value);
+    });
+    $$('input[name="dueFilter"]').forEach((input) => {
+      input.checked = input.value === state.filters.due;
+    });
+  }
+
+  function renderAll() {
+    renderSummary();
+    renderBoard();
+    syncFilterUI();
+  }
+
+  function updateCurrentUser() {
+    const user = FB.currentUser();
+    const railAvatar = $("#railAvatar");
+    const topbarAvatar = $("#topbarAvatar");
+    [railAvatar, topbarAvatar].forEach((el) => {
+      if (!el) return;
+      el.className = `avatar ${user.tone}`;
+      el.textContent = user.initials;
+      el.title = user.name;
+    });
+    $("#railUserName").textContent = user.name;
+    $("#railUserRole").textContent = user.role;
+    $("#topbarAvatar").closest("button").setAttribute("aria-label", `Account menu for ${user.name}`);
+  }
+
+  function applyRole(role, announce) {
+    if (!FB.roleMeta[role]) return;
+    state.role = role;
+    document.body.dataset.role = role;
+    const roleSelect = $("#roleSelect");
+    if (roleSelect) roleSelect.value = role;
+
+    updateCurrentUser();
+    const manage = can("manageBoard");
+    $$("[data-manage-nav]").forEach((el) => { el.hidden = !manage; });
+    $("#shareBtn").hidden = !can("invite");
+    $("#addCardBtn").hidden = !can("edit");
+    if (!can("edit")) state.composerColumn = null;
+
+    $("#footRole").textContent = `${FB.roleMeta[role].label} · ${FB.roleMeta[role].description}`;
+    renderAll();
+
+    if (announce) {
+      FB.toast(`Previewing as ${FB.currentUser().name} — ${FB.roleMeta[role].label.toLowerCase()}`, { tone: "success", icon: "eye" });
+    }
+  }
+
+  function resetFilters(render) {
+    state.filters = { q: "", assignees: [], due: "any" };
+    const input = $("#searchInput");
+    if (input) input.value = "";
+    if (render !== false) renderAll();
+  }
+
+  function openComposer(columnId) {
+    if (!can("edit")) return;
+    state.composerColumn = columnId;
+    state.quickAddText = "";
+    renderBoard();
+    const form = boardEl.querySelector(`[data-quick-add="${columnId}"]`);
+    if (form) {
+      const textarea = form.querySelector("textarea");
+      textarea.focus();
+      form.closest(".column").scrollIntoView({ behavior: "smooth", inline: "nearest", block: "nearest" });
+    }
+  }
+
+  function addCard(columnId) {
+    if (!can("edit")) return;
+    const form = boardEl.querySelector(`[data-quick-add="${columnId}"]`);
+    const textarea = form ? form.querySelector("textarea") : null;
+    const title = (state.quickAddText || (textarea ? textarea.value : "")).trim();
+    if (!title) {
+      FB.toast("Enter a card title first.", { tone: "danger", icon: "alert" });
+      if (textarea) textarea.focus();
+      return;
+    }
+
+    const maxKey = cards.reduce((max, card) => {
+      const n = Number((card.key || "").split("-")[1]);
+      return Number.isFinite(n) ? Math.max(max, n) : max;
+    }, 100);
+    const column = FB.column(columnId);
+    const card = {
+      id: `card_${Date.now()}`,
+      key: `WEB-${maxKey + 1}`,
+      title: title.slice(0, 200),
+      description: "",
+      columnId,
+      priority: "none",
+      assignees: [],
+      due: null,
+      createdAt: new Date().toISOString(),
+      images: [],
+      comments: [],
+      activity: [{
+        id: `act_${Date.now()}`,
+        actorId: FB.currentUser().id,
+        icon: "plus",
+        text: "created this card",
+        at: new Date().toISOString()
+      }]
+    };
+
+    cards.push(card);
+    state.composerColumn = null;
+    state.quickAddText = "";
+    renderAll();
+    FB.toast(`Card added to ${column.name}`, {
+      icon: "check",
+      undo() {
+        const index = cards.findIndex((c) => c.id === card.id);
+        if (index >= 0) cards.splice(index, 1);
+        renderAll();
+        FB.toast("Card removed.");
+      }
+    });
+
+    requestAnimationFrame(() => {
+      const el = boardEl.querySelector(`[data-card-id="${card.id}"]`);
+      if (!el) return;
+      el.scrollIntoView({ block: "nearest", inline: "nearest" });
+      const body = el.querySelector(".card-body");
+      if (body) body.focus({ preventScroll: true });
+    });
+  }
+
+  function moveCard(cardId, destColumnId, index) {
+    if (!can("move")) {
+      FB.toast("Viewers cannot move cards.", { tone: "danger", icon: "lock" });
+      return;
+    }
+    const card = FB.card(cardId);
+    const dest = FB.column(destColumnId);
+    if (!card || !dest) return;
+
+    const fromId = card.columnId;
+    const from = FB.column(fromId);
+    const previousOrder = cards.map((c) => c.id);
+    const fromIndex = cards.filter((c) => c.columnId === fromId).findIndex((c) => c.id === cardId);
+    const sameColumn = fromId === destColumnId;
+
+    cards.splice(cards.indexOf(card), 1);
+    const destCards = cards.filter((c) => c.columnId === destColumnId);
+    const target = Math.max(0, Math.min(index, destCards.length));
+    let insertAt;
+    if (target >= destCards.length) {
+      insertAt = destCards.length ? cards.indexOf(destCards[destCards.length - 1]) + 1 : cards.length;
+    } else {
+      insertAt = cards.indexOf(destCards[target]);
+    }
+    cards.splice(insertAt, 0, card);
+    card.columnId = destColumnId;
+
+    const event = {
+      id: `act_${Date.now()}`,
+      actorId: FB.currentUser().id,
+      icon: "move",
+      text: sameColumn ? `reordered this card in ${dest.name}` : `moved this card from ${from.name} to ${dest.name}`,
+      at: new Date().toISOString()
+    };
+    card.activity.unshift(event);
+
+    if (state.activeCardId === cardId) {
+      if (state.draft) state.draft.columnId = destColumnId;
+      if (FB.refreshDrawerAfterMove) FB.refreshDrawerAfterMove(card);
+    }
+    renderAll();
+
+    FB.toast(`${card.key} moved to ${dest.name}`, {
+      icon: "move",
+      undo() {
+        cards.sort((a, b) => previousOrder.indexOf(a.id) - previousOrder.indexOf(b.id));
+        card.columnId = fromId;
+        card.activity = card.activity.filter((e) => e.id !== event.id);
+        if (state.activeCardId === cardId) {
+          if (state.draft) state.draft.columnId = fromId;
+          if (FB.refreshDrawerAfterMove) FB.refreshDrawerAfterMove(card);
+        }
+        renderAll();
+        FB.toast("Move undone.");
+      }
+    });
+
+    return { fromIndex, sameColumn };
+  }
+
+  function clearDragUI() {
+    dragId = null;
+    $$(".column.is-drop-target").forEach((el) => el.classList.remove("is-drop-target"));
+    $$(".drop-line").forEach((el) => el.remove());
+    $$(".card.is-dragging").forEach((el) => el.classList.remove("is-dragging"));
+  }
+
+  function bindDrag() {
+    boardEl.addEventListener("dragstart", (event) => {
+      const cardEl = event.target.closest(".card");
+      if (!cardEl || !can("move") || filtersActive()) {
+        event.preventDefault();
+        return;
+      }
+      dragId = cardEl.dataset.cardId;
+      event.dataTransfer.effectAllowed = "move";
+      event.dataTransfer.setData("text/plain", dragId);
+      requestAnimationFrame(() => cardEl.classList.add("is-dragging"));
+    });
+
+    boardEl.addEventListener("dragover", (event) => {
+      if (!dragId || !can("move") || filtersActive()) return;
+      const zone = event.target.closest(".column-cards");
+      if (!zone) return;
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      const columnEl = zone.closest(".column");
+      $$(".column.is-drop-target").forEach((el) => { if (el !== columnEl) el.classList.remove("is-drop-target"); });
+      columnEl.classList.add("is-drop-target");
+
+      let line = boardEl.querySelector(".drop-line");
+      if (!line) {
+        line = document.createElement("div");
+        line.className = "drop-line";
+        line.setAttribute("aria-hidden", "true");
+      }
+      const others = $$(".card", zone).filter((el) => el.dataset.cardId !== dragId);
+      let before = null;
+      for (const el of others) {
+        const rect = el.getBoundingClientRect();
+        if (event.clientY < rect.top + rect.height / 2) { before = el; break; }
+      }
+      zone.insertBefore(line, before || zone.querySelector(".column-empty") || null);
+    });
+
+    boardEl.addEventListener("dragleave", (event) => {
+      const columnEl = event.target.closest(".column");
+      if (!columnEl) return;
+      if (event.relatedTarget && columnEl.contains(event.relatedTarget)) return;
+      columnEl.classList.remove("is-drop-target");
+    });
+
+    boardEl.addEventListener("drop", (event) => {
+      if (!dragId || !can("move") || filtersActive()) return;
+      const zone = event.target.closest(".column-cards");
+      if (!zone) return;
+      event.preventDefault();
+      const columnId = zone.dataset.dropZone;
+      const line = zone.querySelector(".drop-line");
+      let index = 0;
+      if (line) {
+        const children = Array.from(zone.children);
+        const lineIndex = children.indexOf(line);
+        index = children.slice(0, lineIndex)
+          .filter((el) => el.classList.contains("card") && el.dataset.cardId !== dragId).length;
+      } else {
+        index = $$(".card", zone).filter((el) => el.dataset.cardId !== dragId).length;
+      }
+      const cardId = dragId;
+      clearDragUI();
+      moveCard(cardId, columnId, index);
+    });
+
+    boardEl.addEventListener("dragend", clearDragUI);
+  }
+
+  function bindBoard() {
+    boardEl.addEventListener("click", (event) => {
+      const actionEl = event.target.closest("[data-action]");
+      if (!actionEl) return;
+      const action = actionEl.dataset.action;
+      const cardId = actionEl.dataset.cardId;
+      if (action === "open" && cardId) {
+        event.preventDefault();
+        if (FB.openCard) FB.openCard(cardId, actionEl);
+      } else if (action === "move" && cardId) {
+        event.stopPropagation();
+        if (FB.openMoveDialog) FB.openMoveDialog(cardId, actionEl);
+      } else if (action === "add-open") {
+        openComposer(actionEl.dataset.columnId);
+      } else if (action === "add-cancel") {
+        state.composerColumn = null;
+        state.quickAddText = "";
+        renderBoard();
+        const trigger = boardEl.querySelector(`[data-action="add-open"][data-column-id="${actionEl.closest(".column").dataset.columnId}"]`);
+        if (trigger) trigger.focus();
+      } else if (action === "column-settings") {
+        if (FB.openColumnDialog) FB.openColumnDialog(actionEl.dataset.columnId, actionEl);
+      } else if (action === "show-more") {
+        state.expandedCompleted = true;
+        renderBoard();
+        const showLess = boardEl.querySelector('[data-action="show-less"]');
+        if (showLess) showLess.focus();
+      } else if (action === "show-less") {
+        state.expandedCompleted = false;
+        renderBoard();
+        const showMore = boardEl.querySelector('[data-action="show-more"]');
+        if (showMore) showMore.focus();
+      }
+    });
+
+    boardEl.addEventListener("keydown", (event) => {
+      const body = event.target.closest(".card-body");
+      if (body && (event.key === "Enter" || event.key === " ")) {
+        event.preventDefault();
+        if (FB.openCard) FB.openCard(body.dataset.cardId, body);
+        return;
+      }
+      const textarea = event.target.closest("[data-quick-add-input]");
+      if (textarea) {
+        if (event.key === "Enter" && !event.shiftKey) {
+          event.preventDefault();
+          const form = textarea.closest("form");
+          if (form) form.requestSubmit();
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          const columnId = textarea.closest("[data-quick-add]").dataset.quickAdd;
+          state.composerColumn = null;
+          state.quickAddText = "";
+          renderBoard();
+          const trigger = boardEl.querySelector(`[data-action="add-open"][data-column-id="${columnId}"]`);
+          if (trigger) trigger.focus();
+        }
+      }
+    });
+
+    boardEl.addEventListener("input", (event) => {
+      if (event.target.matches("[data-quick-add-input]")) {
+        state.quickAddText = event.target.value;
+      }
+    });
+
+    boardEl.addEventListener("submit", (event) => {
+      const form = event.target.closest("[data-quick-add]");
+      if (!form) return;
+      event.preventDefault();
+      addCard(form.dataset.quickAdd);
+    });
+  }
+
+  function bindFilters() {
+    const search = $("#searchInput");
+    search.addEventListener("input", () => {
+      state.filters.q = search.value;
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(renderAll, 120);
+    });
+    search.addEventListener("search", () => {
+      state.filters.q = search.value;
+      renderAll();
+    });
+    $("#clearSearch").addEventListener("click", () => {
+      search.value = "";
+      state.filters.q = "";
+      renderAll();
+      search.focus();
+    });
+
+    const assigneeBtn = $("#assigneeFilterBtn");
+    const assigneeMenu = $("#assigneeMenu");
+    const dueBtn = $("#dueFilterBtn");
+    const dueMenu = $("#dueMenu");
+
+    function closeMenus(except) {
+      [[assigneeBtn, assigneeMenu], [dueBtn, dueMenu]].forEach(([btn, menu]) => {
+        if (menu === except) return;
+        menu.hidden = true;
+        btn.setAttribute("aria-expanded", "false");
+      });
+    }
+
+    function toggleMenu(btn, menu) {
+      const willOpen = menu.hidden;
+      closeMenus(willOpen ? menu : null);
+      menu.hidden = !willOpen;
+      btn.setAttribute("aria-expanded", String(willOpen));
+      if (willOpen) {
+        const first = menu.querySelector("input, button");
+        if (first) first.focus();
+      }
+    }
+
+    assigneeBtn.addEventListener("click", () => toggleMenu(assigneeBtn, assigneeMenu));
+    dueBtn.addEventListener("click", () => toggleMenu(dueBtn, dueMenu));
+
+    $$('input[name="assigneeFilter"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        state.filters.assignees = $$('input[name="assigneeFilter"]:checked').map((el) => el.value);
+        renderAll();
+      });
+    });
+
+    $("#clearAssigneeFilter").addEventListener("click", () => {
+      state.filters.assignees = [];
+      renderAll();
+    });
+
+    $$('input[name="dueFilter"]').forEach((input) => {
+      input.addEventListener("change", () => {
+        state.filters.due = input.value;
+        closeMenus();
+        renderAll();
+      });
+    });
+
+    $("#clearFilters").addEventListener("click", () => {
+      resetFilters(true);
+      closeMenus();
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".filter-wrap")) closeMenus();
+    });
+
+    $("#addCardBtn").addEventListener("click", () => {
+      if (!can("edit")) return;
+      if (filtersActive()) resetFilters(false);
+      openComposer(columns[0].id);
+    });
+  }
+
+  function setTheme(theme, announce) {
+    state.theme = theme === "dark" ? "dark" : "light";
+    document.documentElement.dataset.theme = state.theme;
+    const toggle = $("#themeToggle");
+    toggle.setAttribute("aria-pressed", String(state.theme === "dark"));
+    toggle.setAttribute("aria-label", state.theme === "dark" ? "Switch to light theme" : "Switch to dark theme");
+    try { localStorage.setItem("flowboard-ui-theme", state.theme); } catch (error) { /* file previews can block storage */ }
+    if (announce) FB.toast(state.theme === "dark" ? "Dark theme preview" : "Light theme preview", { icon: state.theme === "dark" ? "moon" : "sun" });
+  }
+
+  function bindShell() {
+    $("#themeToggle").addEventListener("click", () => {
+      setTheme(state.theme === "dark" ? "light" : "dark", true);
+    });
+
+    const menuBtn = $("#menuBtn");
+    const rail = $("#rail");
+    const railScrim = $("#railScrim");
+    function setRail(open) {
+      rail.classList.toggle("is-open", open);
+      menuBtn.setAttribute("aria-expanded", String(open));
+      railScrim.hidden = !open;
+      document.body.style.overflow = open ? "hidden" : "";
+    }
+    menuBtn.addEventListener("click", () => setRail(!rail.classList.contains("is-open")));
+    railScrim.addEventListener("click", () => setRail(false));
+    $$(".nav-item").forEach((item) => {
+      item.addEventListener("click", () => {
+        if (item.dataset.nav !== "Board") {
+          FB.toast(`${item.dataset.nav} is outside this board artifact.`, { icon: "info" });
+        }
+        setRail(false);
+      });
+    });
+
+    $$("[data-prototype-note]").forEach((el) => {
+      el.addEventListener("click", (event) => {
+        event.preventDefault();
+        FB.toast(el.dataset.prototypeNote, { icon: "info" });
+      });
+    });
+
+    $("#roleSelect").addEventListener("change", async (event) => {
+      const next = event.target.value;
+      const previous = state.role;
+      if (next === previous) return;
+      if (state.dirty && state.activeCardId && FB.confirmAction) {
+        const accepted = await FB.confirmAction({
+          title: "Discard unsaved changes?",
+          copy: "Switching preview roles closes this card and discards unsaved edits.",
+          confirmLabel: "Discard & switch",
+          tone: "danger",
+          icon: "alert"
+        });
+        if (!accepted) {
+          event.target.value = previous;
+          return;
+        }
+      }
+      if (FB.closeAllDialogs) FB.closeAllDialogs();
+      if (FB.closeDrawerImmediately) FB.closeDrawerImmediately(false);
+      applyRole(next, true);
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 980) setRail(false);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    boardEl = $("#board");
+    boardEl.tabIndex = -1;
+    let savedTheme = "light";
+    try { savedTheme = localStorage.getItem("flowboard-ui-theme") || "light"; } catch (error) { savedTheme = "light"; }
+    setTheme(savedTheme, false);
+    bindShell();
+    bindFilters();
+    bindBoard();
+    bindDrag();
+    applyRole("owner", false);
+
+    // Design-review deep links, e.g. ?role=viewer&card=card_106&theme=dark
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("theme") === "dark" || params.get("theme") === "light") {
+      setTheme(params.get("theme"), false);
+    }
+    const roleParam = params.get("role");
+    if (roleParam && FB.roleMeta[roleParam] && roleParam !== "owner") {
+      applyRole(roleParam, false);
+    }
+    const cardParam = params.get("card");
+    if (cardParam && FB.card(cardParam)) {
+      setTimeout(() => {
+        if (FB.openCard) FB.openCard(cardParam);
+      }, 80);
+    }
+  });
+
+  FB.renderAll = renderAll;
+  FB.renderBoard = renderBoard;
+  FB.applyRole = applyRole;
+  FB.moveCard = moveCard;
+  FB.openComposer = openComposer;
+  FB.resetFilters = resetFilters;
+  FB.filtersActive = filtersActive;
+  FB.visibleCards = visibleCards;
+})();

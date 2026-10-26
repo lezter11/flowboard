@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta name="description" content="Flowboard trash with a 24-hour restore window. Design prototype." />
+  <title>Trash — Flowboard design prototype</title>
+  <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../detail.css" />
+  <link rel="stylesheet" href="screens.css" />
+</head>
+<body data-page="trash">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app">
+    <aside class="rail" id="rail" aria-label="Workspace navigation"></aside>
+    <div class="rail-scrim" id="railScrim" hidden></div>
+    <div class="workspace">
+      <header class="topbar" id="topbar"></header>
+      <main class="page" id="main">
+        <div id="trashContent">
+          <div class="page-head">
+            <div class="page-head-copy">
+              <p class="eyebrow">Website Redesign <span class="badge">Owner and Manager</span></p>
+              <h1>Trash</h1>
+              <p class="page-sub">
+                <span>Deleted cards stay restorable for exactly 24 hours</span>
+                <span class="dot" aria-hidden="true"></span>
+                <span id="trashSub">—</span>
+              </p>
+            </div>
+            <div class="page-actions">
+              <a class="btn" id="trashBoardLink" href="../index.html">
+                <svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg>
+                Back to board
+              </a>
+              <a class="btn ghost" id="trashProjectLink" href="project.html">
+                <svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg>
+                Project overview
+              </a>
+            </div>
+          </div>
+
+          <div class="review-bar">
+            <svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg>
+            <span><strong>24-hour server-clock boundary.</strong> The deadline is fixed when deletion commits: <span class="mono">deleted_at + 24h</span>. A client clock cannot extend or shorten it.</span>
+            <span class="spacer"></span>
+            <span class="server-clock" id="serverClock">—</span>
+          </div>
+
+          <div class="review-bar" style="border-style:solid;">
+            <svg class="icon" aria-hidden="true"><use href="#i-eye"></use></svg>
+            <span><strong>Prototype state selector.</strong> Change the sample deletion time to review active, expiring-soon and expired states. Production computes the deadline from the stored server timestamp only.</span>
+            <span class="spacer"></span>
+            <label class="sr-only" for="trashState">Prototype restore state</label>
+            <select id="trashState">
+              <option value="active">Active · 5h 48m ago</option>
+              <option value="expiring">Expiring soon · 23h 24m ago</option>
+              <option value="expired">Expired · 24h 12m ago</option>
+            </select>
+          </div>
+
+          <div class="summary compact" aria-label="Trash summary">
+            <div class="summary-stat"><span class="label">Cards in trash</span><span class="value" id="statTotal">—</span></div>
+            <div class="summary-stat done"><span class="label">Restorable now</span><span class="value" id="statRestorable">—</span></div>
+            <div class="summary-stat"><span class="label">Expiring within 1h</span><span class="value" id="statExpiring">—</span></div>
+            <div class="summary-stat alert"><span class="label">Expired</span><span class="value" id="statExpired">—</span></div>
+            <div class="summary-bars">
+              <div class="summary-bars-top"><span>Restore window</span><em>24 hours</em></div>
+              <div class="distribution" id="windowBar" aria-label="Restore window progress"></div>
+              <div class="dist-legend" id="windowLegend"><span><i style="background:var(--dot-completed)"></i>Restorable</span><span><i style="background:var(--warn)"></i>Expiring</span><span><i style="background:var(--danger)"></i>Expired</span></div>
+            </div>
+          </div>
+
+          <div class="split-layout">
+            <section class="panel" aria-labelledby="trashTitle">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title" id="trashTitle">Deleted cards</h2>
+                  <p class="panel-sub" id="trashPanelSub">Only Owner and Manager can see this list. Members and Viewers cannot browse or restore deleted cards.</p>
+                </div>
+                <div class="panel-actions"><span class="badge" id="trashCountBadge">—</span></div>
+              </div>
+              <div class="panel-body flush" id="trashTableWrap"></div>
+              <div class="panel-foot">
+                <span class="tiny faint" id="trashFootNote">—</span>
+                <span class="spacer"></span>
+                <button class="btn sm" type="button" id="refreshTrash">
+                  <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
+                  Refresh
+                </button>
+              </div>
+            </section>
+
+            <aside class="stack">
+              <section class="panel">
+                <div class="panel-head">
+                  <div class="panel-head-copy">
+                    <h2 class="panel-title">Restore rules</h2>
+                    <p class="panel-sub">What the 24 hours do and do not do</p>
+                  </div>
+                </div>
+                <div class="panel-body stack-sm">
+                  <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg><span><strong>Deadline:</strong> exactly 24 hours after the delete commits, measured by the server.</span></div>
+                  <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-restore"></use></svg><span><strong>Restore:</strong> returns the card to its previous column with comments and private images intact.</span></div>
+                  <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-trash"></use></svg><span><strong>Expired:</strong> restore returns a gone state. Permanent purge timing and storage deletion are later scope.</span></div>
+                  <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-archive"></use></svg><span><strong>Archived project:</strong> archiving does not pause a restore deadline.</span></div>
+                  <div class="note">
+                    <svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg>
+                    <span>Restore is an access event. Owner and Manager can see who restored a card and when; Member and Viewer cannot see the trash surface at all.</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head">
+                  <div class="panel-head-copy">
+                    <h2 class="panel-title">Why this is restricted</h2>
+                    <p class="panel-sub">Deletion is destructive enough to gate</p>
+                  </div>
+                </div>
+                <div class="panel-body stack-sm">
+                  <p class="small muted" style="line-height:1.55;">Members can edit cards but cannot delete them in this product. A deleted card contains private comments and images, so browsing trash is limited to Owner and Manager.</p>
+                  <div class="note warn">
+                    <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+                    <span><strong>UI hiding is not authorization.</strong> The API must reject trash reads and restores for Member and Viewer on every request.</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head">
+                  <div class="panel-head-copy">
+                    <h2 class="panel-title">Preview note</h2>
+                  </div>
+                </div>
+                <div class="panel-body">
+                  <p class="small muted" style="line-height:1.55;">The countdown uses the browser clock as a stand-in for server time. The state selector is a review aid; it does not change any real deadline.</p>
+                </div>
+              </section>
+            </aside>
+          </div>
+
+          <footer class="board-foot">
+            <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+            <span>Trash · synthetic deleted card · design evidence only</span>
+            <span class="sep"></span>
+            <span>No deletion, restore, purge or persistence is implemented.</span>
+          </footer>
+        </div>
+
+        <section id="trashDenied" hidden></section>
+
+        <section id="restoreSuccess" class="panel success-panel restored-panel" hidden>
+          <div class="success-head">
+            <span class="success-icon"><svg class="icon" aria-hidden="true"><use href="#i-restore"></use></svg></span>
+            <div style="min-width:0;flex:1;">
+              <p class="eyebrow" style="margin-bottom:4px;">Restored <span class="badge accent" id="restoredKey">WEB-097</span></p>
+              <h2 id="restoredTitle">Card restored</h2>
+              <p id="restoredCopy">The card returned to its previous column before the server deadline.</p>
+              <div class="success-meta">
+                <span class="badge" id="restoredColumn">Not started</span>
+                <span class="badge" id="restoredTime">—</span>
+              </div>
+            </div>
+          </div>
+          <div class="success-card">
+            <h3>What comes back</h3>
+            <p>Comments, mentions and private images remain attached to the original card ID. Restore does not create a copy and does not resend mention emails.</p>
+          </div>
+          <div class="success-actions">
+            <a class="btn primary" id="restoredBoardLink" href="../index.html">Back to board</a>
+            <button class="btn" type="button" id="restoredBack">Back to trash</button>
+          </div>
+          <div class="note warn" style="margin-top:12px;">
+            <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+            <span><strong>Prototype only.</strong> Reloading restores the sample trash item and forgets this action.</span>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="data.js"></script>
+  <script src="screens.js"></script>
+  <script src="trash.js"></script>
+</body>
+</html>

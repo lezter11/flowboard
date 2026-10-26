@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "INV-07"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/INV-07/criteria.json",
+  "startedAt": "2026-10-26T05:39:59.461555Z",
+  "completedAt": "2026-10-26T05:39:59.461555Z",
+  "implementer": {
+    "actorId": "backend-builder",
+    "sessionId": "7e44e3cf-29d2-4f7d-ba58-a053cdb570fc",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-auditor-inv",
+    "sessionId": "5664ffe4-311c-4302-85fd-63d6eac1ff11",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/INV-07/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/members.ts",
+      "apps/api/src/http/routes/members.ts",
+      "apps/api/test/inv06-inv07.test.ts",
+      "docs/reviews/INV-07/criteria.json",
+      "docs/reviews/INV-07/reviewer-session.md",
+      "docs/reviews/INV-07/test.log"
+    ],
+    "files": {
+      "apps/api/src/adapters/members.ts": "2b5fcb62f68d2b5a7ef303682c306218e784918fa5892a7d067cd0cf306852bc",
+      "apps/api/src/http/routes/members.ts": "0a100e504a5249c8503194f68c254fec4ad662e247df8e5035167794bd65cf3a",
+      "apps/api/test/inv06-inv07.test.ts": "f9919dc42cda30390aa9af485f71f60279aa5e8cb4e68e97a97523680d9ce3be",
+      "docs/reviews/INV-07/criteria.json": "8f417946e3a4a98e908d547099d8980e60f563f19c65fe9237c3b6883a2d8399",
+      "docs/reviews/INV-07/reviewer-session.md": "cc6180d0230bac9ab104230102b5c1974ee0d371592d342b2c1c2a3e124baa73",
+      "docs/reviews/INV-07/test.log": "fda795a8ab562636f6d139110977ea1945badb979a97e9218111270660a0b298"
+    },
+    "digest": "68005339d38b291742b86de75194da88366b569cbda4f4abc229b7c44707d752"
+  },
+  "criteriaResults": {
+    "Owner removal authority: Workspace owner can remove any project member (manager, member, viewer) across workspace projects via DELETE /api/v1/projects/:projectId/members/:userId": "pass",
+    "Project Manager removal limits: Project Manager can remove member and viewer roles only; attempting to remove a manager or owner returns 403 FORBIDDEN": "pass",
+    "Self-protection: Project Manager cannot remove themselves via DELETE /members/:userId (must use leave route); returns 403 FORBIDDEN": "pass",
+    "Status transition: Transition updates project_memberships.status to 'removed' and increments version; physical row is preserved for referential integrity and audit history": "pass",
+    "Immediate access revocation: Revocation takes effect immediately; subsequent requests by the removed member to project resources return 404 NOT_FOUND": "pass",
+    "R2 & R3 Audit compliance: Removed member cannot reuse unexpired invitations to restore access; write lock protocol rejects operations for actors with 'removed' status": "pass",
+    "Sibling project privacy: Outsiders and non-members receive 404 NOT_FOUND": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "68005339d38b291742b86de75194da88366b569cbda4f4abc229b7c44707d752",
+      "evidencePath": "docs/reviews/INV-07/test.log"
+    },
+    {
+      "id": "inv06-inv07-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv06-inv07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "68005339d38b291742b86de75194da88366b569cbda4f4abc229b7c44707d752",
+      "evidencePath": "docs/reviews/INV-07/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.6",
+      "reason": "Complete role boundary enforcement; PM cannot remove peers or owners; immediate 404 access cutoff; atomic invitation revocation prevents re-entry.",
+      "evidencePaths": [
+        "docs/reviews/INV-07/reviewer-session.md",
+        "docs/reviews/INV-07/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "DELETE endpoint complies with HTTP spec, validates path parameters, enforces idempotency, and returns standard success envelope.",
+      "evidencePaths": [
+        "docs/reviews/INV-07/reviewer-session.md",
+        "docs/reviews/INV-07/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Row preservation with status transition, version increment, atomic multi-table updates (memberships + invitations) in single transaction.",
+      "evidencePaths": [
+        "docs/reviews/INV-07/reviewer-session.md",
+        "docs/reviews/INV-07/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Negative tests for PM deleting manager/self/owner, immediate access cutoff verification, and outsider privacy.",
+      "evidencePaths": [
+        "docs/reviews/INV-07/reviewer-session.md",
+        "docs/reviews/INV-07/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clean, well-factored code in members.ts with explicit transaction handling.",
+      "evidencePaths": [
+        "docs/reviews/INV-07/reviewer-session.md",
+        "docs/reviews/INV-07/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Indexed lookups and fast transactional updates with immediate rollback on error.",
+      "evidencePaths": [
+        "docs/reviews/INV-07/reviewer-session.md",
+        "docs/reviews/INV-07/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.475",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

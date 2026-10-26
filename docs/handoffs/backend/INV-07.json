@@ -1,4 +1,5 @@
 {
+  "reviewPath": "docs/reviews/INV-07/68005339d38b291742b86de75194da88366b569cbda4f4abc229b7c44707d752-round-1.json",
   "status": "verified",
   "summary": "INV-07 Remove project access: implemented DELETE /api/v1/projects/:projectId/members/:userId enabling Workspace Owner to remove any project member and Project Managers to remove members/viewers only. Enforces peer/self protection (PMs cannot remove peer managers, owner, or themselves), transitions row status to 'removed' with version increment, and enforces immediate revocation where subsequent project requests return 404 NOT_FOUND. All automated integration tests pass against local PostgreSQL.",
   "api_contract": "docs/API.md (DELETE /projects/:pid/members/:uid)",

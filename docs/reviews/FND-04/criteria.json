@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "FND-04"
+  ],
+  "mandatoryCriteria": [
+    "Correlation IDs: Propagates valid incoming x-request-id or generates safe UUID; attached on all success and error responses",
+    "Server-Timing: Measures handler duration and attaches Server-Timing: app;dur=<ms> header",
+    "Safe error masking: Internal errors masked without leaking database credentials, connection strings, or SQL internals",
+    "Body size limits: Rejects bodies exceeding 1 MiB with HTTP 413 PAYLOAD_TOO_LARGE",
+    "Request timeouts: Aborts requests exceeding deadline with HTTP 504 DEADLINE_EXCEEDED"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "observability-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/observability.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Correlation middleware, Server-Timing, 413 payload limits, deadline timeouts, and safe error masking. Out-of-scope: Third-party OpenTelemetry exporters."
+}

@@ -1,0 +1,24 @@
+
+> typecheck
+> tsc --noEmit
+
+▶ ACC-01: Sign in, Sessions and Authentication Suite
+  ✔ 1. POST /api/v1/session/dev-login creates user, session, and sets cookie (52.660666ms)
+  ✔ 2. GET /api/v1/session with valid cookie returns actor, owned workspaces, and accessible projects (4.294458ms)
+  ✔ 3. GET /api/v1/session without cookie returns 401 UNAUTHORIZED (0.378ms)
+  ✔ 4. GET /api/v1/session with expired session returns 401 UNAUTHORIZED (1.145667ms)
+  ✔ 5. POST /api/v1/session/logout revokes session in DB and clears cookie (204 No Content) (1.870875ms)
+  ✔ 6. POST /api/v1/session/dev-login rejects existing user without X-Dev-Secret (403 FORBIDDEN) (0.888209ms)
+  ✔ 7. POST /api/v1/session/dev-login rejects existing user with invalid X-Dev-Secret (403 FORBIDDEN) (0.707333ms)
+  ✔ 8. POST /api/v1/session/dev-login succeeds for existing user with valid X-Dev-Secret (1.415709ms)
+  ✔ 9. POST /api/v1/session/dev-login returns 404 NOT_FOUND when NODE_ENV === "production" (0.267583ms)
+  ✔ 10. Cookies have Secure flag when request is not from localhost (1.269583ms)
+✔ ACC-01: Sign in, Sessions and Authentication Suite (67.0845ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 211.782834

@@ -64,7 +64,7 @@ export async function checkOrReplayReceipt(
   }>(
     `SELECT id, method_path_hash, body_hash, status_code, response_body
      FROM idempotency_receipts
-     WHERE actor_id = $1 AND scope_id = $2 AND idempotency_key = $3`,
+     WHERE actor_id = $1 AND scope_id = $2 AND idempotency_key = $3 AND expires_at > NOW()`,
     [actorId, scopeId, idempotencyKey],
   );
 
@@ -105,19 +105,29 @@ export async function saveReceipt(
   statusCode: number,
   responseBody: unknown,
   ttlDays = 7,
-): Promise<void> {
+): Promise<ReplayReceiptResult | null> {
   const methodPathHash = sha256(methodPath);
   const bodyHash = sha256(canonicalJson(body ?? {}));
   const id = 'rcp_' + crypto.randomUUID();
   const now = new Date();
   const expiresAt = new Date(now.getTime() + ttlDays * 24 * 60 * 60 * 1000);
 
-  await client.query(
+  const insertRes = await client.query<{ id: string }>(
     `INSERT INTO idempotency_receipts (
       id, actor_id, scope_type, scope_id, idempotency_key,
       method_path_hash, body_hash, status_code, response_body,
       expires_at, created_at
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    ON CONFLICT (actor_id, scope_id, idempotency_key)
+    DO UPDATE SET
+      method_path_hash = EXCLUDED.method_path_hash,
+      body_hash = EXCLUDED.body_hash,
+      status_code = EXCLUDED.status_code,
+      response_body = EXCLUDED.response_body,
+      expires_at = EXCLUDED.expires_at,
+      created_at = EXCLUDED.created_at
+    WHERE idempotency_receipts.expires_at <= NOW()
+    RETURNING id`,
     [
       id,
       actorId,
@@ -132,4 +142,46 @@ export async function saveReceipt(
       now.toISOString(),
     ],
   );
+
+  if (insertRes.rows.length === 0) {
+    // An active unexpired receipt already exists (winner of a concurrent race).
+    // Re-read the winner's receipt rather than throwing an unhandled 500 unique violation.
+    const winnerRes = await client.query<{
+      id: string;
+      method_path_hash: string;
+      body_hash: string;
+      status_code: number;
+      response_body: unknown;
+    }>(
+      `SELECT id, method_path_hash, body_hash, status_code, response_body
+       FROM idempotency_receipts
+       WHERE actor_id = $1 AND scope_id = $2 AND idempotency_key = $3`,
+      [actorId, scopeId, idempotencyKey],
+    );
+
+    if (winnerRes.rows.length === 0 || !winnerRes.rows[0]) {
+      return null;
+    }
+
+    const winner = winnerRes.rows[0];
+    if (winner.method_path_hash !== methodPathHash || winner.body_hash !== bodyHash) {
+      throw HttpError.conflict(
+        'Idempotency key collision with different request payload.',
+        'IDEMPOTENCY_CONFLICT',
+      );
+    }
+
+    const parsedWinnerBody =
+      typeof winner.response_body === 'string'
+        ? JSON.parse(winner.response_body)
+        : winner.response_body;
+
+    return {
+      statusCode: winner.status_code,
+      responseBody: parsedWinnerBody,
+      replayed: true,
+    };
+  }
+
+  return null;
 }

@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta name="description" content="Flowboard projects screen. Design prototype with synthetic data." />
+  <title>Projects — Flowboard design prototype</title>
+  <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../detail.css" />
+  <link rel="stylesheet" href="screens.css" />
+</head>
+<body data-page="projects">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app">
+    <aside class="rail" id="rail" aria-label="Workspace navigation"></aside>
+    <div class="rail-scrim" id="railScrim" hidden></div>
+    <div class="workspace">
+      <header class="topbar" id="topbar"></header>
+      <main class="page" id="main">
+        <div class="page-head">
+          <div class="page-head-copy">
+            <p class="eyebrow">Acme Corp <span class="badge">Project-only access</span></p>
+            <h1>Projects</h1>
+            <p class="page-sub" id="projectsSub">
+              <span>Loading projects…</span>
+            </p>
+          </div>
+          <div class="page-actions" id="projectsActions"></div>
+        </div>
+
+        <div class="review-bar">
+          <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+          <span><strong>Project-only visibility.</strong> You only see projects where you hold a grant. Being in this workspace does not reveal sibling projects.</span>
+          <span class="spacer"></span>
+          <span class="badge" id="projectsScopeBadge">Owner preview</span>
+        </div>
+
+        <div class="summary compact" id="projectsSummary" aria-label="Project summary">
+          <div class="summary-stat"><span class="label">Active projects</span><span class="value" id="statActive">—</span></div>
+          <div class="summary-stat"><span class="label">Boards</span><span class="value" id="statBoards">—</span></div>
+          <div class="summary-stat"><span class="label">Cards</span><span class="value" id="statCards">—</span></div>
+          <div class="summary-stat"><span class="label">People</span><span class="value" id="statPeople">—</span></div>
+          <div class="summary-stat"><span class="label">Archived</span><span class="value" id="statArchived">—</span></div>
+        </div>
+
+        <div class="split-layout">
+          <section class="stack" aria-labelledby="projectListTitle">
+            <div class="row" style="justify-content:space-between;">
+              <h2 class="panel-title" id="projectListTitle">Your projects</h2>
+              <span class="badge" id="projectListCount">—</span>
+            </div>
+            <div class="tabs" role="tablist" aria-label="Project status">
+              <button class="tab" type="button" role="tab" data-project-tab="active" aria-selected="true">
+                Active <span class="count" id="activeCount">—</span>
+              </button>
+              <button class="tab" type="button" role="tab" data-project-tab="archived" aria-selected="false">
+                Archived <span class="count" id="archivedCount">—</span>
+              </button>
+            </div>
+            <div id="projectList" class="stack"></div>
+          </section>
+
+          <aside class="stack" id="projectsAside" aria-label="Project context"></aside>
+        </div>
+
+        <div class="dialog-layer" id="newProjectLayer" hidden>
+          <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="newProjectTitle">
+            <div class="dialog-head">
+              <div class="dialog-head-copy">
+                <h2 id="newProjectTitle">Create a project</h2>
+                <p>Name the project and its first board. The four default columns are created with it.</p>
+              </div>
+              <button class="dialog-close" type="button" data-close-dialog="newProjectLayer" aria-label="Close create project dialog">
+                <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+              </button>
+            </div>
+            <form id="newProjectForm">
+              <div class="dialog-body">
+                <div class="dialog-field">
+                  <label for="newProjectName">Project name</label>
+                  <input class="control" id="newProjectName" name="name" type="text" maxlength="80" autocomplete="off" placeholder="e.g. Operations" data-autofocus />
+                  <p class="form-error" id="newProjectNameError" hidden></p>
+                </div>
+                <div class="dialog-field">
+                  <label for="newProjectDescription">Description <span class="faint">(optional)</span></label>
+                  <textarea class="control textarea" id="newProjectDescription" name="description" maxlength="500" placeholder="What is this project for?"></textarea>
+                </div>
+                <div class="dialog-field">
+                  <label for="newBoardName">First board name</label>
+                  <input class="control" id="newBoardName" name="board" type="text" maxlength="80" autocomplete="off" placeholder="e.g. Operations Kanban" />
+                  <p class="form-error" id="newBoardNameError" hidden></p>
+                </div>
+                <div class="dialog-field">
+                  <label>Default columns</label>
+                  <div class="note">
+                    <svg class="icon" aria-hidden="true"><use href="#i-columns"></use></svg>
+                    <span>Not started · In progress · Testing · Completed. Columns can be renamed or reordered in Settings after creation.</span>
+                  </div>
+                </div>
+                <div class="note warn" style="margin-top:13px;">
+                  <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+                  <span><strong>Design-only.</strong> No project is persisted and no invitation is sent. Reloading resets this list.</span>
+                </div>
+              </div>
+              <footer class="dialog-foot">
+                <span class="spacer"></span>
+                <button class="btn" type="button" data-close-dialog="newProjectLayer">Cancel</button>
+                <button class="btn primary" type="submit">Create project</button>
+              </footer>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="data.js"></script>
+  <script src="screens.js"></script>
+  <script src="projects.js"></script>
+</body>
+</html>

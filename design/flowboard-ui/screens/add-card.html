@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta name="description" content="Flowboard add card screen. Design prototype with synthetic data." />
+  <title>New card — Flowboard design prototype</title>
+  <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../detail.css" />
+  <link rel="stylesheet" href="screens.css" />
+</head>
+<body data-page="add-card">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app">
+    <aside class="rail" id="rail" aria-label="Workspace navigation"></aside>
+    <div class="rail-scrim" id="railScrim" hidden></div>
+    <div class="workspace">
+      <header class="topbar" id="topbar"></header>
+      <main class="page" id="main">
+        <div id="addContent">
+          <div class="page-head">
+            <div class="page-head-copy">
+              <p class="eyebrow">Website Redesign <span class="badge">Website Kanban</span></p>
+              <h1>New card</h1>
+              <p class="page-sub">
+                <span>Create the card first, then attach images and comments</span>
+                <span class="dot" aria-hidden="true"></span>
+                <span>Card ID exists before any attachment</span>
+              </p>
+            </div>
+            <div class="page-actions">
+              <a class="btn" id="cancelTop" href="../index.html">
+                <svg class="icon" aria-hidden="true"><use href="#i-arrow-left"></use></svg>
+                Back to board
+              </a>
+            </div>
+          </div>
+
+          <div class="review-bar">
+            <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+            <span><strong>Save-first contract.</strong> A title creates the card and returns a real card ID. Images and comments attach only after that ID exists, so an attachment can never belong to a card that was never saved.</span>
+            <span class="spacer"></span>
+            <span class="badge">Design-only</span>
+          </div>
+
+          <div class="steps" aria-label="Creation stages">
+            <div class="step is-active" data-step="1">
+              <span class="step-num">1</span>
+              <span class="step-copy"><strong>Card details</strong><span>Title, column and optional fields</span></span>
+            </div>
+            <div class="step" data-step="2">
+              <span class="step-num">2</span>
+              <span class="step-copy"><strong>Save card</strong><span>Server returns the card ID</span></span>
+            </div>
+            <div class="step" data-step="3">
+              <span class="step-num">3</span>
+              <span class="step-copy"><strong>Images and comments</strong><span>Attach to the saved card</span></span>
+            </div>
+          </div>
+
+          <form id="addCardForm" novalidate>
+            <div class="split-layout">
+              <div class="stack">
+                <section class="form-section" aria-labelledby="detailsTitle">
+                  <div class="form-section-head">
+                    <svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg>
+                    <div>
+                      <h2 id="detailsTitle">Card details</h2>
+                      <p>Only the title is required. Everything else can be edited after saving.</p>
+                    </div>
+                  </div>
+
+                  <div class="form-grid">
+                    <div class="field span-2">
+                      <label class="field-label" for="cardTitle">Title <span class="required" aria-hidden="true">*</span></label>
+                      <input class="control" id="cardTitle" name="title" type="text" maxlength="200" autocomplete="off" placeholder="What needs to be done?" data-autofocus />
+                      <div class="row" style="justify-content:space-between;gap:8px;">
+                        <p class="field-help">1–200 characters. Plain text; no HTML is rendered.</p>
+                        <span class="char-count" id="titleCount">0 / 200</span>
+                      </div>
+                      <p class="form-error" id="titleError" hidden></p>
+                    </div>
+
+                    <div class="field span-2">
+                      <label class="field-label" for="cardDescription">Description <span class="faint">(optional)</span></label>
+                      <textarea class="control textarea" id="cardDescription" name="description" maxlength="20000" placeholder="Add context, acceptance notes or a link to the brief."></textarea>
+                      <div class="row" style="justify-content:space-between;gap:8px;">
+                        <p class="field-help">Plain text, up to 20,000 characters. Blank becomes an empty description.</p>
+                        <span class="char-count" id="descriptionCount">0 / 20,000</span>
+                      </div>
+                    </div>
+
+                    <div class="field">
+                      <label class="field-label" for="cardColumn">Column</label>
+                      <select class="control" id="cardColumn" name="column"></select>
+                      <p class="field-help">The card appears at the end of this column.</p>
+                    </div>
+
+                    <div class="field">
+                      <label class="field-label" for="cardPriority">Priority</label>
+                      <select class="control" id="cardPriority" name="priority">
+                        <option value="none">None</option>
+                        <option value="low">Low</option>
+                        <option value="medium">Medium</option>
+                        <option value="high">High</option>
+                        <option value="urgent">Urgent</option>
+                      </select>
+                    </div>
+
+                    <div class="field span-2">
+                      <label class="field-label" for="cardDue">Due date <span class="faint">(optional)</span></label>
+                      <div class="date-row">
+                        <input class="control" id="cardDue" name="due" type="date" />
+                        <button class="icon-btn" id="clearDue" type="button" aria-label="Clear due date" title="Clear due date">
+                          <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+                        </button>
+                      </div>
+                      <p class="field-help">A calendar date with no time or timezone. It is stored as a date-only value and displayed as a date-only value.</p>
+                      <p class="form-error" id="dueError" hidden></p>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="form-section" aria-labelledby="assignTitle">
+                  <div class="form-section-head">
+                    <svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg>
+                    <div>
+                      <h2 id="assignTitle">Assignees</h2>
+                      <p>Only project people who can work on cards appear here. Viewers are never assignable.</p>
+                    </div>
+                  </div>
+                  <div class="check-list" id="assigneeList"></div>
+                  <div class="selection-summary" id="assigneeSummary" style="margin-top:8px;"></div>
+                </section>
+
+                <div class="note">
+                  <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+                  <span>Images and comments are added on the next step, after the card is saved. They are never staged against a temporary or client-only card.</span>
+                </div>
+              </div>
+
+              <aside class="stack">
+                <section class="panel">
+                  <div class="panel-head">
+                    <div class="panel-head-copy">
+                      <h2 class="panel-title">Destination</h2>
+                      <p class="panel-sub">Website Redesign · Website Kanban</p>
+                    </div>
+                  </div>
+                  <div class="panel-body stack-sm">
+                    <div class="row" style="justify-content:space-between;"><span class="small muted">Project</span><span class="small">Website Redesign</span></div>
+                    <div class="row" style="justify-content:space-between;"><span class="small muted">Board</span><span class="small">Website Kanban</span></div>
+                    <div class="row" style="justify-content:space-between;"><span class="small muted">Created by</span><span class="small" id="creatorName">—</span></div>
+                    <div class="row" style="justify-content:space-between;"><span class="small muted">Card key</span><span class="small mono" id="nextKey">—</span></div>
+                    <div class="note">
+                      <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+                      <span>The next key is assigned by the server when the card is created. This preview calculates it locally.</span>
+                    </div>
+                  </div>
+                </section>
+
+                <section class="panel">
+                  <div class="panel-head">
+                    <div class="panel-head-copy">
+                      <h2 class="panel-title">Who can create cards</h2>
+                      <p class="panel-sub">Project role matrix</p>
+                    </div>
+                  </div>
+                  <div class="panel-body stack-sm">
+                    <div class="row" style="justify-content:space-between;"><span class="small">Owner</span><span class="status-chip active plain">Yes</span></div>
+                    <div class="row" style="justify-content:space-between;"><span class="small">Manager</span><span class="status-chip active plain">Yes</span></div>
+                    <div class="row" style="justify-content:space-between;"><span class="small">Member</span><span class="status-chip active plain">Yes</span></div>
+                    <div class="row" style="justify-content:space-between;"><span class="small">Viewer</span><span class="status-chip expired plain">No</span></div>
+                    <p class="tiny faint" style="line-height:1.5;">Archived projects are read-only. Reopen the project before creating a card.</p>
+                  </div>
+                </section>
+
+                <section class="panel">
+                  <div class="panel-head">
+                    <div class="panel-head-copy">
+                      <h2 class="panel-title">Private by default</h2>
+                    </div>
+                  </div>
+                  <div class="panel-body stack-sm">
+                    <p class="small muted" style="line-height:1.55;">The card is visible only to people with a grant on Website Redesign. Adding an image does not make it public.</p>
+                    <div class="note">
+                      <svg class="icon" aria-hidden="true"><use href="#i-image"></use></svg>
+                      <span>Images use authenticated delivery. A copied image URL is not a public link.</span>
+                    </div>
+                  </div>
+                </section>
+              </aside>
+            </div>
+
+            <div class="sticky-actions">
+              <span class="dirty-note" id="dirtyNote"><span class="dot"></span>No unsaved changes</span>
+              <span class="spacer"></span>
+              <a class="btn" id="cancelBottom" href="../index.html">Cancel</a>
+              <button class="btn primary" type="submit" id="saveCardBtn">
+                <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>
+                Save card
+              </button>
+            </div>
+          </form>
+
+          <section id="savedState" hidden>
+            <div class="panel success-panel">
+              <div class="success-head">
+                <span class="success-icon"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span>
+                <div style="min-width:0;flex:1;">
+                  <p class="eyebrow" style="margin-bottom:4px;">Card saved <span class="badge accent" id="savedKeyBadge">WEB-113</span></p>
+                  <h2 id="savedTitle">Card title</h2>
+                  <p>The card exists now. The server returned its ID, so images and comments can attach to a real record.</p>
+                  <div class="success-meta">
+                    <span class="badge" id="savedColumn">Not started</span>
+                    <span class="badge" id="savedPriority">No priority</span>
+                    <span class="badge" id="savedDue">No due date</span>
+                    <span class="badge" id="savedAssignees">Unassigned</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="success-card">
+                <div class="row" style="justify-content:space-between;align-items:flex-start;">
+                  <div>
+                    <h3>Attach images</h3>
+                    <p>Upload is separate from Save. Each image is private and tied to <span class="mono" id="savedKeyInline">WEB-113</span>.</p>
+                  </div>
+                  <span class="badge">0 / 6</span>
+                </div>
+                <div class="dropzone" id="imageDrop" role="button" tabindex="0" aria-label="Add a private image">
+                  <svg class="icon" aria-hidden="true"><use href="#i-upload"></use></svg>
+                  <strong>Add private images</strong>
+                  <span>PNG, JPG or WebP · prototype simulates upload</span>
+                </div>
+                <div class="attach-grid" id="attachGrid" style="margin-top:9px;"></div>
+                <p class="field-help" id="imageNote">No images attached. This prototype generates a local placeholder instead of reading a file.</p>
+              </div>
+
+              <div class="success-card">
+                <div class="row" style="justify-content:space-between;align-items:flex-start;">
+                  <div>
+                    <h3>Post a comment</h3>
+                    <p>The first comment is a separate action from creating the card. Mentions notify project people only.</p>
+                  </div>
+                  <span class="badge" id="commentCountBadge">0 comments</span>
+                </div>
+                <label class="sr-only" for="firstComment">First comment</label>
+                <textarea class="control textarea" id="firstComment" maxlength="5000" placeholder="Add a comment. Use @ to mention a project person."></textarea>
+                <div class="row" style="justify-content:space-between;margin-top:6px;">
+                  <span class="field-help">Plain text · up to 5,000 characters</span>
+                  <span class="char-count" id="commentCount">0 / 5,000</span>
+                </div>
+                <div class="form-actions" style="margin-top:7px;">
+                  <button class="btn sm primary" type="button" id="postCommentBtn">
+                    <svg class="icon" aria-hidden="true"><use href="#i-send"></use></svg>
+                    Post comment
+                  </button>
+                </div>
+                <div id="commentList" class="comment-list" style="margin-top:10px;"></div>
+              </div>
+
+              <div class="success-actions">
+                <a class="btn primary" id="openBoard" href="../index.html">Open board</a>
+                <button class="btn" type="button" id="addAnother">Create another card</button>
+                <button class="btn ghost" type="button" id="viewCard" title="This card exists only in the prototype's memory">View card</button>
+              </div>
+              <div class="note warn" style="margin-top:12px;">
+                <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+                <span><strong>Prototype only.</strong> The card, images and comments live in memory. Reloading loses them, and no API, file upload or notification is called.</span>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        <section id="addDenied" hidden></section>
+      </main>
+    </div>
+  </div>
+
+  <div class="dialog-layer" id="discardLayer" hidden>
+    <div class="dialog confirm" role="alertdialog" aria-modal="true" aria-labelledby="discardTitle">
+      <div class="dialog-head">
+        <div class="dialog-head-copy">
+          <div class="confirm-icon danger"><svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg></div>
+          <h2 id="discardTitle">Discard this card?</h2>
+          <p class="confirm-copy">The title and optional fields have not been saved. Nothing will be created.</p>
+        </div>
+      </div>
+      <footer class="dialog-foot">
+        <span class="spacer"></span>
+        <button class="btn" type="button" data-close-dialog="discardLayer">Keep editing</button>
+        <button class="btn danger" type="button" id="discardConfirm">Discard</button>
+      </footer>
+    </div>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="data.js"></script>
+  <script src="screens.js"></script>
+  <script src="add-card.js"></script>
+</body>
+</html>

@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "RBAC-02"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/RBAC-02/criteria.json",
+  "startedAt": "2026-10-26T05:31:35Z",
+  "completedAt": "2026-10-26T05:37:00Z",
+  "implementer": {
+    "actorId": "builder",
+    "sessionId": "builder-session-id",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-reviewer",
+    "sessionId": "b54e0975-7baf-4cac-99fe-0f396b9bb498",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/RBAC-02/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/RBAC-02/criteria.json",
+      "docs/reviews/RBAC-02/reviewer-session.md",
+      "docs/reviews/RBAC-02/test.log",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/http/middleware/rbac.ts",
+      "database/migrations/0003_constraints.sql",
+      "apps/api/test/rbac-advanced.test.ts"
+    ],
+    "files": {
+      "docs/reviews/RBAC-02/criteria.json": "9fa3ad9a33612b153f04850e2046e6f87cbb058039db52a9b8c03a90923d2516",
+      "docs/reviews/RBAC-02/reviewer-session.md": "729a5f92503a9e1b1d722eabb0aa947cd4c97c825914240944f4ff920dd69dff",
+      "docs/reviews/RBAC-02/test.log": "364f3230c51440cb72a9b2d212ccc7d5833cf7799c9f47d0e0e1cad13301b6a9",
+      "apps/api/src/adapters/rbac.ts": "ec5768a8c2612710d61181995aee7a34bb079fe7302ac7c6b39a3d7437925d01",
+      "apps/api/src/http/middleware/rbac.ts": "1a17510b23563e086bb15fc3a6b403103736b37c821b293f87470660ad2e0a37",
+      "database/migrations/0003_constraints.sql": "84278975a601c45573f61cfbf70a2018bc18e89b9f10c63132f94b6a0fc5ef97",
+      "apps/api/test/rbac-advanced.test.ts": "befaa7518b4d1b6d48012944fc64c76742bbb97520cb7f2ecdc7ebb2d8f9f0e2"
+    },
+    "digest": "812ea32a8d69b5a8013393d742739946c7db2d741e70941a12ea0fc3bac3742d"
+  },
+  "criteriaResults": {
+    "Strict resource hierarchy: Validates workspace -> project -> resource ancestry for all child entities (boards, columns, cards, comments, attachments)": "pass",
+    "Cross-project ID probing prevention: Guessing or providing an ID belonging to a sibling project returns uniform 404 NOT_FOUND with zero metadata leakage": "pass",
+    "Uniform error response: Sibling ID mismatch returns identical 404 response to non-existent ID, preventing enumeration attacks": "pass",
+    "Multi-parent validation: Child entity mutations verify both project and parent container match canonical database ancestry": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "812ea32a8d69b5a8013393d742739946c7db2d741e70941a12ea0fc3bac3742d",
+      "evidencePath": "docs/reviews/RBAC-02/test.log"
+    },
+    {
+      "id": "rbac-advanced-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac-advanced.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "812ea32a8d69b5a8013393d742739946c7db2d741e70941a12ea0fc3bac3742d",
+      "evidencePath": "docs/reviews/RBAC-02/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict multi-parent and resource ancestry verification in verifyProjectAncestry and requireProjectAncestry middleware. Cross-project ID guessing yields uniform 404 NOT_FOUND, preventing ID enumeration.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-02/reviewer-session.md",
+        "docs/reviews/RBAC-02/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.7",
+      "reason": "Complete resource mapping covering boards, columns, cards, comments, images, uploads, and imports with prefix detection and multi-table UNION fallback.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-02/reviewer-session.md",
+        "docs/reviews/RBAC-02/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.9",
+      "reason": "Composite foreign keys in 0003_constraints.sql strictly enforce (project_id, workspace_id) and (column_id, board_id) relationships directly in PostgreSQL.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-02/reviewer-session.md",
+        "docs/reviews/RBAC-02/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.8",
+      "reason": "Typecheck clean. RBAC-02 tests in rbac-advanced.test.ts exercise positive hierarchy resolution, negative cross-project probing, and HTTP middleware route enforcement.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-02/reviewer-session.md",
+        "docs/reviews/RBAC-02/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.5",
+      "reason": "Clean resource table mapping abstraction in RESOURCE_TABLE_MAP and modular middleware design.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-02/reviewer-session.md",
+        "docs/reviews/RBAC-02/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.5",
+      "reason": "Indexed lookups on composite unique keys (id, project_id, workspace_id) prevent full table scans and protect performance.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-02/reviewer-session.md",
+        "docs/reviews/RBAC-02/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.745",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

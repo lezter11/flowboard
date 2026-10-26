@@ -294,7 +294,7 @@ export async function acquireWriteGrantLock(
   projectId: string,
   userId: string,
   minRole: 'manager' | 'member' = 'member',
-): Promise<{ role: Role; isOwner: boolean }> {
+): Promise<{ role: Role; isOwner: boolean; ownerId: string }> {
   // 1. Verify project exists and check workspace owner
   const prjRes = await client.query<{ id: string; workspace_id: string; owner_id: string }>(
     `SELECT p.id, p.workspace_id, w.owner_id
@@ -310,7 +310,7 @@ export async function acquireWriteGrantLock(
 
   const projectRow = prjRes.rows[0]!;
   if (projectRow.owner_id === userId) {
-    return { role: 'owner', isOwner: true };
+    return { role: 'owner', isOwner: true, ownerId: projectRow.owner_id };
   }
 
   // 2. Lock membership row in FOR SHARE mode to serialize against concurrent role revocations
@@ -339,7 +339,7 @@ export async function acquireWriteGrantLock(
     throw HttpError.forbidden(`Requires manager role for this operation. Current role: ${member.role}.`, 'FORBIDDEN');
   }
 
-  return { role: member.role, isOwner: false };
+  return { role: member.role, isOwner: false, ownerId: projectRow.owner_id };
 }
 
 // ============================================================================

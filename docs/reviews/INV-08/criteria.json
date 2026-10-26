@@ -1,0 +1,20 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "INV-08"
+  ],
+  "mandatoryCriteria": [
+    "Voluntary departure: Active project manager, member, or viewer can leave their granted project via POST /api/v1/projects/:projectId/leave",
+    "Owner protection: Workspace owner cannot leave their workspace project (returns 403 FORBIDDEN; must transfer workspace ownership)",
+    "Outsider rejection: User without active grant on the project receives 404 NOT_FOUND",
+    "Status transition: Updates project_memberships.status to 'removed' and increments version atomically",
+    "Immediate access cut-off: Subsequent requests by the departed user to project resources immediately return 404 NOT_FOUND",
+    "Historical attribution preserved: Existing card assignments, authored comments, and audit trails remain intact",
+    "Idempotency support: Repeated leave calls replay safely without error"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "inv04-inv08-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv04-inv08.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: POST /api/v1/projects/:projectId/leave endpoint, voluntary exit authorization, owner prevention, status transitions to 'removed', and immediate access revocation on PostgreSQL. Out-of-scope: Workspace ownership transfer is handled under S6 / ACC-05."
+}

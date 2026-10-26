@@ -10,6 +10,7 @@ import type {
   Role,
 } from '@flowboard/contracts';
 import { getPool } from './postgres.ts';
+import { acquireWriteGrantLock } from './rbac.ts';
 
 function isPool(target: pg.Pool | pg.ClientBase): target is pg.Pool {
   return typeof (target as pg.Pool).connect === 'function' && typeof (target as pg.Pool).totalCount === 'number';
@@ -84,7 +85,11 @@ export async function getWorkspaceProjects(
     }
   }
 
-  const limit = Math.min(Math.max(options.limit ?? 50, 1), 100);
+  const rawLimit =
+    typeof options.limit === 'number' && !Number.isNaN(options.limit) && options.limit >= 1
+      ? options.limit
+      : 50;
+  const limit = Math.min(rawLimit, 100);
   const cursorPayload = decodeProjectCursor(options.cursor);
 
   let query: string;
@@ -157,7 +162,11 @@ export async function getAllAccessibleProjects(
 ): Promise<PaginatedResult<Project & { role?: Role }>> {
   const pool = clientOrPool ?? getPool();
 
-  const limit = Math.min(Math.max(options.limit ?? 50, 1), 100);
+  const rawLimit =
+    typeof options.limit === 'number' && !Number.isNaN(options.limit) && options.limit >= 1
+      ? options.limit
+      : 50;
+  const limit = Math.min(rawLimit, 100);
   const cursorPayload = decodeProjectCursor(options.cursor);
 
   const query = `
@@ -236,94 +245,97 @@ export async function updateProjectSettings(
   input: UpdateProjectInput,
 ): Promise<Project> {
   const pool = clientOrPool ?? getPool();
+  let poolClient: pg.PoolClient | undefined;
+  let client: pg.ClientBase;
 
-  const res = await pool.query<{
-    id: string;
-    workspace_id: string;
-    name: string;
-    description: string | null;
-    archived: boolean;
-    version: number;
-    created_at: Date;
-    updated_at: Date;
-    workspace_owner_id: string;
-    member_role: string | null;
-    member_status: string | null;
-  }>(
-    `SELECT p.id, p.workspace_id, p.name, p.description, p.archived, p.version, p.created_at, p.updated_at,
-            w.owner_id AS workspace_owner_id,
-            pm.role AS member_role,
-            pm.status AS member_status
-     FROM projects p
-     JOIN workspaces w ON w.id = p.workspace_id
-     LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $2
-     WHERE p.id = $1`,
-    [projectId, actor.id],
-  );
-
-  const row = res.rows[0];
-  if (!row) {
-    throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+  if (isPool(pool)) {
+    poolClient = await pool.connect();
+    client = poolClient;
+  } else {
+    client = pool;
   }
 
-  const isWorkspaceOwner = row.workspace_owner_id === actor.id;
+  try {
+    if (poolClient) {
+      await client.query('BEGIN');
+    }
 
-  if (!isWorkspaceOwner) {
-    if (!row.member_role || row.member_status !== 'active') {
+    // 1. Acquire write grant lock: checks workspace owner or acquires FOR SHARE lock on project_memberships.
+    // Throws 404 NOT_FOUND if project not found, actor not in project, or actor is removed.
+    // Throws 403 FORBIDDEN if actor is viewer or lacks manager role.
+    await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
+
+    // 2. Fetch current project version to check OCC
+    const prjRes = await client.query<{ version: number }>(
+      `SELECT version FROM projects WHERE id = $1`,
+      [projectId],
+    );
+
+    if (prjRes.rows.length === 0) {
       throw HttpError.notFound('Project not found.', 'NOT_FOUND');
     }
 
-    if (row.member_role !== 'manager') {
-      throw HttpError.forbidden('Insufficient permissions to update project settings.', 'FORBIDDEN');
+    if (prjRes.rows[0]!.version !== input.expectedVersion) {
+      throw HttpError.conflict('Stale project version.', 'STALE_VERSION');
+    }
+
+    // 3. Execute OCC update within the active write transaction
+    const updateRes = await client.query<{
+      id: string;
+      workspace_id: string;
+      name: string;
+      description: string | null;
+      archived: boolean;
+      version: number;
+      created_at: Date;
+      updated_at: Date;
+    }>(
+      `UPDATE projects
+       SET name = CASE WHEN $1::boolean THEN $2 ELSE name END,
+           description = CASE WHEN $3::boolean THEN $4 ELSE description END,
+           version = version + 1,
+           updated_at = NOW()
+       WHERE id = $5 AND version = $6
+       RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
+      [
+        input.name !== undefined,
+        input.name ?? null,
+        input.description !== undefined,
+        input.description ?? null,
+        projectId,
+        input.expectedVersion,
+      ],
+    );
+
+    const updatedRow = updateRes.rows[0];
+    if (!updatedRow) {
+      throw HttpError.conflict('Stale project version.', 'STALE_VERSION');
+    }
+
+    if (poolClient) {
+      await client.query('COMMIT');
+    }
+
+    return {
+      id: updatedRow.id,
+      workspaceId: updatedRow.workspace_id,
+      name: updatedRow.name,
+      description: updatedRow.description,
+      isArchived: Boolean(updatedRow.archived),
+      version: updatedRow.version,
+      createdAt: new Date(updatedRow.created_at).toISOString(),
+      updatedAt: new Date(updatedRow.updated_at).toISOString(),
+    };
+  } catch (err) {
+    if (poolClient) {
+      await client.query('ROLLBACK').catch(() => {});
+    }
+    throw err;
+  } finally {
+    if (poolClient) {
+      poolClient.release();
     }
   }
-
-  if (row.version !== input.expectedVersion) {
-    throw HttpError.conflict('Stale project version.', 'STALE_VERSION');
-  }
-
-  const updateRes = await pool.query<{
-    id: string;
-    workspace_id: string;
-    name: string;
-    description: string | null;
-    archived: boolean;
-    version: number;
-    created_at: Date;
-    updated_at: Date;
-  }>(
-    `UPDATE projects
-     SET name = CASE WHEN $1::boolean THEN $2 ELSE name END,
-         description = CASE WHEN $3::boolean THEN $4 ELSE description END,
-         version = version + 1,
-         updated_at = NOW()
-     WHERE id = $5 AND version = $6
-     RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
-    [
-      input.name !== undefined,
-      input.name ?? null,
-      input.description !== undefined,
-      input.description ?? null,
-      projectId,
-      input.expectedVersion,
-    ],
-  );
-
-  const updatedRow = updateRes.rows[0];
-  if (!updatedRow) {
-    throw HttpError.conflict('Stale project version.', 'STALE_VERSION');
-  }
-
-  return {
-    id: updatedRow.id,
-    workspaceId: updatedRow.workspace_id,
-    name: updatedRow.name,
-    description: updatedRow.description,
-    isArchived: Boolean(updatedRow.archived),
-    version: updatedRow.version,
-    createdAt: new Date(updatedRow.created_at).toISOString(),
-    updatedAt: new Date(updatedRow.updated_at).toISOString(),
-  };
 }
 
 /**

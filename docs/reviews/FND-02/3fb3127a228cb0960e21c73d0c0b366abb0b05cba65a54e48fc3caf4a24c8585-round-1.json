@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "FND-02"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/FND-02/criteria.json",
+  "startedAt": "2026-10-26T05:31:35Z",
+  "completedAt": "2026-10-26T05:42:00Z",
+  "implementer": {
+    "actorId": "builder",
+    "sessionId": "builder-session-id",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-reviewer",
+    "sessionId": "b54e0975-7baf-4cac-99fe-0f396b9bb498",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/FND-02/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/FND-02/criteria.json",
+      "docs/reviews/FND-02/reviewer-session.md",
+      "docs/reviews/FND-02/test.log",
+      "apps/api/src/runtime/node.ts",
+      "apps/api/src/runtime/worker.ts",
+      "apps/api/src/adapters/postgres.ts",
+      "apps/api/src/http/app.ts",
+      "apps/api/test/node.test.ts",
+      "apps/api/test/worker.test.ts"
+    ],
+    "files": {
+      "docs/reviews/FND-02/criteria.json": "7748ef684433997aa92e4dda7658abe3a72f9ae572f6a4eedcdc6356c1d1933a",
+      "docs/reviews/FND-02/reviewer-session.md": "e4b3438b039f2f6b779ce55c7c1a95a6d800c9df298b452dcb737004d7b97a0c",
+      "docs/reviews/FND-02/test.log": "f68ba5f9273ee1e90217d4564b17c22a0d08e6fc4a2a3bed3a2b8da5dbf2385f",
+      "apps/api/src/runtime/node.ts": "bb5b3e2c44b1e68202eda9f4b95a1032d04910865e47a1527c1863d4c78d91d6",
+      "apps/api/src/runtime/worker.ts": "b96ee04d522675d0a25f8487dbf33dfeb005fe525769be137be4a19de43a4132",
+      "apps/api/src/adapters/postgres.ts": "75b4c2d2e7fd8494fd4bb3834b30d1ed30c1214dd26344468cb8f34b71160ccf",
+      "apps/api/src/http/app.ts": "9f0d9e9020241bc0710ddfa333913a3dd762784e9fde96e3d60f3e0450c6c141",
+      "apps/api/test/node.test.ts": "b83dc84b09eecab1825feba02ee0815fd69ddda7fe87395a46512769cc3c7c3a",
+      "apps/api/test/worker.test.ts": "a2b23febfcbb70bfd8422367a6a19daa4b2d60936fa88fa90b751c3370a732f4"
+    },
+    "digest": "3fb3127a228cb0960e21c73d0c0b366abb0b05cba65a54e48fc3caf4a24c8585"
+  },
+  "criteriaResults": {
+    "Dual runtime harness: Hono application mounts and executes identically on Node.js and Cloudflare Workers (workerd)": "pass",
+    "Database dependency injection: Both runtimes receive real database connection dependencies; health checks and product routes use the injected dependency": "pass",
+    "Health and readiness probes: /health/live returns 200 ok; /health/ready probes database connection and returns 200 ready (or safe 503 DATABASE_UNAVAILABLE)": "pass",
+    "Graceful shutdown: Node runtime closes server and ends pool cleanly": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "3fb3127a228cb0960e21c73d0c0b366abb0b05cba65a54e48fc3caf4a24c8585",
+      "evidencePath": "docs/reviews/FND-02/test.log"
+    },
+    {
+      "id": "node-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/node.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "3fb3127a228cb0960e21c73d0c0b366abb0b05cba65a54e48fc3caf4a24c8585",
+      "evidencePath": "docs/reviews/FND-02/test.log"
+    },
+    {
+      "id": "worker-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/worker.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "3fb3127a228cb0960e21c73d0c0b366abb0b05cba65a54e48fc3caf4a24c8585",
+      "evidencePath": "docs/reviews/FND-02/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Safe 503 DATABASE_UNAVAILABLE masking prevents connection string, credentials, or host disclosure. Local harness strictly rejects non-harness databases.",
+      "evidencePaths": [
+        "docs/reviews/FND-02/reviewer-session.md",
+        "docs/reviews/FND-02/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.7",
+      "reason": "Dual runtime harness executes identically on Node.js and Cloudflare Workers (workerd). Health liveness and readiness endpoints adhere to spec.",
+      "evidencePaths": [
+        "docs/reviews/FND-02/reviewer-session.md",
+        "docs/reviews/FND-02/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.8",
+      "reason": "Transactional rollback and committed positive controls verified on both runtimes. Request-scoped worker pool guarantees pool.end() cleanup in finally block.",
+      "evidencePaths": [
+        "docs/reviews/FND-02/reviewer-session.md",
+        "docs/reviews/FND-02/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.9",
+      "reason": "Typecheck clean. Verified across Node and local workerd runtime harnesses with real pg/Kysely queries and refused DB error simulation.",
+      "evidencePaths": [
+        "docs/reviews/FND-02/reviewer-session.md",
+        "docs/reviews/FND-02/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.7",
+      "reason": "Unified createApp router with clean dependency injection via Hono context and AsyncLocalStorage.",
+      "evidencePaths": [
+        "docs/reviews/FND-02/reviewer-session.md",
+        "docs/reviews/FND-02/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.6",
+      "reason": "Graceful shutdown with SIGINT/SIGTERM handlers and socket termination; clear /health/live vs /health/ready distinction for load balancers.",
+      "evidencePaths": [
+        "docs/reviews/FND-02/reviewer-session.md",
+        "docs/reviews/FND-02/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.77",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta name="description" content="Flowboard settings. Design prototype with synthetic project and account data." />
+  <title>Settings — Flowboard design prototype</title>
+  <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../detail.css" />
+  <link rel="stylesheet" href="screens.css" />
+</head>
+<body data-page="settings">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app">
+    <aside class="rail" id="rail" aria-label="Workspace navigation"></aside>
+    <div class="rail-scrim" id="railScrim" hidden></div>
+    <div class="workspace">
+      <header class="topbar" id="topbar"></header>
+      <main class="page" id="main">
+        <div class="page-head">
+          <div class="page-head-copy">
+            <p class="eyebrow">Website Redesign <span class="badge">Settings</span></p>
+            <h1>Settings</h1>
+            <p class="page-sub" id="settingsSub"><span>Project, board, account and appearance</span></p>
+          </div>
+          <div class="page-actions">
+            <a class="btn" id="settingsProjectLink" href="project.html">
+              <svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg>
+              Project overview
+            </a>
+            <a class="btn ghost" id="settingsBoardLink" href="../index.html">
+              <svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg>
+              Open board
+            </a>
+          </div>
+        </div>
+
+        <div class="review-bar">
+          <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+          <span><strong>Design-only settings.</strong> Changes update this page's in-memory data. They are not persisted, do not call an API and do not alter the approved board artifact.</span>
+          <span class="spacer"></span>
+          <span class="badge" id="settingsRoleBadge">Owner preview</span>
+        </div>
+
+        <div class="tabs settings-tabs" role="tablist" aria-label="Settings sections">
+          <button class="tab" type="button" role="tab" id="tab-project" aria-controls="panel-project" aria-selected="true" data-settings-tab="project">Project</button>
+          <button class="tab" type="button" role="tab" id="tab-board" aria-controls="panel-board" aria-selected="false" data-settings-tab="board">Board and columns</button>
+          <button class="tab" type="button" role="tab" id="tab-account" aria-controls="panel-account" aria-selected="false" data-settings-tab="account">Account</button>
+          <button class="tab" type="button" role="tab" id="tab-appearance" aria-controls="panel-appearance" aria-selected="false" data-settings-tab="appearance">Appearance</button>
+        </div>
+
+        <div class="split-layout">
+          <div class="settings-panel stack" id="settingsPanels">
+            <section class="panel" id="panel-project" role="tabpanel" aria-labelledby="tab-project">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title">Project settings</h2>
+                  <p class="panel-sub" id="projectSettingsSub">Name and description for Website Redesign.</p>
+                </div>
+                <div class="panel-actions"><span class="badge" id="projectStatusBadge">—</span></div>
+              </div>
+              <div class="panel-body">
+                <form class="settings-form" id="projectForm">
+                  <div class="form-grid">
+                    <div class="field span-2">
+                      <label class="field-label" for="projectName">Project name</label>
+                      <input class="control" id="projectName" type="text" maxlength="80" />
+                      <p class="field-help">Shown in project lists and breadcrumbs. Duplicate names are rejected after trim and case normalization.</p>
+                    </div>
+                    <div class="field span-2">
+                      <label class="field-label" for="projectDescription">Description</label>
+                      <textarea class="control textarea" id="projectDescription" maxlength="500"></textarea>
+                      <p class="field-help">Plain text, up to 500 characters.</p>
+                    </div>
+                  </div>
+                  <div class="note" id="projectRoleNote"></div>
+                  <div class="form-actions">
+                    <span class="dirty-note" id="projectDirty"><span class="dot"></span>No unsaved changes</span>
+                    <span class="spacer"></span>
+                    <button class="btn primary" type="submit" id="saveProjectBtn">Save project</button>
+                  </div>
+                </form>
+
+                <div class="divider"></div>
+
+                <div class="stack-sm">
+                  <h3 class="settings-section-title">Project status</h3>
+                  <p class="settings-section-sub">Archiving is reversible and Owner-only. Boards become read-only while archived; data is retained and deleted-card restore deadlines continue.</p>
+                  <div class="row" id="archiveRow"></div>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel" id="panel-board" role="tabpanel" aria-labelledby="tab-board" hidden>
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title">Board and columns</h2>
+                  <p class="panel-sub" id="boardSettingsSub">Board name and column order for Website Kanban.</p>
+                </div>
+                <div class="panel-actions"><span class="badge" id="boardStatusBadge">—</span></div>
+              </div>
+              <div class="panel-body">
+                <form class="settings-form" id="boardForm">
+                  <div class="form-grid">
+                    <div class="field span-2">
+                      <label class="field-label" for="boardName">Board name</label>
+                      <input class="control" id="boardName" type="text" maxlength="80" />
+                    </div>
+                    <div class="field span-2">
+                      <label class="field-label" for="boardDescription">Board description</label>
+                      <textarea class="control textarea" id="boardDescription" maxlength="300" style="min-height:70px;"></textarea>
+                    </div>
+                  </div>
+
+                  <div class="stack-sm">
+                    <div class="row" style="justify-content:space-between;">
+                      <div>
+                        <h3 class="settings-section-title">Columns</h3>
+                        <p class="settings-section-sub">Stable IDs, manual order, color and category. Removing a column with cards is blocked.</p>
+                      </div>
+                      <button class="btn sm" type="button" id="addColumnBtn">
+                        <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>
+                        Add column
+                      </button>
+                    </div>
+                    <div class="column-list" id="columnList"></div>
+                    <p class="field-help" id="columnNote">Changes are preview-only. The approved board artifact is not modified.</p>
+                  </div>
+
+                  <div class="note" id="boardRoleNote"></div>
+                  <div class="form-actions">
+                    <span class="dirty-note" id="boardDirty"><span class="dot"></span>No unsaved changes</span>
+                    <span class="spacer"></span>
+                    <button class="btn" type="button" id="resetColumnsBtn">Reset columns</button>
+                    <button class="btn primary" type="submit" id="saveBoardBtn">Save board</button>
+                  </div>
+                </form>
+              </div>
+            </section>
+
+            <section class="panel" id="panel-account" role="tabpanel" aria-labelledby="tab-account" hidden>
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title">Account</h2>
+                  <p class="panel-sub">Profile, current project role and project access.</p>
+                </div>
+                <div class="panel-actions"><span class="badge" id="accountRoleBadge">—</span></div>
+              </div>
+              <div class="panel-body stack">
+                <div class="row" style="gap:12px;align-items:flex-start;">
+                  <span class="avatar xl" id="accountAvatar" aria-hidden="true">AO</span>
+                  <div class="stack-xs" style="flex:1;min-width:0;">
+                    <h3 class="settings-section-title" id="accountName">—</h3>
+                    <p class="settings-section-sub" id="accountEmail">—</p>
+                    <div class="row" style="margin-top:4px;">
+                      <span class="status-chip info plain" id="accountRole">—</span>
+                      <span class="badge">Acme Corp</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="form-grid">
+                  <div class="field">
+                    <label class="field-label" for="accountDisplayName">Display name</label>
+                    <input class="control" id="accountDisplayName" type="text" value="" disabled />
+                    <p class="field-help">Profile editing and sign-in are not implemented.</p>
+                  </div>
+                  <div class="field">
+                    <label class="field-label" for="accountEmailField">Email</label>
+                    <input class="control" id="accountEmailField" type="email" value="" disabled />
+                    <p class="field-help">Account email changes require a verification flow outside this prototype.</p>
+                  </div>
+                </div>
+
+                <div class="divider"></div>
+                <div class="stack-sm">
+                  <h3 class="settings-section-title">Project access</h3>
+                  <p class="settings-section-sub">Project-only access. Holding a workspace account does not reveal a sibling project.</p>
+                  <div id="accountProjects"></div>
+                </div>
+
+                <div class="note">
+                  <svg class="icon" aria-hidden="true"><use href="#i-eye"></use></svg>
+                  <span><strong>Role preview is a design-review control.</strong> Changing “View as” does not change an account's real grant. The API must enforce the role on every request.</span>
+                </div>
+                <div class="note warn">
+                  <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+                  <span><strong>No authentication.</strong> There is no sign-in, session, password, MFA or account deletion in this prototype.</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel" id="panel-appearance" role="tabpanel" aria-labelledby="tab-appearance" hidden>
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title">Appearance</h2>
+                  <p class="panel-sub">Light is the default. Dark is a token variant, not a separate layout.</p>
+                </div>
+                <div class="panel-actions"><span class="badge" id="themeBadge">Light</span></div>
+              </div>
+              <div class="panel-body stack">
+                <div class="theme-grid" role="group" aria-label="Theme">
+                  <button class="theme-card" type="button" data-theme-choice="light" aria-pressed="true">
+                    <span class="theme-preview light" aria-hidden="true">
+                      <span class="theme-preview-bar"></span>
+                      <span class="theme-preview-body"><span class="theme-preview-col"></span><span class="theme-preview-col"></span><span class="theme-preview-col"></span></span>
+                    </span>
+                    <strong>Light</strong>
+                    <span>Warm paper canvas, dark ink and a deep green accent. Default for review.</span>
+                  </button>
+                  <button class="theme-card" type="button" data-theme-choice="dark" aria-pressed="false">
+                    <span class="theme-preview dark" aria-hidden="true">
+                      <span class="theme-preview-bar"></span>
+                      <span class="theme-preview-body"><span class="theme-preview-col"></span><span class="theme-preview-col"></span><span class="theme-preview-col"></span></span>
+                    </span>
+                    <strong>Dark</strong>
+                    <span>Same layout and semantics with dark surfaces and raised borders.</span>
+                  </button>
+                </div>
+                <div class="note">
+                  <svg class="icon" aria-hidden="true"><use href="#i-palette"></use></svg>
+                  <span>The theme choice applies immediately and is saved in this browser's <span class="mono">localStorage</span>. It is not an account preference and does not sync across devices.</span>
+                </div>
+                <div class="note">
+                  <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+                  <span>Theme does not change role permissions, data visibility, card order or any server behavior.</span>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="stack">
+            <section class="panel">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title">Your settings scope</h2>
+                  <p class="panel-sub" id="scopeSub">Owner preview</p>
+                </div>
+              </div>
+              <div class="panel-body stack-sm" id="scopePanel"></div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title">Archive rules</h2>
+                </div>
+              </div>
+              <div class="panel-body stack-sm">
+                <p class="small muted" style="line-height:1.55;">Project archive is Owner-only. It hides the project from ordinary active lists and makes every board read-only. The Owner can reopen it. Archiving does not delete data and does not pause a deleted card's 24-hour restore deadline.</p>
+                <div class="note">
+                  <svg class="icon" aria-hidden="true"><use href="#i-archive"></use></svg>
+                  <span>Permanent project destruction and ownership transfer are later scope, not settings toggles.</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title">Implementation note</h2>
+                </div>
+              </div>
+              <div class="panel-body stack-sm">
+                <p class="small muted" style="line-height:1.55;">These forms demonstrate layout and role gating. Validation, optimistic concurrency, audit events and persistence belong to the API and are not implemented.</p>
+                <div class="note warn">
+                  <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+                  <span><strong>No setting here is real.</strong> Reloading restores the synthetic project, board and account values.</span>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+
+        <footer class="board-foot">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <span>Settings · synthetic values · design evidence only</span>
+          <span class="sep"></span>
+          <span>No authentication, persistence or audit log is implemented.</span>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <div class="dialog-layer" id="columnLayer" hidden>
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="columnDialogTitle">
+      <div class="dialog-head">
+        <div class="dialog-head-copy">
+          <h2 id="columnDialogTitle">Add a column</h2>
+          <p>Columns have a stable ID, a label, a color and a category. Maximum 12 columns.</p>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog="columnLayer" aria-label="Close column dialog">
+          <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+        </button>
+      </div>
+      <form id="columnForm" novalidate>
+        <div class="dialog-body">
+          <div class="dialog-field">
+            <label for="columnName">Column name</label>
+            <input class="control" id="columnName" type="text" maxlength="40" autocomplete="off" placeholder="e.g. Ready for review" data-autofocus />
+            <p class="form-error" id="columnError" hidden></p>
+          </div>
+          <div class="dialog-field">
+            <label for="columnTone">Color</label>
+            <select class="control" id="columnTone">
+              <option value="backlog">Neutral</option>
+              <option value="progress">Blue</option>
+              <option value="testing">Amber</option>
+              <option value="completed">Green</option>
+            </select>
+          </div>
+          <div class="dialog-field">
+            <label for="columnCategory">Category</label>
+            <select class="control" id="columnCategory">
+              <option value="todo">Todo</option>
+              <option value="active">Active</option>
+              <option value="done">Done</option>
+            </select>
+            <p class="field-help">Category is separate from the label. Import mapping uses the label; summaries and overdue rules use the category.</p>
+          </div>
+          <div class="note warn" style="margin-top:12px;">
+            <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+            <span><strong>Preview only.</strong> The column is added to this page's local list, not to the approved board artifact or any database.</span>
+          </div>
+        </div>
+        <footer class="dialog-foot">
+          <span class="spacer"></span>
+          <button class="btn" type="button" data-close-dialog="columnLayer">Cancel</button>
+          <button class="btn primary" type="submit">Add column</button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="data.js"></script>
+  <script src="screens.js"></script>
+  <script src="settings.js"></script>
+</body>
+</html>

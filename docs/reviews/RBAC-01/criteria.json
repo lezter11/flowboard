@@ -1,0 +1,19 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "RBAC-01"
+  ],
+  "mandatoryCriteria": [
+    "Session-derived authorization: Every request derives active actor identity, workspace ownership, and project memberships strictly from verified server session",
+    "Owner authority inheritance: Workspace owner inherits automatic full administrative authority over all projects in the workspace",
+    "Project-scoped manager authority: Project Manager authority is strictly confined to their granted project; manager has zero administrative power in sibling projects",
+    "Member and viewer privilege boundaries: Member cannot perform administration, invite users, or trash cards; viewer has read-only access to granted project",
+    "Sibling project privacy: Accessing an ungranted project returns uniform 404 NOT_FOUND with zero information disclosure",
+    "No insecure development bypass: dev-login and test helpers are not accessible in production and do not bypass session or role checks"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "rbac01-matrix-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac01-matrix.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Core role resolution, workspace owner inheritance, project manager scoping, member/viewer limits, and sibling privacy middleware on PostgreSQL. Out-of-scope: Entity-specific child resource ancestry checking is handled in RBAC-02."
+}

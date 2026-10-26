@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta name="description" content="Flowboard people and roles. Design prototype with synthetic members." />
+  <title>People — Flowboard design prototype</title>
+  <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../detail.css" />
+  <link rel="stylesheet" href="screens.css" />
+</head>
+<body data-page="people">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app">
+    <aside class="rail" id="rail" aria-label="Workspace navigation"></aside>
+    <div class="rail-scrim" id="railScrim" hidden></div>
+    <div class="workspace">
+      <header class="topbar" id="topbar"></header>
+      <main class="page" id="main">
+        <div class="page-head">
+          <div class="page-head-copy">
+            <p class="eyebrow">Website Redesign <span class="badge">Project people</span></p>
+            <h1>People</h1>
+            <p class="page-sub" id="peopleSub"><span>Loading project team…</span></p>
+          </div>
+          <div class="page-actions" id="peopleActions"></div>
+        </div>
+
+        <div class="review-bar" id="peopleScopeBar">
+          <svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg>
+          <span id="peopleScopeCopy"><strong>Project-only access.</strong> Every person here has a grant on Website Redesign. Being in Acme Corp does not reveal another project.</span>
+          <span class="spacer"></span>
+          <span class="badge" id="peopleRoleBadge">Owner preview</span>
+        </div>
+
+        <div class="note warn" id="peoplePreviewNote" hidden>
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <span id="peoplePreviewNoteText"></span>
+        </div>
+
+        <div class="summary compact" aria-label="People summary">
+          <div class="summary-stat"><span class="label">Project people</span><span class="value" id="statMembers">—</span></div>
+          <div class="summary-stat"><span class="label">Managers</span><span class="value" id="statManagers">—</span></div>
+          <div class="summary-stat"><span class="label">Members</span><span class="value" id="statMembersOnly">—</span></div>
+          <div class="summary-stat"><span class="label">Viewers</span><span class="value" id="statViewers">—</span></div>
+          <div class="summary-stat"><span class="label">Pending invites</span><span class="value" id="statPending">—</span></div>
+          <div class="summary-bars">
+            <div class="summary-bars-top"><span>Role distribution</span><em id="roleHint">—</em></div>
+            <div class="distribution" id="roleBar" aria-label="Project role distribution"></div>
+            <div class="dist-legend" id="roleLegend"></div>
+          </div>
+        </div>
+
+        <div class="split-layout">
+          <div class="stack">
+            <section class="panel" aria-labelledby="teamTitle">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title" id="teamTitle">Project team</h2>
+                  <p class="panel-sub" id="teamSub">Roles are per project. A workspace membership is not a project grant.</p>
+                </div>
+                <div class="panel-actions"><span class="badge" id="teamCount">—</span></div>
+              </div>
+              <div class="panel-body" id="teamList"></div>
+            </section>
+
+            <section class="panel" id="pendingPanel" aria-labelledby="pendingTitle">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title" id="pendingTitle">Pending invitations</h2>
+                  <p class="panel-sub">Owner and Manager can resend or revoke. No email is sent in this prototype.</p>
+                </div>
+                <div class="panel-actions"><span class="badge warn" id="pendingCount">—</span></div>
+              </div>
+              <div class="panel-body" id="pendingList"></div>
+            </section>
+
+            <section class="panel" aria-labelledby="matrixTitle">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title" id="matrixTitle">Role permissions</h2>
+                  <p class="panel-sub">The UI hides controls; the API must still enforce every row.</p>
+                </div>
+                <div class="panel-actions"><span class="badge" id="matrixRoleBadge">—</span></div>
+              </div>
+              <div class="panel-body flush">
+                <div class="role-matrix-wrap" id="roleMatrix"></div>
+              </div>
+            </section>
+          </div>
+
+          <aside class="stack">
+            <section class="panel">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title">Manager limits</h2>
+                  <p class="panel-sub">Delegated administration, bounded</p>
+                </div>
+              </div>
+              <div class="panel-body stack-sm">
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Can invite</strong> a Member or Viewer to this project.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Can change</strong> Member and Viewer grants.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Can resend or revoke</strong> pending Member and Viewer invitations.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg><span><strong>Cannot grant Manager</strong> or change a peer Manager's grant. Only the Owner can.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg><span><strong>Cannot edit another Manager</strong> or extend authority to another project.</span></div>
+                <div class="note">
+                  <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+                  <span>A Manager can leave their own grant. This prototype disables self-removal so the preview does not strand you.</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title">Invitation behavior</h2>
+                </div>
+              </div>
+              <div class="panel-body stack-sm">
+                <p class="small muted" style="line-height:1.55;">An invitation creates a pending grant. The person appears in the roster only after accepting. Revoking a pending invite removes the grant; it does not delete an account.</p>
+                <div class="note warn">
+                  <svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg>
+                  <span><strong>No email delivery.</strong> Resend and revoke update local prototype state only. No message leaves the browser.</span>
+                </div>
+                <div class="note">
+                  <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+                  <span>Invitees cannot discover sibling projects. Accepting this invitation grants Website Redesign only.</span>
+                </div>
+              </div>
+            </section>
+
+            <section class="panel">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title">Read-only preview</h2>
+                </div>
+              </div>
+              <div class="panel-body">
+                <p class="small muted" style="line-height:1.55;">Switch to Member or Viewer to see the roster without invite, role or removal controls. Pending invitations are hidden from both roles.</p>
+                <div class="note" style="margin-top:10px;">
+                  <svg class="icon" aria-hidden="true"><use href="#i-eye"></use></svg>
+                  <span><strong>View-as fixtures are fixed:</strong> Alice is Owner, Charlie is Manager, David is Member and Eve is Viewer. A roster role change in this prototype does not change the top-bar preview identity.</span>
+                </div>
+              </div>
+            </section>
+          </aside>
+        </div>
+
+        <footer class="board-foot">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <span>People · synthetic project team · design evidence only</span>
+          <span class="sep"></span>
+          <span>No invitation email, grant persistence or authorization is implemented.</span>
+        </footer>
+      </main>
+    </div>
+  </div>
+
+  <div class="dialog-layer" id="inviteLayer" hidden>
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="inviteTitle">
+      <div class="dialog-head">
+        <div class="dialog-head-copy">
+          <h2 id="inviteTitle">Invite to Website Redesign</h2>
+          <p>Invite a Member or Viewer. Only the Owner can grant Manager after acceptance.</p>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog="inviteLayer" aria-label="Close invite dialog">
+          <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+        </button>
+      </div>
+      <form id="inviteForm" novalidate>
+        <div class="dialog-body">
+          <div class="dialog-field">
+            <label for="inviteEmail">Email address</label>
+            <input class="control" id="inviteEmail" type="email" autocomplete="off" placeholder="name@company.com" data-autofocus />
+            <p class="form-error" id="inviteEmailError" hidden></p>
+          </div>
+          <div class="dialog-field">
+            <label for="inviteRole">Role</label>
+            <select class="control" id="inviteRole">
+              <option value="Member">Member</option>
+              <option value="Viewer">Viewer</option>
+            </select>
+            <p class="field-help">Manager grants are Owner-only and are not offered here.</p>
+          </div>
+          <div class="note" style="margin-top:12px;">
+            <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+            <span>The invitation grants access to Website Redesign only. It does not reveal Brand Refresh or any sibling project.</span>
+          </div>
+          <div class="note warn" style="margin-top:8px;">
+            <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+            <span><strong>Design-only.</strong> No email is sent and no pending invite is persisted after reload.</span>
+          </div>
+        </div>
+        <footer class="dialog-foot">
+          <span class="spacer"></span>
+          <button class="btn" type="button" data-close-dialog="inviteLayer">Cancel</button>
+          <button class="btn primary" type="submit">
+            <svg class="icon" aria-hidden="true"><use href="#i-send"></use></svg>
+            Send invitation
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="data.js"></script>
+  <script src="screens.js"></script>
+  <script src="people.js"></script>
+</body>
+</html>

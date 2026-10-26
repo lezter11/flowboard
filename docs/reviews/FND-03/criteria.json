@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "FND-03"
+  ],
+  "mandatoryCriteria": [
+    "Shared contracts validation: Zod schemas validate Gregorian dates, leap years, UTC ISO timestamps ending in Z, and 16-128 char ASCII idempotency keys",
+    "Standard envelopes: Consistent data envelopes, paginated envelopes, and structured error responses across all entities",
+    "OpenAPI catalog: Up-to-date OpenAPI 3.1 route metadata and error catalog"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "contracts-tests": "npm run test --workspace @flowboard/contracts"
+  },
+  "scopeAndExclusions": "In-scope: Shared TypeScript contract package, Zod validation, and OpenAPI catalog. Out-of-scope: UI mock data generation."
+}

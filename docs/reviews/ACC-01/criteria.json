@@ -1,0 +1,20 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ACC-01"
+  ],
+  "mandatoryCriteria": [
+    "Session extraction and verification: Valid cookie flowboard_session resolves active session in PostgreSQL and returns actor, owned workspaces, and accessible projects on GET /api/v1/session",
+    "Unauthenticated rejection: Missing, invalid, or malformed session cookie returns HTTP 401 UNAUTHORIZED with standard error envelope",
+    "Session expiry: Expired sessions in PostgreSQL are rejected with HTTP 401 UNAUTHORIZED and access is denied",
+    "Session revocation on logout: POST /api/v1/session/logout deletes/revokes the session record in PostgreSQL and clears cookie with Max-Age=0, HttpOnly, Path=/",
+    "R1 Audit compliance: Real verified identity required; no unconditional email-only session issuance bypass in production paths",
+    "Cookie security attributes: Session cookies set HttpOnly, SameSite=Lax (or Strict), Path=/, and Secure where TLS is active",
+    "Workspace and project scoping: Session payload exposes only actor-owned workspaces and explicit project grants, with zero leakage of ungranted sibling projects"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "acc01-session-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/acc01-session.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Session store adapter, auth middleware, session routes (GET /session, POST /session/logout, dev-login), cookie handling, and PostgreSQL session lifecycle across Node and Cloudflare Worker runtimes. Out-of-scope: Third-party OAuth hosted redirects and credentials (Google/GitHub) are deferred to hosted identity tasks."
+}

@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "INV-05"
+  ],
+  "mandatoryCriteria": [
+    "Invitation listing permissions: Workspace Owner and Project Manager can list invitations for their project",
+    "Sensitive token omission: Listed invitations strictly conform to invitationSchema and NEVER expose token_hash or raw token",
+    "Status mapping: Past-due pending invitations are dynamically mapped to status expired",
+    "Boundary enforcement: Members and viewers cannot list invitations (403 FORBIDDEN); outsiders and sibling project managers receive 404 NOT_FOUND"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "inv04-inv08-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv04-inv08.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Project invitation listing, pagination, and secret redaction. Out-of-scope: CSV export of invitations."
+}

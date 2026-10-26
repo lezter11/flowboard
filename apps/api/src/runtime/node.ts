@@ -1,21 +1,35 @@
 import { serve } from '@hono/node-server';
 import { pathToFileURL } from 'node:url';
-import { createDatabase, queryDatabase } from '../adapters/postgres.ts';
+import type pg from 'pg';
+import { createPool, queryDatabase } from '../adapters/postgres.ts';
 import { createApp } from '../http/app.ts';
 import { localDatabaseUrl } from './local-config.ts';
 
-export function startNode(port = 3000, connectionString = localDatabaseUrl(process.env['DATABASE_URL'])) {
-  const db = createDatabase(localDatabaseUrl(connectionString), 4);
-  const app = createApp(() => queryDatabase(db));
+export interface NodeRuntime {
+  server: ReturnType<typeof serve>;
+  pool: pg.Pool;
+  close(): Promise<void>;
+}
+
+export function startNode(
+  port = 3000,
+  connectionString = localDatabaseUrl(process.env['DATABASE_URL']),
+): NodeRuntime {
+  const resolvedConnectionString = localDatabaseUrl(connectionString);
+  const pool = createPool(resolvedConnectionString, 4);
+  const app = createApp(() => queryDatabase(pool), { pool });
   const server = serve({ fetch: app.fetch, hostname: '127.0.0.1', port });
   return {
     server,
+    pool,
     async close() {
       try {
         await new Promise<void>((resolve, reject) => {
-          server.close((error) => error ? reject(error) : resolve());
+          server.close((error) => (error ? reject(error) : resolve()));
         });
-      } finally { await db.destroy(); }
+      } finally {
+        await pool.end();
+      }
     },
   };
 }

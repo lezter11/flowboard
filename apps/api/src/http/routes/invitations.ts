@@ -3,10 +3,11 @@ import {
   acceptInvitationInputSchema,
   createInvitationInputSchema,
   idempotencyKeySchema,
+  invitationSchema,
   parseOrThrow,
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
-import { checkOrReplayReceipt } from '../../adapters/idempotency.ts';
+import { checkOrReplayReceipt, saveReceipt } from '../../adapters/idempotency.ts';
 import {
   createInvitation,
   acceptInvitation,
@@ -76,16 +77,23 @@ invitationsRoutes.post('/projects/:projectId/invitations', authMiddleware, async
 
     await client.query('COMMIT');
 
+    const responseData = {
+      id: invitation.id,
+      projectId: invitation.projectId,
+      email: invitation.email,
+      role: invitation.role,
+      status: invitation.status,
+      invitedBy: invitation.invitedBy,
+      expiresAt: invitation.expiresAt,
+      createdAt: invitation.createdAt,
+      updatedAt: invitation.updatedAt,
+      token: rawToken,
+    };
+    invitationSchema.parse(responseData);
+
     return c.json(
       {
-        data: {
-          id: invitation.id,
-          email: invitation.email,
-          role: invitation.role,
-          status: invitation.status,
-          expiresAt: invitation.expiresAt,
-          token: rawToken,
-        },
+        data: responseData,
         replayed: false,
       },
       201,
@@ -105,6 +113,14 @@ invitationsRoutes.post('/invitations/accept', authMiddleware, async (c) => {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
   }
 
+  const idempotencyKey = c.req.header('idempotency-key');
+  if (!idempotencyKey || !idempotencyKeySchema.safeParse(idempotencyKey).success) {
+    throw HttpError.badRequest(
+      'Missing or invalid Idempotency-Key header.',
+      'IDEMPOTENCY_KEY_REQUIRED',
+    );
+  }
+
   const rawBody = await c.req.json();
   const body = parseOrThrow(acceptInvitationInputSchema, rawBody);
 
@@ -114,18 +130,61 @@ invitationsRoutes.post('/invitations/accept', authMiddleware, async (c) => {
   try {
     await client.query('BEGIN');
 
+    const methodPath = '/api/v1/invitations/accept';
+    const replay = await checkOrReplayReceipt(
+      client,
+      actor.id,
+      'actor',
+      actor.id,
+      idempotencyKey,
+      methodPath,
+      body,
+    );
+
+    if (replay) {
+      await client.query('ROLLBACK');
+      return c.json(
+        { ...(replay.responseBody as object), replayed: true },
+        replay.statusCode as any,
+      );
+    }
+
     const result = await acceptInvitation(client, actor, body.token);
+
+    const responsePayload = {
+      data: {
+        success: true,
+        projectId: result.projectId,
+        workspaceId: result.workspaceId,
+        role: result.role,
+      },
+    };
+
+    const saved = await saveReceipt(
+      client,
+      actor.id,
+      'actor',
+      actor.id,
+      idempotencyKey,
+      methodPath,
+      body,
+      200,
+      responsePayload,
+    );
 
     await client.query('COMMIT');
 
+    if (saved?.replayed) {
+      return c.json(
+        { ...(saved.responseBody as object), replayed: true },
+        saved.statusCode as any,
+      );
+    }
+
     return c.json(
       {
-        data: {
-          success: true,
-          projectId: result.projectId,
-          workspaceId: result.workspaceId,
-          role: result.role,
-        },
+        ...responsePayload,
+        replayed: false,
       },
       200,
     );
@@ -214,16 +273,23 @@ invitationsRoutes.post(
 
       await client.query('COMMIT');
 
+      const responseData = {
+        id: invitation.id,
+        projectId: invitation.projectId,
+        email: invitation.email,
+        role: invitation.role,
+        status: invitation.status,
+        invitedBy: invitation.invitedBy,
+        expiresAt: invitation.expiresAt,
+        createdAt: invitation.createdAt,
+        updatedAt: invitation.updatedAt,
+        token: rawToken,
+      };
+      invitationSchema.parse(responseData);
+
       return c.json(
         {
-          data: {
-            id: invitation.id,
-            email: invitation.email,
-            role: invitation.role,
-            status: invitation.status,
-            expiresAt: invitation.expiresAt,
-            token: rawToken,
-          },
+          data: responseData,
           replayed: false,
         },
         200,

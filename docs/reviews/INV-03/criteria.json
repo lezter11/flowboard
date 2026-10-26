@@ -1,0 +1,20 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "INV-03"
+  ],
+  "mandatoryCriteria": [
+    "Row-level locking: Validates token by SHA-256 hash lookup in project_invitations under a PostgreSQL FOR UPDATE lock on POST /api/v1/invitations/accept",
+    "Email identity verification: Authenticated session email must strictly match invitation recipient email; mismatch returns 403 EMAIL_MISMATCH without creating membership",
+    "Expiration handling: Expired tokens (expires_at <= NOW()) transition status to 'expired' and return 400 INVITATION_EXPIRED",
+    "Atomic membership activation: Valid acceptance atomically transitions invitation status to 'accepted' and activates project_memberships with invited role and active status",
+    "Single-use token enforcement: Tokens already accepted or revoked reject reuse with 400 or 409 error",
+    "R2 Audit compliance: Pending invitation cannot restore deliberately removed access without a fresh authorized invitation issued after removal",
+    "Idempotency support: Accepts Idempotency-Key and returns identical membership activation outcome on replay without duplicate side effects"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "inv01-inv03-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv01-inv03.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: POST /api/v1/invitations/accept route, row-level FOR UPDATE locking, email identity matching against session actor, atomic project_memberships insertion, and idempotency handling on PostgreSQL. Out-of-scope: UI invitation acceptance screen is handled by the UI role."
+}

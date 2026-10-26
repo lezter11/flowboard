@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "PRJ-03"
+  ],
+  "mandatoryCriteria": [
+    "Authorized update: Workspace owner and granted Project Manager can update project name and description via PATCH /api/v1/projects/:projectId",
+    "Role restrictions: Project members and viewers receive 403 FORBIDDEN; outsiders receive 404 NOT_FOUND",
+    "Workspace ownership inviolability: Project Manager cannot alter workspace ownership, workspace name, or project workspace assignment",
+    "Optimistic Concurrency Control: Requires expectedVersion in update payload; rejects mismatched or stale versions with 409 STALE_VERSION",
+    "Input validation: Project name cannot be an empty string; unknown fields rejected; version increments on successful update"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "prj02-prj05-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: PATCH /api/v1/projects/:projectId endpoint, name and description updates, OCC expectedVersion checks, and Project Manager authority limits on PostgreSQL. Out-of-scope: Project archiving and reopening are handled under PRJ-04 / PRJ-06."
+}

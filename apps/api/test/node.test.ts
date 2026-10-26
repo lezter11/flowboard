@@ -6,7 +6,7 @@ import { startNode } from '../src/runtime/node.ts';
 import { localDatabaseUrl } from '../src/runtime/local-config.ts';
 import { rollbackProbe } from './rollback-probe.ts';
 
-test('Node HTTP: liveness, real PostgreSQL readiness, missing product routes', async () => {
+test('Node HTTP: liveness, real PostgreSQL readiness, missing product routes, and authenticated queries', async () => {
   const runtime = startNode(0);
   try {
     if (!runtime.server.listening) await once(runtime.server, 'listening');
@@ -24,7 +24,34 @@ test('Node HTTP: liveness, real PostgreSQL readiness, missing product routes', a
     const body = await missing.json();
     assert.equal(body.error.code, 'NOT_FOUND');
     assert.ok(body.error.requestId);
-  } finally { await runtime.close(); }
+
+    // Verify product routes execute against the injected pool
+    const unauth = await fetch(`${base}/api/v1/session`);
+    assert.equal(unauth.status, 401);
+
+    const loginRes = await fetch(`${base}/api/v1/session/dev-login`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-dev-secret': 'flowboard-dev-secret',
+      },
+      body: JSON.stringify({ email: 'node-audit-user@flowboard.example', displayName: 'Node Audit User' }),
+    });
+    assert.equal(loginRes.status, 200);
+    const cookie = loginRes.headers.get('set-cookie')?.split(';')[0];
+    assert.ok(cookie);
+
+    const sessionRes = await fetch(`${base}/api/v1/session`, {
+      headers: { Cookie: cookie },
+    });
+    assert.equal(sessionRes.status, 200);
+    const sessionBody = (await sessionRes.json()) as { data: { actor: { email: string } } };
+    assert.equal(sessionBody.data.actor.email, 'node-audit-user@flowboard.example');
+  } finally {
+    await runtime.close();
+  }
+  // Verify shutdown cleaned up the startup database pool
+  assert.equal(runtime.pool.ended, true);
 });
 
 test('Node pg/Kysely: real parameterized query, rollback and committed positive control', async () => {

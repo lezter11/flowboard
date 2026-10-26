@@ -1,0 +1,35 @@
+$ npm run typecheck
+
+> typecheck
+> tsc --noEmit
+
+exitCode: 0
+
+$ WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts
+▶ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite
+  ✔ PRJ-02.1: Workspace Owner sees all projects in workspace, paginated (62.451083ms)
+  ✔ PRJ-02.2: Cursor pagination for workspace projects (3.274125ms)
+  ✔ PRJ-02.3: Project Manager / Member sees only granted projects; sibling projects are hidden (5.39325ms)
+  ✔ PRJ-02.4: Outsider querying workspace projects gets 404 NOT_FOUND (sibling privacy) (1.280708ms)
+  ✔ PRJ-02.5: GET /api/v1/projects lists accessible projects across all workspaces for current session (3.883417ms)
+  ✔ PRJ-02.6: Malformed or bounded limit queries gracefully fall back to bounded limits without NaN SQL error (2.954458ms)
+  ✔ PRJ-03.0: Missing or invalid Idempotency-Key returns 400 IDEMPOTENCY_KEY_REQUIRED (1.054333ms)
+  ✔ PRJ-03.1: Workspace Owner updates project name and description with OCC (7.434584ms)
+  ✔ PRJ-03.2: Project Manager updates project description with OCC (2.805209ms)
+  ✔ PRJ-03.3: Member & Viewer cannot update project settings -> 403 FORBIDDEN (3.556375ms)
+  ✔ PRJ-03.4: Sibling PM & Outsider get 404 NOT_FOUND on project settings (3.606833ms)
+  ✔ PRJ-03.5: Stale expectedVersion rejected with 409 STALE_VERSION (2.631375ms)
+  ✔ PRJ-05.1: Owner sees project members directory including workspace owner and active members (1.904666ms)
+  ✔ PRJ-05.2: Project Manager, Member, and Viewer can all view the project directory (4.702083ms)
+  ✔ PRJ-05.3: Sibling project member & outsider get 404 NOT_FOUND on members directory (1.539ms)
+  ✔ PRJ-05.4: Removed project member is excluded from directory and cannot access it (2.496ms)
+✔ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite (113.785458ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 226.97625
+exitCode: 0

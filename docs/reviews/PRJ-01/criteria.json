@@ -1,0 +1,19 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "PRJ-01"
+  ],
+  "mandatoryCriteria": [
+    "Owner-only project creation: Only workspace owner can create projects in the workspace via POST /api/v1/workspaces/:workspaceId/projects; non-owners receive 403 FORBIDDEN (or 404 for ungranted workspace)",
+    "Project isolation: Projects created in the same workspace maintain independent memberships, boards, and access controls",
+    "Sibling project privacy: Users without grant on a project receive 404 NOT_FOUND on GET /api/v1/projects/:projectId",
+    "Project listing scoping: GET /api/v1/workspaces/:workspaceId/projects lists all workspace projects for owner, but only granted projects for non-owner members",
+    "Input validation: Project name is required non-empty string; description is optional string; unknown fields rejected with 400 or 422",
+    "Idempotency support: Project creation requires and enforces Idempotency-Key with transactional receipt"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "prj01-projects-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/prj01-projects.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: POST /api/v1/workspaces/:workspaceId/projects, GET /api/v1/projects/:projectId, and GET /api/v1/workspaces/:workspaceId/projects endpoints, owner authorization checks, sibling privacy, and idempotency receipts on PostgreSQL. Out-of-scope: Default board and column creation is handled under BRD-01."
+}

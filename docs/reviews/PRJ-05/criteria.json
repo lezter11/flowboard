@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "PRJ-05"
+  ],
+  "mandatoryCriteria": [
+    "People directory scoping: GET /api/v1/projects/:projectId/people and /members return active eligible members for the specified project",
+    "Workspace owner inclusion: Workspace owner is synthesized and included in project people directory even when not explicitly listed in the project_memberships table",
+    "Strict sibling exclusion: Members from sibling projects or unrelated workspaces are never returned; zero cross-project leakage",
+    "Removed members excluded: Users with status 'removed' are excluded from people pickers and active directory",
+    "Privacy and role checks: Outsiders probing people directory receive 404 NOT_FOUND"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "prj02-prj05-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: GET /api/v1/projects/:projectId/people and /members endpoints, workspace owner synthesis, sibling exclusion, and removed member filtering on PostgreSQL. Out-of-scope: Frontend autocomplete picker widget is handled by UI."
+}

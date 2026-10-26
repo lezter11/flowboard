@@ -1,0 +1,148 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "ACC-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/ACC-01/criteria.json",
+  "startedAt": "2026-10-26T05:30:00Z",
+  "completedAt": "2026-10-26T05:35:00Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "7e44e3cf-29d2-4f7d-ba58-a053cdb570fc",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "263f7d31-5f0e-47eb-a161-7e0ed9504854",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/ACC-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/ACC-01/criteria.json",
+      "docs/reviews/ACC-01/reviewer-session.md",
+      "docs/reviews/ACC-01/test.log",
+      "apps/api/src/adapters/session.ts",
+      "apps/api/src/http/routes/session.ts",
+      "apps/api/src/http/middleware/auth.ts",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/test/acc01-session.test.ts"
+    ],
+    "files": {
+      "docs/reviews/ACC-01/criteria.json": "5eb59ab592cb5118926f91c3a2902208f674758c2b9ee6be49de7f84dbaa595b",
+      "docs/reviews/ACC-01/reviewer-session.md": "9bacb5e5eeab8b862b3562686a5abe5e46bd29beb7a309a62bd9b55f782326cb",
+      "docs/reviews/ACC-01/test.log": "33fc2ff29360c31023ca13626f46dbd7bfe0a05b5682b968600aa54cb3b46757",
+      "apps/api/src/adapters/session.ts": "46a227fbb60bcadb4466a35cb00349149c470e0765887ede9d6108535c45dba1",
+      "apps/api/src/http/routes/session.ts": "20fcee254fbfd620072615087cd5be238b664bdc782bff84d698e966119b54d7",
+      "apps/api/src/http/middleware/auth.ts": "72c7985ceba0e2b4fdfe5890d8d3aa3129dfd837e80891607b386b89cd195740",
+      "apps/api/src/adapters/rbac.ts": "ec5768a8c2612710d61181995aee7a34bb079fe7302ac7c6b39a3d7437925d01",
+      "apps/api/test/acc01-session.test.ts": "451ff69a21ef0749f62f97699f797b384e5650423f36e4c7e4fb973a36095087"
+    },
+    "digest": "01650521041227b0ac5060e4a8ba4a7f5fcb53a0c28def0d3e0c1a1ead078c61"
+  },
+  "criteriaResults": {
+    "Session extraction and verification: Valid cookie flowboard_session resolves active session in PostgreSQL and returns actor, owned workspaces, and accessible projects on GET /api/v1/session": "pass",
+    "Unauthenticated rejection: Missing, invalid, or malformed session cookie returns HTTP 401 UNAUTHORIZED with standard error envelope": "pass",
+    "Session expiry: Expired sessions in PostgreSQL are rejected with HTTP 401 UNAUTHORIZED and access is denied": "pass",
+    "Session revocation on logout: POST /api/v1/session/logout deletes/revokes the session record in PostgreSQL and clears cookie with Max-Age=0, HttpOnly, Path=/": "pass",
+    "R1 Audit compliance: Real verified identity required; no unconditional email-only session issuance bypass in production paths": "pass",
+    "Cookie security attributes: Session cookies set HttpOnly, SameSite=Lax (or Strict), Path=/, and Secure where TLS is active": "pass",
+    "Workspace and project scoping: Session payload exposes only actor-owned workspaces and explicit project grants, with zero leakage of ungranted sibling projects": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "01650521041227b0ac5060e4a8ba4a7f5fcb53a0c28def0d3e0c1a1ead078c61",
+      "evidencePath": "docs/reviews/ACC-01/test.log"
+    },
+    {
+      "id": "acc01-session-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/acc01-session.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "01650521041227b0ac5060e4a8ba4a7f5fcb53a0c28def0d3e0c1a1ead078c61",
+      "evidencePath": "docs/reviews/ACC-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.6",
+      "reason": "Real identity enforcement with strict DB session verification; dev-login route hard-fails with 404 in production and gates existing user logins behind X-Dev-Secret in non-production; HttpOnly, SameSite=Lax, and Secure cookie attributes strictly enforced; strict tenant and explicit project scoping with zero sibling leakage.",
+      "evidencePaths": [
+        "docs/reviews/ACC-01/reviewer-session.md",
+        "docs/reviews/ACC-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.8",
+      "reason": "Full compliance with docs/API.md v0.3; clean HTTP 200, 204, 401, 403, and 404 semantics; @flowboard/contracts schema validation on all inputs and outputs; empty body on 204 No Content logout.",
+      "evidencePaths": [
+        "docs/reviews/ACC-01/reviewer-session.md",
+        "docs/reviews/ACC-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Real PostgreSQL session state; sessions tied to user records; immediate DB deletion on revocation; expiration enforced via SQL NOW() comparison.",
+      "evidencePaths": [
+        "docs/reviews/ACC-01/reviewer-session.md",
+        "docs/reviews/ACC-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Comprehensive 11-test suite covering positive paths, expired sessions, unauthenticated calls, cookie attributes, remote HTTPS flags, secret gating, and production 404 lockdown on real PostgreSQL database.",
+      "evidencePaths": [
+        "docs/reviews/ACC-01/reviewer-session.md",
+        "docs/reviews/ACC-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.4",
+      "reason": "Clean separation between Hono routing, authentication middleware, and session adapter; fully typed with TypeScript strict mode; portable across Node.js and Cloudflare Workers runtime abstractions.",
+      "evidencePaths": [
+        "docs/reviews/ACC-01/reviewer-session.md",
+        "docs/reviews/ACC-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.2",
+      "reason": "Constant-time indexed lookups on sessions.id primary key; clean error envelopes with unique requestId; no session tokens logged in plaintext.",
+      "evidencePaths": [
+        "docs/reviews/ACC-01/reviewer-session.md",
+        "docs/reviews/ACC-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.61",
+  "findings": [
+    {
+      "id": "ACC-01-F01",
+      "severity": "info",
+      "description": "External OAuth provider integrations (Google/GitHub) are deferred to hosted identity tasks as declared in frozen criteria scope.",
+      "disposition": "resolved",
+      "rationale": "Explicitly defined as out-of-scope in frozen criteria.json scopeAndExclusions; local PostgreSQL database session lifecycle is fully implemented and tested.",
+      "mandatory": false,
+      "blocking": false
+    }
+  ],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

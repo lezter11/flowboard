@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta name="description" content="Flowboard UI artifact screen library. Design-only screens with synthetic data." />
+  <title>Screen library — Flowboard design prototype</title>
+  <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../detail.css" />
+  <link rel="stylesheet" href="screens.css" />
+</head>
+<body data-page="hub">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app">
+    <aside class="rail" id="rail" aria-label="Workspace navigation"></aside>
+    <div class="rail-scrim" id="railScrim" hidden></div>
+    <div class="workspace">
+      <header class="topbar" id="topbar"></header>
+      <main class="page mid" id="main">
+        <div class="page-head">
+          <div class="page-head-copy">
+            <p class="eyebrow">Design review <span class="badge">Screen library</span></p>
+            <h1>Flowboard screens</h1>
+            <p class="page-sub">
+              <span>Nine product surfaces beyond the approved board</span>
+              <span class="dot" aria-hidden="true"></span>
+              <span>Synthetic data only</span>
+              <span class="dot" aria-hidden="true"></span>
+              <span>No API, persistence or authorization claims</span>
+            </p>
+          </div>
+          <div class="page-actions">
+            <a class="btn" href="../README.md">
+              <svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg>
+              Artifact notes
+            </a>
+            <a class="btn primary" href="../index.html">
+              <svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg>
+              Open approved board
+            </a>
+          </div>
+        </div>
+
+        <div class="review-bar">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <span><strong>Design evidence only.</strong> Every screen uses synthetic data and local browser state. Nothing here proves API behavior, permissions enforcement, persistence or accessibility conformance.</span>
+          <span class="spacer"></span>
+          <span class="badge">0 of 98 features verified</span>
+        </div>
+
+        <section class="hub-hero" aria-labelledby="hubTitle">
+          <div class="hub-hero-main">
+            <p class="eyebrow">Flowboard UI · remaining screens</p>
+            <h1 id="hubTitle">The rest of Flowboard, <em>ready to review.</em></h1>
+            <p class="lede">
+              The approved board and card detail stay untouched. This separate library adds Add card,
+              Projects, Inbox, Activity, Trash, People, Import and Settings with the same tokens,
+              role matrix and honest data rules.
+            </p>
+            <div class="hub-badges">
+              <span class="badge accent">Design prototype</span>
+              <span class="badge">Light default</span>
+              <span class="badge">Dark variant</span>
+              <span class="badge">Owner · Manager · Member · Viewer</span>
+              <span class="badge">Mobile ready</span>
+            </div>
+            <div class="hub-actions">
+              <a class="btn primary" data-screen="projects" href="projects.html">
+                Start with Projects
+                <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+              </a>
+              <a class="btn" href="../index.html?role=viewer&card=card_106">
+                Viewer board + card
+                <svg class="icon" aria-hidden="true"><use href="#i-eye"></use></svg>
+              </a>
+              <a class="btn ghost" href="../index.html?theme=dark">
+                Dark board
+                <svg class="icon" aria-hidden="true"><use href="#i-moon"></use></svg>
+              </a>
+            </div>
+          </div>
+
+          <aside class="hub-side" aria-labelledby="pathTitle">
+            <h2 id="pathTitle">Suggested review path</h2>
+            <div class="hub-path">
+              <div class="hub-path-step"><span class="num">1</span><span><strong>Projects</strong> — active, archived and project-only access.</span></div>
+              <div class="hub-path-step"><span class="num">2</span><span><strong>Project overview</strong> — boards, team, real counts and role actions.</span></div>
+              <div class="hub-path-step"><span class="num">3</span><span><strong>Add card</strong> — save first, then images and comments.</span></div>
+              <div class="hub-path-step"><span class="num">4</span><span><strong>Inbox</strong> — mentions, assignments and unread state.</span></div>
+              <div class="hub-path-step"><span class="num">5</span><span><strong>Trash, People, Import, Settings</strong> — the admin surfaces.</span></div>
+            </div>
+            <div class="note">
+              <svg class="icon" aria-hidden="true"><use href="#i-eye"></use></svg>
+              <span>Use <strong>View as</strong> in the top bar on any screen. Restricted screens show an access-denied state for the wrong role.</span>
+            </div>
+          </aside>
+        </section>
+
+        <div class="summary compact" aria-label="Screen library summary">
+          <div class="summary-stat"><span class="label">New screens</span><span class="value">9</span></div>
+          <div class="summary-stat"><span class="label">Approved board</span><span class="value">1</span></div>
+          <div class="summary-stat"><span class="label">Roles previewed</span><span class="value">4</span></div>
+          <div class="summary-stat"><span class="label">Themes</span><span class="value">2</span></div>
+          <div class="summary-bars">
+            <div class="summary-bars-top"><span>Surface coverage</span><em>Design only</em></div>
+            <div class="distribution" aria-label="Nine new screens and one approved board">
+              <span class="dist-progress" style="flex:9" title="New screens: 9"></span>
+              <span class="dist-completed" style="flex:1" title="Approved board: 1"></span>
+            </div>
+            <div class="dist-legend"><span><i class="dist-progress"></i>New screens 9</span><span><i class="dist-completed"></i>Approved 1</span></div>
+          </div>
+        </div>
+
+        <section aria-labelledby="screensTitle">
+          <div class="panel-head" style="padding-left:0;padding-right:0;border-bottom:0;">
+            <div class="panel-head-copy">
+              <h2 class="panel-title" id="screensTitle">Screen inventory</h2>
+              <p class="panel-sub">Open a screen, then use the role and theme controls. Each card lists a few review states.</p>
+            </div>
+            <div class="panel-actions"><span class="badge">9 screens</span></div>
+          </div>
+
+          <div class="hub-grid">
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">01</span><h2>Projects</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg></span></div>
+              <p>Active and archived projects, project-only visibility, create project, archive and reopen.</p>
+              <div class="hub-links">
+                <a data-screen="projects" href="projects.html">Owner</a>
+                <a data-screen="projects" data-params="tab=archived" href="projects.html?tab=archived">Archived</a>
+                <a data-fixed-role href="projects.html?role=manager">Manager</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">02</span><h2>Project overview</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg></span></div>
+              <p>One project's boards, real card counts, team, activity, trash and import entry points.</p>
+              <div class="hub-links">
+                <a data-screen="project" data-params="project=website-redesign" href="project.html">Website</a>
+                <a data-fixed-role href="project.html?role=owner&project=brand-refresh">Archived</a>
+                <a data-fixed-role href="project.html?role=manager">Manager</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">03</span><h2>Add card</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg></span></div>
+              <p>Save-first creation: title, description, column, priority, date-only due date and assignees.</p>
+              <div class="hub-links">
+                <a data-screen="add-card" href="add-card.html">Owner</a>
+                <a data-fixed-role href="add-card.html?role=member">Member</a>
+                <a data-fixed-role href="add-card.html?role=viewer">Viewer denied</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">04</span><h2>Inbox</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-inbox"></use></svg></span></div>
+              <p>Actor-owned notifications with unread/read state, mentions, assignments and safe deep links.</p>
+              <div class="hub-links">
+                <a data-screen="inbox" href="inbox.html">Owner</a>
+                <a data-fixed-role href="inbox.html?role=viewer">Viewer</a>
+                <a data-screen="inbox" data-params="filter=unread" href="inbox.html?filter=unread">Unread</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">05</span><h2>Activity</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-activity"></use></svg></span></div>
+              <p>Workspace, project and card scopes with actor, action and date filters plus access events.</p>
+              <div class="hub-links">
+                <a data-screen="activity" href="activity.html">Owner</a>
+                <a data-fixed-role href="activity.html?role=manager">Manager</a>
+                <a data-fixed-role href="activity.html?role=member">Member</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">06</span><h2>Trash</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-trash"></use></svg></span></div>
+              <p>Exact 24-hour server-clock restore boundary, expiring-soon warning and expired state.</p>
+              <div class="hub-links">
+                <a data-fixed-role href="trash.html?role=manager">Manager</a>
+                <a data-fixed-role href="trash.html?role=owner&state=expired">Expired</a>
+                <a data-fixed-role href="trash.html?role=member">Member denied</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">07</span><h2>People</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg></span></div>
+              <p>Members, pending invitations, owner-only manager grants and a role-permission guide.</p>
+              <div class="hub-links">
+                <a data-screen="people" href="people.html">Owner</a>
+                <a data-fixed-role href="people.html?role=manager">Manager</a>
+                <a data-fixed-role href="people.html?role=viewer">Viewer</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">08</span><h2>Import</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-upload"></use></svg></span></div>
+              <p>Seven-column XLSX contract, row errors and conflicts, and an all-or-nothing commit.</p>
+              <div class="hub-links">
+                <a data-fixed-role href="import.html?role=owner&sample=errors">Errors</a>
+                <a data-fixed-role href="import.html?role=owner&sample=clean">Clean</a>
+                <a data-fixed-role href="import.html?role=member">Member denied</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">09</span><h2>Settings</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-settings"></use></svg></span></div>
+              <p>Project, board and column settings, account profile and the light/dark appearance choice.</p>
+              <div class="hub-links">
+                <a data-screen="settings" data-params="tab=board" href="settings.html?tab=board">Board</a>
+                <a data-screen="settings" data-params="tab=account" href="settings.html?tab=account">Account</a>
+                <a data-fixed-role href="settings.html?role=viewer">Viewer</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">—</span><h2>Approved board</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span></div>
+              <p>The approved board and card-detail artifact. Kept unchanged and linked here for comparison.</p>
+              <div class="hub-links">
+                <a data-fixed-role href="../index.html">Board</a>
+                <a data-fixed-role href="../index.html?theme=dark">Dark</a>
+                <a data-fixed-role href="../index.html?role=viewer&card=card_106">Viewer card</a>
+              </div>
+            </article>
+
+          </div>
+        </section>
+
+        <div class="split-layout">
+          <section class="panel" aria-labelledby="coverageTitle">
+            <div class="panel-head">
+              <div class="panel-head-copy">
+                <h2 class="panel-title" id="coverageTitle">Coverage in this library</h2>
+                <p class="panel-sub">What each screen demonstrates, and what remains a backend or later-scope concern.</p>
+              </div>
+              <div class="panel-actions"><span class="badge accent">Design coverage</span></div>
+            </div>
+            <div class="panel-body">
+              <div class="hub-coverage">
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Projects:</strong> active/archived lists, project-only visibility, create, archive and reopen.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Project overview:</strong> boards, real card counts, team, access, trash and import entry points.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Add card:</strong> save-first contract, 200-character title, date-only due date, eligible assignees.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Inbox:</strong> actor-owned notifications, unread/read, mentions, assignments and deep links.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Activity:</strong> owner workspace scope, manager project scope, member/viewer card scope.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Trash:</strong> exact 24-hour deadline, expiring-soon warning, expired 410 state, restore.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>People:</strong> owner/manager/member/viewer roles, pending invites, manager-grant limits.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Import:</strong> seven headers, 200 rows, 5 MiB, invalid/conflict blocking, atomic commit.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Settings:</strong> project, board and column settings, account profile and theme choice.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Board:</strong> the approved board and card-detail direction, left untouched.</span></div>
+              </div>
+            </div>
+          </section>
+
+          <aside class="stack">
+            <section class="panel" aria-labelledby="limitsTitle">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title" id="limitsTitle">What this is not</h2>
+                  <p class="panel-sub">Keep design evidence separate from implementation evidence.</p>
+                </div>
+              </div>
+              <div class="panel-body stack-sm">
+                <div class="note warn"><svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg><span><strong>No API or persistence.</strong> Reloading resets every change except the theme preference.</span></div>
+                <div class="note"><svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg><span><strong>No authorization.</strong> Role preview hides controls, but only the API can enforce project access.</span></div>
+                <div class="note"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg><span><strong>No XLSX parsing or uploads.</strong> Import uses sample rows; no workbook bytes leave the browser.</span></div>
+                <div class="note"><svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg><span><strong>No email delivery.</strong> Invitations are recorded locally and send nothing.</span></div>
+              </div>
+            </section>
+
+            <section class="panel" aria-labelledby="runTitle">
+              <div class="panel-head">
+                <div class="panel-head-copy">
+                  <h2 class="panel-title" id="runTitle">Run locally</h2>
+                  <p class="panel-sub">A local server keeps clipboard and storage behavior consistent.</p>
+                </div>
+              </div>
+              <div class="panel-body">
+                <div class="note" style="display:block;font-family:var(--font-mono);font-size:10px;line-height:1.6;overflow-wrap:anywhere;">
+                  python3 -m http.server 4173 --bind 127.0.0.1 --directory design/flowboard-ui
+                </div>
+                <p class="hint" style="margin-top:8px;">Open <span class="mono">http://127.0.0.1:4173/screens/</span> for this library.</p>
+              </div>
+            </section>
+          </aside>
+        </div>
+
+        <footer class="board-foot" style="display:flex;">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <span>Flowboard UI artifact · 26 October 2026 · synthetic data, design only</span>
+          <span class="sep"></span>
+          <a href="../README.md" style="color:var(--muted);">Artifact README</a>
+          <span class="sep"></span>
+          <span>No feature in this library is integrated or verified.</span>
+        </footer>
+
+      </main>
+    </div>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="data.js"></script>
+  <script src="screens.js"></script>
+  <script src="hub.js"></script>
+</body>
+</html>

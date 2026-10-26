@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "RBAC-02"
+  ],
+  "mandatoryCriteria": [
+    "Strict resource hierarchy: Validates workspace -> project -> resource ancestry for all child entities (boards, columns, cards, comments, attachments)",
+    "Cross-project ID probing prevention: Guessing or providing an ID belonging to a sibling project returns uniform 404 NOT_FOUND with zero metadata leakage",
+    "Uniform error response: Sibling ID mismatch returns identical 404 response to non-existent ID, preventing enumeration attacks",
+    "Multi-parent validation: Child entity mutations verify both project and parent container match canonical database ancestry"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "rbac-advanced-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac-advanced.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: requireProjectAncestry and verifyProjectAncestry adapters, middleware, and route guards across child entities on PostgreSQL. Out-of-scope: PostgreSQL RLS policies are documented as optional defense-in-depth."
+}

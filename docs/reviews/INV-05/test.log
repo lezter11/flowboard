@@ -1,0 +1,46 @@
+
+> typecheck
+> tsc --noEmit
+
+▶ INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Suite
+  ✔ Setup: Create initial manager and member invitations (76.349333ms)
+  ✔ INV-04: PM cannot resend manager invitation -> 403 FORBIDDEN (2.665959ms)
+  ✔ INV-04: Member / Viewer / Outsider cannot resend invitation -> 403 / 404 (5.551791ms)
+  ✔ INV-04: Owner resends manager invitation -> succeeds, rotates token, outbox event emitted (3.631709ms)
+  ✔ INV-04: Old rotated token cannot be accepted (400 INVALID_INVITATION) (2.274125ms)
+  ✔ INV-04: Idempotency replay on resend returns identical token and replayed=true (1.628792ms)
+  ✔ INV-04: PM resends member invitation -> succeeds (3.376042ms)
+  ✔ INV-04: PM cannot revoke manager invitation -> 403 FORBIDDEN (2.2255ms)
+  ✔ INV-04: PM revokes member invitation -> succeeds (2.946166ms)
+  ✔ INV-04: Revoked invitation token cannot be accepted -> 400 INVALID_INVITATION (1.671209ms)
+  ✔ INV-04: Revoked invitation cannot be revoked again or resent -> 400 INVALID_INVITATION (3.96525ms)
+  ✔ INV-04: Newly rotated token can be accepted; accepted invite cannot be resent -> 400 (5.194125ms)
+  ✔ Setup: Create an expired invitation for Heidi (3.737916ms)
+  ✔ INV-05: Workspace owner lists invitations -> succeeds, matches schema, token_hash omitted (1.431125ms)
+  ✔ INV-05: Project Manager can list invitations (1.967667ms)
+  ✔ INV-05: Member / Viewer cannot list invitations -> 403 FORBIDDEN (2.053875ms)
+  ✔ INV-05: Outsider attempting to list invitations -> 404 NOT_FOUND (1.03575ms)
+  ✔ INV-08: Workspace owner cannot leave their own project -> 403 FORBIDDEN (2.919125ms)
+  ✔ INV-08: Outsider attempting to leave project -> 404 NOT_FOUND (1.87375ms)
+  ✔ INV-08: Charlie (Member) leaves project -> status="removed", version incremented (3.974791ms)
+  ✔ INV-08: Charlie subsequent access to project returns 404 NOT_FOUND (0.951916ms)
+  ✔ INV-08: Charlie leave request idempotency replay returns 200 replayed=true (1.202583ms)
+  ✔ INV-08: Dave (Viewer) leaves project -> succeeds (2.934167ms)
+  ✔ INV-08: Bob (Manager) leaves project -> succeeds (3.091791ms)
+  ✔ Setup R2: Create user Oscar and seed pending invite + manager membership (1.673459ms)
+  ✔ R2 - Step 1: Active manager cannot create self-invite or duplicate pending invite (9.461625ms)
+  ✔ R2 - Steps 2 & 3: Owner removes Manager -> pending invitation is atomically marked revoked (4.193667ms)
+  ✔ R2 - Step 4: Attacker presenting old revoked token fails -> 400 INVALID_INVITATION, access remains removed (3.002875ms)
+  ✔ R2 - Step 4b (Defense-in-depth): If invitation was pending but issued before removal, acceptance fails -> 400 INVITATION_SUPERSEDED (3.470417ms)
+  ✔ R2 - Step 5: Owner issues fresh invitation to the deliberately removed user -> succeeds (201) (3.500583ms)
+  ✔ R2 - Step 6: User accepts fresh invitation -> succeeds (200), membership reactivated to active (3.927875ms)
+  ✔ R2 - Step 7: Member leaves project -> pending invitations for that email are atomically revoked (5.062375ms)
+✔ INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Suite (176.224625ms)
+ℹ tests 33
+ℹ suites 0
+ℹ pass 33
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 287.047583

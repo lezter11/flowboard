@@ -1,0 +1,27 @@
+
+> typecheck
+> tsc --noEmit
+
+▶ INV-06 & INV-07: Change Member Roles & Remove Project Access Suite
+  ✔ Test 0: Missing or invalid Idempotency-Key on member mutations returns 400 IDEMPOTENCY_KEY_REQUIRED (61.7335ms)
+  ✔ Test 1: Workspace owner promotes a member to manager -> succeeds (9.663125ms)
+  ✔ Test 2: Project manager attempts to promote a member to manager -> returns 403 FORBIDDEN (2.577709ms)
+  ✔ Test 3: Project manager modifies role between member and viewer -> succeeds (5.78075ms)
+  ✔ Test 4: Project manager attempts to modify another manager -> returns 403 FORBIDDEN (2.714333ms)
+  ✔ Test 5: Project manager attempts to modify themselves -> returns 403 FORBIDDEN (3.869416ms)
+  ✔ Test 6: Stale version in PATCH returns 409 STALE_VERSION (2.2765ms)
+  ✔ Test 7: Immediate revocation: removing project access sets status="removed"; next request by that user to read the project returns 404 NOT_FOUND (6.747625ms)
+  ✔ Test 8: Project manager cannot DELETE another manager -> returns 403 FORBIDDEN (1.919375ms)
+  ✔ Test 9: Project manager cannot DELETE themselves -> returns 403 FORBIDDEN (2.164083ms)
+  ✔ Test 10: Non-member outsider attempting to manage members returns 404 NOT_FOUND (2.285458ms)
+  ✔ Test 11: Member attempting to manage members returns 403 FORBIDDEN (1.837167ms)
+  ✔ Test 12: Sibling project privacy: manager of sibling project attempting to manage members in another project receives 404 NOT_FOUND (3.502083ms)
+✔ INV-06 & INV-07: Change Member Roles & Remove Project Access Suite (109.720958ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 223.584959

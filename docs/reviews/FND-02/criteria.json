@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "FND-02"
+  ],
+  "mandatoryCriteria": [
+    "Dual runtime harness: Hono application mounts and executes identically on Node.js and Cloudflare Workers (workerd)",
+    "Database dependency injection: Both runtimes receive real database connection dependencies; health checks and product routes use the injected dependency",
+    "Health and readiness probes: /health/live returns 200 ok; /health/ready probes database connection and returns 200 ready (or safe 503 DATABASE_UNAVAILABLE)",
+    "Graceful shutdown: Node runtime closes server and ends pool cleanly"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "node-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/node.test.ts",
+    "worker-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/worker.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Node.js and Cloudflare Workers runtime harnesses, health probes, and pool lifecycle. Out-of-scope: Cloudflare Hyperdrive production credentials."
+}

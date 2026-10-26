@@ -1,0 +1,24 @@
+
+> typecheck
+> tsc --noEmit
+
+▶ INV-01 & INV-03: Project Invitations Lifecycle Suite
+  ✔ Test 1: Workspace owner invites a manager -> succeeds, token_hash stored in DB, outbox record created (69.56ms)
+  ✔ Test 2: Project manager invites a member -> succeeds (4.9135ms)
+  ✔ Test 3: Project manager attempts to invite another manager -> returns 403 FORBIDDEN (3.078583ms)
+  ✔ Test 4: Member/viewer attempts to invite someone -> returns 403 FORBIDDEN (or 404 for outsider) (5.881292ms)
+  ✔ Test 5: Accept matching invitation -> updates status to accepted, inserts project_memberships row, user gains access (9.64225ms)
+  ✔ Test 6: Accept with mismatched email (signed in as another user) -> returns 403 EMAIL_MISMATCH, no membership created (5.840792ms)
+  ✔ Test 7: Accept expired or already accepted token -> returns 400 (14.927167ms)
+  ✔ Test 8: Idempotency replay and conflict handling on invitation creation (2.705041ms)
+  ✔ Test 9: Self-invites and invitations to active project members are rejected with 400 ALREADY_MEMBER (6.857042ms)
+  ✔ Test 10: Duplicate active pending invitations are rejected with 400 INVITATION_ALREADY_EXISTS (6.105083ms)
+✔ INV-01 & INV-03: Project Invitations Lifecycle Suite (132.035792ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 243.693083

@@ -1,0 +1,21 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ACC-04"
+  ],
+  "mandatoryCriteria": [
+    "Single-owner workspace atomicity: Creating a workspace atomically sets owner_id = actor.id in PostgreSQL transaction",
+    "Mandatory Idempotency-Key: POST /api/v1/workspaces requires valid Idempotency-Key (16-128 ASCII chars), rejecting missing/invalid with 400 IDEMPOTENCY_KEY_REQUIRED",
+    "Idempotency replay: Subsequent identical request returns HTTP 201 with replayed: true and exact identical response payload without duplicate workspace creation",
+    "Idempotency conflict: Duplicate key with divergent payload returns HTTP 409 IDEMPOTENCY_CONFLICT",
+    "Concurrent duplicate-key safety: Parallel identical requests handle ON CONFLICT gracefully without 500 error",
+    "Receipt expiration: Expired idempotency receipts (expires_at <= NOW()) allow clean reuse of the key for a fresh mutation",
+    "Authentication enforcement: Unauthenticated requests return HTTP 401 UNAUTHORIZED",
+    "Input validation: Invalid timezone or empty workspace name returns HTTP 422 VALIDATION_ERROR with structured issues"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "acc04-workspaces-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/acc04-workspaces.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Workspace creation, single-owner transaction atomicity, idempotency receipt store and concurrency replay, and workspace listing in Node and Cloudflare Worker runtimes. Out-of-scope: Multi-workspace enterprise consolidation and billing."
+}

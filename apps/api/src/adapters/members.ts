@@ -6,6 +6,8 @@ import type {
   ProjectMember,
   SessionActor,
 } from '@flowboard/contracts';
+import { getPool } from './postgres.ts';
+import { acquireWriteGrantLock } from './rbac.ts';
 
 function isPool(target: pg.Pool | pg.ClientBase): target is pg.Pool {
   return typeof (target as pg.Pool).connect === 'function' && typeof (target as pg.Pool).totalCount === 'number';
@@ -20,14 +22,15 @@ export async function updateProjectMember(
   newStatus: ProjectMemberStatus,
   expectedVersion: number,
 ): Promise<ProjectMember> {
+  const pool = clientOrPool ?? getPool();
   let poolClient: pg.PoolClient | undefined;
   let client: pg.ClientBase;
 
-  if (isPool(clientOrPool)) {
-    poolClient = await clientOrPool.connect();
+  if (isPool(pool)) {
+    poolClient = await pool.connect();
     client = poolClient;
   } else {
-    client = clientOrPool;
+    client = pool;
   }
 
   try {
@@ -35,41 +38,11 @@ export async function updateProjectMember(
       await client.query('BEGIN');
     }
 
-    // 1. Resolve actor's role in the project and workspace owner
-    const prjRes = await client.query<{ id: string; workspace_id: string; owner_id: string }>(
-      `SELECT p.id, p.workspace_id, w.owner_id
-       FROM projects p
-       JOIN workspaces w ON p.workspace_id = w.id
-       WHERE p.id = $1`,
-      [projectId],
-    );
+    // 1. Acquire write grant lock on actor (checks workspace ownership or holds FOR SHARE on actor's membership)
+    const grant = await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
+    const isWorkspaceOwner = grant.isOwner;
 
-    if (prjRes.rows.length === 0) {
-      throw HttpError.notFound('Project not found.', 'NOT_FOUND');
-    }
-
-    const projectRow = prjRes.rows[0]!;
-    const isWorkspaceOwner = projectRow.owner_id === actor.id;
-
-    if (!isWorkspaceOwner) {
-      const actorMemberRes = await client.query<{ role: ProjectRole; status: ProjectMemberStatus }>(
-        `SELECT role, status
-         FROM project_memberships
-         WHERE project_id = $1 AND user_id = $2`,
-        [projectId, actor.id],
-      );
-
-      if (actorMemberRes.rows.length === 0 || actorMemberRes.rows[0]?.status !== 'active') {
-        throw HttpError.notFound('Project not found.', 'NOT_FOUND');
-      }
-
-      const actorRole = actorMemberRes.rows[0]?.role;
-      if (actorRole !== 'manager') {
-        throw HttpError.forbidden('Insufficient permissions to manage project members.', 'FORBIDDEN');
-      }
-    }
-
-    // 2. Query target member
+    // 2. Query target member with FOR UPDATE row lock
     const targetRes = await client.query<{
       id: string;
       project_id: string;
@@ -83,7 +56,8 @@ export async function updateProjectMember(
     }>(
       `SELECT id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at
        FROM project_memberships
-       WHERE project_id = $1 AND user_id = $2`,
+       WHERE project_id = $1 AND user_id = $2
+       FOR UPDATE`,
       [projectId, targetUserId],
     );
 
@@ -101,7 +75,7 @@ export async function updateProjectMember(
       }
 
       // Cannot modify workspace owner
-      if (targetUserId === projectRow.owner_id) {
+      if (targetUserId === grant.ownerId) {
         throw HttpError.forbidden('Project managers cannot modify workspace owner.', 'FORBIDDEN');
       }
 
@@ -114,9 +88,29 @@ export async function updateProjectMember(
       if (newRole === 'manager') {
         throw HttpError.forbidden('Only workspace owners can appoint managers.', 'FORBIDDEN');
       }
+
+      // Project managers can only assign member or viewer
+      if (newRole !== 'member' && newRole !== 'viewer') {
+        throw HttpError.forbidden('Project managers can only assign member or viewer roles.', 'FORBIDDEN');
+      }
     }
 
-    // 4. Optimistic concurrency update
+    // 4. Optimistic concurrency version check
+    if (targetMember.version !== expectedVersion) {
+      throw HttpError.conflict('Member was concurrently updated. Refresh and try again.', 'STALE_VERSION');
+    }
+
+    // 5. Update target member with OCC and role predicate for non-owners
+    const updateQuery = isWorkspaceOwner
+      ? `UPDATE project_memberships
+         SET role = $1, status = $2, version = version + 1, updated_at = NOW()
+         WHERE project_id = $3 AND user_id = $4 AND version = $5
+         RETURNING id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at`
+      : `UPDATE project_memberships
+         SET role = $1, status = $2, version = version + 1, updated_at = NOW()
+         WHERE project_id = $3 AND user_id = $4 AND version = $5 AND role IN ('member', 'viewer')
+         RETURNING id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at`;
+
     const updateRes = await client.query<{
       id: string;
       project_id: string;
@@ -128,14 +122,14 @@ export async function updateProjectMember(
       created_at: Date;
       updated_at: Date;
     }>(
-      `UPDATE project_memberships
-       SET role = $1, status = $2, version = version + 1, updated_at = NOW()
-       WHERE project_id = $3 AND user_id = $4 AND version = $5
-       RETURNING id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at`,
+      updateQuery,
       [newRole, newStatus, projectId, targetUserId, expectedVersion],
     );
 
     if (updateRes.rows.length === 0) {
+      if (!isWorkspaceOwner && targetMember.role === 'manager') {
+        throw HttpError.forbidden('Project managers cannot modify other managers.', 'FORBIDDEN');
+      }
       throw HttpError.conflict('Member was concurrently updated. Refresh and try again.', 'STALE_VERSION');
     }
 
@@ -166,20 +160,23 @@ export async function updateProjectMember(
   }
 }
 
+export const updateMemberRole = updateProjectMember;
+
 export async function removeProjectMember(
   clientOrPool: pg.Pool | pg.ClientBase,
   actor: SessionActor,
   projectId: string,
   targetUserId: string,
 ): Promise<{ success: boolean; membership: ProjectMember }> {
+  const pool = clientOrPool ?? getPool();
   let poolClient: pg.PoolClient | undefined;
   let client: pg.ClientBase;
 
-  if (isPool(clientOrPool)) {
-    poolClient = await clientOrPool.connect();
+  if (isPool(pool)) {
+    poolClient = await pool.connect();
     client = poolClient;
   } else {
-    client = clientOrPool;
+    client = pool;
   }
 
   try {
@@ -187,41 +184,11 @@ export async function removeProjectMember(
       await client.query('BEGIN');
     }
 
-    // 1. Resolve actor's role in the project and workspace owner
-    const prjRes = await client.query<{ id: string; workspace_id: string; owner_id: string }>(
-      `SELECT p.id, p.workspace_id, w.owner_id
-       FROM projects p
-       JOIN workspaces w ON p.workspace_id = w.id
-       WHERE p.id = $1`,
-      [projectId],
-    );
+    // 1. Acquire write grant lock on actor (checks workspace ownership or holds FOR SHARE on actor's membership)
+    const grant = await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
+    const isWorkspaceOwner = grant.isOwner;
 
-    if (prjRes.rows.length === 0) {
-      throw HttpError.notFound('Project not found.', 'NOT_FOUND');
-    }
-
-    const projectRow = prjRes.rows[0]!;
-    const isWorkspaceOwner = projectRow.owner_id === actor.id;
-
-    if (!isWorkspaceOwner) {
-      const actorMemberRes = await client.query<{ role: ProjectRole; status: ProjectMemberStatus }>(
-        `SELECT role, status
-         FROM project_memberships
-         WHERE project_id = $1 AND user_id = $2`,
-        [projectId, actor.id],
-      );
-
-      if (actorMemberRes.rows.length === 0 || actorMemberRes.rows[0]?.status !== 'active') {
-        throw HttpError.notFound('Project not found.', 'NOT_FOUND');
-      }
-
-      const actorRole = actorMemberRes.rows[0]?.role;
-      if (actorRole !== 'manager') {
-        throw HttpError.forbidden('Insufficient permissions to manage project members.', 'FORBIDDEN');
-      }
-    }
-
-    // 2. Query target member
+    // 2. Query target member with FOR UPDATE row lock
     const targetRes = await client.query<{
       id: string;
       project_id: string;
@@ -235,7 +202,8 @@ export async function removeProjectMember(
     }>(
       `SELECT id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at
        FROM project_memberships
-       WHERE project_id = $1 AND user_id = $2`,
+       WHERE project_id = $1 AND user_id = $2
+       FOR UPDATE`,
       [projectId, targetUserId],
     );
 
@@ -253,7 +221,7 @@ export async function removeProjectMember(
       }
 
       // Cannot modify workspace owner
-      if (targetUserId === projectRow.owner_id) {
+      if (targetUserId === grant.ownerId) {
         throw HttpError.forbidden('Project managers cannot modify workspace owner.', 'FORBIDDEN');
       }
 
@@ -264,6 +232,17 @@ export async function removeProjectMember(
     }
 
     // 4. Update row to status = 'removed'
+    // If actor is not workspace owner, include predicate AND role IN ('member', 'viewer')
+    const updateQuery = isWorkspaceOwner
+      ? `UPDATE project_memberships
+         SET status = 'removed', version = version + 1, updated_at = NOW()
+         WHERE project_id = $1 AND user_id = $2
+         RETURNING id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at`
+      : `UPDATE project_memberships
+         SET status = 'removed', version = version + 1, updated_at = NOW()
+         WHERE project_id = $1 AND user_id = $2 AND role IN ('member', 'viewer')
+         RETURNING id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at`;
+
     const updateRes = await client.query<{
       id: string;
       project_id: string;
@@ -275,12 +254,31 @@ export async function removeProjectMember(
       created_at: Date;
       updated_at: Date;
     }>(
-      `UPDATE project_memberships
-       SET status = 'removed', version = version + 1, updated_at = NOW()
-       WHERE project_id = $1 AND user_id = $2
-       RETURNING id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at`,
+      updateQuery,
       [projectId, targetUserId],
     );
+
+    if (updateRes.rows.length === 0) {
+      if (!isWorkspaceOwner) {
+        throw HttpError.forbidden('Project managers cannot modify other managers.', 'FORBIDDEN');
+      }
+      throw HttpError.notFound('Member not found.', 'NOT_FOUND');
+    }
+
+    // Look up target user's email and atomically revoke pending invitations for that email in this project
+    const userRes = await client.query<{ email: string }>(
+      'SELECT email FROM users WHERE id = $1',
+      [targetUserId],
+    );
+    const targetEmail = userRes.rows[0]?.email;
+    if (targetEmail) {
+      await client.query(
+        `UPDATE project_invitations
+         SET status = 'revoked', updated_at = NOW()
+         WHERE project_id = $1 AND LOWER(email) = LOWER($2) AND status = 'pending'`,
+        [projectId, targetEmail],
+      );
+    }
 
     if (poolClient) {
       await client.query('COMMIT');

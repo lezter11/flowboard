@@ -3,9 +3,15 @@ import { deleteCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
 import { authMiddleware, optionalAuthMiddleware, SESSION_COOKIE_NAME } from '../middleware/auth.ts';
 import { getOwnedWorkspaces, getAccessibleProjects } from '../../adapters/rbac.ts';
-import { createDevUserAndSession, revokeSession } from '../../adapters/session.ts';
+import {
+  createDevUserAndSession,
+  getClearSessionCookieOptions,
+  getSessionCookieOptions,
+  getUserByEmail,
+  revokeSession,
+} from '../../adapters/session.ts';
 import { HttpError } from '../errors.ts';
-import { getSessionResponseSchema, logoutResponseSchema } from '@flowboard/contracts';
+import { getSessionResponseSchema } from '@flowboard/contracts';
 
 const devLoginRequestSchema = z.object({
   email: z.string().email(),
@@ -48,19 +54,24 @@ sessionRoutes.post('/logout', optionalAuthMiddleware, async (c) => {
     await revokeSession(sessionId);
   }
 
+  const host = c.req.header('host') || (c.req.url ? new URL(c.req.url).hostname : undefined);
+  const clearOpts = getClearSessionCookieOptions(host);
+
   deleteCookie(c, SESSION_COOKIE_NAME, {
-    path: '/',
+    path: clearOpts.path,
+    secure: clearOpts.secure,
   });
 
-  const response = logoutResponseSchema.parse({
-    data: { success: true },
-  });
-
-  return c.json(response);
+  return c.body(null, 204);
 });
 
 // 3. POST /api/v1/session/dev-login
+// Dev-login is strictly for non-production environments; returns 404 NOT_FOUND in production.
 sessionRoutes.post('/dev-login', async (c) => {
+  if (process.env.NODE_ENV === 'production') {
+    throw HttpError.notFound('Route not found.');
+  }
+
   const body = await c.req.json().catch(() => null);
   if (!body || typeof body !== 'object') {
     throw HttpError.badRequest('Request body must be a JSON object.');
@@ -74,15 +85,29 @@ sessionRoutes.post('/dev-login', async (c) => {
   }
 
   const { email, displayName } = parsed.data;
-  const name = displayName?.trim() || email.split('@')[0] || 'User';
 
+  // Prevent unauthorized impersonation of existing users in development/test
+  const existingUser = await getUserByEmail(email);
+  if (existingUser) {
+    const devSecret = c.req.header('x-dev-secret') || c.req.header('X-Dev-Secret');
+    const configuredSecret = process.env.DEV_LOGIN_SECRET || 'flowboard-dev-secret';
+    if (!devSecret || devSecret !== configuredSecret) {
+      throw HttpError.forbidden('Cannot sign in to existing account without development secret.');
+    }
+  }
+
+  const name = displayName?.trim() || email.split('@')[0] || 'User';
   const { session, user } = await createDevUserAndSession(email, name);
 
+  const host = c.req.header('host') || (c.req.url ? new URL(c.req.url).hostname : undefined);
+  const cookieOpts = getSessionCookieOptions(host);
+
   setCookie(c, SESSION_COOKIE_NAME, session.id, {
-    path: '/',
-    httpOnly: true,
-    sameSite: 'Lax',
-    maxAge: 7 * 24 * 3600,
+    path: cookieOpts.path,
+    httpOnly: cookieOpts.httpOnly,
+    sameSite: cookieOpts.sameSite,
+    secure: cookieOpts.secure,
+    maxAge: cookieOpts.maxAge,
   });
 
   return c.json({

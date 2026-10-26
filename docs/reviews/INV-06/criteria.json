@@ -1,0 +1,20 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "INV-06"
+  ],
+  "mandatoryCriteria": [
+    "Owner role modification authority: Workspace owner can change any member role (manager, member, viewer) within workspace projects via PATCH /api/v1/projects/:projectId/members/:userId",
+    "Project Manager authority limit: Project Manager can modify member and viewer roles only; attempting to promote to manager or alter a manager role returns 403 FORBIDDEN",
+    "Self-protection: Project Manager cannot modify their own role; returns 403 FORBIDDEN",
+    "Peer and owner protection: Project Manager cannot modify peer manager roles or workspace owner authority; returns 403 FORBIDDEN",
+    "Optimistic Concurrency Control: Requires expectedVersion in payload and rejects stale updates with 409 STALE_VERSION",
+    "Sibling project privacy: Outsiders and non-members receive 404 NOT_FOUND",
+    "R3 Audit compliance: Role modification serializes with concurrent writes and increments project_memberships version atomically"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "inv06-inv07-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv06-inv07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: PATCH /api/v1/projects/:projectId/members/:userId endpoint, role update validations, OCC expectedVersion checks, self and peer protection rules, and version incrementing on PostgreSQL. Out-of-scope: Card assignee reassignment on demotion to viewer is handled under CRD-03."
+}

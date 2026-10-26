@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "PRJ-02"
+  ],
+  "mandatoryCriteria": [
+    "Workspace project list scoping: GET /api/v1/workspaces/:workspaceId/projects returns all workspace projects for owner, but strictly granted active projects for members",
+    "Cross-workspace project listing: GET /api/v1/projects returns all projects accessible to the authenticated actor across workspaces with role annotation",
+    "Sibling project privacy: Outsiders receive 404 NOT_FOUND when requesting project lists for ungranted workspaces",
+    "Keyset cursor pagination: List endpoints support deterministic cursor-based pagination (ORDER BY name ASC, id ASC) with bounded page sizes (default 50, max 100)",
+    "No metadata leakage: Hidden or inaccessible projects leak no name, count, or existence in list results"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "prj02-prj05-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: GET /api/v1/workspaces/:workspaceId/projects and GET /api/v1/projects endpoints, keyset pagination, role scoping, and sibling privacy on PostgreSQL. Out-of-scope: Full-text search and client-side filtering are out-of-scope."
+}

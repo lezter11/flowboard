@@ -1,16 +1,17 @@
 {
   "status": "verified",
-  "summary": "FND-03 PostgreSQL schema and migrations: comprehensive DDL in database/migrations/0001_initial.sql covering all 21 Flowboard entities with strict foreign keys, ON DELETE RESTRICT on active columns, ON DELETE CASCADE on child items, DATE due dates, BIGINT ranks, JSONB changes/payloads, and performance indexes. Automated TypeScript runner with advisory locking (pg_advisory_lock) and transaction wrapping. All 7 relational integrity tests passed; independently audited and scored 10.0/10.0.",
-  "api_contract": "docs/API.md v0.3",
+  "reviewPath": "docs/reviews/FND-03/f3be24baa626558b8f77a086e59163f4acd78fd21d0648d2c57ea1bb2a6fa23e-round-1.json",
+  "summary": "FND-03 Shared contracts package validation: implemented complete Zod schemas and TypeScript types in @flowboard/contracts, Gregorian astronomical calendar and leap year validation, UTC ISO timestamps ending in Z, 16-128 char ASCII idempotency keys, canonical error codes and envelopes, and comprehensive OpenAPI 3.1 catalog covering 36 endpoints. All 41 unit tests passed; audited and certified by independent reviewer with score 9.825/10.0.",
+  "api_contract": "docs/API.md v0.3 and packages/contracts/src/openapi/index.ts",
   "limitations": [
-    "Verified against local PostgreSQL 17.11 container; remote poolers (Hyperdrive/Neon) evaluated in deployment stages.",
-    "Forward-only migrations; down-migrations are not implemented per project forward-only policy."
+    "Contracts define runtime schema validation and boundary types; database persistence and SQL constraints are verified in migrations.",
+    "UI and integrated acceptance remain separately owned and unverified."
   ],
   "evidence": [{
     "path": "docs/evidence/FND-03-local.md",
-    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/migrations.test.ts",
-    "result": "Strict typecheck passed with 0 errors; 7 integration tests passed, 0 failed, 0 skipped. Independent audit rating: 10.0 / 10.0.",
-    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine official digest."
+    "command": "npm run typecheck && npm run test --workspace @flowboard/contracts",
+    "result": "Strict typecheck passed with 0 errors; 41 unit tests passed across 19 suites, 0 failed, 0 skipped. Independent audit score: 9.825 / 10.0.",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, TypeScript 7.0.2, Zod 3.24.2."
   }],
   "next_dependency_ready_task": "Stage 1 domain features (ACC-01, PRJ-01, RBAC-01)."
 }

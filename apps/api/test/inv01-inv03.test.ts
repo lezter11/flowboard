@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import test, { before, after } from 'node:test';
+import { invitationSchema } from '@flowboard/contracts';
 import { runMigrations } from '../src/adapters/migrations.ts';
 import { createApp } from '../src/http/app.ts';
 import { getPool, closePool } from '../src/adapters/postgres.ts';
@@ -138,6 +139,11 @@ test('INV-01 & INV-03: Project Invitations Lifecycle Suite', async (t) => {
       assert.equal(res.status, 201);
       const json = await res.json();
       assert.equal(json.replayed, false);
+      const parsedInv = invitationSchema.parse(json.data);
+      assert.equal(parsedInv.projectId, projectId);
+      assert.equal(parsedInv.invitedBy, aliceUserId);
+      assert.ok(parsedInv.createdAt);
+      assert.ok(parsedInv.updatedAt);
       assert.ok(json.data.id.startsWith('inv_'));
       assert.equal(json.data.email, 'frank.invitee@flowboard.example');
       assert.equal(json.data.role, 'manager');
@@ -345,8 +351,8 @@ test('INV-01 & INV-03: Project Invitations Lifecycle Suite', async (t) => {
       });
       assert.equal(getPre.status, 404);
 
-      // Frank accepts the invitation using raw token
-      const res = await app.request('/api/v1/invitations/accept', {
+      // Missing Idempotency-Key returns 400
+      const missingKeyRes = await app.request('/api/v1/invitations/accept', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -356,13 +362,47 @@ test('INV-01 & INV-03: Project Invitations Lifecycle Suite', async (t) => {
           token: frankRawToken,
         }),
       });
+      assert.equal(missingKeyRes.status, 400);
+      const missingKeyJson = await missingKeyRes.json();
+      assert.equal(missingKeyJson.error.code, 'IDEMPOTENCY_KEY_REQUIRED');
+
+      // Frank accepts the invitation using raw token
+      const res = await app.request('/api/v1/invitations/accept', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: frankCookie,
+          'Idempotency-Key': 'idem_key_accept_frank_01',
+        },
+        body: JSON.stringify({
+          token: frankRawToken,
+        }),
+      });
 
       assert.equal(res.status, 200);
       const json = await res.json();
+      assert.equal(json.replayed, false);
       assert.equal(json.data.success, true);
       assert.equal(json.data.projectId, projectId);
       assert.equal(json.data.workspaceId, workspaceId);
       assert.equal(json.data.role, 'manager');
+
+      // Idempotency replay returns 200 with replayed: true
+      const replayRes = await app.request('/api/v1/invitations/accept', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: frankCookie,
+          'Idempotency-Key': 'idem_key_accept_frank_01',
+        },
+        body: JSON.stringify({
+          token: frankRawToken,
+        }),
+      });
+      assert.equal(replayRes.status, 200);
+      const replayJson = await replayRes.json();
+      assert.equal(replayJson.replayed, true);
+      assert.equal(replayJson.data.success, true);
 
       // DB verification
       const client = await pool.connect();
@@ -438,6 +478,7 @@ test('INV-01 & INV-03: Project Invitations Lifecycle Suite', async (t) => {
         headers: {
           'Content-Type': 'application/json',
           Cookie: graceCookie,
+          'Idempotency-Key': 'idem_key_accept_grace_mismatch',
         },
         body: JSON.stringify({
           token: lauraRawToken,
@@ -476,6 +517,7 @@ test('INV-01 & INV-03: Project Invitations Lifecycle Suite', async (t) => {
       headers: {
         'Content-Type': 'application/json',
         Cookie: frankCookie,
+        'Idempotency-Key': 'idem_key_accept_frank_already',
       },
       body: JSON.stringify({
         token: frankRawToken,
@@ -521,6 +563,7 @@ test('INV-01 & INV-03: Project Invitations Lifecycle Suite', async (t) => {
       headers: {
         'Content-Type': 'application/json',
         Cookie: malloryCookie,
+        'Idempotency-Key': 'idem_key_accept_mallory_exp',
       },
       body: JSON.stringify({
         token: malloryRawToken,
@@ -549,6 +592,7 @@ test('INV-01 & INV-03: Project Invitations Lifecycle Suite', async (t) => {
       headers: {
         'Content-Type': 'application/json',
         Cookie: frankCookie,
+        'Idempotency-Key': 'idem_key_accept_fake_tok',
       },
       body: JSON.stringify({
         token: fakeToken,
@@ -598,6 +642,101 @@ test('INV-01 & INV-03: Project Invitations Lifecycle Suite', async (t) => {
       assert.equal(resConflict.status, 409);
       const jsonConflict = await resConflict.json();
       assert.equal(jsonConflict.error.code, 'IDEMPOTENCY_CONFLICT');
+    },
+  );
+
+  await t.test(
+    'Test 9: Self-invites and invitations to active project members are rejected with 400 ALREADY_MEMBER',
+    async () => {
+      // 1. Owner attempts to invite themselves
+      const resOwnerSelf = await app.request(`/api/v1/projects/${projectId}/invitations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: aliceCookie,
+          'Idempotency-Key': 'idem_key_owner_self_invite',
+        },
+        body: JSON.stringify({
+          email: 'alice.inv@flowboard.example',
+          role: 'viewer',
+        }),
+      });
+      assert.equal(resOwnerSelf.status, 400);
+      const jsonOwnerSelf = await resOwnerSelf.json();
+      assert.equal(jsonOwnerSelf.error.code, 'ALREADY_MEMBER');
+      assert.equal(jsonOwnerSelf.error.message, 'User is already an active member of this project.');
+
+      // 2. Manager Bob attempts to invite himself
+      const resManagerSelf = await app.request(`/api/v1/projects/${projectId}/invitations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: bobCookie,
+          'Idempotency-Key': 'idem_key_bob_self_invite',
+        },
+        body: JSON.stringify({
+          email: 'bob.manager@flowboard.example',
+          role: 'viewer',
+        }),
+      });
+      assert.equal(resManagerSelf.status, 400);
+      const jsonManagerSelf = await resManagerSelf.json();
+      assert.equal(jsonManagerSelf.error.code, 'ALREADY_MEMBER');
+
+      // 3. Manager Bob attempts to invite active member Charlie
+      const resInviteCharlie = await app.request(`/api/v1/projects/${projectId}/invitations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: bobCookie,
+          'Idempotency-Key': 'idem_key_bob_invite_charlie',
+        },
+        body: JSON.stringify({
+          email: 'charlie.member@flowboard.example',
+          role: 'viewer',
+        }),
+      });
+      assert.equal(resInviteCharlie.status, 400);
+      const jsonInviteCharlie = await resInviteCharlie.json();
+      assert.equal(jsonInviteCharlie.error.code, 'ALREADY_MEMBER');
+    },
+  );
+
+  await t.test(
+    'Test 10: Duplicate active pending invitations are rejected with 400 INVITATION_ALREADY_EXISTS',
+    async () => {
+      // 1. Create first invitation for new person
+      const res1 = await app.request(`/api/v1/projects/${projectId}/invitations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: aliceCookie,
+          'Idempotency-Key': 'idem_key_new_person_001',
+        },
+        body: JSON.stringify({
+          email: 'new.candidate@flowboard.example',
+          role: 'viewer',
+        }),
+      });
+      assert.equal(res1.status, 201);
+
+      // 2. Attempt duplicate invitation for same email before acceptance/revocation
+      const res2 = await app.request(`/api/v1/projects/${projectId}/invitations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Cookie: aliceCookie,
+          'Idempotency-Key': 'idem_key_new_person_002',
+        },
+        body: JSON.stringify({
+          email: 'new.candidate@flowboard.example',
+          role: 'viewer',
+        }),
+      });
+      assert.equal(res2.status, 400);
+      const json2 = await res2.json();
+      assert.equal(json2.error.code, 'INVITATION_ALREADY_EXISTS');
+      assert.match(json2.error.message, /Resend the existing invitation/i);
     },
   );
 });

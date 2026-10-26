@@ -1,5 +1,7 @@
 # Flowboard agent entry point
 
+Backend task closure requires [BACKEND_REVIEW_GATE.md](BACKEND_REVIEW_GATE.md): a fresh independent reviewer, exact source manifest, score strictly above 8.5, category minimums, no blockers and passing tests. Handoffs must reference passing review records; prior self-recorded ratings are historical evidence, not approval.
+
 Read and follow [RULES.md](RULES.md). Canonical planning documents are [PRD.md](PRD.md), [ARCHITECTURE.md](ARCHITECTURE.md), [DESIGN.md](DESIGN.md), [TASKS.md](TASKS.md) and [PROGRESS.md](PROGRESS.md). Read [the engineering checklist](docs/ENGINEERING_CHECKLIST.md) for the 50 stable concerns and [the reference catalogue](docs/references/README.md) before UI/backend design decisions.
 
 Architect coordinates shared contracts. Backend owns apps/api/database; UI owns apps/web. This is a shared checkout: do not edit another chat's files concurrently. Read the current task state before implementing. The original D1 schema is historical prototype evidence; PostgreSQL is the recommended implementation engine and requires its own migrations/tests. Never equate a local historical SQLite pass with selected-database verification.

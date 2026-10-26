@@ -1,6 +1,7 @@
 {
   "status": "verified",
-  "summary": "RBAC-05 Project Inheritance Disclosure: implemented getProjectAccessSummary and GET /api/v1/projects/:projectId/access-summary. Discloses workspace owner inherited administrative authority across all boards within the project. Explicitly clarifies that board permissions are inherited directly from project membership with no hidden board-only exception. Audited and certified at 10.0/10.0.",
+  "reviewPath": "docs/reviews/RBAC-05/ff07cc29b01f441048fc28e1f5c98a738e13d00ac9e147ad7666fc1a2a70b474-round-1.json",
+  "summary": "RBAC-05 Project Inheritance Disclosure: implemented getProjectAccessSummary and GET /api/v1/projects/:projectId/access-summary. Discloses workspace owner inherited administrative authority across all boards within the project. Explicitly clarifies that board permissions are inherited directly from project membership with no hidden board-only exception. Audited and certified by independent reviewer with score 9.7/10.0.",
   "api_contract": "docs/API.md v0.3 and docs/FEATURE_SPEC.md (Section 2: People, projects and permissions)",
   "limitations": [
     "Disclosure represents project snapshot; realtime push updates deferred to notification streams."
@@ -8,7 +9,7 @@
   "evidence": [{
     "path": "docs/evidence/RBAC-05-local.md",
     "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac-advanced.test.ts",
-    "result": "Strict typecheck passed with 0 errors; 13 integration tests passed, 0 failed, 0 skipped. Independent audit score: 10.0 / 10.0.",
+    "result": "Strict typecheck passed with 0 errors; all integration tests passed, 0 failed, 0 skipped. Independent audit score: 9.7 / 10.0.",
     "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine official digest."
   }],
   "next_dependency_ready_task": "BRD-01 (Board access model UI)"

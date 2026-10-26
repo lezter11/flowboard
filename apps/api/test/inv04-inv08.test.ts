@@ -5,7 +5,7 @@ import { runMigrations } from '../src/adapters/migrations.ts';
 import { createApp } from '../src/http/app.ts';
 import { getPool, closePool } from '../src/adapters/postgres.ts';
 import { createDevUserAndSession } from '../src/adapters/session.ts';
-import { invitationListResponseSchema } from '@flowboard/contracts';
+import { invitationListResponseSchema, invitationSchema } from '@flowboard/contracts';
 
 test('INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Suite', async (t) => {
   const pool = getPool();
@@ -219,6 +219,11 @@ test('INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Su
     assert.equal(res.status, 200);
     const json = await res.json();
     assert.equal(json.replayed, false);
+    const parsedInv = invitationSchema.parse(json.data);
+    assert.equal(parsedInv.projectId, projectId);
+    assert.equal(parsedInv.invitedBy, aliceUserId);
+    assert.ok(parsedInv.createdAt);
+    assert.ok(parsedInv.updatedAt);
     assert.equal(json.data.id, managerInvId);
     assert.equal(json.data.email, 'frank.mgrinvitee@flowboard.example');
     assert.equal(json.data.role, 'manager');
@@ -244,6 +249,7 @@ test('INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Su
       headers: {
         'Content-Type': 'application/json',
         Cookie: frankCookie,
+        'Idempotency-Key': 'key_accept_old_rotated_frank',
       },
       body: JSON.stringify({
         token: managerRawToken,
@@ -336,6 +342,7 @@ test('INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Su
       headers: {
         'Content-Type': 'application/json',
         Cookie: graceCookie,
+        'Idempotency-Key': 'key_accept_revoked_grace',
       },
       body: JSON.stringify({
         token: memberRawToken,
@@ -382,6 +389,7 @@ test('INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Su
       headers: {
         'Content-Type': 'application/json',
         Cookie: frankCookie,
+        'Idempotency-Key': 'key_accept_new_mgr_frank',
       },
       body: JSON.stringify({
         token: newManagerRawToken,
@@ -650,5 +658,319 @@ test('INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Su
     );
     assert.ok(afterRes.rows[0]);
     assert.equal(afterRes.rows[0]!.status, 'removed');
+  });
+
+  // --------------------------------------------------------------------------
+  // R2 & Security Finding 1 (CWE-863): Invitation Fencing & Revocation Regression Suite
+  // --------------------------------------------------------------------------
+
+  let oscarUserId = '';
+  let oscarCookie = '';
+  let oscarPendingInvId = '';
+  let oscarOldToken = '';
+
+  await t.test('Setup R2: Create user Oscar and seed pending invite + manager membership', async () => {
+    const oscar = await createDevUserAndSession('oscar.manager@flowboard.example', 'Oscar Manager', pool);
+    oscarUserId = oscar.user.id;
+    oscarCookie = `flowboard_session=${oscar.session.id}`;
+
+    // 1. Oscar has a pending invite for his own email (token generated)
+    oscarOldToken = crypto.randomBytes(32).toString('hex');
+    const tokenHash = crypto.createHash('sha256').update(oscarOldToken).digest('hex');
+    oscarPendingInvId = 'inv_oscar_backdoor_' + crypto.randomUUID();
+
+    const client = await pool.connect();
+    try {
+      await client.query(
+        `INSERT INTO project_invitations (
+           id, project_id, workspace_id, email, role, token_hash, invited_by, status, expires_at, created_at, updated_at
+         ) VALUES (
+           $1, $2, $3, $4, 'manager', $5, $6, 'pending', NOW() + INTERVAL '7 days', NOW() - INTERVAL '10 minutes', NOW() - INTERVAL '10 minutes'
+         )`,
+        [oscarPendingInvId, projectId, workspaceId, 'oscar.manager@flowboard.example', tokenHash, aliceUserId],
+      );
+
+      // Oscar is also made an active manager
+      await client.query(
+        `INSERT INTO project_memberships (
+           id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at
+         ) VALUES (
+           $1, $2, $3, $4, 'manager', 'active', 1, NOW() - INTERVAL '5 minutes', NOW() - INTERVAL '5 minutes'
+         )
+         ON CONFLICT (project_id, user_id) DO UPDATE SET status = 'active', role = 'manager', updated_at = NOW()`,
+        ['pm_oscar_mgr', projectId, workspaceId, oscarUserId],
+      );
+    } finally {
+      client.release();
+    }
+  });
+
+  await t.test('R2 - Step 1: Active manager cannot create self-invite or duplicate pending invite', async () => {
+    // 1. Self-invite by active manager is rejected with 400 ALREADY_MEMBER
+    const resSelf = await app.request(`/api/v1/projects/${projectId}/invitations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: oscarCookie,
+        'Idempotency-Key': 'key_oscar_self_denied',
+      },
+      body: JSON.stringify({
+        email: 'oscar.manager@flowboard.example',
+        role: 'member',
+      }),
+    });
+    assert.equal(resSelf.status, 400);
+    const jsonSelf = await resSelf.json();
+    assert.equal(jsonSelf.error.code, 'ALREADY_MEMBER');
+
+    // 2. Oscar creates a pending invite for teammate Trent
+    const trentUser = await createDevUserAndSession('trent.teammate@flowboard.example', 'Trent Teammate', pool);
+    const resTrent = await app.request(`/api/v1/projects/${projectId}/invitations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: oscarCookie,
+        'Idempotency-Key': 'key_oscar_invite_trent',
+      },
+      body: JSON.stringify({
+        email: 'trent.teammate@flowboard.example',
+        role: 'member',
+      }),
+    });
+    assert.equal(resTrent.status, 201);
+
+    // 3. Duplicate invitation to Trent while pending is rejected
+    const resTrentDup = await app.request(`/api/v1/projects/${projectId}/invitations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: oscarCookie,
+        'Idempotency-Key': 'key_oscar_invite_trent_dup',
+      },
+      body: JSON.stringify({
+        email: 'trent.teammate@flowboard.example',
+        role: 'member',
+      }),
+    });
+    assert.equal(resTrentDup.status, 400);
+    const jsonTrentDup = await resTrentDup.json();
+    assert.equal(jsonTrentDup.error.code, 'INVITATION_ALREADY_EXISTS');
+  });
+
+  await t.test('R2 - Steps 2 & 3: Owner removes Manager -> pending invitation is atomically marked revoked', async () => {
+    // Owner deletes Oscar's membership
+    const resRemove = await app.request(`/api/v1/projects/${projectId}/members/${oscarUserId}`, {
+      method: 'DELETE',
+      headers: {
+        Cookie: aliceCookie,
+        'Idempotency-Key': 'key_remove_oscar_member',
+      },
+    });
+    assert.equal(resRemove.status, 200);
+
+    // Verify Oscar membership is status = 'removed'
+    const memRes = await pool.query<{ status: string }>(
+      'SELECT status FROM project_memberships WHERE project_id = $1 AND user_id = $2',
+      [projectId, oscarUserId],
+    );
+    assert.equal(memRes.rows[0]?.status, 'removed');
+
+    // Verify Oscar's pending invitation is atomically marked 'revoked'
+    const invRes = await pool.query<{ status: string }>(
+      'SELECT status FROM project_invitations WHERE id = $1',
+      [oscarPendingInvId],
+    );
+    assert.equal(invRes.rows[0]?.status, 'revoked');
+  });
+
+  await t.test('R2 - Step 4: Attacker presenting old revoked token fails -> 400 INVALID_INVITATION, access remains removed', async () => {
+    const resAccept = await app.request('/api/v1/invitations/accept', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: oscarCookie,
+        'Idempotency-Key': 'key_accept_oscar_revoked_token',
+      },
+      body: JSON.stringify({
+        token: oscarOldToken,
+      }),
+    });
+
+    assert.equal(resAccept.status, 400);
+    const jsonAccept = await resAccept.json();
+    assert.equal(jsonAccept.error.code, 'INVALID_INVITATION');
+
+    // Verify Oscar's membership remains 'removed'
+    const memRes = await pool.query<{ status: string }>(
+      'SELECT status FROM project_memberships WHERE project_id = $1 AND user_id = $2',
+      [projectId, oscarUserId],
+    );
+    assert.equal(memRes.rows[0]?.status, 'removed');
+
+    // Verify Oscar cannot access the project
+    const projRes = await app.request(`/api/v1/projects/${projectId}`, {
+      method: 'GET',
+      headers: { Cookie: oscarCookie },
+    });
+    assert.equal(projRes.status, 404);
+  });
+
+  await t.test('R2 - Step 4b (Defense-in-depth): If invitation was pending but issued before removal, acceptance fails -> 400 INVITATION_SUPERSEDED', async () => {
+    // Temporarily set the invitation back to 'pending', but with created_at <= Oscar's membership updated_at
+    const memRes = await pool.query<{ updated_at: Date }>(
+      'SELECT updated_at FROM project_memberships WHERE project_id = $1 AND user_id = $2',
+      [projectId, oscarUserId],
+    );
+    const memberUpdatedAt = memRes.rows[0]!.updated_at;
+
+    const priorDate = new Date(new Date(memberUpdatedAt).getTime() - 60000);
+    await pool.query(
+      `UPDATE project_invitations
+       SET status = 'pending', created_at = $1, updated_at = NOW()
+       WHERE id = $2`,
+      [priorDate, oscarPendingInvId],
+    );
+
+    const resAccept = await app.request('/api/v1/invitations/accept', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: oscarCookie,
+        'Idempotency-Key': 'key_accept_oscar_superseded_token',
+      },
+      body: JSON.stringify({
+        token: oscarOldToken,
+      }),
+    });
+
+    assert.equal(resAccept.status, 400);
+    const jsonAccept = await resAccept.json();
+    assert.equal(jsonAccept.error.code, 'INVITATION_SUPERSEDED');
+    assert.match(jsonAccept.error.message, /issued before project access was revoked/i);
+
+    // Membership remains 'removed'
+    const afterMemRes = await pool.query<{ status: string }>(
+      'SELECT status FROM project_memberships WHERE project_id = $1 AND user_id = $2',
+      [projectId, oscarUserId],
+    );
+    assert.equal(afterMemRes.rows[0]?.status, 'removed');
+
+    // Reset status back to 'revoked'
+    await pool.query(
+      `UPDATE project_invitations SET status = 'revoked', updated_at = NOW() WHERE id = $1`,
+      [oscarPendingInvId],
+    );
+  });
+
+  let oscarFreshToken = '';
+  await t.test('R2 - Step 5: Owner issues fresh invitation to the deliberately removed user -> succeeds (201)', async () => {
+    const res = await app.request(`/api/v1/projects/${projectId}/invitations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: aliceCookie,
+        'Idempotency-Key': 'key_reinvite_oscar_fresh',
+      },
+      body: JSON.stringify({
+        email: 'oscar.manager@flowboard.example',
+        role: 'member',
+      }),
+    });
+
+    assert.equal(res.status, 201);
+    const json = await res.json();
+    assert.equal(json.data.email, 'oscar.manager@flowboard.example');
+    assert.equal(json.data.role, 'member');
+    assert.equal(json.data.status, 'pending');
+    assert.ok(json.data.token);
+    assert.notEqual(json.data.token, oscarOldToken);
+    oscarFreshToken = json.data.token;
+  });
+
+  await t.test('R2 - Step 6: User accepts fresh invitation -> succeeds (200), membership reactivated to active', async () => {
+    const resAccept = await app.request('/api/v1/invitations/accept', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: oscarCookie,
+        'Idempotency-Key': 'key_accept_oscar_fresh_token',
+      },
+      body: JSON.stringify({
+        token: oscarFreshToken,
+      }),
+    });
+
+    assert.equal(resAccept.status, 200);
+    const jsonAccept = await resAccept.json();
+    assert.equal(jsonAccept.data.success, true);
+    assert.equal(jsonAccept.data.role, 'member');
+
+    // Verify DB state: Oscar's membership is now 'active'
+    const memRes = await pool.query<{ status: string; role: string }>(
+      'SELECT status, role FROM project_memberships WHERE project_id = $1 AND user_id = $2',
+      [projectId, oscarUserId],
+    );
+    assert.equal(memRes.rows[0]?.status, 'active');
+    assert.equal(memRes.rows[0]?.role, 'member');
+
+    // Verify Oscar can now access the project again
+    const projRes = await app.request(`/api/v1/projects/${projectId}`, {
+      method: 'GET',
+      headers: { Cookie: oscarCookie },
+    });
+    assert.equal(projRes.status, 200);
+  });
+
+  await t.test('R2 - Step 7: Member leaves project -> pending invitations for that email are atomically revoked', async () => {
+    // Oscar has another pending invite (e.g. created for a viewer role)
+    const extraToken = crypto.randomBytes(32).toString('hex');
+    const extraHash = crypto.createHash('sha256').update(extraToken).digest('hex');
+    const extraInvId = 'inv_oscar_leave_' + crypto.randomUUID();
+
+    const client = await pool.connect();
+    try {
+      await client.query(
+        `INSERT INTO project_invitations (
+           id, project_id, workspace_id, email, role, token_hash, invited_by, status, expires_at, created_at, updated_at
+         ) VALUES (
+           $1, $2, $3, $4, 'viewer', $5, $6, 'pending', NOW() + INTERVAL '7 days', NOW(), NOW()
+         )`,
+        [extraInvId, projectId, workspaceId, 'oscar.manager@flowboard.example', extraHash, aliceUserId],
+      );
+    } finally {
+      client.release();
+    }
+
+    // Oscar leaves the project
+    const resLeave = await app.request(`/api/v1/projects/${projectId}/leave`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: oscarCookie,
+        'Idempotency-Key': 'key_oscar_final_leave',
+      },
+    });
+    assert.equal(resLeave.status, 200);
+
+    // Verify extra pending invitation was atomically marked revoked
+    const checkInv = await pool.query<{ status: string }>(
+      'SELECT status FROM project_invitations WHERE id = $1',
+      [extraInvId],
+    );
+    assert.equal(checkInv.rows[0]?.status, 'revoked');
+
+    // Attempting to accept revoked extraToken fails
+    const resAccept = await app.request('/api/v1/invitations/accept', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: oscarCookie,
+        'Idempotency-Key': 'key_accept_oscar_revoked_extra',
+      },
+      body: JSON.stringify({
+        token: extraToken,
+      }),
+    });
+    assert.equal(resAccept.status, 400);
   });
 });

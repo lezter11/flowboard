@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "INV-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/INV-01/criteria.json",
+  "startedAt": "2026-10-26T05:39:59.097928Z",
+  "completedAt": "2026-10-26T05:39:59.097928Z",
+  "implementer": {
+    "actorId": "backend-builder",
+    "sessionId": "7e44e3cf-29d2-4f7d-ba58-a053cdb570fc",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-auditor-inv",
+    "sessionId": "5664ffe4-311c-4302-85fd-63d6eac1ff11",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/INV-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/invitations.ts",
+      "apps/api/src/http/routes/invitations.ts",
+      "apps/api/test/inv01-inv03.test.ts",
+      "docs/reviews/INV-01/criteria.json",
+      "docs/reviews/INV-01/reviewer-session.md",
+      "docs/reviews/INV-01/test.log"
+    ],
+    "files": {
+      "apps/api/src/adapters/invitations.ts": "1d3ec5a707b4572aaeffba9b14a428eb09a8c2f0f6f6225966f82dc0eb983851",
+      "apps/api/src/http/routes/invitations.ts": "18717ba6b85e95fa6847733b908dbd3cd27ca915f6cdaaf93bc02b046ce10364",
+      "apps/api/test/inv01-inv03.test.ts": "5cbbbc1fdd90a8e466d28fb4fe596054ca8de458b17a935bc59cef4b2e006d89",
+      "docs/reviews/INV-01/criteria.json": "c02015794fa8a247175cd8fd18692c5f00a8c7639a018b357af3cf940654bb17",
+      "docs/reviews/INV-01/reviewer-session.md": "279875bae8793d363915294031bf1392f25b938a08a2f17af989fe9b08d7bc61",
+      "docs/reviews/INV-01/test.log": "3bb1fd8f94c14a5e813f30414f9d01dca8eb3a2cd41203c4b250bc33d13644ca"
+    },
+    "digest": "e2fffd98795998cbc2470cf17af9665581bdf193c7e6ff76f21465677c1404fe"
+  },
+  "criteriaResults": {
+    "Owner invitation authority: Workspace owner can invite manager, member, and viewer roles to any project within their workspace via POST /api/v1/projects/:projectId/invitations": "pass",
+    "Project Manager authority limit: Project Manager can invite member and viewer roles only; attempting to invite a manager returns 403 FORBIDDEN": "pass",
+    "Role boundary enforcement: Project members and viewers cannot invite; unauthorized attempts return 403 FORBIDDEN": "pass",
+    "Sibling project privacy: Outsiders and non-members attempting to invite to an ungranted project receive 404 NOT_FOUND": "pass",
+    "Cryptographic token hashing: Single-use invitation token with 256-bit entropy is generated and stored solely as a SHA-256 hash in project_invitations with 7-day expiry; raw token is never persisted or logged": "pass",
+    "Transactional outbox creation: Invitation creation atomically writes a durable email delivery intent record to the outbox table in the same PostgreSQL transaction": "pass",
+    "R2 & R5 audit compliance: Rejects invitation attempts for existing active project members and self-invites; Idempotency-Key is enforced with transactional receipt": "pass",
+    "Validation and error envelopes: Malformed emails, missing roles, or unknown payload attributes fail with standard 400 or 422 error envelopes": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "e2fffd98795998cbc2470cf17af9665581bdf193c7e6ff76f21465677c1404fe",
+      "evidencePath": "docs/reviews/INV-01/test.log"
+    },
+    {
+      "id": "inv01-inv03-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv01-inv03.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "e2fffd98795998cbc2470cf17af9665581bdf193c7e6ff76f21465677c1404fe",
+      "evidencePath": "docs/reviews/INV-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.6",
+      "reason": "Strict verification of owner vs manager authority; members/viewers rejected with 403; outsiders receive 404; token is generated with 256 bits of entropy and stored solely as SHA-256 hash in DB; raw token never logged or placed in outbox.",
+      "evidencePaths": [
+        "docs/reviews/INV-01/reviewer-session.md",
+        "docs/reviews/INV-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Full adherence to API contracts, input validation with @flowboard/contracts, proper 201 response envelope and standard error envelopes.",
+      "evidencePaths": [
+        "docs/reviews/INV-01/reviewer-session.md",
+        "docs/reviews/INV-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.4",
+      "reason": "Single atomic PostgreSQL transaction for invitation insertion, outbox event creation, and idempotency receipt persistence.",
+      "evidencePaths": [
+        "docs/reviews/INV-01/reviewer-session.md",
+        "docs/reviews/INV-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Comprehensive test suite verifying owner invites, PM limits, negative authorization paths, duplicate rejections, and outbox event verification.",
+      "evidencePaths": [
+        "docs/reviews/INV-01/reviewer-session.md",
+        "docs/reviews/INV-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clean separation between HTTP routing and database adapter logic; clear typing and explicit parameterized SQL queries.",
+      "evidencePaths": [
+        "docs/reviews/INV-01/reviewer-session.md",
+        "docs/reviews/INV-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Transactional outbox enables asynchronous email delivery; idempotency prevents duplicated emails on client retry.",
+      "evidencePaths": [
+        "docs/reviews/INV-01/reviewer-session.md",
+        "docs/reviews/INV-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.46",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

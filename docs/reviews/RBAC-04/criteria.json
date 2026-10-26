@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "RBAC-04"
+  ],
+  "mandatoryCriteria": [
+    "Picker privacy: Purpose assignee returns only workspace owner and active managers/members; viewers and removed members are excluded",
+    "Mention privacy: Purpose mention returns workspace owner and active managers/members/viewers; removed members are excluded",
+    "Sibling project isolation: Users who are only members of sibling projects are NEVER returned in people pickers",
+    "Boundary enforcement: Non-project members querying project people receive 404 NOT_FOUND"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "rbac-advanced-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac-advanced.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Project people directory, mention/assignee filtering, and sibling privacy. Out-of-scope: Global user search."
+}

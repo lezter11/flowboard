@@ -1,4 +1,7 @@
 import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 import test, { after, before } from 'node:test';
 import pg from 'pg';
 import { runMigrations } from '../src/adapters/migrations.ts';
@@ -27,11 +30,13 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
 
   await t.test('1. Runs migrations and records applied versions', async () => {
     const result = await runMigrations(pool);
-    assert.equal(result.applied.length >= 2, true);
+    assert.equal(result.applied.length >= 3, true);
     assert.equal(result.applied[0]?.version, '0001');
     assert.equal(result.applied[0]?.name, '0001_initial.sql');
     assert.equal(result.applied[1]?.version, '0002');
     assert.equal(result.applied[1]?.name, '0002_sessions.sql');
+    assert.equal(result.applied[2]?.version, '0003');
+    assert.equal(result.applied[2]?.name, '0003_constraints.sql');
 
     // Verify schema_migrations table has the record
     const client = await pool.connect();
@@ -45,6 +50,11 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
       assert.equal(queryRes2.rows.length, 1);
       assert.equal(queryRes2.rows[0].version, '0002');
       assert.equal(queryRes2.rows[0].name, '0002_sessions.sql');
+
+      const queryRes3 = await client.query('SELECT version, name FROM schema_migrations WHERE version = $1', ['0003']);
+      assert.equal(queryRes3.rows.length, 1);
+      assert.equal(queryRes3.rows[0].version, '0003');
+      assert.equal(queryRes3.rows[0].name, '0003_constraints.sql');
     } finally {
       client.release();
     }
@@ -61,18 +71,18 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
     const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
 
     try {
-      // 1. workspace
-      await client.query(
-        `INSERT INTO workspaces (id, name, timezone, owner_id, version, created_at, updated_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
-        ['ws_acme', 'Acme Corp', 'UTC', 'usr_alice', 1, now, now]
-      );
-
-      // 2. user
+      // 1. user
       await client.query(
         `INSERT INTO users (id, email, display_name, avatar_url, created_at, updated_at)
          VALUES ($1, $2, $3, $4, $5, $6)`,
         ['usr_alice', 'alice@example.com', 'Alice Owner', 'https://example.com/avatar.png', now, now]
+      );
+
+      // 2. workspace
+      await client.query(
+        `INSERT INTO workspaces (id, name, timezone, owner_id, version, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        ['ws_acme', 'Acme Corp', 'UTC', 'usr_alice', 1, now, now]
       );
 
       // 3. project
@@ -282,6 +292,284 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
       );
     } finally {
       client.release();
+    }
+  });
+
+  await t.test('8. Negative foreign key test: inserting workspace with non-existent owner_id throws error code 23503', async () => {
+    const client = await pool.connect();
+    const now = new Date().toISOString();
+    try {
+      await assert.rejects(
+        async () => {
+          await client.query(
+            `INSERT INTO workspaces (id, name, timezone, owner_id, version, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            ['ws_orphan', 'Orphan Workspace', 'UTC', 'usr_non_existent', 1, now, now]
+          );
+        },
+        (err: unknown) => {
+          const pgError = err as { code?: string; constraint?: string };
+          assert.equal(pgError.code, '23503', 'Expected foreign key violation code 23503');
+          assert.equal(pgError.constraint, 'fk_workspaces_owner');
+          return true;
+        }
+      );
+    } finally {
+      client.release();
+    }
+  });
+
+  await t.test('9. Restricted delete: deleting a user who owns an active workspace is blocked (ON DELETE RESTRICT)', async () => {
+    const client = await pool.connect();
+    const now = new Date().toISOString();
+    try {
+      // Create a user who only owns a workspace (no project memberships or other references)
+      await client.query(
+        `INSERT INTO users (id, email, display_name, avatar_url, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        ['usr_owner_only', 'owner_only@example.com', 'Owner Only', null, now, now]
+      );
+      await client.query(
+        `INSERT INTO workspaces (id, name, timezone, owner_id, version, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        ['ws_owner_only', 'Owner Only Corp', 'UTC', 'usr_owner_only', 1, now, now]
+      );
+
+      await assert.rejects(
+        async () => {
+          await client.query('DELETE FROM users WHERE id = $1', ['usr_owner_only']);
+        },
+        (err: unknown) => {
+          const pgError = err as { code?: string; constraint?: string };
+          assert.equal(pgError.code, '23503', 'Expected foreign key restriction code 23503');
+          assert.equal(pgError.constraint, 'fk_workspaces_owner');
+          return true;
+        }
+      );
+    } finally {
+      client.release();
+    }
+  });
+
+  await t.test('10. Tenant ancestry: inserting project_memberships with mismatched workspace_id and project_id throws error code 23503', async () => {
+    const client = await pool.connect();
+    const now = new Date().toISOString();
+    try {
+      // Create a second workspace owned by Alice
+      await client.query(
+        `INSERT INTO workspaces (id, name, timezone, owner_id, version, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        ['ws_second', 'Second Corp', 'UTC', 'usr_alice', 1, now, now]
+      );
+
+      // Create a separate user who is not already a member of prj_flowboard
+      await client.query(
+        `INSERT INTO users (id, email, display_name, avatar_url, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6)`,
+        ['usr_carol', 'carol@example.com', 'Carol Member', null, now, now]
+      );
+
+      // Attempt to link project from ws_acme (prj_flowboard) with ws_second
+      await assert.rejects(
+        async () => {
+          await client.query(
+            `INSERT INTO project_memberships (id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            ['pm_mismatch', 'prj_flowboard', 'ws_second', 'usr_carol', 'member', 'active', 1, now, now]
+          );
+        },
+        (err: unknown) => {
+          const pgError = err as { code?: string; constraint?: string };
+          assert.equal(pgError.code, '23503', 'Expected foreign key violation code 23503');
+          assert.equal(pgError.constraint, 'fk_project_memberships_project_workspace');
+          return true;
+        }
+      );
+    } finally {
+      client.release();
+    }
+  });
+
+  await t.test('11. Tenant ancestry: inserting board with mismatched workspace_id and project_id throws error code 23503', async () => {
+    const client = await pool.connect();
+    const now = new Date().toISOString();
+    try {
+      // Attempt to link board to prj_flowboard (which belongs to ws_acme) but with workspace ws_second
+      await assert.rejects(
+        async () => {
+          await client.query(
+            `INSERT INTO boards (id, workspace_id, project_id, name, structure_version, snapshot_version, archived, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            ['brd_mismatch', 'ws_second', 'prj_flowboard', 'Mismatched Board', 1, 1, false, now, now]
+          );
+        },
+        (err: unknown) => {
+          const pgError = err as { code?: string; constraint?: string };
+          assert.equal(pgError.code, '23503', 'Expected foreign key violation code 23503');
+          assert.equal(pgError.constraint, 'fk_boards_project_workspace');
+          return true;
+        }
+      );
+    } finally {
+      client.release();
+    }
+  });
+
+  await t.test('12. Tenant ancestry: inserting column with mismatched board_id, project_id, and workspace_id throws error code 23503', async () => {
+    const client = await pool.connect();
+    const now = new Date().toISOString();
+    try {
+      // Create project 2 in ws_second
+      await client.query(
+        `INSERT INTO projects (id, workspace_id, name, description, archived, version, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+        ['prj_second', 'ws_second', 'Project 2', null, false, 1, now, now]
+      );
+
+      // Attempt to link column with board from prj_flowboard (brd_sprint1) but under prj_second
+      await assert.rejects(
+        async () => {
+          await client.query(
+            `INSERT INTO columns (id, workspace_id, project_id, board_id, name, color, category, position, version, created_at, updated_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+            ['col_mismatch', 'ws_second', 'prj_second', 'brd_sprint1', 'Cross Column', '#3b82f6', 'todo', 0, 1, now, now]
+          );
+        },
+        (err: unknown) => {
+          const pgError = err as { code?: string; constraint?: string };
+          assert.equal(pgError.code, '23503', 'Expected foreign key violation code 23503');
+          assert.equal(pgError.constraint, 'fk_columns_board_project_workspace');
+          return true;
+        }
+      );
+    } finally {
+      client.release();
+    }
+  });
+
+  await t.test('13. Relational integrity: inserting card with mismatched column_id and board_id throws error code 23503', async () => {
+    const client = await pool.connect();
+    const now = new Date().toISOString();
+    try {
+      // Create board 2 in prj_second (ws_second)
+      await client.query(
+        `INSERT INTO boards (id, workspace_id, project_id, name, structure_version, snapshot_version, archived, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        ['brd_second', 'ws_second', 'prj_second', 'Sprint 2', 1, 1, false, now, now]
+      );
+
+      // Create column on board 2
+      await client.query(
+        `INSERT INTO columns (id, workspace_id, project_id, board_id, name, color, category, position, version, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
+        ['col_second_todo', 'ws_second', 'prj_second', 'brd_second', 'To Do', '#3b82f6', 'todo', 0, 1, now, now]
+      );
+
+      // Attempt to insert card on brd_sprint1 referencing col_second_todo (from brd_second)
+      await assert.rejects(
+        async () => {
+          await client.query(
+            `INSERT INTO cards (
+               id, workspace_id, project_id, board_id, column_id, title, description,
+               priority, due_date, position, version, state, deleted_at, deleted_by,
+               restore_until, created_at, updated_at
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
+            [
+              'crd_mismatch_col', 'ws_acme', 'prj_flowboard', 'brd_sprint1', 'col_second_todo',
+              'Cross Board Card', null, 'none', null, 3000, 1, 'active', null, null,
+              null, now, now
+            ]
+          );
+        },
+        (err: unknown) => {
+          const pgError = err as { code?: string; constraint?: string };
+          assert.equal(pgError.code, '23503', 'Expected foreign key violation code 23503');
+          assert.equal(pgError.constraint, 'fk_cards_column_board');
+          return true;
+        }
+      );
+    } finally {
+      client.release();
+    }
+  });
+
+  await t.test('14. Tenant ancestry: inserting outbox event with mismatched project_id and workspace_id throws error code 23503', async () => {
+    const client = await pool.connect();
+    const now = new Date().toISOString();
+    try {
+      await assert.rejects(
+        async () => {
+          await client.query(
+            `INSERT INTO outbox (
+               id, workspace_id, project_id, event_type, payload, status,
+               retry_count, next_retry_at, created_at
+             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [
+              'obx_mismatch', 'ws_second', 'prj_flowboard', 'card.created',
+              JSON.stringify({ cardId: 'crd_task1' }), 'pending', 0, now, now
+            ]
+          );
+        },
+        (err: unknown) => {
+          const pgError = err as { code?: string; constraint?: string };
+          assert.equal(pgError.code, '23503', 'Expected foreign key violation code 23503');
+          assert.equal(pgError.constraint, 'fk_outbox_project_workspace');
+          return true;
+        }
+      );
+    } finally {
+      client.release();
+    }
+  });
+
+  await t.test('15. Migration failure rollback evidence: failed migration leaves schema and tracking table unpolluted', async () => {
+    const tempDir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowboard-test-mig-'));
+    try {
+      const failingSql = `
+        CREATE TABLE temp_fail_rollback_test (id TEXT PRIMARY KEY);
+        THIS IS DELIBERATELY INVALID SQL SCRIPT SYNTAX;
+      `;
+      await fs.writeFile(path.join(tempDir, '9999_failing_migration.sql'), failingSql, 'utf8');
+
+      // Executing migration should fail and throw
+      await assert.rejects(async () => {
+        await runMigrations(pool, { migrationsDir: tempDir });
+      });
+
+      // Verify transaction rollback: table was NOT created, version was NOT recorded
+      const client = await pool.connect();
+      try {
+        const tableCheck = await client.query(
+          "SELECT to_regclass('public.temp_fail_rollback_test') as tbl;"
+        );
+        assert.equal(tableCheck.rows[0]?.tbl, null, 'Expected rolled-back table to not exist');
+
+        const migrationCheck = await client.query(
+          'SELECT version FROM schema_migrations WHERE version = $1',
+          ['9999']
+        );
+        assert.equal(migrationCheck.rows.length, 0, 'Expected failed migration to not be recorded in schema_migrations');
+      } finally {
+        client.release();
+      }
+    } finally {
+      await fs.rm(tempDir, { recursive: true, force: true });
+    }
+  });
+
+  await t.test('16. Migration concurrency evidence: concurrent runMigrations calls serialize cleanly via advisory lock', async () => {
+    // Run three concurrent migration runs against the same pool
+    const results = await Promise.all([
+      runMigrations(pool),
+      runMigrations(pool),
+      runMigrations(pool),
+    ]);
+
+    // All should resolve without lock deadlocks or errors
+    for (const res of results) {
+      assert.ok(Array.isArray(res.applied));
+      // Since migrations were already applied, all concurrent runs should report 0 applied migrations
+      assert.equal(res.applied.length, 0);
     }
   });
 });

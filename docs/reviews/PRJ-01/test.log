@@ -1,0 +1,26 @@
+$ npm run typecheck
+
+> typecheck
+> tsc --noEmit
+
+exitCode: 0
+
+$ WRANGLER_SEND_METRICS=false node --test apps/api/test/prj01-projects.test.ts
+▶ PRJ-01: Create multiple projects & sibling isolation Suite
+  ✔ 1. Project creation by workspace owner succeeds (62.346709ms)
+  ✔ 2. Non-owner attempting to create project in workspace returns 404 NOT_FOUND (1.594ms)
+  ✔ 3. Workspace owner creates second project (Project Beta) (2.858875ms)
+  ✔ 4. Sibling project privacy: user in Project A requesting Project B gets 404 NOT_FOUND (2.95375ms)
+  ✔ 5. GET /api/v1/workspaces/:workspaceId/projects scopes accessible projects per role (5.430125ms)
+  ✔ 6. Idempotency replay on project creation returns replayed: true (2.107208ms)
+  ✔ 7. Idempotency conflict on project creation returns 409 IDEMPOTENCY_CONFLICT (1.730416ms)
+✔ PRJ-01: Create multiple projects & sibling isolation Suite (81.1565ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 8
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 229.0865
+exitCode: 0

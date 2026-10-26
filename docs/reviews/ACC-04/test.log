@@ -1,0 +1,24 @@
+
+> typecheck
+> tsc --noEmit
+
+▶ ACC-04: Create workspace and owner & Idempotency Replay Suite
+  ✔ 1. Unauthenticated requests to /api/v1/workspaces return 401 UNAUTHORIZED (42.4855ms)
+  ✔ 2. Missing or invalid Idempotency-Key header returns 400 IDEMPOTENCY_KEY_REQUIRED (2.71525ms)
+  ✔ 3. Validation error on invalid body (empty name or invalid timezone) returns 422 (1.954584ms)
+  ✔ 4. Workspace creation succeeds and sets owner_id = actor.id (3.984083ms)
+  ✔ 5. Idempotency replay: same key + same payload returns replayed: true and no duplicate workspace (2.02925ms)
+  ✔ 6. Idempotency conflict: same key + different payload returns 409 IDEMPOTENCY_CONFLICT (1.500334ms)
+  ✔ 7. GET /api/v1/workspaces lists owned workspace (1.975625ms)
+  ✔ 8. Duplicate-key concurrency: parallel identical HTTP requests succeed without 500 error (6.313167ms)
+  ✔ 9. Duplicate-key concurrency inside saveReceipt: gracefully re-reads winner without 500 error (2.21975ms)
+  ✔ 10. Expired idempotency receipt: key with expired TTL can be safely reused as new request (3.078916ms)
+✔ ACC-04: Create workspace and owner & Idempotency Replay Suite (70.666ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 215.011875

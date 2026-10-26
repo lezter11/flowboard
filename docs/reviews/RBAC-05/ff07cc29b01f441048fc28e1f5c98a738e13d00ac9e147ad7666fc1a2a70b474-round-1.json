@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "RBAC-05"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/RBAC-05/criteria.json",
+  "startedAt": "2026-10-26T05:31:35Z",
+  "completedAt": "2026-10-26T05:40:00Z",
+  "implementer": {
+    "actorId": "builder",
+    "sessionId": "builder-session-id",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-reviewer",
+    "sessionId": "b54e0975-7baf-4cac-99fe-0f396b9bb498",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/RBAC-05/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/RBAC-05/criteria.json",
+      "docs/reviews/RBAC-05/reviewer-session.md",
+      "docs/reviews/RBAC-05/test.log",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/http/routes/projects.ts",
+      "apps/api/test/rbac-advanced.test.ts"
+    ],
+    "files": {
+      "docs/reviews/RBAC-05/criteria.json": "bb9caa1462913a3d4c61865a0c37932d7bf12005a6c5f50333c464f639bb33a6",
+      "docs/reviews/RBAC-05/reviewer-session.md": "dd7cc599b9996985e926bf48c418b414ce293e689a81c62bfff9608847f11e0d",
+      "docs/reviews/RBAC-05/test.log": "d8fee763b38ce72be11237ceafd13fd9ffa30bd4fa6dbb5f79fc400076f91c92",
+      "apps/api/src/adapters/rbac.ts": "ec5768a8c2612710d61181995aee7a34bb079fe7302ac7c6b39a3d7437925d01",
+      "apps/api/src/http/routes/projects.ts": "54727ede18f2c9b7a8964556bb50e4ac1dc90549e17c01aa2bb5f2f55128c894",
+      "apps/api/test/rbac-advanced.test.ts": "befaa7518b4d1b6d48012944fc64c76742bbb97520cb7f2ecdc7ebb2d8f9f0e2"
+    },
+    "digest": "ff07cc29b01f441048fc28e1f5c98a738e13d00ac9e147ad7666fc1a2a70b474"
+  },
+  "criteriaResults": {
+    "Access summary disclosure: Discloses project role and board inheritance model (boards inherit project grants)": "pass",
+    "Workspace owner resolution: Workspace owner actor role is reported as owner with inherited = true": "pass",
+    "Sibling and outsider isolation: Non-members querying project access summary receive 404 NOT_FOUND without metadata leakage": "pass",
+    "Authentication enforcement: Unauthenticated requests receive 401 UNAUTHORIZED": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "ff07cc29b01f441048fc28e1f5c98a738e13d00ac9e147ad7666fc1a2a70b474",
+      "evidencePath": "docs/reviews/RBAC-05/test.log"
+    },
+    {
+      "id": "rbac-advanced-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac-advanced.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "ff07cc29b01f441048fc28e1f5c98a738e13d00ac9e147ad7666fc1a2a70b474",
+      "evidencePath": "docs/reviews/RBAC-05/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Authentication enforced with 401 UNAUTHORIZED on unauthenticated calls; outsiders and sibling project members receive uniform 404 NOT_FOUND preventing enumeration.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-05/reviewer-session.md",
+        "docs/reviews/RBAC-05/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.7",
+      "reason": "Accurate disclosure of board inheritance model (allBoardsInherit: true, hasBoardOnlyExceptions: false), workspace owner authority inheritance, and active role counts.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-05/reviewer-session.md",
+        "docs/reviews/RBAC-05/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Database queries verify project-to-workspace parentage and aggregate live active project memberships grouped by role.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-05/reviewer-session.md",
+        "docs/reviews/RBAC-05/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.8",
+      "reason": "Typecheck clean. Tests in rbac-advanced.test.ts verify board inheritance disclosure, workspace owner role inheritance, 404 sibling isolation, and 401 unauthorized handling.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-05/reviewer-session.md",
+        "docs/reviews/RBAC-05/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.5",
+      "reason": "Clear contract conformance with ProjectAccessSummary schema from @flowboard/contracts.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-05/reviewer-session.md",
+        "docs/reviews/RBAC-05/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.5",
+      "reason": "Single efficient query for project/workspace/owner info, with indexed COUNT queries for active boards and role summaries.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-05/reviewer-session.md",
+        "docs/reviews/RBAC-05/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.7",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

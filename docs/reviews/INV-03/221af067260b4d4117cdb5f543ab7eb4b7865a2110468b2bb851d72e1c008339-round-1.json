@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "INV-03"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/INV-03/criteria.json",
+  "startedAt": "2026-10-26T05:39:59.167998Z",
+  "completedAt": "2026-10-26T05:39:59.167998Z",
+  "implementer": {
+    "actorId": "backend-builder",
+    "sessionId": "7e44e3cf-29d2-4f7d-ba58-a053cdb570fc",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-auditor-inv",
+    "sessionId": "5664ffe4-311c-4302-85fd-63d6eac1ff11",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/INV-03/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/invitations.ts",
+      "apps/api/src/http/routes/invitations.ts",
+      "apps/api/test/inv01-inv03.test.ts",
+      "docs/reviews/INV-03/criteria.json",
+      "docs/reviews/INV-03/reviewer-session.md",
+      "docs/reviews/INV-03/test.log"
+    ],
+    "files": {
+      "apps/api/src/adapters/invitations.ts": "1d3ec5a707b4572aaeffba9b14a428eb09a8c2f0f6f6225966f82dc0eb983851",
+      "apps/api/src/http/routes/invitations.ts": "18717ba6b85e95fa6847733b908dbd3cd27ca915f6cdaaf93bc02b046ce10364",
+      "apps/api/test/inv01-inv03.test.ts": "5cbbbc1fdd90a8e466d28fb4fe596054ca8de458b17a935bc59cef4b2e006d89",
+      "docs/reviews/INV-03/criteria.json": "82ffa53848dc30f3d082041a3a21a40b7fd8783be8cb7e86dd5a27d0de428554",
+      "docs/reviews/INV-03/reviewer-session.md": "870497754c9a4bf44f951b817f2fe589ede88083572803fcb272d30a943aeb10",
+      "docs/reviews/INV-03/test.log": "5db606f954436766c419a17dea156a3438e77d40496d3f42eceab9ade9229bf5"
+    },
+    "digest": "221af067260b4d4117cdb5f543ab7eb4b7865a2110468b2bb851d72e1c008339"
+  },
+  "criteriaResults": {
+    "Row-level locking: Validates token by SHA-256 hash lookup in project_invitations under a PostgreSQL FOR UPDATE lock on POST /api/v1/invitations/accept": "pass",
+    "Email identity verification: Authenticated session email must strictly match invitation recipient email; mismatch returns 403 EMAIL_MISMATCH without creating membership": "pass",
+    "Expiration handling: Expired tokens (expires_at <= NOW()) transition status to 'expired' and return 400 INVITATION_EXPIRED": "pass",
+    "Atomic membership activation: Valid acceptance atomically transitions invitation status to 'accepted' and activates project_memberships with invited role and active status": "pass",
+    "Single-use token enforcement: Tokens already accepted or revoked reject reuse with 400 or 409 error": "pass",
+    "R2 Audit compliance: Pending invitation cannot restore deliberately removed access without a fresh authorized invitation issued after removal": "pass",
+    "Idempotency support: Accepts Idempotency-Key and returns identical membership activation outcome on replay without duplicate side effects": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "221af067260b4d4117cdb5f543ab7eb4b7865a2110468b2bb851d72e1c008339",
+      "evidencePath": "docs/reviews/INV-03/test.log"
+    },
+    {
+      "id": "inv01-inv03-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv01-inv03.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "221af067260b4d4117cdb5f543ab7eb4b7865a2110468b2bb851d72e1c008339",
+      "evidencePath": "docs/reviews/INV-03/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.6",
+      "reason": "Strict email identity comparison prevents token forwarding; R2 superseded-token fence prevents re-entry after removal; row-level lock prevents double-spend.",
+      "evidencePaths": [
+        "docs/reviews/INV-03/reviewer-session.md",
+        "docs/reviews/INV-03/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Adheres strictly to the /api/v1/invitations/accept contract; returns proper payload and handles all status codes (200, 400, 403).",
+      "evidencePaths": [
+        "docs/reviews/INV-03/reviewer-session.md",
+        "docs/reviews/INV-03/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Explicit FOR UPDATE lock on project_invitations and project_memberships; single atomic transaction prevents partial updates.",
+      "evidencePaths": [
+        "docs/reviews/INV-03/reviewer-session.md",
+        "docs/reviews/INV-03/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.4",
+      "reason": "Covers email mismatch, expired tokens, already accepted tokens, R2 superseded tokens, and idempotency replay.",
+      "evidencePaths": [
+        "docs/reviews/INV-03/reviewer-session.md",
+        "docs/reviews/INV-03/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clear logical division between token validation, expiry checking, identity verification, and membership upsert.",
+      "evidencePaths": [
+        "docs/reviews/INV-03/reviewer-session.md",
+        "docs/reviews/INV-03/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Bounded query lookups with index on token_hash; fast row locking prevents pool starvation.",
+      "evidencePaths": [
+        "docs/reviews/INV-03/reviewer-session.md",
+        "docs/reviews/INV-03/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.46",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

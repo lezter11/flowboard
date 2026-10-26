@@ -1,0 +1,21 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "INV-04"
+  ],
+  "mandatoryCriteria": [
+    "Owner authority: Workspace owner can resend or revoke any invitation across workspace projects",
+    "Project Manager authority limit: Project Manager can resend or revoke member and viewer invitations only in their granted project; attempting to resend or revoke a manager invitation returns 403 FORBIDDEN",
+    "Token rotation on resend: Resending rotates the cryptographic token with fresh 256-bit entropy, updates SHA-256 hash in project_invitations, refreshes expires_at (+7 days), transitions status to 'pending', and emits a fresh outbox event",
+    "Prior token invalidation: Prior token is immediately invalidated upon resend; subsequent attempts to accept the old token fail",
+    "Revocation status transition: Revoking sets status to 'revoked' under row-level lock; revoked tokens cannot be accepted",
+    "Sibling project privacy: Outsiders and non-members receive 404 NOT_FOUND on resend and revoke endpoints",
+    "Concurrency and race protection: Concurrent accept vs revoke/resend operations serialize cleanly via PostgreSQL row-level locks with at most one winner",
+    "Idempotency support: Resend and revoke mutations require and enforce Idempotency-Key with transactional replay receipts"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "inv04-inv08-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv04-inv08.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: POST /api/v1/projects/:projectId/invitations/:invitationId/resend and POST /api/v1/projects/:projectId/invitations/:invitationId/revoke endpoints, token rotation, outbox dispatch events, status transitions, row-level locking, and idempotency on PostgreSQL. Out-of-scope: Pending invitation list retrieval is covered by INV-05."
+}

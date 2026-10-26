@@ -6,7 +6,7 @@ import { localDatabaseUrl } from '../src/runtime/local-config.ts';
 import { createApp } from '../src/http/app.ts';
 import { getPool, closePool } from '../src/adapters/postgres.ts';
 import { createSession } from '../src/adapters/session.ts';
-import { getSessionResponseSchema, logoutResponseSchema } from '@flowboard/contracts';
+import { getSessionResponseSchema } from '@flowboard/contracts';
 
 test('ACC-01: Sign in, Sessions and Authentication Suite', async (t) => {
   const pool = getPool();
@@ -146,22 +146,20 @@ test('ACC-01: Sign in, Sessions and Authentication Suite', async (t) => {
     assert.ok(body.error.requestId);
   });
 
-  await t.test('5. POST /api/v1/session/logout revokes session in DB and clears cookie', async () => {
+  await t.test('5. POST /api/v1/session/logout revokes session in DB and clears cookie (204 No Content)', async () => {
     const res = await app.request('/api/v1/session/logout', {
       method: 'POST',
       headers: { Cookie: aliceCookie },
     });
 
-    assert.equal(res.status, 200);
+    assert.equal(res.status, 204);
     const setCookie = res.headers.get('set-cookie');
     assert.ok(setCookie, 'Expected Set-Cookie header on logout');
     assert.match(setCookie, /flowboard_session=;/);
     assert.match(setCookie, /Max-Age=0/);
 
-    const body = await res.json();
-    const logoutParse = logoutResponseSchema.safeParse(body);
-    assert.equal(logoutParse.success, true);
-    assert.equal(body.data.success, true);
+    const bodyText = await res.text();
+    assert.equal(bodyText, '', 'Logout response body must be empty for 204 No Content');
 
     // Verify session is revoked from DB
     const client = await pool.connect();
@@ -177,5 +175,103 @@ test('ACC-01: Sign in, Sessions and Authentication Suite', async (t) => {
       headers: { Cookie: aliceCookie },
     });
     assert.equal(recheck.status, 401);
+  });
+
+  await t.test('6. POST /api/v1/session/dev-login rejects existing user without X-Dev-Secret (403 FORBIDDEN)', async () => {
+    // Alice already exists in the users table
+    const res = await app.request('/api/v1/session/dev-login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: 'alice@flowboard.example',
+      }),
+    });
+
+    assert.equal(res.status, 403);
+    const body = await res.json();
+    assert.equal(body.error.code, 'FORBIDDEN');
+    assert.equal(body.error.message, 'Cannot sign in to existing account without development secret.');
+    assert.ok(body.error.requestId);
+  });
+
+  await t.test('7. POST /api/v1/session/dev-login rejects existing user with invalid X-Dev-Secret (403 FORBIDDEN)', async () => {
+    const res = await app.request('/api/v1/session/dev-login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Dev-Secret': 'invalid-secret-value',
+      },
+      body: JSON.stringify({
+        email: 'alice@flowboard.example',
+      }),
+    });
+
+    assert.equal(res.status, 403);
+    const body = await res.json();
+    assert.equal(body.error.code, 'FORBIDDEN');
+    assert.equal(body.error.message, 'Cannot sign in to existing account without development secret.');
+    assert.ok(body.error.requestId);
+  });
+
+  await t.test('8. POST /api/v1/session/dev-login succeeds for existing user with valid X-Dev-Secret', async () => {
+    const validSecret = process.env.DEV_LOGIN_SECRET || 'flowboard-dev-secret';
+    const res = await app.request('/api/v1/session/dev-login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Dev-Secret': validSecret,
+      },
+      body: JSON.stringify({
+        email: 'alice@flowboard.example',
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const body = await res.json();
+    assert.equal(body.data.actor.id, aliceUserId);
+    assert.equal(body.data.actor.email, 'alice@flowboard.example');
+    assert.ok(body.data.session.id);
+  });
+
+  await t.test('9. POST /api/v1/session/dev-login returns 404 NOT_FOUND when NODE_ENV === "production"', async () => {
+    const originalEnv = process.env.NODE_ENV;
+    try {
+      process.env.NODE_ENV = 'production';
+      const res = await app.request('/api/v1/session/dev-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: 'brandnew@flowboard.example',
+        }),
+      });
+
+      assert.equal(res.status, 404);
+      const body = await res.json();
+      assert.equal(body.error.code, 'NOT_FOUND');
+      assert.equal(body.error.message, 'Route not found.');
+    } finally {
+      process.env.NODE_ENV = originalEnv;
+    }
+  });
+
+  await t.test('10. Cookies have Secure flag when request is not from localhost', async () => {
+    const res = await app.request('https://flowboard.example.com/api/v1/session/dev-login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Host: 'flowboard.example.com',
+      },
+      body: JSON.stringify({
+        email: 'remote.user@flowboard.example',
+      }),
+    });
+
+    assert.equal(res.status, 200);
+    const setCookie = res.headers.get('set-cookie');
+    assert.ok(setCookie);
+    assert.match(setCookie, /Secure/i, 'Cookie must include Secure flag when not on localhost');
+    assert.match(setCookie, /HttpOnly/i);
+    assert.match(setCookie, /SameSite=Lax/i);
+    assert.match(setCookie, /Path=\//);
   });
 });

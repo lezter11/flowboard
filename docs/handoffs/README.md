@@ -14,6 +14,7 @@ Example backend evidence structure (example only, do not create it until tests e
 ```json
 {
   "status": "verified",
+  "reviewPath": "docs/reviews/FEATURE-ID/manifest-round-N.json",
   "summary": "What works and which acceptance statements were tested",
   "api_contract": "docs/API.md section or generated OpenAPI path",
   "limitations": ["Unverified hosted behavior, if applicable"],
@@ -26,7 +27,7 @@ Example backend evidence structure (example only, do not create it until tests e
 }
 ```
 
-Use not_started/in_progress/blocked/verified status as appropriate. A verified record must link actual code/test results, sample request/response and error cases, authorization scope, migration/setup steps and limitations in its evidence document. Include commit/revision when Git exists. The renderer checks evidence presence and phase ordering; a human review still judges evidence quality. A SQLite prototype or mocked database does not prove selected PostgreSQL concurrency behavior.
+Use not_started/in_progress/blocked/verified status as appropriate. A verified record must link actual code/test results, sample request/response and error cases, authorization scope, migration/setup steps and limitations in its evidence document. Backend also requires a passing independent review under [BACKEND_REVIEW_GATE.md](../../BACKEND_REVIEW_GATE.md), with schema and commands in [reviews/README.md](../reviews/README.md). The renderer validates current review hashes and phase ordering; Architect still judges scope, reviewer independence and actual evidence. Historical unreviewed records stay preserved but unapproved. A SQLite prototype or mocked database does not prove selected PostgreSQL concurrency behavior.
 
 UI receives contract/fixtures, validation/error shapes, permission states, pagination, examples and backend setup instructions. It verifies real behavior or explicitly labels fixture-only work. Integration verification needs the actual Backend+UI flow and failure cases; it cannot be checked from a screenshot alone. Reopen evidence after a breaking change rather than keeping stale checkmarks.
 

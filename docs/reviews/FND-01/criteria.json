@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "FND-01"
+  ],
+  "mandatoryCriteria": [
+    "PostgreSQL baseline: Schema migrations apply cleanly and establish relational integrity",
+    "Restricted foreign keys: fk_workspaces_owner prevents deleting active workspace owners",
+    "Advisory locks: Concurrent migration runners serialize cleanly without race conditions or schema corruption",
+    "Failure rollback: Failed migrations roll back completely without leaving partial artifacts"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "migrations-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/migrations.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: PostgreSQL schema, migration runner, transaction rollback, and constraints. Out-of-scope: Distributed cross-region replication."
+}

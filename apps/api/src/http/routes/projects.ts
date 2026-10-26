@@ -26,6 +26,13 @@ import { authMiddleware } from '../middleware/auth.ts';
 
 export const projectsRoutes = new Hono();
 
+function parseLimit(limitParam?: string): number {
+  if (!limitParam) return 50;
+  const parsed = parseInt(limitParam, 10);
+  if (Number.isNaN(parsed) || parsed < 1) return 50;
+  return Math.min(parsed, 100);
+}
+
 // 1. GET /api/v1/projects: List all accessible projects across workspaces for current user session
 projectsRoutes.get('/api/v1/projects', authMiddleware, async (c) => {
   const actor = c.get('actor');
@@ -34,7 +41,7 @@ projectsRoutes.get('/api/v1/projects', authMiddleware, async (c) => {
   }
 
   const queryParams = c.req.query();
-  const limit = queryParams.limit ? parseInt(queryParams.limit, 10) : undefined;
+  const limit = parseLimit(queryParams.limit);
   const cursor = queryParams.cursor;
 
   const pool = getPool();
@@ -132,7 +139,7 @@ projectsRoutes.post('/api/v1/workspaces/:workspaceId/projects', authMiddleware, 
     };
 
     const responsePayload = { data: project };
-    await saveReceipt(
+    const saved = await saveReceipt(
       client,
       actor.id,
       'workspace',
@@ -145,6 +152,12 @@ projectsRoutes.post('/api/v1/workspaces/:workspaceId/projects', authMiddleware, 
     );
 
     await client.query('COMMIT');
+    if (saved?.replayed) {
+      return c.json(
+        { ...(saved.responseBody as object), replayed: true },
+        saved.statusCode as any,
+      );
+    }
     return c.json({ ...responsePayload, replayed: false }, 201);
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
@@ -163,7 +176,7 @@ projectsRoutes.get('/api/v1/workspaces/:workspaceId/projects', authMiddleware, a
 
   const workspaceId = c.req.param('workspaceId');
   const queryParams = c.req.query();
-  const limit = queryParams.limit ? parseInt(queryParams.limit, 10) : undefined;
+  const limit = parseLimit(queryParams.limit);
   const cursor = queryParams.cursor;
 
   const pool = getPool();
@@ -230,12 +243,85 @@ projectsRoutes.patch('/api/v1/projects/:projectId', authMiddleware, async (c) =>
   }
 
   const projectId = c.req.param('projectId');
+
+  const idempotencyKey = c.req.header('idempotency-key');
+  if (!idempotencyKey || !idempotencyKeySchema.safeParse(idempotencyKey).success) {
+    throw HttpError.badRequest(
+      'Missing or invalid Idempotency-Key header.',
+      'IDEMPOTENCY_KEY_REQUIRED',
+    );
+  }
+
   const rawBody = await c.req.json();
   const body = parseOrThrow(updateProjectInputSchema, rawBody);
 
   const pool = getPool();
-  const project = await updateProjectSettings(pool, actor, projectId, body);
-  return c.json({ data: project }, 200);
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const methodPath = `/api/v1/projects/${projectId}`;
+    const replay = await checkOrReplayReceipt(
+      client,
+      actor.id,
+      'project',
+      projectId,
+      idempotencyKey,
+      methodPath,
+      body,
+    );
+
+    if (replay) {
+      // Recheck current authorization before replay
+      const role = await resolveProjectRole(projectId, actor.id, client);
+      if (!role) {
+        throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+      }
+      if (role !== 'owner' && role !== 'manager') {
+        throw HttpError.forbidden(
+          'Insufficient permissions to update project settings.',
+          'FORBIDDEN',
+        );
+      }
+      await client.query('ROLLBACK');
+      return c.json(
+        { ...(replay.responseBody as object), replayed: true },
+        replay.statusCode as any,
+      );
+    }
+
+    const project = await updateProjectSettings(client, actor, projectId, body);
+
+    const responsePayload = { data: project };
+    const saved = await saveReceipt(
+      client,
+      actor.id,
+      'project',
+      projectId,
+      idempotencyKey,
+      methodPath,
+      body,
+      200,
+      responsePayload,
+    );
+
+    await client.query('COMMIT');
+
+    if (saved?.replayed) {
+      return c.json(
+        { ...(saved.responseBody as object), replayed: true },
+        saved.statusCode as any,
+      );
+    }
+
+    return c.json({ ...responsePayload, replayed: false }, 200);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 });
 
 // 6. GET /api/v1/projects/:projectId/members: Project people directory (PRJ-05)

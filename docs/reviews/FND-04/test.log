@@ -1,0 +1,50 @@
+
+> typecheck
+> tsc --noEmit
+
+▶ FND-04: Observability, Correlation, Limits & Safe Error Baseline
+  ▶ 1. Correlation Middleware & Request IDs
+    ✔ generates a valid UUID request ID when x-request-id header is absent (16.31175ms)
+    ✔ propagates incoming valid ASCII x-request-id header faithfully (0.61975ms)
+    ✔ replaces invalid x-request-id (<8 chars, spaces, non-allowed chars, >64 chars) with a safe UUID (1.077208ms)
+    ✔ guarantees x-request-id header is attached on both success and error responses (0.833208ms)
+  ✔ 1. Correlation Middleware & Request IDs (19.113542ms)
+  ▶ 2. Server-Timing Header
+    ✔ measures request duration and attaches Server-Timing: app;dur=<ms> header on 200 OK (0.3495ms)
+    ✔ attaches Server-Timing header on 404 and error responses (0.257041ms)
+  ✔ 2. Server-Timing Header (0.659834ms)
+  ▶ 3. Not Found Handler (404)
+    ✔ returns standard error envelope with NOT_FOUND code and no-store cache header (0.572041ms)
+  ✔ 3. Not Found Handler (404) (0.6185ms)
+  ▶ 4. Validation Error Formatting (400 and 422)
+    ✔ returns 400 MALFORMED_REQUEST when request body contains invalid JSON syntax (0.655833ms)
+    ✔ returns 422 VALIDATION_ERROR with structured issues when @flowboard/contracts validation fails (0.784583ms)
+  ✔ 4. Validation Error Formatting (400 and 422) (1.492417ms)
+  ▶ 5. Safe 500 Handler & Sensitive Internal Error Masking
+    ✔ masks unhandled errors and NEVER leaks database credentials, connection strings, or SQL internals (0.714667ms)
+  ✔ 5. Safe 500 Handler & Sensitive Internal Error Masking (0.741375ms)
+  ▶ 6. Body Size Limits (413 PAYLOAD_TOO_LARGE)
+    ✔ rejects request bodies larger than configured limit with 413 PAYLOAD_TOO_LARGE (0.502834ms)
+    ✔ enforces default 1 MiB (1,048,576 bytes) limit on standard app (0.251959ms)
+  ✔ 6. Body Size Limits (413 PAYLOAD_TOO_LARGE) (0.780959ms)
+  ▶ 7. Request Deadline / Timeout Middleware (504 DEADLINE_EXCEEDED)
+    ✔ aborts long-running requests exceeding deadline with HTTP 504 DEADLINE_EXCEEDED (51.781917ms)
+    ✔ allows fast requests within deadline to succeed normally (0.406875ms)
+  ✔ 7. Request Deadline / Timeout Middleware (504 DEADLINE_EXCEEDED) (52.245667ms)
+  ▶ 8. Custom HTTP Errors and Status Mappings
+    ✔ maps 401 UNAUTHORIZED correctly (0.332083ms)
+    ✔ maps 403 FORBIDDEN correctly (0.231625ms)
+    ✔ maps 409 CONFLICT with domain-specific codes (STALE_VERSION, STALE_CURSOR) (0.220666ms)
+    ✔ maps 410 RESTORE_WINDOW_EXPIRED with details (0.228542ms)
+    ✔ maps 429 TOO_MANY_REQUESTS and attaches Retry-After: 60 header (0.224083ms)
+    ✔ maps 503 SERVICE_UNAVAILABLE / DATABASE_UNAVAILABLE safely (0.230916ms)
+  ✔ 8. Custom HTTP Errors and Status Mappings (1.520375ms)
+✔ FND-04: Observability, Correlation, Limits & Safe Error Baseline (77.449208ms)
+ℹ tests 20
+ℹ suites 9
+ℹ pass 20
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 345.610333

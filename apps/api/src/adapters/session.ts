@@ -15,6 +15,98 @@ export interface SessionWithUser {
   user: SessionActor;
 }
 
+export interface SessionCookieOptions {
+  path: string;
+  httpOnly: boolean;
+  sameSite: 'Lax';
+  secure: boolean;
+  maxAge: number;
+}
+
+export interface ClearSessionCookieOptions {
+  path: string;
+  httpOnly: boolean;
+  sameSite: 'Lax';
+  secure: boolean;
+  maxAge: number;
+}
+
+export function isLocalhost(hostOrHostname?: string): boolean {
+  if (!hostOrHostname) {
+    return process.env.NODE_ENV !== 'production';
+  }
+  let host = hostOrHostname;
+  if (host.includes('://')) {
+    try {
+      host = new URL(host).hostname;
+    } catch {
+      // ignore
+    }
+  }
+  if (host.startsWith('[')) {
+    const endBracket = host.indexOf(']');
+    if (endBracket !== -1) {
+      host = host.substring(1, endBracket);
+      return host === '::1';
+    }
+  }
+  const [hostnamePart = ''] = host.split(':');
+  const hostname = hostnamePart.toLowerCase();
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]' || hostname === '::1';
+}
+
+export function getSessionCookieOptions(hostOrHostname?: string): SessionCookieOptions {
+  const local = isLocalhost(hostOrHostname);
+  return {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'Lax',
+    secure: !local,
+    maxAge: 7 * 24 * 3600,
+  };
+}
+
+export function getClearSessionCookieOptions(hostOrHostname?: string): ClearSessionCookieOptions {
+  const local = isLocalhost(hostOrHostname);
+  return {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'Lax',
+    secure: !local,
+    maxAge: 0,
+  };
+}
+
+export async function getUserByEmail(
+  email: string,
+  clientOrPool?: pg.Pool | pg.ClientBase,
+): Promise<SessionActor | null> {
+  const pool = clientOrPool ?? getPool();
+  const res = await pool.query<{
+    id: string;
+    email: string;
+    display_name: string;
+    avatar_url: string | null;
+  }>(
+    `SELECT id, email, display_name, avatar_url
+     FROM users
+     WHERE email = $1`,
+    [email],
+  );
+
+  const row = res.rows[0];
+  if (!row) {
+    return null;
+  }
+
+  return {
+    id: row.id,
+    email: row.email,
+    displayName: row.display_name,
+    avatarUrl: row.avatar_url ?? null,
+  };
+}
+
 export async function createSession(
   userId: string,
   ttlHours = 24 * 7,

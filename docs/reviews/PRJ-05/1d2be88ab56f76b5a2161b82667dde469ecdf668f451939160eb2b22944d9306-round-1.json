@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "PRJ-05"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/PRJ-05/criteria.json",
+  "startedAt": "2026-10-26T05:37:52.900793Z",
+  "completedAt": "2026-10-26T05:37:52.900793Z",
+  "implementer": {
+    "actorId": "backend-implementer",
+    "sessionId": "builder-prj-05-session",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "antigravity-acceptance-auditor",
+    "sessionId": "0715d43b-fc65-4541-bec2-434e91be2f91",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/PRJ-05/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/idempotency.ts",
+      "apps/api/src/adapters/migrations.ts",
+      "apps/api/src/adapters/postgres.ts",
+      "apps/api/src/adapters/projects.ts",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/adapters/session.ts",
+      "apps/api/src/http/app.ts",
+      "apps/api/src/http/errors.ts",
+      "apps/api/src/http/middleware/auth.ts",
+      "apps/api/src/http/routes/projects.ts",
+      "apps/api/test/prj02-prj05.test.ts",
+      "docs/reviews/PRJ-05/criteria.json",
+      "docs/reviews/PRJ-05/reviewer-session.md",
+      "docs/reviews/PRJ-05/test.log",
+      "packages/contracts/src/common.ts",
+      "packages/contracts/src/index.ts",
+      "packages/contracts/src/projects.ts"
+    ],
+    "files": {
+      "apps/api/src/adapters/idempotency.ts": "b918c982ef8b4dabe9d35fddaf1d2a99b9dc94799d99728014ebae5a983b853a",
+      "apps/api/src/adapters/migrations.ts": "768d57afc48f780e4f95e112a096974b384d43b17661634d627f103f66b64e22",
+      "apps/api/src/adapters/postgres.ts": "75b4c2d2e7fd8494fd4bb3834b30d1ed30c1214dd26344468cb8f34b71160ccf",
+      "apps/api/src/adapters/projects.ts": "feb511c3472233c2bdcb86fcc5e69e500c280c84420d291d0c90b3648445a79a",
+      "apps/api/src/adapters/rbac.ts": "ec5768a8c2612710d61181995aee7a34bb079fe7302ac7c6b39a3d7437925d01",
+      "apps/api/src/adapters/session.ts": "46a227fbb60bcadb4466a35cb00349149c470e0765887ede9d6108535c45dba1",
+      "apps/api/src/http/app.ts": "9f0d9e9020241bc0710ddfa333913a3dd762784e9fde96e3d60f3e0450c6c141",
+      "apps/api/src/http/errors.ts": "74789ba4389fe70f33b99db2fbb1034b52eb88d93d1980a6461659da93c72349",
+      "apps/api/src/http/middleware/auth.ts": "72c7985ceba0e2b4fdfe5890d8d3aa3129dfd837e80891607b386b89cd195740",
+      "apps/api/src/http/routes/projects.ts": "54727ede18f2c9b7a8964556bb50e4ac1dc90549e17c01aa2bb5f2f55128c894",
+      "apps/api/test/prj02-prj05.test.ts": "c7fd5976fc8a7a9d57e35e34679fc25e517f511006ed08f8027c1d33a14cc579",
+      "docs/reviews/PRJ-05/criteria.json": "c539860e3a850f09a01548367991ca1a60a8b268340b83c2db3394b9b44f88fc",
+      "docs/reviews/PRJ-05/reviewer-session.md": "5508fdfa37d26e6dcfa50cf0c3442f41f040f1d8a74f3250da05fdd9edee97df",
+      "docs/reviews/PRJ-05/test.log": "ea2d7c7e85605bb1fe429b1d7907c084929892c61b4004515b01786461373d1e",
+      "packages/contracts/src/common.ts": "2640cd78033ee95615b614ae9b921776852655bdcc1ffc86c661a70e17a36126",
+      "packages/contracts/src/index.ts": "f15bf985e542dbeb62aba046b001e5b97befcf6fac8e15da8c3b22a015bd75b2",
+      "packages/contracts/src/projects.ts": "99b489e3957805022a5d075f0b7812e6717367917dffbef0e9844bad3aac8f3b"
+    },
+    "digest": "1d2be88ab56f76b5a2161b82667dde469ecdf668f451939160eb2b22944d9306"
+  },
+  "criteriaResults": {
+    "People directory scoping: GET /api/v1/projects/:projectId/people and /members return active eligible members for the specified project": "pass",
+    "Workspace owner inclusion: Workspace owner is synthesized and included in project people directory even when not explicitly listed in the project_memberships table": "pass",
+    "Strict sibling exclusion: Members from sibling projects or unrelated workspaces are never returned; zero cross-project leakage": "pass",
+    "Removed members excluded: Users with status 'removed' are excluded from people pickers and active directory": "pass",
+    "Privacy and role checks: Outsiders probing people directory receive 404 NOT_FOUND": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "1d2be88ab56f76b5a2161b82667dde469ecdf668f451939160eb2b22944d9306",
+      "evidencePath": "docs/reviews/PRJ-05/test.log"
+    },
+    {
+      "id": "prj02-prj05-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "1d2be88ab56f76b5a2161b82667dde469ecdf668f451939160eb2b22944d9306",
+      "evidencePath": "docs/reviews/PRJ-05/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.5",
+      "reason": "Complete project boundary isolation; sibling project members are strictly excluded; workspace owner is synthesized safely; removed members are excluded and denied access.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-05/reviewer-session.md",
+        "docs/reviews/PRJ-05/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "GET /members and /people return accurate project directory and picker listings; workspace owner synthesized with role 'owner' and active status.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-05/reviewer-session.md",
+        "docs/reviews/PRJ-05/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.0",
+      "reason": "Direct relational joins against users and workspaces.owner_id preserve single source of truth without desynchronization risks.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-05/reviewer-session.md",
+        "docs/reviews/PRJ-05/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Tests verify owner synthesis, sibling exclusion, removed member filtering, and outsider 404 access denial.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-05/reviewer-session.md",
+        "docs/reviews/PRJ-05/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.0",
+      "reason": "Unified person display and directory member schemas; clean adapter implementations.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-05/reviewer-session.md",
+        "docs/reviews/PRJ-05/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Single indexed query per directory lookup; zero N+1 queries; fast execution.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-05/reviewer-session.md",
+        "docs/reviews/PRJ-05/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.35",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

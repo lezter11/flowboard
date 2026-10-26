@@ -112,8 +112,9 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
 
   let charlieCurrentVersion = 1;
 
-  await t.test('Test 1: Workspace owner promotes a member to manager -> succeeds', async () => {
-    const res = await app.request(`/api/v1/projects/${projectId}/members/${charlieUserId}`, {
+  await t.test('Test 0: Missing or invalid Idempotency-Key on member mutations returns 400 IDEMPOTENCY_KEY_REQUIRED', async () => {
+    // PATCH without key
+    const patchRes = await app.request(`/api/v1/projects/${projectId}/members/${charlieUserId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
@@ -125,9 +126,38 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
         expectedVersion: charlieCurrentVersion,
       }),
     });
+    assert.equal(patchRes.status, 400);
+    const patchBody = await patchRes.json();
+    assert.equal(patchBody.error.code, 'IDEMPOTENCY_KEY_REQUIRED');
+
+    // DELETE without key
+    const deleteRes = await app.request(`/api/v1/projects/${projectId}/members/${charlieUserId}`, {
+      method: 'DELETE',
+      headers: { Cookie: aliceCookie },
+    });
+    assert.equal(deleteRes.status, 400);
+    const deleteBody = await deleteRes.json();
+    assert.equal(deleteBody.error.code, 'IDEMPOTENCY_KEY_REQUIRED');
+  });
+
+  await t.test('Test 1: Workspace owner promotes a member to manager -> succeeds', async () => {
+    const res = await app.request(`/api/v1/projects/${projectId}/members/${charlieUserId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: aliceCookie,
+        'Idempotency-Key': 'key_mem_patch_owner_01',
+      },
+      body: JSON.stringify({
+        role: 'manager',
+        status: 'active',
+        expectedVersion: charlieCurrentVersion,
+      }),
+    });
 
     assert.equal(res.status, 200);
     const body = await res.json();
+    assert.equal(body.replayed, false);
     const member = projectMemberSchema.parse(body.data);
     assert.equal(member.role, 'manager');
     assert.equal(member.status, 'active');
@@ -137,12 +167,32 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
 
     charlieCurrentVersion = member.version;
 
+    // Idempotency replay on PATCH member
+    const replayRes = await app.request(`/api/v1/projects/${projectId}/members/${charlieUserId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: aliceCookie,
+        'Idempotency-Key': 'key_mem_patch_owner_01',
+      },
+      body: JSON.stringify({
+        role: 'manager',
+        status: 'active',
+        expectedVersion: 1, // original payload
+      }),
+    });
+    assert.equal(replayRes.status, 200);
+    const replayBody = await replayRes.json();
+    assert.equal(replayBody.replayed, true);
+    assert.equal(replayBody.data.role, 'manager');
+
     // Workspace owner demotes Charlie back to member for subsequent tests
     const demoteRes = await app.request(`/api/v1/projects/${projectId}/members/${charlieUserId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         Cookie: aliceCookie,
+        'Idempotency-Key': 'key_mem_patch_owner_02',
       },
       body: JSON.stringify({
         role: 'member',
@@ -165,6 +215,7 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
       headers: {
         'Content-Type': 'application/json',
         Cookie: bobCookie,
+        'Idempotency-Key': 'key_mem_patch_pm_promote_denied',
       },
       body: JSON.stringify({
         role: 'manager',
@@ -186,6 +237,7 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
       headers: {
         'Content-Type': 'application/json',
         Cookie: bobCookie,
+        'Idempotency-Key': 'key_mem_patch_pm_to_viewer',
       },
       body: JSON.stringify({
         role: 'viewer',
@@ -207,6 +259,7 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
       headers: {
         'Content-Type': 'application/json',
         Cookie: bobCookie,
+        'Idempotency-Key': 'key_mem_patch_pm_to_member',
       },
       body: JSON.stringify({
         role: 'member',
@@ -230,6 +283,7 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
       headers: {
         'Content-Type': 'application/json',
         Cookie: bobCookie,
+        'Idempotency-Key': 'key_mem_patch_pm_peer_denied',
       },
       body: JSON.stringify({
         role: 'member',
@@ -251,6 +305,7 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
       headers: {
         'Content-Type': 'application/json',
         Cookie: bobCookie,
+        'Idempotency-Key': 'key_mem_patch_pm_self_denied',
       },
       body: JSON.stringify({
         role: 'viewer',
@@ -272,6 +327,7 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
       headers: {
         'Content-Type': 'application/json',
         Cookie: aliceCookie,
+        'Idempotency-Key': 'key_mem_patch_stale_ver',
       },
       body: JSON.stringify({
         role: 'member',
@@ -297,11 +353,28 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
     // 7b. Project manager Bob removes Eve's access via DELETE
     const deleteRes = await app.request(`/api/v1/projects/${projectId}/members/${eveUserId}`, {
       method: 'DELETE',
-      headers: { Cookie: bobCookie },
+      headers: {
+        Cookie: bobCookie,
+        'Idempotency-Key': 'key_mem_delete_pm_eve',
+      },
     });
     assert.equal(deleteRes.status, 200);
     const deleteBody = await deleteRes.json();
     assert.equal(deleteBody.data.success, true);
+    assert.equal(deleteBody.replayed, false);
+
+    // Test Idempotency Replay on DELETE
+    const replayDeleteRes = await app.request(`/api/v1/projects/${projectId}/members/${eveUserId}`, {
+      method: 'DELETE',
+      headers: {
+        Cookie: bobCookie,
+        'Idempotency-Key': 'key_mem_delete_pm_eve',
+      },
+    });
+    assert.equal(replayDeleteRes.status, 200);
+    const replayDeleteBody = await replayDeleteRes.json();
+    assert.equal(replayDeleteBody.replayed, true);
+    assert.equal(replayDeleteBody.data.success, true);
 
     // 7c. Direct database check: status = 'removed' and version incremented
     const client = await pool.connect();
@@ -329,7 +402,10 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
   await t.test('Test 8: Project manager cannot DELETE another manager -> returns 403 FORBIDDEN', async () => {
     const res = await app.request(`/api/v1/projects/${projectId}/members/${daveUserId}`, {
       method: 'DELETE',
-      headers: { Cookie: bobCookie },
+      headers: {
+        Cookie: bobCookie,
+        'Idempotency-Key': 'key_mem_delete_pm_peer_denied',
+      },
     });
     assert.equal(res.status, 403);
     const body = await res.json();
@@ -340,7 +416,10 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
   await t.test('Test 9: Project manager cannot DELETE themselves -> returns 403 FORBIDDEN', async () => {
     const res = await app.request(`/api/v1/projects/${projectId}/members/${bobUserId}`, {
       method: 'DELETE',
-      headers: { Cookie: bobCookie },
+      headers: {
+        Cookie: bobCookie,
+        'Idempotency-Key': 'key_mem_delete_pm_self_denied',
+      },
     });
     assert.equal(res.status, 403);
     const body = await res.json();
@@ -354,6 +433,7 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
       headers: {
         'Content-Type': 'application/json',
         Cookie: frankCookie,
+        'Idempotency-Key': 'key_mem_patch_outsider_denied',
       },
       body: JSON.stringify({
         role: 'viewer',
@@ -369,7 +449,10 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
   await t.test('Test 11: Member attempting to manage members returns 403 FORBIDDEN', async () => {
     const res = await app.request(`/api/v1/projects/${projectId}/members/${daveUserId}`, {
       method: 'DELETE',
-      headers: { Cookie: charlieCookie },
+      headers: {
+        Cookie: charlieCookie,
+        'Idempotency-Key': 'key_mem_delete_member_denied',
+      },
     });
     assert.equal(res.status, 403);
     const body = await res.json();
@@ -383,6 +466,7 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
       headers: {
         'Content-Type': 'application/json',
         Cookie: frankCookie,
+        'Idempotency-Key': 'key_mem_patch_sibling_denied',
       },
       body: JSON.stringify({
         role: 'viewer',
@@ -398,6 +482,7 @@ test('INV-06 & INV-07: Change Member Roles & Remove Project Access Suite', async
       method: 'DELETE',
       headers: {
         Cookie: frankCookie,
+        'Idempotency-Key': 'key_mem_delete_sibling_denied',
       },
     });
     assert.equal(deleteRes.status, 404);

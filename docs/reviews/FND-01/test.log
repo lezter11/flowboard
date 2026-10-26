@@ -1,0 +1,30 @@
+
+> typecheck
+> tsc --noEmit
+
+▶ PostgreSQL Migrations & Relational Integrity Suite
+  ✔ 1. Runs migrations and records applied versions (120.177416ms)
+  ✔ 2. Migration runner is idempotent: subsequent runs apply 0 migrations (1.543791ms)
+  ✔ 3. Relational integrity: inserting valid full hierarchy (8.761416ms)
+  ✔ 4. Negative foreign key test: card with invalid column_id throws error code 23503 (0.84025ms)
+  ✔ 5. Negative unique test: duplicate column name on same board throws error code 23505 (0.501542ms)
+  ✔ 6. Negative unique test: duplicate project membership throws error code 23505 (0.423958ms)
+  ✔ 7. Restricted delete: deleting a column with active card throws error code 23503 (0.60625ms)
+  ✔ 8. Negative foreign key test: inserting workspace with non-existent owner_id throws error code 23503 (0.514375ms)
+  ✔ 9. Restricted delete: deleting a user who owns an active workspace is blocked (ON DELETE RESTRICT) (1.752917ms)
+  ✔ 10. Tenant ancestry: inserting project_memberships with mismatched workspace_id and project_id throws error code 23503 (0.956708ms)
+  ✔ 11. Tenant ancestry: inserting board with mismatched workspace_id and project_id throws error code 23503 (0.41275ms)
+  ✔ 12. Tenant ancestry: inserting column with mismatched board_id, project_id, and workspace_id throws error code 23503 (0.828084ms)
+  ✔ 13. Relational integrity: inserting card with mismatched column_id and board_id throws error code 23503 (1.130833ms)
+  ✔ 14. Tenant ancestry: inserting outbox event with mismatched project_id and workspace_id throws error code 23503 (0.410791ms)
+  ✔ 15. Migration failure rollback evidence: failed migration leaves schema and tracking table unpolluted (3.510458ms)
+  ✔ 16. Migration concurrency evidence: concurrent runMigrations calls serialize cleanly via advisory lock (5.131833ms)
+✔ PostgreSQL Migrations & Relational Integrity Suite (149.643291ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 216.18875

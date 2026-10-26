@@ -1,9 +1,11 @@
 import { Hono } from 'hono';
 import {
+  idempotencyKeySchema,
   parseOrThrow,
   updateProjectMemberInputSchema,
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
+import { checkOrReplayReceipt, saveReceipt } from '../../adapters/idempotency.ts';
 import { updateProjectMember, removeProjectMember } from '../../adapters/members.ts';
 import { HttpError } from '../errors.ts';
 import { authMiddleware } from '../middleware/auth.ts';
@@ -20,21 +22,81 @@ membersRoutes.patch('/projects/:projectId/members/:userId', authMiddleware, asyn
   const projectId = c.req.param('projectId');
   const userId = c.req.param('userId');
 
+  const idempotencyKey = c.req.header('idempotency-key');
+  if (!idempotencyKey || !idempotencyKeySchema.safeParse(idempotencyKey).success) {
+    throw HttpError.badRequest(
+      'Missing or invalid Idempotency-Key header.',
+      'IDEMPOTENCY_KEY_REQUIRED',
+    );
+  }
+
   const rawBody = await c.req.json();
   const body = parseOrThrow(updateProjectMemberInputSchema, rawBody);
 
   const pool = getPool();
-  const membership = await updateProjectMember(
-    pool,
-    actor,
-    projectId,
-    userId,
-    body.role,
-    body.status,
-    body.expectedVersion,
-  );
+  const client = await pool.connect();
 
-  return c.json({ data: membership }, 200);
+  try {
+    await client.query('BEGIN');
+
+    const methodPath = `/api/v1/projects/${projectId}/members/${userId}`;
+    const replay = await checkOrReplayReceipt(
+      client,
+      actor.id,
+      'project',
+      projectId,
+      idempotencyKey,
+      methodPath,
+      body,
+    );
+
+    if (replay) {
+      await client.query('ROLLBACK');
+      return c.json(
+        { ...(replay.responseBody as object), replayed: true },
+        replay.statusCode as any,
+      );
+    }
+
+    const membership = await updateProjectMember(
+      client,
+      actor,
+      projectId,
+      userId,
+      body.role,
+      body.status,
+      body.expectedVersion,
+    );
+
+    const responsePayload = { data: membership };
+    const saved = await saveReceipt(
+      client,
+      actor.id,
+      'project',
+      projectId,
+      idempotencyKey,
+      methodPath,
+      body,
+      200,
+      responsePayload,
+    );
+
+    await client.query('COMMIT');
+
+    if (saved?.replayed) {
+      return c.json(
+        { ...(saved.responseBody as object), replayed: true },
+        saved.statusCode as any,
+      );
+    }
+
+    return c.json({ ...responsePayload, replayed: false }, 200);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 });
 
 // DELETE /api/v1/projects/:projectId/members/:userId (mounted under /api/v1)
@@ -47,8 +109,68 @@ membersRoutes.delete('/projects/:projectId/members/:userId', authMiddleware, asy
   const projectId = c.req.param('projectId');
   const userId = c.req.param('userId');
 
-  const pool = getPool();
-  await removeProjectMember(pool, actor, projectId, userId);
+  const idempotencyKey = c.req.header('idempotency-key');
+  if (!idempotencyKey || !idempotencyKeySchema.safeParse(idempotencyKey).success) {
+    throw HttpError.badRequest(
+      'Missing or invalid Idempotency-Key header.',
+      'IDEMPOTENCY_KEY_REQUIRED',
+    );
+  }
 
-  return c.json({ data: { success: true } }, 200);
+  const pool = getPool();
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const methodPath = `/api/v1/projects/${projectId}/members/${userId}`;
+    const replay = await checkOrReplayReceipt(
+      client,
+      actor.id,
+      'project',
+      projectId,
+      idempotencyKey,
+      methodPath,
+      {},
+    );
+
+    if (replay) {
+      await client.query('ROLLBACK');
+      return c.json(
+        { ...(replay.responseBody as object), replayed: true },
+        replay.statusCode as any,
+      );
+    }
+
+    await removeProjectMember(client, actor, projectId, userId);
+
+    const responsePayload = { data: { success: true } };
+    const saved = await saveReceipt(
+      client,
+      actor.id,
+      'project',
+      projectId,
+      idempotencyKey,
+      methodPath,
+      {},
+      200,
+      responsePayload,
+    );
+
+    await client.query('COMMIT');
+
+    if (saved?.replayed) {
+      return c.json(
+        { ...(saved.responseBody as object), replayed: true },
+        saved.statusCode as any,
+      );
+    }
+
+    return c.json({ ...responsePayload, replayed: false }, 200);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 });

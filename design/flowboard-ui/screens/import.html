@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta name="description" content="Flowboard XLSX card import. Design prototype with sample rows." />
+  <title>Import cards — Flowboard design prototype</title>
+  <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../detail.css" />
+  <link rel="stylesheet" href="screens.css" />
+</head>
+<body data-page="import">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app">
+    <aside class="rail" id="rail" aria-label="Workspace navigation"></aside>
+    <div class="rail-scrim" id="railScrim" hidden></div>
+    <div class="workspace">
+      <header class="topbar" id="topbar"></header>
+      <main class="page" id="main">
+        <div id="importContent">
+          <div class="page-head">
+            <div class="page-head-copy">
+              <p class="eyebrow">Website Redesign <span class="badge">Create-only XLSX</span></p>
+              <h1>Import cards</h1>
+              <p class="page-sub">
+                <span>Seven columns</span>
+                <span class="dot" aria-hidden="true"></span>
+                <span>200 nonempty rows</span>
+                <span class="dot" aria-hidden="true"></span>
+                <span>5 MiB upload</span>
+                <span class="dot" aria-hidden="true"></span>
+                <span>All-or-nothing commit</span>
+              </p>
+            </div>
+            <div class="page-actions">
+              <a class="btn" id="importBoardLink" href="../index.html">
+                <svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg>
+                Back to board
+              </a>
+              <a class="btn ghost" href="Flowboard_Card_Import_Template.xlsx" download>
+                <svg class="icon" aria-hidden="true"><use href="#i-download"></use></svg>
+                Download template
+              </a>
+            </div>
+          </div>
+
+          <div class="review-bar">
+            <svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg>
+            <span><strong>Preview creates nothing.</strong> Validate every row, then confirm explicitly. Invalid or conflicting rows block the whole batch.</span>
+            <span class="spacer"></span>
+            <span class="badge">Owner / Manager only</span>
+          </div>
+
+          <div class="steps" aria-label="Import stages">
+            <div class="step" data-import-step="upload">
+              <span class="step-num">1</span>
+              <span class="step-copy"><strong>Upload</strong><span>Choose board and XLSX</span></span>
+            </div>
+            <div class="step" data-import-step="preview">
+              <span class="step-num">2</span>
+              <span class="step-copy"><strong>Preview</strong><span>Validate every mapped row</span></span>
+            </div>
+            <div class="step" data-import-step="confirm">
+              <span class="step-num">3</span>
+              <span class="step-copy"><strong>Confirm</strong><span>Explicit all-or-nothing commit</span></span>
+            </div>
+            <div class="step" data-import-step="done">
+              <span class="step-num">4</span>
+              <span class="step-copy"><strong>Result</strong><span>Created cards and counts</span></span>
+            </div>
+          </div>
+
+          <div class="split-layout wide-aside">
+            <div class="stack" id="importStage"></div>
+
+            <aside class="stack">
+              <section class="panel">
+                <div class="panel-head">
+                  <div class="panel-head-copy">
+                    <h2 class="panel-title">Import contract</h2>
+                    <p class="panel-sub">Version 1 · create-only</p>
+                  </div>
+                </div>
+                <div class="panel-body stack-sm">
+                  <div class="row" style="justify-content:space-between;"><span class="small muted">Workbook</span><span class="small">.xlsx only</span></div>
+                  <div class="row" style="justify-content:space-between;"><span class="small muted">Upload limit</span><span class="small">5 MiB</span></div>
+                  <div class="row" style="justify-content:space-between;"><span class="small muted">Nonempty rows</span><span class="small">200 maximum</span></div>
+                  <div class="row" style="justify-content:space-between;"><span class="small muted">Data sheet</span><span class="small">Cards only</span></div>
+                  <div class="row" style="justify-content:space-between;"><span class="small muted">Commit</span><span class="small">All or nothing</span></div>
+                  <div class="divider"></div>
+                  <div class="status-map">
+                    <div class="status-map-row"><strong>External ID</strong><span>required · unique per board</span></div>
+                    <div class="status-map-row"><strong>Title</strong><span>required · 1–200 chars</span></div>
+                    <div class="status-map-row"><strong>Description</strong><span>optional · 20,000 chars</span></div>
+                    <div class="status-map-row"><strong>Priority</strong><span>none/low/medium/high/urgent</span></div>
+                    <div class="status-map-row"><strong>Due Date</strong><span>date-only · YYYY-MM-DD</span></div>
+                    <div class="status-map-row"><strong>Assignees</strong><span>active project people only</span></div>
+                    <div class="status-map-row"><strong>Status</strong><span>existing column name</span></div>
+                  </div>
+                  <div class="note">
+                    <svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg>
+                    <span>The workbook is downloaded from this page. The copy in this preview is the actual repository template, included so the link works from the local server.</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head">
+                  <div class="panel-head-copy">
+                    <h2 class="panel-title">Atomic commit</h2>
+                    <p class="panel-sub">No partial success</p>
+                  </div>
+                </div>
+                <div class="panel-body stack-sm">
+                  <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>All rows valid</strong> means every nonempty row is ready.</span></div>
+                  <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg><span><strong>One invalid or conflicting row</strong> blocks the entire batch.</span></div>
+                  <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg><span><strong>Fixing rows</strong> means editing the workbook and uploading again. There is no partial retry.</span></div>
+                  <div class="note warn">
+                    <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+                    <span><strong>No XLSX parsing here.</strong> This prototype shows sample rows. It does not read workbook bytes, validate real formulas or contact an API.</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-head">
+                  <div class="panel-head-copy">
+                    <h2 class="panel-title">What does not import</h2>
+                  </div>
+                </div>
+                <div class="panel-body stack-sm">
+                  <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg><span>Comments, mentions or activity history.</span></div>
+                  <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg><span>Images or image URLs.</span></div>
+                  <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg><span>Projects, boards, people, grants or roles.</span></div>
+                  <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg><span>Card keys. The server assigns those.</span></div>
+                  <div class="note">
+                    <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+                    <span>Unknown people or statuses block the batch. The importer never creates accounts or silently falls back to a default person.</span>
+                  </div>
+                </div>
+              </section>
+            </aside>
+          </div>
+
+          <footer class="board-foot">
+            <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+            <span>Import · sample previews · design evidence only</span>
+            <span class="sep"></span>
+            <span>No XLSX parsing, upload, API or persistence is implemented.</span>
+          </footer>
+        </div>
+
+        <section id="importDenied" hidden></section>
+      </main>
+    </div>
+  </div>
+
+  <div class="dialog-layer" id="commitLayer" hidden>
+    <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="commitTitle">
+      <div class="dialog-head">
+        <div class="dialog-head-copy">
+          <h2 id="commitTitle">Create these cards?</h2>
+          <p id="commitCopy">This commits the whole batch. If anything changed on the server, nothing is created.</p>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog="commitLayer" aria-label="Close import confirmation">
+          <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+        </button>
+      </div>
+      <div class="dialog-body">
+        <div class="preview-summary" id="commitSummary"></div>
+        <div class="note" style="margin-top:12px;">
+          <svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg>
+          <span>Cards are appended to their mapped columns. The board's manual order is preserved; imported cards are not silently interleaved.</span>
+        </div>
+        <div class="note warn" style="margin-top:8px;">
+          <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+          <span><strong>Prototype only.</strong> Confirming creates in-memory result rows. Reloading discards them.</span>
+        </div>
+      </div>
+      <footer class="dialog-foot">
+        <span class="spacer"></span>
+        <button class="btn" type="button" data-close-dialog="commitLayer">Cancel</button>
+        <button class="btn primary" type="button" id="confirmCommit">
+          <svg class="icon" aria-hidden="true"><use href="#i-upload"></use></svg>
+          Confirm import
+        </button>
+      </footer>
+    </div>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="data.js"></script>
+  <script src="screens.js"></script>
+  <script src="import.js"></script>
+</body>
+</html>

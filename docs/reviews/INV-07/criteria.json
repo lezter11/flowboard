@@ -1,0 +1,20 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "INV-07"
+  ],
+  "mandatoryCriteria": [
+    "Owner removal authority: Workspace owner can remove any project member (manager, member, viewer) across workspace projects via DELETE /api/v1/projects/:projectId/members/:userId",
+    "Project Manager removal limits: Project Manager can remove member and viewer roles only; attempting to remove a manager or owner returns 403 FORBIDDEN",
+    "Self-protection: Project Manager cannot remove themselves via DELETE /members/:userId (must use leave route); returns 403 FORBIDDEN",
+    "Status transition: Transition updates project_memberships.status to 'removed' and increments version; physical row is preserved for referential integrity and audit history",
+    "Immediate access revocation: Revocation takes effect immediately; subsequent requests by the removed member to project resources return 404 NOT_FOUND",
+    "R2 & R3 Audit compliance: Removed member cannot reuse unexpired invitations to restore access; write lock protocol rejects operations for actors with 'removed' status",
+    "Sibling project privacy: Outsiders and non-members receive 404 NOT_FOUND"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "inv06-inv07-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv06-inv07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: DELETE /api/v1/projects/:projectId/members/:userId endpoint, role-based removal authorization, 'removed' status transition, version incrementing, and immediate access cut-off on PostgreSQL. Out-of-scope: Voluntary member departure is covered by INV-08."
+}

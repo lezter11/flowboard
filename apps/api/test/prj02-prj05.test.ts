@@ -283,11 +283,55 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
     assert.equal(frankParsed.nextCursor, null);
   });
 
+  await t.test('PRJ-02.6: Malformed or bounded limit queries gracefully fall back to bounded limits without NaN SQL error', async () => {
+    // Malformed limit=abc
+    const nanRes = await app.request(`/api/v1/workspaces/${workspace1Id}/projects?limit=abc`, {
+      headers: { Cookie: aliceCookie },
+    });
+    assert.equal(nanRes.status, 200);
+    const nanBody = await nanRes.json();
+    assert.equal(nanBody.data.length, 2);
+
+    // Negative limit=-5
+    const negRes = await app.request(`/api/v1/workspaces/${workspace1Id}/projects?limit=-5`, {
+      headers: { Cookie: aliceCookie },
+    });
+    assert.equal(negRes.status, 200);
+    const negBody = await negRes.json();
+    assert.equal(negBody.data.length, 2);
+
+    // Excess limit=999 on global projects
+    const excessRes = await app.request('/api/v1/projects?limit=999', {
+      headers: { Cookie: aliceCookie },
+    });
+    assert.equal(excessRes.status, 200);
+    const excessBody = await excessRes.json();
+    assert.equal(excessBody.data.length, 3);
+  });
+
   // =========================================================================
   // PRJ-03: Project settings
   // =========================================================================
 
   let currentAlphaVersion = 1;
+
+  await t.test('PRJ-03.0: Missing or invalid Idempotency-Key returns 400 IDEMPOTENCY_KEY_REQUIRED', async () => {
+    const res = await app.request(`/api/v1/projects/${projectAlphaId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: aliceCookie,
+      },
+      body: JSON.stringify({
+        name: 'Project Alpha Missing Key',
+        expectedVersion: currentAlphaVersion,
+      }),
+    });
+
+    assert.equal(res.status, 400);
+    const body = await res.json();
+    assert.equal(body.error.code, 'IDEMPOTENCY_KEY_REQUIRED');
+  });
 
   await t.test('PRJ-03.1: Workspace Owner updates project name and description with OCC', async () => {
     const res = await app.request(`/api/v1/projects/${projectAlphaId}`, {
@@ -295,6 +339,7 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
       headers: {
         'Content-Type': 'application/json',
         Cookie: aliceCookie,
+        'Idempotency-Key': 'key_prj_patch_owner_01',
       },
       body: JSON.stringify({
         name: 'Project Alpha Renamed',
@@ -305,6 +350,7 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
 
     assert.equal(res.status, 200);
     const body = await res.json();
+    assert.equal(body.replayed, false);
     const project = projectSchema.parse(body.data);
 
     assert.equal(project.name, 'Project Alpha Renamed');
@@ -324,6 +370,42 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
     } finally {
       client.release();
     }
+
+    // Test Idempotency Replay: same key + same payload
+    const replayRes = await app.request(`/api/v1/projects/${projectAlphaId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: aliceCookie,
+        'Idempotency-Key': 'key_prj_patch_owner_01',
+      },
+      body: JSON.stringify({
+        name: 'Project Alpha Renamed',
+        description: 'Updated by owner',
+        expectedVersion: 1, // original payload
+      }),
+    });
+    assert.equal(replayRes.status, 200);
+    const replayBody = await replayRes.json();
+    assert.equal(replayBody.replayed, true);
+    assert.equal(replayBody.data.name, 'Project Alpha Renamed');
+
+    // Test Idempotency Conflict: same key + different payload
+    const conflictRes = await app.request(`/api/v1/projects/${projectAlphaId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Cookie: aliceCookie,
+        'Idempotency-Key': 'key_prj_patch_owner_01',
+      },
+      body: JSON.stringify({
+        name: 'Different Name',
+        expectedVersion: 1,
+      }),
+    });
+    assert.equal(conflictRes.status, 409);
+    const conflictBody = await conflictRes.json();
+    assert.equal(conflictBody.error.code, 'IDEMPOTENCY_CONFLICT');
   });
 
   await t.test('PRJ-03.2: Project Manager updates project description with OCC', async () => {
@@ -332,6 +414,7 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
       headers: {
         'Content-Type': 'application/json',
         Cookie: bobCookie,
+        'Idempotency-Key': 'key_prj_patch_pm_02',
       },
       body: JSON.stringify({
         description: 'Updated by project manager Bob',
@@ -341,6 +424,7 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
 
     assert.equal(res.status, 200);
     const body = await res.json();
+    assert.equal(body.replayed, false);
     const project = projectSchema.parse(body.data);
 
     assert.equal(project.name, 'Project Alpha Renamed'); // Unchanged
@@ -357,6 +441,7 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
       headers: {
         'Content-Type': 'application/json',
         Cookie: charlieCookie,
+        'Idempotency-Key': 'key_prj_patch_mem_denied',
       },
       body: JSON.stringify({
         name: 'Hacked by Member',
@@ -374,6 +459,7 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
       headers: {
         'Content-Type': 'application/json',
         Cookie: dianaCookie,
+        'Idempotency-Key': 'key_prj_patch_view_denied',
       },
       body: JSON.stringify({
         name: 'Hacked by Viewer',
@@ -393,6 +479,7 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
       headers: {
         'Content-Type': 'application/json',
         Cookie: eveCookie,
+        'Idempotency-Key': 'key_prj_patch_eve_denied',
       },
       body: JSON.stringify({
         name: 'Sibling Attempt',
@@ -410,6 +497,7 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
       headers: {
         'Content-Type': 'application/json',
         Cookie: frankCookie,
+        'Idempotency-Key': 'key_prj_patch_frank_denied',
       },
       body: JSON.stringify({
         name: 'Outsider Attempt',
@@ -428,6 +516,7 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
       headers: {
         'Content-Type': 'application/json',
         Cookie: bobCookie,
+        'Idempotency-Key': 'key_prj_patch_pm_stale',
       },
       body: JSON.stringify({
         name: 'Stale update',
