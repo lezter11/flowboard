@@ -1,0 +1,15 @@
+{
+  "status": "verified",
+  "summary": "INV-05 Pending invitations list: implemented GET /api/v1/projects/:projectId/invitations allowing Workspace Owner and Project Managers to view project invitations while rejecting members and viewers with 403 FORBIDDEN and outsiders with 404 NOT_FOUND. Automatically computes and maps past-due pending invitations to expired status, never leaks raw token or token_hash, and validates responses against shared invitationListResponseSchema. All automated integration tests pass against local PostgreSQL.",
+  "api_contract": "docs/API.md (GET /projects/:pid/invitations)",
+  "limitations": [
+    "Cursor-based deep pagination will be extended when large enterprise invitation volumes demand cursor offsets."
+  ],
+  "evidence": [{
+    "path": "docs/evidence/INV-05-local.md",
+    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/inv04-inv08.test.ts",
+    "result": "Strict typecheck passed with 0 errors; all tests in inv04-inv08 test suite passed (25 passed, 0 failed, 0 skipped).",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+  }],
+  "next_dependency_ready_task": "UI implementation for invitation listing and pending status display."
+}

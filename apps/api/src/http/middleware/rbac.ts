@@ -1,6 +1,12 @@
 import type { MiddlewareHandler } from 'hono';
 import { HttpError } from '../errors.ts';
-import { resolveWorkspaceRole, resolveProjectRole } from '../../adapters/rbac.ts';
+import {
+  resolveWorkspaceRole,
+  resolveProjectRole,
+  verifyProjectAncestry,
+  type ResourceType,
+} from '../../adapters/rbac.ts';
+import { getPool } from '../../adapters/postgres.ts';
 import type { Role, ProjectRole } from '@flowboard/contracts';
 
 declare module 'hono' {
@@ -66,3 +72,29 @@ export function requireProjectRole(minRole: ProjectRole): MiddlewareHandler {
     await next();
   };
 }
+
+export function requireProjectAncestry(
+  resourceType?: ResourceType,
+  resourceParam = 'resourceId',
+): MiddlewareHandler {
+  return async (c, next) => {
+    const workspaceId = c.req.param('workspaceId') ?? c.req.param('wid');
+    const projectId = c.req.param('projectId') ?? c.req.param('pid');
+    const resourceId = c.req.param(resourceParam) ?? c.req.query(resourceParam);
+
+    if (!workspaceId || !projectId) {
+      throw HttpError.notFound('Project not found.');
+    }
+
+    const pool = getPool();
+    await verifyProjectAncestry(
+      pool,
+      workspaceId,
+      projectId,
+      resourceId ? (resourceType ? { id: resourceId, type: resourceType } : resourceId) : undefined,
+    );
+
+    await next();
+  };
+}
+

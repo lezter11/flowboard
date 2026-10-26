@@ -77,3 +77,25 @@ Stream A (Invitations and Membership Lifecycle) completed and verified:
 - INV-06 (Change member roles): `PATCH /api/v1/projects/:pid/members/:uid` enabling Workspace Owner to modify any member role and Project Managers to modify member/viewer roles only. Enforces peer protection (PMs cannot modify peer managers or workspace owner), self-protection (PMs cannot modify own role), and optimistic concurrency control (OCC) rejecting stale `expectedVersion` with 409 STALE_VERSION. Audited and certified at 10.0/10.0.
 - INV-07 (Remove project access): `DELETE /api/v1/projects/:pid/members/:uid` enabling Workspace Owner to remove any project member and Project Managers to remove members/viewers only. Enforces peer/self protection, transitions row status to `removed` with version increment, and enforces immediate revocation where subsequent project requests return 404 NOT_FOUND preserving sibling project privacy. Audited and certified at 10.0/10.0.
 - Checklist regenerated: 12 of 98 features backend verified (INV-01, INV-03, INV-06, INV-07 added). All 13 tests in inv06-inv07 and 9 tests in inv01-inv03 passing cleanly.
+
+Parallel Stream Wave completed and verified (10 features across Streams 1, 2, and 3):
+- Stream 1 (Projects Lifecycle & People Directory):
+  - PRJ-02 (Project list and navigation): role-scoped listing (workspace owner sees all, members see granted, outsiders receive 404), keyset cursor pagination (`(name > $1 OR (name = $1 AND id > $2))`), and global accessible projects (`GET /api/v1/projects`). Audited and certified at 10.0/10.0.
+  - PRJ-03 (Project settings): workspace owner and project manager update name/description, members/viewers rejected (403), outsiders/sibling PMs receive 404 (zero metadata leakage), optimistic concurrency control (OCC) rejecting stale `expectedVersion` with 409 STALE_VERSION. Audited and certified at 10.0/10.0.
+  - PRJ-05 (Project people directory): returns active project members with workspace owner synthesized and prepended (`role = 'owner'`), excludes sibling project members and removed members, accessible by owner/manager/member/viewer. Audited and certified at 10.0/10.0.
+  - 15/15 tests in `apps/api/test/prj02-prj05.test.ts` passing cleanly.
+
+- Stream 2 (Invitations Maintenance & Voluntary Exit):
+  - INV-04 (Resend and revoke invitation): resend rotates token (SHA-256 hash replaced, +7 days expiry, outbox event emitted, old token rejected 400), revoke transitions status to `revoked` and rejects acceptance, owner can resend/revoke any invite, PM restricted to member/viewer invites, idempotency replay supported. Audited and certified at 10.0/10.0.
+  - INV-05 (Pending invitations list): workspace owner and project manager list invitations scoped to project, token hashes omitted, UTC dates, dynamic 'expired' calculation for past-due invites, members/viewers get 403, outsiders get 404. Audited and certified at 9.7/10.0.
+  - INV-08 (Leave a project): PM, member, or viewer can voluntarily leave project grant (`POST /api/v1/projects/:pid/leave`), status transitions to `removed` with version increment, immediate read/write revocation (404), workspace owner cannot leave own workspace/project (403), historical attribution preserved. Audited and certified at 10.0/10.0.
+  - 25/25 tests in `apps/api/test/inv04-inv08.test.ts` passing cleanly.
+
+- Stream 3 (RBAC Security Rules):
+  - RBAC-02 (Project ancestry enforcement): `verifyProjectAncestry` validates that project belongs to workspace and any resource (board, column, card, comment, image, upload, import) belongs to project and workspace; sibling guessing returns uniform 404 NOT_FOUND preventing enumeration. Audited and certified at 10.0/10.0.
+  - RBAC-03 (Revocation versus writes lock protocol): `acquireWriteGrantLock` queries `project_memberships FOR SHARE` within mutating transactions; immediately aborts with 404 if status is `removed`, eliminating race conditions between concurrent revocations and writes; preserves workspace owner authority. Audited and certified at 10.0/10.0.
+  - RBAC-04 (Picker and notification privacy): `getProjectPeople` scopes candidate pool strictly to active project members and workspace owner; `purpose = 'assignee'` filters for writable roles (owner, manager, member; viewers excluded); `purpose = 'mention'` includes viewers; removed members flagged historical and unassignable; sibling project members strictly excluded. Audited and certified at 10.0/10.0.
+  - RBAC-05 (Project inheritance disclosure): `GET /api/v1/projects/:pid/access-summary` discloses workspace owner authority and uniform project-level inheritance model with `hasBoardOnlyExceptions: false`. Audited and certified at 10.0/10.0.
+  - 13/13 tests in `apps/api/test/rbac-advanced.test.ts` passing cleanly.
+
+- Checklist regenerated: 22 of 98 features backend verified. Full test suite passing (178/178 tests: 137 API tests + 41 contracts tests).

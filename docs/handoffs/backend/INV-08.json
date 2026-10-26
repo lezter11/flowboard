@@ -1,0 +1,15 @@
+{
+  "status": "verified",
+  "summary": "INV-08 Leave a project: implemented POST /api/v1/projects/:projectId/leave enabling any active project member (Manager, Member, Viewer) to leave their project grant with idempotency replay support. Workspace Owners are prevented from leaving their project/workspace (403 FORBIDDEN - must transfer workspace ownership instead), and outsiders receive 404 NOT_FOUND. Transition updates project_memberships.status to 'removed' and increments version, immediately revoking project access while fully preserving historical card assignees, comments, and activity audit trails. All automated integration tests pass against local PostgreSQL.",
+  "api_contract": "docs/API.md (POST /projects/:pid/leave)",
+  "limitations": [
+    "Ownership transfer flow is scoped to ACC-05 / S6."
+  ],
+  "evidence": [{
+    "path": "docs/evidence/INV-08-local.md",
+    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/inv04-inv08.test.ts",
+    "result": "Strict typecheck passed with 0 errors; all tests in inv04-inv08 test suite passed (25 passed, 0 failed, 0 skipped).",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+  }],
+  "next_dependency_ready_task": "UI implementation for member project departure confirmation."
+}

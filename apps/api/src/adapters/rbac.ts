@@ -1,11 +1,29 @@
 import type pg from 'pg';
 import { getPool } from './postgres.ts';
+import { HttpError } from '../http/errors.ts';
 import type {
   Role,
   ProjectRole,
   SessionWorkspaceSummary,
   SessionProjectSummary,
+  PersonDisplay,
+  ProjectPeoplePurpose,
+  ProjectAccessSummary,
 } from '@flowboard/contracts';
+
+export type ResourceType =
+  | 'board'
+  | 'column'
+  | 'card'
+  | 'comment'
+  | 'image'
+  | 'upload'
+  | 'import';
+
+export interface VerifyAncestryResource {
+  id: string;
+  type?: ResourceType;
+}
 
 export async function resolveWorkspaceRole(
   workspaceId: string,
@@ -145,3 +163,493 @@ export async function getAccessibleProjects(
     updatedAt: new Date(row.updated_at).toISOString(),
   }));
 }
+
+// ============================================================================
+// RBAC-02: Project Ancestry Enforcement
+// ============================================================================
+
+const RESOURCE_TABLE_MAP: Record<ResourceType, { table: string; workspaceCol: string; projectCol: string }> = {
+  board: { table: 'boards', workspaceCol: 'workspace_id', projectCol: 'project_id' },
+  column: { table: 'columns', workspaceCol: 'workspace_id', projectCol: 'project_id' },
+  card: { table: 'cards', workspaceCol: 'workspace_id', projectCol: 'project_id' },
+  comment: { table: 'comments', workspaceCol: 'workspace_id', projectCol: 'project_id' },
+  image: { table: 'card_images', workspaceCol: 'workspace_id', projectCol: 'project_id' },
+  upload: { table: 'card_image_uploads', workspaceCol: 'workspace_id', projectCol: 'project_id' },
+  import: { table: 'card_imports', workspaceCol: 'workspace_id', projectCol: 'project_id' },
+};
+
+function inferResourceType(resourceId: string): ResourceType | undefined {
+  if (resourceId.startsWith('brd_') || resourceId.startsWith('board_')) return 'board';
+  if (resourceId.startsWith('col_')) return 'column';
+  if (resourceId.startsWith('card_') || resourceId.startsWith('crd_')) return 'card';
+  if (resourceId.startsWith('cmt_') || resourceId.startsWith('comment_')) return 'comment';
+  if (resourceId.startsWith('img_')) return 'image';
+  if (resourceId.startsWith('upl_')) return 'upload';
+  if (resourceId.startsWith('imp_')) return 'import';
+  return undefined;
+}
+
+/**
+ * Ensures project belongs strictly to workspace.
+ * If resource is specified, verifies that the resource strictly belongs to the given project and workspace.
+ * Returns 404 NOT_FOUND on any mismatch or missing record to prevent metadata leakage across sibling projects.
+ */
+export async function verifyProjectAncestry(
+  clientOrPool: pg.Pool | pg.ClientBase,
+  workspaceId: string,
+  projectId: string,
+  resource?: string | VerifyAncestryResource,
+): Promise<{ projectId: string; workspaceId: string; resourceId?: string; resourceType?: ResourceType }> {
+  const pool = clientOrPool ?? getPool();
+
+  // 1. Verify project strictly belongs to workspace
+  const prjRes = await pool.query<{ id: string; workspace_id: string }>(
+    `SELECT id, workspace_id
+     FROM projects
+     WHERE id = $1 AND workspace_id = $2`,
+    [projectId, workspaceId],
+  );
+
+  if (prjRes.rows.length === 0) {
+    throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+  }
+
+  // 2. If no resource passed, ancestry check is satisfied
+  if (!resource) {
+    return { projectId, workspaceId };
+  }
+
+  const resourceId = typeof resource === 'string' ? resource : resource.id;
+  const explicitType = typeof resource === 'string' ? undefined : resource.type;
+  const resourceType = explicitType ?? inferResourceType(resourceId);
+
+  if (resourceType) {
+    const mapping = RESOURCE_TABLE_MAP[resourceType];
+    const res = await pool.query<{ workspace_id: string; project_id: string }>(
+      `SELECT ${mapping.workspaceCol} AS workspace_id, ${mapping.projectCol} AS project_id
+       FROM ${mapping.table}
+       WHERE id = $1`,
+      [resourceId],
+    );
+
+    if (res.rows.length === 0) {
+      throw HttpError.notFound('Resource not found.', 'NOT_FOUND');
+    }
+
+    const row = res.rows[0]!;
+    if (row.workspace_id !== workspaceId || row.project_id !== projectId) {
+      throw HttpError.notFound('Resource not found.', 'NOT_FOUND');
+    }
+
+    return { projectId, workspaceId, resourceId, resourceType };
+  }
+
+  // Unknown prefix: search across candidate entity tables via UNION ALL
+  const unionRes = await pool.query<{ res_type: ResourceType; workspace_id: string; project_id: string }>(
+    `SELECT 'board'::TEXT AS res_type, workspace_id, project_id FROM boards WHERE id = $1
+     UNION ALL
+     SELECT 'column'::TEXT AS res_type, workspace_id, project_id FROM columns WHERE id = $1
+     UNION ALL
+     SELECT 'card'::TEXT AS res_type, workspace_id, project_id FROM cards WHERE id = $1
+     UNION ALL
+     SELECT 'comment'::TEXT AS res_type, workspace_id, project_id FROM comments WHERE id = $1
+     UNION ALL
+     SELECT 'image'::TEXT AS res_type, workspace_id, project_id FROM card_images WHERE id = $1
+     UNION ALL
+     SELECT 'upload'::TEXT AS res_type, workspace_id, project_id FROM card_image_uploads WHERE id = $1
+     UNION ALL
+     SELECT 'import'::TEXT AS res_type, workspace_id, project_id FROM card_imports WHERE id = $1`,
+    [resourceId],
+  );
+
+  if (unionRes.rows.length === 0) {
+    throw HttpError.notFound('Resource not found.', 'NOT_FOUND');
+  }
+
+  const foundRow = unionRes.rows[0]!;
+  if (foundRow.workspace_id !== workspaceId || foundRow.project_id !== projectId) {
+    throw HttpError.notFound('Resource not found.', 'NOT_FOUND');
+  }
+
+  return {
+    projectId,
+    workspaceId,
+    resourceId,
+    resourceType: foundRow.res_type,
+  };
+}
+
+// ============================================================================
+// RBAC-03: Revocation Versus Writes Lock Protocol
+// ============================================================================
+
+/**
+ * Within an active write transaction, queries membership row with FOR SHARE lock.
+ * If user is workspace owner, verifies workspace ownership.
+ * If member has status 'removed', immediately aborts with 404 NOT_FOUND.
+ * Ensures no in-flight write can commit after a preceding role revocation has won.
+ */
+export async function acquireWriteGrantLock(
+  client: pg.ClientBase,
+  projectId: string,
+  userId: string,
+  minRole: 'manager' | 'member' = 'member',
+): Promise<{ role: Role; isOwner: boolean }> {
+  // 1. Verify project exists and check workspace owner
+  const prjRes = await client.query<{ id: string; workspace_id: string; owner_id: string }>(
+    `SELECT p.id, p.workspace_id, w.owner_id
+     FROM projects p
+     JOIN workspaces w ON p.workspace_id = w.id
+     WHERE p.id = $1`,
+    [projectId],
+  );
+
+  if (prjRes.rows.length === 0) {
+    throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+  }
+
+  const projectRow = prjRes.rows[0]!;
+  if (projectRow.owner_id === userId) {
+    return { role: 'owner', isOwner: true };
+  }
+
+  // 2. Lock membership row in FOR SHARE mode to serialize against concurrent role revocations
+  const memberRes = await client.query<{ role: ProjectRole; status: 'active' | 'removed' }>(
+    `SELECT role, status
+     FROM project_memberships
+     WHERE project_id = $1 AND user_id = $2
+     FOR SHARE`,
+    [projectId, userId],
+  );
+
+  if (memberRes.rows.length === 0) {
+    throw HttpError.notFound('Project not found or access revoked.', 'NOT_FOUND');
+  }
+
+  const member = memberRes.rows[0]!;
+  if (member.status === 'removed') {
+    throw HttpError.notFound('Project not found or access revoked.', 'NOT_FOUND');
+  }
+
+  if (member.role === 'viewer') {
+    throw HttpError.forbidden('Viewers cannot perform write operations.', 'FORBIDDEN');
+  }
+
+  if (minRole === 'manager' && member.role !== 'manager') {
+    throw HttpError.forbidden(`Requires manager role for this operation. Current role: ${member.role}.`, 'FORBIDDEN');
+  }
+
+  return { role: member.role, isOwner: false };
+}
+
+// ============================================================================
+// RBAC-04: Picker and Notification Privacy
+// ============================================================================
+
+/**
+ * Retrieves eligible people for a project with strict sibling isolation.
+ * Purpose 'assignee' returns only active workspace owner and active managers/members.
+ * Purpose 'mention' returns active workspace owner and active managers/members/viewers.
+ * Purpose 'display' returns all active project identities.
+ * Removed members are never returned in picker queries; sibling project members are never returned.
+ */
+export async function getProjectPeople(
+  clientOrPool: pg.Pool | pg.ClientBase,
+  projectId: string,
+  purpose: ProjectPeoplePurpose = 'display',
+  query?: string,
+  cursor?: string,
+  limit = 50,
+): Promise<{ data: PersonDisplay[]; nextCursor: string | null }> {
+  const pool = clientOrPool ?? getPool();
+
+  const res = await pool.query<{
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+    scoped_role: Role;
+    status: 'active' | 'removed';
+  }>(
+    `WITH project_context AS (
+       SELECT p.id AS project_id, p.workspace_id, w.owner_id AS workspace_owner_id
+       FROM projects p
+       JOIN workspaces w ON p.workspace_id = w.id
+       WHERE p.id = $1
+     ),
+     all_candidates AS (
+       -- 1. Workspace Owner (has permanent owner privileges in this project)
+       SELECT 
+         u.id,
+         u.display_name,
+         u.avatar_url,
+         'owner'::TEXT AS scoped_role,
+         'active'::TEXT AS status,
+         1 AS priority
+       FROM project_context pc
+       JOIN users u ON pc.workspace_owner_id = u.id
+       
+       UNION ALL
+       
+       -- 2. Explicit Project Members
+       SELECT 
+         u.id,
+         u.display_name,
+         u.avatar_url,
+         pm.role::TEXT AS scoped_role,
+         pm.status::TEXT AS status,
+         2 AS priority
+       FROM project_memberships pm
+       JOIN users u ON pm.user_id = u.id
+       WHERE pm.project_id = $1
+     ),
+     deduped AS (
+       SELECT DISTINCT ON (id)
+         id,
+         display_name,
+         avatar_url,
+         scoped_role,
+         status
+       FROM all_candidates
+       ORDER BY id, priority ASC
+     )
+     SELECT id, display_name, avatar_url, scoped_role, status
+     FROM deduped
+     ORDER BY display_name ASC, id ASC`,
+    [projectId],
+  );
+
+  let people: PersonDisplay[] = res.rows.map((row) => {
+    const isActive = row.status === 'active';
+    const role = row.scoped_role;
+    const isWritableRole = role === 'owner' || role === 'manager' || role === 'member';
+
+    return {
+      id: row.id,
+      displayName: row.display_name,
+      avatarUrl: row.avatar_url ?? null,
+      activeInProject: isActive,
+      scopedRole: role,
+      assignable: isActive && isWritableRole,
+      mentionable: isActive,
+    };
+  });
+
+  // Filter based on purpose
+  if (purpose === 'assignee') {
+    people = people.filter((p) => p.assignable === true);
+  } else if (purpose === 'mention') {
+    people = people.filter((p) => p.mentionable === true);
+  } else {
+    // default 'display'
+    people = people.filter((p) => p.activeInProject === true);
+  }
+
+  // Filter by search query if provided
+  if (query && query.trim().length > 0) {
+    const q = query.trim().toLowerCase();
+    people = people.filter((p) => p.displayName.toLowerCase().includes(q));
+  }
+
+  // Cursor-based pagination
+  let startIndex = 0;
+  if (cursor) {
+    const cursorIdx = people.findIndex((p) => p.id === cursor);
+    if (cursorIdx !== -1) {
+      startIndex = cursorIdx + 1;
+    }
+  }
+
+  const paginated = people.slice(startIndex, startIndex + limit);
+  const nextCursor = startIndex + limit < people.length ? paginated[paginated.length - 1]?.id ?? null : null;
+
+  return { data: paginated, nextCursor };
+}
+
+export async function getEligibleAssignees(
+  clientOrPool: pg.Pool | pg.ClientBase,
+  projectId: string,
+  query?: string,
+): Promise<PersonDisplay[]> {
+  const { data } = await getProjectPeople(clientOrPool, projectId, 'assignee', query, undefined, 100);
+  return data;
+}
+
+export async function getEligibleMentionees(
+  clientOrPool: pg.Pool | pg.ClientBase,
+  projectId: string,
+  query?: string,
+): Promise<PersonDisplay[]> {
+  const { data } = await getProjectPeople(clientOrPool, projectId, 'mention', query, undefined, 100);
+  return data;
+}
+
+export async function getHistoricalPersonDisplay(
+  clientOrPool: pg.Pool | pg.ClientBase,
+  projectId: string,
+  userId: string,
+): Promise<PersonDisplay | null> {
+  const pool = clientOrPool ?? getPool();
+
+  const prjRes = await pool.query<{ owner_id: string }>(
+    `SELECT w.owner_id
+     FROM projects p
+     JOIN workspaces w ON p.workspace_id = w.id
+     WHERE p.id = $1`,
+    [projectId],
+  );
+
+  if (prjRes.rows.length > 0 && prjRes.rows[0]?.owner_id === userId) {
+    const userRes = await pool.query<{ id: string; display_name: string; avatar_url: string | null }>(
+      'SELECT id, display_name, avatar_url FROM users WHERE id = $1',
+      [userId],
+    );
+    if (userRes.rows.length === 0) return null;
+    const u = userRes.rows[0]!;
+    return {
+      id: u.id,
+      displayName: u.display_name,
+      avatarUrl: u.avatar_url,
+      activeInProject: true,
+      scopedRole: 'owner',
+      assignable: true,
+      mentionable: true,
+    };
+  }
+
+  const memRes = await pool.query<{
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+    role: ProjectRole;
+    status: 'active' | 'removed';
+  }>(
+    `SELECT u.id, u.display_name, u.avatar_url, pm.role, pm.status
+     FROM project_memberships pm
+     JOIN users u ON pm.user_id = u.id
+     WHERE pm.project_id = $1 AND pm.user_id = $2`,
+    [projectId, userId],
+  );
+
+  if (memRes.rows.length === 0) {
+    return null;
+  }
+
+  const row = memRes.rows[0]!;
+  const isActive = row.status === 'active';
+  const role = row.role;
+  const isWritable = role === 'manager' || role === 'member';
+
+  return {
+    id: row.id,
+    displayName: row.display_name,
+    avatarUrl: row.avatar_url,
+    activeInProject: isActive,
+    scopedRole: role,
+    assignable: isActive && isWritable,
+    mentionable: isActive,
+  };
+}
+
+// ============================================================================
+// RBAC-05: Project Inheritance Disclosure
+// ============================================================================
+
+export async function getProjectAccessSummary(
+  clientOrPool: pg.Pool | pg.ClientBase,
+  projectId: string,
+  actorId: string,
+): Promise<ProjectAccessSummary> {
+  const pool = clientOrPool ?? getPool();
+
+  const prjRes = await pool.query<{
+    project_id: string;
+    project_name: string;
+    workspace_id: string;
+    workspace_name: string;
+    workspace_owner_id: string;
+    workspace_owner_name: string;
+    workspace_owner_avatar: string | null;
+  }>(
+    `SELECT 
+       p.id AS project_id,
+       p.name AS project_name,
+       p.workspace_id,
+       w.name AS workspace_name,
+       w.owner_id AS workspace_owner_id,
+       u.display_name AS workspace_owner_name,
+       u.avatar_url AS workspace_owner_avatar
+     FROM projects p
+     JOIN workspaces w ON p.workspace_id = w.id
+     JOIN users u ON w.owner_id = u.id
+     WHERE p.id = $1`,
+    [projectId],
+  );
+
+  if (prjRes.rows.length === 0) {
+    throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+  }
+
+  const projectRow = prjRes.rows[0]!;
+
+  // Verify actor has access to this project
+  const actorRole = await resolveProjectRole(projectId, actorId, pool);
+  if (!actorRole) {
+    throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+  }
+
+  // Active boards count
+  const boardCountRes = await pool.query<{ board_count: string }>(
+    `SELECT COUNT(*)::INT AS board_count
+     FROM boards
+     WHERE project_id = $1 AND archived = FALSE`,
+    [projectId],
+  );
+
+  // Active memberships summary
+  const memberStatsRes = await pool.query<{ role: string; count: number }>(
+    `SELECT role, COUNT(*)::INT AS count
+     FROM project_memberships
+     WHERE project_id = $1 AND status = 'active'
+     GROUP BY role`,
+    [projectId],
+  );
+
+  const roleCounts: Record<string, number> = { manager: 0, member: 0, viewer: 0 };
+  for (const r of memberStatsRes.rows) {
+    roleCounts[r.role] = Number(r.count);
+  }
+
+  return {
+    projectId: projectRow.project_id,
+    projectName: projectRow.project_name,
+    workspaceId: projectRow.workspace_id,
+    workspaceName: projectRow.workspace_name,
+    workspaceOwner: {
+      id: projectRow.workspace_owner_id,
+      displayName: projectRow.workspace_owner_name,
+      avatarUrl: projectRow.workspace_owner_avatar,
+      role: 'owner',
+      inherited: true,
+      disclosure: 'Workspace owner holds full administrative authority across all boards in this project.',
+    },
+    actor: {
+      id: actorId,
+      role: actorRole,
+      inheritedFrom: actorRole === 'owner' ? 'workspace_owner' : 'project_membership',
+    },
+    boardInheritance: {
+      model: 'project_scoped',
+      allBoardsInherit: true,
+      hasBoardOnlyExceptions: false,
+      boardCount: Number(boardCountRes.rows[0]?.board_count ?? 0),
+      disclosure: 'All boards in this project inherit project-level role permissions directly. No board-level guest permissions or hidden exceptions exist.',
+    },
+    memberSummary: {
+      activeManagers: roleCounts['manager'] ?? 0,
+      activeMembers: roleCounts['member'] ?? 0,
+      activeViewers: roleCounts['viewer'] ?? 0,
+      totalActiveMembers: (roleCounts['manager'] ?? 0) + (roleCounts['member'] ?? 0) + (roleCounts['viewer'] ?? 0),
+    },
+  };
+}
+

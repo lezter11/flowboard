@@ -1,0 +1,15 @@
+{
+  "status": "verified",
+  "summary": "PRJ-02 Project list and navigation: implemented GET /api/v1/workspaces/:workspaceId/projects scoping projects to workspace owner (all projects) and granted members (active grants only), with keyset cursor pagination (ORDER BY name ASC, id ASC) and sibling project privacy (outsiders receive 404 NOT_FOUND). Also implemented GET /api/v1/projects listing all accessible projects across workspaces for the session actor. All 15 integration tests in prj02-prj05.test.ts pass against local PostgreSQL.",
+  "api_contract": "docs/API.md (GET /workspaces/:wid/projects, GET /projects)",
+  "limitations": [
+    "Text search across project names is handled client-side or via advanced search."
+  ],
+  "evidence": [{
+    "path": "docs/evidence/PRJ-02-local.md",
+    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts",
+    "result": "Strict typecheck passed with 0 errors; 15 integration tests passed, 0 failed, 0 skipped.",
+    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+  }],
+  "next_dependency_ready_task": "UI PRJ-02 (Project list view and sidebar navigation), BRD-01 (Create board)."
+}

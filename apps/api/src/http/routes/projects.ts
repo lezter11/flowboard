@@ -2,18 +2,47 @@ import crypto from 'node:crypto';
 import { Hono } from 'hono';
 import {
   createProjectInputSchema,
+  updateProjectInputSchema,
   idempotencyKeySchema,
   parseOrThrow,
+  projectPeopleQuerySchema,
   type Project,
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
 import { checkOrReplayReceipt, saveReceipt } from '../../adapters/idempotency.ts';
+import {
+  resolveProjectRole,
+  getProjectPeople,
+  getProjectAccessSummary,
+} from '../../adapters/rbac.ts';
+import {
+  getWorkspaceProjects,
+  getAllAccessibleProjects,
+  updateProjectSettings,
+  getProjectMembers,
+} from '../../adapters/projects.ts';
 import { HttpError } from '../errors.ts';
 import { authMiddleware } from '../middleware/auth.ts';
 
 export const projectsRoutes = new Hono();
 
-// POST /api/v1/workspaces/:workspaceId/projects
+// 1. GET /api/v1/projects: List all accessible projects across workspaces for current user session
+projectsRoutes.get('/api/v1/projects', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Invalid or missing authentication session.');
+  }
+
+  const queryParams = c.req.query();
+  const limit = queryParams.limit ? parseInt(queryParams.limit, 10) : undefined;
+  const cursor = queryParams.cursor;
+
+  const pool = getPool();
+  const result = await getAllAccessibleProjects(pool, actor, { limit, cursor });
+  return c.json(result, 200);
+});
+
+// 2. POST /api/v1/workspaces/:workspaceId/projects: Create project in workspace (Owner only)
 projectsRoutes.post('/api/v1/workspaces/:workspaceId/projects', authMiddleware, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
@@ -125,7 +154,24 @@ projectsRoutes.post('/api/v1/workspaces/:workspaceId/projects', authMiddleware, 
   }
 });
 
-// GET /api/v1/projects/:projectId
+// 3. GET /api/v1/workspaces/:workspaceId/projects: Scoped project list for workspace
+projectsRoutes.get('/api/v1/workspaces/:workspaceId/projects', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Invalid or missing authentication session.');
+  }
+
+  const workspaceId = c.req.param('workspaceId');
+  const queryParams = c.req.query();
+  const limit = queryParams.limit ? parseInt(queryParams.limit, 10) : undefined;
+  const cursor = queryParams.cursor;
+
+  const pool = getPool();
+  const result = await getWorkspaceProjects(pool, actor, workspaceId, { limit, cursor });
+  return c.json(result, 200);
+});
+
+// 4. GET /api/v1/projects/:projectId: Single project details
 projectsRoutes.get('/api/v1/projects/:projectId', authMiddleware, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
@@ -176,69 +222,76 @@ projectsRoutes.get('/api/v1/projects/:projectId', authMiddleware, async (c) => {
   return c.json({ data: project }, 200);
 });
 
-// GET /api/v1/workspaces/:workspaceId/projects
-projectsRoutes.get('/api/v1/workspaces/:workspaceId/projects', authMiddleware, async (c) => {
+// 5. PATCH /api/v1/projects/:projectId: Update project settings (Owner & PM)
+projectsRoutes.patch('/api/v1/projects/:projectId', authMiddleware, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
   }
 
-  const workspaceId = c.req.param('workspaceId');
+  const projectId = c.req.param('projectId');
+  const rawBody = await c.req.json();
+  const body = parseOrThrow(updateProjectInputSchema, rawBody);
+
+  const pool = getPool();
+  const project = await updateProjectSettings(pool, actor, projectId, body);
+  return c.json({ data: project }, 200);
+});
+
+// 6. GET /api/v1/projects/:projectId/members: Project people directory (PRJ-05)
+projectsRoutes.get('/api/v1/projects/:projectId/members', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Invalid or missing authentication session.');
+  }
+
+  const projectId = c.req.param('projectId');
+  const pool = getPool();
+  const result = await getProjectMembers(pool, actor, projectId);
+  return c.json(result, 200);
+});
+
+// 7. GET /api/v1/projects/:projectId/people: Project people picker
+projectsRoutes.get('/api/v1/projects/:projectId/people', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Invalid or missing authentication session.');
+  }
+
+  const projectId = c.req.param('projectId');
   const pool = getPool();
 
-  const wsRes = await pool.query<{ id: string; owner_id: string }>(
-    `SELECT id, owner_id FROM workspaces WHERE id = $1`,
-    [workspaceId],
+  // Authorize actor in this project
+  const actorRole = await resolveProjectRole(projectId, actor.id, pool);
+  if (!actorRole) {
+    throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+  }
+
+  const queryParams = c.req.query();
+  const parsedQuery = parseOrThrow(projectPeopleQuerySchema, queryParams);
+
+  const result = await getProjectPeople(
+    pool,
+    projectId,
+    parsedQuery.purpose ?? 'display',
+    parsedQuery.query,
+    parsedQuery.cursor,
+    parsedQuery.limit ?? 50,
   );
-  if (!wsRes.rows[0]) {
-    throw HttpError.notFound('Workspace not found.', 'NOT_FOUND');
+
+  return c.json(result, 200);
+});
+
+// 8. GET /api/v1/projects/:projectId/access-summary: Project access summary
+projectsRoutes.get('/api/v1/projects/:projectId/access-summary', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Invalid or missing authentication session.');
   }
 
-  const isOwner = wsRes.rows[0].owner_id === actor.id;
+  const projectId = c.req.param('projectId');
+  const pool = getPool();
 
-  let query: string;
-  let params: unknown[];
-
-  if (isOwner) {
-    query = `SELECT id, workspace_id, name, description, archived, version, created_at, updated_at
-             FROM projects
-             WHERE workspace_id = $1
-             ORDER BY name ASC, id ASC`;
-    params = [workspaceId];
-  } else {
-    query = `SELECT p.id, p.workspace_id, p.name, p.description, p.archived, p.version, p.created_at, p.updated_at
-             FROM projects p
-             JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $2 AND pm.status = 'active'
-             WHERE p.workspace_id = $1
-             ORDER BY p.name ASC, p.id ASC`;
-    params = [workspaceId, actor.id];
-  }
-
-  const res = await pool.query<{
-    id: string;
-    workspace_id: string;
-    name: string;
-    description: string | null;
-    archived: boolean;
-    version: number;
-    created_at: Date;
-    updated_at: Date;
-  }>(query, params);
-
-  if (!isOwner && res.rows.length === 0) {
-    throw HttpError.notFound('Workspace not found or unauthorized.', 'NOT_FOUND');
-  }
-
-  const projects: Project[] = res.rows.map((row) => ({
-    id: row.id,
-    workspaceId: row.workspace_id,
-    name: row.name,
-    description: row.description,
-    isArchived: Boolean(row.archived),
-    version: row.version,
-    createdAt: new Date(row.created_at).toISOString(),
-    updatedAt: new Date(row.updated_at).toISOString(),
-  }));
-
-  return c.json({ data: projects, nextCursor: null }, 200);
+  const summary = await getProjectAccessSummary(pool, projectId, actor.id);
+  return c.json({ data: summary }, 200);
 });

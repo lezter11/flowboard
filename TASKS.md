@@ -28,15 +28,15 @@ For FND-01 only, Architect authorizes Backend to add the minimal root package/wo
    - [x] ACC-04 — Backend: Create workspace and owner (single owner atomicity, idempotency replay duplicate protection). Audited at 10.0/10.0.
    - [x] PRJ-01 — Backend: Create multiple projects (owner-restricted creation, sibling project privacy, role-scoped lists). Audited at 10.0/10.0.
    - [ ] ACC-02, ACC-03, ACC-05, ACC-06 — Account lifecycle, profile, preferences, context switcher.
-   - [ ] PRJ-02, PRJ-03, PRJ-05 — Project list/nav, settings, people directory.
+   - [x] PRJ-02, PRJ-03, PRJ-05 — Backend: Project list/nav (keyset cursor), settings (OCC), people directory (synthesized owner). Audited at 10.0/10.0.
    - [x] INV-01 — Backend: Project invitation (Owner/PM invitation permissions, SHA-256 token hashing, outbox event). Audited at 10.0/10.0.
    - [ ] INV-02 — Project invitation delivery (outbox delivery worker).
    - [x] INV-03 — Backend: Accept matching invitation (FOR UPDATE row lock, matching email check, active membership creation). Audited at 10.0/10.0.
-   - [ ] INV-04, INV-05 — Resend/revoke invitations, pending invitations list.
+   - [x] INV-04, INV-05 — Backend: Resend/revoke invitations (token rotation, outbox event, FOR UPDATE), pending invitations list. Audited at 10.0/10.0 and 9.7/10.0.
    - [x] INV-06 — Backend: Change member roles (Owner appoints/removes managers, PM modifies member/viewer, self/peer protection, OCC with expectedVersion). Audited at 10.0/10.0.
    - [x] INV-07 — Backend: Remove project access (immediate revocation sets status 'removed', subsequent calls return 404 NOT_FOUND). Audited at 10.0/10.0.
-   - [ ] INV-08 — Leave a project.
-   - [ ] RBAC-02 to RBAC-05 — Ancestry enforcement, lock protocol, picker privacy, inheritance disclosure.
+   - [x] INV-08 — Backend: Leave a project (voluntary exit, status 'removed', owner protection). Audited at 10.0/10.0.
+   - [x] RBAC-02 to RBAC-05 — Backend: Ancestry enforcement (uniform 404), FOR SHARE lock protocol, picker privacy (assignee/mentionee scoping), inheritance disclosure. Audited at 10.0/10.0.
 2. S2 Board/column/card CRUD, popup fields, Move/drag, query/filter/My tasks and basic UX.
 3. S3 Comments/mentions, full card activity, owner/project feeds and durable inbox.
 4. S4 Private image uploads/proxy/gallery and exact 24-hour trash/restore/purge.

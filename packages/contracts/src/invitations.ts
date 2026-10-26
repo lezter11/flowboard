@@ -56,3 +56,22 @@ export type AcceptInvitationResult = z.infer<typeof acceptInvitationResultSchema
 
 export const acceptInvitationResponseSchema = createDataEnvelopeSchema(acceptInvitationResultSchema);
 export type AcceptInvitationResponse = z.infer<typeof acceptInvitationResponseSchema>;
+
+export const revokeInvitationResultSchema = z.object({
+  success: z.boolean(),
+  id: z.string().min(1),
+  status: z.literal('revoked'),
+});
+export type RevokeInvitationResult = z.infer<typeof revokeInvitationResultSchema>;
+
+export const revokeInvitationResponseSchema = createDataEnvelopeSchema(revokeInvitationResultSchema);
+export type RevokeInvitationResponse = z.infer<typeof revokeInvitationResponseSchema>;
+
+export const leaveProjectResultSchema = z.object({
+  success: z.boolean(),
+});
+export type LeaveProjectResult = z.infer<typeof leaveProjectResultSchema>;
+
+export const leaveProjectResponseSchema = createDataEnvelopeSchema(leaveProjectResultSchema);
+export type LeaveProjectResponse = z.infer<typeof leaveProjectResponseSchema>;
+
