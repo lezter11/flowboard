@@ -1,0 +1,27 @@
+# UI parity report
+
+Started 2026-10-29 by the UI chat. Source of truth: `design/flowboard-ui/`. Rule: match the prototype first, record every problem here, fix items one by one with the user afterwards. Status of each row is "open" unless it says otherwise. Screenshots live in `docs/references/ui-parity/`.
+
+Severity: blocker, major, minor. Owner: UI, Backend, Design.
+
+| id | screen | finding | severity | evidence | proposed fix | owner |
+|---|---|---|---|---|---|---|
+| P-001 | all | Board and shared CSS declare `--font-sans: "Inter"`; only `screens/signin.css` declares IBM Plex Sans. The 2026-10-29 target screenshot renders in a system sans. The brief asks for IBM Plex Sans, so `apps/web` uses Plex everywhere (self-hosted via `@fontsource/ibm-plex-sans`). | minor | `design/flowboard-ui/styles.css:6`, `screens/signin.css:3` | Decide one family and update the prototype tokens. | Design |
+| P-002 | all | `screens/signin.css` defines `.brand-wordmark` globally but defines `--wordmark-gradient` only under `.signin-page`. Loaded together, the sidebar wordmark becomes transparent. Fixed in `apps/web/src/styles/overrides.css` with a global default gradient; sign-in keeps its own. | minor | `screens/signin.css:79-86`, `apps/web/src/styles/overrides.css` | Scope the rule to `.signin-page` in the prototype. | Design |
+| P-003 | logo | Reference image `flowboard-wordmark-2026-10-29.png` shows the pastel gradient on a light background; `signin.css` uses a deep purple to navy gradient on light and pastel only in dark. The app uses the pastel gradient in the sidebar pill and the sign-in gradient on the sign-in page, as the prototype does. | minor | `docs/references/flowboard-wordmark-2026-10-29.png`, `screens/signin.css:39,381` | User picks one wordmark for light theme. | Design |
+| P-004 | board | Prototype collapses the navigation by default (`state.navCollapsed = true`) but the target screenshot shows it open. `apps/web` opens it by default on desktop. | minor | `workspace.js:15`, `docs/references/ui-board-target-2026-10-29.png` | Confirm the default. | Design |
+| P-005 | board, drawer | `CardSummary` has no description excerpt and no card key (target shows `WEB-101` and a two-line excerpt). Both are omitted until the API provides them. | major | `packages/contracts/src/cards.ts` `cardSummarySchema` | Add `key` and `descriptionExcerpt` to the snapshot card. | Backend |
+| P-006 | board | Columns store a hex color and a category (`todo`/`active`/`done`); the prototype uses named pastel tones (lavender, ice blue, grey, green, coral, rose, mint, peach, butter, lilac). `apps/web` derives the tone from the column name, then category. The column settings dialog is not ported because a tone cannot be saved. | major | `apps/api/src/adapters/boards.ts:183`, `board-interactions.css` | Store a tone name on the column and expose it. | Backend / Design |
+| P-007 | topbar | "View as" role switcher is a design-only fixture. `apps/web` shows the real role as a disabled select. | minor | `index.html` `#roleSelect` | Keep as a read-only role label or remove. | Design |
+| P-008 | board | "Card display → Show image previews" needs thumbnail URLs that the snapshot does not carry. The control is hidden. | major | `board.js` `showCardImages` | Add private thumbnail URLs or a per-card first-image reference. | Backend |
+| P-009 | board | Overdue and due-soon counters are computed from loaded cards only (at most 15 per column), so they can undercount. | minor | `board-view.tsx` | Add `overdueCount` and `dueSoonCount` to snapshot totals. | Backend |
+| P-010 | board | Share dialog is not ported (no invitation API contract that is safe to wire yet); the share button is shown disabled with a "coming soon" tooltip. | major | `docs/handoffs/frontend-backend-gaps.md` P0-5 | Port after invitation tokens leave the create response. | Backend / UI |
+| P-011 | board | A drop at the end of a column that has more cards than the snapshot returned sends `nextCardId: null` after the last loaded card, so it can land before unloaded cards. There is no per-column paging call. | major | `apps/web/src/lib/board-model.ts` `neighbours` | Add a cursor-paged column cards endpoint and a "move to end" option. | Backend |
+| P-012 | drawer | Activity tab and the Mention button need a per-card activity feed and a mentionable-people call; both are labelled coming soon. | major | `card-detail-drawer.tsx` | Add `GET /cards/:id/activity` and use `PersonDisplay.mentionable`. | Backend |
+| P-013 | drawer | The prototype shows "Created by Alice Owner"; the card has `createdAt` but no creator. The drawer shows only relative times. | minor | `cardSchema` | Add `createdBy` to the card. | Backend |
+| P-014 | sprite | `i-list` is drawn differently in `index.html` (bulleted list) and `screens/screens.js`. The board version wins in `apps/web`. | minor | `index.html` sprite, `screens/screens.js:196` | Pick one drawing. | Design |
+| P-015 | shell | Inbox, Activity, Trash, People and Settings navigation items are inert with a "Soon" badge until their screens are wired. | minor | `components/shell/rail.tsx` | Remove the badge as each screen is wired. | UI |
+
+## Proposed enhancements (after parity, not applied)
+
+None yet.

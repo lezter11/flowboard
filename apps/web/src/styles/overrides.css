@@ -1,0 +1,18 @@
+:root {
+  /* Type: IBM Plex Sans per the UI/UX brief (prototype styles.css says Inter; see parity report). */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Coming-soon navigation items: same look as nav items, inert. */
+.nav-item.is-soon { opacity: 0.62; cursor: not-allowed; }
+.nav-item.is-soon:hover { background: transparent; }
+.state-note { max-width: 520px; margin: 48px auto; display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.state-note h1 { font-size: 22px; letter-spacing: -0.02em; }
+.state-note p { color: var(--muted); }
+
+/* One wordmark everywhere. The prototype's styles.css gradient is the default (sidebar pill, titles);
+   signin.css redefines --wordmark-gradient inside .signin-page (and its dark theme), as in the prototype.
+   Without this default the signin.css rule, now global, would render the text transparent. */
+:root {
+  --wordmark-gradient: linear-gradient(95deg, var(--palette-thistle) 0%, var(--palette-petal) 25%, var(--palette-baby-pink) 50%, var(--palette-icy-blue) 75%, var(--palette-sky-blue) 100%);
+}

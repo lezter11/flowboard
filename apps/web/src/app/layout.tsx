@@ -1,7 +1,12 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Providers } from '@/components/providers';
-import { AppShell } from '@/components/app-shell';
+import { AppShell } from '@/components/shell/app-shell';
+import { IconSprite } from '@/components/ui/icon';
+import '@fontsource/ibm-plex-sans/400.css';
+import '@fontsource/ibm-plex-sans/500.css';
+import '@fontsource/ibm-plex-sans/600.css';
+import '@fontsource/ibm-plex-sans/700.css';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -16,16 +21,18 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className="antialiased">
+    <html lang="en" data-theme="light" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: "try{if(localStorage.getItem('flowboard-ui-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}",
+          }}
+        />
+      </head>
+      <body>
+        <IconSprite />
         <Providers>
-          <Suspense
-            fallback={
-              <div className="flex h-screen items-center justify-center text-sm font-semibold text-muted">
-                Loading Flowboard...
-              </div>
-            }
-          >
+          <Suspense fallback={<div role="status" className="state-note">Loading Flowboard…</div>}>
             <AppShell>{children}</AppShell>
           </Suspense>
         </Providers>
