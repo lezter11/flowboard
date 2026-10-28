@@ -218,7 +218,15 @@ export const api = {
   },
 
   async listNotifications(): Promise<NotificationListResponse> {
-    return request<NotificationListResponse>('/api/v1/notifications');
+    return request<NotificationListResponse>('/api/v1/notifications?limit=100');
+  },
+
+  async markNotificationRead(id: string): Promise<void> {
+    await request<unknown>(`/api/v1/notifications/${encodeURIComponent(id)}/read`, { method: 'PATCH' });
+  },
+
+  async markAllNotificationsRead(): Promise<void> {
+    await request<unknown>('/api/v1/notifications/mark-all-read', { method: 'POST' });
   },
 
   // Trash

@@ -6,6 +6,8 @@ import { usePathname } from 'next/navigation';
 import { Icon } from '@/components/ui/icon';
 import { Wordmark } from '@/components/ui/wordmark';
 import { Avatar } from '@/components/ui/avatar';
+import { useQuery } from '@tanstack/react-query';
+import { api } from '@/lib/api';
 import { useActiveProject } from '@/lib/active-project';
 import { can, ROLE_META } from '@/lib/roles';
 import { useSession } from '@/lib/session';
@@ -40,6 +42,8 @@ export function Rail() {
   const shell = useShell();
   const { workspace, projects, projectId, role, boards, boardId } = useActiveProject();
   const actor = state.status === 'ready' ? state.session.actor : null;
+  const unreadQuery = useQuery({ queryKey: ['notifications'], queryFn: async () => (await api.listNotifications()).data, enabled: state.status === 'ready', staleTime: 30_000 });
+  const unread = (unreadQuery.data ?? []).filter((n) => !n.read).length;
   const firstBoard = boards[0]?.id ?? null;
   const boardHref = boardId ? `/board?id=${encodeURIComponent(boardId)}` : firstBoard ? `/board?id=${encodeURIComponent(firstBoard)}` : projectId ? `/project?id=${encodeURIComponent(projectId)}` : '/projects';
   const trap = (event: KeyboardEvent<HTMLElement>) => {
@@ -88,7 +92,7 @@ export function Rail() {
           <p className="nav-label">Workspace</p>
           <NavLink href={boardHref} icon="board" label="Board" active={pathname === '/board'} onNavigate={close} />
           <NavLink href="/projects" icon="folder" label="Projects" active={pathname === '/projects' || pathname === '/project'} onNavigate={close} />
-          <SoonItem icon="inbox" label="Inbox" />
+          <NavLink href="/inbox" icon="inbox" label="Inbox" active={pathname === '/inbox'} badge={unread || undefined} onNavigate={close} />
           <NavLink href="/activity" icon="activity" label="Activity" active={pathname === '/activity'} onNavigate={close} />
         </div>
         {manage && (
