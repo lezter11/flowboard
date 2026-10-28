@@ -119,3 +119,15 @@ Smoke results for this deploy: `/` 200; signed-out `/api/v1/session` 401; `/api/
 4. The worktree needs `node_modules` symlinks at both the root and `apps/web`. Without them the Next build fails with `Cannot read properties of undefined (reading 'fileExists')`.
 5. Record the Worker version from `wrangler deploy --env uat` output and the Pages deployment id from `wrangler pages deployment list --project-name flowboard-app-uat`. Both are copied into the log above by hand.
 6. The deploy uses the committed `wrangler.jsonc` at the commit, not any uncommitted edit in the shared checkout.
+
+## Deploy log addendum: 64b5ba1 with migration 0009
+
+| Date (UTC) | Commit | Worker version | Pages deployment | Migrations on UAT |
+|---|---|---|---|---|
+| 2026-10-28 | `64b5ba1` | `692cfd67-795b-43d5-9b82-ca615613f9e0` | `993cc6d2-8496-4f0e-ba07-c9bac7165d05` | 0001-0009; runner applied `+ [0009] 0009_card_keys_and_key_prefix.sql` |
+
+Migration 0009 review: additive and non-destructive. It creates a sequence and two nullable-then-`NOT NULL` columns, backfills existing rows, and adds a unique index. It has no `DROP`, `DELETE` or `TRUNCATE`. Production notes: the `cards` backfill rewrites every card row, and `CREATE UNIQUE INDEX` takes a write lock on `cards`. Run it in a window, or split the index into `CREATE UNIQUE INDEX CONCURRENTLY` before production.
+
+Backup: a Neon child branch could not be created from `uat` because the branch has an expiry date (Neon rejects children of expiring branches). Instead, every UAT table was exported to a local JSON file (24 tables, synthetic data, kept outside Git). Create a Neon backup branch from `uat` only after the UAT expiry is removed, with Architect approval.
+
+Smoke for `64b5ba1`: Worker `/health/ready` 200; signed-out `/api/v1/session` 401; `/signin` 200 with the wordmark (pane screenshot); `/projects`, `/project?id=`, `/board?id=`, `/activity` all 200; foreign-origin preflight has no allow-origin; `/api/v1/system/status` without secret 403; legacy `/projects/<id>` and `/boards/<id>` 302 to query routes.
