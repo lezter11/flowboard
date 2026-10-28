@@ -6,8 +6,9 @@ import { adminSecretMatches } from '../admin-secret.ts';
 export const systemRoutes = new Hono<{ Variables: { requestId: string } }>();
 
 systemRoutes.get('/status', async (c) => {
-  const env = c.env as { DEV_LOGIN_SECRET?: string } | undefined;
-  if (!adminSecretMatches(c.req.header('x-dev-secret'), env?.DEV_LOGIN_SECRET)) {
+  const env = c.env as { DEV_LOGIN_SECRET?: string; HYPERDRIVE?: unknown; DATABASE_URL?: string } | undefined;
+  const deployed = Boolean(env?.HYPERDRIVE || env?.DATABASE_URL);
+  if (!adminSecretMatches(c.req.header('x-dev-secret'), env?.DEV_LOGIN_SECRET, deployed)) {
     return c.json({ error: { code: 'FORBIDDEN', message: 'Forbidden' } }, 403);
   }
 
@@ -17,8 +18,9 @@ systemRoutes.get('/status', async (c) => {
 });
 
 systemRoutes.post('/migrate', async (c) => {
-  const env = c.env as { DEV_LOGIN_SECRET?: string } | undefined;
-  if (!adminSecretMatches(c.req.header('x-dev-secret'), env?.DEV_LOGIN_SECRET)) {
+  const env = c.env as { DEV_LOGIN_SECRET?: string; HYPERDRIVE?: unknown; DATABASE_URL?: string } | undefined;
+  const deployed = Boolean(env?.HYPERDRIVE || env?.DATABASE_URL);
+  if (!adminSecretMatches(c.req.header('x-dev-secret'), env?.DEV_LOGIN_SECRET, deployed)) {
     return c.json(
       {
         error: {

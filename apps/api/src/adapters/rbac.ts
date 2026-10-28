@@ -375,6 +375,10 @@ export async function acquireWriteGrantLock(
  * Locks the project and optional board context and rejects writes to archived
  * data. The row locks make a future archive transition wait for this mutation
  * (or make this mutation observe the committed archive state first).
+ * The board row is locked FOR UPDATE up front: card create/move later update the
+ * board version, and taking a shared lock first made two parallel writers
+ * deadlock while upgrading it. Writes on one board therefore queue, in a fixed
+ * project-then-board order.
  */
 export async function acquireWritableProjectContextLock(
   client: pg.ClientBase,
@@ -390,7 +394,8 @@ export async function acquireWritableProjectContextLock(
        FROM projects p
        JOIN boards b ON b.project_id = p.id
        WHERE p.id = $1 AND b.id = $2
-       FOR SHARE OF p, b`,
+       FOR SHARE OF p
+       FOR UPDATE OF b`,
       [projectId, boardId],
     );
     if (!contextRes.rows[0]) {

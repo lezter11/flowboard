@@ -142,6 +142,22 @@ export const errorHandler: ErrorHandler<{ Variables: { requestId: string } }> = 
     );
   }
 
+  // 5b. PostgreSQL deadlock/serialization failures are transient: ask the client to retry.
+  const pgCode = typeof err === 'object' && err !== null && 'code' in err ? (err as { code: unknown }).code : undefined;
+  if (pgCode === '40P01' || pgCode === '40001') {
+    c.header('Retry-After', '1');
+    return c.json(
+      {
+        error: {
+          code: 'SERVICE_UNAVAILABLE',
+          message: 'The request conflicted with another update. Retry shortly.',
+          requestId,
+        },
+      },
+      503,
+    );
+  }
+
   // 6. Safe 500 handler for unhandled exceptions
   // NEVER leak connection strings, passwords, or SQL query internals to client.
   return c.json(
