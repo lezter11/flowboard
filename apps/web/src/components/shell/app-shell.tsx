@@ -10,7 +10,7 @@ import { ShellProvider, useShell } from './shell-context';
 import { ToastProvider } from '@/components/ui/toasts';
 import { HoverTip } from '@/components/ui/hover-tip';
 
-const BARE_ROUTES = ['/signin', '/invitation', '/invitations/accept'];
+const BARE_ROUTES = ['/signin', '/invitation', '/invitations/accept', '/all-work'];
 
 function Frame({ children }: { children: ReactNode }) {
   const pathname = usePathname();
