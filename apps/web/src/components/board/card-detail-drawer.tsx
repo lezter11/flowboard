@@ -222,7 +222,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
   return (
     <>
       <header className="drawer-head">
-        <div className="drawer-crumb"><strong>{boardName}</strong></div>
+        <div className="drawer-crumb">{card.key && <><strong>{card.key}</strong><span className="sep">/</span></>}<span>{boardName}</span></div>
         <div className="drawer-head-actions">
           {can(role, 'move') && (
             <button className="btn ghost sm" type="button" aria-label="Move card" onClick={onRequestMove}><Icon name="move" /><span aria-hidden="true">Move</span></button>
@@ -241,7 +241,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
           <div className="detail-context">
             <span className="badge">{currentColumn?.name ?? 'Column'}</span>
             <span className="dot" aria-hidden="true" />
-            <span>Created {relativeTime(card.createdAt)}</span>
+            <span>{card.createdBy ? `Created by ${card.createdBy.displayName}` : 'Created'} {relativeTime(card.createdAt)}</span>
             <span className="dot" aria-hidden="true" />
             <span>Updated {relativeTime(card.updatedAt)}</span>
           </div>

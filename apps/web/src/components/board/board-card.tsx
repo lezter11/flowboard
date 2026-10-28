@@ -32,6 +32,7 @@ export function BoardCard({ card, done, view, cardStyle, people, canMove, dragga
   const due = dueInfo(card.dueDate, done);
   const names = card.assigneeIds.map((id) => people.get(id)?.displayName ?? 'Unknown member');
 
+  const key = card.key ? <span className="card-key">{card.key}</span> : null;
   const deadline = due ? (
     <span className={`due is-${due.state}`} title={due.detail}>
       <Icon name="calendar" />
@@ -78,10 +79,10 @@ export function BoardCard({ card, done, view, cardStyle, people, canMove, dragga
     </button>
   ) : null;
 
-  const header = list ? (<>{priority}{moveButton}</>)
-    : glass ? (<><span className="card-head-spacer" />{moveButton ? <span className="card-action-tray">{moveButton}</span> : null}</>)
+  const header = list ? (<>{key}{priority}{moveButton}</>)
+    : glass ? (<>{key}{key ? null : <span className="card-head-spacer" />}{moveButton ? <span className="card-action-tray">{moveButton}</span> : null}</>)
     : (<>{priority}<span className="card-head-spacer" />{deadline}{moveButton}</>);
-  const footer = list ? (<>{deadline}{meta}<span className="spacer" />{assignees}</>) : (<>{assignees}<span className="spacer" />{meta}</>);
+  const footer = list ? (<>{deadline}{meta}<span className="spacer" />{assignees}</>) : (<>{assignees}<span className="spacer" />{meta}{glass ? null : key}</>);
 
   return (
     <article
@@ -97,6 +98,7 @@ export function BoardCard({ card, done, view, cardStyle, people, canMove, dragga
         <h3 className="card-title" id={`card-title-${card.id}`}>
           <button className="card-open" type="button" data-tooltip={card.title} onClick={(event) => { event.stopPropagation(); onOpen(card, event.currentTarget); }}>{card.title}</button>
         </h3>
+        {card.descriptionExcerpt ? <p className="card-desc">{card.descriptionExcerpt}</p> : null}
         {glass && (priority || deadline) ? <div className="card-signals">{priority}{deadline}</div> : null}
         <div className="card-meta">{footer}</div>
       </div>

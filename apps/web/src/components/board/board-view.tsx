@@ -73,7 +73,7 @@ export function BoardView() {
   const matches = useCallback((card: CardSummary) => {
     const q = filters.q.trim().toLowerCase();
     if (q) {
-      const hay = [card.title, ...card.assigneeIds.map((id) => people.get(id)?.displayName ?? '')].join(' ').toLowerCase();
+      const hay = [card.title, card.key ?? '', card.descriptionExcerpt ?? '', ...card.assigneeIds.map((id) => people.get(id)?.displayName ?? '')].join(' ').toLowerCase();
       if (!hay.includes(q)) return false;
     }
     if (filters.assignees.length) {
@@ -252,8 +252,8 @@ export function BoardView() {
   const allCards = columns.flatMap((c) => c.cards);
   const total = snapshot.totals.activeCardCount;
   const notDone = allCards.filter((c) => columns.find((col) => col.id === c.columnId)?.category !== 'done');
-  const overdue = notDone.filter((c) => c.dueDate && (daysUntil(c.dueDate) ?? 0) < 0).length;
-  const soon = notDone.filter((c) => c.dueDate && (daysUntil(c.dueDate) ?? -1) >= 0 && (daysUntil(c.dueDate) ?? 99) <= 7).length;
+  const overdue = snapshot.totals.overdueCount ?? notDone.filter((c) => c.dueDate && (daysUntil(c.dueDate) ?? 0) < 0).length;
+  const soon = snapshot.totals.dueSoonCount ?? notDone.filter((c) => c.dueDate && (daysUntil(c.dueDate) ?? -1) >= 0 && (daysUntil(c.dueDate) ?? 99) <= 7).length;
   const visibleCount = allCards.filter(matches).length;
   const selectedAssignees = filters.assignees;
   const assignable = snapshot.people.filter((p) => p.activeInProject);
