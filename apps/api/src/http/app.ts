@@ -55,9 +55,7 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
       if (
         origin.startsWith('http://localhost:') ||
         origin.startsWith('http://127.0.0.1:') ||
-        origin.startsWith('https://localhost:') ||
-        origin.endsWith('.pages.dev') ||
-        origin.endsWith('.workers.dev')
+        origin.startsWith('https://localhost:')
       ) {
         return origin;
       }

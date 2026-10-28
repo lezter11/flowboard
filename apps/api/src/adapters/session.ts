@@ -18,7 +18,7 @@ export interface SessionWithUser {
 export interface SessionCookieOptions {
   path: string;
   httpOnly: boolean;
-  sameSite: 'Lax' | 'None' | 'Strict';
+  sameSite: 'Lax';
   secure: boolean;
   maxAge: number;
 }
@@ -26,7 +26,7 @@ export interface SessionCookieOptions {
 export interface ClearSessionCookieOptions {
   path: string;
   httpOnly: boolean;
-  sameSite: 'Lax' | 'None' | 'Strict';
+  sameSite: 'Lax';
   secure: boolean;
   maxAge: number;
 }
@@ -60,7 +60,7 @@ export function getSessionCookieOptions(hostOrHostname?: string): SessionCookieO
   return {
     path: '/',
     httpOnly: true,
-    sameSite: local ? 'Lax' : 'None',
+    sameSite: 'Lax',
     secure: !local,
     maxAge: 7 * 24 * 3600,
   };
@@ -71,7 +71,7 @@ export function getClearSessionCookieOptions(hostOrHostname?: string): ClearSess
   return {
     path: '/',
     httpOnly: true,
-    sameSite: local ? 'Lax' : 'None',
+    sameSite: 'Lax',
     secure: !local,
     maxAge: 0,
   };
