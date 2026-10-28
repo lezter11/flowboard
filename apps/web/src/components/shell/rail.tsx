@@ -95,7 +95,7 @@ export function Rail() {
           <div className="nav-group">
             <p className="nav-label">Manage</p>
             <NavLink href="/trash" icon="trash" label="Trash" active={pathname === '/trash'} onNavigate={close} />
-            <SoonItem icon="users" label="People" />
+            <NavLink href="/people" icon="users" label="People" active={pathname === '/people'} onNavigate={close} />
             <SoonItem icon="settings" label="Settings" />
           </div>
         )}

@@ -5,6 +5,7 @@ import {
   type ProjectResponse,
   type ProjectListResponse,
   type ProjectPeopleResponse,
+  type ProjectDirectoryResponse,
   type BoardListResponse,
   type BoardResponse,
   type CreateProjectInput,
@@ -120,6 +121,10 @@ export const api = {
 
   async getProject(projectId: string): Promise<ProjectResponse> {
     return request<ProjectResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}`);
+  },
+
+  async listProjectMembers(projectId: string): Promise<ProjectDirectoryResponse> {
+    return request<ProjectDirectoryResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/members?limit=100`);
   },
 
   async listProjectPeople(projectId: string): Promise<ProjectPeopleResponse> {
