@@ -10,6 +10,9 @@ import {
   type BoardResponse,
   type CreateProjectInput,
   type CreateBoardInput,
+  type AcceptInvitationResponse,
+  type ImportStatusResponse,
+  type CommitImportInput,
   type UpdateProjectInput,
   type UpdateBoardInput,
   type BoardSnapshotResponse,
@@ -140,6 +143,33 @@ export const api = {
 
   async getProject(projectId: string): Promise<ProjectResponse> {
     return request<ProjectResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}`);
+  },
+
+  async acceptInvitation(token: string, idempotencyKey?: string): Promise<AcceptInvitationResponse> {
+    return request<AcceptInvitationResponse>('/api/v1/invitations/accept', {
+      method: 'POST',
+      headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
+      body: JSON.stringify({ token }),
+    });
+  },
+
+  async createImport(boardId: string, file: File, defaultColumnId: string): Promise<ImportStatusResponse> {
+    const form = new FormData();
+    form.set('file', file);
+    form.set('defaultColumnId', defaultColumnId);
+    return request<ImportStatusResponse>(`/api/v1/boards/${encodeURIComponent(boardId)}/imports`, { method: 'POST', body: form });
+  },
+
+  async commitImport(importId: string, input: CommitImportInput, idempotencyKey?: string): Promise<ImportStatusResponse> {
+    return request<ImportStatusResponse>(`/api/v1/imports/${encodeURIComponent(importId)}/commit`, {
+      method: 'POST',
+      headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
+      body: JSON.stringify(input),
+    });
+  },
+
+  async cancelImport(importId: string): Promise<void> {
+    await request<unknown>(`/api/v1/imports/${encodeURIComponent(importId)}`, { method: 'DELETE' });
   },
 
   async listProjectMembers(projectId: string): Promise<ProjectDirectoryResponse> {
