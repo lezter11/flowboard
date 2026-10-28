@@ -12,6 +12,7 @@ import {
   updateUserProfile,
 } from '../../adapters/session.ts';
 import { HttpError } from '../errors.ts';
+import { adminSecretMatches } from '../admin-secret.ts';
 import { getSessionResponseSchema, parseOrThrow } from '@flowboard/contracts';
 
 const devLoginRequestSchema = z.object({
@@ -120,9 +121,7 @@ sessionRoutes.post('/dev-login', async (c) => {
   // Prevent unauthorized impersonation of existing users in development/test
   const existingUser = await getUserByEmail(email);
   if (existingUser) {
-    const devSecret = c.req.header('x-dev-secret') || c.req.header('X-Dev-Secret');
-    const configuredSecret = process.env.DEV_LOGIN_SECRET || 'flowboard-dev-secret';
-    if (!devSecret || devSecret !== configuredSecret) {
+    if (!adminSecretMatches(c.req.header('x-dev-secret'))) {
       throw HttpError.forbidden('Cannot sign in to existing account without development secret.');
     }
   }

@@ -162,6 +162,10 @@ googleAuthRoutes.get('/google/callback', async (c) => {
     throw HttpError.badRequest('Google account must have an associated email address.', 'EMAIL_REQUIRED');
   }
 
+  if (profile.email_verified !== true) {
+    throw HttpError.forbidden('Google account email is not verified.', 'EMAIL_NOT_VERIFIED');
+  }
+
   const normalizedEmail = profile.email.trim().toLowerCase();
   const displayName = profile.name?.trim() || normalizedEmail.split('@')[0] || 'User';
   const avatarUrl = profile.picture || null;

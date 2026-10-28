@@ -1,18 +1,13 @@
 import { Hono } from 'hono';
 import { runMigrations } from '../../adapters/migrations.ts';
 import { getPool } from '../../adapters/postgres.ts';
+import { adminSecretMatches } from '../admin-secret.ts';
 
 export const systemRoutes = new Hono<{ Variables: { requestId: string } }>();
 
 systemRoutes.get('/status', async (c) => {
-  const secret = c.req.header('x-dev-secret') || c.req.header('X-Dev-Secret');
   const env = c.env as { DEV_LOGIN_SECRET?: string } | undefined;
-  const expectedSecret =
-    env?.DEV_LOGIN_SECRET ||
-    (typeof process !== 'undefined' ? process.env?.['DEV_LOGIN_SECRET'] : undefined) ||
-    'flowboard-dev-secret';
-
-  if (!secret || secret !== expectedSecret) {
+  if (!adminSecretMatches(c.req.header('x-dev-secret'), env?.DEV_LOGIN_SECRET)) {
     return c.json({ error: { code: 'FORBIDDEN', message: 'Forbidden' } }, 403);
   }
 
@@ -22,14 +17,8 @@ systemRoutes.get('/status', async (c) => {
 });
 
 systemRoutes.post('/migrate', async (c) => {
-  const secret = c.req.header('x-dev-secret') || c.req.header('X-Dev-Secret');
   const env = c.env as { DEV_LOGIN_SECRET?: string } | undefined;
-  const expectedSecret =
-    env?.DEV_LOGIN_SECRET ||
-    (typeof process !== 'undefined' ? process.env?.['DEV_LOGIN_SECRET'] : undefined) ||
-    'flowboard-dev-secret';
-
-  if (!secret || secret !== expectedSecret) {
+  if (!adminSecretMatches(c.req.header('x-dev-secret'), env?.DEV_LOGIN_SECRET)) {
     return c.json(
       {
         error: {
