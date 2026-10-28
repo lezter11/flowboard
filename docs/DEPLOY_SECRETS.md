@@ -1,6 +1,6 @@
 # Deployment secrets and config checklist
 
-Names only. Never put values in Git, docs or chat. Set secrets with `wrangler secret put NAME --env <dev|uat>` (production: no `--env`); each environment gets its own value.
+Names only. Never put values in Git, docs or chat. Set secrets with `wrangler secret put NAME --env uat` (production: no `--env`); each environment gets its own value.
 
 ## Worker secrets (per environment, different values)
 
@@ -21,11 +21,14 @@ Do not set `DEV_LOGIN_ENABLED` or `NODE_ENV` on deployed Workers.
 
 Add each environment's `GOOGLE_REDIRECT_URI` as an authorized redirect URI before the first sign-in there.
 
-## Bindings
+## Bindings (two environments only: UAT and PROD)
 
-| Resource | dev | uat | production |
-|---|---|---|---|
-| Worker | `flowboard-api-dev` | `flowboard-api-uat` | `flowboard-api` |
-| Hyperdrive | own config -> Neon `dev` branch | own config -> Neon `uat` branch | `flowboard-hyperdrive` -> `production` |
-| Pages project | `flowboard-app-dev` | `flowboard-app-uat` | `flowboard-app` |
-| Pages service binding `API` | `flowboard-api-dev` | `flowboard-api-uat` | `flowboard-api` |
+The dev environment was dropped (decision in docs/decisions/2026-10-28-uat-first-release-policy.md). Neon branch `dev` and any `flowboard-app-dev` project were never wired; removal is pending Architect approval.
+
+
+| Resource | uat | production |
+|---|---|---|
+| Worker | `flowboard-api-uat` | `flowboard-api` |
+| Hyperdrive | `flowboard-hyperdrive-uat` -> Neon `uat` branch | `flowboard-hyperdrive` -> `production` |
+| Pages project | `flowboard-app-uat` | `flowboard-app` |
+| Pages service binding `API` | `flowboard-api-uat` | `flowboard-api` |

@@ -1,6 +1,6 @@
 # Beta production release runbook
 
-Status: DRAFT, not executed. Nothing here has run against production. Execute only after the Architect's explicit go, one phase at a time. Names only; never write secret values anywhere.
+Status: DRAFT, not executed. Production cutover is blocked until the whole beta scope is done (docs/decisions/2026-10-28-uat-first-release-policy.md); UAT redeploys are in docs/UAT_DEPLOY.md. Nothing here has run against production. Execute only after the Architect's explicit go, one phase at a time. Names only; never write secret values anywhere.
 
 Targets: Worker `flowboard-api`, Pages `flowboard-app` (`https://flowboard-app.pages.dev`), Neon project `misty-unit-76664549` branch `production` (`br-orange-union-a1kqetvn`), database `neondb`, Hyperdrive `flowboard-hyperdrive` (`18f56141…`).
 
@@ -102,7 +102,7 @@ Host `P=https://flowboard-app.pages.dev`.
 
 - Dev login (`DEV_LOGIN_ENABLED`, `NODE_ENV=development`): never set in production; route additionally returns 404 on any Worker with a Hyperdrive binding.
 - Admin routes: only with `DEV_LOGIN_SECRET`; no default fallback in the new build.
-- Cron: `*/5 * * * *` (was every minute) for trash purge and outbox. Raise or lower after observing load. UAT/dev use `*/15`.
+- Cron: `*/5 * * * *` (was every minute) for trash purge and outbox. Raise or lower after observing load. UAT uses `*/15`.
 - Wildcard `*.pages.dev` / `*.workers.dev` CORS trust: removed in the new build (exact `CORS_ORIGIN` only).
 - Hyperdrive caching: stays disabled.
 
