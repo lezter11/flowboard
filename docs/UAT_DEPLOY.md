@@ -105,6 +105,9 @@ git -C "$REPO" worktree remove --force "$WT"
 | Date (UTC) | Commit | Worker version (`flowboard-api-uat`) | Pages deployment (`flowboard-app-uat`) | Migrations on UAT |
 |---|---|---|---|---|
 | 2026-10-28 | `02ab8e1` | `3c70f1dd-0f73-497f-9a64-455c8666c652` | `39f565f3-ee1b-47a9-81c0-02aeaa1dbf69` | 0001-0008 (already up to date) |
+| 2026-10-29 00:30 IST | `242ddf5` | `1cad03e8-7604-4b56-95ea-5809c0546283` | `89601ced-1143-4c38-ae73-b8ed63ababac` | 0001-0008 (already up to date) |
+
+Unauthenticated smoke for `242ddf5`: Worker `/health/ready` 200; signed-out `/api/v1/session` 401; `/signin` 200 and renders the gradient "Flowboard" wordmark (pane screenshot, not saved to Git); `/board?id=` 200 shell; foreign-origin preflight has no allow-origin; `/api/v1/system/status` without secret 403; legacy `/projects/<id>` and `/boards/<id>` 302 to query routes. Signed-in checks were not run for this deploy.
 
 Smoke results for this deploy: `/` 200; signed-out `/api/v1/session` 401; `/api/v1/system/status` without secret 403; foreign-origin preflight has no allow-origin; `/projects/<id>` and `/boards/<id>` 302 to query routes; Worker `/health/ready` 200 and `/health/live` 200 (called on the Worker host, see notes).
 
