@@ -23,6 +23,7 @@ import {
   type ActivityListResponse,
   type NotificationListResponse,
   type TrashListResponse,
+  type RestoreCardInput,
 } from '@flowboard/contracts';
 
 export class ApiError extends Error {
@@ -178,7 +179,7 @@ export const api = {
   },
 
   async softDeleteCard(cardId: string, input: SoftDeleteCardInput, idempotencyKey?: string): Promise<MutationResponse> {
-    return request<MutationResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/trash`, {
+    return request<MutationResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/delete`, {
       method: 'POST',
       headers: {
         'Idempotency-Key': idempotencyKey || generateIdempotencyKey(),
@@ -216,6 +217,14 @@ export const api = {
   },
 
   // Trash
+  async restoreCard(cardId: string, input: RestoreCardInput, idempotencyKey?: string): Promise<MutationResponse> {
+    return request<MutationResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/restore`, {
+      method: 'POST',
+      headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
+      body: JSON.stringify(input),
+    });
+  },
+
   async listProjectTrash(projectId: string): Promise<TrashListResponse> {
     return request<TrashListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/trash`);
   },

@@ -94,7 +94,7 @@ export function Rail() {
         {manage && (
           <div className="nav-group">
             <p className="nav-label">Manage</p>
-            <SoonItem icon="trash" label="Trash" />
+            <NavLink href="/trash" icon="trash" label="Trash" active={pathname === '/trash'} onNavigate={close} />
             <SoonItem icon="users" label="People" />
             <SoonItem icon="settings" label="Settings" />
           </div>
