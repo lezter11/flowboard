@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useProjectBoards } from '@/lib/portfolio';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
@@ -23,6 +24,19 @@ export default function PeoplePage() {
   const toast = useToast();
   const queryClient = useQueryClient();
   const [manageOpen, setManageOpen] = useState(false);
+  const [accessOpen, setAccessOpen] = useState(false);
+  const [accessBoardId, setAccessBoardId] = useState('');
+  const [accessError, setAccessError] = useState('');
+  const boards = useProjectBoards(project?.id ?? null);
+  const boardList = (boards.data ?? []).filter((b) => !b.isArchived);
+  const accessBoard = boardList.find((b) => b.id === accessBoardId) ?? boardList[0];
+  const access = useQuery({ queryKey: ['board-access', accessBoard?.id], queryFn: async () => (await api.getBoardAccess(accessBoard!.id)).data, enabled: accessOpen && !!accessBoard });
+  const setGrant = useMutation({
+    mutationFn: (v: { userId: string; allow: boolean }) => api.setBoardGrant(accessBoard!.id, v.userId, v.allow, access.data!.accessRevision),
+    onSuccess: () => { setAccessError(''); void queryClient.invalidateQueries({ queryKey: ['board-access', accessBoard?.id] }); },
+    onError: (e) => { setAccessError(describeError(e)); void queryClient.invalidateQueries({ queryKey: ['board-access', accessBoard?.id] }); },
+  });
+  const isOwnerOfProject = project?.role === 'owner';
   const [manageError, setManageError] = useState('');
   const refreshMembers = () => void queryClient.invalidateQueries({ queryKey: ['members', project?.id] });
   const changeRole = useMutation({
@@ -65,6 +79,7 @@ export default function PeoplePage() {
         <div><h1>People</h1><p className="people-sub">{project?.name ?? 'Loading project members…'}</p></div>
         <div className="people-actions">
           {project && <Link className="btn" href={`/project?id=${encodeURIComponent(project.id)}`}><Icon name="folder" />Project overview</Link>}
+          {isOwnerOfProject && boardList.length > 0 && <button className="btn" type="button" onClick={() => { setAccessError(''); setAccessOpen(true); }}><Icon name="lock" />Board access</button>}
           <button className="btn primary" type="button" onClick={() => { setManageError(''); setManageOpen(true); }}><Icon name="users" />Manage members</button>
         </div>
       </header>
@@ -112,6 +127,34 @@ export default function PeoplePage() {
         </section>
         <p className="people-foot"><Icon name="info" />Roles come from project membership. Inviting people by email is coming soon.</p>
       </div>
+      <DialogLayer open={accessOpen} onClose={() => setAccessOpen(false)} labelledBy="boardAccessTitle" describedBy="boardAccessHelp" className="wide">
+        <div className="dialog-head"><div><h2 id="boardAccessTitle">Board access</h2><p>{project?.name}</p></div><button className="dialog-close" type="button" data-autofocus onClick={() => setAccessOpen(false)} aria-label="Close"><Icon name="x" /></button></div>
+        <div className="dialog-body people-manage-body">
+          <p id="boardAccessHelp" className="people-manage-help">Choose which project members can open this board. Project roles and board access are separate. Owners always have access.</p>
+          <label className="people-board-label">Board
+            <select className="control" value={accessBoard?.id ?? ''} onChange={(event) => setAccessBoardId(event.target.value)}>{boardList.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}</select>
+          </label>
+          <fieldset className="people-manage-fieldset"><legend>People</legend>
+            <div className="people-manage-list">
+              {access.isPending && <p>Loading…</p>}
+              {access.isError && <p role="alert">{describeError(access.error)}</p>}
+              {access.isSuccess && list.filter((m) => m.role !== 'owner').map((m) => {
+                const uid = m.userId ?? m.id;
+                const granted = access.data.grants.some((g) => g.userId === uid);
+                return (
+                  <label key={m.id} className="people-manage-person">
+                    <input type="checkbox" checked={granted} disabled={setGrant.isPending} onChange={(event) => setGrant.mutate({ userId: uid, allow: event.target.checked })} />
+                    <span><strong>{nameOf(m)}</strong><small>{ROLE_META[m.role].label}</small></span>
+                  </label>
+                );
+              })}
+              {access.isSuccess && list.filter((m) => m.role !== 'owner').length === 0 && <p>No other members yet.</p>}
+            </div>
+          </fieldset>
+          <p className="form-error" role="alert" hidden={!accessError}>{accessError}</p>
+        </div>
+        <footer className="dialog-foot"><span className="spacer" /><button className="btn primary" type="button" onClick={() => setAccessOpen(false)}>Done</button></footer>
+      </DialogLayer>
       <DialogLayer open={manageOpen} onClose={() => setManageOpen(false)} labelledBy="peopleManageTitle" describedBy="peopleManageHelp" className="wide">
         <div className="dialog-head"><div><h2 id="peopleManageTitle">Manage people</h2><p>{project?.name}</p></div><button className="dialog-close" type="button" data-autofocus onClick={() => setManageOpen(false)} aria-label="Close"><Icon name="x" /></button></div>
         <div className="dialog-body people-manage-body">

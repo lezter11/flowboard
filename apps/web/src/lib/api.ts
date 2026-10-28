@@ -188,6 +188,17 @@ export const api = {
     });
   },
 
+  async getBoardAccess(boardId: string): Promise<{ data: { grants: Array<{ userId: string }>; accessRevision: string | number; nextCursor: string | null } }> {
+    return request(`/api/v1/boards/${encodeURIComponent(boardId)}/access`);
+  },
+
+  async setBoardGrant(boardId: string, userId: string, allow: boolean, expectedAccessRevision: string | number): Promise<void> {
+    await request<unknown>(`/api/v1/boards/${encodeURIComponent(boardId)}/grants/${encodeURIComponent(userId)}`, {
+      method: allow ? 'PUT' : 'DELETE',
+      body: JSON.stringify({ expectedAccessRevision }),
+    });
+  },
+
   async listProjectMembers(projectId: string): Promise<ProjectDirectoryResponse> {
     return request<ProjectDirectoryResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/members?limit=100`);
   },
