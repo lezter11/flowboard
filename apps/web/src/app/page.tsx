@@ -1,5 +1,10 @@
 'use client';
 
-import { Suspense } from 'react';
-import { BoardView } from '@/components/board-view';
-export default function HomePage() { return <Suspense fallback={<div className="flex-1 p-12 text-sm text-muted">Loading project board preview...</div>}><BoardView /></Suspense>; }
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+
+export default function HomePage() {
+  const router = useRouter();
+  useEffect(() => { router.replace('/projects'); }, [router]);
+  return <div className="flex-1 p-12 text-sm text-muted">Loading...</div>;
+}

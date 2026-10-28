@@ -114,9 +114,6 @@ export function ProjectView({ projectId }: Props) {
           <Link href="/projects" className="px-4 py-2 rounded-xl bg-surface border border-line text-xs font-semibold hover:bg-surface-3">
             Back to projects
           </Link>
-          <Link href="/" className="px-4 py-2 rounded-xl bg-accent text-[var(--accent-ink)] text-xs font-semibold hover:bg-accent-hover">
-            Open Sample Preview
-          </Link>
         </div>
       </div>
     );
@@ -147,12 +144,6 @@ export function ProjectView({ projectId }: Props) {
               <Plus className="w-4 h-4" /> Add board
             </button>
           )}
-          <Link
-            href={`/people?projectId=${encodeURIComponent(project.id)}`}
-            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border border-line bg-surface text-xs font-semibold hover:bg-surface-3 transition-colors"
-          >
-            <Users className="w-4 h-4 text-muted" /> People & Grants
-          </Link>
         </div>
       </div>
 
@@ -190,30 +181,11 @@ export function ProjectView({ projectId }: Props) {
         </form>
       )}
 
-      {/* 1-Click Multi-Board Unified View Banner */}
-      <section className="rounded-2xl border border-line bg-gradient-to-r from-purple-500/10 via-indigo-500/5 to-transparent p-5 sm:p-6 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-purple-700">
-            <Layers className="w-4 h-4" /> 1-Click Multi-Board Rollup
-          </div>
-          <h2 className="mt-1.5 text-lg font-bold text-ink">Unified Project Kanban Board</h2>
-          <p className="mt-1 text-xs text-muted max-w-xl">
-            See all cards from your accessible team boards (Developers, Operations, Marketing) consolidated into a single master Kanban board.
-          </p>
-        </div>
-        <Link
-          href={`/boards/unified?projectId=${encodeURIComponent(project.id)}`}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-ink text-surface font-semibold text-xs hover:opacity-90 transition-opacity shadow-sm"
-        >
-          Open Master Rollup <ArrowRight className="w-4 h-4" />
-        </Link>
-      </section>
-
       {/* Sub-Boards Grid */}
       <section>
         <div className="border-b border-line pb-3 mb-4 flex justify-between items-center">
           <h2 className="text-sm font-bold uppercase tracking-wider text-muted">
-            Project Sub-Boards ({boards.length})
+            Boards ({boards.length})
           </h2>
         </div>
 
@@ -241,7 +213,7 @@ export function ProjectView({ projectId }: Props) {
                 <div className="mt-6 pt-4 border-t border-line flex items-center justify-between">
                   <span className="text-[11px] text-faint">Version {board.structureVersion}</span>
                   <Link
-                    href={`/boards/${encodeURIComponent(board.id)}`}
+                    href={`/board?id=${encodeURIComponent(board.id)}`}
                     className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline"
                   >
                     Open board <ArrowRight className="w-3.5 h-3.5" />
@@ -253,8 +225,8 @@ export function ProjectView({ projectId }: Props) {
         ) : (
           <div className="py-16 text-center border border-dashed border-line rounded-2xl p-6">
             <Layers className="w-8 h-8 text-faint mx-auto" />
-            <h3 className="mt-3 text-sm font-semibold">No sub-boards in this project yet</h3>
-            <p className="mt-1 text-xs text-muted">Create boards for your teams (e.g. Developers, Ops, Marketing).</p>
+            <h3 className="mt-3 text-sm font-semibold">No boards you can open yet</h3>
+            <p className="mt-1 text-xs text-muted">Create a board for your team, or ask an owner for board access.</p>
             <button
               type="button"
               onClick={() => setIsCreatingBoard(true)}

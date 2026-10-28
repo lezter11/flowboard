@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { Kanban, LockKeyhole, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
 import { api } from '@/lib/api';
 
+const DEV_LOGIN = process.env.NODE_ENV !== 'production';
+
 export default function SignInPage() {
   const router = useRouter();
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
@@ -13,6 +15,7 @@ export default function SignInPage() {
   const [error, setError] = useState('');
 
   const handleDevLogin = async (role: string, email?: string) => {
+    if (!DEV_LOGIN) return;
     try {
       setLoadingRole(role);
       setError('');
@@ -58,7 +61,7 @@ export default function SignInPage() {
           </Link>
 
           <div className="mx-auto flex w-full max-w-md flex-1 flex-col justify-center py-12">
-            <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent">Welcome back</p>
+            <p className="text-xs font-bold uppercase tracking-[0.18em] text-accent">Beta</p>
             <h1 className="mt-3 text-4xl font-bold tracking-tight sm:text-[2.75rem]">
               Sign in to <span className="brand-wordmark">Flowboard</span>
             </h1>
@@ -75,7 +78,7 @@ export default function SignInPage() {
             <div className="mt-8 rounded-2xl border border-line bg-surface p-6 shadow-md space-y-5">
               <div>
                 <h2 className="text-base font-semibold">Production Sign In</h2>
-                <p className="mt-1 text-xs text-muted">Authenticate securely with your corporate Google Account.</p>
+                <p className="mt-1 text-xs text-muted">Authenticate securely with your Google account.</p>
               </div>
 
               {/* Real Google OAuth Redirect */}
@@ -104,6 +107,8 @@ export default function SignInPage() {
                 Continue with Google
               </a>
 
+              {DEV_LOGIN && (
+              <>
               <div className="relative flex py-2 items-center">
                 <div className="flex-grow border-t border-line"></div>
                 <span className="flex-shrink mx-3 text-[11px] uppercase font-bold text-muted">or dev testing persona</span>
@@ -164,6 +169,8 @@ export default function SignInPage() {
                   Dev Login
                 </button>
               </form>
+              </>
+              )}
             </div>
 
             <p className="mt-6 flex items-start gap-2 text-xs leading-5 text-muted">
@@ -182,7 +189,7 @@ export default function SignInPage() {
               <Kanban aria-hidden="true" className="h-5 w-5 text-accent" />
             </div>
             <div className="mt-6 space-y-3">
-              {['Keep every board within its project', '1-Click multi-board unified view', 'Follow updates and assigned cards in one place'].map(
+              {['Keep every board within its project', 'Move cards across columns', 'Discuss work in card comments'].map(
                 (item, index) => (
                   <div key={item} className="flex items-center gap-4 rounded-xl border border-line bg-surface-2 px-4 py-4">
                     <span className="font-mono text-xs font-bold text-accent">0{index + 1}</span>
@@ -193,7 +200,7 @@ export default function SignInPage() {
             </div>
             <p className="mt-6 flex items-center gap-2 text-xs text-muted">
               <ShieldCheck aria-hidden="true" className="h-4 w-4 text-accent" />
-              Project and board access is verified on every request.
+              Project and board access is checked on every request.
             </p>
           </div>
         </aside>

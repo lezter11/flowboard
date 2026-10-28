@@ -1,6 +1,8 @@
 import type { Metadata } from 'next';
-import { MissingRouteImport } from '@/components/missing-route-import';
+import { ComingSoon } from '@/components/coming-soon';
 
 export const metadata: Metadata = { title: 'Import cards — Flowboard' };
 
-export default function ImportPage() { return <MissingRouteImport />; }
+export default function Page() {
+  return <ComingSoon title="Import cards" description="Spreadsheet import is not part of the first beta." />;
+}

@@ -1,41 +1,20 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { ArrowRight, FolderKanban, Layers3, ShieldCheck, Plus, Sparkles } from 'lucide-react';
-import { api } from '@/lib/api';
+import { useSession } from '@/lib/session';
 import type { SessionProjectSummary, SessionWorkspaceSummary } from '@flowboard/contracts';
 
 export default function ProjectsPage() {
-  const [loading, setLoading] = useState(true);
-  const [projects, setProjects] = useState<SessionProjectSummary[]>([]);
-  const [workspaces, setWorkspaces] = useState<SessionWorkspaceSummary[]>([]);
-  const [actorName, setActorName] = useState<string | null>(null);
+  const { state, refetch } = useSession();
+  const loading = state.status === 'loading';
+  const projects: SessionProjectSummary[] = state.status === 'ready' ? state.session.accessibleProjects : [];
+  const workspaces: SessionWorkspaceSummary[] = state.status === 'ready' ? state.session.ownedWorkspaces : [];
+  const actorName = state.status === 'ready' ? state.session.actor.displayName || state.session.actor.email : null;
   const [isCreating, setIsCreating] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [createError, setCreateError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-    async function loadSession() {
-      try {
-        const session = await api.getSession();
-        if (!cancelled && session?.data) {
-          setProjects(session.data.accessibleProjects || []);
-          setWorkspaces(session.data.ownedWorkspaces || []);
-          setActorName(session.data.actor?.displayName || session.data.actor?.email || 'User');
-        }
-      } catch {
-        // Fall back gracefully if unauthenticated
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-    loadSession();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,21 +34,7 @@ export default function ProjectsPage() {
         const data = await res.json().catch(() => ({}));
         throw new Error(data?.error?.message || `Failed with status ${res.status}`);
       }
-      const data = await res.json();
-      setProjects((prev) => [
-        ...prev,
-        {
-          id: data.data.id,
-          version: data.data.version || 1,
-          workspaceId: data.data.workspaceId,
-          name: data.data.name,
-          description: data.data.description,
-          role: 'owner',
-          isArchived: false,
-          createdAt: data.data.createdAt,
-          updatedAt: data.data.updatedAt,
-        },
-      ]);
+      refetch();
       setNewProjectName('');
       setIsCreating(false);
     } catch (err: any) {
@@ -119,7 +84,7 @@ export default function ProjectsPage() {
               type="text"
               value={newProjectName}
               onChange={(e) => setNewProjectName(e.target.value)}
-              placeholder="e.g. Brand Fashion, Core Infrastructure"
+              placeholder="Project name"
               autoFocus
               className="flex-1 px-3 py-1.5 rounded-lg border border-line bg-surface-2 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
             />
@@ -160,7 +125,7 @@ export default function ProjectsPage() {
                 <div key={project.id} className="py-4 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
                   <div className="min-w-0">
                     <Link
-                      href={`/projects/${encodeURIComponent(project.id)}`}
+                      href={`/project?id=${encodeURIComponent(project.id)}`}
                       className="text-sm font-bold text-ink hover:text-accent flex items-center gap-2 group"
                     >
                       <FolderKanban className="w-4 h-4 text-accent shrink-0" />
@@ -176,7 +141,7 @@ export default function ProjectsPage() {
                     </div>
                   </div>
                   <Link
-                    href={`/projects/${encodeURIComponent(project.id)}`}
+                    href={`/project?id=${encodeURIComponent(project.id)}`}
                     className="px-3 py-1.5 rounded-lg border border-line text-xs font-semibold hover:bg-surface-3 shrink-0"
                   >
                     Open boards
@@ -195,16 +160,8 @@ export default function ProjectsPage() {
               <p className="mt-1 max-w-sm text-xs leading-5 text-muted">
                 {actorName
                   ? 'Create your first project above to begin organizing team boards and cards.'
-                  : 'Flowboard isolates each project. Sign in with Google to load your private workspace.'}
+                  : 'Sign in with Google to load your private workspace.'}
               </p>
-              <div className="mt-5 flex gap-3">
-                <Link
-                  href="/"
-                  className="px-3.5 py-1.5 rounded-lg border border-line bg-surface text-xs font-semibold hover:bg-surface-3"
-                >
-                  View Sample Project (Brand Fashion)
-                </Link>
-              </div>
             </div>
           )}
         </section>
@@ -216,26 +173,20 @@ export default function ProjectsPage() {
               <FolderKanban aria-hidden="true" className="h-4 w-4 text-accent" /> Project <ArrowRight aria-hidden="true" className="ml-auto h-3.5 w-3.5 text-faint" />
             </div>
             <div className="ml-5 mt-2 flex items-center gap-3 rounded-xl border border-line bg-surface p-3 text-xs text-ink-soft">
-              <Layers3 aria-hidden="true" className="h-4 w-4 text-accent" /> Team Boards (Developers, Ops, Marketing)
+              <Layers3 aria-hidden="true" className="h-4 w-4 text-accent" /> Team boards
             </div>
             <p className="mt-3 text-xs leading-5 text-muted">
-              Owners can see all sub-boards with 1-click unified rollup. Non-owners receive explicit board grants.
+              Owners see every board. Other members see the boards they have been granted.
             </p>
           </section>
 
           <section className="rounded-2xl border border-line bg-surface p-5">
             <div className="flex items-center gap-2 font-semibold text-xs text-ink">
-              <ShieldCheck aria-hidden="true" className="h-4 w-4 text-accent" /> Verified Authorization
+              <ShieldCheck aria-hidden="true" className="h-4 w-4 text-accent" /> Private by default
             </div>
             <p className="mt-1.5 text-xs leading-5 text-muted">
-              Access is verified on PostgreSQL before any board snapshot, card title, or activity marker is delivered.
+              Access is checked on the server before any board or card is delivered.
             </p>
-            <Link
-              href="/my-tasks"
-              className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline"
-            >
-              Go to My tasks <ArrowRight aria-hidden="true" className="h-3.5 w-3.5" />
-            </Link>
           </section>
         </aside>
       </div>
