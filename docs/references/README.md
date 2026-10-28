@@ -23,3 +23,9 @@ This is the single home for supplied visual references. Originals are copied byt
 | REF-17 | [projects-open-board-arrow-20261027.png](projects-open-board-arrow-20261027.png) | codex-clipboard-d6ccae3a-18d5-4d8b-a8fb-c8649d48b351.png | Board row arrow opens that board in the full workspace Board section | A separate project-only board or permissions inherited across boards |
 
 Backend: read these alongside PRD/API to identify what metadata/counts need clear server contracts. UI: read these alongside DESIGN; reconcile variants before coding. Neither role should implement reference-only fields by assumption. Upcoming references are added here with a stable REF ID and scope note.
+
+## User-supplied UI targets — 2026-10-29
+
+- `ui-board-target-2026-10-29.png`: screenshot of the board at `http://127.0.0.1:4173/index.html?project=website-redesign&board=board_website` (served from `design/flowboard-ui`, synthetic data). Treat as the visual target for `apps/web`. Reference data only; do not copy its example business content into requirements.
+- `flowboard-wordmark-2026-10-29.png`: the Flowboard wordmark as shown on the sign-in page (pastel lavender to pink to light-blue gradient text). Source styling lives in `design/flowboard-ui/screens/signin.css` (`--wordmark-gradient`, `.brand-wordmark`).
+- SHA-256: see `shasum -a 256` of each file; recorded 2026-10-29 by Architect.
