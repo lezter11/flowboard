@@ -1,0 +1,19 @@
+# reviewer race repro 2026-10-28T15:52:42Z HEAD=f2cf3236e929f46d251c5dde37f8fb715c650d4a
+pg_stat_database.deadlocks before 40
+RESULT 201 {"data":{"id":"crd_02226c39-b872-457c-a43f-9101b0e48191","workspaceId":"w","projectId":"p","boardId":"brd_245a356a-2fbe-4fa6-89ff-ec1415aea974","columnId":"col_2c4098c7-8703-499f-94a5-f90e8eecd8eb","t
+RESULT 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"52831eac-be78-4dc0-bd1b-20c0fbb5be6f"}}
+RESULT 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"b947973d-e231-48a1-afc0-b485c80574f2"}}
+RESULT 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"7736367b-1176-4622-9383-fd807ad1a3eb"}}
+RESULT 409 {"error":{"code":"STALE_BOARD_VERSION","message":"Stale board structure version.","requestId":"9b620aae-b257-4a80-8cee-36afc307fe9b","details":{"currentBoardVersion":2,"expectedBoardVersion":1}}}
+RESULT 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"c5f1a59e-43d0-4874-9cbe-e08c2b09cbb6"}}
+SEQUENTIAL-STALE 409 {"error":{"code":"STALE_BOARD_VERSION","message":"Stale board structure version.","requestId":"a91b9ba8-d38d-4808-9a45-eb7a326df2a1","details":{"currentBoardVersion":2,"expectedBoardVersion":1}}}
+# EXIT CODE: 0
+pg_stat_database.deadlocks after 44
+# reviewer race repro (create mode) - see reviewer-race-repro.log header; move mode run 2026-10-28T15:54:01Z HEAD=f2cf3236e929f46d251c5dde37f8fb715c650d4a
+MOVE-RESULT 200 {"data":{"id":"crd_6d4233b2-5ce8-4a38-b9c1-d800c451b3db","workspaceId":"w","projectId":"p","boardId":"brd_1f7b3b05-e01f-43eb-acce-3b03a857928f","columnId":"col_
+MOVE-RESULT 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"80d03ede-370f-4800-b23c-49245ed32bc5"}}
+MOVE-RESULT 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"c1efd169-6b16-43a9-b09e-49d72aa301aa"}}
+MOVE-RESULT 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"fa543c57-c495-4f94-b2d0-7fdcf874faf5"}}
+MOVE-RESULT 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"e637bfc1-f089-44bb-9375-bb76a96e9ce2"}}
+MOVE-RESULT 409 {"error":{"code":"STALE_BOARD_VERSION","message":"Stale board structure version.","requestId":"1120afb5-3dd9-44b0-97ed-1f85b2571916","details":{"currentBoardVer
+# EXIT CODE: 0

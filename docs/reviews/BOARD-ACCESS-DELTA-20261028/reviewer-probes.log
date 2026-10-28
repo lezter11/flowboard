@@ -1,0 +1,100 @@
+# reviewer probes run 2026-10-28T15:52:33Z HEAD=f2cf3236e929f46d251c5dde37f8fb715c650d4a node=v24.15.0 NODE_ENV=test DB=127.0.0.1:55492/flowboard_access_test (fresh schemas, dropped after)
+PASS A1-embedded-migrations-byte-identical: 8 SQL files vs 8 embedded entries
+PASS A2-embedded-catalog-equal: columns, indexes and triggers equal between filesystem-applied and embedded-applied schemas
+PASS B1-state-cookie-attrs: state cookie: flowboard_oauth_state=dff1a36274e4b6faded81d92def02961687e875320f47f30; Max-Age=600; Path=/; HttpOnly; SameSite=Lax
+PASS B1b-state-cookie-secure-off-localhost: flowboard_oauth_state=145ac41c9ed68a93803abc67db3107521dd81519e3efd272; Max-Age=600; Path=/; HttpOnly; Secure; SameSite=Lax
+PASS B2-unverified: status 403; no session cookie, no session row, no user row
+PASS B3-missing-claim: status 403; no session cookie, no session row, no user row
+PASS B4-string-true-claim: status 403; no session cookie, no session row, no user row
+PASS B5-missing-email: status 400; no session cookie, no session row, no user row
+PASS B6-state-mismatch: status 403
+PASS B7-missing-state-cookie: status 403
+PASS B8-no-outbound-before-state-check: outbound calls 0
+Failed to exchange Google OAuth code: bad
+PASS B9-token-exchange-failure-no-session: status 400
+PASS B10-userinfo-failure-no-session: status 400
+PASS B11-verified-signin: status 302; location /projects; cookie flowboard_oauth_state=; Max-Age=0; Path=/; Secure, flowboard_session=<redacted>; Max-Age=604800; Path=/; HttpOnly; Secure; SameSite=Lax
+NOTE B12-workspace-auto-create: first Google sign-in creates 1 owned workspace(s) for the new account (product behavior; Owner of an empty personal workspace only)
+PASS B13-link-by-verified-email-same-id: user id preserved: true
+NOTE B14-profile-overwrite: display_name after Google sign-in = 'Google Name' (user-chosen 'Chosen Name' overwritten by provider name on every login)
+PASS B15-parallel-first-signin-single-workspace: statuses 302/302; workspaces 1
+PASS B16-error-param-json-only: status 400 ct application/json
+PASS C1-test-mode-default-secret-only-in-test: NODE_ENV=test accepts built-in test secret (expected, test-only)
+PASS C2-production-no-default-secret: status 403, migrate 403
+PASS C3-production-dev-login-closed: dev-login 404
+PASS C4-production-short-secret-rejected: 31-char secret closed
+PASS C5-production-long-secret-works: 40-char secret opens /system/status only with exact value
+PASS C2-development-no-default-secret: status 403, migrate 403
+PASS C3-development-dev-login-closed: dev-login 404
+PASS C4-development-short-secret-rejected: 31-char secret closed
+PASS C5-development-long-secret-works: 40-char secret opens /system/status only with exact value
+PASS C2-staging-no-default-secret: status 403, migrate 403
+PASS C3-staging-dev-login-closed: dev-login 404
+PASS C4-staging-short-secret-rejected: 31-char secret closed
+PASS C5-staging-long-secret-works: 40-char secret opens /system/status only with exact value
+PASS C6-binding-short-secret-closed: c.env short secret rejected
+PASS C7-binding-long-secret-open: c.env 32-char secret accepted
+PASS C8-dev-mode-existing-account-needs-secret: existing w/o secret 403, with 200
+NOTE C9-dev-mode-new-account: NODE_ENV=development + DEV_LOGIN_ENABLED: brand-new email session issued without secret -> 200 (local-only opt-in; Node binds 127.0.0.1)
+PASS C10-hyperdrive-binding-closes-dev-login: dev-login with Worker binding 404
+PASS C11-hyperdrive-binding-closes-dev-login-even-in-test: status 404
+PASS C12-production-ignores-enable-flag: NODE_ENV=production dev-login stays 404
+PASS D1-cors-denies-untrusted: https://evil.pages.dev=>null; https://evil.workers.dev=>null; https://flowboard-app.pages.dev.evil.com=>null; http://localhost.evil.com=>null; null=>null; https://app.flowboard.example.evil=>null; http://flowboard-app.pages.dev=>null
+PASS D2-cors-allows-local-and-configured: http://localhost:5173, http://127.0.0.1:3000, https://flowboard-app.pages.dev, https://app.flowboard.example
+PASS E0-owner-create-card: status 201
+PASS E0b-owner-create-hidden-card: status 201
+PASS E0c-owner-comment-hidden: status 201
+PASS E0e-owner-revokes-member-hidden-grant: member loses hidden board after history
+PASS E0d-owner-revokes-grant: grant removed
+PASS E1-owner-granted-board: granted board snapshot 200
+PASS E2-owner-hidden-board-private: hidden board 200, card 200, comments 200, activity 200, images 200, card list 200
+PASS E3-owner-sees-hidden-search: owner search status 200
+PASS E1-mgr-granted-board: granted board snapshot 200
+PASS E2-mgr-hidden-board-private: hidden board 404, card 404, comments 404, activity 404, images 404, card list 404
+PASS E3-mgr-no-hidden-leak-in-lists: statuses 200,200,200,200,200,200,200,200,200,200; leaking list indexes []
+PASS E1-mbr-granted-board: granted board snapshot 200
+PASS E2-mbr-hidden-board-private: hidden board 404, card 404, comments 404, activity 404, images 404, card list 404
+PASS E3-mbr-no-hidden-leak-in-lists: statuses 200,200,200,403,200,200,403,200,200,200; leaking list indexes []
+PASS E1-vwr-granted-board: granted board snapshot 200
+PASS E2-vwr-hidden-board-private: hidden board 404, card 404, comments 404, activity 404, images 404, card list 404
+PASS E3-vwr-no-hidden-leak-in-lists: statuses 200,200,200,403,200,200,403,200,200,200; leaking list indexes []
+PASS E1-nog-granted-board: granted board snapshot 404
+PASS E2-nog-hidden-board-private: hidden board 404, card 404, comments 404, activity 404, images 404, card list 404
+PASS E3-nog-no-hidden-leak-in-lists: statuses 200,200,200,403,200,200,403,200,200,200; leaking list indexes []
+PASS E1-rev-granted-board: granted board snapshot 404
+PASS E2-rev-hidden-board-private: hidden board 404, card 404, comments 404, activity 404, images 404, card list 404
+PASS E3-rev-no-hidden-leak-in-lists: statuses 200,200,200,403,200,200,403,200,200,200; leaking list indexes []
+PASS E1-sib-granted-board: granted board snapshot 404
+PASS E2-sib-hidden-board-private: hidden board 404, card 404, comments 404, activity 404, images 404, card list 404
+PASS E3-sib-no-hidden-leak-in-lists: statuses 404,404,404,404,200,404,404,200,404,200; leaking list indexes []
+PASS E1-stranger-granted-board: granted board snapshot 404
+PASS E2-stranger-hidden-board-private: hidden board 404, card 404, comments 404, activity 404, images 404, card list 404
+PASS E3-stranger-no-hidden-leak-in-lists: statuses 404,404,404,404,200,404,404,200,404,200; leaking list indexes []
+NOTE E4-notification-fixture: member notifications in DB: 2 (hidden-board: 1); visible via API: 1
+PASS E5-hidden-notification-read-blocked: PATCH 404; read=false
+PASS E6-mark-all-skips-hidden: mark-all 200; hidden read=false
+PASS E7-member-write-granted: member creates on granted board
+PASS E8-member-write-hidden-404: member on ungranted board
+PASS E9-viewer-write-403: viewer on granted board
+PASS E10-nogrant-write-404: no-grant member
+PASS E11-revoked-write-404: revoked member
+PASS E12-sibling-write-404: sibling-project manager
+NOTE E13a-valid-template-on-granted-board: manager import of valid template on granted board -> 201 (template bytes 14573)
+PASS E13-hidden-board-writes-404: comment 404, patch 404, delete 404, import 404, image 404, column 404, archive 404, template 404
+PASS E14-hidden-card-unchanged: {"title":"Hidden ZETA secret","state":"active"}
+PASS E15-manager-board-create-no-grant: create 201; grants 0; columns 4; manager GET after 404
+PASS E16-non-manager-board-create-denied: member 403, viewer 403, sibling 404
+PASS E17-only-owner-administers-grants: manager grant other 404, self 404
+PASS E18-cannot-grant-non-member: owner grants sibling-project user 404
+PASS E19-replay-before-revoke: first 201, replay 201, cards 1
+PASS E20-replay-after-revoke-404: replay after revoke 404
+PASS E21-revoke-first-blocks-then-denies-write: blocked=true; status 404; cards 0
+PASS E22-grant-removal-waits-for-inflight-writer: blocked=true; revoke 200
+FAIL E22b-parallel-same-board-creates-no-5xx: statuses 500,500,201,500,500,500,500,500; codes INTERNAL_ERROR,INTERNAL_ERROR,ok,INTERNAL_ERROR,INTERNAL_ERROR,INTERNAL_ERROR,INTERNAL_ERROR,INTERNAL_ERROR; created 1
+NOTE E22c-5xx-sample-body: {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"fe26eb89-879e-4cc5-9c25-045c5a0bcd95"}}
+PASS E23-membership-removal-clears-grants: remove 200; grants left 0; write after 404; parallel statuses 404,404,404,404,404,404,404,404,404,404,404,404
+PASS F1-missing-grants-schema-fails-closed: statuses 500,500,500,500,400,500; leaked=false
+NOTE G1-no-origin-check-on-simple-post: cross-origin text/plain POST mark-all-read with cookie -> 200 (relies on SameSite=Lax; API.md promises strict Origin checks)
+
+SUMMARY: 87 pass, 1 fail, 7 notes
+# EXIT CODE: 1

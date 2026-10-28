@@ -1,0 +1,24 @@
+# worker probe run 2026-10-28T15:54:04Z HEAD=f2cf3236e929f46d251c5dde37f8fb715c650d4a build-shell NODE_ENV=production
+[NODE_ENV=production] W1 dev-login no secret -> 404
+[NODE_ENV=production] W2 dev-login with built-in test secret -> 404
+[NODE_ENV=production] W3 /system/status no secret -> 403
+[NODE_ENV=production] W4 /system/status with built-in test secret 'flowboard-dev-secret' -> 403
+[NODE_ENV=production] W5 CORS evil.pages.dev allow-origin -> null
+[NODE_ENV=production] W6 google callback forged state -> 403
+# EXIT CODE: 0
+# worker probe run 2026-10-28T15:54:05Z HEAD=f2cf3236e929f46d251c5dde37f8fb715c650d4a build-shell NODE_ENV=test
+[NODE_ENV=test] W1 dev-login no secret -> 404
+[NODE_ENV=test] W2 dev-login with built-in test secret -> 404
+[NODE_ENV=test] W3 /system/status no secret -> 403
+[NODE_ENV=test] W4 /system/status with built-in test secret 'flowboard-dev-secret' -> 200
+[NODE_ENV=test] W5 CORS evil.pages.dev allow-origin -> null
+[NODE_ENV=test] W6 google callback forged state -> 403
+# EXIT CODE: 0
+# worker probe run 2026-10-28T15:54:05Z HEAD=f2cf3236e929f46d251c5dde37f8fb715c650d4a build-shell NODE_ENV=development
+[NODE_ENV=development] W1 dev-login no secret -> 404
+[NODE_ENV=development] W2 dev-login with built-in test secret -> 404
+[NODE_ENV=development] W3 /system/status no secret -> 403
+[NODE_ENV=development] W4 /system/status with built-in test secret 'flowboard-dev-secret' -> 403
+[NODE_ENV=development] W5 CORS evil.pages.dev allow-origin -> null
+[NODE_ENV=development] W6 google callback forged state -> 403
+# EXIT CODE: 0

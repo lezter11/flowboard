@@ -1,0 +1,285 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "RBAC-01",
+    "RBAC-02",
+    "RBAC-03",
+    "RBAC-04",
+    "RBAC-05",
+    "BRD-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BOARD-ACCESS-DELTA-20261028/criteria.json",
+  "startedAt": "2026-10-28T15:40:00+00:00",
+  "completedAt": "2026-10-28T15:56:05+00:00",
+  "implementer": {
+    "actorId": "backend-chat",
+    "sessionId": "cc5e8cdb-backend-gapfix-20261028",
+    "model": "claude-sonnet-5-5"
+  },
+  "reviewer": {
+    "actorId": "delta-reviewer-opus",
+    "sessionId": "delta-review-opus-20261028T1540Z-r1",
+    "model": "claude-opus-5-5",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "AGENTS.md",
+      "RULES.md",
+      "BACKEND_REVIEW_GATE.md",
+      "docs/FEATURE_SPEC.md",
+      "docs/API.md",
+      "docs/IMPORT_SPEC.md",
+      "docs/reviews/README.md",
+      "docs/handoffs/proposals/project-board-access-v2-2026-10-27.md",
+      "docs/handoffs/proposals/board-access-decisions-2026-10-27.md",
+      "apps/api/src",
+      "apps/api/test",
+      "apps/api/package.json",
+      "apps/api/tsconfig.build.json",
+      "apps/api/wrangler.jsonc",
+      "database/migrations",
+      "database/compose.local.yaml",
+      "packages/contracts/src",
+      "packages/contracts/test",
+      "packages/contracts/package.json",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "scripts/check_backend_review.py",
+      "scripts/generate_review_record.py",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028/criteria.json",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-session.md",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-complete-suite.log",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-complete-suite-4f15e16.log",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-probes.ts",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-probes.log",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-race-repro.ts",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-race-repro.log",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-worker-probe.ts",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-worker-probe.log"
+    ],
+    "files": {},
+    "digest": "COMPUTED_ON_FINALIZE"
+  },
+  "criteriaResults": {
+    "Every mounted board-derived read filters by current board access before pagination, counts, title/body delivery, or receipt replay, including board snapshots, cards, search, My Tasks, activity, inbox, images, imports and trash.": "pass",
+    "Every mounted board-derived write reauthorizes current board access in the same transaction and serializes with grant removal, including cards, comments, images, imports, columns, archive/reopen, trash and notification read state.": "pass",
+    "No route silently falls back to project-only access if the board-grants migration is missing. Malformed or legacy records fail closed for non-Owners.": "pass",
+    "Revoked and never-granted actors receive non-enumerating private not-found responses and cannot recover board IDs, names, titles, counts, links, assets or saved receipt data.": "pass",
+    "Mounted-handler tests on isolated PostgreSQL cover Owner, Manager, Member, Viewer, no grant, revoked grant, sibling project, replay and relevant races; Node and Worker paths are reviewed.": "pass",
+    "Real identity: Google callback validates state, rejects unverified or missing email_verified, never issues a session on failure, and no route issues email-only sessions in a deployed (Worker/production) runtime. dev-login is unreachable when deployed.": "pass",
+    "No credential or secret has a public default outside NODE_ENV=test; /system/status, /system/migrate and existing-account dev-login are closed (403/404) without a configured secret of 32+ characters; comparison is timing-safe.": "pass",
+    "Session cookies are HttpOnly, SameSite=Lax, Secure off localhost; credentialed CORS is allowed only for localhost and the explicit CORS_ORIGIN list (no wildcard hosting-domain suffixes).": "pass",
+    "embedded-migrations.ts matches database/migrations/*.sql exactly, so the Worker and Node runtimes apply identical schema including board grants (0007, 0008).": "pass",
+    "Current source, migrations, route files, shared helpers, contracts and tests are included in an exact manifest and a fresh independent review passes all BACKEND_REVIEW_GATE.md rules.": "fail"
+  },
+  "tests": [
+    {
+      "id": "complete-suite",
+      "command": "npm run check",
+      "exitCode": 0,
+      "environment": "macOS, Node v24.15.0, isolated synthetic PostgreSQL 17 on 127.0.0.1:55492 (flowboard_harness + flowboard_access_test), NODE_ENV=test via npm test script; run at HEAD f2cf323 (also at 4f15e16, separate log)",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-complete-suite.log",
+      "observed": "API 375 tests/375 pass/0 fail/0 skipped/0 cancelled; contracts 41/41 pass/0 skipped; typecheck and build succeeded; exit 0"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.0",
+      "reason": "No exploitable defect found in the default deployment. Google callback checks state before any outbound call, requires email_verified===true, issues no session/user on any failure and sets HttpOnly/Lax/Secure cookies (B1-B16). Admin secret has no runtime public default outside NODE_ENV=test and compares in constant time (C1-C7). dev-login closed in Worker and in Node outside test/dev opt-in (C3, C10-C12, W1-W2). CORS limited to localhost + exact CORS_ORIGIN (D1, D2, W5). Board matrix holds for all actor classes (E1-E23). Deductions: DR1-02 Worker test-secret fallback depends on build-shell NODE_ENV (W4=200 when bundled with NODE_ENV=test); DR1-03 no server Origin check despite API.md; DR1-05 raw session tokens at rest.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-probes.log",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-worker-probe.log",
+        "apps/api/src/http/routes/google-auth.ts",
+        "apps/api/src/http/admin-secret.ts",
+        "apps/api/src/http/app.ts"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "8.0",
+      "reason": "Mounted routes implement the board-access contract: Owner implicit access, explicit grants for others, Owner-only grant admin, Manager board creation without auto grant and with default columns (E15-E18), private 404s, replay reauthorization. Deduction: routine concurrent writes on one board (two users creating or moving cards) return 500 INTERNAL_ERROR instead of 201/409 (DR1-01), violating the API error contract; Google sign-in overwrites user display names (DR1-04).",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-probes.log",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-race-repro.log",
+        "apps/api/src/adapters/cards.ts"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "7.5",
+      "reason": "Grant revocation vs write serialization verified with real concurrent connections (E21, E22, E23), no partial writes, idempotent replay single effect (E19), migrations transactional with advisory lock and embedded copy identical (A1, A2). Major deduction: the write lock protocol takes the board row FOR SHARE (rbac.ts:393 via acquireWritableProjectContextLock) and later upgrades to FOR UPDATE (cards.ts:281, cards.ts:714), so concurrent same-board writers deadlock; reproduced for create and move with pg_stat_database.deadlocks increasing one-for-one with 500s (DR1-01). Below the 8.5 category minimum.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-race-repro.ts",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-race-repro.log",
+        "apps/api/src/adapters/rbac.ts",
+        "apps/api/src/adapters/cards.ts"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "8.0",
+      "reason": "Mandatory suite independently re-run twice, exit 0, 375 API + 41 contract tests, 0 skipped; real PostgreSQL and local workerd; adversarial board-access and revoke-race tests exist. Deductions: no writer-vs-writer parallel test on one board (would have caught DR1-01); no automated guard that embedded-migrations.ts equals database/migrations (DR1-06); Worker test cannot detect bundle-time NODE_ENV dependence; Google tests are mock-provider only (expected under exclusions).",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-complete-suite.log",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-complete-suite-4f15e16.log",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-probes.log",
+        "apps/api/test/google-auth-system.test.ts"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "8.0",
+      "reason": "Clear route/adapter split and one migration runner for both runtimes. Deductions: duplicated migration source (embedded copy) without drift test; mounted production modules still named *-draft; google-auth.ts uses `as any` env access and a markdown-artifact credential cleaner; security gating depends on bundler define semantics that differ between Node and Worker.",
+      "evidencePaths": [
+        "apps/api/src/adapters/embedded-migrations.ts",
+        "apps/api/src/adapters/migrations.ts",
+        "apps/api/src/http/routes/google-auth.ts",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-worker-probe.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "7.0",
+      "reason": "Body limit, deadline, request IDs, no-store, health probes and bounded pools present; /system routes closed without a 32+ char secret. Deductions: deadlocks stall concurrent same-board writes for deadlock_timeout and surface as opaque 500s with no retry hint (DR1-01); error handler did not log the deadlock cause to the console during reproduction.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-race-repro.log",
+        "apps/api/src/http/middleware/error-handler.ts",
+        "apps/api/src/http/routes/system.ts"
+      ]
+    }
+  },
+  "weightedScore": "8.175",
+  "findings": [
+    {
+      "id": "DR1-01",
+      "severity": "medium",
+      "mandatory": false,
+      "blocking": true,
+      "disposition": "open",
+      "description": "Lock-upgrade deadlock on concurrent writes to one board. acquireWritableProjectContextLock locks the board row FOR SHARE (apps/api/src/adapters/rbac.ts:388-394); createCard then locks the same row FOR UPDATE (apps/api/src/adapters/cards.ts:268 then :276-282) and moveCard does the same (cards.ts:704 then :730-737). Two transactions holding FOR SHARE both wait to upgrade, PostgreSQL aborts one with 40P01, and the route returns 500 INTERNAL_ERROR.",
+      "reproduction": "NODE_ENV=test FLOWBOARD_ACCESS_TEST_DATABASE_URL=... node docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-race-repro.ts same (6 parallel creates: 1x201, 1x409, 4x500) and ... move (6 parallel moves: 1x200, 1x409, 4x500); pg_stat_database.deadlocks rose 40->44. Probe E22b: 8 parallel creates by one member -> 7x500.",
+      "impact": "Ordinary multi-user Kanban use (two people adding or moving cards on the same board) gets 500s after ~1s stalls instead of the documented 409 conflict; clients cannot distinguish a retryable conflict from a server fault. No unauthorized or partial writes observed (only one card created; failed transactions rolled back).",
+      "counterevidence": "Authorization serialization with grant removal is intact (E21-E23); sequential stale writes correctly return 409 STALE_BOARD_VERSION.",
+      "rationale": "Drives integrity below its 8.5 minimum; must be fixed before closure. Recommended fix: acquire the strongest lock needed first (lock the board FOR UPDATE / FOR NO KEY UPDATE in the context guard for writes that bump board versions, or lock the board before the shared context lock), review every caller of acquireWritableProjectContextLock for the same upgrade pattern, map 40P01/40001 to a retryable 409/503, and add parallel same-board create/move regression tests on PostgreSQL."
+    },
+    {
+      "id": "DR1-02",
+      "severity": "low",
+      "mandatory": false,
+      "blocking": false,
+      "disposition": "open",
+      "description": "Worker admin-secret test fallback is controlled by bundle-time NODE_ENV. apps/api/src/http/admin-secret.ts:11 returns the repository-visible TEST_ONLY_SECRET when NODE_ENV===test; wrangler replaces process.env.NODE_ENV with the build shell value (node_modules/wrangler cli nodeEnvReplacement). The deployed bundle built by npm run build compiles it to false (dist/worker/worker.js), but a Worker bundled from a shell with NODE_ENV=test accepts flowboard-dev-secret.",
+      "reproduction": "NODE_ENV=test node docs/reviews/BOARD-ACCESS-DELTA-20261028/reviewer-worker-probe.ts -> W4 /system/status with flowboard-dev-secret = 200; production/development builds = 403.",
+      "impact": "If someone deploys from a CI job or shell with NODE_ENV=test and no DEV_LOGIN_SECRET, /system/status (migration list) and /system/migrate become reachable with a public value. dev-login stays 404 because of the HYPERDRIVE binding check.",
+      "counterevidence": "Criterion text exempts NODE_ENV=test; default build path is safe; DEPLOY_SECRETS.md says never set NODE_ENV on Workers.",
+      "rationale": "Outside acceptance for this round; recommend refusing the test fallback whenever Worker bindings (HYPERDRIVE) are present, mirroring dev-login, and a build assertion that the deploy bundle has no live TEST_ONLY_SECRET path."
+    },
+    {
+      "id": "DR1-03",
+      "severity": "low",
+      "mandatory": false,
+      "blocking": false,
+      "disposition": "open",
+      "description": "No server-side Origin/CSRF check on unsafe methods (apps/api/src/http/app.ts has only CORS), although docs/API.md line 7 promises strict Origin/CSRF checks on domain writes.",
+      "reproduction": "reviewer-probes.ts G1: POST /api/v1/notifications/mark-all-read with Origin https://attacker.example, content-type text/plain and a valid cookie -> 200.",
+      "impact": "Protection rests on SameSite=Lax plus the Idempotency-Key header forcing CORS preflight on most domain writes; same-site sibling origins could issue simple POSTs to routes without Idempotency-Key.",
+      "counterevidence": "Browsers do not send Lax cookies on cross-site POST; frozen criteria require only Lax cookies and the CORS allowlist, which pass.",
+      "rationale": "Nonblocking hardening and doc-contract gap; add an Origin allowlist check for unsafe methods or correct API.md."
+    },
+    {
+      "id": "DR1-04",
+      "severity": "low",
+      "mandatory": false,
+      "blocking": false,
+      "disposition": "open",
+      "description": "Google sign-in overwrites display_name on every login (apps/api/src/http/routes/google-auth.ts:188-195) and auto-creates a personal workspace for every first-time account, including invitees (google-auth.ts:201-215).",
+      "reproduction": "reviewer-probes.ts B14 (Chosen Name -> Google Name) and B12 (1 workspace created).",
+      "impact": "User profile edits (ACC-03) are silently reverted; invitees become Owners of an empty workspace, which differs from FEATURE_SPEC section 3 invitee start screen. No cross-project access results.",
+      "counterevidence": "Linking by verified email keeps the same user id (B13); parallel first sign-ins create one workspace (B15).",
+      "rationale": "Product/UX decision outside this acceptance; record for Architect."
+    },
+    {
+      "id": "DR1-05",
+      "severity": "info",
+      "mandatory": false,
+      "blocking": false,
+      "disposition": "open",
+      "description": "Session identifiers are stored as raw bearer tokens in sessions.id (apps/api/src/adapters/session.ts:117-130, lookup at :170).",
+      "reproduction": "Source inspection.",
+      "impact": "Read access to the sessions table (backup, log, replica) is sufficient to hijack live sessions.",
+      "counterevidence": "Tokens are 32 random bytes and expire after 7 days; not part of the frozen criteria.",
+      "rationale": "Hardening recommendation: store SHA-256 of the token and compare on lookup."
+    },
+    {
+      "id": "DR1-06",
+      "severity": "low",
+      "mandatory": false,
+      "blocking": false,
+      "disposition": "open",
+      "description": "apps/api/src/adapters/embedded-migrations.ts duplicates database/migrations/*.sql with no automated drift check (no test references EMBEDDED_MIGRATIONS).",
+      "reproduction": "grep -rn embedded apps/api/test -> no match; reviewer probe A1/A2 confirms the copy is currently byte- and catalog-identical.",
+      "impact": "A future SQL migration added without regenerating the embedded file would leave the Worker on an older schema (e.g. missing board grants), which the fail-closed behavior would turn into outages.",
+      "counterevidence": "Currently identical (A1, A2).",
+      "rationale": "Add a test asserting byte equality, or generate the file in the build."
+    },
+    {
+      "id": "DR1-07",
+      "severity": "process",
+      "mandatory": true,
+      "blocking": true,
+      "disposition": "open",
+      "description": "Audited target changed during the review: commit f2cf323 (after frozen-criteria commit 4f15e16) modified apps/api/wrangler.jsonc, and a later uncommitted edit changed the UAT Hyperdrive id in the same file.",
+      "reproduction": "git log 4f15e16..HEAD; git status shows M apps/api/wrangler.jsonc at finalization.",
+      "impact": "Per BACKEND_REVIEW_GATE section 3 another editor changing an audited file invalidates the result. The suite was re-run on f2cf323 (exit 0); the final uncommitted config edit was hashed but not re-tested.",
+      "counterevidence": "Changes are deployment configuration only (env blocks, ids); no source, test, migration or contract bytes changed.",
+      "rationale": "Next round must freeze a commit with a clean tree and no concurrent editors of in-scope files."
+    }
+  ],
+  "hardBlockers": [
+    "DR1-01: integrity category score 7.5 is below the 8.5 minimum (concurrent same-board write deadlock).",
+    "DR1-07: audited target changed during review (apps/api/wrangler.jsonc)."
+  ],
+  "coverageGaps": [
+    "Real Google provider, hosted Worker, Hyperdrive and Pages proxy not exercised (excluded by criteria).",
+    "Dependency advisory status unverified (no network).",
+    "Deadlock reproduced for card create and move only; other board writes using acquireWritableProjectContextLock then FOR UPDATE identified by reading only.",
+    "Not every mounted route re-traced line by line; remaining routes covered by probe matrix and the passing suite.",
+    "Final uncommitted apps/api/wrangler.jsonc edit not re-tested.",
+    "No second independent reader confirmed DR1-01."
+  ],
+  "verdict": "fail",
+  "criteriaResultNotes": {
+    "Every mounted board-derived read filters by current board access before pagination, counts, title/body delivery, or receipt replay, including board snapshots, cards, search, My Tasks, activity, inbox, images, imports and trash.": "pass: probe E1-E3 (snapshot, card, comments, activity, images, card list, project boards, search, My Tasks x2, project activity, notifications, trash, session, people, projects) for Owner/Manager/Member/Viewer/no-grant/revoked/sibling/stranger; no hidden title leaks; suite board-access tests pass.",
+    "Every mounted board-derived write reauthorizes current board access in the same transaction and serializes with grant removal, including cards, comments, images, imports, columns, archive/reopen, trash and notification read state.": "pass for authorization: E7-E14, E19-E23 show same-transaction reauthorization, revoke-first denies write (E21), grant removal waits for in-flight writer (E22), membership removal clears grants (E23). Separate writer-vs-writer deadlock is finding DR1-01, not a grant-serialization violation.",
+    "No route silently falls back to project-only access if the board-grants migration is missing. Malformed or legacy records fail closed for non-Owners.": "pass: F1 legacy schema (0001-0006 only) returns 500 with no board/card data for a member.",
+    "Revoked and never-granted actors receive non-enumerating private not-found responses and cannot recover board IDs, names, titles, counts, links, assets or saved receipt data.": "pass: hidden/revoked board reads and writes return 404; hidden notification read-state blocked (E5, E6); replay after revoke 404 without body (E20).",
+    "Mounted-handler tests on isolated PostgreSQL cover Owner, Manager, Member, Viewer, no grant, revoked grant, sibling project, replay and relevant races; Node and Worker paths are reviewed.": "pass with gap: suite plus reviewer probes cover roles, revoke races and replay on isolated PostgreSQL; Worker reviewed via workerd harness. Writer-vs-writer parallelism is untested in the suite (DR1-01).",
+    "Real identity: Google callback validates state, rejects unverified or missing email_verified, never issues a session on failure, and no route issues email-only sessions in a deployed (Worker/production) runtime. dev-login is unreachable when deployed.": "pass (mock provider only, real Google excluded): B2-B16, C3/C10-C12, W1-W2, W6.",
+    "No credential or secret has a public default outside NODE_ENV=test; /system/status, /system/migrate and existing-account dev-login are closed (403/404) without a configured secret of 32+ characters; comparison is timing-safe.": "pass at runtime: C1-C7 Node, W3-W4 Worker; timing-safe sha256+timingSafeEqual. Low finding DR1-02: Worker NODE_ENV is a bundle-time value.",
+    "Session cookies are HttpOnly, SameSite=Lax, Secure off localhost; credentialed CORS is allowed only for localhost and the explicit CORS_ORIGIN list (no wildcard hosting-domain suffixes).": "pass: B1, B11, D1, D2, W5, cors-policy.test.ts.",
+    "embedded-migrations.ts matches database/migrations/*.sql exactly, so the Worker and Node runtimes apply identical schema including board grants (0007, 0008).": "pass: A1 byte-identical, A2 catalog-identical (columns, indexes, triggers).",
+    "Current source, migrations, route files, shared helpers, contracts and tests are included in an exact manifest and a fresh independent review passes all BACKEND_REVIEW_GATE.md rules.": "fail: integrity category below 8.5 minimum (DR1-01) and the audited target changed during review (DR1-07)."
+  },
+  "rejectedCandidates": [
+    "Account takeover by email linking: rejected; linking requires email_verified===true from userinfo fetched with our own code exchange (B2-B5, B13) and no deployed route issues email-only sessions (C3, C10-C12, W1-W2).",
+    "OAuth login CSRF / state fixation: rejected; 24-byte random state in HttpOnly Lax 10-minute cookie, compared before any outbound call (B1, B6-B8).",
+    "Duplicate personal workspaces on parallel first sign-in: rejected (B15: one workspace).",
+    "CORS suffix/prefix bypass (evil.pages.dev, workers.dev, localhost.evil.com, configured-origin prefix): rejected (D1, W5).",
+    "Embedded migrations differ from SQL files: rejected (A1 byte-identical, A2 catalog-identical).",
+    "Import 422 on hidden board enumerates boards: rejected; workbook is parsed before board lookup independent of board, valid workbook on hidden board returns 404 (E13).",
+    "422 validation before authorization on hidden-board delete/column: rejected; schema validation is independent of resource existence.",
+    "Reflected OAuth error parameter (XSS): rejected; JSON response only (B16).",
+    "Silent project-only fallback when board_grants missing: rejected (F1: 500, no data).",
+    "Host-header-derived redirect_uri: rejected as low; Google enforces registered redirect URIs and wrangler vars set GOOGLE_REDIRECT_URI per environment."
+  ]
+}
