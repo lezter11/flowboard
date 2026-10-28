@@ -99,3 +99,20 @@ git -C "$REPO" worktree remove --force "$WT"
 - The UAT Google client is the same as production's; both redirect URIs must stay registered.
 - The `uat` Neon branch expires 2026-11-27 unless extended.
 - Production has its own steps in `docs/RELEASE_BETA.md`; this file never touches production.
+
+## Deployment log
+
+| Date (UTC) | Commit | Worker version (`flowboard-api-uat`) | Pages deployment (`flowboard-app-uat`) | Migrations on UAT |
+|---|---|---|---|---|
+| 2026-10-28 | `02ab8e1` | `3c70f1dd-0f73-497f-9a64-455c8666c652` | `39f565f3-ee1b-47a9-81c0-02aeaa1dbf69` | 0001-0008 (already up to date) |
+
+Smoke results for this deploy: `/` 200; signed-out `/api/v1/session` 401; `/api/v1/system/status` without secret 403; foreign-origin preflight has no allow-origin; `/projects/<id>` and `/boards/<id>` 302 to query routes; Worker `/health/ready` 200 and `/health/live` 200 (called on the Worker host, see notes).
+
+## Manual judgment this deploy needed (to tighten)
+
+1. Health checks are mounted at the Worker root (`/health/ready`), not under `/api`. The Pages proxy only forwards `/api/*`, so check them on `https://flowboard-api-uat.web-app-cloud.workers.dev/health/ready`. Step 5 above should say so.
+2. The `neonctl connection-string` output must be checked for the direct host (`ep-shy-fire-…`, no `-pooler`) before running the migration. This was checked by eye.
+3. The migration list must be read before deploying. Step 1 has no command for this. Use the status endpoint with the admin secret read from a local file (never printed).
+4. The worktree needs `node_modules` symlinks at both the root and `apps/web`. Without them the Next build fails with `Cannot read properties of undefined (reading 'fileExists')`.
+5. Record the Worker version from `wrangler deploy --env uat` output and the Pages deployment id from `wrangler pages deployment list --project-name flowboard-app-uat`. Both are copied into the log above by hand.
+6. The deploy uses the committed `wrangler.jsonc` at the commit, not any uncommitted edit in the shared checkout.
