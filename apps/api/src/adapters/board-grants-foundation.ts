@@ -1,16 +1,14 @@
 /**
- * Unmounted board-access foundation. Call only in an explicit transaction.
- * Existing routes do not use this module: it is NOT authorization cutover.
- * Lock order: workspace ownership row FOR SHARE, target project membership
- * FOR SHARE, then an existing board grant FOR SHARE (access) or FOR UPDATE
- * (mutation), followed by the board revision row FOR UPDATE. The board row
- * also serializes mutations where the grant does not exist. Project membership
- * removal locks membership and then processes grants/boards in ascending board
- * ID order. Route callers must acquire authorization locks BEFORE any resource
- * locks and retain them through commit. Multi-board operations must use the
- * same ascending order; existing routes do not yet follow or prove this rule.
- * Transfer/archival paths, activity visibility, and per-grant audit on project
- * membership removal remain unvalidated by this foundation.
+ * Board-access helpers used by mounted routes (lockBoardAccess, grant writes, and the grant
+ * lock order below). Call only inside an explicit transaction.
+ * Lock order: workspace ownership row FOR SHARE, target project membership FOR SHARE, then an
+ * existing board grant FOR SHARE (access) or FOR UPDATE (mutation), followed by the board row
+ * FOR UPDATE. The board row also serializes mutations where the grant does not exist. Project
+ * membership removal locks membership and then processes grants/boards in ascending board ID
+ * order. Authorization locks are taken before resource locks and retained through commit.
+ * Not every mounted route is proven to follow this order; see docs/reviews/BOARD-ACCESS-DELTA-*.
+ * Transfer/archival paths, activity visibility, and per-grant audit on project membership
+ * removal remain unvalidated by this foundation.
  */
 import type pg from 'pg';
 import type { Role, ProjectRole } from '@flowboard/contracts';

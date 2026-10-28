@@ -1,8 +1,8 @@
 /**
- * Unmounted cursor experiment. Callers MUST authenticate and authorize each
- * request and compare the returned revision with current database state.
- * A cursor is not an authorization grant. Runtime secret provisioning, key
- * rotation and the production cursor contract are intentionally not wired.
+ * Board-access cursor helper, used by GET /boards/:id/access. Callers MUST authenticate and
+ * authorize each request and compare the returned revision with current database state. A cursor
+ * is not an authorization grant. CURSOR_SECRET must be set in every environment (review R3-07);
+ * key rotation and the production cursor contract are not yet defined.
  */
 export interface BoardAccessCursor {
   v: 1;

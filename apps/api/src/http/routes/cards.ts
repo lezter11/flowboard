@@ -149,7 +149,7 @@ cardsRoutes.patch('/api/v1/cards/:cardId', authMiddleware, async (c) => {
   try {
     await client.query('BEGIN');
 
-    // 1. Lock card row FOR SHARE to serialize against concurrent trash/delete (F-05)
+    // 1. Read card state (plain SELECT, not a lock; the adapter rechecks state under its locks) (F-05)
     const cardLookup = await client.query<{ id: string; project_id: string; board_id: string; state: string }>(
       'SELECT id, project_id, board_id, state FROM cards WHERE id = $1',
       [cardId],
@@ -224,7 +224,7 @@ cardsRoutes.post('/api/v1/cards/:cardId/move', authMiddleware, async (c) => {
   try {
     await client.query('BEGIN');
 
-    // 1. Lock card row FOR SHARE to serialize against concurrent trash/delete (F-05)
+    // 1. Read card state (plain SELECT, not a lock; the adapter rechecks state under its locks) (F-05)
     const cardLookup = await client.query<{ id: string; project_id: string; board_id: string; state: string }>(
       'SELECT id, project_id, board_id, state FROM cards WHERE id = $1',
       [cardId],
