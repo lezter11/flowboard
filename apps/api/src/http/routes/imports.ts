@@ -19,6 +19,7 @@ import {
 } from '../../adapters/imports.ts';
 import { HttpError } from '../errors.ts';
 import { lockBoardAccess } from '../../adapters/board-grants-foundation.ts';
+import { acquireWriteGrantLock, acquireWritableProjectContextLock } from '../../adapters/rbac.ts';
 import { authMiddleware } from '../middleware/auth.ts';
 
 export const importsRoutes = new Hono();
@@ -217,9 +218,21 @@ const handleCommitImport = async (c: any) => {
   try {
     await client.query('BEGIN');
 
-    // Fetch import target metadata to verify idempotency scope
+    // Lock order: grant, project and board, then the import row exactly once, FOR UPDATE.
+    // Taking the import row FOR SHARE here and upgrading it inside commitCardImport deadlocked
+    // two commits of the same import (review R3-02). The scope is read unlocked only to find the board.
+    const scope = await client.query<{ project_id: string; board_id: string }>(
+      'SELECT project_id, board_id FROM card_imports WHERE id = $1',
+      [importId],
+    );
+    if (scope.rows.length === 0) {
+      await client.query('ROLLBACK');
+      throw HttpError.notFound('Import session not found.', 'NOT_FOUND');
+    }
+    await acquireWriteGrantLock(client, scope.rows[0]!.project_id, actor.id, 'manager', scope.rows[0]!.board_id);
+    await acquireWritableProjectContextLock(client, scope.rows[0]!.project_id, scope.rows[0]!.board_id);
     const impRes = await client.query<{ project_id: string; board_id: string }>(
-      'SELECT project_id, board_id FROM card_imports WHERE id = $1 FOR SHARE',
+      'SELECT project_id, board_id FROM card_imports WHERE id = $1 FOR UPDATE',
       [importId],
     );
 

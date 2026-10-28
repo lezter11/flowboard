@@ -192,6 +192,22 @@ commentsRoutes.patch('/comments/:commentId', authMiddleware, async (c) => {
   try {
     await client.query('BEGIN');
 
+    // Lock order: grant, project and board, then the card row (review R3-01). Card move takes
+    // the board before the card, so locking the card first deadlocked against it. The comment's
+    // scope is read unlocked only to learn the board id.
+    const scope = await client.query<{ project_id: string; board_id: string }>(
+      `SELECT c.project_id, cd.board_id
+       FROM comments c JOIN cards cd ON cd.id = c.card_id
+       WHERE c.id = $1`,
+      [commentId],
+    );
+    if (scope.rows.length === 0 || !scope.rows[0]) {
+      await client.query('ROLLBACK');
+      throw HttpError.notFound('Comment not found.', 'NOT_FOUND');
+    }
+    await acquireWriteGrantLock(client, scope.rows[0].project_id, actor.id, 'member', scope.rows[0].board_id);
+    await acquireWritableProjectContextLock(client, scope.rows[0].project_id, scope.rows[0].board_id);
+
     const cmtRes = await client.query<{ project_id: string; board_id: string; card_state: string }>(
       `SELECT c.project_id, cd.board_id, cd.state AS card_state
        FROM comments c JOIN cards cd ON cd.id = c.card_id
@@ -297,6 +313,22 @@ commentsRoutes.delete('/comments/:commentId', authMiddleware, async (c) => {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+
+    // Lock order: grant, project and board, then the card row (review R3-01). Card move takes
+    // the board before the card, so locking the card first deadlocked against it. The comment's
+    // scope is read unlocked only to learn the board id.
+    const scope = await client.query<{ project_id: string; board_id: string }>(
+      `SELECT c.project_id, cd.board_id
+       FROM comments c JOIN cards cd ON cd.id = c.card_id
+       WHERE c.id = $1`,
+      [commentId],
+    );
+    if (scope.rows.length === 0 || !scope.rows[0]) {
+      await client.query('ROLLBACK');
+      throw HttpError.notFound('Comment not found.', 'NOT_FOUND');
+    }
+    await acquireWriteGrantLock(client, scope.rows[0].project_id, actor.id, 'member', scope.rows[0].board_id);
+    await acquireWritableProjectContextLock(client, scope.rows[0].project_id, scope.rows[0].board_id);
 
     const cmtRes = await client.query<{
       project_id: string;
