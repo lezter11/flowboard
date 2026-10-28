@@ -18,5 +18,29 @@
   },
   "triggers": {
     "crons": ["* * * * *"]
+  },
+  // Top level == production (deployed as flowboard-api). dev/uat redefine every
+  // non-inherited key (vars, hyperdrive, triggers) so they never share prod data.
+  "env": {
+    "dev": {
+      "name": "flowboard-api-dev",
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "REPLACE_WITH_DEV_HYPERDRIVE_ID" }],
+      "vars": {
+        "FRONTEND_URL": "https://flowboard-app-dev.pages.dev",
+        "CORS_ORIGIN": "https://flowboard-app-dev.pages.dev",
+        "GOOGLE_REDIRECT_URI": "https://flowboard-app-dev.pages.dev/api/v1/auth/google/callback"
+      },
+      "triggers": { "crons": ["*/15 * * * *"] }
+    },
+    "uat": {
+      "name": "flowboard-api-uat",
+      "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "REPLACE_WITH_UAT_HYPERDRIVE_ID" }],
+      "vars": {
+        "FRONTEND_URL": "https://flowboard-app-uat.pages.dev",
+        "CORS_ORIGIN": "https://flowboard-app-uat.pages.dev",
+        "GOOGLE_REDIRECT_URI": "https://flowboard-app-uat.pages.dev/api/v1/auth/google/callback"
+      },
+      "triggers": { "crons": ["*/15 * * * *"] }
+    }
   }
 }
