@@ -4,10 +4,18 @@ import type { BoardSnapshotData, CardSummary, ColumnSummary } from '@flowboard/c
 export type Tone = 'backlog' | 'progress' | 'testing' | 'completed' | 'blocked' | 'rose' | 'mint' | 'peach' | 'butter' | 'iris';
 
 /**
- * The API stores a hex color and a category; the prototype names pastel tones.
- * Until columns carry a tone, derive it from the name, then the category.
+ * The prototype names pastel tones. Columns may carry a stored tone (additive API field);
+ * when absent, derive it from the name, then the category.
  */
-export function toneFor(column: Pick<ColumnSummary, 'name' | 'category'>): Tone {
+const STORED_TONES: Record<string, Tone> = {
+  lavender: 'backlog', ice: 'progress', grey: 'testing', green: 'completed', coral: 'blocked',
+  rose: 'rose', mint: 'mint', peach: 'peach', butter: 'butter', lilac: 'iris',
+};
+
+export function toneFor(column: Pick<ColumnSummary, 'name' | 'category'> & { tone?: string | null }): Tone {
+  // A stored tone (API optional field) wins; otherwise derive it from the name, then the category.
+  const stored = column.tone ? STORED_TONES[column.tone] : undefined;
+  if (stored) return stored;
   const name = column.name.toLowerCase();
   if (/block/.test(name)) return 'blocked';
   if (/test|review|\bqa\b/.test(name)) return 'testing';

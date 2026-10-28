@@ -122,6 +122,9 @@ export default function ActivityPage() {
                   <span className="event-icon" aria-hidden="true"><Icon name={view.icon} /></span>
                   <div className="event-body">
                     <p className="event-title"><strong>{item.actor?.displayName ?? 'Someone'}</strong> {view.text}</p>
+                    {item.boardId && item.cardId && (
+                      <Link className="event-card" href={`/board?id=${encodeURIComponent(item.boardId)}&card=${encodeURIComponent(item.cardId)}`}>{item.cardKey ?? 'Card'} <span>{item.cardTitle ?? ''}</span><Icon name="arrow-right" /></Link>
+                    )}
                     <div className="event-context"><span>{activeProject?.name}</span><span className="event-category">{view.category}</span></div>
                   </div>
                   <time className="event-time" dateTime={item.createdAt}>{relativeTime(item.createdAt)}</time>

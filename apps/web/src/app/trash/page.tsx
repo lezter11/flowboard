@@ -108,7 +108,7 @@ export default function TrashPage() {
               <article key={row.id} className="recovery-row" data-status={key}>
                 <span className="item-mark" aria-hidden="true"><Icon name="trash" /></span>
                 <div className="item-main">
-                  <div className="item-title"><strong>{row.title}</strong></div>
+                  <div className="item-title"><strong>{row.title}</strong>{row.key && <span className="item-key">{row.key}</span>}</div>
                   <div className="item-context"><span>{project?.name}</span><span aria-hidden="true">/</span><span>{boardName(row.boardId)}</span><span aria-hidden="true">·</span><span>Deleted by {row.actor?.displayName ?? 'Unknown'}</span></div>
                   <div className="item-deadline"><Icon name="calendar" /><span>Deleted {dateTime(row.deletedAt)}</span><span aria-hidden="true">·</span><span>Deadline {dateTime(row.restoreUntil)}</span></div>
                 </div>
