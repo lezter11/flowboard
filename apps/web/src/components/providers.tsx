@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { LazyMotion, MotionConfig, domMax } from 'motion/react';
+import { LazyMotion, MotionConfig } from 'motion/react';
 import { SessionProvider } from '@/lib/session';
 
 export function Providers({ children }: { children: React.ReactNode }) {
@@ -22,7 +22,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       {/* LazyMotion keeps the Motion core small; reducedMotion="user" turns transform animation off for people who ask. */}
-      <LazyMotion features={domMax} strict>
+      <LazyMotion features={() => import('@/lib/motion-features').then((module) => module.default)} strict>
         <MotionConfig reducedMotion="user">
           <SessionProvider>{children}</SessionProvider>
         </MotionConfig>

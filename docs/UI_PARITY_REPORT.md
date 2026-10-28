@@ -32,6 +32,16 @@ Severity: blocker, major, minor. Owner: UI, Backend, Design.
 | P-025 | board | In the prototype only the card list (`.column-cards`) accepts a drop, so dropping in the empty space under the last card does nothing. `apps/web` accepts drops anywhere in the column (small deviation made for usability; the drop index still comes from the card positions). | minor | `design/flowboard-ui/board.js` `bindDrag`, `apps/web/src/components/board/board-column.tsx` | Keep, or restrict to match the prototype. | Design |
 | P-015 | shell | Inbox, Activity, Trash, People and Settings navigation items are inert with a "Soon" badge until their screens are wired. | minor | `components/shell/rail.tsx` | Remove the badge as each screen is wired. | UI |
 
+## Bundle size (first-load JS, static export)
+
+| route | before Motion | with Motion | note |
+|---|---|---|---|
+| /board | 134 kB | 150 kB | `m` components (`motion/react-m`) plus `LazyMotion`; the layout engine (`domMax`) loads after first paint |
+| /projects, /project | 123 kB | 123 kB | toasts use a CSS animation, not `AnimatePresence` (which added 46 kB) |
+| /signin | 105 kB | 106 kB | |
+
+Motion is configured with `reducedMotion="user"`; toast and layout animations are skipped for people who ask. GSAP and Lenis are not installed; Locomotive is not used.
+
 ## Proposed enhancements (after parity, not applied)
 
 None yet.

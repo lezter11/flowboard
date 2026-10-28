@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type DragEvent, type FormEvent, type KeyboardEvent } from 'react';
-import { m } from 'motion/react';
+import * as m from 'motion/react-m';
 import type { CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
 import { Icon } from '@/components/ui/icon';
 import { toneFor } from '@/lib/board-model';

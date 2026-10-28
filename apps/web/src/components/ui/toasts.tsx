@@ -1,7 +1,6 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { AnimatePresence, m } from 'motion/react';
 import { Icon } from './icon';
 
 interface ToastOptions { tone?: 'danger' | 'success'; icon?: string; undo?: () => void }
@@ -28,13 +27,9 @@ function ToastView({ item, onDismiss }: { item: ToastItem; onDismiss: (id: numbe
     return () => { if (timer.current) clearTimeout(timer.current); };
   }, [item.undo, start]);
   return (
-    <m.div
-      layout
-      initial={{ opacity: 0, y: 10, scale: 0.98 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 6, transition: { duration: 0.15 } }}
-      transition={{ type: 'spring', stiffness: 520, damping: 38 }}
+    <div
       className={`toast${item.tone ? ` tone-${item.tone}` : ''}`}
+      style={{ animation: 'toast-in 180ms cubic-bezier(0.2, 0.75, 0.25, 1) both' }}
       onMouseEnter={() => timer.current && clearTimeout(timer.current)}
       onMouseLeave={() => start(2500)}
     >
@@ -42,7 +37,7 @@ function ToastView({ item, onDismiss }: { item: ToastItem; onDismiss: (id: numbe
       <span className="toast-message">{item.message}</span>
       {item.undo && <button className="toast-undo" type="button" onClick={() => { item.undo?.(); dismiss(); }}>Undo</button>}
       <button className="toast-close" type="button" aria-label="Dismiss notification" onClick={dismiss}><Icon name="x" /></button>
-    </m.div>
+    </div>
   );
 }
 
@@ -59,9 +54,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div className="toasts" id="toasts" role="status" aria-live="polite" aria-atomic="false">
-        <AnimatePresence initial={false}>
-          {items.map((item) => <ToastView key={item.id} item={item} onDismiss={remove} />)}
-        </AnimatePresence>
+        {items.map((item) => <ToastView key={item.id} item={item} onDismiss={remove} />)}
       </div>
     </ToastContext.Provider>
   );
