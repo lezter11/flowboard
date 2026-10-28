@@ -1,6 +1,8 @@
 {
-  // Pages project for UAT only. Deploy from apps/web:
-  //   npx wrangler pages deploy out --config wrangler.uat.jsonc --project-name flowboard-app-uat
+  // Pages project for UAT only. Pages ignores custom config paths, so deploy from a
+  // staging dir holding out/, functions/ and this file copied as wrangler.jsonc:
+  //   NEXT_EXPORT=true next build (no NEXT_PUBLIC_API_URL), then
+  //   wrangler pages deploy out --project-name flowboard-app-uat --branch main
   "name": "flowboard-app-uat",
   "pages_build_output_dir": "./out",
   "compatibility_date": "2026-10-19",
