@@ -94,6 +94,10 @@ export const activityItemSchema = z.object({
   safeChanges: z.record(z.unknown()),
   createdAt: utcIsoTimestampSchema,
   actor: personDisplaySchema.optional(),
+  // Optional, additive: set on card-scoped feeds only (the actor already passed that card's check).
+  boardId: z.string().min(1).optional(),
+  cardKey: z.string().min(1).optional(),
+  cardTitle: z.string().min(1).max(200).optional(),
 });
 export type ActivityItem = z.infer<typeof activityItemSchema>;
 

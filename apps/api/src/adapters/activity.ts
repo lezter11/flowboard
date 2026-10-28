@@ -121,10 +121,14 @@ export async function listCardActivity(
     workspace_id: string;
     board_id: string;
     state: string;
+    title: string;
+    card_key: string;
   }>(
-    `SELECT id, project_id, workspace_id, board_id, state
-     FROM cards
-     WHERE id = $1`,
+    `SELECT c.id, c.project_id, c.workspace_id, c.board_id, c.state, c.title,
+       p.key_prefix || '-' || c.card_number::text AS card_key
+     FROM cards c
+     JOIN projects p ON p.id = c.project_id
+     WHERE c.id = $1`,
     [cardId],
   );
 
@@ -240,6 +244,10 @@ export async function listCardActivity(
     safeChanges: (row.safe_changes as Record<string, unknown>) ?? {},
     createdAt: new Date(row.created_at).toISOString(),
     actor: actorsMap.get(row.actor_id),
+    // Card title and key are shown only because this feed is already scoped to one card the actor passed.
+    boardId: card.board_id,
+    cardKey: card.card_key,
+    cardTitle: card.title,
   }));
 
   return { data, nextCursor };
