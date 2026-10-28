@@ -6,6 +6,9 @@ import {
   type ProjectListResponse,
   type ProjectPeopleResponse,
   type BoardListResponse,
+  type BoardResponse,
+  type CreateProjectInput,
+  type CreateBoardInput,
   type BoardSnapshotResponse,
   type BoardSnapshotQuery,
   type CardResponse,
@@ -96,6 +99,22 @@ export const api = {
   // Projects
   async listProjects(workspaceId: string): Promise<ProjectListResponse> {
     return request<ProjectListResponse>(`/api/v1/workspaces/${encodeURIComponent(workspaceId)}/projects`);
+  },
+
+  async createProject(workspaceId: string, input: CreateProjectInput, idempotencyKey?: string): Promise<ProjectResponse> {
+    return request<ProjectResponse>(`/api/v1/workspaces/${encodeURIComponent(workspaceId)}/projects`, {
+      method: 'POST',
+      headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
+      body: JSON.stringify(input),
+    });
+  },
+
+  async createBoard(projectId: string, input: CreateBoardInput, idempotencyKey?: string): Promise<BoardResponse> {
+    return request<BoardResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/boards`, {
+      method: 'POST',
+      headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
+      body: JSON.stringify(input),
+    });
   },
 
   async getProject(projectId: string): Promise<ProjectResponse> {

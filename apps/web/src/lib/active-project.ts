@@ -26,6 +26,9 @@ export function useActiveProject() {
     queryFn: async () => (await api.listProjectBoards(projectId!)).data,
     enabled: !!projectId && state.status === 'ready',
   });
-  const role: Role = normalizeRole(project?.role);
+  // Outside a project (e.g. the project list) show the strongest role the actor holds.
+  const ownsWorkspace = state.status === 'ready' && state.session.ownedWorkspaces.length > 0;
+  const strongest = (['owner', 'manager', 'member', 'viewer'] as const).find((r) => ownsWorkspace && r === 'owner' || projects.some((p) => p.role === r));
+  const role: Role = project ? normalizeRole(project.role) : normalizeRole(strongest);
   return { projectId, project, workspace, role, boardId, boards: boards.data ?? [], board: board.data ?? null, projects };
 }

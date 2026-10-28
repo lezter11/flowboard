@@ -1,197 +1,255 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { ArrowRight, FolderKanban, Layers3, ShieldCheck, Plus, Sparkles } from 'lucide-react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import type { Board, SessionProjectSummary } from '@flowboard/contracts';
+import { api } from '@/lib/api';
+import { describeError } from '@/lib/errors';
+import { projectMark, projectTone, usePortfolio, type BoardStats } from '@/lib/portfolio';
 import { useSession } from '@/lib/session';
-import type { SessionProjectSummary, SessionWorkspaceSummary } from '@flowboard/contracts';
+import { Icon } from '@/components/ui/icon';
+import { DialogLayer } from '@/components/ui/dialog-layer';
+import { useToast } from '@/components/ui/toasts';
 
-export default function ProjectsPage() {
+const NO_STATS: BoardStats = { total: 0, done: 0, open: 0, percent: 0 };
+
+function ProjectMark({ project }: { project: SessionProjectSummary }) {
+  return <span className={`ph-mark tone-${projectTone(project.id)}`} aria-hidden="true">{projectMark(project.name)}</span>;
+}
+
+function projectStats(boards: Board[], stats: Map<string, BoardStats | null>): BoardStats {
+  const sum = boards.reduce((acc, b) => {
+    const s = stats.get(b.id) ?? NO_STATS;
+    return { total: acc.total + s.total, done: acc.done + s.done, open: acc.open + s.open, percent: 0 };
+  }, NO_STATS);
+  return { ...sum, percent: sum.total ? Math.round((sum.done / sum.total) * 100) : 0 };
+}
+
+function ProjectsScreen() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const toast = useToast();
   const { state, refetch } = useSession();
-  const loading = state.status === 'loading';
-  const projects: SessionProjectSummary[] = state.status === 'ready' ? state.session.accessibleProjects : [];
-  const workspaces: SessionWorkspaceSummary[] = state.status === 'ready' ? state.session.ownedWorkspaces : [];
-  const actorName = state.status === 'ready' ? state.session.actor.displayName || state.session.actor.email : null;
-  const [isCreating, setIsCreating] = useState(false);
-  const [newProjectName, setNewProjectName] = useState('');
-  const [createError, setCreateError] = useState('');
+  const { projects, boardsByProject, statsByBoard, loading } = usePortfolio();
+  const tab: 'active' | 'archived' = params.get('tab') === 'archived' ? 'archived' : 'active';
+  const view: 'map' | 'list' = params.get('view') === 'list' ? 'list' : 'map';
+  const [query, setQuery] = useState('');
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
 
-  const handleCreateProject = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newProjectName.trim() || workspaces.length === 0) return;
-    try {
-      setCreateError('');
-      const wsId = workspaces[0].id;
-      const res = await fetch(`/api/v1/workspaces/${encodeURIComponent(wsId)}/projects`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Idempotency-Key': `prj_create_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-        },
-        body: JSON.stringify({ name: newProjectName.trim() }),
-      });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        throw new Error(data?.error?.message || `Failed with status ${res.status}`);
-      }
-      refetch();
-      setNewProjectName('');
-      setIsCreating(false);
-    } catch (err: any) {
-      setCreateError(err?.message || 'Failed to create project.');
-    }
+  const workspaces = state.status === 'ready' ? state.session.ownedWorkspaces : [];
+  const canCreate = workspaces.length > 0;
+  const setParam = (key: string, value: string | null) => {
+    const next = new URLSearchParams(params.toString());
+    if (value) next.set(key, value); else next.delete(key);
+    router.replace(`${pathname}${next.size ? `?${next.toString()}` : ''}`, { scroll: false });
   };
 
+  const activeCount = projects.filter((p) => !p.isArchived).length;
+  const archivedCount = projects.length - activeCount;
+  const visible = useMemo(() => {
+    const q = query.trim().toLocaleLowerCase();
+    return projects.filter((p) => p.isArchived === (tab === 'archived')).filter((p) => {
+      if (!q) return true;
+      const boardNames = (boardsByProject.get(p.id) ?? []).map((b) => b.name).join(' ');
+      return `${p.name} ${p.description ?? ''} ${boardNames}`.toLocaleLowerCase().includes(q);
+    });
+  }, [projects, tab, query, boardsByProject]);
+
+  const activeProjects = projects.filter((p) => !p.isArchived);
+  const summaryBoards = activeProjects.reduce((n, p) => n + (boardsByProject.get(p.id) ?? []).filter((b) => !b.isArchived).length, 0);
+  const summaryCards = activeProjects.reduce((n, p) => n + projectStats(boardsByProject.get(p.id) ?? [], statsByBoard).total, 0);
+
+  const create = async (event: FormEvent) => {
+    event.preventDefault();
+    const trimmed = name.trim();
+    if (!trimmed) { setError('Enter a project name.'); return; }
+    setBusy(true);
+    setError('');
+    try {
+      await api.createProject(workspaces[0]!.id, { name: trimmed, ...(description.trim() ? { description: description.trim() } : {}) });
+      setCreating(false); setName(''); setDescription('');
+      refetch();
+      toast(`Project “${trimmed}” created`, { icon: 'check' });
+    } catch (err) {
+      setError(describeError(err));
+    } finally { setBusy(false); }
+  };
+
+  const signedIn = state.status === 'ready';
+  const emptyTitle = query ? 'No matching projects' : tab === 'archived' ? 'No archived projects' : 'No active projects';
+  const emptyMessage = query ? 'Try another project or board name, or clear your search.' : tab === 'archived' ? 'Archived projects you can access will appear here.' : canCreate ? 'Create a project to gather its related boards in one place.' : 'No project has been shared with you yet. Ask a project owner to add you.';
+
   return (
-    <div className="flex-1 flex flex-col p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6 bg-canvas text-ink">
-      <div className="border-b border-line pb-5 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-wider text-muted">Workspace portfolio</p>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-ink">Projects</h1>
-          <p className="mt-1 text-xs text-muted">
-            {actorName
-              ? `Signed in as ${actorName}. Projects you own or have been granted access to.`
-              : 'Projects keep related boards together. Sign in to view your projects.'}
-          </p>
+    <>
+      <div className="page-head portfolio-head">
+        <div className="page-head-copy">
+          <p className="portfolio-eyebrow">Workspace portfolio</p>
+          <h1>Projects</h1>
+          <p className="page-sub">{signedIn ? `${projects.length} accessible ${projects.length === 1 ? 'project' : 'projects'} · ${state.session.actor.displayName}` : 'Projects group related boards. Your list follows your project access.'}</p>
         </div>
-        <div className="flex items-center gap-2">
-          {workspaces.length > 0 && !isCreating && (
-            <button
-              type="button"
-              onClick={() => setIsCreating(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-[var(--accent-ink)] font-semibold text-xs hover:bg-accent-hover transition-colors focus-visible:outline-2"
-            >
-              <Plus className="w-4 h-4" /> Create project
-            </button>
-          )}
-          {!actorName && (
-            <Link
-              href="/signin"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-ink text-surface font-semibold text-xs hover:opacity-90 transition-opacity focus-visible:outline-2"
-            >
-              Sign in to Flowboard
-            </Link>
-          )}
+        <div className="page-actions">
+          {canCreate && <button className="btn primary" type="button" onClick={() => { setError(''); setCreating(true); }}><Icon name="plus" />New project</button>}
         </div>
       </div>
 
-      {isCreating && (
-        <form onSubmit={handleCreateProject} className="p-4 rounded-xl border border-line bg-surface space-y-3">
-          <h3 className="text-sm font-bold">New Project</h3>
-          {createError && <p className="text-xs text-red-600">{createError}</p>}
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newProjectName}
-              onChange={(e) => setNewProjectName(e.target.value)}
-              placeholder="Project name"
-              autoFocus
-              className="flex-1 px-3 py-1.5 rounded-lg border border-line bg-surface-2 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-            />
-            <button
-              type="submit"
-              disabled={!newProjectName.trim()}
-              className="px-4 py-1.5 rounded-lg bg-accent text-[var(--accent-ink)] text-xs font-semibold hover:bg-accent-hover disabled:opacity-50"
-            >
-              Create
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsCreating(false);
-                setCreateError('');
-              }}
-              className="px-3 py-1.5 rounded-lg border border-line bg-surface text-xs font-semibold hover:bg-surface-3"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
-      )}
+      <section className="portfolio-summary" aria-label="Portfolio summary">
+        <div className="pf-summary-card"><span className="pf-summary-icon tone-thistle" aria-hidden="true"><Icon name="folder" /></span><div className="pf-summary-copy"><strong>{activeCount}</strong><span>active projects</span></div></div>
+        <div className="pf-summary-card"><span className="pf-summary-icon tone-icy" aria-hidden="true"><Icon name="board" /></span><div className="pf-summary-copy"><strong>{summaryBoards}</strong><span>boards</span></div></div>
+        <div className="pf-summary-card"><span className="pf-summary-icon tone-petal" aria-hidden="true"><Icon name="list" /></span><div className="pf-summary-copy"><strong>{summaryCards}</strong><span>cards</span></div></div>
+        <p className="pf-summary-note">Counts cover only accessible boards in active projects.</p>
+      </section>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1.65fr)_minmax(280px,1fr)]">
-        <section aria-labelledby="project-list-title" className="rounded-2xl border border-line bg-surface p-5 sm:p-7 shadow-sm">
-          <div className="border-b border-line pb-4 flex justify-between items-center">
-            <h2 id="project-list-title" className="text-base font-bold text-ink">
-              Your projects {projects.length > 0 && `(${projects.length})`}
-            </h2>
+      <section className="portfolio-controls" aria-label="Project browsing controls">
+        <div className="portfolio-search">
+          <label className="sr-only" htmlFor="projectSearch">Search accessible projects and boards</label>
+          <span aria-hidden="true" className="portfolio-search-icon"><Icon name="search" /></span>
+          <input id="projectSearch" type="search" autoComplete="off" placeholder="Search projects or boards" value={query} onChange={(event) => setQuery(event.target.value)} />
+          <button className="portfolio-clear" type="button" hidden={!query} onClick={() => setQuery('')}>Clear</button>
+        </div>
+        <div className="portfolio-control-end">
+          <div className="portfolio-tabs" role="tablist" aria-label="Project status">
+            <button className="portfolio-tab" type="button" role="tab" id="activeProjectsTab" aria-controls="projectList" aria-selected={tab === 'active'} tabIndex={tab === 'active' ? 0 : -1} onClick={() => setParam('tab', null)}>Active <span>{activeCount}</span></button>
+            <button className="portfolio-tab" type="button" role="tab" id="archivedProjectsTab" aria-controls="projectList" aria-selected={tab === 'archived'} tabIndex={tab === 'archived' ? 0 : -1} onClick={() => setParam('tab', 'archived')}>Archived <span>{archivedCount}</span></button>
           </div>
+          <div className="portfolio-view-toggle" role="group" aria-label="Project layout">
+            <button type="button" aria-pressed={view === 'map'} onClick={() => setParam('view', null)}>Map</button>
+            <button type="button" aria-pressed={view === 'list'} onClick={() => setParam('view', 'list')}>List</button>
+          </div>
+        </div>
+      </section>
 
-          {loading ? (
-            <div className="py-16 text-center text-xs text-muted">Checking project access...</div>
-          ) : projects.length > 0 ? (
-            <div className="mt-4 divide-y divide-line">
-              {projects.map((project) => (
-                <div key={project.id} className="py-4 flex items-center justify-between gap-4 first:pt-0 last:pb-0">
-                  <div className="min-w-0">
-                    <Link
-                      href={`/project?id=${encodeURIComponent(project.id)}`}
-                      className="text-sm font-bold text-ink hover:text-accent flex items-center gap-2 group"
-                    >
-                      <FolderKanban className="w-4 h-4 text-accent shrink-0" />
-                      <span className="truncate">{project.name}</span>
-                      <ArrowRight className="w-3.5 h-3.5 text-faint group-hover:text-accent transition-transform group-hover:translate-x-0.5" />
-                    </Link>
-                    {project.description && (
-                      <p className="mt-1 text-xs text-muted truncate">{project.description}</p>
-                    )}
-                    <div className="mt-1.5 flex items-center gap-2 text-[11px] text-faint">
-                      <span className="capitalize px-1.5 py-0.5 rounded bg-surface-3 font-medium">Role: {project.role}</span>
-                      {project.isArchived && <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-medium">Archived</span>}
-                    </div>
-                  </div>
-                  <Link
-                    href={`/project?id=${encodeURIComponent(project.id)}`}
-                    className="px-3 py-1.5 rounded-lg border border-line text-xs font-semibold hover:bg-surface-3 shrink-0"
-                  >
-                    Open boards
-                  </Link>
+      <div className="portfolio-results-row">
+        <h2>{tab === 'archived' ? 'Archived projects' : 'Active projects'}</h2>
+        <p aria-live="polite">{loading ? 'Loading projects…' : `${visible.length} ${visible.length === 1 ? 'project' : 'projects'}${query ? ' found' : ''}`}</p>
+      </div>
+
+      <section id="projectList" className={`project-collection ${view === 'list' ? 'project-collection-list' : 'project-collection-map'}`} role="tabpanel" aria-labelledby={`${tab}ProjectsTab`} tabIndex={0}>
+        {visible.length === 0 && !loading ? (
+          <div className="ph-empty">
+            <span className="ph-empty-mark" aria-hidden="true"><Icon name={tab === 'archived' ? 'archive' : 'folder'} /></span>
+            <h3>{emptyTitle}</h3>
+            <p>{emptyMessage}</p>
+            {query && <button className="btn" type="button" onClick={() => setQuery('')}>Clear search</button>}
+          </div>
+        ) : visible.map((project) => {
+          const boards = (boardsByProject.get(project.id) ?? []).filter((b) => !b.isArchived);
+          const stats = projectStats(boards, statsByBoard);
+          const href = `/project?id=${encodeURIComponent(project.id)}`;
+          const archived = project.isArchived;
+          const tone = projectTone(project.id);
+          if (view === 'list') {
+            return (
+              <article key={project.id} className={`pm-row tone-${tone}${archived ? ' is-archived' : ''}`}>
+                <ProjectMark project={project} />
+                <div className="pm-row-copy"><h3><Link href={href}>{project.name}</Link></h3><p>{project.description || 'No description added.'}</p></div>
+                <div className="pm-row-boards" aria-label={`Boards in ${project.name}`}>
+                  {boards.slice(0, 4).map((b) => <Link key={b.id} className={`pm-chip tone-${projectTone(b.id)}`} href={`/board?id=${encodeURIComponent(b.id)}`}><i aria-hidden="true" />{b.name}</Link>)}
+                  {boards.length === 0 && <span className="pm-chip is-empty">No boards</span>}
+                  {boards.length > 4 && <span className="pm-chip is-empty">+{boards.length - 4}</span>}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex min-h-60 flex-col items-center justify-center px-4 py-10 text-center">
-              <span className="flex h-14 w-14 items-center justify-center rounded-2xl border border-accent-line bg-accent-soft text-accent">
-                <FolderKanban aria-hidden="true" className="h-7 w-7" />
-              </span>
-              <h3 className="mt-4 text-sm font-semibold text-ink">
-                {actorName ? 'No projects yet' : 'Sign in to see your projects'}
-              </h3>
-              <p className="mt-1 max-w-sm text-xs leading-5 text-muted">
-                {actorName
-                  ? workspaces.length > 0
-                    ? 'Create your first project above to begin organizing team boards and cards.'
-                    : 'No project has been shared with you yet. Ask a project owner to add you.'
-                  : 'Sign in with Google to load your private workspace.'}
-              </p>
-            </div>
-          )}
-        </section>
+                <div className="pm-row-stats"><span><strong>{stats.total}</strong> cards</span><span><strong>{stats.open}</strong> open</span></div>
+                <span className={`ph-status ${archived ? 'is-archived' : 'is-active'}`}><i aria-hidden="true" />{archived ? 'Archived' : 'Active'}</span>
+                <Link className="pm-row-open" href={href} aria-label={`Open ${project.name}`}><Icon name="arrow-right" /></Link>
+              </article>
+            );
+          }
+          const shown = boards.slice(0, 4);
+          const rest = boards.length - shown.length;
+          return (
+            <article key={project.id} className={`pm-project tone-${tone}${archived ? ' is-archived' : ''}`}>
+              <div className="pm-root">
+                <div className="pm-root-head">
+                  <ProjectMark project={project} />
+                  <div className="pm-root-copy"><h3><Link href={href}>{project.name}</Link></h3><p>{project.description || 'No description added.'}</p></div>
+                </div>
+                <div className="pm-root-stats" aria-label="Project totals">
+                  <div><strong>{stats.total}</strong><span>cards</span></div>
+                  <div><strong>{stats.open}</strong><span>open</span></div>
+                </div>
+                <div className="pm-meter" role="img" aria-label={`${stats.done} of ${stats.total} cards completed`}><span style={{ width: `${stats.percent}%` }} /></div>
+                <p className="pm-meter-label">{stats.done} of {stats.total} cards completed · {stats.percent}%</p>
+                <div className="pm-root-foot">
+                  <span className={`ph-status ${archived ? 'is-archived' : 'is-active'}`}><i aria-hidden="true" />{archived ? 'Archived' : 'Active'}</span>
+                  <span className="pm-separator" aria-hidden="true" />
+                  <span className="pm-root-boards">{boards.length} {boards.length === 1 ? 'board' : 'boards'}</span>
+                  <span className="spacer" />
+                </div>
+              </div>
+              <div className="pm-branches">
+                <div className="pm-branches-head"><span className="pm-branches-title">Boards</span><span className="pm-branches-hint">{archived ? 'Read-only while archived' : 'Each board keeps its own workflow and access'}</span></div>
+                {boards.length ? (
+                  <ul className="pm-branch-list" aria-label={`Boards in ${project.name}`}>
+                    {shown.map((board) => {
+                      const s = statsByBoard.get(board.id) ?? NO_STATS;
+                      const bhref = `/board?id=${encodeURIComponent(board.id)}`;
+                      return (
+                        <li key={board.id} className={`pm-branch tone-${projectTone(board.id)}`}>
+                          <span className="pm-node" aria-hidden="true" />
+                          <div className="pm-branch-copy">
+                            <Link className="pm-branch-name" href={bhref}>{board.name}</Link>
+                            <span className="pm-branch-description">No description added.</span>
+                          </div>
+                          <span className="pm-branch-count">{s.total} {s.total === 1 ? 'card' : 'cards'}<i aria-hidden="true">·</i>{s.open} open</span>
+                          <span className="pm-branch-bar" role="img" aria-label={`${s.done} of ${s.total} cards completed`}><i style={{ width: `${s.percent}%` }} /></span>
+                          {project.role === 'owner' || project.role === 'manager'
+                            ? <span className="pm-branch-access"><Icon name="users" /><span>Full access</span></span>
+                            : <span className="pm-branch-access is-grant"><Icon name="lock" /><span>Granted</span></span>}
+                          <Link className="pm-branch-open" href={bhref} aria-label={`Open ${board.name} board`}><Icon name="arrow-right" /></Link>
+                        </li>
+                      );
+                    })}
+                    {rest > 0 && <li className="pm-branch-more"><span aria-hidden="true">+</span>{rest} more {rest === 1 ? 'board' : 'boards'}</li>}
+                  </ul>
+                ) : (
+                  <div className="pm-branches-empty"><span className="pm-branches-empty-icon" aria-hidden="true"><Icon name="board" /></span><div><strong>No boards available</strong><p>Open the project to add the first board, or ask an owner for board access.</p></div></div>
+                )}
+                <div className="pm-branches-foot"><Link className="pm-link is-strong" href={href}>Open project<span aria-hidden="true">→</span></Link></div>
+              </div>
+            </article>
+          );
+        })}
+      </section>
 
-        <aside className="space-y-4">
-          <section className="rounded-2xl border border-line bg-surface-2 p-5">
-            <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-faint">How work is organized</p>
-            <div className="mt-4 flex items-center gap-3 rounded-xl border border-line bg-surface p-3 text-xs font-semibold text-ink">
-              <FolderKanban aria-hidden="true" className="h-4 w-4 text-accent" /> Project <ArrowRight aria-hidden="true" className="ml-auto h-3.5 w-3.5 text-faint" />
-            </div>
-            <div className="ml-5 mt-2 flex items-center gap-3 rounded-xl border border-line bg-surface p-3 text-xs text-ink-soft">
-              <Layers3 aria-hidden="true" className="h-4 w-4 text-accent" /> Team boards
-            </div>
-            <p className="mt-3 text-xs leading-5 text-muted">
-              Owners see every board. Other members see the boards they have been granted.
-            </p>
-          </section>
+      <footer className="portfolio-footer">
+        <span className="portfolio-footer-line" aria-hidden="true" />
+        <p>Boards stay inside their project. Project access does not reveal sibling projects or automatically grant access to every board.</p>
+      </footer>
 
-          <section className="rounded-2xl border border-line bg-surface p-5">
-            <div className="flex items-center gap-2 font-semibold text-xs text-ink">
-              <ShieldCheck aria-hidden="true" className="h-4 w-4 text-accent" /> Private by default
+      <DialogLayer open={creating} onClose={() => setCreating(false)} labelledBy="newProjectTitle" describedBy="newProjectHint" className="wide">
+        <div className="dialog-head">
+          <div className="dialog-head-copy"><h2 id="newProjectTitle">Create a project</h2><p>Give this group of boards a clear name.</p></div>
+          <button className="dialog-close" type="button" onClick={() => setCreating(false)} aria-label="Close create project dialog"><Icon name="x" /></button>
+        </div>
+        <form onSubmit={create} noValidate>
+          <div className="dialog-body">
+            <div className="dialog-field">
+              <label htmlFor="newProjectName">Project name</label>
+              <input className={`control${error && !name.trim() ? ' is-invalid' : ''}`} id="newProjectName" type="text" maxLength={100} autoComplete="off" placeholder="e.g. My Fashion" required data-autofocus value={name} onChange={(event) => setName(event.target.value)} aria-invalid={error && !name.trim() ? true : undefined} />
             </div>
-            <p className="mt-1.5 text-xs leading-5 text-muted">
-              Access is checked on the server before any board or card is delivered.
-            </p>
-          </section>
-        </aside>
-      </div>
-    </div>
+            <div className="dialog-field">
+              <label htmlFor="newProjectDescription">Description <span className="faint">(optional)</span></label>
+              <textarea className="control textarea" id="newProjectDescription" maxLength={2000} placeholder="What is this project for?" aria-describedby="newProjectHint" value={description} onChange={(event) => setDescription(event.target.value)} />
+              <p className="hint" id="newProjectHint">Creating a project does not create a board or invite people. Add boards from the project page.</p>
+            </div>
+            {error && <p className="form-error" role="alert">{error}</p>}
+          </div>
+          <footer className="dialog-foot">
+            <span className="spacer" />
+            <button className="btn" type="button" onClick={() => setCreating(false)}>Cancel</button>
+            <button className="btn primary" type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create project'}</button>
+          </footer>
+        </form>
+      </DialogLayer>
+    </>
   );
+}
+
+export default function ProjectsPage() {
+  return <Suspense fallback={<div role="status" className="state-note">Loading projects…</div>}><ProjectsScreen /></Suspense>;
 }

@@ -1,245 +1,218 @@
 'use client';
 
-import { useEffect, useState, use } from 'react';
+import { useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import {
-  FolderKanban,
-  Layers,
-  Users,
-  Plus,
-  ArrowRight,
-  ShieldCheck,
-  Code2,
-  Cpu,
-  Sparkles,
-  ExternalLink,
-} from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api';
-import type { Board, Project } from '@flowboard/contracts';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { api, ApiError } from '@/lib/api';
+import { describeError } from '@/lib/errors';
+import { projectMark, projectTone, statsFromSnapshot, useProjectBoards, type BoardStats } from '@/lib/portfolio';
+import { can, normalizeRole } from '@/lib/roles';
+import { useSession } from '@/lib/session';
+import { Icon } from '@/components/ui/icon';
+import { DialogLayer } from '@/components/ui/dialog-layer';
+import { useToast } from '@/components/ui/toasts';
 
-interface Props {
-  projectId: string;
-}
+const NO_STATS: BoardStats = { total: 0, done: 0, open: 0, percent: 0 };
 
-export function ProjectView({ projectId }: Props) {
-  const router = useRouter();
+export function ProjectView({ projectId }: { projectId: string }) {
   const queryClient = useQueryClient();
+  const toast = useToast();
+  const { state } = useSession();
+  const project = useQuery({
+    queryKey: ['project', projectId],
+    queryFn: async () => (await api.getProject(projectId)).data,
+    retry: (count, error) => !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 1,
+  });
+  const boardsQuery = useProjectBoards(projectId);
+  const boards = (boardsQuery.data ?? []).filter((b) => !b.isArchived);
+  const sessionProject = state.status === 'ready' ? state.session.accessibleProjects.find((p) => p.id === projectId) : undefined;
+  const role = normalizeRole(sessionProject?.role);
+  const canCreate = can(role, 'manageBoard') && !project.data?.isArchived;
 
-  const [loading, setLoading] = useState(true);
-  const [project, setProject] = useState<Project | null>(null);
-  const [boards, setBoards] = useState<Board[]>([]);
+  const stats = useQuery({
+    queryKey: ['project-board-stats', projectId, boards.map((b) => b.id).join(',')],
+    enabled: boards.length > 0,
+    staleTime: 30_000,
+    queryFn: async () => {
+      const entries = await Promise.all(boards.slice(0, 24).map(async (b) => [b.id, statsFromSnapshot((await api.getBoardSnapshot(b.id, { cardLimitPerColumn: 1 })).data)] as const));
+      return new Map(entries);
+    },
+  });
+  const statsOf = (id: string) => stats.data?.get(id) ?? NO_STATS;
+  const totals = boards.reduce((acc, b) => {
+    const s = statsOf(b.id);
+    return { total: acc.total + s.total, done: acc.done + s.done, open: acc.open + s.open };
+  }, { total: 0, done: 0, open: 0 });
+  const percent = totals.total ? Math.round((totals.done / totals.total) * 100) : 0;
+
+  const [creating, setCreating] = useState(false);
+  const [name, setName] = useState('');
   const [error, setError] = useState('');
-  const [isCreatingBoard, setIsCreatingBoard] = useState(false);
-  const [newBoardName, setNewBoardName] = useState('');
-  const [createBoardError, setCreateBoardError] = useState('');
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadProjectData() {
-      try {
-        setLoading(true);
-        setError('');
-
-        const [projRes, boardsRes] = await Promise.allSettled([
-          api.getProject(projectId),
-          api.listProjectBoards(projectId),
-        ]);
-
-        if (cancelled) return;
-
-        if (projRes.status === 'fulfilled' && projRes.value?.data) {
-          setProject(projRes.value.data);
-        } else {
-          // If project not found or unauthenticated
-          setError('Project not found or you lack permission to view it.');
-        }
-
-        if (boardsRes.status === 'fulfilled' && boardsRes.value?.data) {
-          setBoards(boardsRes.value.data);
-        }
-      } catch (err: any) {
-        if (!cancelled) setError(err?.message || 'Failed to load project.');
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    loadProjectData();
-    return () => {
-      cancelled = true;
-    };
-  }, [projectId]);
-
-  const handleCreateBoard = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newBoardName.trim()) return;
+  const [busy, setBusy] = useState(false);
+  const createBoard = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!name.trim()) { setError('Enter a board name.'); return; }
+    setBusy(true);
+    setError('');
     try {
-      setCreateBoardError('');
-      const res = await fetch(`/api/v1/projects/${encodeURIComponent(projectId)}/boards`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Idempotency-Key': `brd_create_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
-        },
-        body: JSON.stringify({ name: newBoardName.trim() }),
-      });
-      if (!res.ok) {
-        const errJson = await res.json().catch(() => ({}));
-        throw new Error(errJson?.error?.message || `Failed to create board (${res.status})`);
-      }
-      const data = await res.json();
-      setBoards((prev) => [...prev, data.data]);
-      void queryClient.invalidateQueries({ queryKey: ['boards', projectId] });
-      setNewBoardName('');
-      setIsCreatingBoard(false);
-    } catch (err: any) {
-      setCreateBoardError(err?.message || 'Failed to create board.');
-    }
+      await api.createBoard(projectId, { name: name.trim() });
+      setCreating(false);
+      setName('');
+      await queryClient.invalidateQueries({ queryKey: ['boards', projectId] });
+      toast('Board created', { icon: 'check' });
+    } catch (err) {
+      setError(describeError(err));
+    } finally { setBusy(false); }
   };
 
-  if (loading) {
+  if (project.isPending) return <div role="status" className="state-note">Loading project…</div>;
+  if (project.isError || !project.data) {
+    const status = project.error instanceof ApiError ? project.error.status : 0;
     return (
-      <div className="flex-1 p-8 max-w-5xl mx-auto w-full text-center py-24 text-xs text-muted">
-        Loading project workspace...
-      </div>
+      <section role="alert" className="board-unavailable" style={{ display: 'block' }}>
+        <h1>{status === 401 ? 'You are signed out' : 'Project unavailable'}</h1>
+        <p>{status === 401 ? 'Sign in to open this project.' : status === 403 || status === 404 ? 'This project is not available to your current account.' : describeError(project.error)}</p>
+        <Link className="btn" href={status === 401 ? '/signin' : '/projects'}>{status === 401 ? 'Sign in' : 'Back to projects'}</Link>
+      </section>
     );
   }
-
-  if (error || !project) {
-    return (
-      <div className="flex-1 p-6 sm:p-10 max-w-3xl mx-auto w-full">
-        <h1 className="text-2xl font-bold text-ink">Project unavailable</h1>
-        <p className="mt-2 text-sm text-muted">{error || 'This project is not available to you.'}</p>
-        <div className="mt-6 flex gap-3">
-          <Link href="/projects" className="px-4 py-2 rounded-xl bg-surface border border-line text-xs font-semibold hover:bg-surface-3">
-            Back to projects
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const p = project.data;
+  const tone = projectTone(p.id);
 
   return (
-    <div className="flex-1 flex flex-col p-4 sm:p-8 max-w-7xl mx-auto w-full space-y-6 bg-canvas text-ink">
-      <div className="border-b border-line pb-5 flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-muted mb-2">
-            <Link href="/projects" className="hover:text-ink">Projects</Link>
-            <span>/</span>
-            <span className="text-ink font-semibold">{project.name}</span>
-          </nav>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight text-ink">{project.name}</h1>
-          <p className="mt-1 text-xs text-muted">
-            {project.description || 'Project boards and team delivery.'}
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {!isCreatingBoard && (
-            <button
-              type="button"
-              onClick={() => setIsCreatingBoard(true)}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-[var(--accent-ink)] font-semibold text-xs hover:bg-accent-hover transition-colors focus-visible:outline-2"
-            >
-              <Plus className="w-4 h-4" /> Add board
-            </button>
-          )}
+    <section id="projectContent" aria-labelledby="projectTitle">
+      <div className="project-overview-heading">
+        <div className="project-overview-identity">
+          <div className={`project-root-node tone-${tone}`} role="img" aria-label="Project"><span aria-hidden="true">{projectMark(p.name)}</span></div>
+          <div className="project-overview-copy">
+            <p className="project-path"><Link href="/projects">Projects</Link><span aria-hidden="true">/</span><span>{p.name}</span></p>
+            <h1 id="projectTitle">{p.name}</h1>
+            <p className="project-overview-description">{p.description || 'No description added.'}</p>
+          </div>
         </div>
       </div>
 
-      {isCreatingBoard && (
-        <form onSubmit={handleCreateBoard} className="p-4 rounded-xl border border-line bg-surface space-y-3">
-          <h3 className="text-sm font-bold">Create New Board in {project.name}</h3>
-          {createBoardError && <p className="text-xs text-red-600">{createBoardError}</p>}
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={newBoardName}
-              onChange={(e) => setNewBoardName(e.target.value)}
-              placeholder="e.g. Developers, Operations, Marketing"
-              autoFocus
-              className="flex-1 px-3 py-1.5 rounded-lg border border-line bg-surface-2 text-xs focus-visible:outline focus-visible:outline-2 focus-visible:outline-accent"
-            />
-            <button
-              type="submit"
-              disabled={!newBoardName.trim()}
-              className="px-4 py-1.5 rounded-lg bg-accent text-[var(--accent-ink)] text-xs font-semibold hover:bg-accent-hover disabled:opacity-50"
-            >
-              Create Board
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setIsCreatingBoard(false);
-                setCreateBoardError('');
-              }}
-              className="px-3 py-1.5 rounded-lg border border-line bg-surface text-xs font-semibold hover:bg-surface-3"
-            >
-              Cancel
-            </button>
-          </div>
-        </form>
+      {p.isArchived && (
+        <div className="project-state-banner">
+          <div className="project-archive-banner"><span className="archive-symbol" aria-hidden="true"><Icon name="archive" /></span><p><strong>This project is archived.</strong> Its boards are read-only.</p></div>
+        </div>
       )}
 
-      {/* Sub-Boards Grid */}
-      <section>
-        <div className="border-b border-line pb-3 mb-4 flex justify-between items-center">
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted">
-            Boards ({boards.length})
-          </h2>
-        </div>
+      <nav className="project-switcher" aria-label="Project views">
+        <span className="project-tab is-active" aria-current="page"><Icon name="folder" /><span className="project-tab-label">Overview</span></span>
+        {boards.map((b) => (
+          <Link key={b.id} className={`project-tab tone-${projectTone(b.id)}`} href={`/board?id=${encodeURIComponent(b.id)}`}>
+            <i className="project-tab-dot" aria-hidden="true" />
+            <span className="project-tab-label">{b.name}</span>
+            <span className="project-tab-count">{statsOf(b.id).total}</span>
+          </Link>
+        ))}
+      </nav>
 
-        {boards.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {boards.map((board) => (
-              <div
-                key={board.id}
-                className="rounded-2xl border border-line bg-surface p-5 hover:border-line-strong hover:shadow-sm transition-all flex flex-col justify-between"
-              >
+      <section className="project-panel" aria-labelledby="overviewTitle">
+        <h2 className="sr-only" id="overviewTitle" tabIndex={-1}>Project overview</h2>
+        <div className="project-layout">
+          <div className="project-main">
+            <section className="project-boards-section" aria-labelledby="boardsTitle">
+              <div className="project-boards-heading">
                 <div>
-                  <div className="flex items-center justify-between">
-                    <span className="p-2 rounded-xl bg-surface-3 border border-line">
-                      <FolderKanban className="w-4 h-4 text-accent" />
-                    </span>
-                    {board.isArchived && (
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-50 text-amber-700">Archived</span>
-                    )}
-                  </div>
-                  <h3 className="mt-4 text-base font-bold text-ink">{board.name}</h3>
-                  <p className="mt-1 text-xs text-muted line-clamp-2">
-                    {'Team Kanban workflow.'}
-                  </p>
+                  <h2 id="boardsTitle">Boards <span>{boards.length}</span></h2>
+                  <p>{boards.length ? `${boards.length} ${boards.length === 1 ? 'board' : 'boards'} available · Each board keeps its own columns, cards and access.` : 'This project has no boards you can open.'}</p>
                 </div>
-                <div className="mt-6 pt-4 border-t border-line flex items-center justify-between">
-                  <span className="text-[11px] text-faint">Version {board.structureVersion}</span>
-                  <Link
-                    href={`/board?id=${encodeURIComponent(board.id)}`}
-                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:underline"
-                  >
-                    Open board <ArrowRight className="w-3.5 h-3.5" />
-                  </Link>
+                <div className="page-actions">
+                  {canCreate && <button className="btn primary" type="button" onClick={() => { setError(''); setCreating(true); }}>New board</button>}
                 </div>
               </div>
-            ))}
+              <div className="project-boards-panel" aria-live="polite">
+                {boards.length === 0 ? (
+                  <div className="ph-board-empty">
+                    <span className="ph-board-empty-icon" aria-hidden="true"><Icon name="board" /></span>
+                    <div>
+                      <h3>{canCreate ? 'No boards in this project' : 'No boards available'}</h3>
+                      <p>{canCreate ? 'A project can exist before its first board. Create the first team board to start separating work and access.' : 'You have no board grants for this project, or the project has no boards. Boards without a grant stay hidden from this list.'}</p>
+                      {canCreate && <button className="btn primary" type="button" onClick={() => setCreating(true)}>Create first board</button>}
+                    </div>
+                  </div>
+                ) : (
+                  <ul className="ph-board-list" aria-label={`Boards in ${p.name}`}>
+                    {boards.map((b) => {
+                      const s = statsOf(b.id);
+                      const href = `/board?id=${encodeURIComponent(b.id)}`;
+                      return (
+                        <li key={b.id} className={`ph-board-item tone-${projectTone(b.id)}${p.isArchived ? ' is-readonly' : ''}`}>
+                          <span className="ph-board-node" aria-hidden="true"><Icon name="board" /></span>
+                          <div className="ph-board-copy">
+                            <div className="ph-board-title">
+                              <h3><Link href={href}>{b.name}</Link></h3>
+                              <span className="ph-board-pill">{s.total} {s.total === 1 ? 'card' : 'cards'}</span>
+                              <span className="ph-board-pill">{s.open} open</span>
+                            </div>
+                            <p>No description added.</p>
+                            <div className="ph-board-progress">
+                              <span className="ph-board-progress-bar" role="img" aria-label={`${s.done} of ${s.total} cards completed`}><i style={{ width: `${s.percent}%` }} /></span>
+                              <span>{s.total ? `${s.percent}% complete` : 'No cards yet'}</span>
+                            </div>
+                          </div>
+                          <div className="ph-board-side">
+                            <Link className="ph-board-open" href={href} aria-label={`Open ${b.name} board`}><Icon name="arrow-right" /></Link>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
+              <div className="project-boards-foot">
+                <span>{p.isArchived ? 'Archived projects are read-only until the Owner reopens them.' : can(role, 'manageBoard') ? 'Owner access covers every board. Everyone else needs a grant per board.' : 'Only boards you can open appear here. Project membership alone does not reveal a board.'}</span>
+              </div>
+            </section>
           </div>
-        ) : (
-          <div className="py-16 text-center border border-dashed border-line rounded-2xl p-6">
-            <Layers className="w-8 h-8 text-faint mx-auto" />
-            <h3 className="mt-3 text-sm font-semibold">No boards you can open yet</h3>
-            <p className="mt-1 text-xs text-muted">Create a board for your team, or ask an owner for board access.</p>
-            <button
-              type="button"
-              onClick={() => setIsCreatingBoard(true)}
-              className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-accent text-[var(--accent-ink)] text-xs font-semibold hover:bg-accent-hover"
-            >
-              <Plus className="w-4 h-4" /> Create first board
-            </button>
-          </div>
-        )}
+
+          <aside className="project-aside" aria-label="Project summary">
+            <section className="aside-card" aria-labelledby="glanceTitle">
+              <div className="aside-head"><div><h2 id="glanceTitle">At a glance</h2><p>{boards.length ? 'Across the boards you can open' : 'No boards in scope yet'}</p></div></div>
+              <div className="glance-body">
+                <div className="donut" role="img" aria-label={`${percent}% of cards completed`} style={{ ['--pct' as string]: String(percent) }}>
+                  <div className="donut-copy"><strong>{percent}%</strong><span>complete</span></div>
+                </div>
+                <div className="glance-legend">
+                  <span className="glance-row"><i className="tone-open" aria-hidden="true" />Open<strong>{totals.open}</strong></span>
+                  <span className="glance-row"><i className="tone-done" aria-hidden="true" />Completed<strong>{totals.done}</strong></span>
+                  <span className="glance-row"><i aria-hidden="true" />Total cards<strong>{totals.total}</strong></span>
+                </div>
+              </div>
+              <div className="glance-foot"><span>{boards.length} {boards.length === 1 ? 'board' : 'boards'}</span><span>{p.isArchived ? 'Archived · read-only' : 'Live counts'}</span></div>
+            </section>
+            <section className="aside-card" aria-label="Access rule">
+              <p className="access-note">
+                <Icon name="lock" />
+                <span><strong>Project access is not board access.</strong> A non-owner needs the project grant and a grant for each board. Hidden boards never appear in names, tabs, counts or work lists.</span>
+              </p>
+            </section>
+          </aside>
+        </div>
       </section>
-    </div>
+
+      <DialogLayer open={creating} onClose={() => setCreating(false)} labelledBy="newBoardTitle" className="wide">
+        <div className="dialog-head">
+          <div className="dialog-head-copy"><h2 id="newBoardTitle">New board</h2><p>Boards keep their own columns, cards and access inside this project.</p></div>
+          <button className="dialog-close" type="button" onClick={() => setCreating(false)} aria-label="Close new board dialog"><Icon name="x" /></button>
+        </div>
+        <form onSubmit={createBoard} noValidate>
+          <div className="dialog-body">
+            <div className="dialog-field">
+              <label htmlFor="newBoardName">Board name</label>
+              <input className="control" id="newBoardName" type="text" maxLength={100} autoComplete="off" placeholder="e.g. Marketing" data-autofocus value={name} onChange={(event) => setName(event.target.value)} />
+            </div>
+            {error && <p className="form-error" role="alert">{error}</p>}
+          </div>
+          <footer className="dialog-foot">
+            <span className="spacer" />
+            <button className="btn" type="button" onClick={() => setCreating(false)}>Cancel</button>
+            <button className="btn primary" type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create board'}</button>
+          </footer>
+        </form>
+      </DialogLayer>
+    </section>
   );
 }

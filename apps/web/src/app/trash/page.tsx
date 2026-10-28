@@ -4,5 +4,5 @@ import { ComingSoon } from '@/components/coming-soon';
 export const metadata: Metadata = { title: 'Trash — Flowboard' };
 
 export default function Page() {
-  return <ComingSoon title="Trash" description="Card trash and restore are not part of the first beta." />;
+  return <ComingSoon title="Trash" eyebrow="Project" icon="trash" description="Deleted cards will wait here for 24 hours so they can be restored. Restore is not part of the first beta." />;
 }

@@ -4,5 +4,5 @@ import { ComingSoon } from '@/components/coming-soon';
 export const metadata: Metadata = { title: 'People — Flowboard' };
 
 export default function Page() {
-  return <ComingSoon title="People" description="Member and invitation management is not part of the first beta." />;
+  return <ComingSoon title="People" eyebrow="Project" icon="users" description="Project members, roles and board access will be managed here. They are not part of the first beta." />;
 }
