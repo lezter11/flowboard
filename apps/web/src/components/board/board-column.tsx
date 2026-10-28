@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, type DragEvent, type FormEvent, type KeyboardEvent } from 'react';
+import { m } from 'motion/react';
 import type { CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
 import { Icon } from '@/components/ui/icon';
 import { toneFor } from '@/lib/board-model';
@@ -77,6 +78,8 @@ export function BoardColumn(props: Props) {
       data-column-id={column.id}
       data-tone={tone}
       aria-labelledby={`colTitle-${column.id}`}
+      onDragOver={(event) => props.onDragOverZone(column.id, event)}
+      onDrop={(event) => props.onDropZone(column.id, event)}
       onDragLeave={(event) => props.onDragLeaveColumn(column.id, event)}
     >
       <header className="column-head">
@@ -92,9 +95,14 @@ export function BoardColumn(props: Props) {
         </div>
       </header>
       <div className="column-body">
-        <div className="column-cards" data-drop-zone={column.id} onDragOver={(event) => props.onDragOverZone(column.id, event)} onDrop={(event) => props.onDropZone(column.id, event)}>
+        <div className="column-cards" data-drop-zone={column.id}>
           {visible.map((card) => (
-            <span key={card.id} style={{ display: 'contents' }}>
+            <m.div
+              key={card.id}
+              layout="position"
+              layoutId={`card-${card.id}`}
+              transition={{ type: 'spring', stiffness: 520, damping: 42, mass: 0.7 }}
+            >
               {lineBefore === card.id && line}
               <BoardCard
                 card={card}
@@ -110,7 +118,7 @@ export function BoardColumn(props: Props) {
                 onDragStart={props.onDragStart}
                 onDragEnd={props.onDragEnd}
               />
-            </span>
+            </m.div>
           ))}
           {lineAtEnd && line}
           {visible.length === 0 && !isDropTarget && (

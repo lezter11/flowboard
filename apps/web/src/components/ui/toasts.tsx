@@ -1,6 +1,7 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { AnimatePresence, m } from 'motion/react';
 import { Icon } from './icon';
 
 interface ToastOptions { tone?: 'danger' | 'success'; icon?: string; undo?: () => void }
@@ -17,11 +18,7 @@ export function useToast(): ToastFn {
 
 function ToastView({ item, onDismiss }: { item: ToastItem; onDismiss: (id: number) => void }) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const [leaving, setLeaving] = useState(false);
-  const dismiss = useCallback(() => {
-    setLeaving(true);
-    window.setTimeout(() => onDismiss(item.id), 160);
-  }, [item.id, onDismiss]);
+  const dismiss = useCallback(() => onDismiss(item.id), [item.id, onDismiss]);
   const start = useCallback((ms: number) => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(dismiss, ms);
@@ -31,9 +28,13 @@ function ToastView({ item, onDismiss }: { item: ToastItem; onDismiss: (id: numbe
     return () => { if (timer.current) clearTimeout(timer.current); };
   }, [item.undo, start]);
   return (
-    <div
+    <m.div
+      layout
+      initial={{ opacity: 0, y: 10, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 6, transition: { duration: 0.15 } }}
+      transition={{ type: 'spring', stiffness: 520, damping: 38 }}
       className={`toast${item.tone ? ` tone-${item.tone}` : ''}`}
-      style={leaving ? { opacity: 0, transform: 'translateY(6px)', transition: 'opacity .15s ease, transform .15s ease' } : undefined}
       onMouseEnter={() => timer.current && clearTimeout(timer.current)}
       onMouseLeave={() => start(2500)}
     >
@@ -41,7 +42,7 @@ function ToastView({ item, onDismiss }: { item: ToastItem; onDismiss: (id: numbe
       <span className="toast-message">{item.message}</span>
       {item.undo && <button className="toast-undo" type="button" onClick={() => { item.undo?.(); dismiss(); }}>Undo</button>}
       <button className="toast-close" type="button" aria-label="Dismiss notification" onClick={dismiss}><Icon name="x" /></button>
-    </div>
+    </m.div>
   );
 }
 
@@ -58,7 +59,9 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       <div className="toasts" id="toasts" role="status" aria-live="polite" aria-atomic="false">
-        {items.map((item) => <ToastView key={item.id} item={item} onDismiss={remove} />)}
+        <AnimatePresence initial={false}>
+          {items.map((item) => <ToastView key={item.id} item={item} onDismiss={remove} />)}
+        </AnimatePresence>
       </div>
     </ToastContext.Provider>
   );

@@ -180,23 +180,28 @@ export function BoardView() {
   }, [snapshot, columns, refresh, toast, queryClient, boardKey]);
 
   // Drag and drop: the position comes from the pointer; the API receives previous/next neighbours.
+  // The dragged id lives in a ref so dragover/drop work even before React re-renders; state only drives visuals.
+  const dragRef = useRef<string | null>(null);
   const onDragStart = (card: CardSummary, event: DragEvent<HTMLElement>) => {
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', card.id);
-    requestAnimationFrame(() => setDragId(card.id));
+    dragRef.current = card.id;
+    requestAnimationFrame(() => setDragId(dragRef.current));
   };
-  const clearDrag = () => { setDragId(null); setDrop(null); };
-  const onDragOverZone = (columnId: string, event: DragEvent<HTMLElement>) => {
-    if (!dragId || !canMove || filtering) return;
-    event.preventDefault();
-    event.dataTransfer.dropEffect = 'move';
-    const zone = event.currentTarget;
-    const others = Array.from(zone.querySelectorAll<HTMLElement>('.card')).filter((el) => el.dataset.cardId !== dragId);
-    let index = others.length;
+  const clearDrag = () => { dragRef.current = null; setDragId(null); setDrop(null); };
+  const indexFromPointer = (zone: HTMLElement, event: DragEvent<HTMLElement>) => {
+    const others = Array.from(zone.querySelectorAll<HTMLElement>('.card')).filter((el) => el.dataset.cardId !== dragRef.current);
     for (let i = 0; i < others.length; i += 1) {
       const rect = others[i]!.getBoundingClientRect();
-      if (event.clientY < rect.top + rect.height / 2) { index = i; break; }
+      if (event.clientY < rect.top + rect.height / 2) return i;
     }
+    return others.length;
+  };
+  const onDragOverZone = (columnId: string, event: DragEvent<HTMLElement>) => {
+    if (!dragRef.current || !canMove || filtering) return;
+    event.preventDefault();
+    event.dataTransfer.dropEffect = 'move';
+    const index = indexFromPointer(event.currentTarget, event);
     setDrop((current) => (current?.columnId === columnId && current.index === index ? current : { columnId, index }));
   };
   const onDragLeaveColumn = (columnId: string, event: DragEvent<HTMLElement>) => {
@@ -204,10 +209,11 @@ export function BoardView() {
     setDrop((current) => (current?.columnId === columnId ? null : current));
   };
   const onDropZone = (columnId: string, event: DragEvent<HTMLElement>) => {
-    if (!dragId || !canMove || filtering) return;
+    const id = dragRef.current;
+    if (!id || !canMove || filtering) return;
     event.preventDefault();
-    const card = columns.flatMap((c) => c.cards).find((c) => c.id === dragId);
-    const index = drop?.columnId === columnId ? drop.index : neighbours(columns.find((c) => c.id === columnId), dragId, Number.MAX_SAFE_INTEGER).count;
+    const card = columns.flatMap((c) => c.cards).find((c) => c.id === id);
+    const index = indexFromPointer(event.currentTarget, event);
     clearDrag();
     if (card) performMove(card, columnId, index);
   };
