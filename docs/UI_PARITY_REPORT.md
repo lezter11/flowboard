@@ -20,6 +20,7 @@ Severity: blocker, major, minor. Owner: UI, Backend, Design.
 | P-012 | drawer | Activity tab and the Mention button need a per-card activity feed and a mentionable-people call; both are labelled coming soon. | major | `card-detail-drawer.tsx` | Add `GET /cards/:id/activity` and use `PersonDisplay.mentionable`. | Backend |
 | P-013 | drawer | The prototype shows "Created by Alice Owner"; the card has `createdAt` but no creator. The drawer shows only relative times. | minor | `cardSchema` | Add `createdBy` to the card. | Backend |
 | P-014 | sprite | `i-list` is drawn differently in `index.html` (bulleted list) and `screens/screens.js`. The board version wins in `apps/web`. | minor | `index.html` sprite, `screens/screens.js:196` | Pick one drawing. | Design |
+| P-016 | sign-in | The prototype sign-in shows a decorative sample board ("Website redesign" with sample cards) beside the form. It is static illustration, kept for parity; confirm it should ship. The "Design preview. Google sign-in isn't connected yet." note is replaced by a privacy sentence because Google sign-in is wired. | minor | `design/flowboard-ui/screens/signin.html:56-110`, `docs/references/ui-parity/signin-app-1440.jpg` | Keep, replace with a generic illustration, or remove. | Design |
 | P-015 | shell | Inbox, Activity, Trash, People and Settings navigation items are inert with a "Soon" badge until their screens are wired. | minor | `components/shell/rail.tsx` | Remove the badge as each screen is wired. | UI |
 
 ## Proposed enhancements (after parity, not applied)

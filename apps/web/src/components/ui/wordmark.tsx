@@ -1,4 +1,7 @@
-/** The one Flowboard wordmark: pastel gradient text from screens/signin.css (.brand-wordmark). No icon mark. */
-export function Wordmark({ className, as: Tag = 'span' }: { className?: string; as?: 'span' | 'h1' | 'div' }) {
-  return <Tag className={`brand-name brand-wordmark${className ? ` ${className}` : ''}`}>Flowboard</Tag>;
+/**
+ * The one Flowboard wordmark: gradient text from the prototype (.brand-wordmark; sign-in gradient on the sign-in page,
+ * pastel gradient on the sidebar pill). No icon mark. `inline` keeps the surrounding font size (headings).
+ */
+export function Wordmark({ className, inline = false }: { className?: string; inline?: boolean }) {
+  return <span className={`${inline ? '' : 'brand-name '}brand-wordmark${className ? ` ${className}` : ''}`}>Flowboard</span>;
 }
