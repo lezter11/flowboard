@@ -5,7 +5,7 @@ import { runMigrations } from '../src/adapters/migrations.ts';
 import { localDatabaseUrl } from '../src/runtime/local-config.ts';
 import { createApp } from '../src/http/app.ts';
 import { getPool, closePool } from '../src/adapters/postgres.ts';
-import { createSession } from '../src/adapters/session.ts';
+import { createSession, hashSessionToken } from '../src/adapters/session.ts';
 import { getSessionResponseSchema } from '@flowboard/contracts';
 
 test('ACC-01: Sign in, Sessions and Authentication Suite', async (t) => {
@@ -60,12 +60,15 @@ test('ACC-01: Sign in, Sessions and Authentication Suite', async (t) => {
     assert.equal(body.data.session.id, aliceSessionId);
     aliceUserId = body.data.actor.id;
 
-    // Verify session exists in DB
+    // Verify session in DB: raw token must NOT be stored in DB (R3-10), only SHA-256 hash
     const client = await pool.connect();
     try {
-      const q = await client.query('SELECT * FROM sessions WHERE id = $1', [aliceSessionId]);
-      assert.equal(q.rows.length, 1);
-      assert.equal(q.rows[0].user_id, aliceUserId);
+      const rawQ = await client.query('SELECT * FROM sessions WHERE id = $1', [aliceSessionId]);
+      assert.equal(rawQ.rows.length, 0, 'Raw bearer token must not be stored in sessions table');
+
+      const hashedQ = await client.query('SELECT * FROM sessions WHERE id = $1', [hashSessionToken(aliceSessionId)]);
+      assert.equal(hashedQ.rows.length, 1, 'Hashed session token must exist in sessions table');
+      assert.equal(hashedQ.rows[0].user_id, aliceUserId);
     } finally {
       client.release();
     }
@@ -164,7 +167,7 @@ test('ACC-01: Sign in, Sessions and Authentication Suite', async (t) => {
     // Verify session is revoked from DB
     const client = await pool.connect();
     try {
-      const q = await client.query('SELECT * FROM sessions WHERE id = $1', [aliceSessionId]);
+      const q = await client.query('SELECT * FROM sessions WHERE id = $1', [hashSessionToken(aliceSessionId)]);
       assert.equal(q.rows.length, 0);
     } finally {
       client.release();
@@ -273,5 +276,26 @@ test('ACC-01: Sign in, Sessions and Authentication Suite', async (t) => {
     assert.match(setCookie, /HttpOnly/i);
     assert.match(setCookie, /SameSite=Lax/i);
     assert.match(setCookie, /Path=\//);
+  });
+
+  await t.test('11. R3-10: Session token hashing prevents bearer token leakage via database read', async () => {
+    // Attempting to authenticate using the hashed token from the DB as a cookie must fail (401)
+    const client = await pool.connect();
+    let hashedTokenInDb = '';
+    try {
+      const q = await client.query<{ id: string }>('SELECT id FROM sessions WHERE user_id = $1 LIMIT 1', [aliceUserId]);
+      assert.ok(q.rows.length > 0);
+      hashedTokenInDb = q.rows[0]!.id;
+    } finally {
+      client.release();
+    }
+
+    assert.notEqual(hashedTokenInDb, aliceSessionId, 'Database ID must not match raw bearer token');
+
+    // Using the stolen DB hash as a cookie header fails
+    const leakedAttempt = await app.request('/api/v1/session', {
+      headers: { Cookie: `flowboard_session=${hashedTokenInDb}` },
+    });
+    assert.equal(leakedAttempt.status, 401, 'Using leaked database hash as cookie must return 401 UNAUTHORIZED');
   });
 });
