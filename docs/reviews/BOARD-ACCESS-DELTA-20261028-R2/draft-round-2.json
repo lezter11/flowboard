@@ -1,0 +1,338 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "RBAC-01",
+    "RBAC-02",
+    "RBAC-03",
+    "RBAC-04",
+    "RBAC-05",
+    "BRD-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/criteria.json",
+  "startedAt": "2026-10-28T16:17:00Z",
+  "completedAt": "2026-10-28T16:27:22Z",
+  "implementer": {
+    "actorId": "backend-chat",
+    "sessionId": "cc5e8cdb-backend-gapfix-20261028",
+    "model": "claude-sonnet-5-5"
+  },
+  "reviewer": {
+    "actorId": "delta-reviewer-haiku-r2",
+    "sessionId": "reviewer-01e0ffb0-4a5a-41a9-963b-1de699bc60b6",
+    "model": "claude-haiku-5-5",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src",
+      "apps/api/test",
+      "apps/api/package.json",
+      "apps/api/tsconfig.build.json",
+      "apps/api/wrangler.jsonc",
+      "apps/web/functions",
+      "database/migrations",
+      "packages/contracts/src",
+      "packages/contracts/test",
+      "packages/contracts/package.json",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      "scripts/check_backend_review.py",
+      "scripts/generate_review_record.py",
+      "BACKEND_REVIEW_GATE.md",
+      "docs/reviews/README.md",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/criteria.json",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-session.md",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-complete-suite.log",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-probes.ts",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-probes.log",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-lock-order-probe.ts",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-lock-order-probe.log",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-lock-order-forced-probe.ts",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-lock-order-forced-probe.log",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-comment-lock-probe.ts",
+      "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-comment-lock-probe.log"
+    ],
+    "files": {},
+    "digest": "COMPUTED_ON_FINALIZE"
+  },
+  "criteriaResults": {
+    "Every mounted board-derived read filters by current board access before pagination, counts, title/body delivery, or receipt replay, including board snapshots, cards, search, My Tasks, activity, inbox, images, imports and trash.": "pass",
+    "Every mounted board-derived write reauthorizes current board access in the same transaction and serializes with grant removal, including cards, comments, images, imports, columns, archive/reopen, trash and notification read state.": "pass",
+    "No route silently falls back to project-only access if the board-grants migration is missing. Malformed or legacy records fail closed for non-Owners.": "pass",
+    "Revoked and never-granted actors receive non-enumerating private not-found responses and cannot recover board IDs, names, titles, counts, links, assets or saved receipt data.": "pass",
+    "Mounted-handler tests on isolated PostgreSQL cover Owner, Manager, Member, Viewer, no grant, revoked grant, sibling project, replay and relevant races; Node and Worker paths are reviewed.": "unproved",
+    "Real identity: Google callback validates state, rejects unverified or missing email_verified, never issues a session on failure, and no route issues email-only sessions in a deployed (Worker/production) runtime. dev-login is unreachable when deployed.": "pass",
+    "No credential or secret has a public default outside NODE_ENV=test; /system/status, /system/migrate and existing-account dev-login are closed (403/404) without a configured secret of 32+ characters; comparison is timing-safe.": "pass",
+    "Session cookies are HttpOnly, SameSite=Lax, Secure off localhost; credentialed CORS is allowed only for localhost and the explicit CORS_ORIGIN list (no wildcard hosting-domain suffixes).": "pass",
+    "embedded-migrations.ts matches database/migrations/*.sql exactly, so the Worker and Node runtimes apply identical schema including board grants (0007, 0008).": "pass",
+    "Parallel writes on one board (card create, move, and every other path that locks the board row) never deadlock into 500; deadlock/serialization failures surface as retryable errors; no lock-order inversion between project, board and grant rows is introduced.": "fail",
+    "Cookie-authenticated POST/PUT/PATCH/DELETE from a cross-site Origin/Referer are rejected, the origin the user sees (including behind the Pages proxy) and trusted origins still work, and no shared contract or status code changed.": "pass",
+    "Current source, migrations, route files, shared helpers, contracts and tests are included in an exact manifest and a fresh independent review passes all BACKEND_REVIEW_GATE.md rules.": "unproved"
+  },
+  "tests": [
+    {
+      "id": "complete-suite",
+      "command": "npm run check",
+      "exitCode": 0,
+      "environment": "macOS, isolated synthetic PostgreSQL 17 on 127.0.0.1:55492 (flowboard_harness; flowboard_access_test); no live data",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-complete-suite.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.0",
+      "reason": "Origin/CSRF check (origin.ts) rejects null, lookalike and cross-site origins and Referer-only cross-site requests; legacy cookie covered (origin-check test; probe P5). Dev-login returns 404 with Worker bindings (session.ts:103). Admin secret is 32+ chars, timing-safe, no default outside NODE_ENV=test (admin-secret.ts). Google callback rejects unverified email and state mismatch with no session (google-auth-system test). Deductions: anonymous 401/404 existence oracle (R2-02); raw session IDs in sessions.id (R2-07, info); the Worker still accepts a localhost Origin by design (R2-08).",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-probes.log",
+        "apps/api/src/http/middleware/origin.ts",
+        "apps/api/src/http/admin-secret.ts",
+        "apps/api/src/http/routes/session.ts",
+        "apps/api/test/origin-check.test.ts",
+        "apps/api/test/google-auth-system.test.ts"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "8.0",
+      "reason": "Mounted board matrix behaves as specified in the probes: Owner and grant-holding Member write (201), Viewer with grant gets 403, revoked member gets 404 on replay and no body (P2/P4). Deduction: a comment POST on a card that is being moved fails with a retryable 503 in 10 of 10 forced interleavings (R2-01), which is a user-visible correctness failure under concurrency. Anonymous existence oracle (R2-02). Below the 8.5 minimum.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-comment-lock-probe.log",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-probes.log",
+        "apps/api/src/http/routes/comments.ts",
+        "apps/api/src/adapters/rbac.ts",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-complete-suite.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "7.5",
+      "reason": "Board-row FOR UPDATE fix (rbac.ts:397-398) removes the 6-way same-board create/move deadlock: 15 rounds with no 500 or 503 (P1). Grant revocation takes membership, grant and board locks in a fixed order (board-grants-foundation.ts; migration 0007 trigger). Deduction: the comment route takes the card row FOR SHARE before the board lock while move takes board then card FOR UPDATE, so the two deadlock (R2-01, 40P01 surfaced as 503). The lock-order rule is not enforced for card and comment rows. Below 8.5 minimum.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-comment-lock-probe.log",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-lock-order-forced-probe.log",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-r2-probes.log",
+        "apps/api/src/adapters/rbac.ts",
+        "apps/api/src/adapters/cards.ts",
+        "apps/api/src/http/routes/trash.ts"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "8.0",
+      "reason": "381 API and 41 contract tests pass with 0 skipped on real PostgreSQL and workerd (reviewer-complete-suite.log). Concurrency tests drive mounted handlers through app.request, use pg_stat_activity to force interleavings, and check the 503 retry mapping. Deductions: no test for the comment-versus-move deadlock (R2-01); no mounted test that a board-scoped write replay after revocation is denied (R2-04); the deployed admin-secret rule is only tested at helper level (board-concurrency test:78-82); Google tests mock the provider. Below 8.5 minimum.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-complete-suite.log",
+        "apps/api/test/board-concurrency.test.ts",
+        "apps/api/test/board-access.test.ts",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-session.md"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "7.5",
+      "reason": "Shared helpers (rbac.ts, board-grants-foundation.ts) give one lock protocol and one grant predicate. Deductions: stale comments contradict mounted code (board-grants-foundation.ts:1-14 says routes do not use the module; migration 0007 header says do not deploy) (R2-05); duplicated grant predicates across adapters; draft modules named *-draft.ts remain in production source; lock order is a comment, not a check.",
+      "evidencePaths": [
+        "apps/api/src/adapters/board-grants-foundation.ts",
+        "database/migrations/0007_board_grants.sql",
+        "apps/api/src/http/app.ts"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "8.0",
+      "reason": "Request body limit, deadline, no-store headers, safe 500 mapping, 40P01/40001 mapped to 503 with Retry-After (error-handler.ts), per-request pool with end() in worker.ts. Deduction: no measured performance; retry mapping is verified by a synthetic handler test only. Scores meet the 7.0 minimum.",
+      "evidencePaths": [
+        "apps/api/src/http/middleware/error-handler.ts",
+        "apps/api/src/runtime/worker.ts",
+        "docs/reviews/BOARD-ACCESS-DELTA-20261028-R2/reviewer-complete-suite.log"
+      ]
+    }
+  },
+  "weightedScore": "8.175",
+  "findings": [
+    {
+      "id": "R2-01",
+      "severity": "medium",
+      "disposition": "open",
+      "mandatory": true,
+      "blocking": true,
+      "description": "Lock-order inversion between a comment POST and a move of the same card, reproducible. Comment route takes the card row FOR SHARE (apps/api/src/http/routes/comments.ts:92) before its receipt check takes the board row FOR UPDATE (comments.ts:111 -> apps/api/src/adapters/rbac.ts:397-398). Move takes the board FOR UPDATE first (routes/cards.ts:240 receipt check -> rbac.ts:397-398) then the card row FOR UPDATE (apps/api/src/adapters/cards.ts:714). Repro: reviewer-r2-comment-lock-probe.ts (forced interleaving): 10 of 10 comment requests returned 503 SERVICE_UNAVAILABLE; control move-versus-move returned 200/409 with no deadlock. Impact: a normal comment fails with a retryable error whenever that card is moved concurrently; no data corruption seen. Counterevidence: no 500 response; the 503 mapping is intentional (error-handler.ts:145-159). Move and trash are not affected (routes/trash.ts:61,193 take the board first). Fix: take the board lock before the card-row FOR SHARE on comment routes (or drop the card-row lock and rely on the board lock), then add a forced-interleaving regression test for comment versus move.",
+      "rationale": "Criterion 10 requires parallel writes on one board never to deadlock. A reproduced deadlock contradicts it even though the client sees a retryable 503 and not a 500."
+    },
+    {
+      "id": "R2-04",
+      "severity": "medium",
+      "disposition": "open",
+      "mandatory": true,
+      "blocking": true,
+      "description": "No mounted-handler test shows that a board-scoped write replay with the same Idempotency-Key after grant revocation is denied. Reviewer probe P2 shows the behaviour is correct (404, no saved body) via checkOrReplayProjectWriteReceipt (apps/api/src/adapters/idempotency.ts:53-64) and routes/cards.ts:67, but the suite does not assert it. The parallel-write test in board-concurrency.test.ts:16-62 also misses R2-01.",
+      "rationale": "Criterion 5 explicitly lists replay among the mounted matrix cases. Missing coverage is unproved, not a pass."
+    },
+    {
+      "id": "R2-02",
+      "severity": "low",
+      "disposition": "open",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Unauthenticated GET /api/v1/boards/:boardId returns 401 for an existing board and 404 for a missing one (apps/api/src/http/routes/boards.ts:140-151: existence check runs before authentication). Repro: reviewer-r2-probes.log P3 (401 vs 404). Impact: an anonymous caller who already has a board ID can learn that it exists. Counterevidence: board IDs are opaque, and authenticated non-grant users get the same 404 as a missing board. Fix: authenticate before the existence check, or return the same 404 for both.",
+      "rationale": "Criterion 4 names revoked and never-granted actors, not anonymous callers. Recorded as a non-enumeration hygiene gap."
+    },
+    {
+      "id": "R2-03",
+      "severity": "low",
+      "disposition": "open",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Card GET (apps/api/src/adapters/cards.ts:425-454, requireCardBoardAccess on the bare pool at :440-447) and image reads (apps/api/src/adapters/images.ts:540-548, requireImageBoardAccess on the bare pool) check the grant in autocommit statements and deliver afterwards, so a revocation committed during the read can still deliver that one response. Other reads (board snapshot, comments, trash, placement) hold the grant through delivery. Not probed. Counterevidence: the check runs before delivery, as criterion 1 requires.",
+      "rationale": "Consistency gap with the held-grant read pattern. Low because the window is a single in-flight response."
+    },
+    {
+      "id": "R2-05",
+      "severity": "low",
+      "disposition": "open",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Stale documentation contradicts mounted code: apps/api/src/adapters/board-grants-foundation.ts:1-14 says the module is unmounted and existing routes do not use it, but boards.ts, comments.ts and trash.ts call it; database/migrations/0007_board_grants.sql:1-9 says do not deploy until routes are converted.",
+      "rationale": "Maintainability and review risk: a future reader may treat mounted authorization as unfinished."
+    },
+    {
+      "id": "R2-06",
+      "severity": "low",
+      "disposition": "open",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Carried DR1-04. Google callback overwrites display_name on every login (apps/api/src/http/routes/google-auth.ts:188-195) and creates a personal workspace for every first login, including invitees (google-auth.ts:202-215).",
+      "rationale": "Not in the frozen criteria. Identity-quality issue outside board access."
+    },
+    {
+      "id": "R2-07",
+      "severity": "info",
+      "disposition": "open",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Carried DR1-05. Session IDs are stored and looked up as raw bearer values (apps/api/src/adapters/session.ts:127 INSERT id; :170 WHERE s.id = $1). A database read exposes live session tokens.",
+      "rationale": "Hardening item, not exploitable without database access. Outside the frozen criteria."
+    },
+    {
+      "id": "R2-08",
+      "severity": "info",
+      "disposition": "open",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Origin check and credentialed CORS trust any http://localhost:* or 127.0.0.1 origin in every runtime, including the deployed Worker (apps/api/src/http/middleware/origin.ts:7-11, 20-22; app.ts:54). Cookies are SameSite=Lax, so a cross-site localhost page does not send the session cookie.",
+      "rationale": "Explicitly allowed by criterion 8. Recorded for awareness."
+    },
+    {
+      "id": "DR1-01",
+      "severity": "medium",
+      "disposition": "resolved",
+      "mandatory": true,
+      "blocking": true,
+      "description": "Round-1 deadlock on same-board create and move. Resolved: rbac.ts:397-398 now locks the board FOR UPDATE up front. Evidence: 15 rounds of 6 parallel creates and 6 parallel moves with no 500 or 503 (reviewer-r2-probes.log P1); board-concurrency test (parallel writes never deadlock into 500).",
+      "rationale": "Verified from source and probe. The same class remains for comment versus move (R2-01)."
+    },
+    {
+      "id": "DR1-02",
+      "severity": "low",
+      "disposition": "resolved",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Round-1 test-only admin secret reachable from a Worker bundled with NODE_ENV=test. Resolved for deployed runtimes: deployed is derived from bindings (system.ts:10,22; admin-secret.ts:12) and the Worker always binds HYPERDRIVE or DATABASE_URL (runtime/worker.ts:16). Residual: the helper-level test does not drive the deployed route.",
+      "rationale": "Verified from source; mounted deployed-path test is absent (see R2-04 test gap)."
+    },
+    {
+      "id": "DR1-03",
+      "severity": "low",
+      "disposition": "resolved",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Round-1 missing Origin/CSRF check. Resolved: origin.ts wired at app.ts:97; origin-check test and probe P5 show cross-site rejection with 403.",
+      "rationale": "Verified by source, test and probe."
+    },
+    {
+      "id": "DR1-06",
+      "severity": "low",
+      "disposition": "resolved",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Round-1 embedded-migrations drift with no check. Resolved: board-concurrency.test.ts:84-91 compares EMBEDDED_MIGRATIONS byte for byte with database/migrations/*.sql; it passes in reviewer-complete-suite.log.",
+      "rationale": "Verified by test run."
+    },
+    {
+      "id": "DR1-07",
+      "severity": "process",
+      "disposition": "resolved",
+      "mandatory": true,
+      "blocking": true,
+      "description": "Round-1 target changed during review. Round 2 target: git HEAD e32f837 with a clean tree at start; code under apps/, packages/, database/, scripts/ and root package files identical to d8ae9a7 per the builder; manifest digest recorded in this record.",
+      "rationale": "Process item; the manifest freezes the bytes reviewed."
+    },
+    {
+      "id": "RC-1",
+      "severity": "info",
+      "disposition": "rejected",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Rejected candidate: Origin/CSRF bypass with null Origin, Referer-only, lookalike localhost origin, legacy cookie name, leading-space cookie, or two-origin header (reviewer-r2-probes.log P5).",
+      "rationale": "All session-carrying variants returned 403. The two 204 results carried no session cookie (flowboard_sess) or a same-origin Origin. The fetch layer strips leading whitespace from Cookie values."
+    },
+    {
+      "id": "RC-2",
+      "severity": "medium",
+      "disposition": "rejected",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Rejected candidate: trash/move card-versus-board deadlock (trash locks card then board in one JOIN statement).",
+      "rationale": "The forced probe (reviewer-r2-lock-order-forced-probe.log) shows no 40P01 in 10 rounds: trash.ts:61,193 take the board lock through the receipt check before the card lock."
+    },
+    {
+      "id": "RC-3",
+      "severity": "high",
+      "disposition": "rejected",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Rejected candidate: workspace activity leaks board-scoped events to non-owner members.",
+      "rationale": "adapters/activity.ts:431-458 returns 403 for members and 404 for outsiders; only the workspace Owner reads it."
+    },
+    {
+      "id": "RC-4",
+      "severity": "high",
+      "disposition": "rejected",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Rejected candidate: a grant-revoked member can replay a saved board write response.",
+      "rationale": "Probe P2: replay returned 404 with no saved body (reviewer-r2-probes.log)."
+    },
+    {
+      "id": "RC-5",
+      "severity": "high",
+      "disposition": "rejected",
+      "mandatory": false,
+      "blocking": false,
+      "description": "Rejected candidate: email-only dev-login reachable on the deployed Worker.",
+      "rationale": "session.ts:103 returns 404 when HYPERDRIVE or DATABASE_URL is bound; worker.ts:16 always binds one; the dev-login path is not reached on a deployed Worker."
+    }
+  ],
+  "hardBlockers": [
+    "R2-01: reproduced comment-versus-move deadlock on one board (10 of 10 forced rounds, 503). Contradicts criterion 10 'never deadlock'.",
+    "R2-04: no mounted-handler proof that board-scoped replay after revocation is denied (criterion 5 coverage incomplete)."
+  ],
+  "coverageGaps": [
+    "Real Google OAuth, hosted Hyperdrive and live data are out of scope; Google callback tests use a mocked provider.",
+    "Dependency advisory status unverified (no network access).",
+    "Same card-row-first inversion not probed at routes/comments.ts:190 and :301, routes/images.ts:43 and routes/imports.ts:222.",
+    "Revocation committing during card GET or image reads (R2-03) not probed.",
+    "Race evidence is sampled (15/20/10 rounds), not exhaustive; no fault injection or mutation run (would need an edit to the target).",
+    "Scores below category minimum are recorded as-is, following round-1 precedent; verdict is fail."
+  ],
+  "verdict": "fail"
+}
