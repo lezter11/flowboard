@@ -189,8 +189,8 @@ googleAuthRoutes.get('/google/callback', async (c) => {
        VALUES ($1, $2, $3, $4, NOW(), NOW())
        ON CONFLICT (email)
        DO UPDATE SET
-         display_name = EXCLUDED.display_name,
-         avatar_url = COALESCE(EXCLUDED.avatar_url, users.avatar_url),
+         display_name = COALESCE(NULLIF(TRIM(users.display_name), ''), EXCLUDED.display_name),
+         avatar_url = COALESCE(NULLIF(EXCLUDED.avatar_url, ''), users.avatar_url),
          updated_at = NOW()
        RETURNING id, email, display_name, avatar_url`,
       [userId, normalizedEmail, displayName, avatarUrl],

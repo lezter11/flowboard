@@ -69,6 +69,41 @@ test('Google sign-in and system routes', async (t) => {
     assert.match(res.headers.get('set-cookie')!, /HttpOnly/i);
   });
 
+  await t.test('preserves custom display_name on subsequent Google sign-in and updates avatar (R3-11)', async () => {
+    // 1. First sign-in creates the user
+    const res1 = await signIn({
+      sub: '5',
+      email: 'custom.profile@flowboard.example',
+      email_verified: true,
+      name: 'Initial Google Name',
+      picture: 'https://example.com/old-avatar.png',
+    });
+    assert.equal(res1.status, 302);
+
+    // 2. User updates their profile to a custom display name
+    const pool = getPool();
+    await pool.query(
+      `UPDATE users SET display_name = 'Custom Preserved Name' WHERE email = 'custom.profile@flowboard.example'`,
+    );
+
+    // 3. Second sign-in with Google returns different name and updated picture
+    const res2 = await signIn({
+      sub: '5',
+      email: 'custom.profile@flowboard.example',
+      email_verified: true,
+      name: 'Overwriting Attempt Name',
+      picture: 'https://example.com/new-avatar.png',
+    });
+    assert.equal(res2.status, 302);
+
+    // Verify user in DB still has custom display name and updated avatar
+    const userRes = await pool.query<{ display_name: string; avatar_url: string | null }>(
+      `SELECT display_name, avatar_url FROM users WHERE email = 'custom.profile@flowboard.example'`,
+    );
+    assert.equal(userRes.rows[0]?.display_name, 'Custom Preserved Name', 'Custom display name must be preserved');
+    assert.equal(userRes.rows[0]?.avatar_url, 'https://example.com/new-avatar.png', 'Avatar URL must be updated when provided');
+  });
+
   await t.test('admin secret has no public default outside tests and needs 32+ chars', () => {
     const env = process.env as Record<string, string | undefined>;
     const saved = { node: env['NODE_ENV'], secret: env['DEV_LOGIN_SECRET'] };
