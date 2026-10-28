@@ -92,6 +92,7 @@ export function Rail() {
           <p className="nav-label">Workspace</p>
           <NavLink href={boardHref} icon="board" label="Board" active={pathname === '/board'} onNavigate={close} />
           <NavLink href="/projects" icon="folder" label="Projects" active={pathname === '/projects' || pathname === '/project'} onNavigate={close} />
+          <NavLink href="/my-tasks" icon="list" label="My tasks" active={pathname === '/my-tasks'} onNavigate={close} />
           <NavLink href="/inbox" icon="inbox" label="Inbox" active={pathname === '/inbox'} badge={unread || undefined} onNavigate={close} />
           <NavLink href="/activity" icon="activity" label="Activity" active={pathname === '/activity'} onNavigate={close} />
         </div>

@@ -13,6 +13,7 @@ import {
   type BoardSnapshotResponse,
   type BoardSnapshotQuery,
   type CardResponse,
+  type CardSummary,
   type CreateCardInput,
   type UpdateCardInput,
   type MoveCardInput,
@@ -215,6 +216,10 @@ export const api = {
 
   async listCardActivity(cardId: string, limit = 50): Promise<ActivityListResponse> {
     return request<ActivityListResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/activity?limit=${limit}`);
+  },
+
+  async listMyTasks(projectId: string): Promise<{ data: Array<CardSummary & { projectName?: string; boardName?: string; columnTitle?: string }> }> {
+    return request(`/api/v1/me/tasks?projectId=${encodeURIComponent(projectId)}&limit=100`);
   },
 
   async listNotifications(): Promise<NotificationListResponse> {
