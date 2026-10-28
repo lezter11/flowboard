@@ -51,4 +51,9 @@ export const EMBEDDED_MIGRATIONS: EmbeddedMigration[] = [
     name: "0009_card_keys_and_key_prefix.sql",
     sql: "-- Additive: human-readable card keys (e.g. WEB-101) and project key prefixes.\n-- Keys use one global sequence as the column default: nextval() takes no row lock, so card\n-- creation does not add a lock upgrade, and a number is never reused. Numbers are not\n-- contiguous per project. Existing cards are numbered by creation order (created_at, id).\n\nCREATE SEQUENCE card_key_seq;\n\nALTER TABLE projects ADD COLUMN key_prefix TEXT;\nUPDATE projects\nSET key_prefix = COALESCE(NULLIF(UPPER(LEFT(REGEXP_REPLACE(name, '[^A-Za-z0-9]', '', 'g'), 3)), ''), 'PRJ');\nALTER TABLE projects ALTER COLUMN key_prefix SET NOT NULL;\nALTER TABLE projects ALTER COLUMN key_prefix SET DEFAULT 'PRJ';\n\nALTER TABLE cards ADD COLUMN card_number BIGINT;\nUPDATE cards c\nSET card_number = numbered.rn\nFROM (SELECT id, ROW_NUMBER() OVER (ORDER BY created_at, id) AS rn FROM cards) numbered\nWHERE c.id = numbered.id;\nSELECT setval('card_key_seq', COALESCE((SELECT MAX(card_number) FROM cards), 0) + 1, false);\nALTER TABLE cards ALTER COLUMN card_number SET DEFAULT nextval('card_key_seq');\nALTER TABLE cards ALTER COLUMN card_number SET NOT NULL;\nCREATE UNIQUE INDEX cards_card_number_key ON cards (card_number);\n"
   },
+  {
+    version: "0010",
+    name: "0010_column_tone.sql",
+    sql: "-- Additive: optional named tone for a column (prototype pastel set). NULL means not set; the\n-- client keeps deriving a tone from name/category. Existing rows are unchanged.\nALTER TABLE columns ADD COLUMN tone TEXT\n  CHECK (tone IN ('lavender', 'ice', 'grey', 'green', 'coral', 'rose', 'mint', 'peach', 'butter', 'lilac'));\n"
+  },
 ];

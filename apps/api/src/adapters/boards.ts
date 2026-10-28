@@ -10,6 +10,7 @@ import {
   type UpdateColumnInput,
   type PlacementResult,
   type CardSummary,
+  type ColumnTone,
   type CardListResponse,
   type PersonDisplay,
   type CardsQuery,
@@ -1043,9 +1044,10 @@ export async function getBoardSnapshot(
       name: string;
       category: 'todo' | 'active' | 'done';
       color: string;
+      tone: ColumnTone | null;
       position: number;
     }>(
-      `SELECT id, board_id, name, category, color, position
+      `SELECT id, board_id, name, category, color, tone, position
        FROM columns
        WHERE board_id = $1
        ORDER BY position ASC`,
@@ -1301,6 +1303,7 @@ export async function getBoardSnapshot(
         name: col.name,
         category: col.category,
         color: col.color,
+        tone: col.tone,
         position: col.position,
         activeCardCount: activeCount,
         matchingCardCount: matchingCount,

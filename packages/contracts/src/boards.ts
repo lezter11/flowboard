@@ -131,11 +131,19 @@ export type PlacementResult = z.infer<typeof placementResultSchema>;
 export const placementResponseSchema = createDataEnvelopeSchema(placementResultSchema);
 export type PlacementResponse = z.infer<typeof placementResponseSchema>;
 
+export const COLUMN_TONES = [
+  'lavender', 'ice', 'grey', 'green', 'coral', 'rose', 'mint', 'peach', 'butter', 'lilac',
+] as const;
+export const columnToneSchema = z.enum(COLUMN_TONES);
+export type ColumnTone = z.infer<typeof columnToneSchema>;
+
 export const columnSummarySchema = z.object({
   id: z.string().min(1),
   name: z.string().trim().min(1).max(80),
   category: columnCategorySchema,
   color: z.string().trim().min(1).max(30),
+  // Optional, additive: stored named tone, or absent when not set.
+  tone: columnToneSchema.nullable().optional(),
   position: z.number().int().nonnegative(),
   activeCardCount: z.number().int().nonnegative(),
   matchingCardCount: z.number().int().nonnegative(),
