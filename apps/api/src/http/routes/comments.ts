@@ -17,6 +17,7 @@ import {
 } from '../../adapters/comments.ts';
 import { HttpError } from '../errors.ts';
 import { authMiddleware } from '../middleware/auth.ts';
+import { acquireWriteGrantLock, acquireWritableProjectContextLock } from '../../adapters/rbac.ts';
 
 export const commentsRoutes = new Hono();
 
@@ -87,9 +88,11 @@ commentsRoutes.post('/cards/:cardId/comments', authMiddleware, async (c) => {
   try {
     await client.query('BEGIN');
 
-    // Fetch card project_id to scope idempotency receipt
-    const cardRes = await client.query<{ project_id: string; board_id: string; state: string }>(
-      `SELECT project_id, board_id, state FROM cards WHERE id = $1 FOR SHARE`,
+    // Lock order: grant/membership, then project and board, then card row. Move and other board
+    // writes take the board before the card; a card-row lock taken first deadlocked against them
+    // (review R2-01). The card is read unlocked only to learn its scope.
+    const cardRes = await client.query<{ project_id: string; board_id: string }>(
+      `SELECT project_id, board_id FROM cards WHERE id = $1`,
       [cardId],
     );
 
@@ -100,13 +103,19 @@ commentsRoutes.post('/cards/:cardId/comments', authMiddleware, async (c) => {
 
     const projectId = cardRes.rows[0].project_id;
     const boardId = cardRes.rows[0].board_id;
-    if (cardRes.rows[0].state === 'trashed') {
+    const methodPath = `/api/v1/cards/${cardId}/comments`;
+    await acquireWriteGrantLock(client, projectId, actor.id, 'member', boardId);
+    await acquireWritableProjectContextLock(client, projectId, boardId);
+    const cardRow = await client.query<{ state: string }>(
+      `SELECT state FROM cards WHERE id = $1 FOR SHARE`,
+      [cardId],
+    );
+    if (cardRow.rows[0]?.state === 'trashed') {
       throw HttpError.badRequest('CARD_IS_TRASHED', 'Cannot comment on a trashed card.');
     }
-    if (cardRes.rows[0].state === 'purged') {
+    if (cardRow.rows[0]?.state !== 'active') {
       throw HttpError.notFound('Card not found.', 'NOT_FOUND');
     }
-    const methodPath = `/api/v1/cards/${cardId}/comments`;
 
     const replay = await checkOrReplayProjectWriteReceipt(
       client,
