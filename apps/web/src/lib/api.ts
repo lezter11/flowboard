@@ -13,6 +13,7 @@ import {
   type AcceptInvitationResponse,
   type ImportStatusResponse,
   type CommitImportInput,
+  type UpdateProjectMemberInput,
   type UpdateProjectInput,
   type UpdateBoardInput,
   type BoardSnapshotResponse,
@@ -170,6 +171,21 @@ export const api = {
 
   async cancelImport(importId: string): Promise<void> {
     await request<unknown>(`/api/v1/imports/${encodeURIComponent(importId)}`, { method: 'DELETE' });
+  },
+
+  async updateProjectMember(projectId: string, userId: string, input: UpdateProjectMemberInput, idempotencyKey?: string): Promise<void> {
+    await request<unknown>(`/api/v1/projects/${encodeURIComponent(projectId)}/members/${encodeURIComponent(userId)}`, {
+      method: 'PATCH',
+      headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
+      body: JSON.stringify(input),
+    });
+  },
+
+  async removeProjectMember(projectId: string, userId: string, idempotencyKey?: string): Promise<void> {
+    await request<unknown>(`/api/v1/projects/${encodeURIComponent(projectId)}/members/${encodeURIComponent(userId)}`, {
+      method: 'DELETE',
+      headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
+    });
   },
 
   async listProjectMembers(projectId: string): Promise<ProjectDirectoryResponse> {

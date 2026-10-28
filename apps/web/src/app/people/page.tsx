@@ -2,13 +2,15 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { Avatar } from '@/components/ui/avatar';
+import { DialogLayer } from '@/components/ui/dialog-layer';
+import { useToast } from '@/components/ui/toasts';
 
 export default function PeoplePage() {
   const { state } = useSession();
@@ -18,6 +20,21 @@ export default function PeoplePage() {
   const [q, setQ] = useState('');
   const [role, setRole] = useState('');
   const actorId = state.status === 'ready' ? state.session.actor.id : '';
+  const toast = useToast();
+  const queryClient = useQueryClient();
+  const [manageOpen, setManageOpen] = useState(false);
+  const [manageError, setManageError] = useState('');
+  const refreshMembers = () => void queryClient.invalidateQueries({ queryKey: ['members', project?.id] });
+  const changeRole = useMutation({
+    mutationFn: (v: { userId: string; role: 'manager' | 'member' | 'viewer'; version: number }) => api.updateProjectMember(project!.id, v.userId, { role: v.role, status: 'active', expectedVersion: v.version }),
+    onSuccess: () => { setManageError(''); toast('Role updated', { icon: 'check' }); refreshMembers(); },
+    onError: (e) => { setManageError(describeError(e)); refreshMembers(); },
+  });
+  const removeMember = useMutation({
+    mutationFn: (userId: string) => api.removeProjectMember(project!.id, userId),
+    onSuccess: () => { setManageError(''); toast('Member removed', { icon: 'check' }); refreshMembers(); },
+    onError: (e) => { setManageError(describeError(e)); refreshMembers(); },
+  });
 
   const directory = useQuery({
     queryKey: ['members', project?.id],
@@ -48,7 +65,7 @@ export default function PeoplePage() {
         <div><h1>People</h1><p className="people-sub">{project?.name ?? 'Loading project members…'}</p></div>
         <div className="people-actions">
           {project && <Link className="btn" href={`/project?id=${encodeURIComponent(project.id)}`}><Icon name="folder" />Project overview</Link>}
-          <button className="btn primary" type="button" disabled title="Inviting and managing members is coming soon"><Icon name="users" />Manage members <span className="nav-badge quiet" style={{ marginLeft: 6 }}>Soon</span></button>
+          <button className="btn primary" type="button" onClick={() => { setManageError(''); setManageOpen(true); }}><Icon name="users" />Manage members</button>
         </div>
       </header>
       <div id="peopleContent">
@@ -93,8 +110,38 @@ export default function PeoplePage() {
             ))}
           </div>
         </section>
-        <p className="people-foot"><Icon name="info" />Roles come from project membership. Inviting people and changing roles are coming soon.</p>
+        <p className="people-foot"><Icon name="info" />Roles come from project membership. Inviting people by email is coming soon.</p>
       </div>
+      <DialogLayer open={manageOpen} onClose={() => setManageOpen(false)} labelledBy="peopleManageTitle" describedBy="peopleManageHelp" className="wide">
+        <div className="dialog-head"><div><h2 id="peopleManageTitle">Manage people</h2><p>{project?.name}</p></div><button className="dialog-close" type="button" data-autofocus onClick={() => setManageOpen(false)} aria-label="Close"><Icon name="x" /></button></div>
+        <div className="dialog-body people-manage-body">
+          <p id="peopleManageHelp" className="people-manage-help">Change a member&apos;s project role or remove them. Project roles and board access are separate; removing someone also removes their board access. Inviting new people by email is coming soon.</p>
+          <fieldset className="people-manage-fieldset"><legend>People</legend>
+            <div className="people-manage-list">
+              {list.map((m) => {
+                const uid = m.userId ?? m.id;
+                const isOwner = m.role === 'owner';
+                return (
+                  <div key={m.id} className="people-manage-person" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ flex: 1, minWidth: 0 }}><strong>{nameOf(m)}</strong>{isOwner && <small style={{ display: 'block' }}>Owner · always has access</small>}{uid === actorId && !isOwner && <small style={{ display: 'block' }}>You</small>}</span>
+                    {isOwner ? <span className="badge">Owner</span> : (
+                      <>
+                        <label className="sr-only" htmlFor={`role-${m.id}`}>Role for {nameOf(m)}</label>
+                        <select className="control" id={`role-${m.id}`} style={{ width: 'auto' }} value={m.role} disabled={changeRole.isPending || uid === actorId} onChange={(event) => changeRole.mutate({ userId: uid, role: event.target.value as 'manager' | 'member' | 'viewer', version: m.version })}>
+                          <option value="manager">Manager</option><option value="member">Member</option><option value="viewer">Viewer</option>
+                        </select>
+                        <button className="btn sm" type="button" disabled={removeMember.isPending || uid === actorId} aria-label={`Remove ${nameOf(m)}`} onClick={() => removeMember.mutate(uid)}>Remove</button>
+                      </>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </fieldset>
+          <p className="form-error" role="alert" hidden={!manageError}>{manageError}</p>
+        </div>
+        <footer className="dialog-foot"><span className="spacer" /><button className="btn primary" type="button" onClick={() => setManageOpen(false)}>Done</button></footer>
+      </DialogLayer>
     </>
   );
 }
