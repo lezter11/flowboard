@@ -10,6 +10,8 @@ import {
   type BoardResponse,
   type CreateProjectInput,
   type CreateBoardInput,
+  type UpdateProjectInput,
+  type UpdateBoardInput,
   type BoardSnapshotResponse,
   type BoardSnapshotQuery,
   type CardResponse,
@@ -115,6 +117,22 @@ export const api = {
   async createBoard(projectId: string, input: CreateBoardInput, idempotencyKey?: string): Promise<BoardResponse> {
     return request<BoardResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/boards`, {
       method: 'POST',
+      headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
+      body: JSON.stringify(input),
+    });
+  },
+
+  async updateProject(projectId: string, input: UpdateProjectInput, idempotencyKey?: string): Promise<ProjectResponse> {
+    return request<ProjectResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}`, {
+      method: 'PATCH',
+      headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
+      body: JSON.stringify(input),
+    });
+  },
+
+  async updateBoard(boardId: string, input: UpdateBoardInput, idempotencyKey?: string): Promise<BoardResponse> {
+    return request<BoardResponse>(`/api/v1/boards/${encodeURIComponent(boardId)}`, {
+      method: 'PATCH',
       headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
       body: JSON.stringify(input),
     });

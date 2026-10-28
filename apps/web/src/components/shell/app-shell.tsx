@@ -47,7 +47,7 @@ function Frame({ children }: { children: ReactNode }) {
         <div className="rail-scrim" id="railScrim" hidden={!(shell.overlay && shell.navOpen)} onClick={() => shell.closeNav()} />
         <div className="workspace" inert={shell.overlay && shell.navOpen}>
           <Topbar />
-          <main className={`page${pathname === '/projects' || pathname === '/project' ? ' portfolio-page' : ''}${pathname === '/project' ? ' project-workspace' : ''}${pathname === '/activity' ? ' activity-page' : ''}${pathname === '/trash' ? ' recovery-page' : ''}${pathname === '/people' ? ' people-page' : ''}${pathname === '/inbox' ? ' inbox-page' : ''}${pathname === '/my-tasks' ? ' my-work' : ''}`} id="main" tabIndex={-1}>{content}</main>
+          <main className={`page${pathname === '/projects' || pathname === '/project' ? ' portfolio-page' : ''}${pathname === '/project' ? ' project-workspace' : ''}${pathname === '/activity' ? ' activity-page' : ''}${pathname === '/trash' ? ' recovery-page' : ''}${pathname === '/people' ? ' people-page' : ''}${pathname === '/inbox' ? ' inbox-page' : ''}${pathname === '/my-tasks' ? ' my-work' : ''}${pathname === '/settings' ? ' settings-page' : ''}`} id="main" tabIndex={-1}>{content}</main>
         </div>
       </div>
       <span className="sr-only" id="workspaceModeStatus" aria-live="polite">{shell.modeStatus}</span>
