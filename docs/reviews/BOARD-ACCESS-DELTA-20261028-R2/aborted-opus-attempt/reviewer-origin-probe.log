@@ -1,0 +1,33 @@
+# origin probe 2026-10-28T16:16:32Z HEAD=fd099bb1e8a8a77471241a7e78f9b5c5b92b84bc (apps/database/packages identical to d8ae9a7). An earlier run expected O29 to bypass; it was rejected, so the expectation was corrected.
+PASS O1 attacker origin: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"ea75ba0
+PASS O2 Origin null: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"8d20abb
+PASS O3 Referer-only attacker: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"21b1b9d
+PASS O4 empty Origin + attacker Referer: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"8d86498
+PASS O5 suffix trick: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"eae2202
+PASS O6 prefix trick: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"cf4d13f
+PASS O7 subdomain of site: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"449f95d
+PASS O8 http scheme downgrade: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"a4a2cc4
+PASS O9 port variant: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"17ea86a
+PASS O10 two Origin values joined: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"027d921
+PASS O11 userinfo trick: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"d5d5567
+PASS O12 garbage origin: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"99ca97b
+PASS O13 Sec-Fetch-Site same-site, no Origin/Referer: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"2f8acec
+PASS O14 legacy cookie name + attacker origin: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"c2350ef
+PASS O15 cookie after other cookies, no space: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"e09ef61
+PASS O16 attacker origin on logout: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"9a23cba
+PASS O17 attacker origin on PATCH profile: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"05b3c1b
+PASS O18 attacker origin on DELETE member: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"0835a0b
+PASS O19 attacker origin on PUT grant: expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"536f07b
+PASS O20 uppercase site origin (normalised): expect allow; got 401 {"error":{"code":"UNAUTHORIZED","message":"Invalid or missing authentication session.","re
+PASS O21 same-origin: expect allow; got 401 {"error":{"code":"UNAUTHORIZED","message":"Invalid or missing authentication session.","re
+PASS O22 same-origin referer only: expect allow; got 401 {"error":{"code":"UNAUTHORIZED","message":"Invalid or missing authentication session.","re
+PASS O23 configured CORS_ORIGIN from other host URL (API_ORIGIN fallback shape): expect allow; got 401 {"error":{"code":"UNAUTHORIZED","message":"Invalid or missing authentication session.","re
+PASS O24 localhost any port (trusted by design, also in production config): expect allow; got 401 {"error":{"code":"UNAUTHORIZED","message":"Invalid or missing authentication session.","re
+PASS O25 no headers (non-browser client): expect allow; got 401 {"error":{"code":"UNAUTHORIZED","message":"Invalid or missing authentication session.","re
+PASS O26 GET with attacker origin not checked: expect allow; got 401 {"error":{"code":"UNAUTHORIZED","message":"Invalid or missing authentication session.","re
+PASS O27 OAuth callback GET not checked: expect allow; got 403 {"error":{"code":"CSRF_MISMATCH","message":"Invalid or expired OAuth state session.","requ
+PASS O28 cookie-less POST (login/dev-login) not checked: expect allow; got 400 {"error":{"code":"MALFORMED_REQUEST","message":"Request body must be a JSON object.","requ
+PASS O29 leading-space cookie (not browser-producible): expect reject; got 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"5d8a1bf
+PASS O30 Origin header present with trusted value but cross-site Sec-Fetch-Site: expect allow; got 401 {"error":{"code":"UNAUTHORIZED","message":"Invalid or missing authentication session.","re
+SUMMARY fails=0
+# EXIT CODE: 0

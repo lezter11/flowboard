@@ -1,0 +1,42 @@
+# worker probe run 2026-10-28T16:14:48Z HEAD=fd099bb1e8a8a77471241a7e78f9b5c5b92b84bc build-shell NODE_ENV=production
+[NODE_ENV=production] W1 dev-login no secret -> 404
+[NODE_ENV=production] W2 dev-login with built-in test secret -> 404
+[NODE_ENV=production] W3 /system/status no secret -> 403
+[NODE_ENV=production] W4 /system/status with built-in test secret -> 403
+[NODE_ENV=production] W4b /system/migrate with built-in test secret -> 403
+[NODE_ENV=production] W5 CORS evil.pages.dev allow-origin -> null
+[NODE_ENV=production] W6 google callback forged state -> 403
+[NODE_ENV=production] W7 cookie POST, Origin evil -> 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"83680a6f-271d-4c86-8f1f-272
+[NODE_ENV=production] W8 cookie POST via service binding URL, Origin = Pages host -> 401 {"error":{"code":"UNAUTHORIZED","message":"Invalid or missing authentication session.","requestId":"3e6e5705-0
+[NODE_ENV=production] W9 cookie POST via API_ORIGIN fallback (worker host URL), Origin = Pages host, no CORS_ORIGIN in test config -> 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"ef7d4f63-f758-47b3-9c79-d0f
+[NODE_ENV=production] W10 cookie POST, Sec-Fetch-Site cross-site, no Origin/Referer -> 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"e8af61db-9f38-45a7-a10f-37c
+[NODE_ENV=production] W11 legacy session cookie, Origin evil -> 403
+# EXIT CODE: 0
+# worker probe run 2026-10-28T16:14:48Z HEAD=fd099bb1e8a8a77471241a7e78f9b5c5b92b84bc build-shell NODE_ENV=test
+[NODE_ENV=test] W1 dev-login no secret -> 404
+[NODE_ENV=test] W2 dev-login with built-in test secret -> 404
+[NODE_ENV=test] W3 /system/status no secret -> 403
+[NODE_ENV=test] W4 /system/status with built-in test secret -> 403
+[NODE_ENV=test] W4b /system/migrate with built-in test secret -> 403
+[NODE_ENV=test] W5 CORS evil.pages.dev allow-origin -> null
+[NODE_ENV=test] W6 google callback forged state -> 403
+[NODE_ENV=test] W7 cookie POST, Origin evil -> 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"242138e2-b888-4105-9153-55c
+[NODE_ENV=test] W8 cookie POST via service binding URL, Origin = Pages host -> 401 {"error":{"code":"UNAUTHORIZED","message":"Invalid or missing authentication session.","requestId":"69192ed8-3
+[NODE_ENV=test] W9 cookie POST via API_ORIGIN fallback (worker host URL), Origin = Pages host, no CORS_ORIGIN in test config -> 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"4d6549c5-9603-410a-a357-8af
+[NODE_ENV=test] W10 cookie POST, Sec-Fetch-Site cross-site, no Origin/Referer -> 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"66353d79-b6ce-4616-a82e-b6b
+[NODE_ENV=test] W11 legacy session cookie, Origin evil -> 403
+# EXIT CODE: 0
+# worker probe run 2026-10-28T16:14:49Z HEAD=fd099bb1e8a8a77471241a7e78f9b5c5b92b84bc build-shell NODE_ENV=development
+[NODE_ENV=development] W1 dev-login no secret -> 404
+[NODE_ENV=development] W2 dev-login with built-in test secret -> 404
+[NODE_ENV=development] W3 /system/status no secret -> 403
+[NODE_ENV=development] W4 /system/status with built-in test secret -> 403
+[NODE_ENV=development] W4b /system/migrate with built-in test secret -> 403
+[NODE_ENV=development] W5 CORS evil.pages.dev allow-origin -> null
+[NODE_ENV=development] W6 google callback forged state -> 403
+[NODE_ENV=development] W7 cookie POST, Origin evil -> 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"840ea907-5e3f-4bfe-9c2a-6e4
+[NODE_ENV=development] W8 cookie POST via service binding URL, Origin = Pages host -> 401 {"error":{"code":"UNAUTHORIZED","message":"Invalid or missing authentication session.","requestId":"13616380-4
+[NODE_ENV=development] W9 cookie POST via API_ORIGIN fallback (worker host URL), Origin = Pages host, no CORS_ORIGIN in test config -> 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"8b000721-7c56-4cd4-bce6-c9c
+[NODE_ENV=development] W10 cookie POST, Sec-Fetch-Site cross-site, no Origin/Referer -> 403 {"error":{"code":"FORBIDDEN","message":"Cross-site request rejected.","requestId":"3eb5e36b-75ee-42f9-9cbe-821
+[NODE_ENV=development] W11 legacy session cookie, Origin evil -> 403
+# EXIT CODE: 0
