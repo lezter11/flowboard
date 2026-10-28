@@ -38,7 +38,13 @@ export interface CardRow {
   restore_until: Date | string | null;
   created_at: Date | string;
   updated_at: Date | string;
+  // Present only on queries that compute the human key (e.g. WEB-101).
+  card_key?: string;
 }
+
+// Human key: the stored project prefix plus the card's global sequence number. The expression
+// is a correlated subquery so it works in SELECT and in INSERT ... RETURNING.
+const CARD_KEY_SQL = `(SELECT p.key_prefix FROM projects p WHERE p.id = cards.project_id) || '-' || cards.card_number::text AS card_key`;
 
 async function requireCardBoardAccess(
   db: pg.ClientBase | pg.Pool, boardId: string, projectId: string, actorId: string,
@@ -66,6 +72,7 @@ export function toCard(
 ): Card {
   return {
     id: row.id,
+    ...(row.card_key ? { key: row.card_key } : {}),
     workspaceId: row.workspace_id,
     projectId: row.project_id,
     boardId: row.board_id,
@@ -363,7 +370,8 @@ export async function createCard(
        id, workspace_id, project_id, board_id, column_id,
        title, description, priority, to_char(due_date, 'YYYY-MM-DD') AS due_date, position,
        version, state, deleted_at, deleted_by, restore_until,
-       created_at, updated_at`,
+       created_at, updated_at,
+       ${CARD_KEY_SQL}`,
     [
       cardId,
       board.workspace_id,
@@ -433,7 +441,8 @@ export async function getCard(
        id, workspace_id, project_id, board_id, column_id,
        title, description, priority, to_char(due_date, 'YYYY-MM-DD') AS due_date, position,
        version, state, deleted_at, deleted_by, restore_until,
-       created_at, updated_at
+       created_at, updated_at,
+       ${CARD_KEY_SQL}
      FROM cards
      WHERE id = $1`,
     [cardId],
@@ -475,10 +484,46 @@ export async function getCard(
 
   await requireCardBoardAccess(poolOrClient, cardRow.board_id, cardRow.project_id, actorId);
 
+  const card = toCard(cardRow, assigneeIds, commentCount, imageCount);
+  const createdBy = await getCardCreator(poolOrClient, cardRow.id, cardRow.workspace_id, cardRow.project_id);
+
   return {
-    card: toCard(cardRow, assigneeIds, commentCount, imageCount),
+    card: createdBy === undefined ? card : { ...card, createdBy },
     people,
   };
+}
+
+/**
+ * Who created a card, from its card_created activity fact. Returns null for cards with no such
+ * fact (created before activity recording). activeInProject is true for the workspace owner or an
+ * active project member. The caller has already passed the board-access check.
+ */
+async function getCardCreator(
+  db: pg.ClientBase | pg.Pool,
+  cardId: string,
+  workspaceId: string,
+  projectId: string,
+): Promise<{
+  id: string;
+  displayName: string;
+  avatarUrl: string | null;
+  activeInProject: boolean;
+} | null> {
+  const res = await db.query<{ id: string; display_name: string; avatar_url: string | null; active: boolean }>(
+    `SELECT u.id, u.display_name, u.avatar_url,
+       (EXISTS (SELECT 1 FROM workspaces w WHERE w.id = $2 AND w.owner_id = u.id)
+        OR EXISTS (SELECT 1 FROM project_memberships pm
+                   WHERE pm.project_id = $3 AND pm.user_id = u.id AND pm.status = 'active')) AS active
+     FROM activity_log al
+     JOIN users u ON u.id = al.actor_id
+     WHERE al.card_id = $1 AND al.action = 'card_created'
+     ORDER BY al.created_at ASC, al.id ASC
+     LIMIT 1`,
+    [cardId, workspaceId, projectId],
+  );
+  const row = res.rows[0];
+  if (!row) return null;
+  return { id: row.id, displayName: row.display_name, avatarUrl: row.avatar_url, activeInProject: Boolean(row.active) };
 }
 
 /**

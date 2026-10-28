@@ -155,6 +155,10 @@ export type BoardFilters = z.infer<typeof boardFiltersSchema>;
 export const boardSnapshotTotalsSchema = z.object({
   activeCardCount: z.number().int().nonnegative(),
   matchingCardCount: z.number().int().nonnegative(),
+  // Optional, additive: active cards outside done columns due before the workspace's today, and
+  // due within the next 7 days (inclusive). Ignore filters; computed for the whole board.
+  overdueCount: z.number().int().nonnegative().optional(),
+  dueSoonCount: z.number().int().nonnegative().optional(),
 });
 export type BoardSnapshotTotals = z.infer<typeof boardSnapshotTotalsSchema>;
 

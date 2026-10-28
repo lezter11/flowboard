@@ -1094,6 +1094,21 @@ export async function getBoardSnapshot(
       matchingCountMap.set(r.column_id, parseInt(r.count, 10));
     }
 
+    // 5b. Board-wide due counters (ignore filters; same overdue rule as the due filter, done columns excluded).
+    const dueCountsRes = await client.query<{ overdue: string; due_soon: string }>(
+      `SELECT
+         COUNT(*) FILTER (WHERE c.due_date < $2::date)::text AS overdue,
+         COUNT(*) FILTER (WHERE c.due_date >= $2::date AND c.due_date <= ($2::date + 7))::text AS due_soon
+       FROM cards c
+       JOIN columns col ON col.id = c.column_id
+       WHERE c.board_id = $1 AND c.state = 'active' AND c.due_date IS NOT NULL AND col.category <> 'done'`,
+      [boardId, asOfDate],
+    );
+    const dueCounts = {
+      overdue: Number(dueCountsRes.rows[0]?.overdue ?? 0),
+      dueSoon: Number(dueCountsRes.rows[0]?.due_soon ?? 0),
+    };
+
     // 6. Query cards per column up to cardLimit + 1
     const cardsParamStart = 2 + filterClauses.params.length;
     const cardsQueryRes = await client.query<{
@@ -1110,6 +1125,8 @@ export async function getBoardSnapshot(
       comment_count: number;
       image_count: number;
       assignee_ids: string[];
+      card_key: string;
+      description_excerpt: string;
       row_num: string;
     }>(
       `WITH filtered_cards AS (
@@ -1118,6 +1135,8 @@ export async function getBoardSnapshot(
            c.board_id,
            c.column_id,
            c.title,
+           p.key_prefix || '-' || c.card_number::text AS card_key,
+           LEFT(BTRIM(REGEXP_REPLACE(REGEXP_REPLACE(COALESCE(c.description, ''), '<[^>]*>|[#*_\`~>\\[\\]]', ' ', 'g'), '\\s+', ' ', 'g')), 160) AS description_excerpt,
            c.priority,
            TO_CHAR(c.due_date, 'YYYY-MM-DD') AS due_date,
            c.position,
@@ -1130,6 +1149,7 @@ export async function getBoardSnapshot(
            ROW_NUMBER() OVER (PARTITION BY c.column_id ORDER BY c.position ASC, c.id ASC) AS row_num
          FROM cards c
          JOIN columns col ON col.id = c.column_id
+         JOIN projects p ON p.id = c.project_id
          LEFT JOIN (
            SELECT card_id, COUNT(*)::int AS comment_count
            FROM comments
@@ -1249,6 +1269,8 @@ export async function getBoardSnapshot(
         version: c.version,
         commentCount: c.comment_count,
         imageCount: c.image_count,
+        key: c.card_key,
+        descriptionExcerpt: c.description_excerpt,
         createdAt: new Date(c.created_at).toISOString(),
         updatedAt: new Date(c.updated_at).toISOString(),
       }));
@@ -1309,6 +1331,8 @@ export async function getBoardSnapshot(
       totals: {
         activeCardCount: totalActiveCount,
         matchingCardCount: totalMatchingCount,
+        overdueCount: dueCounts.overdue,
+        dueSoonCount: dueCounts.dueSoon,
       },
       columns: columnSummaries,
       people,

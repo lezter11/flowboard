@@ -3,6 +3,7 @@ import {
   createDataEnvelopeSchema,
   createPaginatedEnvelopeSchema,
   nullableDateOnlySchema,
+  personDisplaySchema,
   utcIsoTimestampSchema,
 } from './common.ts';
 
@@ -81,6 +82,9 @@ export const cardSummarySchema = z.object({
   boardId: z.string().min(1),
   columnId: z.string().min(1),
   title: z.string().trim().min(1).max(200),
+  // Added optionally (additive): human key such as WEB-101, and up to 160 plain-text characters.
+  key: z.string().min(1).optional(),
+  descriptionExcerpt: z.string().max(160).optional(),
   priority: prioritySchema,
   dueDate: nullableDateOnlySchema,
   assigneeIds: z.array(z.string().min(1)),
@@ -95,6 +99,9 @@ export type CardSummary = z.infer<typeof cardSummarySchema>;
 
 export const cardSchema = z.object({
   id: z.string().min(1),
+  key: z.string().min(1).optional(),
+  // Null for cards created before creator tracking, or when no creation fact exists.
+  createdBy: personDisplaySchema.nullable().optional(),
   workspaceId: z.string().min(1),
   projectId: z.string().min(1),
   boardId: z.string().min(1),

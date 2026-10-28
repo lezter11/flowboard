@@ -27,6 +27,12 @@ import {
 import { HttpError } from '../errors.ts';
 import { authMiddleware } from '../middleware/auth.ts';
 
+/** Same rule as migration 0009: first three letters/digits of the name, uppercased; PRJ if none. */
+function projectKeyPrefix(name: string): string {
+  const letters = name.replace(/[^A-Za-z0-9]/g, '').slice(0, 3).toUpperCase();
+  return letters || 'PRJ';
+}
+
 export const projectsRoutes = new Hono();
 
 async function lockProjectOwner(
@@ -153,10 +159,10 @@ projectsRoutes.post('/api/v1/workspaces/:workspaceId/projects', authMiddleware, 
       created_at: Date;
       updated_at: Date;
     }>(
-      `INSERT INTO projects (id, workspace_id, name, description, archived, version, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, FALSE, 1, $5, $5)
+      `INSERT INTO projects (id, workspace_id, name, description, archived, version, created_at, updated_at, key_prefix)
+       VALUES ($1, $2, $3, $4, FALSE, 1, $5, $5, $6)
        RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
-      [projectId, workspaceId, body.name, description, nowIso],
+      [projectId, workspaceId, body.name, description, nowIso, projectKeyPrefix(body.name)],
     );
 
     const row = insertRes.rows[0];
