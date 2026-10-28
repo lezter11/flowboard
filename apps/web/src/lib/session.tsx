@@ -32,6 +32,14 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       await api.logout();
     } finally {
       queryClient.clear();
+      // Clear any board data cached in browser storage by earlier builds.
+      try {
+        Object.keys(window.sessionStorage)
+          .filter((key) => key.startsWith('flowboard'))
+          .forEach((key) => window.sessionStorage.removeItem(key));
+      } catch {
+        // Storage can be blocked; nothing else is cached there.
+      }
       window.location.assign('/signin');
     }
   }, [queryClient]);
