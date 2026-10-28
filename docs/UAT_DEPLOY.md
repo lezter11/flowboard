@@ -143,3 +143,13 @@ Neon: expiry removed from the `uat` branch (`br-polished-term-a172b6x5`), so it 
 Smoke for `f589530` (unauthenticated): Worker `/health/ready` 200; signed-out `/api/v1/session` 401; `/signin`, `/board?id=`, `/projects`, `/activity`, `/inbox`, `/trash`, `/people`, `/my-tasks`, `/settings` all 200 (shells only, not rendered in a browser for this commit); foreign-origin preflight has no allow-origin; `/api/v1/system/status` without secret 403; legacy `/projects/<id>` and `/boards/<id>` 302 to query routes.
 
 Proposal to keep `uat` exempt from the TTL policy in `neon.ts`: the branch policy only applies to branches created by `neon checkout`, so the existing `uat` branch is unaffected. If `uat` is ever recreated, add `if (branch.name === 'uat') return {};` as the first line of the policy function. Not applied yet; Architect to approve.
+
+## Deploy log addendum: 0da9248 (migration 0010)
+
+| Date (UTC) | Commit | Worker version | Pages deployment | Migrations on UAT |
+|---|---|---|---|---|
+| 2026-10-28 | `0da9248` | `15554f80-6aae-4fcd-8b07-8291e27f790a` | `790701b7-0a71-4b07-934e-aaed3e898183` | 0001-0010; runner applied `+ [0010] 0010_column_tone.sql` (nullable column, CHECK on values, additive) |
+
+Neon state before this deploy: `uat` expiry already removed (`never`), backup branch `uat-backup-2026-10-28` already exists (`br-lingering-field-a1hfhs5o`, `never`). No new Neon change was needed.
+
+Smoke for `0da9248` (unauthenticated, HTTP status only): Worker `/health/ready` 200; signed-out `/api/v1/session` 401; 200 for `/signin`, `/board?id=`, `/project?id=`, `/projects`, `/activity`, `/inbox`, `/trash`, `/people`, `/my-tasks`, `/settings`, `/import`, `/add-card`, `/all-work`, `/invitation`; `/invitations/accept?token=` 200 (the route is `/invitations/accept`, not `/accept-invitation`, which 404s and is not in the source); foreign-origin preflight no allow-origin; `/api/v1/system/status` without secret 403; legacy `/projects/<id>` and `/boards/<id>` 302 to query routes.
