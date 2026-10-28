@@ -17,7 +17,7 @@ Evidence base: the proxy path was exercised on UAT (Pages Function proxy -> Work
 
 Recorded 2026-10-28 (read-only, re-check immediately before release):
 
-- Worker `flowboard-api`: active version `acefdb67-a336-492a-91c2-9069e2f62cdb` (deployed 2026-10-28T14:34Z); previous `a2bed487-4d42-4053-906e-b89c05ca53fa`.
+- Worker `flowboard-api`: ACTIVE version `d93ad124-360a-427c-ab60-1f5b6a34a9f1` (100%, 2026-10-28T17:57Z; created by setting `CURSOR_SECRET` and `DEV_LOGIN_SECRET`, no code change). Code-identical previous version `acefdb67-a336-492a-91c2-9069e2f62cdb` (14:34Z); older `a2bed487-4d42-4053-906e-b89c05ca53fa`. Rollback target for the old code: `acefdb67-…`.
 - Pages `flowboard-app` live Production deployment: `af89478d-f241-491e-9289-6f0f20e955a1` (identified by matching its HTML build id to the live site); other recent: `bf88fa29-cd64-4e34-bcda-0b33d10a0738`.
 - Current production sign-in sends Google `redirect_uri=https://flowboard-api.web-app-cloud.workers.dev/api/v1/auth/google/callback` (observed from the `Location` header of a GET to the start route; no sign-in performed). So the Google client has the workers.dev callback today and does NOT yet have the pages.dev one.
 
