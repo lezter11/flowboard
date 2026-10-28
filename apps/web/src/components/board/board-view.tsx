@@ -191,14 +191,15 @@ export function BoardView() {
     requestAnimationFrame(() => setDragId(dragRef.current));
   };
   const clearDrag = () => { dragRef.current = null; setDragId(null); setDrop(null); };
-  const indexFromPointer = (zone: HTMLElement, event: DragEvent<HTMLElement>) => {
+  const indexFromY = (zone: HTMLElement, clientY: number) => {
     const others = Array.from(zone.querySelectorAll<HTMLElement>('.card')).filter((el) => el.dataset.cardId !== dragRef.current);
     for (let i = 0; i < others.length; i += 1) {
       const rect = others[i]!.getBoundingClientRect();
-      if (event.clientY < rect.top + rect.height / 2) return i;
+      if (clientY < rect.top + rect.height / 2) return i;
     }
     return others.length;
   };
+  const indexFromPointer = (zone: HTMLElement, event: DragEvent<HTMLElement>) => indexFromY(zone, event.clientY);
   const onDragOverZone = (columnId: string, event: DragEvent<HTMLElement>) => {
     if (!dragRef.current || !canMove || filtering) return;
     event.preventDefault();
@@ -218,6 +219,86 @@ export function BoardView() {
     const index = indexFromPointer(event.currentTarget, event);
     clearDrag();
     if (card) performMove(card, columnId, index);
+  };
+
+  // Proposed enhancement (docs/UI_PARITY_REPORT.md P-033): long-press drag for touch screens, opt-in with ?touchdrag=1.
+  // HTML5 drag-and-drop does not start from touch, so this drives the same drop state from pointer events.
+  // The Move dialog stays the default touch path.
+  const touchEnabled = params.get('touchdrag') === '1' && canMove && !filtering && view === 'board';
+  const touchRef = useRef<{ cardId: string; x: number; y: number; timer: number | null; active: boolean; ghost: HTMLElement | null; cardEl: HTMLElement } | null>(null);
+  const endTouch = useCallback(() => {
+    const t = touchRef.current;
+    if (!t) return;
+    if (t.timer) window.clearTimeout(t.timer);
+    t.ghost?.remove();
+    t.cardEl.removeAttribute('data-touch-drag');
+    t.cardEl.setAttribute('draggable', 'true');
+    touchRef.current = null;
+    dragRef.current = null;
+    setDragId(null);
+    setDrop(null);
+  }, []);
+  useEffect(() => {
+    if (!touchEnabled) return;
+    // Once a drag is active the page must not scroll under the finger.
+    const block = (event: TouchEvent) => { if (touchRef.current?.active) event.preventDefault(); };
+    document.addEventListener('touchmove', block, { passive: false });
+    return () => { document.removeEventListener('touchmove', block); endTouch(); };
+  }, [touchEnabled, endTouch]);
+  const touchTarget = (x: number, y: number) => {
+    const column = (document.elementFromPoint(x, y) as HTMLElement | null)?.closest<HTMLElement>('section.column');
+    return column ? { column, columnId: column.dataset.columnId ?? '' } : null;
+  };
+  const onBoardPointerDown = (event: React.PointerEvent<HTMLElement>) => {
+    if (!touchEnabled || event.pointerType !== 'touch') return;
+    const target = event.target as HTMLElement;
+    const cardEl = target.closest<HTMLElement>('.card');
+    if (!cardEl || target.closest('button.card-move')) return;
+    const cardId = cardEl.dataset.cardId;
+    if (!cardId) return;
+    cardEl.setAttribute('data-touch-drag', 'pending');
+    cardEl.setAttribute('draggable', 'false'); // keep native drag from competing with the long-press
+    const state = { cardId, x: event.clientX, y: event.clientY, timer: null as number | null, active: false, ghost: null as HTMLElement | null, cardEl };
+    touchRef.current = state;
+    state.timer = window.setTimeout(() => {
+      state.active = true;
+      dragRef.current = cardId;
+      setDragId(cardId);
+      navigator.vibrate?.(10);
+      const rect = cardEl.getBoundingClientRect();
+      const ghost = cardEl.cloneNode(true) as HTMLElement;
+      Object.assign(ghost.style, { position: 'fixed', left: `${rect.left}px`, top: `${rect.top}px`, width: `${rect.width}px`, margin: '0', pointerEvents: 'none', zIndex: '120', opacity: '0.92', boxShadow: 'var(--shadow-lg)', transform: 'rotate(1.5deg)' });
+      ghost.removeAttribute('data-card-id');
+      ghost.removeAttribute('draggable');
+      document.body.appendChild(ghost);
+      state.ghost = ghost;
+      cardEl.setAttribute('data-touch-drag', 'active');
+    }, 380);
+  };
+  const onBoardPointerMove = (event: React.PointerEvent<HTMLElement>) => {
+    const t = touchRef.current;
+    if (!t || event.pointerType !== 'touch') return;
+    if (!t.active) {
+      if (Math.hypot(event.clientX - t.x, event.clientY - t.y) > 10) endTouch(); // the finger is scrolling
+      return;
+    }
+    if (t.ghost) {
+      t.ghost.style.transform = `translate(${event.clientX - t.x}px, ${event.clientY - t.y}px) rotate(1.5deg)`;
+    }
+    const hit = touchTarget(event.clientX, event.clientY);
+    if (!hit) { setDrop(null); return; }
+    const index = indexFromY(hit.column, event.clientY);
+    setDrop((current) => (current?.columnId === hit.columnId && current.index === index ? current : { columnId: hit.columnId, index }));
+  };
+  const onBoardPointerUp = (event: React.PointerEvent<HTMLElement>) => {
+    const t = touchRef.current;
+    if (!t || event.pointerType !== 'touch') return;
+    if (!t.active) { endTouch(); return; }
+    const hit = touchTarget(event.clientX, event.clientY);
+    const card = columns.flatMap((c) => c.cards).find((c) => c.id === t.cardId);
+    const index = hit ? indexFromY(hit.column, event.clientY) : 0;
+    endTouch();
+    if (hit && card) performMove(card, hit.columnId, index);
   };
 
   const openCard = (card: CardSummary, trigger: HTMLElement) => {
@@ -388,6 +469,10 @@ export function BoardView() {
         id="board"
         data-card-style={cardStyle}
         aria-label={`${board.name} ${view === 'list' ? 'list' : 'board'}`}
+        onPointerDown={onBoardPointerDown}
+        onPointerMove={onBoardPointerMove}
+        onPointerUp={onBoardPointerUp}
+        onPointerCancel={endTouch}
       >
         {columns.map((column) => (
           <BoardColumn

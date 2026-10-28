@@ -57,6 +57,9 @@ Severity: blocker, major, minor. Owner: UI, Backend, Design.
 
 Motion is configured with `reducedMotion="user"`; toast and layout animations are skipped for people who ask. GSAP and Lenis are not installed; Locomotive is not used.
 
-## Proposed enhancements (after parity, not applied)
+## Proposed enhancements (after parity)
 
-None yet.
+| id | enhancement | status | how to try | caveats |
+|---|---|---|---|---|
+| E-001 | Long-press drag for touch screens (answers P-033). A 380 ms press on a card lifts it; the finger moves a ghost copy, the drop line and column highlight use the same state as mouse drag, and releasing calls the same move API with rollback. Moving the finger before 380 ms cancels it so the board still scrolls. | Implemented but off by default | Open any board URL with `&touchdrag=1` | Verified only with synthetic touch pointer events in desktop Chromium; not tried on a real phone or tablet. iOS Safari and Android Chrome may start their own long-press behaviour, which the code works around by setting `draggable=false` during the press. The Move dialog stays the default touch path. Enable by default only after a real-device check. |
+
