@@ -131,3 +131,15 @@ Migration 0009 review: additive and non-destructive. It creates a sequence and t
 Backup: a Neon child branch could not be created from `uat` because the branch has an expiry date (Neon rejects children of expiring branches). Instead, every UAT table was exported to a local JSON file (24 tables, synthetic data, kept outside Git). Create a Neon backup branch from `uat` only after the UAT expiry is removed, with Architect approval.
 
 Smoke for `64b5ba1`: Worker `/health/ready` 200; signed-out `/api/v1/session` 401; `/signin` 200 with the wordmark (pane screenshot); `/projects`, `/project?id=`, `/board?id=`, `/activity` all 200; foreign-origin preflight has no allow-origin; `/api/v1/system/status` without secret 403; legacy `/projects/<id>` and `/boards/<id>` 302 to query routes.
+
+## Deploy log addendum: f589530 (no new migration)
+
+| Date (UTC) | Commit | Worker version | Pages deployment | Migrations on UAT |
+|---|---|---|---|---|
+| 2026-10-28 | `f589530` | `e3df21a8-27e9-4e37-bc31-cfbb5062e5bd` | `7d2a8bec-4fd3-4146-a5fc-6abb3f1ca85d` | 0001-0009, already up to date |
+
+Neon: expiry removed from the `uat` branch (`br-polished-term-a172b6x5`), so it is permanent. Backup branch `uat-backup-2026-10-28` (`br-lingering-field-a1hfhs5o`) was created from `uat` with data and no expiry.
+
+Smoke for `f589530` (unauthenticated): Worker `/health/ready` 200; signed-out `/api/v1/session` 401; `/signin`, `/board?id=`, `/projects`, `/activity`, `/inbox`, `/trash`, `/people`, `/my-tasks`, `/settings` all 200 (shells only, not rendered in a browser for this commit); foreign-origin preflight has no allow-origin; `/api/v1/system/status` without secret 403; legacy `/projects/<id>` and `/boards/<id>` 302 to query routes.
+
+Proposal to keep `uat` exempt from the TTL policy in `neon.ts`: the branch policy only applies to branches created by `neon checkout`, so the existing `uat` branch is unaffected. If `uat` is ever recreated, add `if (branch.name === 'uat') return {};` as the first line of the policy function. Not applied yet; Architect to approve.
