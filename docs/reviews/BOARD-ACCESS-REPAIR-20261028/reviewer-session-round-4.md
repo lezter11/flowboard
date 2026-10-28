@@ -1,0 +1,42 @@
+# Independent board access acceptance review — round 4
+
+## Actions
+
+Verdict: **fail**, weighted score **7.875/10**. One high-severity mandatory blocker affects both mounted image binary routes. Independent `npm run check` completed exit 0: typecheck, Node build, Worker dry-run build, 362 API tests and 41 contract tests passed, zero skipped. Additional reviewer probes completed exit 0 by asserting the demonstrated defect; that exit code is reproduction success, not application acceptance. No production source, maintained tests, contracts, migrations or frozen criteria were edited.
+
+## Independence and exact target
+
+Reviewer actor `/root/backend_gate_round4`, session `orchestration-task:/root/backend_gate_round4`, is a freshly dispatched reviewer subagent that did not implement this target. Builder actor `/root`, session `parent-chat-current-turn:/root`. Model is inherited Codex GPT-6 family; exact variant and opaque provider session ID unavailable. These identifiers refer to actual orchestration roles. Parent explicitly confirmed source/tests frozen before the independent full suite and confirmed the blocker after reading the reproduction report. This round follows direct user authorization to complete repair/review after prior failures; it is not an unsolicited automatic retry.
+
+Source/configuration/requirements inventory contains 132 files; canonical source map digest: d1405728a012b9230276974b982bd13be80e40b403609a054b80c63763c1ca9c. Inventory was independently captured before the accepted full-suite run and probes; all inventoried hashes were freshly compared at the beginning of record preparation with no changes. Parent then started its directed repair before final JSON creation; the original source map remains the historical reviewed target. Final record additionally hashes reviewer session evidence, source inventory, probe source and both logs. Timestamps describe final review record preparation; command execution occurred earlier in this same reviewer turn. Old failed records remain untouched.
+
+## BAR4-01 — high — image content and thumbnail deliver Trash bytes after committed Manager demotion
+
+Affected source: apps/api/src/adapters/images.ts:707-736; mounted routes apps/api/src/http/routes/images.ts:297-339. Both GET /api/v1/images/:imageId/content and /thumbnail call getImageContent with a pool, outside any transaction-held permission lock. The adapter caches project role before querying card state, permits a trashed card using that cached Manager role, awaits object storage, and rechecks only board access. The final requireImageBoardAccess returns the actor's current role but the caller discards it; an active Member with an existing board grant therefore passes even though Members cannot access Trash.
+
+Reproduction in reviewer-probes-round-4.ts uses a fresh random PostgreSQL schema, actual migrations, real synthetic users/sessions, real mounted GET and PATCH handlers and independent database connections. It seeds a trashed card and a finalized image, with Manager membership and explicit board grant. A MemoryStorageDriver holds actual synthetic private bytes. A wrapper awaits the real driver get then delays delivery, representing ordinary storage latency; it does not replace SQL, permission results or application decisions. While GET waits for storage, mounted PATCH /projects/p/members/:manager commits role=member while retaining active membership and board grant. The database query independently confirms role=member before releasing storage. Both content and thumbnail responses return 200 with the exact private bytes. A fresh request to each route returns 404. See reviewer-probes-round-4.log.
+
+Impact: after losing Manager authority, an active project Member can receive the image binary of a trashed card. This contradicts the existing stronger Trash role rule and mandatory current-access/private-asset criteria. This is a missing full role predicate, beyond an ordinary small delay after a valid final permission check. All delays and mutations use synthetic local data only.
+
+Counterevidence: sequential requests correctly deny Members; ordinary board-grant revocation is rechecked after storage. The repaired image-list route now acquires lockBoardAccess in a transaction and its maintained mounted demotion test passes. That transaction is absent from both content/thumbnail routes. The list fix therefore does not establish byte-delivery correctness. No unauthorized database write or hosted/R2 delivery is alleged here.
+
+Suggested repair: protect image list/content/thumbnail through one shared transaction-aware read boundary that locks workspace ownership, current membership and board grant, then validates current card state and Trash role while holding permission guards through storage retrieval/response assembly. An equivalent complete revalidation protocol must reapply current Trash authority, not only board reach. Add maintained mounted tests for content and thumbnail with delayed real storage, Manager demotion and card-state changes. Retain bounded storage/transaction duration. Review every alias that reaches the shared adapter.
+
+## Repaired paths and reviewed context
+
+- Prior BAR3-01: mounted GET /projects/:id/boards now begins a transaction and calls lockProjectBoardReadScope before listProjectBoards. Workspace/membership/grant guards remain held through board selection; current suite's mounted ownership-transfer race passes.
+- Prior BAR3-02 image-list portion: mounted GET /cards/:id/images now begins a transaction and locks board access before listCardImages. The current suite's mounted Manager-demotion race passes. The adjacent binary extension above remains open.
+- Trace examined createApp route mounts, Node and Worker database pool ownership, authentication, shared grant read/write locks, Owner-only grant mutation, board listing, image read families, migrations 0007/0008 and current board access tests. Parent's prior findings and logs were treated as leads, not independent verdicts. Scope inventory covers every API source/test file and migration/contract dependency, but inclusion in a manifest does not claim every branch received equal inspection.
+- Existing suite includes board snapshots, hidden-board counts/search/My Tasks, imports, Trash, activity/inbox, revocation/replay, mounted race and local workerd cases. Those independently executed tests are regression evidence; they do not substitute for unperformed adversarial branch review.
+
+## Why and options
+
+A board grant says a teammate may open that workflow. Viewing deleted cards also requires a Manager or Owner role. For example, demoting Sam to Member must remove Trash image access even if Sam still works on the board. A transaction-held permission lock gives the read and demotion a definite order: one completes first, then the other sees current authority. Its cost is briefly holding database locks during object retrieval; bounded storage deadlines and one shared read helper reduce that cost and duplicated permission logic.
+
+## Evidence and limits
+
+Disposable PostgreSQL 17 on 127.0.0.1:55479 only, databases flowboard_harness and flowboard_access_test, synthetic local users. Full suite uses the same authorized isolated URLs supplied by the parent. Initial sandbox attempt could not connect (EPERM); the authorized escalated full rerun completed exit 0 and its preserved log is the accepted run. The probe schema was dropped in finally, pools closed, and storage driver reset. All audited source hashes matched at the beginning of record preparation. Parent began a directed repair before final JSON creation; the record intentionally preserves the pre-repair source inventory and is historical failed evidence, not approval of the later checkout. No hosted deployment, live-user data, real R2/Hyperdrive behavior, performance benchmark or dependency-advisory lookup was performed. Dependency vulnerability status remains unverified. Exhaustive independent branch/race review stopped after the demonstrated mandatory blocker at the parent's request; missing coverage cannot count as acceptance.
+
+## Next / your input
+
+Keep Task1 and its backend handoff open. Parent confirmed the attack path and requested a promptly preserved failed record before a directed binary-route repair. Freeze a new target and obtain fresh independent review after repair; this record cannot authorize closure or revive downstream UI evidence. No action needed from the user for this review record.

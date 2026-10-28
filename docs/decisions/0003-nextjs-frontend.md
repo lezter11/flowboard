@@ -20,10 +20,10 @@ Use **Next.js App Router with strict TypeScript** for `apps/web`, with these bou
 - The card drawer is URL-addressable (`?card=...` initially; an intercepting route can be evaluated later). Closing it must preserve board state and restore focus.
 - Tailwind utilities plus CSS custom properties carry the design tokens. Light theme is the default; dark is a token variant.
 - Radix/shadcn primitives provide dialogs, menus, tabs and focus management.
-- **Framer Motion** handles enter/exit, presence and layout transitions where React state drives the animation.
+- **Motion for React** (the current Framer Motion library, package `motion`, imports from `motion/react`) handles enter/exit, presence and layout transitions where React state drives the animation. CSS remains the default for ordinary hover/focus feedback.
 - **GSAP** is reserved for a measured, complex sequence that CSS/Framer Motion handles poorly. It is not used for card drag, list reordering or routine hover/focus states.
-- **Lenis** handles page-level smooth scrolling only. The board, columns and drawer keep native scrolling.
-- **Locomotive Scroll is not used for the board.** It is transform-based, which complicates drag hit-testing, nested scrolling, keyboard focus and reduced-motion behavior.
+- **Lenis** is optional for a future long-form marketing page with a measured scrolling need. The app board, columns and drawer keep native scrolling.
+- **Locomotive Scroll is not used for the board.** Its current v5 is built on Lenis; combining both would duplicate scrolling machinery. Reconsider either only for a specific marketing experience, with keyboard, touch and reduced-motion checks.
 - **dnd-kit** replaces the artifact’s native HTML5 drag events, with pointer, touch and keyboard sensors. The Move dialog remains the accessible alternative.
 - TanStack Query owns server state and mutations; Zustand owns ephemeral UI state; React Hook Form + Zod own client form state and validation; Lucide supplies icons; Sonner supplies toasts; Playwright covers interaction and visual checks.
 
@@ -37,7 +37,11 @@ React + Vite remains the simpler option for an authenticated board: one static b
 
 ### Motion stack
 
-Framer Motion is declarative and fits React-owned transitions such as drawer presence, dialog entry and card layout changes. It adds bundle weight, so simple color, border and transform changes stay in CSS. GSAP is more powerful for imperative timelines but can fight React’s ownership of the DOM; it should be introduced only after a concrete animation need and a performance measurement. Lenis improves the feel of long page scrolling but must not hijack the board or ignore `prefers-reduced-motion`. Locomotive Scroll is a heavier transform-based approach whose scrolling model conflicts with a nested drag surface.
+Motion for React is declarative and fits React-owned transitions such as drawer presence, dialog entry and card layout changes. It adds bundle weight, so simple color, border and transform changes stay in CSS. GSAP is useful for a tightly sequenced timeline, but introduces another imperative owner of animation; adopt it only for a concrete need that Motion/CSS does not handle well. Lenis and Locomotive can serve a scroll-led marketing experience, but the board needs predictable native wheel, touch and keyboard scrolling while cards can move between nested columns.
+
+The current HTML artifact uses CSS plus the Web Animations API, without installing these production libraries. Its board header uses a selected-view indicator, responsive SVG action icons and a brief transform animation when status counts change. The reduced-motion path keeps the final state immediate. Popular libraries alone do not establish smooth performance; production acceptance still requires device measurements and interaction checks.
+
+Documentation refreshed 2026-10-26: [Motion React animation](https://motion.dev/docs/react-animation), [Motion reduced motion](https://motion.dev/docs/react-use-reduced-motion), [GSAP ScrollTrigger](https://gsap.com/docs/v3/Plugins/ScrollTrigger/), [Lenis](https://github.com/darkroomengineering/lenis), [Locomotive v5](https://github.com/locomotivemtl/locomotive-scroll/blob/main/packages/docs/docs/intro.md).
 
 ### Data and state libraries
 

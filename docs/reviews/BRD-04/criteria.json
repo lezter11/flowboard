@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "BRD-04"
+  ],
+  "mandatoryCriteria": [
+    "Add column: POST /api/v1/boards/:boardId/columns adds new column with name, color, category, expectedBoardVersion",
+    "Max 12 columns bound: Rejects column creation if board already has 12 columns with 400 or 422",
+    "Duplicate column name check: Rejects duplicate column names within the board (case-insensitive, trimmed) with 400 or 409",
+    "Rename and edit column: PATCH /api/v1/boards/:boardId/columns/:columnId updates name, color, category with expectedBoardVersion; rejects duplicate name"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "brd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Column addition and renaming with 12 column limit and name uniqueness."
+}

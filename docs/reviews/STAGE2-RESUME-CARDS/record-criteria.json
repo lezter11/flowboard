@@ -1,0 +1,44 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-01",
+    "CRD-02",
+    "CRD-03",
+    "CRD-04",
+    "CRD-05",
+    "CRD-06",
+    "CRD-07",
+    "CRD-08",
+    "CRD-09",
+    "CRD-10",
+    "CRD-11"
+  ],
+  "mandatoryCriteria": [
+    "CRD-01.a",
+    "CRD-01.b",
+    "CRD-01.c",
+    "CRD-02.a",
+    "CRD-03.a",
+    "CRD-04.a",
+    "CRD-05.a",
+    "CRD-06.a",
+    "CRD-07.a",
+    "CRD-07.b",
+    "CRD-08.a",
+    "CRD-09.a",
+    "CRD-10.a",
+    "CRD-11.a",
+    "CRD-11.b",
+    "SHARED.a",
+    "SHARED.b"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "contracts": "npm run test --workspace @flowboard/contracts",
+    "cards-group": "node --test --test-concurrency=1 test/crd01-crd11.test.ts",
+    "api-build": "npm run build --workspace @flowboard/api"
+  },
+  "sourceCriteriaPath": "docs/reviews/STAGE2-RESUME-CARDS/criteria.json",
+  "criteriaFrozenBeforeTestsOrScoring": true,
+  "note": "Machine-schema projection of the acceptance statements frozen in sourceCriteriaPath before checks. It preserves their text and outcomes; it does not relax criteria."
+}

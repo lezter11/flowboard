@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "BRD-01",
+    "BRD-02",
+    "BRD-03",
+    "BRD-04",
+    "BRD-05",
+    "BRD-06",
+    "BRD-07"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/STAGE2-RESUME-BOARDS/criteria.json",
+  "startedAt": "2026-10-26T06:35:00Z",
+  "completedAt": "2026-10-26T06:47:33Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8f4f343f-8836-4b64-8563-c36b797ba880",
+    "model": "antigravity-builder (as declared in prior round; not independently authenticated)"
+  },
+  "reviewer": {
+    "actorId": "/root/resume_boards_audit",
+    "sessionId": "codex-agent-task:/root/resume_boards_audit (provider UUID unavailable; no UUID invented)",
+    "model": "GPT-6 Luna",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/STAGE2-RESUME-BOARDS/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "BACKEND_REVIEW_GATE.md",
+      "RULES.md",
+      "apps/api/package.json",
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/adapters/cards.ts",
+      "apps/api/src/adapters/comments.ts",
+      "apps/api/src/adapters/idempotency.ts",
+      "apps/api/src/adapters/invitations.ts",
+      "apps/api/src/adapters/members.ts",
+      "apps/api/src/adapters/migrations.ts",
+      "apps/api/src/adapters/postgres.ts",
+      "apps/api/src/adapters/projects.ts",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/adapters/session.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/http/app.ts",
+      "apps/api/src/http/errors.ts",
+      "apps/api/src/http/middleware/auth.ts",
+      "apps/api/src/http/middleware/correlation.ts",
+      "apps/api/src/http/middleware/error-handler.ts",
+      "apps/api/src/http/middleware/index.ts",
+      "apps/api/src/http/middleware/limits.ts",
+      "apps/api/src/http/middleware/rbac.ts",
+      "apps/api/src/http/middleware/timing.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/src/http/routes/cards.ts",
+      "apps/api/src/http/routes/comments.ts",
+      "apps/api/src/http/routes/invitations.ts",
+      "apps/api/src/http/routes/members.ts",
+      "apps/api/src/http/routes/projects.ts",
+      "apps/api/src/http/routes/session.ts",
+      "apps/api/src/http/routes/trash.ts",
+      "apps/api/src/http/routes/workspaces.ts",
+      "apps/api/src/runtime/local-config.ts",
+      "apps/api/src/runtime/node.ts",
+      "apps/api/src/runtime/worker.ts",
+      "apps/api/test/acc01-session.test.ts",
+      "apps/api/test/acc04-workspaces.test.ts",
+      "apps/api/test/brd01-brd07.test.ts",
+      "apps/api/test/com-del.test.ts",
+      "apps/api/test/crd01-crd11.test.ts",
+      "apps/api/test/inv01-inv03.test.ts",
+      "apps/api/test/inv04-inv08.test.ts",
+      "apps/api/test/inv06-inv07.test.ts",
+      "apps/api/test/migrations.test.ts",
+      "apps/api/test/node.test.ts",
+      "apps/api/test/observability.test.ts",
+      "apps/api/test/prj01-projects.test.ts",
+      "apps/api/test/prj02-prj05.test.ts",
+      "apps/api/test/rbac-advanced.test.ts",
+      "apps/api/test/rbac01-matrix.test.ts",
+      "apps/api/test/rollback-probe.ts",
+      "apps/api/test/worker-probe.ts",
+      "apps/api/test/worker.test.ts",
+      "apps/api/test/wrangler.jsonc",
+      "database/compose.local.yaml",
+      "database/migrations/0001_initial.sql",
+      "database/migrations/0002_sessions.sql",
+      "database/migrations/0003_constraints.sql",
+      "docs/API.md",
+      "docs/FEATURE_SPEC.md",
+      "docs/features.tsv",
+      "docs/reviews/README.md",
+      "docs/reviews/STAGE2-RESUME-BOARDS/brd01-brd07.test-escalated.log",
+      "docs/reviews/STAGE2-RESUME-BOARDS/brd01-brd07.test.log",
+      "docs/reviews/STAGE2-RESUME-BOARDS/brd01-revoked-replay-repro.log",
+      "docs/reviews/STAGE2-RESUME-BOARDS/brd07-stale-cursor-repro.log",
+      "docs/reviews/STAGE2-RESUME-BOARDS/criteria.json",
+      "docs/reviews/STAGE2-RESUME-BOARDS/independent-review.md",
+      "docs/reviews/STAGE2-RESUME-BOARDS/reviewer-session.md",
+      "docs/reviews/STAGE2-RESUME-BOARDS/source-manifest.json",
+      "docs/reviews/STAGE2-RESUME-BOARDS/typecheck.log",
+      "package-lock.json",
+      "package.json",
+      "packages/contracts/package.json",
+      "packages/contracts/src/auth.ts",
+      "packages/contracts/src/boards.ts",
+      "packages/contracts/src/cards.ts",
+      "packages/contracts/src/comments.ts",
+      "packages/contracts/src/common.ts",
+      "packages/contracts/src/discussion.ts",
+      "packages/contracts/src/fixtures/index.ts",
+      "packages/contracts/src/images.ts",
+      "packages/contracts/src/imports.ts",
+      "packages/contracts/src/index.ts",
+      "packages/contracts/src/invitations.ts",
+      "packages/contracts/src/openapi/index.ts",
+      "packages/contracts/src/projects.ts",
+      "packages/contracts/src/trash.ts",
+      "packages/contracts/src/workspaces.ts",
+      "packages/contracts/test/contracts.test.ts",
+      "tsconfig.json"
+    ],
+    "files": {},
+    "digest": "COMPUTED_ON_FINALIZE"
+  },
+  "criteriaResults": {
+    "Owner and manager board creation: Workspace owner and project manager can create boards via POST /api/v1/projects/:projectId/boards; members and viewers receive 403 FORBIDDEN (404 for ungranted project)": "fail",
+    "Atomic default columns: Creating a board atomically inserts exactly 4 default columns in order: \"Not started\" (todo, pos 0), \"In progress\" (active, pos 1), \"Testing\" (active, pos 2), \"Completed\" (done, pos 3)": "pass",
+    "Ancestry and versioning: Board inherits workspace_id and project_id from project; initializes structure_version=1 and snapshot_version=1": "pass",
+    "Idempotency enforcement: POST /api/v1/projects/:projectId/boards requires valid Idempotency-Key header and returns idempotent receipt": "pass",
+    "BRD-01 canonical acceptance: Owner/manager creates a board with default columns atomically inside an authorized project.": "fail",
+    "Board listing: GET /api/v1/projects/:projectId/boards returns active boards for granted project members; ungranted users receive 404 NOT_FOUND": "pass",
+    "Board update: PATCH /api/v1/boards/:boardId updates board name when called by owner or manager; members/viewers receive 403 FORBIDDEN": "fail",
+    "Optimistic concurrency: PATCH /api/v1/boards/:boardId verifies expectedVersion matches current snapshot_version; returns 409 STALE_VERSION on conflict": "pass",
+    "Idempotency enforcement: PATCH /api/v1/boards/:boardId requires Idempotency-Key header": "pass",
+    "BRD-02 canonical acceptance: List only accessible project boards; owner/manager renames a board without breaking card IDs/links.": "fail",
+    "Bounded consistent snapshot: GET /api/v1/boards/:boardId returns snapshot object with board metadata, filters, asOfDate, totals, columns, and people": "pass",
+    "Accurate active vs matching counts: totals.activeCardCount counts all active cards; totals.matchingCardCount counts cards matching filters; excludes trashed cards": "pass",
+    "Column card nesting: Each column in the snapshot contains cards array bounded by cardLimitPerColumn (default 10, max 15) and nextCursor if more exist": "pass",
+    "People disclosure: Returns distinct PersonDisplay records for all card assignees and creators referenced on the board": "pass",
+    "BRD-03 canonical acceptance: Metadata, counts and first column pages share one snapshot; caps/cursors are explicit and all filters count beyond the visible page.": "pass",
+    "Add column: POST /api/v1/boards/:boardId/columns adds new column with name, color, category, expectedBoardVersion": "fail",
+    "Max 12 columns bound: Rejects column creation if board already has 12 columns with 400 or 422": "pass",
+    "Duplicate column name check: Rejects duplicate column names within the board (case-insensitive, trimmed) with 400 or 409": "pass",
+    "Rename and edit column: PATCH /api/v1/boards/:boardId/columns/:columnId updates name, color, category with expectedBoardVersion; rejects duplicate name": "fail",
+    "BRD-04 canonical acceptance: Owner/manager configures unique normalized names, colors and todo/active/done categories with expected board version.": "fail",
+    "Column reordering: POST /api/v1/boards/:boardId/columns/reorder takes complete array of columnIds and updates position column values sequentially": "fail",
+    "Complete column set validation: Rejects reorder request if columnIds array does not match the exact set of active columns on the board with 400 or 422": "pass",
+    "Optimistic board versioning: Reorder verifies expectedBoardVersion against board structure_version; increments structure_version on success": "pass",
+    "BRD-05 canonical acceptance: Pointer and click/tap/keyboard ordering persist atomically; missing/duplicate/foreign IDs and stale revisions fail clearly.": "fail",
+    "Remove empty column: DELETE /api/v1/boards/:boardId/columns/:columnId succeeds when column contains no cards": "fail",
+    "Reject final column deletion: Rejects deletion if board has only 1 column remaining with 400 FINAL_COLUMN_CANNOT_BE_DELETED": "pass",
+    "Reject column with active cards: Rejects deletion with 400 or 409 if column contains active cards; no silent cascade": "pass",
+    "Reject column with restorable cards: Rejects deletion or flags blocked restore if column contains trashed cards within 24h restore window": "pass",
+    "BRD-06 canonical acceptance: Owner/manager cannot remove final column or any column referenced by active/restorable cards; no silent card deletion/move occurs.": "fail",
+    "Paginated cards query: GET /api/v1/boards/:boardId/cards supports filtering by columnId, title query, priority, assigneeId, and due date": "pass",
+    "Deterministic ordering: Cards returned in canonical order by position ascending": "pass",
+    "Cursor pagination: Returns nextCursor and supports opaque cursor resumption without data omission or duplicates": "fail",
+    "BRD-07 canonical acceptance: Load more retains canonical order without duplicates; empty column and empty filtered column are distinct and stale cursors refresh.": "fail",
+    "BRD-07 stale cursor handling: after a board/card order change or filter mismatch, an old cursor is rejected with a stable stale-cursor response so the client refreshes; continuation must not silently omit or duplicate cards.": "fail"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "Immutable snapshot; Node v24.15.0, npm 11.12.1. DATABASE_URL constrained to parent-provided isolated local PostgreSQL on 127.0.0.1:55436 (typecheck does not use DB).",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/STAGE2-RESUME-BOARDS/typecheck.log"
+    },
+    {
+      "id": "brd-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "exitCode": 0,
+      "environment": "Immutable snapshot; Node v24.15.0, npm 11.12.1; parent-provided isolated synthetic PostgreSQL at 127.0.0.1:55436; authorized local connection after sandbox EPERM.",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/STAGE2-RESUME-BOARDS/brd01-brd07.test-escalated.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "4",
+      "reason": "4/10. Mounted route and grant helper provide normal project role checks, but a direct isolated PostgreSQL repro proves a removed manager can retrieve a cached successful mutation response because receipt replay precedes grant authorization in boards.ts. This is a mandatory authorization blocker.",
+      "evidencePaths": [
+        "docs/reviews/STAGE2-RESUME-BOARDS/independent-review.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/reviewer-session.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/brd01-brd07.test-escalated.log",
+        "docs/reviews/STAGE2-RESUME-BOARDS/typecheck.log",
+        "docs/reviews/STAGE2-RESUME-BOARDS/brd01-revoked-replay-repro.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "6.5",
+      "reason": "6.5/10. All seven feature paths have implementations and the happy-path group suite passes, but BRD-07 stale cursor behavior is demonstrably wrong after ordering changes and BRD-06 expired-trash reference behavior remains unresolved.",
+      "evidencePaths": [
+        "docs/reviews/STAGE2-RESUME-BOARDS/independent-review.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/reviewer-session.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/brd01-brd07.test-escalated.log",
+        "docs/reviews/STAGE2-RESUME-BOARDS/typecheck.log",
+        "docs/reviews/STAGE2-RESUME-BOARDS/brd07-stale-cursor-repro.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "5.5",
+      "reason": "5.5/10. Board writes use transactions and optimistic versions, yet continuation pages are not bound to board/order revision; a real synthetic state change made a card disappear from cursor traversal. No concurrent DB race suite was run.",
+      "evidencePaths": [
+        "docs/reviews/STAGE2-RESUME-BOARDS/independent-review.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/reviewer-session.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/brd01-brd07.test-escalated.log",
+        "docs/reviews/STAGE2-RESUME-BOARDS/typecheck.log",
+        "docs/reviews/STAGE2-RESUME-BOARDS/brd07-stale-cursor-repro.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "7",
+      "reason": "7/10. Typecheck passed and all 16 integration tests passed on isolated PostgreSQL. The suite misses revocation-before-replay and stale-after-reorder cases; reviewer repros expose both. No Worker-specific feature execution or concurrency stress.",
+      "evidencePaths": [
+        "docs/reviews/STAGE2-RESUME-BOARDS/independent-review.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/reviewer-session.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/brd01-brd07.test-escalated.log",
+        "docs/reviews/STAGE2-RESUME-BOARDS/typecheck.log",
+        "docs/reviews/STAGE2-RESUME-BOARDS/brd07-stale-cursor-repro.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "8",
+      "reason": "8/10. Typed Zod contracts, parameterized PostgreSQL, modular adapters, and mounted route boundaries are clear. Receipt policy is repeated across handlers and cursor state is an unversioned tuple.",
+      "evidencePaths": [
+        "docs/reviews/STAGE2-RESUME-BOARDS/independent-review.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/reviewer-session.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/brd01-brd07.test-escalated.log",
+        "docs/reviews/STAGE2-RESUME-BOARDS/typecheck.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "6.5",
+      "reason": "6.5/10. Responses/pages have limits, but placement reads materialize all destination cards and snapshot subqueries aggregate broadly; no representative large-data benchmark or recovery/load evidence.",
+      "evidencePaths": [
+        "docs/reviews/STAGE2-RESUME-BOARDS/independent-review.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/reviewer-session.md",
+        "docs/reviews/STAGE2-RESUME-BOARDS/brd01-brd07.test-escalated.log",
+        "docs/reviews/STAGE2-RESUME-BOARDS/typecheck.log"
+      ]
+    }
+  },
+  "weightedScore": "5.825",
+  "findings": [
+    {
+      "id": "F-01",
+      "severity": "high",
+      "description": "apps/api/src/http/routes/boards.ts:64-83 replays an idempotency receipt before createBoard performs acquireWriteGrantLock. Synthetic repro revoked usr_bob_brd_mgr from prj_brd_alpha, then repeated POST /api/v1/projects/prj_brd_alpha/boards with the prior key/body; response was 201 with cached board metadata and replayed=true. Evidence: docs/reviews/STAGE2-RESUME-BOARDS/brd01-revoked-replay-repro.log.",
+      "disposition": "open",
+      "rationale": "Current project authorization must be checked before returning receipt data. Normal replay tests cover only an active manager and do not counter the revoked-grant repro. Apply a consistent authorization-before-replay rule to board and column mutation routes and add revoked-replay regressions.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "F-02",
+      "severity": "high",
+      "description": "apps/api/src/adapters/boards.ts:36-60 encodes only position/id; listBoardCards at :1239-1264 does not bind cursor to board/filter/order revision. Synthetic PostgreSQL repro fetched first page, moved the next card ahead and incremented board versions, then resumed the old cursor; adapter returned an empty page instead of a stale-cursor conflict. Evidence: docs/reviews/STAGE2-RESUME-BOARDS/brd07-stale-cursor-repro.log.",
+      "disposition": "open",
+      "rationale": "BRD-07 requires stale cursors to refresh and page traversal not to omit cards. Bind cursor to context and revision and add order/filter-change tests.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "F-03",
+      "severity": "medium",
+      "description": "Placement calculation in apps/api/src/adapters/boards.ts reads and materializes every active destination-column card to calculate neighbors. API.md describes a bounded placement read. Snapshot aggregate/ranking queries also process more data than the response limit.",
+      "disposition": "open",
+      "rationale": "Operations/performance risk is not measured and should be bounded or benchmarked before scale claims. Not the basis of the fail verdict.",
+      "mandatory": false,
+      "blocking": false
+    },
+    {
+      "id": "F-04",
+      "severity": "medium",
+      "description": "BRD-06 expired-trash column-reference behavior was not tested. Source checks active and restorable cards before DELETE, while migration FK restricts deletion for any card row referencing the column.",
+      "disposition": "open",
+      "rationale": "Clarify whether expired but unpurged trash blocks column removal and return a deliberate response rather than relying on a raw FK failure. This remains a coverage gap, not a reproduced blocker.",
+      "mandatory": false,
+      "blocking": false
+    }
+  ],
+  "hardBlockers": [
+    "F-01: cached project-private board response is disclosed after manager grant revocation.",
+    "F-02: stale board cursor silently omits cards after an order change instead of prompting refresh."
+  ],
+  "coverageGaps": [
+    "No revoke-versus-replay tests on board/column mutations.",
+    "No order-change or filter-change stale-cursor test; current cursor repro fails acceptance.",
+    "No concurrent reorder/name uniqueness/card movement stress.",
+    "No failure injection proving atomic default-column creation rollback.",
+    "No Worker-specific execution of BRD routes; group suite exercises the Hono app on Node.",
+    "No representative large-board query benchmark or bounded placement-read evidence.",
+    "Expired trashed card reference behavior in BRD-06 is unresolved.",
+    "No dependency advisory lookup; supply-chain status is unverified.",
+    "No browser evidence for pointer/tap/keyboard interactions, which are UI-owned."
+  ],
+  "verdict": "fail"
+}

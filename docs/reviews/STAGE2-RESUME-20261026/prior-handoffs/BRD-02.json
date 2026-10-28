@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BRD-02/aea771109cade52588be049403126b3fc3bc2e4e7d3cee534419a0d5fd324b3c-round-1.json",
+  "summary": "BRD-02 Project boards list & update board: implemented GET /api/v1/projects/:projectId/boards for granted project members (with strict outsider 404 privacy) and PATCH /api/v1/boards/:boardId for board renaming with manager/owner authority, transactional idempotency receipts, and optimistic concurrency control (OCC) against snapshot_version rejecting stale updates with 409 STALE_VERSION. Audited and passed with weighted score 9.445/10.",
+  "api_contract": "docs/API.md v0.3",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-02/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "result": "All 16 tests passed. Review score > 8.5."
+    }
+  ]
+}

@@ -1,16 +1,18 @@
 {
-  "reviewPath": "docs/reviews/INV-04/5c8b7c2cfb1bf4f6c919c6a3405171c0c19172f92b1f9ddfde9c2a70520b3efc-round-1.json",
+  "reviewPath": "docs/reviews/INV-04/cf73931473584c18b0d6b023fa8236959ce734c34f670bd220e0209c53fbdabd-round-1.json",
   "status": "verified",
   "summary": "INV-04 Resend and revoke invitation: implemented POST /api/v1/projects/:projectId/invitations/:invitationId/resend and POST /api/v1/projects/:projectId/invitations/:invitationId/revoke. Workspace Owner can resend/revoke any invitation; Project Managers can resend/revoke member and viewer invitations only (manager target returns 403 FORBIDDEN). Resending rotates the cryptographic token with a fresh 32-byte secret and SHA-256 hash, refreshes expires_at to +7 days, transitions status back to pending, invalidates the prior token, and emits a new outbox event. Revoking sets status to revoked, preventing any subsequent acceptance. Both routes support idempotency key replay. All automated integration tests pass against local PostgreSQL.",
   "api_contract": "docs/API.md (POST /projects/:pid/invitations/:iid/resend or /revoke)",
   "limitations": [
     "Outbox queue delivery worker is implemented in INV-02."
   ],
-  "evidence": [{
-    "path": "docs/evidence/INV-04-local.md",
-    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/inv04-inv08.test.ts",
-    "result": "Strict typecheck passed with 0 errors; all tests in inv04-inv08 test suite passed (25 passed, 0 failed, 0 skipped).",
-    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
-  }],
+  "evidence": [
+    {
+      "path": "docs/evidence/INV-04-local.md",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/inv04-inv08.test.ts",
+      "result": "Strict typecheck passed with 0 errors; all tests in inv04-inv08 test suite passed (25 passed, 0 failed, 0 skipped).",
+      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+    }
+  ],
   "next_dependency_ready_task": "UI implementation for invitation management and member access control."
 }

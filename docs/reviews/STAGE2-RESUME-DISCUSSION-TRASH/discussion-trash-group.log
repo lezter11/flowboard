@@ -1,0 +1,523 @@
+▶ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite
+  ✖ COM-02: Viewers cannot post comments (403 FORBIDDEN) (3.330625ms)
+  ✖ COM-02: Outsiders receive 404 NOT_FOUND on comment post (0.093791ms)
+  ✖ COM-02: Comment post requires mandatory Idempotency-Key header (0.054792ms)
+  ✖ COM-02: Comment body validation (rejects empty or whitespace-only body) (0.052375ms)
+  ✖ COM-02: Member posts valid comment with outbox and activity_log (0.054583ms)
+  ✖ COM-02: Idempotency replay returns identical comment with replayed=true (0.042667ms)
+  ✖ COM-02: Idempotency conflict on same key with different body (0.059542ms)
+  ✖ COM-03: Rejects overlapping mention spans (0.051042ms)
+  ✖ COM-03: Rejects mentions of sibling project users or non-members (0.066416ms)
+  ✖ COM-03: Valid mentions notify teammates but self-mentions do NOT notify (0.076208ms)
+  ✖ COM-01: GET /cards/:cardId/comments returns chronological comments for readers (0.036584ms)
+  ✖ COM-01: Outsiders receive 404 NOT_FOUND on comment listing (0.028958ms)
+  ✖ COM-04: Non-author cannot edit another user comment (403 FORBIDDEN) (0.071958ms)
+  ✖ COM-04: Edit comment OCC conflict returns 409 STALE_VERSION (0.029541ms)
+  ✖ COM-04: Author successfully edits comment and increments version (0.025125ms)
+  ✖ COM-05: Regular member cannot delete another member comment (403 FORBIDDEN) (0.03375ms)
+  ✖ COM-05: Workspace owner moderates and deletes comment (0.029583ms)
+  ✖ COM-05: Author deletes their own comment (0.02425ms)
+  ✖ DEL-01: Regular member/viewer cannot delete card (403 FORBIDDEN) (0.023458ms)
+  ✖ DEL-01: Delete card OCC check returns 409 STALE_VERSION (0.02925ms)
+  ✖ DEL-01: Manager soft-deletes card with 24-hour restore window and board version increment (0.0255ms)
+  ✖ DEL-08: Trashed card returns 404 NOT_FOUND on direct GET /cards/:cardId (0.0285ms)
+  ✖ DEL-08: Trashed card comments return 404 NOT_FOUND on GET /cards/:cardId/comments (0.025084ms)
+  ✖ COM-06: Posting comment on trashed card is rejected with 400 CARD_IS_TRASHED (0.02375ms)
+  ✖ DEL-02: Non-administrators (members/viewers) receive 403 on trash listing (0.023583ms)
+  ✖ DEL-02: Owner and Manager can list trash with canRestore and blockedReason details (0.026542ms)
+  ✖ DEL-03: Non-admin cannot restore card (403 FORBIDDEN) (0.029416ms)
+  ✖ DEL-03: Manager restores card before deadline with OCC checks (0.024584ms)
+  ✖ DEL-04: Destination missing requires explicit toColumnId (0.07975ms)
+  ✖ DEL-05: Expired restore returns HTTP 410 RESTORE_WINDOW_EXPIRED with details (0.027ms)
+  ✖ DEL-06: Purged card cannot be restored (404 NOT_FOUND, fenced winner) (0.023875ms)
+✖ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite (11.1645ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 0
+ℹ fail 32
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 183.502042
+
+✖ failing tests:
+
+test at test/com-del.test.ts:150:11
+✖ COM-02: Viewers cannot post comments (403 FORBIDDEN) (3.330625ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:165:11
+✖ COM-02: Outsiders receive 404 NOT_FOUND on comment post (0.093791ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:180:11
+✖ COM-02: Comment post requires mandatory Idempotency-Key header (0.054792ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:194:11
+✖ COM-02: Comment body validation (rejects empty or whitespace-only body) (0.052375ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:211:11
+✖ COM-02: Member posts valid comment with outbox and activity_log (0.054583ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:259:11
+✖ COM-02: Idempotency replay returns identical comment with replayed=true (0.042667ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:275:11
+✖ COM-02: Idempotency conflict on same key with different body (0.059542ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:294:11
+✖ COM-03: Rejects overlapping mention spans (0.051042ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:315:11
+✖ COM-03: Rejects mentions of sibling project users or non-members (0.066416ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:334:11
+✖ COM-03: Valid mentions notify teammates but self-mentions do NOT notify (0.076208ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:377:11
+✖ COM-01: GET /cards/:cardId/comments returns chronological comments for readers (0.036584ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:397:11
+✖ COM-01: Outsiders receive 404 NOT_FOUND on comment listing (0.028958ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:408:11
+✖ COM-04: Non-author cannot edit another user comment (403 FORBIDDEN) (0.071958ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:427:11
+✖ COM-04: Edit comment OCC conflict returns 409 STALE_VERSION (0.029541ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:446:11
+✖ COM-04: Author successfully edits comment and increments version (0.025125ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:469:11
+✖ COM-05: Regular member cannot delete another member comment (403 FORBIDDEN) (0.03375ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:496:11
+✖ COM-05: Workspace owner moderates and deletes comment (0.029583ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:533:11
+✖ COM-05: Author deletes their own comment (0.02425ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:550:11
+✖ DEL-01: Regular member/viewer cannot delete card (403 FORBIDDEN) (0.023458ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:574:11
+✖ DEL-01: Delete card OCC check returns 409 STALE_VERSION (0.02925ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:589:11
+✖ DEL-01: Manager soft-deletes card with 24-hour restore window and board version increment (0.0255ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:637:11
+✖ DEL-08: Trashed card returns 404 NOT_FOUND on direct GET /cards/:cardId (0.0285ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:644:11
+✖ DEL-08: Trashed card comments return 404 NOT_FOUND on GET /cards/:cardId/comments (0.025084ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:651:11
+✖ COM-06: Posting comment on trashed card is rejected with 400 CARD_IS_TRASHED (0.02375ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:670:11
+✖ DEL-02: Non-administrators (members/viewers) receive 403 on trash listing (0.023583ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:687:11
+✖ DEL-02: Owner and Manager can list trash with canRestore and blockedReason details (0.026542ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:709:11
+✖ DEL-03: Non-admin cannot restore card (403 FORBIDDEN) (0.029416ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:722:11
+✖ DEL-03: Manager restores card before deadline with OCC checks (0.024584ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:767:11
+✖ DEL-04: Destination missing requires explicit toColumnId (0.07975ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:866:11
+✖ DEL-05: Expired restore returns HTTP 410 RESTORE_WINDOW_EXPIRED with details (0.027ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:930:11
+✖ DEL-06: Purged card cannot be restored (404 NOT_FOUND, fenced winner) (0.023875ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }
+
+test at test/com-del.test.ts:15:1
+✖ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite (11.1645ms)
+  Error: connect EPERM 127.0.0.1:55438 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///private/tmp/flowboard-stage2-resume-a37x7egs/apps/api/test/com-del.test.ts:43:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55438
+  }

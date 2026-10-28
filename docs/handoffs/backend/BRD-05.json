@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BRD-05/562ae9d2dc7b7741224f803710e3ad3b5f86d2f382d6b00fd850051429c35a04-round-1.json",
+  "summary": "BRD-05 Reorder columns & placement neighbor calculation verified. Implemented atomic column reordering requiring exact set of column IDs, and placement query validating moving card identity and computing adjacent neighbors. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "POST /columns/reorder & GET /columns/:id/placement (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-05/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "result": "All 16 tests passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ]
+}

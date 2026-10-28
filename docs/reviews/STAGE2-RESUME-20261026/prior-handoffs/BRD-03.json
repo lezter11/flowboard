@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BRD-03/6661d4173b6fda7be135391ef2dd7dcd48b8298d1fe9e9162f7253c7073b23df-round-1.json",
+  "summary": "BRD-03 Board snapshot & counts: implemented GET /api/v1/boards/:boardId returning point-in-time consistent board snapshot under REPEATABLE READ READ ONLY transaction isolation with workspace-relative asOfDate, totals differentiating activeCardCount vs filter matchingCardCount (strictly excluding trashed cards), bounded card slices per column (default 10, max 15) with nextCursor pagination, and distinct assignees people disclosure. Audited and passed with weighted score 9.46/10.",
+  "api_contract": "docs/API.md v0.3",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-03/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "result": "All 16 tests passed. Review score > 8.5."
+    }
+  ]
+}

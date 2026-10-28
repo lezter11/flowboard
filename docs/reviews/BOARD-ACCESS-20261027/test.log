@@ -1,0 +1,488 @@
+
+> check
+> npm run typecheck && npm run build && npm test
+
+
+> typecheck
+> tsc --noEmit
+
+
+> build
+> npm run build --workspace @flowboard/api
+
+
+> build
+> tsc -p tsconfig.build.json && WRANGLER_SEND_METRICS=false wrangler deploy --dry-run --outdir dist/worker
+
+
+ ⛅️ wrangler 4.152.0 (update available 4.154.0)
+───────────────────────────────────────────────
+Total Upload: 924.12 KiB / gzip: 166.85 KiB
+Your Worker has access to the following bindings:
+Binding                                                Resource               
+env.HYPERDRIVE (18f56141ecef4b7cb07ecd42c90b155f)      Hyperdrive Config      
+
+--dry-run: exiting now.
+
+> test
+> npm run test --workspace @flowboard/api && npm run test --workspace @flowboard/contracts
+
+
+> test
+> WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/*.test.ts
+
+▶ ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Administration Suite
+  ✔ ACC-02: Sign out and expired session revocation (60.282375ms)
+  ✔ ACC-03: Profile updates and historical identity preservation (3.390625ms)
+  ✔ ACC-05: Workspace preferences (name and timezone with OCC) (5.585375ms)
+  ✔ ACC-06: Owned and invited context switcher (4.644125ms)
+  ✔ ACC-07: Owner transfer atomic transition and idempotency (11.173875ms)
+  ✔ INV-02: Invitation delivery via configured email adapter (6.436917ms)
+✔ ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Administration Suite (93.781125ms)
+▶ ACC-01: Sign in, Sessions and Authentication Suite
+  ✔ 1. POST /api/v1/session/dev-login creates user, session, and sets cookie (59.354875ms)
+  ✔ 2. GET /api/v1/session with valid cookie returns actor, owned workspaces, and accessible projects (3.953875ms)
+  ✔ 3. GET /api/v1/session without cookie returns 401 UNAUTHORIZED (0.359875ms)
+  ✔ 4. GET /api/v1/session with expired session returns 401 UNAUTHORIZED (1.179958ms)
+  ✔ 5. POST /api/v1/session/logout revokes session in DB and clears cookie (204 No Content) (2.742166ms)
+  ✔ 6. POST /api/v1/session/dev-login rejects existing user without X-Dev-Secret (403 FORBIDDEN) (1.010667ms)
+  ✔ 7. POST /api/v1/session/dev-login rejects existing user with invalid X-Dev-Secret (403 FORBIDDEN) (0.774084ms)
+  ✔ 8. POST /api/v1/session/dev-login succeeds for existing user with valid X-Dev-Secret (1.599375ms)
+  ✔ 9. POST /api/v1/session/dev-login returns 404 NOT_FOUND when NODE_ENV === "production" (0.323167ms)
+  ✔ 10. Cookies have Secure flag when request is not from localhost (1.355333ms)
+✔ ACC-01: Sign in, Sessions and Authentication Suite (76.227792ms)
+▶ ACC-04: Create workspace and owner & Idempotency Replay Suite
+  ✔ 1. Unauthenticated requests to /api/v1/workspaces return 401 UNAUTHORIZED (60.924625ms)
+  ✔ 2. Missing or invalid Idempotency-Key header returns 400 IDEMPOTENCY_KEY_REQUIRED (3.318375ms)
+  ✔ 3. Validation error on invalid body (empty name or invalid timezone) returns 422 (2.063083ms)
+  ✔ 4. Workspace creation succeeds and sets owner_id = actor.id (4.197875ms)
+  ✔ 5. Idempotency replay: same key + same payload returns replayed: true and no duplicate workspace (2.3405ms)
+  ✔ 6. Idempotency conflict: same key + different payload returns 409 IDEMPOTENCY_CONFLICT (1.916375ms)
+  ✔ 7. GET /api/v1/workspaces lists owned workspace (1.891209ms)
+  ✔ 8. Duplicate-key concurrency: parallel identical HTTP requests succeed without 500 error (7.356833ms)
+  ✔ 9. Duplicate-key concurrency inside saveReceipt: gracefully re-reads winner without 500 error (2.25825ms)
+  ✔ 10. Expired idempotency receipt: key with expired TTL can be safely reused as new request (3.206375ms)
+✔ ACC-04: Create workspace and owner & Idempotency Replay Suite (92.009708ms)
+▶ ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Suite
+  ✔ 0. Setup Workspace, Projects, Members and Initial Card (87.829167ms)
+  ✔ ATT-01: Stage upload authorization and bounds (21.432959ms)
+  ✔ ATT-02: Binary upload, validation, spoofing rejection, and finalization (76.154416ms)
+  ✔ ATT-03: Gallery listing shows finalized images only (8.141542ms)
+  ✔ ATT-04: Authenticated proxy delivery and security headers (8.956ms)
+  ✔ ATT-05: Remove attached image with OCC, role check, and activity (20.025875ms)
+  ✔ ATT-06: Quota enforcement (max 10) and orphan upload cleanup (112.072584ms)
+  ✔ ATT-07: Attachment preservation in trash, restore, and purge (62.772792ms)
+✔ ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Suite (401.272292ms)
+▶ AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite
+  ✔ 0. Setup Workspace, Projects, Members and Initial Board Structure (68.556916ms)
+  ✔ AUD-01 & AUD-02: Card Activity Timeline and Movement History (43.952209ms)
+  ✔ AUD-03: Workspace Owner Cross-Project Activity & Sibling Privacy (23.551291ms)
+  ✔ AUD-04: Manager vs Member vs Viewer Audit Scopes (7.301333ms)
+  ✔ AUD-06: Append-only Immutability and Retention Redaction (3.729417ms)
+  ✔ NTF-01: Durable In-App Mention Inbox & Self-Mention Omission (19.343583ms)
+  ✔ NTF-02: Inbox Read State & Access Revocation Redaction (17.182209ms)
+  ✔ NTF-03: Outbox Leased Worker Processing, Idempotency & Quarantine (12.055875ms)
+  ✔ AUD-05: Lifecycle import and image events (23.26675ms)
+✔ AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite (221.565209ms)
+✔ Web Crypto cursor round-trips exact fields including Unicode and deterministic canonical serialization (2.605792ms)
+✔ rejects altered token, altered scope and another key (0.876042ms)
+✔ rejects missing and weak keys before issuing or verifying tokens (0.3045ms)
+✔ rejects malformed, overlong, noncanonical and invalid signed payloads (1.028042ms)
+﹣ board access comprehensive integration on isolated PostgreSQL (0.211625ms) # Set FLOWBOARD_ACCESS_TEST_DATABASE_URL to a disposable local database.
+﹣ unmounted activity scope draft on isolated PostgreSQL (0.211167ms) # Requires disposable local flowboard_access_test database
+﹣ unmounted board-grant foundation on isolated PostgreSQL (0.240541ms) # Set FLOWBOARD_ACCESS_TEST_DATABASE_URL to a disposable local database.
+﹣ draft board grant routes on isolated PostgreSQL (0.219666ms) # Set FLOWBOARD_ACCESS_TEST_DATABASE_URL to a disposable local database.
+﹣ unmounted notification visibility draft on disposable PostgreSQL (0.256834ms) # Disposable database required
+▶ BRD-01 to BRD-07: Board & Column Lifecycle Suite
+  ✔ BRD-01: Workspace owner can create board with atomic default columns (68.130416ms)
+  ✔ BRD-01: Project manager can also create boards (6.229083ms)
+  ✔ BRD-01: Members and viewers receive 403 FORBIDDEN when attempting to create board (4.15225ms)
+  ✔ BRD-01: Ungranted user receives 404 NOT_FOUND when attempting to create board (1.829084ms)
+  ✔ BRD-01: Idempotency enforcement on board creation (4.305625ms)
+  ✔ BRD-02: Listing boards returns active boards for granted project members (6.246875ms)
+  ✔ BRD-02: Updating board name with OCC check (9.61425ms)
+  ✔ BRD-04: Add column verifies OCC, uniqueness, and role (12.75975ms)
+  ✔ BRD-04: Updating column fields & enforcing name uniqueness (8.468459ms)
+  ✔ BRD-04: Maximum 12 columns bound enforced (47.167667ms)
+  ✔ BRD-05: Reordering columns requires complete exact set and OCC (13.065583ms)
+  ✔ BRD-05: Card placement neighbor calculation (first, last, before, after) (8.185834ms)
+  ✔ BRD-06: Column deletion guards: active cards, restorable trash, final column (26.504583ms)
+  ✔ BRD-03: Consistent bounded snapshot with active vs matching counts and people disclosure (18.032166ms)
+  ✔ BRD-07: Paginated cards query with cursor resumption and filters (12.675125ms)
+✔ BRD-01 to BRD-07: Board & Column Lifecycle Suite (250.006791ms)
+▶ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite
+  ✔ COM-02: Viewers cannot post comments (403 FORBIDDEN) (67.062084ms)
+  ✔ COM-02: Outsiders receive 404 NOT_FOUND on comment post (2.473041ms)
+  ✔ COM-02: Comment post requires mandatory Idempotency-Key header (0.763541ms)
+  ✔ COM-02: Comment body validation (rejects empty or whitespace-only body) (0.951ms)
+  ✔ COM-02: Member posts valid comment with outbox and activity_log (10.179416ms)
+  ✔ COM-02: Idempotency replay returns identical comment with replayed=true (5.68225ms)
+  ✔ COM-02: Idempotency conflict on same key with different body (2.737ms)
+  ✔ COM-03: Rejects overlapping mention spans (0.903458ms)
+  ✔ COM-03: Rejects mentions of sibling project users or non-members (5.533334ms)
+  ✔ COM-03: Valid mentions notify teammates but self-mentions do NOT notify (8.525291ms)
+  ✔ COM-01: GET /cards/:cardId/comments returns chronological comments for readers (3.397667ms)
+  ✔ COM-01: Outsiders receive 404 NOT_FOUND on comment listing (1.515625ms)
+  ✔ COM-01: Comment cursor pages are card-scoped and stable across inserts (16.209875ms)
+  ✔ COM-04: Non-author cannot edit another user comment (403 FORBIDDEN) (2.944ms)
+  ✔ COM-04: Edit comment OCC conflict returns 409 STALE_VERSION (3.63475ms)
+  ✔ COM-04: Author successfully edits comment and increments version (5.499ms)
+  ✔ COM-05: Regular member cannot delete another member comment (403 FORBIDDEN) (7.953625ms)
+  ✔ COM-05: Workspace owner moderates and deletes comment (14.959042ms)
+  ✔ COM-05: Author deletes their own comment (7.569083ms)
+  ✔ DEL-01: Regular member/viewer cannot delete card (403 FORBIDDEN) (3.402708ms)
+  ✔ DEL-01: Delete card OCC check returns 409 STALE_VERSION (4.191375ms)
+  ✔ DEL-01: Manager soft-deletes card with 24-hour restore window and board version increment (7.157625ms)
+  ✔ DEL-08: Trashed card returns 404 NOT_FOUND on direct GET /cards/:cardId (0.954791ms)
+  ✔ DEL-08: Trashed card comments return 404 NOT_FOUND on GET /cards/:cardId/comments (0.774375ms)
+  ✔ COM-06: Posting comment on trashed card is rejected with 400 CARD_IS_TRASHED (1.206125ms)
+  ✔ DEL-02: Non-administrators (members/viewers) receive 403 on trash listing (3.008541ms)
+  ✔ DEL-02: Owner and Manager can list trash with canRestore and blockedReason details (7.381375ms)
+  ✔ DEL-03: Non-admin cannot restore card (403 FORBIDDEN) (1.680958ms)
+  ✔ DEL-03: Manager restores card before deadline with OCC checks (8.72625ms)
+  ✔ DEL-04: Destination missing requires explicit toColumnId (23.408291ms)
+  ✔ DEL-05: Expired restore returns HTTP 410 RESTORE_WINDOW_EXPIRED with details (11.514625ms)
+  ✔ Archived project and board reject card and comment writes atomically (22.837167ms)
+  ✔ Comment delete replay rechecks moderator authority after role demotion (13.128167ms)
+  ✔ Comment post retry respects current parent-card trash state (24.885042ms)
+  ✔ DEL-06: Background purge worker, private content redaction, and fenced winner race (46.993959ms)
+✔ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite (353.431666ms)
+▶ CRD-01 through CRD-11: Card Lifecycle, Movement, OCC & Discovery Suite
+  ✔ CRD-01: Quick creation, permissions, position ranks & board structure version (85.265292ms)
+  ✔ CRD-02: Compact CardSummary representation and lightweight payload (6.917041ms)
+  ✔ CRD-03: Card detail entity, independent authorization & assignees PersonDisplay (7.27525ms)
+  ✔ CRD-04: Title & description bounds, OCC conflict (409 STALE_VERSION) (13.735916ms)
+  ✔ CRD-05: Priority & Gregorian calendar date validation (leap years & month bounds) (12.168166ms)
+  ✔ CRD-06: Assign active teammates, reject sibling/outsider/removed, max 20 limit (27.689958ms)
+  ✔ CRD-07: Card movement, relative neighbor ranking, empty column, dual OCC (46.421542ms)
+  ✔ CRD-08 & CRD-09: Placement query for first, last, before, after and movingCard exclusion (14.671708ms)
+  ✔ CRD-10: Concurrent edit conflict & concurrent move conflict error envelopes (8.257167ms)
+  ✔ CRD-11: Mandatory Idempotency-Key, exact replay, conflict detection & 422 error details (12.648458ms)
+  ✔ Discovery: Search project cards & My Tasks assigned view (12.3235ms)
+  ✔ CRD-11: Receipt replay rechecks current role and stores only a minimal outcome (8.145209ms)
+  ✔ CRD-11: Parallel same-key creates commit one card and replay its identifier (9.430459ms)
+  ✔ CRD-11: Card update and move receipt replay serialize with trash on separate DB connections (59.702292ms)
+✔ CRD-01 through CRD-11: Card Lifecycle, Movement, OCC & Discovery Suite (327.726458ms)
+▶ IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite
+  ✔ 0. Setup Workspace, Projects, Members and Boards (63.252791ms)
+  ✔ IMP-01: Download Excel template with versioned 7-column schema (4.685709ms)
+  ✔ IMP-02: Role authorization and target boundaries (Owner/Manager pass, Member/Viewer 403, Outsider 404) (13.593916ms)
+  ✔ IMP-03: Security boundaries: formulas, macros, external links, OLE, XXE, row limits (20.838458ms)
+  ✔ IMP-04: Header validation, leading zeros, numeric rejection, date systems, assignee resolution (24.416083ms)
+  ✔ IMP-05: Dry run preview, pagination, unmapped status update, and cancel before commit (18.100791ms)
+  ✔ IMP-06: Atomic confirmation, OCC guards, role re-check, and single transaction commit (22.988958ms)
+  ✔ IMP-07: Duplicate skips unchanged row, conflicts on changed payload, and protects 24-hour trash (9.470583ms)
+  ✔ IMP-09: Safe CSV report download with formula injection neutralization (1.418375ms)
+  ✔ Adversarial: Revoked manager authority race between preview and commit returns 403 FORBIDDEN (5.62525ms)
+  ✔ Adversarial: Removed assignee between preview and commit returns 409 PREVIEW_STALE (8.038125ms)
+  ✔ IMP-11: Batch and card provenance activity log links (0.466791ms)
+✔ IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite (195.595ms)
+▶ INV-01 & INV-03: Project Invitations Lifecycle Suite
+  ✔ Test 1: Workspace owner invites a manager -> succeeds, token_hash stored in DB, outbox record created (57.643666ms)
+  ✔ Test 2: Project manager invites a member -> succeeds (5.941334ms)
+  ✔ Test 3: Project manager attempts to invite another manager -> returns 403 FORBIDDEN (2.954917ms)
+  ✔ Test 4: Member/viewer attempts to invite someone -> returns 403 FORBIDDEN (or 404 for outsider) (8.275125ms)
+  ✔ Test 5: Accept matching invitation -> updates status to accepted, inserts project_memberships row, user gains access (9.650958ms)
+  ✔ Test 6: Accept with mismatched email (signed in as another user) -> returns 403 EMAIL_MISMATCH, no membership created (5.607ms)
+  ✔ Test 7: Accept expired or already accepted token -> returns 400 (16.502291ms)
+  ✔ Test 8: Idempotency replay and conflict handling on invitation creation (3.11575ms)
+  ✔ Test 9: Self-invites and invitations to active project members are rejected with 400 ALREADY_MEMBER (6.828375ms)
+  ✔ Test 10: Duplicate active pending invitations are rejected with 400 INVITATION_ALREADY_EXISTS (5.783625ms)
+✔ INV-01 & INV-03: Project Invitations Lifecycle Suite (126.200458ms)
+▶ INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Suite
+  ✔ Setup: Create initial manager and member invitations (64.719041ms)
+  ✔ INV-04: PM cannot resend manager invitation -> 403 FORBIDDEN (2.69175ms)
+  ✔ INV-04: Member / Viewer / Outsider cannot resend invitation -> 403 / 404 (5.829833ms)
+  ✔ INV-04: Owner resends manager invitation -> succeeds, rotates token, outbox event emitted (3.551167ms)
+  ✔ INV-04: Old rotated token cannot be accepted (400 INVALID_INVITATION) (2.109583ms)
+  ✔ INV-04: Idempotency replay confirms resend without retaining the invitation token (1.539084ms)
+  ✔ INV-04: PM resends member invitation -> succeeds (3.210667ms)
+  ✔ INV-04: PM cannot revoke manager invitation -> 403 FORBIDDEN (2.311542ms)
+  ✔ INV-04: PM revokes member invitation -> succeeds (2.8195ms)
+  ✔ INV-04: Revoked invitation token cannot be accepted -> 400 INVALID_INVITATION (1.6835ms)
+  ✔ INV-04: Revoked invitation cannot be revoked again or resent -> 400 INVALID_INVITATION (4.285084ms)
+  ✔ INV-04: Newly rotated token can be accepted; accepted invite cannot be resent -> 400 (7.145208ms)
+  ✔ Setup: Create an expired invitation for Heidi (3.6105ms)
+  ✔ INV-05: Workspace owner lists invitations -> succeeds, matches schema, token_hash omitted (1.382875ms)
+  ✔ INV-05: Project Manager can list invitations (1.386833ms)
+  ✔ INV-05: Member / Viewer cannot list invitations -> 403 FORBIDDEN (2.041042ms)
+  ✔ INV-05: Outsider attempting to list invitations -> 404 NOT_FOUND (0.940875ms)
+  ✔ INV-08: Workspace owner cannot leave their own project -> 403 FORBIDDEN (1.757458ms)
+  ✔ INV-08: Outsider attempting to leave project -> 404 NOT_FOUND (1.769834ms)
+  ✔ INV-08: Charlie (Member) leaves project -> status="removed", version incremented (4.072042ms)
+  ✔ INV-08: Charlie subsequent access to project returns 404 NOT_FOUND (1.004875ms)
+  ✔ INV-08: Charlie leave request idempotency replay returns 200 replayed=true (2.06075ms)
+  ✔ INV-08: Dave (Viewer) leaves project -> succeeds (3.076875ms)
+  ✔ INV-08: Bob (Manager) leaves project -> succeeds (3.43325ms)
+  ✔ Setup R2: Create user Oscar and seed pending invite + manager membership (1.596292ms)
+  ✔ R2 - Step 1: Active manager cannot create self-invite or duplicate pending invite (10.131959ms)
+  ✔ R2 - Steps 2 & 3: Owner removes Manager -> pending invitation is atomically marked revoked (4.574667ms)
+  ✔ R2 - Step 4: Attacker presenting old revoked token fails -> 400 INVALID_INVITATION, access remains removed (3.467084ms)
+  ✔ R2 - Step 4b (Defense-in-depth): If invitation was pending but issued before removal, acceptance fails -> 400 INVITATION_SUPERSEDED (3.509958ms)
+  ✔ R2 - Step 5: Owner issues fresh invitation to the deliberately removed user -> succeeds (201) (3.402791ms)
+  ✔ R2 - Step 6: User accepts fresh invitation -> succeeds (200), membership reactivated to active (3.997083ms)
+  ✔ R2 - Step 7: Member leaves project -> pending invitations for that email are atomically revoked (6.687917ms)
+✔ INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Suite (169.126167ms)
+▶ INV-06 & INV-07: Change Member Roles & Remove Project Access Suite
+  ✔ Test 0: Missing or invalid Idempotency-Key on member mutations returns 400 IDEMPOTENCY_KEY_REQUIRED (50.419292ms)
+  ✔ Test 1: Workspace owner promotes a member to manager -> succeeds (10.274792ms)
+  ✔ Test 2: Project manager attempts to promote a member to manager -> returns 403 FORBIDDEN (2.515709ms)
+  ✔ Test 3: Project manager modifies role between member and viewer -> succeeds (6.618708ms)
+  ✔ Test 4: Project manager attempts to modify another manager -> returns 403 FORBIDDEN (2.686792ms)
+  ✔ Test 5: Project manager attempts to modify themselves -> returns 403 FORBIDDEN (2.381125ms)
+  ✔ Test 6: Stale version in PATCH returns 409 STALE_VERSION (2.155584ms)
+  ✔ Test 7: Immediate revocation: removing project access sets status="removed"; next request by that user to read the project returns 404 NOT_FOUND (7.634334ms)
+  ✔ Test 8: Project manager cannot DELETE another manager -> returns 403 FORBIDDEN (2.490292ms)
+  ✔ Test 9: Project manager cannot DELETE themselves -> returns 403 FORBIDDEN (2.271292ms)
+  ✔ Test 10: Non-member outsider attempting to manage members returns 404 NOT_FOUND (2.008291ms)
+  ✔ Test 11: Member attempting to manage members returns 403 FORBIDDEN (1.904916ms)
+  ✔ Test 12: Sibling project privacy: manager of sibling project attempting to manage members in another project receives 404 NOT_FOUND (3.758375ms)
+✔ INV-06 & INV-07: Change Member Roles & Remove Project Access Suite (99.800708ms)
+▶ PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Suite
+  ✔ CRD-12: Move undo reverts move and respects OCC version conflict (81.355333ms)
+  ✔ BRD-08: Archive and reopen board makes board read-only and resumes writes on reopen (22.320916ms)
+  ✔ PRJ-04: Archive and reopen project makes project read-only and resumes writes on reopen (17.962667ms)
+✔ PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Suite (125.009459ms)
+▶ PostgreSQL Migrations & Relational Integrity Suite
+  ✔ 1. Runs migrations and records applied versions (108.556958ms)
+  ✔ 2. Migration runner is idempotent: subsequent runs apply 0 migrations (1.260792ms)
+  ✔ 3. Relational integrity: inserting valid full hierarchy (8.692125ms)
+  ✔ 4. Negative foreign key test: card with invalid column_id throws error code 23503 (0.800417ms)
+  ✔ 5. Negative unique test: duplicate column name on same board throws error code 23505 (0.652ms)
+  ✔ 6. Negative unique test: duplicate project membership throws error code 23505 (0.467958ms)
+  ✔ 7. Restricted delete: deleting a column with active card throws error code 23503 (0.486542ms)
+  ✔ 8. Negative foreign key test: inserting workspace with non-existent owner_id throws error code 23503 (0.446375ms)
+  ✔ 9. Restricted delete: deleting a user who owns an active workspace is blocked (ON DELETE RESTRICT) (1.657833ms)
+  ✔ 10. Tenant ancestry: inserting project_memberships with mismatched workspace_id and project_id throws error code 23503 (1.007833ms)
+  ✔ 11. Tenant ancestry: inserting board with mismatched workspace_id and project_id throws error code 23503 (0.468ms)
+  ✔ 12. Tenant ancestry: inserting column with mismatched board_id, project_id, and workspace_id throws error code 23503 (0.7305ms)
+  ✔ 13. Relational integrity: inserting card with mismatched column_id and board_id throws error code 23503 (1.469083ms)
+  ✔ 14. Tenant ancestry: inserting outbox event with mismatched project_id and workspace_id throws error code 23503 (0.590209ms)
+  ✔ 15. Migration failure rollback evidence: failed migration leaves schema and tracking table unpolluted (3.799ms)
+  ✔ 16. Migration concurrency evidence: concurrent runMigrations calls serialize cleanly via advisory lock (4.860417ms)
+✔ PostgreSQL Migrations & Relational Integrity Suite (138.211792ms)
+✔ Node HTTP: liveness, real PostgreSQL readiness, missing product routes, and authenticated queries (37.882292ms)
+✔ Node pg/Kysely: real parameterized query, rollback and committed positive control (10.338959ms)
+✔ Node HTTP: refused local database returns safe 503; liveness stays independent (3.942ms)
+✔ local harness rejects nonlocal and non-harness database targets (0.137708ms)
+▶ FND-04: Observability, Correlation, Limits & Safe Error Baseline
+  ▶ 1. Correlation Middleware & Request IDs
+    ✔ generates a valid UUID request ID when x-request-id header is absent (9.586542ms)
+    ✔ propagates incoming valid ASCII x-request-id header faithfully (0.882625ms)
+    ✔ replaces invalid x-request-id (<8 chars, spaces, non-allowed chars, >64 chars) with a safe UUID (1.2595ms)
+    ✔ guarantees x-request-id header is attached on both success and error responses (1.176542ms)
+  ✔ 1. Correlation Middleware & Request IDs (13.168833ms)
+  ▶ 2. Server-Timing Header
+    ✔ measures request duration and attaches Server-Timing: app;dur=<ms> header on 200 OK (0.642666ms)
+    ✔ attaches Server-Timing header on 404 and error responses (0.666875ms)
+  ✔ 2. Server-Timing Header (1.362334ms)
+  ▶ 3. Not Found Handler (404)
+    ✔ returns standard error envelope with NOT_FOUND code and no-store cache header (0.945833ms)
+  ✔ 3. Not Found Handler (404) (0.995125ms)
+  ▶ 4. Validation Error Formatting (400 and 422)
+    ✔ returns 400 MALFORMED_REQUEST when request body contains invalid JSON syntax (1.08125ms)
+    ✔ returns 422 VALIDATION_ERROR with structured issues when @flowboard/contracts validation fails (0.9855ms)
+  ✔ 4. Validation Error Formatting (400 and 422) (2.116667ms)
+  ▶ 5. Safe 500 Handler & Sensitive Internal Error Masking
+    ✔ masks unhandled errors and NEVER leaks database credentials, connection strings, or SQL internals (1.7225ms)
+  ✔ 5. Safe 500 Handler & Sensitive Internal Error Masking (1.750833ms)
+  ▶ 6. Body Size Limits (413 PAYLOAD_TOO_LARGE)
+    ✔ rejects request bodies larger than configured limit with 413 PAYLOAD_TOO_LARGE (0.889ms)
+    ✔ enforces default 1 MiB (1,048,576 bytes) limit on standard app (0.575917ms)
+  ✔ 6. Body Size Limits (413 PAYLOAD_TOO_LARGE) (1.495666ms)
+  ▶ 7. Request Deadline / Timeout Middleware (504 DEADLINE_EXCEEDED)
+    ✔ aborts long-running requests exceeding deadline with HTTP 504 DEADLINE_EXCEEDED (51.596875ms)
+    ✔ allows fast requests within deadline to succeed normally (1.134875ms)
+  ✔ 7. Request Deadline / Timeout Middleware (504 DEADLINE_EXCEEDED) (52.804625ms)
+  ▶ 8. Custom HTTP Errors and Status Mappings
+    ✔ maps 401 UNAUTHORIZED correctly (1.002416ms)
+    ✔ maps 403 FORBIDDEN correctly (0.762125ms)
+    ✔ maps 409 CONFLICT with domain-specific codes (STALE_VERSION, STALE_CURSOR) (0.651875ms)
+    ✔ maps 410 RESTORE_WINDOW_EXPIRED with details (2.238958ms)
+    ✔ maps 429 TOO_MANY_REQUESTS and attaches Retry-After: 60 header (0.623125ms)
+    ✔ maps 503 SERVICE_UNAVAILABLE / DATABASE_UNAVAILABLE safely (0.576417ms)
+  ✔ 8. Custom HTTP Errors and Status Mappings (5.937417ms)
+✔ FND-04: Observability, Correlation, Limits & Safe Error Baseline (79.886375ms)
+▶ PRJ-01: Create multiple projects & sibling isolation Suite
+  ✔ 1. Project creation by workspace owner succeeds (60.078541ms)
+  ✔ 2. Non-owner attempting to create project in workspace returns 404 NOT_FOUND (1.593208ms)
+  ✔ 3. Workspace owner creates second project (Project Beta) (3.112292ms)
+  ✔ 4. Sibling project privacy: user in Project A requesting Project B gets 404 NOT_FOUND (3.449209ms)
+  ✔ 5. GET /api/v1/workspaces/:workspaceId/projects scopes accessible projects per role (4.540875ms)
+  ✔ 6. Idempotency replay on project creation returns replayed: true (2.207083ms)
+  ✔ 7. Idempotency conflict on project creation returns 409 IDEMPOTENCY_CONFLICT (1.899417ms)
+✔ PRJ-01: Create multiple projects & sibling isolation Suite (79.488708ms)
+▶ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite
+  ✔ PRJ-02.1: Workspace Owner sees all projects in workspace, paginated (65.848708ms)
+  ✔ PRJ-02.2: Cursor pagination for workspace projects (3.253875ms)
+  ✔ PRJ-02.3: Project Manager / Member sees only granted projects; sibling projects are hidden (4.785458ms)
+  ✔ PRJ-02.4: Outsider querying workspace projects gets 404 NOT_FOUND (sibling privacy) (1.531208ms)
+  ✔ PRJ-02.5: GET /api/v1/projects lists accessible projects across all workspaces for current session (3.707041ms)
+  ✔ PRJ-02.6: Malformed or bounded limit queries gracefully fall back to bounded limits without NaN SQL error (2.954333ms)
+  ✔ PRJ-03.0: Missing or invalid Idempotency-Key returns 400 IDEMPOTENCY_KEY_REQUIRED (1.013541ms)
+  ✔ PRJ-03.1: Workspace Owner updates project name and description with OCC (7.1995ms)
+  ✔ PRJ-03.2: Project Manager updates project description with OCC (3.16425ms)
+  ✔ PRJ-03.3: Member & Viewer cannot update project settings -> 403 FORBIDDEN (3.9625ms)
+  ✔ PRJ-03.4: Sibling PM & Outsider get 404 NOT_FOUND on project settings (3.978875ms)
+  ✔ PRJ-03.5: Stale expectedVersion rejected with 409 STALE_VERSION (2.25275ms)
+  ✔ PRJ-05.1: Owner sees project members directory including workspace owner and active members (1.769209ms)
+  ✔ PRJ-05.2: Project Manager, Member, and Viewer can all view the project directory (4.416084ms)
+  ✔ PRJ-05.3: Sibling project member & outsider get 404 NOT_FOUND on members directory (1.672375ms)
+  ✔ PRJ-05.4: Removed project member is excluded from directory and cannot access it (2.428709ms)
+✔ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite (117.841375ms)
+▶ QRY-01 to QRY-03: Discovery, Search, Multi-Facet Filters & My Tasks Suite
+  ✔ QRY-01: Project-scoped card search matches title and description while enforcing boundaries (54.720708ms)
+  ✔ QRY-02: Combine assignee, priority, column, and due date facets with active vs matching counts (14.685458ms)
+  ✔ QRY-03: My assigned tasks across accessible projects with revocation and sibling protection (10.076542ms)
+✔ QRY-01 to QRY-03: Discovery, Search, Multi-Facet Filters & My Tasks Suite (82.905292ms)
+▶ RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)
+  ✔ RBAC-02: verifyProjectAncestry succeeds for valid project and resources (53.107917ms)
+  ✔ RBAC-02: Guessing sibling project or resources returns consistent 404 NOT_FOUND without metadata leakage (2.787958ms)
+  ✔ RBAC-02: requireProjectAncestry HTTP middleware enforces boundary (13.381458ms)
+  ✔ RBAC-03: acquireWriteGrantLock validates role hierarchy and removed status (3.680708ms)
+  ✔ RBAC-03: Concurrency: In-flight write transaction aborts when concurrent role revocation wins (3.26725ms)
+  ✔ RBAC-03: Concurrency: Writer holding grant lock blocks concurrent revocation until write commits (61.418084ms)
+  ✔ RBAC-03: Concurrency Probe 1: Mounted updateProjectSettings serializes with concurrent actor revocation (66.42675ms)
+  ✔ RBAC-03: Concurrency Probe 2: Manager starts removeProjectMember while Owner concurrently promotes target; deletion rejected with 403 FORBIDDEN (16.748875ms)
+  ✔ RBAC-04: getEligibleAssignees and getEligibleMentionees enforce role and sibling privacy (3.800583ms)
+  ✔ RBAC-04: HTTP GET /api/v1/projects/:projectId/people enforces privacy and purpose filtering (9.620666ms)
+  ✔ RBAC-05: GET /api/v1/projects/:projectId/access-summary discloses board inheritance model (2.807125ms)
+  ✔ RBAC-05: Workspace owner requests access summary -> actor role is owner inherited from workspace (1.881334ms)
+  ✔ RBAC-05: Sibling project member or outsider access-summary returns 404 NOT_FOUND (1.870333ms)
+  ✔ RBAC-05: Unauthenticated request returns 401 UNAUTHORIZED (0.342375ms)
+✔ RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05) (244.371583ms)
+▶ RBAC-01: Owner/Manager/Member/Viewer Matrix & Sibling Privacy Suite
+  ✔ 1. Workspace Owner role resolution and workspace inheritance (62.094375ms)
+  ✔ 2. Project Manager permissions in granted project (4.579458ms)
+  ✔ 3. Project Member can write and read, but blocked (403 FORBIDDEN) from manager actions (4.321208ms)
+  ✔ 4. Project Viewer can read, but blocked (403 FORBIDDEN) from member and manager actions (4.464333ms)
+  ✔ 5. Sibling Project Privacy: user granted in Project 1 querying Project 2 gets 404 NOT_FOUND (4.345833ms)
+  ✔ 6. Inactive / removed membership drops permissions immediately and returns 404 NOT_FOUND (1.828708ms)
+✔ RBAC-01: Owner/Manager/Member/Viewer Matrix & Sibling Privacy Suite (84.528416ms)
+▶ UX-01 to UX-05: UX Integration, State Envelopes, Boundaries & Performance Suite
+  ✔ UX-01: Standard empty states and safe error envelopes (90.780958ms)
+  ✔ UX-02: Accessible movement and card detail dialog payload (11.196041ms)
+  ✔ UX-03: Narrow viewport payload safety and long content boundaries (9.830167ms)
+  ✔ UX-04: Refresh reconnect, version reconciliation and stale overwrite prevention (8.690208ms)
+  ✔ UX-05: Performance benchmarks, project isolation, and exact restore boundary (30.972625ms)
+✔ UX-01 to UX-05: UX Integration, State Envelopes, Boundaries & Performance Suite (153.707083ms)
+✔ local workerd: shared HTTP routes, real pg/Kysely query, transaction rollback, and authenticated product routes (482.985167ms)
+✔ local workerd: scheduled callback runs purge and outbox jobs against the isolated DB binding (26.11625ms)
+ℹ tests 299
+ℹ suites 9
+ℹ pass 294
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 5
+ℹ todo 0
+ℹ duration_ms 17991.486458
+
+> @flowboard/contracts@0.3.0 test
+> node --test --test-concurrency=1 test/*.test.ts
+
+▶ Contracts Schema Validation Tests
+  ▶ Gregorian Date Validation
+    ✔ validates leap years and non-leap years accurately (0.283125ms)
+    ✔ parses valid date-only strings and rejects invalid ones via Zod (0.4835ms)
+  ✔ Gregorian Date Validation (0.9965ms)
+  ▶ UTC ISO Timestamps
+    ✔ accepts UTC timestamps ending in Z with ISO representation (0.099125ms)
+    ✔ rejects timestamps with local timezone offsets or missing Z (0.0795ms)
+  ✔ UTC ISO Timestamps (0.224583ms)
+  ▶ Idempotency Key Validation
+    ✔ accepts valid ASCII keys between 16 and 128 characters (0.079625ms)
+    ✔ rejects short, long, or non-ASCII / forbidden characters (0.102084ms)
+  ✔ Idempotency Key Validation (0.232375ms)
+  ▶ Standard Error Codes and Envelopes
+    ✔ validates all canonical error codes (0.091333ms)
+    ✔ validates standard error envelope (0.390958ms)
+    ✔ validates mutation responses with receipts and replayed boolean (0.119ms)
+  ✔ Standard Error Codes and Envelopes (0.662875ms)
+  ▶ Auth and Session Schemas
+    ✔ validates GetSessionResponse structure (0.378541ms)
+    ✔ validates LogoutResponse structure (0.048416ms)
+  ✔ Auth and Session Schemas (0.452709ms)
+  ▶ PersonDisplay Validation
+    ✔ validates active project reader display identity (0.0385ms)
+    ✔ permits null avatarUrl and inactive project status (0.024625ms)
+  ✔ PersonDisplay Validation (0.082166ms)
+  ▶ Workspace Schemas
+    ✔ validates workspace creation input (0.040875ms)
+    ✔ rejects empty or whitespace-only name (0.049083ms)
+    ✔ requires at least one field in workspace update (0.050584ms)
+    ✔ validates ownership transfer input (0.022708ms)
+  ✔ Workspace Schemas (0.191ms)
+  ▶ Project & Membership Schemas
+    ✔ validates project creation and update inputs (0.039ms)
+    ✔ validates member role and status updates (0.024583ms)
+  ✔ Project & Membership Schemas (0.08025ms)
+  ▶ Invitations Schemas
+    ✔ normalizes email to lowercase and validates role (0.066ms)
+    ✔ validates accept invitation token bounds (0.033083ms)
+  ✔ Invitations Schemas (0.117917ms)
+  ▶ Board and Column Schemas
+    ✔ validates column creation and category enum (0.03275ms)
+    ✔ enforces column reordering limits (up to 12 columns, unique IDs) (0.088625ms)
+    ✔ validates placement query rules (anchorCardId required for before/after) (0.04925ms)
+  ✔ Board and Column Schemas (0.2005ms)
+  ▶ Card Schemas
+    ✔ validates card creation input with defaults (0.062125ms)
+    ✔ rejects card with duplicate assignees or >20 assignees (0.098916ms)
+    ✔ validates card movement input with nullable neighbors (0.03025ms)
+  ✔ Card Schemas (0.215792ms)
+  ▶ Discussion & Mentions
+    ✔ validates non-overlapping mentions and defaults empty list (0.079625ms)
+    ✔ rejects overlapping mention spans (0.035791ms)
+    ✔ rejects mention where start >= end (0.029416ms)
+  ✔ Discussion & Mentions (0.166ms)
+  ▶ Image Upload Schemas
+    ✔ validates image upload request within limits (0.040584ms)
+    ✔ rejects image exceeding 10 MiB limit or unsupported content type (0.139833ms)
+  ✔ Image Upload Schemas (0.19775ms)
+  ▶ Trash and Exact 24h Window
+    ✔ validates soft-delete and restore inputs (0.057875ms)
+    ✔ validates trash row representation with blocked reason (0.063667ms)
+    ✔ validates special trash error detail schemas (0.05025ms)
+  ✔ Trash and Exact 24h Window (0.204709ms)
+  ▶ Excel Import Schemas
+    ✔ validates commit import input and status mapping inputs (0.043417ms)
+    ✔ validates import status and rows (0.079458ms)
+  ✔ Excel Import Schemas (0.143792ms)
+  ▶ Board Snapshot Data Schema
+    ✔ validates complete board snapshot with totals, columns, and people (0.16175ms)
+  ✔ Board Snapshot Data Schema (0.174292ms)
+  ▶ OpenAPI Metadata and Routes Catalog
+    ✔ has valid OpenAPI 3.1 metadata and comprehensive route catalog (0.0345ms)
+  ✔ OpenAPI Metadata and Routes Catalog (0.046583ms)
+  ▶ Validation Error Helper
+    ✔ formats error issues cleanly with parseOrThrow (0.1315ms)
+    ✔ returns structured safeParse result on success and failure (0.042208ms)
+  ✔ Validation Error Helper (0.190125ms)
+✔ Contracts Schema Validation Tests (4.925083ms)
+ℹ tests 41
+ℹ suites 19
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 71.264584
+▶ board access comprehensive integration on isolated PostgreSQL
+  ✔ Criterion 1: Owner has implicit access to all boards; nonowner without grant gets 404 (22.444833ms)
+  ✔ Criterion 3: Only workspace Owner can administer board grants; reject self-elevation and foreign targets (19.403541ms)
+  ✔ Criterion 4: Project Manager can create a board; receives no implicit grant until Owner grants it (14.809916ms)
+  ✔ Criterion 2: Project removal atomically clears board grants; re-adding member does not resurrect grants (6.126334ms)
+  ✔ Criterion 7: Revocation advances access revision and rejects stale retries (13.794084ms)
+  ✔ Criterion 6: Activity scope & mention delivery isolate by board grant (7.396833ms)
+  ✔ Criterion 5: Project members with zero grants see empty board list; granted members see only granted boards (8.980208ms)
+  ✔ Criterion 1 & 9: Role action limits are strictly preserved on granted boards (28.702459ms)
+  ✔ Criterion 8: PostgreSQL DDL rollback safety in transactional migration block (2.939708ms)
+✔ board access comprehensive integration on isolated PostgreSQL (269.723541ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 10
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 396.981083

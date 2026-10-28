@@ -1,0 +1,15 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-09"
+  ],
+  "mandatoryCriteria": [
+    "Filtered movement compatibility: Placement calculations operate against full canonical column order even when UI is filtered",
+    "Move menu bounds: Ensures keyboard/tap move operations target valid canonical positions"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "crd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Canonical placement under filtering."
+}

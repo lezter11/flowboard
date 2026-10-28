@@ -1,0 +1,144 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "FND-03"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/FND-03/criteria.json",
+  "startedAt": "2026-10-26T05:31:35Z",
+  "completedAt": "2026-10-26T05:43:00Z",
+  "implementer": {
+    "actorId": "builder",
+    "sessionId": "builder-session-id",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-reviewer",
+    "sessionId": "b54e0975-7baf-4cac-99fe-0f396b9bb498",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/FND-03/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/FND-03/criteria.json",
+      "docs/reviews/FND-03/reviewer-session.md",
+      "docs/reviews/FND-03/test.log",
+      "packages/contracts/package.json",
+      "packages/contracts/src",
+      "packages/contracts/test/contracts.test.ts"
+    ],
+    "files": {
+      "docs/reviews/FND-03/criteria.json": "1bb96cee6af46670bc9c666d48704634b013069ea99225690638a440bf76e873",
+      "docs/reviews/FND-03/reviewer-session.md": "c22660299f3b726eb6b3f93cd4735503da373c3c57148872c88f47660f87fdf9",
+      "docs/reviews/FND-03/test.log": "6a901f09ac54b05f0fc861299d247f61d48e09d56ec93d4b93d1e09afedf6d3b",
+      "packages/contracts/package.json": "afa33f3cbe99f3788ef5a6a611a16f6b9dbf4396a38539bd3eca1c27fdefa866",
+      "packages/contracts/src/auth.ts": "016d97ceb8ba76fe35057534ec2d8526cc55a61ad6a2664471861cba5da0ff91",
+      "packages/contracts/src/boards.ts": "bceca4d1791ae8739e4c5e41ba98caccbf53a089df7b2503944c0a6736c6aa6e",
+      "packages/contracts/src/cards.ts": "9da39d2cbed92627d51fda16f51c6eec117de6babd4de24e0397a36819f8b9bf",
+      "packages/contracts/src/comments.ts": "3d0061e48b153cf4fb5efded44e8aca9826b10d20f66490e69e2862aa4b44189",
+      "packages/contracts/src/common.ts": "2640cd78033ee95615b614ae9b921776852655bdcc1ffc86c661a70e17a36126",
+      "packages/contracts/src/discussion.ts": "750d8daa31f45225333e1eb1def824d2ca231da26e97e1a5e9af29b35aebd361",
+      "packages/contracts/src/fixtures/index.ts": "b067ff72bfd110d2b8accf46519dc6fd8e42a49f7669d2e5eaea1b3e2c4177f1",
+      "packages/contracts/src/images.ts": "10d1c52aa7469d0002e145a433fd9836802e46751e6fa8eeab601d2126c67d21",
+      "packages/contracts/src/imports.ts": "7c086bbf6e0c5c4fbd6c4a0848b371f4bf3b08bbd38f7eac70b0c5feeafbca56",
+      "packages/contracts/src/index.ts": "f15bf985e542dbeb62aba046b001e5b97befcf6fac8e15da8c3b22a015bd75b2",
+      "packages/contracts/src/invitations.ts": "451cf3681b0944a73d7ea12cd72af47a215be3719c4165166c26c027142fa7d9",
+      "packages/contracts/src/openapi/index.ts": "bfdbab16269ea45c5b6db78559280520119e5dde650ba3d64877652f90b10109",
+      "packages/contracts/src/projects.ts": "99b489e3957805022a5d075f0b7812e6717367917dffbef0e9844bad3aac8f3b",
+      "packages/contracts/src/trash.ts": "92103279204dcb4220361a194a05514999c67455b08711a4151541d6462c2125",
+      "packages/contracts/src/workspaces.ts": "6caab9af3a5c63b565333740c0ec4b2042a7a9c65712775f28c36c3260502a39",
+      "packages/contracts/test/contracts.test.ts": "036040fdb1b37516f8c1aa8e5849cb046a1d050a26021b788c69286177bf27e4"
+    },
+    "digest": "dd074ee092fe1057d238e54fed99c97a838a52f539f7287aab798ff9b32ffdf9"
+  },
+  "criteriaResults": {
+    "Shared contracts validation: Zod schemas validate Gregorian dates, leap years, UTC ISO timestamps ending in Z, and 16-128 char ASCII idempotency keys": "pass",
+    "Standard envelopes: Consistent data envelopes, paginated envelopes, and structured error responses across all entities": "pass",
+    "OpenAPI catalog: Up-to-date OpenAPI 3.1 route metadata and error catalog": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "dd074ee092fe1057d238e54fed99c97a838a52f539f7287aab798ff9b32ffdf9",
+      "evidencePath": "docs/reviews/FND-03/test.log"
+    },
+    {
+      "id": "contracts-tests",
+      "command": "npm run test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "dd074ee092fe1057d238e54fed99c97a838a52f539f7287aab798ff9b32ffdf9",
+      "evidencePath": "docs/reviews/FND-03/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict Zod schemas block malicious or malformed payloads, regex attacks, oversized keys, non-UTC timestamps, and invalid date roll-overs.",
+      "evidencePaths": [
+        "docs/reviews/FND-03/reviewer-session.md",
+        "docs/reviews/FND-03/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.9",
+      "reason": "All 36 API v0.3 routes modeled with exact input, output, and error schemas. Gregorian astronomical calendar and leap year validation tested.",
+      "evidencePaths": [
+        "docs/reviews/FND-03/reviewer-session.md",
+        "docs/reviews/FND-03/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.8",
+      "reason": "Consistent data and pagination envelopes, 16-128 char ASCII idempotency key constraints, and receipt schemas with replayed flags.",
+      "evidencePaths": [
+        "docs/reviews/FND-03/reviewer-session.md",
+        "docs/reviews/FND-03/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.9",
+      "reason": "Typecheck clean. 41 comprehensive tests across 19 suites covering positive and negative edge cases across all domain entities.",
+      "evidencePaths": [
+        "docs/reviews/FND-03/reviewer-session.md",
+        "docs/reviews/FND-03/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.8",
+      "reason": "Modular domain-specific schema files with derived TypeScript inference and zero runtime circular dependencies.",
+      "evidencePaths": [
+        "docs/reviews/FND-03/reviewer-session.md",
+        "docs/reviews/FND-03/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.5",
+      "reason": "Zod parseOrThrow provides structured validation error issues (code, path, message) without server panics.",
+      "evidencePaths": [
+        "docs/reviews/FND-03/reviewer-session.md",
+        "docs/reviews/FND-03/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.825",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

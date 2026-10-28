@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "DEL-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/DEL-01/criteria.json",
+  "startedAt": "2026-10-26T06:00:00Z",
+  "completedAt": "2026-10-26T06:30:00Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2699f652-cbdf-4b2c-af34-2759bd2a0cd2",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "0e0cbffe-384e-4ead-9750-d0bec8724fa1",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/DEL-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/DEL-01/criteria.json",
+      "docs/reviews/DEL-01/reviewer-session.md",
+      "docs/reviews/DEL-01/test.log",
+      "apps/api/src/adapters/comments.ts",
+      "apps/api/src/http/routes/comments.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/http/routes/trash.ts",
+      "apps/api/test/com-del.test.ts",
+      "packages/contracts/src/comments.ts",
+      "packages/contracts/src/trash.ts"
+    ],
+    "files": {
+      "docs/reviews/DEL-01/criteria.json": "65f9b673ab960d0a0c7c66ffe106822d80e17108d2cb6a47e73d28f2416bc53d",
+      "docs/reviews/DEL-01/reviewer-session.md": "fa941983be531f8cb100269c58a77407564b6e3d188558c24e7e9bff24ff40c6",
+      "docs/reviews/DEL-01/test.log": "be97d22d7ed0a39dcdf9fd5f301f757d42dbfd77cb4e70fac094d175073ec8c4",
+      "apps/api/src/adapters/comments.ts": "4a9488fe397e248214481c319d6b009eb42019c15f848a96ed2c54a73af24580",
+      "apps/api/src/http/routes/comments.ts": "f82977341cbd7d3a227f2d69c32c8fa7a526be273af3c9081ef68c9521cff9e7",
+      "apps/api/src/adapters/trash.ts": "040283b28f9223ca69db6e428a819fee8c9cc12903b29ef4ee30fc351173b0f6",
+      "apps/api/src/http/routes/trash.ts": "25bc3082201d8e42e18b9c6ce1c380d1fafc8df3d784fdba9b3fa6772699b84e",
+      "apps/api/test/com-del.test.ts": "fb011487dfd9b0fc00e8db80d244e0ccbe67794fd6183316493be2fe052ac8f6",
+      "packages/contracts/src/comments.ts": "3d0061e48b153cf4fb5efded44e8aca9826b10d20f66490e69e2862aa4b44189",
+      "packages/contracts/src/trash.ts": "92103279204dcb4220361a194a05514999c67455b08711a4151541d6462c2125"
+    },
+    "digest": "4c9e05b998929ecfeb8f5933882335dfcc1fb18ede2743a745d9bff809103241"
+  },
+  "criteriaResults": {
+    "Soft delete card: POST /api/v1/cards/:cardId/delete transitions card state from active to trashed": "pass",
+    "Administrator authorization: Only workspace owner or project manager can delete cards; members/viewers receive 403 FORBIDDEN": "pass",
+    "Restore window computation: Sets deleted_at = NOW(), deleted_by = actor.id, restore_until = NOW() + INTERVAL '24 hours'": "pass",
+    "Active board exclusion: Trashed cards immediately disappear from board snapshot, card search, and active counts": "pass",
+    "Board version update: Increments board structure_version and snapshot_version": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "4c9e05b998929ecfeb8f5933882335dfcc1fb18ede2743a745d9bff809103241",
+      "evidencePath": "docs/reviews/DEL-01/test.log"
+    },
+    {
+      "id": "del-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "4c9e05b998929ecfeb8f5933882335dfcc1fb18ede2743a745d9bff809103241",
+      "evidencePath": "docs/reviews/DEL-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Only Workspace Owner or Project Manager can delete cards; members and viewers receive 403 FORBIDDEN.",
+      "evidencePaths": [
+        "docs/reviews/DEL-01/reviewer-session.md",
+        "docs/reviews/DEL-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Sets state = 'trashed', deleted_at = NOW(), deleted_by = actor.id, restore_until = NOW() + INTERVAL '24 hours'.",
+      "evidencePaths": [
+        "docs/reviews/DEL-01/reviewer-session.md",
+        "docs/reviews/DEL-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Bumps board structure_version and snapshot_version; records card_trashed in activity_log; card immediately hidden from active views.",
+      "evidencePaths": [
+        "docs/reviews/DEL-01/reviewer-session.md",
+        "docs/reviews/DEL-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests verify role boundaries (403 for member/viewer), OCC conflict on stale versions, 24-hour restore window calculation, and board version bump.",
+      "evidencePaths": [
+        "docs/reviews/DEL-01/reviewer-session.md",
+        "docs/reviews/DEL-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clean implementation in deleteCard adapter with strict Zod validation.",
+      "evidencePaths": [
+        "docs/reviews/DEL-01/reviewer-session.md",
+        "docs/reviews/DEL-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Explicit 24h restore_until column enables indexable background cleanup queries.",
+      "evidencePaths": [
+        "docs/reviews/DEL-01/reviewer-session.md",
+        "docs/reviews/DEL-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

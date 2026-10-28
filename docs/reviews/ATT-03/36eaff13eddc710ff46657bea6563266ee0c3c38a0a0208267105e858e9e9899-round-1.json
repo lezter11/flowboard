@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "ATT-03"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/ATT-03/criteria.json",
+  "startedAt": "2026-10-26T10:06:25.470687+00:00",
+  "completedAt": "2026-10-26T10:06:25.470687+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "ad772234-4182-46fa-ae45-ae96061b197d",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "1c7b9629-326a-4cf8-aad0-15495025a9dc",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/ATT-03/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/ATT-03/criteria.json",
+      "docs/reviews/ATT-03/reviewer-session.md",
+      "docs/reviews/ATT-03/test.log",
+      "apps/api/src/adapters/images.ts",
+      "apps/api/src/adapters/storage.ts",
+      "apps/api/src/services/image-validator.ts",
+      "apps/api/src/http/routes/images.ts",
+      "apps/api/src/services/trash-purge.ts",
+      "apps/api/test/att01-att07.test.ts",
+      "database/migrations/0005_card_images.sql",
+      "packages/contracts/src/images.ts"
+    ],
+    "files": {
+      "docs/reviews/ATT-03/criteria.json": "13e48d7e6fd12cbf28651d0d5da02e57b95cc07e2ef43bcecf0a44257b198cef",
+      "docs/reviews/ATT-03/reviewer-session.md": "5a9a643f73d3011c4b42bac71ddb90b8d3a5318560b850878aeb197f6059947d",
+      "docs/reviews/ATT-03/test.log": "b7145fea259eb4e672d3c28feb7005fffdc454c986356eaa7379b63d0e405a88",
+      "apps/api/src/adapters/images.ts": "a53c89f3b7287b22e1be1a8d31a3b5109c46582c3759b3b23563b82a621c44dd",
+      "apps/api/src/adapters/storage.ts": "53fc6ce9c28cd158c33336890b643e734c645d6121bf8e6aea3523618bfe19d1",
+      "apps/api/src/services/image-validator.ts": "458a795af04c6e3a2a13274eb39dc7f84721cc409d352fec52ffd972a77d6d8a",
+      "apps/api/src/http/routes/images.ts": "90bbdf782aee0e40c30fbb04c4b74dd8781c55bd1a7ae7120badeee23407f822",
+      "apps/api/src/services/trash-purge.ts": "9712ebd02d48b1bbec6eb812cf8867e256d43813f902955b121967c90ad892b0",
+      "apps/api/test/att01-att07.test.ts": "624b0135ae8cc22d5110befd6b623e79bf59defba08af5448feb841aa154bba4",
+      "database/migrations/0005_card_images.sql": "983a46376d7fb68243629deff8b5230835a6f1b98268870badb81f6a26b80546",
+      "packages/contracts/src/images.ts": "10d1c52aa7469d0002e145a433fd9836802e46751e6fa8eeab601d2126c67d21"
+    },
+    "digest": "36eaff13eddc710ff46657bea6563266ee0c3c38a0a0208267105e858e9e9899"
+  },
+  "criteriaResults": {
+    "Gallery query authorization: Workspace owner, project manager, member, and viewer can view finalized card images; ungranted users receive 404 NOT_FOUND": "pass",
+    "Finalized filter: GET /api/v1/cards/:cardId/images returns only finalized images; pending, staged, failed, or cancelled uploads are strictly excluded": "pass",
+    "Gallery item metadata: Each image item includes id, cardId, filename, byteLength, contentType, width, height, createdAt, contentUrl, and thumbnailUrl": "pass",
+    "Badge count consistency: CardSummary imageCount and Card detail imageCount match the exact count of finalized attachments": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "36eaff13eddc710ff46657bea6563266ee0c3c38a0a0208267105e858e9e9899",
+      "evidencePath": "docs/reviews/ATT-03/test.log"
+    },
+    {
+      "id": "att-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "36eaff13eddc710ff46657bea6563266ee0c3c38a0a0208267105e858e9e9899",
+      "evidencePath": "docs/reviews/ATT-03/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Card-level project boundary verification enforces viewer or higher grant; prevents data disclosure to outsiders with 404 NOT_FOUND.",
+      "evidencePaths": [
+        "docs/reviews/ATT-03/reviewer-session.md",
+        "docs/reviews/ATT-03/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Strictly filters out non-finalized uploads; returns ordered list with complete dimensional and size metadata.",
+      "evidencePaths": [
+        "docs/reviews/ATT-03/reviewer-session.md",
+        "docs/reviews/ATT-03/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Referential integrity to parent card; counts match aggregate card summary badges across board views.",
+      "evidencePaths": [
+        "docs/reviews/ATT-03/reviewer-session.md",
+        "docs/reviews/ATT-03/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests verify gallery returns only finalized images, pending uploads are hidden, viewers can list, and outsiders get 404.",
+      "evidencePaths": [
+        "docs/reviews/ATT-03/reviewer-session.md",
+        "docs/reviews/ATT-03/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Consistent schema definition cardImageListResponseSchema with contracts alignment.",
+      "evidencePaths": [
+        "docs/reviews/ATT-03/reviewer-session.md",
+        "docs/reviews/ATT-03/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Indexed (card_id, created_at) lookup ensures instantaneous gallery rendering.",
+      "evidencePaths": [
+        "docs/reviews/ATT-03/reviewer-session.md",
+        "docs/reviews/ATT-03/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

@@ -62,3 +62,8 @@ Use the actual supplied workbook in import integration tests. Verify blank templ
 Template export/reimport/XML inspection is artifact verification only; it is not a tested importer. Backend evidence must include actual PostgreSQL transaction/retry tests and parser/runtime limits. UI evidence must exercise real preview/confirm/error/report flows with its handed-off backend contract.
 
 Research and official references: [Excel import research](research/features-excel-import.md).
+
+
+## Frontend priority requirement — 2026-10-27
+
+User-directed UI rule: every new card must explicitly carry Low, Medium, High or Urgent. The local HTML sample preview now marks blank/none/unknown priority as blocking and retains the chosen row priority on local creation. This is frontend-only; the optional Priority table above, current XLSX template and backend parser contract remain historical/current server behavior pending a coordinated revision. The artifact still does not parse uploaded XLSX files, so this is not evidence that real imports enforce the new requirement.

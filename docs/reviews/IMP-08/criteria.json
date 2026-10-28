@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "IMP-08"
+  ],
+  "mandatoryCriteria": [
+    "Date system conversion: Handles both 1900 and 1904 date systems, converting serial numbers to YYYY-MM-DD date-only",
+    "Fictitious leap day rejection: Rejects serial 60 (1900-02-29) as invalid date",
+    "Multi-assignee email resolution: Semicolon-separated emails resolve to active project member user IDs",
+    "Ineligible assignee rejection: Unknown emails or members of sibling projects without a grant produce row errors"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "imp-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: IMP-08 Excel import engine on PostgreSQL. Out-of-scope: UI components."
+}

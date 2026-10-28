@@ -15,7 +15,12 @@
 
   /* ---------- Toasts ---------- */
   function toast(message, options) {
-    const opts = options || {};
+    let opts = options || {};
+    const saveSuccess = /^(Card added to |Card moved |Changes saved(?: in this preview)?\.|Column updated\.|Card restored to |Card moved to trash|Image removed\.|Comment removed\.|Comment restored\.)/i.test(String(message));
+    if (FB.boardSaveFailed && saveSuccess) {
+      message = "This preview change could not be saved in browser storage. Keep this tab open and retry.";
+      opts = { ...opts, tone: "danger", icon: "alert", undo: null };
+    }
     const container = $("#toasts");
     if (!container) return;
     while (container.children.length >= 3) container.firstElementChild.remove();
@@ -52,6 +57,7 @@
   /* ---------- Layers & focus ---------- */
   function openLayer(layer, trigger) {
     if (!layer) return;
+    FB.hideBoardTooltip?.();
     layer._returnFocus = trigger || document.activeElement;
     layer.hidden = false;
     activeLayer = layer;
@@ -66,6 +72,7 @@
 
   function closeLayer(layer) {
     if (!layer || layer.hidden) return;
+    FB.hideBoardTooltip?.();
     layer.hidden = true;
     const returnFocus = layer._returnFocus;
     layer._returnFocus = null;
@@ -84,14 +91,15 @@
     return $$(".dialog-layer").filter((layer) => !layer.hidden);
   }
 
-  function closeFilterMenus() {
+  function closeFilterMenus(returnFocus = false) {
     let closed = false;
-    [["#assigneeFilterBtn", "#assigneeMenu"], ["#dueFilterBtn", "#dueMenu"]].forEach(([btnSel, menuSel]) => {
+    [["#assigneeFilterBtn", "#assigneeMenu"], ["#dueFilterBtn", "#dueMenu"], ["#cardDisplaySettingsBtn", "#cardDisplayMenu"]].forEach(([btnSel, menuSel]) => {
       const menu = $(menuSel);
       const btn = $(btnSel);
       if (menu && !menu.hidden) {
         menu.hidden = true;
         if (btn) btn.setAttribute("aria-expanded", "false");
+        if (returnFocus && btn) btn.focus({ preventScroll: true });
         closed = true;
       }
     });
@@ -157,7 +165,7 @@
         settleConfirm(false);
         return;
       }
-      if (closeFilterMenus()) {
+      if (closeFilterMenus(true)) {
         event.preventDefault();
         return;
       }
@@ -271,6 +279,21 @@
     preview.querySelector(".count").textContent = `${count} card${count === 1 ? "" : "s"}`;
   }
 
+  function columnSwatches() { return $$("#colorOptions .color-swatch"); }
+
+  function selectColumnColor(swatch, focus = false) {
+    state.selectedColumnTone = swatch.dataset.tone;
+    columnSwatches().forEach((item) => {
+      const selected = item === swatch;
+      item.classList.toggle("is-selected", selected);
+      item.setAttribute("aria-checked", String(selected));
+      item.tabIndex = selected ? 0 : -1;
+    });
+    $("#columnColorError").hidden = true;
+    renderColumnPreview();
+    if (focus) swatch.focus();
+  }
+
   function openColumnDialog(columnId, trigger) {
     if (!can("manageBoard")) {
       toast("Only managers and owners can configure columns.", { tone: "danger", icon: "lock" });
@@ -279,15 +302,10 @@
     const column = FB.column(columnId);
     if (!column) return;
     state.columnEditId = columnId;
-    state.selectedColumnTone = column.tone;
     $("#columnName").value = column.name;
     $("#columnNameError").hidden = true;
-    $$("#colorOptions .color-swatch").forEach((swatch) => {
-      const selected = swatch.dataset.tone === column.tone;
-      swatch.classList.toggle("is-selected", selected);
-      swatch.setAttribute("aria-checked", String(selected));
-    });
-    renderColumnPreview();
+    const swatches = columnSwatches();
+    selectColumnColor(swatches.find((item) => item.dataset.tone === column.tone) || swatches[0]);
     openLayer($("#columnLayer"), trigger);
   }
 
@@ -296,24 +314,30 @@
       $("#columnNameError").hidden = true;
       renderColumnPreview();
     });
-
-    $$("#colorOptions .color-swatch").forEach((swatch) => {
-      swatch.addEventListener("click", () => {
-        state.selectedColumnTone = swatch.dataset.tone;
-        $$("#colorOptions .color-swatch").forEach((item) => {
-          const selected = item === swatch;
-          item.classList.toggle("is-selected", selected);
-          item.setAttribute("aria-checked", String(selected));
-        });
-        renderColumnPreview();
+    const swatches = columnSwatches();
+    swatches.forEach((swatch, index) => {
+      swatch.addEventListener("click", () => selectColumnColor(swatch));
+      swatch.addEventListener("keydown", (event) => {
+        const offsets = { ArrowLeft: -1, ArrowUp: -1, ArrowRight: 1, ArrowDown: 1 };
+        let next;
+        if (event.key === "Home") next = 0;
+        else if (event.key === "End") next = swatches.length - 1;
+        else if (event.key in offsets) next = (index + offsets[event.key] + swatches.length) % swatches.length;
+        else return;
+        event.preventDefault();
+        selectColumnColor(swatches[next], true);
       });
     });
-
     $("#columnSaveBtn").addEventListener("click", () => {
       const name = $("#columnName").value.trim();
       if (!name) {
         $("#columnNameError").hidden = false;
         $("#columnName").focus();
+        return;
+      }
+      if (!swatches.some((item) => item.dataset.tone === state.selectedColumnTone)) {
+        $("#columnColorError").hidden = false;
+        swatches[0].focus();
         return;
       }
       const column = FB.column(state.columnEditId);
@@ -329,20 +353,26 @@
 
   /* ---------- Share ---------- */
   function renderMemberList() {
-    const base = ["alice", "charlie", "david", "eve"].map((id) => {
-      const person = people[id];
+    const projectId = FB.boardContext?.projectId || "website-redesign";
+    const project = window.Portfolio ? window.Portfolio.project(projectId) : window.SD?.project(projectId);
+    const members = project ? project.memberIds.map((id) => ({
+      person: people[id],
+      grant: window.SD?.members.find((member) => member.personId === id) || (people[id] ? { email: `${id}@acme.test`, role: people[id].role } : null)
+    })).filter((entry) => entry.person && entry.grant) : [];
+    const base = members.map(({ person, grant }) => {
       return `<div class="member-row">
         <span class="avatar ${person.tone}" aria-hidden="true">${person.initials}</span>
-        <span class="member-copy"><strong>${escape(person.name)}</strong><span>${person.id}@example.com</span></span>
-        <span class="member-role">${person.role}</span>
+        <span class="member-copy"><strong>${escape(person.name)}</strong><span>${escape(grant.email)}</span></span>
+        <span class="member-role">${escape(grant.role)}</span>
       </div>`;
     }).join("");
 
-    const pending = (state.pendingInvites || []).map((invite) => {
+    const pending = (window.SD?.pendingInvites || state.pendingInvites || []).filter((invite) => invite.projectId === projectId).map((invite) => {
       const initial = (invite.email[0] || "?").toUpperCase();
+      const inviteName = invite.name || invite.email;
       return `<div class="member-row">
         <span class="avatar" aria-hidden="true">${escape(initial)}</span>
-        <span class="member-copy"><strong>${escape(invite.email)}</strong><span>Invitation not sent in this prototype</span></span>
+        <span class="member-copy"><strong>${escape(inviteName)}</strong><span>${escape(invite.email)} · Invitation not sent</span></span>
         <span class="member-role"><span class="badge warn">${escape(invite.role)} · pending</span></span>
       </div>`;
     }).join("");
@@ -350,12 +380,22 @@
     $("#memberList").innerHTML = base + pending;
   }
 
+  function canShareProject() {
+    const projectId = FB.boardContext?.projectId || "website-redesign";
+    const project = window.Portfolio ? window.Portfolio.project(projectId) : window.SD?.project(projectId);
+    return Boolean(can("invite") && project?.memberIds.includes(FB.currentUser().id));
+  }
+
   function openShareDialog(trigger) {
-    if (!can("invite")) {
+    if (!canShareProject()) {
       toast("Only owners and managers can invite people.", { tone: "danger", icon: "lock" });
       return;
     }
     renderMemberList();
+    const project = window.Portfolio ? window.Portfolio.project(FB.boardContext?.projectId) : window.SD?.project(FB.boardContext?.projectId);
+    const board = window.Portfolio ? window.Portfolio.board(FB.boardContext?.boardId) : window.SD?.board(FB.boardContext?.boardId);
+    const title = $("#shareTitle");
+    if (title) title.textContent = board ? `Share ${board.name}` : `Share ${project?.name || "this project"}`;
     $("#inviteError").hidden = true;
     $("#inviteEmail").value = "";
     openLayer($("#shareLayer"), trigger);
@@ -363,6 +403,10 @@
 
   function bindShareDialog() {
     $("#inviteBtn").addEventListener("click", () => {
+      if (!canShareProject()) {
+        toast("You no longer have access to invite people to this project.", { tone: "danger", icon: "lock" });
+        return;
+      }
       const email = $("#inviteEmail").value.trim();
       const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
       if (!valid) {
@@ -371,20 +415,27 @@
         return;
       }
       $("#inviteError").hidden = true;
+      const projectId = FB.boardContext?.projectId || "website-redesign";
       state.pendingInvites = state.pendingInvites || [];
-      state.pendingInvites.push({ email, role: $("#inviteRole").value });
+      const invite = { email, role: $("#inviteRole").value, projectId };
+      state.pendingInvites.push(invite);
+      if (window.SD?.pendingInvites) window.SD.pendingInvites.push(invite);
       $("#inviteEmail").value = "";
       renderMemberList();
-      toast("Invitation prepared. No email is sent in this design prototype.", { icon: "user-plus" });
+      toast("Invite added to this preview. No email is sent.", { icon: "user-plus" });
     });
 
     $("#copyLinkBtn").addEventListener("click", async () => {
-      const link = "https://flowboard.local/acme/website-redesign";
+      const url = new URL(window.location.href);
+      url.search = "";
+      url.searchParams.set("project", FB.boardContext?.projectId || "website-redesign");
+      if (FB.boardContext?.boardId) url.searchParams.set("board", FB.boardContext.boardId);
+      const link = url.toString();
       try {
         await navigator.clipboard.writeText(link);
-        toast("Project link copied.", { icon: "link" });
+        toast("Board link copied.", { icon: "link" });
       } catch (error) {
-        toast("Clipboard is unavailable in this preview.", { tone: "danger", icon: "alert" });
+        toast("Clipboard is unavailable in this browser.", { tone: "danger", icon: "alert" });
       }
     });
   }
@@ -409,7 +460,7 @@
     $("#confirmCancelBtn").addEventListener("click", () => settleConfirm(false));
 
     $("#shareBtn").addEventListener("click", (event) => {
-      if (!can("invite")) {
+      if (!canShareProject()) {
         toast("Only owners and managers can invite people.", { tone: "danger", icon: "lock" });
         return;
       }

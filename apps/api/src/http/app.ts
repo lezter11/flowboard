@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 import type pg from 'pg';
 import {
   correlationMiddleware,
@@ -11,10 +12,21 @@ import {
   DEFAULT_DEADLINE_MS,
 } from './middleware/index.ts';
 import { sessionRoutes } from './routes/session.ts';
+import { googleAuthRoutes } from './routes/google-auth.ts';
 import { workspacesRoutes } from './routes/workspaces.ts';
 import { projectsRoutes } from './routes/projects.ts';
 import { invitationsRoutes } from './routes/invitations.ts';
 import { membersRoutes } from './routes/members.ts';
+import { boardsRoutes } from './routes/boards.ts';
+import { boardGrantsRoutes } from './routes/board-grants.ts';
+import { cardsRoutes } from './routes/cards.ts';
+import { commentsRoutes } from './routes/comments.ts';
+import { trashRoutes } from './routes/trash.ts';
+import { imagesRoutes } from './routes/images.ts';
+import { importsRoutes } from './routes/imports.ts';
+import { activityRoutes } from './routes/activity.ts';
+import { notificationsRoutes } from './routes/notifications.ts';
+import { systemRoutes } from './routes/system.ts';
 import { setGlobalPool, poolStorage, createPool } from '../adapters/postgres.ts';
 
 declare module 'hono' {
@@ -36,7 +48,42 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
 
   const app = new Hono<{ Variables: { requestId: string; pool?: pg.Pool } }>();
 
-  // 0. Database pool injection middleware: binds injected pool or request-scoped worker pool to context and AsyncLocalStorage
+  // 0. CORS middleware for browser frontend integration & preflight handling
+  app.use('*', cors({
+    origin: (origin, c) => {
+      if (!origin) return origin;
+      if (
+        origin.startsWith('http://localhost:') ||
+        origin.startsWith('http://127.0.0.1:') ||
+        origin.startsWith('https://localhost:') ||
+        origin.endsWith('.pages.dev') ||
+        origin.endsWith('.workers.dev')
+      ) {
+        return origin;
+      }
+      const env = c.env as { CORS_ORIGIN?: string } | undefined;
+      const configured = env?.CORS_ORIGIN ?? (typeof process !== 'undefined' ? process.env?.['CORS_ORIGIN'] : undefined) ?? '';
+      const allowedOrigins = configured.split(',').map((s) => s.trim()).filter(Boolean);
+      if (allowedOrigins.includes(origin)) {
+        return origin;
+      }
+      return null;
+    },
+    credentials: true,
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Request-Id',
+      'Idempotency-Key',
+      'If-Match',
+      'X-Dev-Secret',
+    ],
+    exposeHeaders: ['X-Request-Id', 'Server-Timing', 'Content-Disposition', 'ETag'],
+    maxAge: 86400,
+  }));
+
+  // 0b. Database pool injection middleware: binds injected pool or request-scoped worker pool to context and AsyncLocalStorage
   if (options?.pool) {
     const injectedPool = options.pool;
     app.use('*', async (c, next) => {
@@ -74,8 +121,10 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
 
   // Default no-store cache policy for private application endpoints
   app.use('*', async (c, next) => {
-    c.header('Cache-Control', 'no-store');
     await next();
+    if (!c.res.headers.has('Cache-Control')) {
+      c.header('Cache-Control', 'no-store');
+    }
   });
 
   // Health and readiness probes
@@ -100,10 +149,21 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
 
   // Mount API v1 routes
   app.route('/api/v1/session', sessionRoutes);
+  app.route('/api/v1/auth', googleAuthRoutes);
   app.route('', workspacesRoutes);
   app.route('', projectsRoutes);
   app.route('/api/v1', invitationsRoutes);
   app.route('/api/v1', membersRoutes);
+  app.route('', boardsRoutes);
+  app.route('/api/v1', boardGrantsRoutes);
+  app.route('', cardsRoutes);
+  app.route('/api/v1', commentsRoutes);
+  app.route('/api/v1', trashRoutes);
+  app.route('', imagesRoutes);
+  app.route('/api/v1', importsRoutes);
+  app.route('/api/v1', activityRoutes);
+  app.route('/api/v1', notificationsRoutes);
+  app.route('/api/v1/system', systemRoutes);
 
   // Central not-found and error handling
   app.notFound(notFoundHandler);

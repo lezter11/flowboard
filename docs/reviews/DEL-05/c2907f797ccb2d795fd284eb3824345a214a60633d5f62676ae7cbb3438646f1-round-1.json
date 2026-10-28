@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "DEL-05"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/DEL-05/criteria.json",
+  "startedAt": "2026-10-26T06:00:00Z",
+  "completedAt": "2026-10-26T06:30:00Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2699f652-cbdf-4b2c-af34-2759bd2a0cd2",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "0e0cbffe-384e-4ead-9750-d0bec8724fa1",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/DEL-05/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/DEL-05/criteria.json",
+      "docs/reviews/DEL-05/reviewer-session.md",
+      "docs/reviews/DEL-05/test.log",
+      "apps/api/src/adapters/comments.ts",
+      "apps/api/src/http/routes/comments.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/http/routes/trash.ts",
+      "apps/api/test/com-del.test.ts",
+      "packages/contracts/src/comments.ts",
+      "packages/contracts/src/trash.ts"
+    ],
+    "files": {
+      "docs/reviews/DEL-05/criteria.json": "185c7f5c78c5bb645169062c4e8a40836ef5625e01685d1caec4da036eece19d",
+      "docs/reviews/DEL-05/reviewer-session.md": "b3427a5320fae31687c78b53838dcb6317f8dc30cdd249015e55ec154d3e153c",
+      "docs/reviews/DEL-05/test.log": "be97d22d7ed0a39dcdf9fd5f301f757d42dbfd77cb4e70fac094d175073ec8c4",
+      "apps/api/src/adapters/comments.ts": "4a9488fe397e248214481c319d6b009eb42019c15f848a96ed2c54a73af24580",
+      "apps/api/src/http/routes/comments.ts": "f82977341cbd7d3a227f2d69c32c8fa7a526be273af3c9081ef68c9521cff9e7",
+      "apps/api/src/adapters/trash.ts": "040283b28f9223ca69db6e428a819fee8c9cc12903b29ef4ee30fc351173b0f6",
+      "apps/api/src/http/routes/trash.ts": "25bc3082201d8e42e18b9c6ce1c380d1fafc8df3d784fdba9b3fa6772699b84e",
+      "apps/api/test/com-del.test.ts": "fb011487dfd9b0fc00e8db80d244e0ccbe67794fd6183316493be2fe052ac8f6",
+      "packages/contracts/src/comments.ts": "3d0061e48b153cf4fb5efded44e8aca9826b10d20f66490e69e2862aa4b44189",
+      "packages/contracts/src/trash.ts": "92103279204dcb4220361a194a05514999c67455b08711a4151541d6462c2125"
+    },
+    "digest": "c2907f797ccb2d795fd284eb3824345a214a60633d5f62676ae7cbb3438646f1"
+  },
+  "criteriaResults": {
+    "Expired restore denial: POST /api/v1/cards/:cardId/restore returns HTTP 410 RESTORE_WINDOW_EXPIRED when serverNow >= restore_until": "pass",
+    "Structured 410 error: Error response includes code=RESTORE_WINDOW_EXPIRED and details { serverNow, restoreUntil }": "pass",
+    "No retry extension: Retried restore requests cannot extend or reopen the expired window": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "c2907f797ccb2d795fd284eb3824345a214a60633d5f62676ae7cbb3438646f1",
+      "evidencePath": "docs/reviews/DEL-05/test.log"
+    },
+    {
+      "id": "del-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "c2907f797ccb2d795fd284eb3824345a214a60633d5f62676ae7cbb3438646f1",
+      "evidencePath": "docs/reviews/DEL-05/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Denies restoration once 24-hour restore_until deadline has passed.",
+      "evidencePaths": [
+        "docs/reviews/DEL-05/reviewer-session.md",
+        "docs/reviews/DEL-05/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Returns HTTP 410 RESTORE_WINDOW_EXPIRED with structured details { serverNow, restoreUntil }.",
+      "evidencePaths": [
+        "docs/reviews/DEL-05/reviewer-session.md",
+        "docs/reviews/DEL-05/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Enforces immutable 24h deadline; retries cannot reopen or extend the expired window.",
+      "evidencePaths": [
+        "docs/reviews/DEL-05/reviewer-session.md",
+        "docs/reviews/DEL-05/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests simulate expired restore_until and verify HTTP 410 response and error details payload.",
+      "evidencePaths": [
+        "docs/reviews/DEL-05/reviewer-session.md",
+        "docs/reviews/DEL-05/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Explicit HttpError(410) construction with dedicated error code.",
+      "evidencePaths": [
+        "docs/reviews/DEL-05/reviewer-session.md",
+        "docs/reviews/DEL-05/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Server-authoritative timestamping prevents client time tampering.",
+      "evidencePaths": [
+        "docs/reviews/DEL-05/reviewer-session.md",
+        "docs/reviews/DEL-05/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

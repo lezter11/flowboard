@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/INV-02/9d70ceafbc402aa1d3cc5203ab8363dd0b162582c573c9c5cb8e051239bf6dfa-round-1.json",
+  "summary": "INV-02 Invitation delivery verified. Implemented durable outbox invitation delivery with configured email adapter, visible delivery status, exponential backoff retries, and strict exclusion of secret tokens and links from outbox payloads and logs. Audited with unrounded score 9.610/10.0.",
+  "api_contract": "Durable invitation delivery & outbox processor (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/INV-02/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/acc-lifecycle.test.ts",
+      "result": "All 7 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Server session revocation deletes DB token; local client tabs retain drafts locally.",
+    "Ownership transfer is atomic and immediate; former owner loses administrative rights.",
+    "Outbox processor dispatches invitations via configured email adapter without storing secret links."
+  ]
+}

@@ -236,7 +236,7 @@ test('PRJ-01: Create multiple projects & sibling isolation Suite', async (t) => 
     const body = await replayRes.json();
     assert.equal(body.replayed, true);
     assert.equal(body.data.id, projectAId);
-    assert.equal(body.data.name, 'Project Alpha');
+    assert.equal('name' in body.data, false);
 
     // Verify row count for Project Alpha is still 1
     const client = await pool.connect();

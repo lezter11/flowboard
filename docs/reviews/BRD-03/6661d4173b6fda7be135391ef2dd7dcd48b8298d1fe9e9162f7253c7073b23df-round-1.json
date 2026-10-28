@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "BRD-03"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BRD-03/criteria.json",
+  "startedAt": "2026-10-26T06:31:19.089757Z",
+  "completedAt": "2026-10-26T06:31:19.089757Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8f4f343f-8836-4b64-8563-c36b797ba880",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "36197b2b-27b3-41c7-952f-dfc6518e6990",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BRD-03/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/test/brd01-brd07.test.ts",
+      "docs/reviews/BRD-03/criteria.json",
+      "docs/reviews/BRD-03/reviewer-session.md",
+      "docs/reviews/BRD-03/test.log",
+      "packages/contracts/src/boards.ts"
+    ],
+    "files": {
+      "apps/api/src/adapters/boards.ts": "12ab9920d5efb1df7d93441fc05c7ac8d0f748366d6f431a005af553184174c6",
+      "apps/api/src/http/routes/boards.ts": "651ad386fcadbeb4aa4ce305814ee8c496446c464d6db324a0f58cb199215dee",
+      "apps/api/test/brd01-brd07.test.ts": "aff5ae8903787ee40ef4ada349cd0e3bb32116e2eb80fa6b96b23247e5b672f3",
+      "docs/reviews/BRD-03/criteria.json": "900b5d39c29514ad0dc37b7bd417fe9ea91ffef227fc352ba7426465c754c944",
+      "docs/reviews/BRD-03/reviewer-session.md": "2943423d0610d312cf42afb56819562da39a8326a65913ba576fc42d948a1624",
+      "docs/reviews/BRD-03/test.log": "476251470dbeda79cac1827dfe390f87b088800d83a2d3f3504d8bb6eeb86bf9",
+      "packages/contracts/src/boards.ts": "bceca4d1791ae8739e4c5e41ba98caccbf53a089df7b2503944c0a6736c6aa6e"
+    },
+    "digest": "6661d4173b6fda7be135391ef2dd7dcd48b8298d1fe9e9162f7253c7073b23df"
+  },
+  "criteriaResults": {
+    "Bounded consistent snapshot: GET /api/v1/boards/:boardId returns snapshot object with board metadata, filters, asOfDate, totals, columns, and people": "pass",
+    "Accurate active vs matching counts: totals.activeCardCount counts all active cards; totals.matchingCardCount counts cards matching filters; excludes trashed cards": "pass",
+    "Column card nesting: Each column in the snapshot contains cards array bounded by cardLimitPerColumn (default 10, max 15) and nextCursor if more exist": "pass",
+    "People disclosure: Returns distinct PersonDisplay records for all card assignees and creators referenced on the board": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "6661d4173b6fda7be135391ef2dd7dcd48b8298d1fe9e9162f7253c7073b23df",
+      "evidencePath": "docs/reviews/BRD-03/test.log"
+    },
+    {
+      "id": "brd-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "6661d4173b6fda7be135391ef2dd7dcd48b8298d1fe9e9162f7253c7073b23df",
+      "evidencePath": "docs/reviews/BRD-03/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.5",
+      "reason": "Strict authorization ensures only granted project members can fetch the board snapshot; non-members and outsiders receive 404 NOT_FOUND. People disclosure is strictly bounded to assignees on the current board.",
+      "evidencePaths": [
+        "docs/reviews/BRD-03/reviewer-session.md",
+        "docs/reviews/BRD-03/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Validates against boardSnapshotResponseSchema; parses query params with bounds on cardLimitPerColumn (1-15); computes workspace-relative asOfDate; handles filter combinations cleanly.",
+      "evidencePaths": [
+        "docs/reviews/BRD-03/reviewer-session.md",
+        "docs/reviews/BRD-03/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Executed under PostgreSQL REPEATABLE READ READ ONLY transaction isolation. Guarantees that totals, column card slices, and people records all reflect an identical snapshot in time without skew.",
+      "evidencePaths": [
+        "docs/reviews/BRD-03/reviewer-session.md",
+        "docs/reviews/BRD-03/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Real PostgreSQL test execution verifies active counts vs matching counts, exclusion of trashed cards, people disclosure, and outsider 404 privacy.",
+      "evidencePaths": [
+        "docs/reviews/BRD-03/reviewer-session.md",
+        "docs/reviews/BRD-03/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "High readability of SQL window functions; structured query builder helper; complete TypeScript typing with zero errors.",
+      "evidencePaths": [
+        "docs/reviews/BRD-03/reviewer-session.md",
+        "docs/reviews/BRD-03/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Clamped card limits (max 15 per column in snapshot) prevent unbounded memory consumption and slow HTTP response payloads; connection released in finally block.",
+      "evidencePaths": [
+        "docs/reviews/BRD-03/reviewer-session.md",
+        "docs/reviews/BRD-03/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.46",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

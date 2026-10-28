@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "BRD-04"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BRD-04/criteria.json",
+  "startedAt": "2026-10-26T13:23:24.936073Z",
+  "completedAt": "2026-10-26T13:23:24.936073Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8f4f343f-8836-4b64-8563-c36b797ba880",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "36197b2b-27b3-41c7-952f-dfc6518e6990",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BRD-04/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/BRD-04/criteria.json",
+      "docs/reviews/BRD-04/reviewer-session.md",
+      "docs/reviews/BRD-04/test.log",
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/test/brd01-brd07.test.ts",
+      "packages/contracts/src/boards.ts"
+    ],
+    "files": {
+      "docs/reviews/BRD-04/criteria.json": "c40b5aaf733c5d62e7e27dc0297cafae4289725bb904ed9f1c41284ed72e07cc",
+      "docs/reviews/BRD-04/reviewer-session.md": "dfa0fcf15419278c957f787433ca16343a7deab861ecb92eef22b2db1e6a828b",
+      "docs/reviews/BRD-04/test.log": "d5c060656d7fff4062882a7daee1403144f033d11b5f33de31521dc36a93fa1e",
+      "apps/api/src/adapters/boards.ts": "1128d2681207df3b5d9bc55c04463202dfb3bee3bdcf3f8bc3a7a47343ad12a8",
+      "apps/api/src/http/routes/boards.ts": "ef5ed5febd3c283c1a385696a7ec2cfaed2b898174697ca5d73a08a98f38899d",
+      "apps/api/test/brd01-brd07.test.ts": "cff583bce4fa911eb86b2a9dfb00174073311acbaa6cd7e146b773ad997185b1",
+      "packages/contracts/src/boards.ts": "bceca4d1791ae8739e4c5e41ba98caccbf53a089df7b2503944c0a6736c6aa6e"
+    },
+    "digest": "551825db4664504c8864ade6a79d0ebbf0ccb9c046cbd6eccaf82128b0842408"
+  },
+  "criteriaResults": {
+    "Add column: POST /api/v1/boards/:boardId/columns adds new column with name, color, category, expectedBoardVersion": "pass",
+    "Max 12 columns bound: Rejects column creation if board already has 12 columns with 400 or 422": "pass",
+    "Duplicate column name check: Rejects duplicate column names within the board (case-insensitive, trimmed) with 400 or 409": "pass",
+    "Rename and edit column: PATCH /api/v1/boards/:boardId/columns/:columnId updates name, color, category with expectedBoardVersion; rejects duplicate name": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "551825db4664504c8864ade6a79d0ebbf0ccb9c046cbd6eccaf82128b0842408",
+      "evidencePath": "docs/reviews/BRD-04/test.log"
+    },
+    {
+      "id": "brd-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "551825db4664504c8864ade6a79d0ebbf0ccb9c046cbd6eccaf82128b0842408",
+      "evidencePath": "docs/reviews/BRD-04/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Only Owner and Manager can add or edit columns; members receive 403; outsiders receive 404.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Enforces maximum 12 columns bound with 400 error; rejects duplicate column names with 409; increments board structure_version.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Category constrained to 'todo', 'active', 'done'; color validated as hex or named theme color.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests prove max 12 column limit enforcement, name uniqueness conflict handling, and structure version OCC checks.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Strict validation schemas and clean adapter functions addColumn and updateColumn.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Board-level lock during column modifications prevents parallel creation race past 12 columns.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

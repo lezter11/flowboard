@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "BRD-04"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BRD-04/criteria.json",
+  "startedAt": "2026-10-26T06:32:12.226491Z",
+  "completedAt": "2026-10-26T06:32:12.226491Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8f4f343f-8836-4b64-8563-c36b797ba880",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "36197b2b-27b3-41c7-952f-dfc6518e6990",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BRD-04/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/test/brd01-brd07.test.ts",
+      "docs/reviews/BRD-04/criteria.json",
+      "docs/reviews/BRD-04/reviewer-session.md",
+      "docs/reviews/BRD-04/test.log",
+      "packages/contracts/src/boards.ts"
+    ],
+    "files": {
+      "apps/api/src/adapters/boards.ts": "12ab9920d5efb1df7d93441fc05c7ac8d0f748366d6f431a005af553184174c6",
+      "apps/api/src/http/routes/boards.ts": "651ad386fcadbeb4aa4ce305814ee8c496446c464d6db324a0f58cb199215dee",
+      "apps/api/test/brd01-brd07.test.ts": "aff5ae8903787ee40ef4ada349cd0e3bb32116e2eb80fa6b96b23247e5b672f3",
+      "docs/reviews/BRD-04/criteria.json": "c40b5aaf733c5d62e7e27dc0297cafae4289725bb904ed9f1c41284ed72e07cc",
+      "docs/reviews/BRD-04/reviewer-session.md": "c3121f3278019ff09f1c459a297d74ddc206b33535d16be0052023cc9e36ab13",
+      "docs/reviews/BRD-04/test.log": "476251470dbeda79cac1827dfe390f87b088800d83a2d3f3504d8bb6eeb86bf9",
+      "packages/contracts/src/boards.ts": "bceca4d1791ae8739e4c5e41ba98caccbf53a089df7b2503944c0a6736c6aa6e"
+    },
+    "digest": "42a31d192b45d0fe158759ae65d6334e07c32fad40205301c7b35e276a6dd149"
+  },
+  "criteriaResults": {
+    "Add column: POST /api/v1/boards/:boardId/columns adds new column with name, color, category, expectedBoardVersion": "pass",
+    "Max 12 columns bound: Rejects column creation if board already has 12 columns with 400 or 422": "pass",
+    "Duplicate column name check: Rejects duplicate column names within the board (case-insensitive, trimmed) with 400 or 409": "pass",
+    "Rename and edit column: PATCH /api/v1/boards/:boardId/columns/:columnId updates name, color, category with expectedBoardVersion; rejects duplicate name": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "42a31d192b45d0fe158759ae65d6334e07c32fad40205301c7b35e276a6dd149",
+      "evidencePath": "docs/reviews/BRD-04/test.log"
+    },
+    {
+      "id": "brd-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "42a31d192b45d0fe158759ae65d6334e07c32fad40205301c7b35e276a6dd149",
+      "evidencePath": "docs/reviews/BRD-04/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.5",
+      "reason": "Column creation and modification require project manager or workspace owner authorization; non-managers get 403 FORBIDDEN; outsiders get 404 NOT_FOUND.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Matches REST contracts in packages/contracts/src/boards.ts; enforces Zod input schemas; handles both addition and partial column updates; assigns positions accurately.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Board and column rows locked FOR UPDATE; optimistic concurrency check on structure_version prevents conflicting column operations; unique name verification prevents ambiguity.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "16 integration tests execute and pass cleanly; specifically exercises OCC rejection, case-insensitive whitespace-tolerant duplicate rejection, column addition, column field updates, and the strict 12-column ceiling.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clean domain logic separation; typed Zod schemas; reusable category enums; zero TypeScript compiler errors.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "12-column hard limit prevents denial-of-service or performance degradation in UI rendering and database queries; transactional rollback on error.",
+      "evidencePaths": [
+        "docs/reviews/BRD-04/reviewer-session.md",
+        "docs/reviews/BRD-04/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.445",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "ATT-05"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/ATT-05/criteria.json",
+  "startedAt": "2026-10-26T10:06:25.477943+00:00",
+  "completedAt": "2026-10-26T10:06:25.477943+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "ad772234-4182-46fa-ae45-ae96061b197d",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "1c7b9629-326a-4cf8-aad0-15495025a9dc",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/ATT-05/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/ATT-05/criteria.json",
+      "docs/reviews/ATT-05/reviewer-session.md",
+      "docs/reviews/ATT-05/test.log",
+      "apps/api/src/adapters/images.ts",
+      "apps/api/src/adapters/storage.ts",
+      "apps/api/src/services/image-validator.ts",
+      "apps/api/src/http/routes/images.ts",
+      "apps/api/src/services/trash-purge.ts",
+      "apps/api/test/att01-att07.test.ts",
+      "database/migrations/0005_card_images.sql",
+      "packages/contracts/src/images.ts"
+    ],
+    "files": {
+      "docs/reviews/ATT-05/criteria.json": "96a4463919da128e5975bb81d7df955e48842c0d370fadae6ac9ef122baa6f8f",
+      "docs/reviews/ATT-05/reviewer-session.md": "3a3f69e949feab9760be206f9016373851de2f05e5979d0da701cde518d0e587",
+      "docs/reviews/ATT-05/test.log": "b7145fea259eb4e672d3c28feb7005fffdc454c986356eaa7379b63d0e405a88",
+      "apps/api/src/adapters/images.ts": "a53c89f3b7287b22e1be1a8d31a3b5109c46582c3759b3b23563b82a621c44dd",
+      "apps/api/src/adapters/storage.ts": "53fc6ce9c28cd158c33336890b643e734c645d6121bf8e6aea3523618bfe19d1",
+      "apps/api/src/services/image-validator.ts": "458a795af04c6e3a2a13274eb39dc7f84721cc409d352fec52ffd972a77d6d8a",
+      "apps/api/src/http/routes/images.ts": "90bbdf782aee0e40c30fbb04c4b74dd8781c55bd1a7ae7120badeee23407f822",
+      "apps/api/src/services/trash-purge.ts": "9712ebd02d48b1bbec6eb812cf8867e256d43813f902955b121967c90ad892b0",
+      "apps/api/test/att01-att07.test.ts": "624b0135ae8cc22d5110befd6b623e79bf59defba08af5448feb841aa154bba4",
+      "database/migrations/0005_card_images.sql": "983a46376d7fb68243629deff8b5230835a6f1b98268870badb81f6a26b80546",
+      "packages/contracts/src/images.ts": "10d1c52aa7469d0002e145a433fd9836802e46751e6fa8eeab601d2126c67d21"
+    },
+    "digest": "5fd0daf11f1163b71c204e6b236882edeeb1cf0c9e378dd17d76ec3a875dc85b"
+  },
+  "criteriaResults": {
+    "Removal authorization: Image uploader, project manager, or workspace owner can delete image; normal members cannot delete another user's image (403 FORBIDDEN); viewers receive 403; outsiders receive 404": "pass",
+    "OCC version check: DELETE accepts expectedVersion parameter and verifies image version; throws 409 STALE_VERSION on conflict": "pass",
+    "Card and board updates: Removes image row, decrements card image count, bumps card version and board snapshot_version": "pass",
+    "Activity logging: Atomically logs image_removed fact with filename and image ID in activity_log": "pass",
+    "Storage cleanup: Asynchronously or atomically cleans up underlying storage object via storage driver": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "5fd0daf11f1163b71c204e6b236882edeeb1cf0c9e378dd17d76ec3a875dc85b",
+      "evidencePath": "docs/reviews/ATT-05/test.log"
+    },
+    {
+      "id": "att-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "5fd0daf11f1163b71c204e6b236882edeeb1cf0c9e378dd17d76ec3a875dc85b",
+      "evidencePath": "docs/reviews/ATT-05/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Rigorous role and ownership matrix: uploader or project manager/owner permitted; peer members blocked with 403; viewers blocked; outsiders 404.",
+      "evidencePaths": [
+        "docs/reviews/ATT-05/reviewer-session.md",
+        "docs/reviews/ATT-05/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "OCC version guard prevents concurrent deletion races; updates card imageCount and board snapshot version.",
+      "evidencePaths": [
+        "docs/reviews/ATT-05/reviewer-session.md",
+        "docs/reviews/ATT-05/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Atomic removal from database accompanied by immutable activity_log entry.",
+      "evidencePaths": [
+        "docs/reviews/ATT-05/reviewer-session.md",
+        "docs/reviews/ATT-05/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests verify uploader can delete, peer member is rejected, manager can delete, OCC rejects stale version, and storage driver removes object.",
+      "evidencePaths": [
+        "docs/reviews/ATT-05/reviewer-session.md",
+        "docs/reviews/ATT-05/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clean adapter transaction in deleteCardImage.",
+      "evidencePaths": [
+        "docs/reviews/ATT-05/reviewer-session.md",
+        "docs/reviews/ATT-05/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Safe storage driver cleanup with error logging prevents dangling storage growth.",
+      "evidencePaths": [
+        "docs/reviews/ATT-05/reviewer-session.md",
+        "docs/reviews/ATT-05/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

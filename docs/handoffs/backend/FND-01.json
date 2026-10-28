@@ -1,6 +1,6 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/FND-01/05195fa40866fa7de043ecac0c59ec0aec75efd7ef6dceb48e321474ab7adb31-round-1.json",
+  "reviewPath": "docs/reviews/FND-01/48d43463fadc97b184dde747a352229654d8ab8db0155b679b10ca61085bd46d-round-1.json",
   "summary": "FND-01 PostgreSQL baseline, migrations and relational integrity: verified schema migrations 0001, 0002, 0003 applying cleanly and idempotently, advisory locks on flowboard_migrations preventing concurrent race conditions, transactional rollback on failure, restricted foreign keys (fk_workspaces_owner ON DELETE RESTRICT), and composite parentage constraints. Audited and certified by independent reviewer with score 9.8/10.0.",
   "api_contract": "docs/API.md v0.3 remains unchanged; local infrastructure-only /health/live and /health/ready shapes, safe 503 and unknown-route 404 are documented in docs/evidence/FND-01-local.md. Product schemas are FND-02.",
   "limitations": [
@@ -8,11 +8,13 @@
     "PostgreSQL uses disposable memory-backed synthetic data; this is not durability, recovery or concurrency evidence.",
     "UI and integrated acceptance remain separately owned and unverified."
   ],
-  "evidence": [{
-    "path": "docs/evidence/FND-01-local.md",
-    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/migrations.test.ts",
-    "result": "Strict typecheck passed with 0 errors; all 17 integration tests passed, 0 failed, 0 skipped. Independent audit score: 9.8 / 10.0.",
-    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 pinned official image digest."
-  }],
+  "evidence": [
+    {
+      "path": "docs/evidence/FND-01-local.md",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/migrations.test.ts",
+      "result": "Strict typecheck passed with 0 errors; all 17 integration tests passed, 0 failed, 0 skipped. Independent audit score: 9.8 / 10.0.",
+      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 pinned official image digest."
+    }
+  ],
   "next_dependency_ready_task": "FND-02 with Architect: validated API v0.3 schemas, generated OpenAPI and project-isolation fixtures."
 }

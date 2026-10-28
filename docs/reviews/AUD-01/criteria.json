@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "AUD-01"
+  ],
+  "mandatoryCriteria": [
+    "Chronological timeline retrieval: GET /api/v1/cards/:cardId/activity returns card events ordered chronologically (created_at ASC, id ASC)",
+    "Comprehensive event coverage: Timeline captures card creation, field edits, assignees, movements, and comments with actor PersonDisplay hydration",
+    "Stable cursor pagination: Cursor encoding and decoding (timestamp + ID) guarantees pagination with limit without duplication or missing events",
+    "Project reader authorization: Workspace owner, manager, member, and viewer in granted project can read card activity; trashed/purged cards hidden",
+    "Sibling project and outsider isolation: Requests across sibling projects or by outsiders return 404 NOT_FOUND"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "aud-ntf-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: AUD-01 activity tracking and notifications on PostgreSQL. Out-of-scope: UI components."
+}

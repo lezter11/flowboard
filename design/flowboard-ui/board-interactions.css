@@ -1,0 +1,142 @@
+/* Focused interaction details for the board. State and tooltip content stay in JS. */
+:root {
+  --col-rose: #faeaf0;
+  --dot-rose: #f0b9ca;
+  --col-mint: #e8f3ec;
+  --dot-mint: #b7dec9;
+  --col-peach: #fbece2;
+  --dot-peach: #f5c7a8;
+  --col-butter: #f8f1d8;
+  --dot-butter: #f0d98c;
+  --col-iris: #f0eaf7;
+  --dot-iris: #d7c6ea;
+}
+[data-theme="dark"] {
+  --col-rose: #3e2e37;
+  --col-mint: #283a31;
+  --col-peach: #42342b;
+  --col-butter: #423b25;
+  --col-iris: #383044;
+}
+
+.column[data-tone="rose"] { background: var(--col-rose); }
+.column[data-tone="mint"] { background: var(--col-mint); }
+.column[data-tone="peach"] { background: var(--col-peach); }
+.column[data-tone="butter"] { background: var(--col-butter); }
+.column[data-tone="iris"] { background: var(--col-iris); }
+.column[data-tone="rose"] .column-dot { background: var(--dot-rose); }
+.column[data-tone="mint"] .column-dot { background: var(--dot-mint); }
+.column[data-tone="peach"] .column-dot { background: var(--dot-peach); }
+.column[data-tone="butter"] .column-dot { background: var(--dot-butter); }
+.column[data-tone="iris"] .column-dot { background: var(--dot-iris); }
+.dist-rose { background: var(--dot-rose); }
+.dist-mint { background: var(--dot-mint); }
+.dist-peach { background: var(--dot-peach); }
+.dist-butter { background: var(--dot-butter); }
+.dist-iris { background: var(--dot-iris); }
+.settings-preview[data-tone="rose"] { background: var(--col-rose); }
+.settings-preview[data-tone="mint"] { background: var(--col-mint); }
+.settings-preview[data-tone="peach"] { background: var(--col-peach); }
+.settings-preview[data-tone="butter"] { background: var(--col-butter); }
+.settings-preview[data-tone="iris"] { background: var(--col-iris); }
+.settings-preview[data-tone="rose"] .column-dot { background: var(--dot-rose); }
+.settings-preview[data-tone="mint"] .column-dot { background: var(--dot-mint); }
+.settings-preview[data-tone="peach"] .column-dot { background: var(--dot-peach); }
+.settings-preview[data-tone="butter"] .column-dot { background: var(--dot-butter); }
+.settings-preview[data-tone="iris"] .column-dot { background: var(--dot-iris); }
+.swatch-rose { background: var(--dot-rose); }
+.swatch-mint { background: var(--dot-mint); }
+.swatch-peach { background: var(--dot-peach); }
+.swatch-butter { background: var(--dot-butter); }
+.swatch-iris { background: var(--dot-iris); }
+.board:not(.is-list) .column[data-tone="rose"] { --card-tint: var(--col-rose); }
+.board:not(.is-list) .column[data-tone="mint"] { --card-tint: var(--col-mint); }
+.board:not(.is-list) .column[data-tone="peach"] { --card-tint: var(--col-peach); }
+.board:not(.is-list) .column[data-tone="butter"] { --card-tint: var(--col-butter); }
+.board:not(.is-list) .column[data-tone="iris"] { --card-tint: var(--col-iris); }
+
+#distribution [data-tooltip] {
+  position: relative;
+  transition: filter 140ms ease, transform 140ms ease;
+  transform-origin: center;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 65%, transparent);
+}
+#distribution [data-tooltip]:is(:hover, :focus-visible) {
+  filter: saturate(1.08) brightness(1.03);
+  transform: scaleY(1.16);
+}
+#distribution [data-tooltip]:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--ink), inset 0 0 0 4px var(--surface);
+  z-index: 1;
+}
+
+.board-app .summary-note {
+  border-radius: 6px;
+  transition: color 140ms ease, background-color 140ms ease, transform 140ms ease;
+}
+.board-app .summary-note:is(:hover, :focus-visible) {
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+.board-app .summary-note.is-overdue:is(:hover, :focus-visible) { color: var(--danger); }
+.board-app .summary-note:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.board-app .column-actions .icon-btn,
+.board-app .board-actions .icon-btn,
+.board-app .toolbar .icon-btn {
+  transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+.board-app .column-actions .icon-btn:is(:hover, :focus-visible),
+.board-app .board-actions .icon-btn:is(:hover, :focus-visible),
+.board-app .toolbar .icon-btn:is(:hover, :focus-visible) {
+  transform: translateY(-1px);
+}
+.board-app .column { transition: background-color 180ms ease, border-color 160ms ease; }
+.board-app .column:not(.is-drop-target):hover { border-color: var(--line-strong); }
+
+/* Segments are narrow, so their focus indicator stays inset inside the clipped bar. */
+#boardHoverTip {
+  position: fixed;
+  z-index: 180;
+  max-width: min(360px, calc(100vw - 24px));
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--canvas) 24%, transparent);
+  border-radius: 9px;
+  background: var(--ink);
+  color: var(--canvas);
+  box-shadow: var(--shadow-md);
+  font-size: 12px;
+  font-weight: 520;
+  line-height: 1.45;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+  pointer-events: auto;
+}
+#boardHoverTip[hidden] { display: none !important; }
+#boardHoverTip:not([hidden]) { animation: board-tip-in 140ms ease-out both; }
+@keyframes board-tip-in {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #distribution [data-tooltip],
+  .board-app .summary-note,
+  .board-app .column-actions .icon-btn,
+  .board-app .board-actions .icon-btn,
+  .board-app .toolbar .icon-btn,
+  .board-app .column { transition: none; }
+  #distribution [data-tooltip]:is(:hover, :focus-visible),
+  .board-app .summary-note:is(:hover, :focus-visible),
+  .board-app .column-actions .icon-btn:is(:hover, :focus-visible),
+  .board-app .board-actions .icon-btn:is(:hover, :focus-visible),
+  .board-app .toolbar .icon-btn:is(:hover, :focus-visible) { transform: none; }
+  #boardHoverTip:not([hidden]) { animation: none; }
+}
+@media (forced-colors: active) {
+  #distribution [data-tooltip] { border: 1px solid CanvasText; }
+  #distribution [data-tooltip]:focus-visible { outline: 2px solid Highlight; outline-offset: -2px; box-shadow: none; }
+  #boardHoverTip { background: Canvas; color: CanvasText; border-color: CanvasText; box-shadow: none; }
+  .board-app .color-swatch.is-selected,
+  .board-app .color-swatch[aria-checked="true"] { border-color: Highlight; box-shadow: none; }
+}

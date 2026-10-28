@@ -5,11 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
   <meta name="description" content="Flowboard settings. Design prototype with synthetic project and account data." />
-  <title>Settings — Flowboard design prototype</title>
+  <title>Settings — Flowboard</title>
   <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
   <link rel="stylesheet" href="../styles.css" />
   <link rel="stylesheet" href="../detail.css" />
   <link rel="stylesheet" href="screens.css" />
+  <link rel="stylesheet" href="settings-pastels.css" />
+  <link rel="stylesheet" href="settings-redesign.css?v=2" />
 </head>
 <body data-page="settings">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -18,10 +20,10 @@
     <div class="rail-scrim" id="railScrim" hidden></div>
     <div class="workspace">
       <header class="topbar" id="topbar"></header>
-      <main class="page" id="main">
+      <main class="page settings-page" id="main">
         <div class="page-head">
           <div class="page-head-copy">
-            <p class="eyebrow">Website Redesign <span class="badge">Settings</span></p>
+            <span id="settingsProjectName" hidden></span>
             <h1>Settings</h1>
             <p class="page-sub" id="settingsSub"><span>Project, board, account and appearance</span></p>
           </div>
@@ -39,9 +41,9 @@
 
         <div class="review-bar">
           <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
-          <span><strong>Design-only settings.</strong> Changes update this page's in-memory data. They are not persisted, do not call an API and do not alter the approved board artifact.</span>
+          <span><strong>Local preview.</strong> Project and board settings are read-only. Theme is saved in this browser.</span>
           <span class="spacer"></span>
-          <span class="badge" id="settingsRoleBadge">Owner preview</span>
+          <span class="badge" id="settingsRoleBadge" hidden></span>
         </div>
 
         <div class="tabs settings-tabs" role="tablist" aria-label="Settings sections">
@@ -67,7 +69,7 @@
                     <div class="field span-2">
                       <label class="field-label" for="projectName">Project name</label>
                       <input class="control" id="projectName" type="text" maxlength="80" />
-                      <p class="field-help">Shown in project lists and breadcrumbs. Duplicate names are rejected after trim and case normalization.</p>
+                      <p class="field-help">Shown in project lists and navigation.</p>
                     </div>
                     <div class="field span-2">
                       <label class="field-label" for="projectDescription">Description</label>
@@ -87,7 +89,7 @@
 
                 <div class="stack-sm">
                   <h3 class="settings-section-title">Project status</h3>
-                  <p class="settings-section-sub">Archiving is reversible and Owner-only. Boards become read-only while archived; data is retained and deleted-card restore deadlines continue.</p>
+                  <p class="settings-section-sub">Archived projects are read-only. Only the Owner can reopen them.</p>
                   <div class="row" id="archiveRow"></div>
                 </div>
               </div>
@@ -118,7 +120,7 @@
                     <div class="row" style="justify-content:space-between;">
                       <div>
                         <h3 class="settings-section-title">Columns</h3>
-                        <p class="settings-section-sub">Stable IDs, manual order, color and category. Removing a column with cards is blocked.</p>
+                        <p class="settings-section-sub">Arrange and name the stages of this board.</p>
                       </div>
                       <button class="btn sm" type="button" id="addColumnBtn">
                         <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>
@@ -137,6 +139,7 @@
                     <button class="btn primary" type="submit" id="saveBoardBtn">Save board</button>
                   </div>
                 </form>
+                <div class="settings-movement"><div><h3>Card movement</h3><p>Control who can move cards into each column while keeping their other access.</p></div><span class="settings-pending">Not connected</span><p class="settings-movement-note">Movement permissions need server enforcement before they can be enabled. No restrictions are active in this preview.</p><button class="btn" type="button" disabled>Configure movement</button></div>
               </div>
             </section>
 
@@ -196,7 +199,7 @@
               <div class="panel-head">
                 <div class="panel-head-copy">
                   <h2 class="panel-title">Appearance</h2>
-                  <p class="panel-sub">Light is the default. Dark is a token variant, not a separate layout.</p>
+                  <p class="panel-sub">Choose the appearance that feels right for you.</p>
                 </div>
                 <div class="panel-actions"><span class="badge" id="themeBadge">Light</span></div>
               </div>
@@ -208,7 +211,7 @@
                       <span class="theme-preview-body"><span class="theme-preview-col"></span><span class="theme-preview-col"></span><span class="theme-preview-col"></span></span>
                     </span>
                     <strong>Light</strong>
-                    <span>Warm paper canvas, dark ink and a deep green accent. Default for review.</span>
+                    <span>A bright, calm workspace.</span>
                   </button>
                   <button class="theme-card" type="button" data-theme-choice="dark" aria-pressed="false">
                     <span class="theme-preview dark" aria-hidden="true">
@@ -216,70 +219,22 @@
                       <span class="theme-preview-body"><span class="theme-preview-col"></span><span class="theme-preview-col"></span><span class="theme-preview-col"></span></span>
                     </span>
                     <strong>Dark</strong>
-                    <span>Same layout and semantics with dark surfaces and raised borders.</span>
+                    <span>Softer surfaces for low-light work.</span>
                   </button>
                 </div>
                 <div class="note">
                   <svg class="icon" aria-hidden="true"><use href="#i-palette"></use></svg>
-                  <span>The theme choice applies immediately and is saved in this browser's <span class="mono">localStorage</span>. It is not an account preference and does not sync across devices.</span>
+                  <span>Your choice is saved in this browser.</span>
                 </div>
-                <div class="note">
-                  <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-                  <span>Theme does not change role permissions, data visibility, card order or any server behavior.</span>
-                </div>
+
               </div>
             </section>
           </div>
 
-          <aside class="stack">
-            <section class="panel">
-              <div class="panel-head">
-                <div class="panel-head-copy">
-                  <h2 class="panel-title">Your settings scope</h2>
-                  <p class="panel-sub" id="scopeSub">Owner preview</p>
-                </div>
-              </div>
-              <div class="panel-body stack-sm" id="scopePanel"></div>
-            </section>
-
-            <section class="panel">
-              <div class="panel-head">
-                <div class="panel-head-copy">
-                  <h2 class="panel-title">Archive rules</h2>
-                </div>
-              </div>
-              <div class="panel-body stack-sm">
-                <p class="small muted" style="line-height:1.55;">Project archive is Owner-only. It hides the project from ordinary active lists and makes every board read-only. The Owner can reopen it. Archiving does not delete data and does not pause a deleted card's 24-hour restore deadline.</p>
-                <div class="note">
-                  <svg class="icon" aria-hidden="true"><use href="#i-archive"></use></svg>
-                  <span>Permanent project destruction and ownership transfer are later scope, not settings toggles.</span>
-                </div>
-              </div>
-            </section>
-
-            <section class="panel">
-              <div class="panel-head">
-                <div class="panel-head-copy">
-                  <h2 class="panel-title">Implementation note</h2>
-                </div>
-              </div>
-              <div class="panel-body stack-sm">
-                <p class="small muted" style="line-height:1.55;">These forms demonstrate layout and role gating. Validation, optimistic concurrency, audit events and persistence belong to the API and are not implemented.</p>
-                <div class="note warn">
-                  <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
-                  <span><strong>No setting here is real.</strong> Reloading restores the synthetic project, board and account values.</span>
-                </div>
-              </div>
-            </section>
-          </aside>
+          <aside hidden aria-hidden="true"><span id="scopeSub"></span><div id="scopePanel"></div></aside>
         </div>
 
-        <footer class="board-foot">
-          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-          <span>Settings · synthetic values · design evidence only</span>
-          <span class="sep"></span>
-          <span>No authentication, persistence or audit log is implemented.</span>
-        </footer>
+
       </main>
     </div>
   </div>
@@ -303,13 +258,15 @@
             <p class="form-error" id="columnError" hidden></p>
           </div>
           <div class="dialog-field">
-            <label for="columnTone">Color</label>
-            <select class="control" id="columnTone">
-              <option value="backlog">Neutral</option>
-              <option value="progress">Blue</option>
-              <option value="testing">Amber</option>
-              <option value="completed">Green</option>
-            </select>
+            <span class="field-label" id="columnColorLabel">Pastel color</span>
+            <div class="settings-pastel-options" id="columnToneOptions" role="radiogroup" aria-labelledby="columnColorLabel" aria-describedby="columnColorHelp columnColorError"></div>
+            <p class="field-help" id="columnColorHelp">Choose a soft column tint. The name and workflow category stay independent of color.</p>
+            <p class="form-error" id="columnColorError" role="alert" hidden></p>
+            <div class="settings-pastel-preview" id="columnColorPreview" aria-live="polite">
+              <span class="column-dot" aria-hidden="true"></span>
+              <span class="settings-pastel-preview-name" id="columnColorPreviewName">Not started</span>
+              <span class="settings-pastel-preview-count" id="columnColorPreviewValue">Lavender</span>
+            </div>
           </div>
           <div class="dialog-field">
             <label for="columnCategory">Category</label>
@@ -328,7 +285,7 @@
         <footer class="dialog-foot">
           <span class="spacer"></span>
           <button class="btn" type="button" data-close-dialog="columnLayer">Cancel</button>
-          <button class="btn primary" type="submit">Add column</button>
+          <button class="btn primary" id="columnSubmitBtn" type="submit">Add column</button>
         </footer>
       </form>
     </div>
@@ -336,7 +293,9 @@
 
   <script src="../data.js"></script>
   <script src="data.js"></script>
-  <script src="screens.js"></script>
-  <script src="settings.js"></script>
+  <script src="../board-bridge.js"></script>
+  <script src="screens.js?v=2"></script>
+  <script src="portfolio-model.js"></script>
+  <script src="settings.js?v=2"></script>
 </body>
 </html>

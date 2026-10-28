@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "COM-03"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/COM-03/criteria.json",
+  "startedAt": "2026-10-26T06:00:00Z",
+  "completedAt": "2026-10-26T06:30:00Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2699f652-cbdf-4b2c-af34-2759bd2a0cd2",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "0e0cbffe-384e-4ead-9750-d0bec8724fa1",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/COM-03/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/COM-03/criteria.json",
+      "docs/reviews/COM-03/reviewer-session.md",
+      "docs/reviews/COM-03/test.log",
+      "apps/api/src/adapters/comments.ts",
+      "apps/api/src/http/routes/comments.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/http/routes/trash.ts",
+      "apps/api/test/com-del.test.ts",
+      "packages/contracts/src/comments.ts",
+      "packages/contracts/src/trash.ts"
+    ],
+    "files": {
+      "docs/reviews/COM-03/criteria.json": "60b130428ff3cedba041115bddafb152cd508ebdbeb734a09bafec5aa7e13d96",
+      "docs/reviews/COM-03/reviewer-session.md": "d69f65f6d034eb159657ff90ee8a2b7ab677a073aaa3295cc7d27a183b080844",
+      "docs/reviews/COM-03/test.log": "be97d22d7ed0a39dcdf9fd5f301f757d42dbfd77cb4e70fac094d175073ec8c4",
+      "apps/api/src/adapters/comments.ts": "3e7328e6b9c6ab3e4e62219cc8a32e4fe89531bcd5d3d24d9b8f4456b5afe934",
+      "apps/api/src/http/routes/comments.ts": "2333e12913b79a5d7a5857c5224c852bdf6934e8dfc8b7d91a6725024202f886",
+      "apps/api/src/adapters/trash.ts": "1f34633c284723cc25f8ab056ebe2654a72e6d8dfe57ff8c7885822c066a96ac",
+      "apps/api/src/http/routes/trash.ts": "711d72a930f6e0de63530735997a20b90974821923113a37351caa57f3aa3abf",
+      "apps/api/test/com-del.test.ts": "8464e108eafb6e5f8232fff6bca99914c54649465593e32f8e9d41f7f7759006",
+      "packages/contracts/src/comments.ts": "3d0061e48b153cf4fb5efded44e8aca9826b10d20f66490e69e2862aa4b44189",
+      "packages/contracts/src/trash.ts": "92103279204dcb4220361a194a05514999c67455b08711a4151541d6462c2125"
+    },
+    "digest": "56a36ed76f1f88b225e5c23f800f9c6a8b3b1109022381f200a95333699d9905"
+  },
+  "criteriaResults": {
+    "Mention teammate validation: Mentions list contains valid non-overlapping UTF-16 span offsets (start < end)": "pass",
+    "Mention privacy enforcement: Mentioned user IDs must be active project members; rejects sibling users or non-members with 400 or 422": "pass",
+    "Notification creation: Inserts in-app notification record for mentioned users; self-mentions do not create notifications": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "56a36ed76f1f88b225e5c23f800f9c6a8b3b1109022381f200a95333699d9905",
+      "evidencePath": "docs/reviews/COM-03/test.log"
+    },
+    {
+      "id": "com-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "56a36ed76f1f88b225e5c23f800f9c6a8b3b1109022381f200a95333699d9905",
+      "evidencePath": "docs/reviews/COM-03/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict validation verifies mentionees against active project members; mentions of sibling project users or non-members are rejected with 400 VALIDATION_ERROR.",
+      "evidencePaths": [
+        "docs/reviews/COM-03/reviewer-session.md",
+        "docs/reviews/COM-03/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Validates UTF-16 non-overlapping span offsets; generates in-app notifications for teammates but suppresses self-mentions.",
+      "evidencePaths": [
+        "docs/reviews/COM-03/reviewer-session.md",
+        "docs/reviews/COM-03/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Comment mentions table maintains foreign keys and accurate offset ranges matching comment body.",
+      "evidencePaths": [
+        "docs/reviews/COM-03/reviewer-session.md",
+        "docs/reviews/COM-03/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests prove overlapping spans rejection, non-member rejection, sibling rejection, and self-mention notification suppression.",
+      "evidencePaths": [
+        "docs/reviews/COM-03/reviewer-session.md",
+        "docs/reviews/COM-03/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Validation rules codified in Zod contract refinement schemas and reusable adapter helpers.",
+      "evidencePaths": [
+        "docs/reviews/COM-03/reviewer-session.md",
+        "docs/reviews/COM-03/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Batch loading and set lookups minimize query count during mention validation.",
+      "evidencePaths": [
+        "docs/reviews/COM-03/reviewer-session.md",
+        "docs/reviews/COM-03/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

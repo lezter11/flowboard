@@ -125,3 +125,15 @@ No automatic adoption of AI agents, financial/vendor analytics, billing, sprints
 ## 13. Delivery order
 
 S0 local runtime/DB/contracts → S1 owner/projects/invites/project RBAC → S2 board/card/movement/details → S3 discussion/activity/inbox → S4 private images/trash/restore/purge → S5 Excel import → S6 hardening/ownership/archive/Undo/benchmarks. Each item is Backend verified before its UI implementation, then integrated. Backend may work ahead on the next item while UI implements a previously handed-off feature. Owner/manager decisions above supersede research alternatives.
+
+
+## Frontend creation rule — 2026-10-27
+
+The user now requires an explicit Low/Medium/High/Urgent priority when creating a card in the UI. The HTML artifact enforces this in quick-add, the full Add Card form, and its sample import preview; blank/none is rejected without discarding the draft. Existing cards may still have none. The earlier API field/default above describes the existing server contract, which has not been changed or accepted by this frontend task. Coordinate backend validation and import/template alignment before product integration; this note does not claim a passed backend handoff.
+
+
+## User-confirmed Projects access revision — 27 October 2026
+
+The user explicitly chose **separate access for each board** and **combined card views only within one project**. This supersedes earlier statements that project grants automatically expose all child boards, and withdraws cross-project/workspace card aggregation. Keep workspace → project → boards → columns → cards; do not introduce nested project entities. For non-Owners the effective boundary is active project membership AND an active grant to that board. The Owner retains access to all boards in owned projects. A person can see an accessible project while having zero accessible boards; do not reveal hidden board names, IDs, counts or cards. The user chose Owner-only board-grant administration, no automatic backfill of existing members, and Manager permission to create boards. See [the recorded decisions](handoffs/proposals/board-access-decisions-2026-10-27.md). These decisions do not mean the backend has implemented the revised boundary.
+
+The local Projects prototype implements synthetic visibility and an Owner access editor. This does not change current API authorization or prove server enforcement. Backend work is handed off through docs/handoffs/proposals/project-board-access-v2-2026-10-27.md; all affected reads/writes and revocation paths must be migrated and independently verified before integration. Existing failed backend handoffs remain separate.

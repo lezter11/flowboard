@@ -3,72 +3,72 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Flowboard high-fidelity UI artifact: board and card detail. Synthetic data, design only." />
-  <title>Flowboard — Website Kanban (design prototype)</title>
+  <meta name="description" content="Plan and track work for the Website Redesign project in Flowboard." />
+  <title>Flowboard — Website Redesign</title>
   <link rel="stylesheet" href="styles.css" />
   <link rel="stylesheet" href="detail.css" />
+  <link rel="stylesheet" href="card-variants.css" />
+  <link rel="stylesheet" href="workspace.css" />
+  <link rel="stylesheet" href="board-context.css" />
+  <link rel="stylesheet" href="board-interactions.css" />
+  <link rel="stylesheet" href="card-create.css" />
 </head>
-<body data-role="owner">
+<body class="board-app" data-role="owner">
   <a class="skip-link" href="#board">Skip to board</a>
 
+  <main class="board-unavailable" id="boardUnavailable" tabindex="-1" hidden><h1>Board unavailable</h1><p>This board is not available to your current account or project.</p><a class="btn" href="screens/projects.html" data-app-link>Back to projects</a></main>
   <div class="app">
     <aside class="rail" id="rail" aria-label="Workspace navigation">
-      <div class="brand">
-        <span class="brand-mark" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
-            <path d="M4.5 6.5h6" /><path d="M4.5 12h15" /><path d="M13.5 17.5h6" />
-          </svg>
-        </span>
-        <span class="brand-name">Flowboard</span>
-        <span class="brand-tag">Prototype</span>
-      </div>
+      <div class="rail-heading"><div class="brand">
+        <span class="brand-name brand-wordmark">Flowboard</span>
+      </div><button class="icon-btn" id="navCloseBtn" type="button" aria-label="Close navigation" hidden><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
 
-      <button class="workspace-switch" type="button" data-prototype-note="Workspace switching is outside this board artifact.">
+      <a class="workspace-switch" href="screens/projects.html" data-app-link aria-label="Open Acme Corp projects">
         <span class="workspace-avatar" aria-hidden="true">AC</span>
         <span class="workspace-copy">
           <strong>Acme Corp</strong>
           <span>1 project · 4 people</span>
         </span>
         <svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
-      </button>
+      </a>
 
       <nav class="rail-nav" aria-label="Primary">
         <div class="nav-group">
           <p class="nav-label">Workspace</p>
-          <button class="nav-item" type="button" aria-current="page" data-nav="Board">
+          <a class="nav-item" href="index.html" data-app-link data-nav="Board" aria-current="page">
             <svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg>
             Board
-          </button>
-          <button class="nav-item" type="button" data-nav="Projects">
+          </a>
+          <a class="nav-item" href="screens/projects.html" data-app-link data-nav="Projects">
             <svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg>
             Projects
-          </button>
-          <button class="nav-item" type="button" data-nav="Inbox">
+          </a>
+          <a class="nav-item" href="screens/inbox.html" data-app-link data-nav="Inbox">
             <svg class="icon" aria-hidden="true"><use href="#i-inbox"></use></svg>
             Inbox
             <span class="nav-badge">3</span>
-          </button>
-          <button class="nav-item" type="button" data-nav="Activity">
+          </a>
+          <a class="nav-item" href="screens/activity.html" data-app-link data-nav="Activity">
             <svg class="icon" aria-hidden="true"><use href="#i-activity"></use></svg>
             Activity
-          </button>
+          </a>
         </div>
 
         <div class="nav-group" data-manage-nav>
           <p class="nav-label">Manage</p>
-          <button class="nav-item" type="button" data-nav="Trash">
+          <a class="nav-item" href="screens/trash.html" data-app-link data-nav="Trash">
             <svg class="icon" aria-hidden="true"><use href="#i-trash"></use></svg>
             Trash
             <span class="nav-badge quiet">1</span>
-          </button>
-          <button class="nav-item" type="button" data-nav="People">
+          </a>
+          <a class="nav-item" href="screens/people.html" data-app-link data-nav="People">
             <svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg>
             People
-          </button>
-          <button class="nav-item" type="button" data-nav="Settings">
+          </a>
+          <a class="nav-item" href="screens/settings.html" data-app-link data-nav="Settings">
             <svg class="icon" aria-hidden="true"><use href="#i-settings"></use></svg>
             Settings
-          </button>
+          </a>
         </div>
 
         <div class="rail-note">
@@ -91,26 +91,21 @@
 
     <div class="workspace">
       <header class="topbar">
-        <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Open navigation" aria-controls="rail" aria-expanded="false">
-          <svg class="icon icon-lg" aria-hidden="true"><use href="#i-menu"></use></svg>
-        </button>
         <nav class="crumbs" aria-label="Breadcrumb">
-          <a href="#" data-prototype-note="Project navigation is outside this board artifact.">Acme Corp</a>
+          <a href="screens/projects.html" data-app-link>Acme Corp</a>
           <span class="sep">/</span>
-          <a href="#" data-prototype-note="Project navigation is outside this board artifact.">Website Redesign</a>
-          <span class="sep">/</span>
-          <span class="current">Board</span>
+          <a href="screens/project.html?project=website-redesign" data-app-link>Website Redesign</a>
         </nav>
         <div class="topbar-spacer"></div>
-        <div class="presence" aria-label="3 people online">
-          <span class="presence-label">3 online</span>
-          <span class="avatar alice" title="Alice Owner">AO</span>
-          <span class="avatar charlie" title="Charlie Manager">CM</span>
-          <span class="avatar david" title="David Member">DM</span>
+        <div class="presence" aria-label="Project team">
+          <span class="presence-label">Team</span>
+          <span class="avatar alice" title="Alice Owner" aria-hidden="true">AO</span>
+          <span class="avatar charlie" title="Charlie Manager" aria-hidden="true">CM</span>
+          <span class="avatar david" title="David Member" aria-hidden="true">DM</span>
         </div>
-        <label class="role-control" title="Preview the board as each project role">
+        <label class="role-control" title="View the board as each project role">
           <span>View as</span>
-          <select id="roleSelect" aria-label="Preview role">
+          <select id="roleSelect" aria-label="View as role">
             <option value="owner">Owner</option>
             <option value="manager">Manager</option>
             <option value="member">Member</option>
@@ -121,94 +116,64 @@
           <svg class="icon theme-icon-light" aria-hidden="true"><use href="#i-sun"></use></svg>
           <svg class="icon theme-icon-dark" aria-hidden="true"><use href="#i-moon"></use></svg>
         </button>
-        <button class="icon-btn topbar-user" type="button" aria-label="Account menu for Alice Owner" data-prototype-note="Account settings are outside this board artifact.">
-          <span class="avatar alice" id="topbarAvatar">AO</span>
-        </button>
+        <a class="icon-btn topbar-user" href="screens/settings.html?tab=account" data-app-link aria-label="Account settings for Alice Owner">
+          <span class="avatar alice" id="topbarAvatar" aria-hidden="true">AO</span>
+        </a>
       </header>
 
       <main class="page" id="main">
         <section class="board-head" aria-labelledby="boardTitle">
-          <div>
-            <div class="eyebrow">
-              <span class="project-dot" aria-hidden="true"></span>
-              Website Redesign
-              <span class="badge accent">Design prototype</span>
-            </div>
             <div class="board-title-row">
-              <div>
-                <h1 id="boardTitle">Website Kanban</h1>
-                <p class="board-sub">
-                  <span>Marketing site refresh</span>
-                  <span class="dot" aria-hidden="true"></span>
-                  <span id="boardSubCount">12 cards</span>
-                  <span class="dot" aria-hidden="true"></span>
-                  <span>Updated just now</span>
-                </p>
+              <div class="board-heading">
+                <button class="icon-btn menu-btn" id="menuBtn" type="button" aria-label="Hide navigation" aria-controls="rail" aria-expanded="true" title="Hide navigation"><svg class="icon" aria-hidden="true"><use href="#i-menu"></use></svg></button>
+                <h1 id="boardTitle" title="Website Kanban">Website Kanban</h1><span id="boardReadOnly" hidden>Archived · read-only</span>
+                <p id="boardSaveWarning" role="status" hidden style="margin:8px 0 0;color:var(--danger);font-size:13px;line-height:1.45">Changes are only in this tab. Browser storage is unavailable; keep this tab open and retry. <button class="btn sm" id="boardSaveRetry" type="button">Retry save</button></p>
               </div>
               <div class="board-actions">
-                <button class="btn" id="shareBtn" type="button" data-invite>
+                <button class="icon-btn share-control" id="shareBtn" type="button" data-invite aria-label="Share board" title="Share board">
                   <svg class="icon" aria-hidden="true"><use href="#i-user-plus"></use></svg>
-                  Share
                 </button>
-                <button class="btn primary" id="addCardBtn" type="button">
+                <div class="view-switch" id="viewSwitch" role="group" aria-label="Card view" data-view="board">
+                  <button type="button" data-board-view="list" aria-label="List view" aria-pressed="false" aria-controls="board">
+                    <svg class="icon" aria-hidden="true"><use href="#i-list"></use></svg><span class="view-label">List</span>
+                  </button>
+                  <button type="button" data-board-view="board" aria-label="Board view" aria-pressed="true" aria-controls="board">
+                    <svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg><span class="view-label">Board</span>
+                  </button>
+                </div>
+                <span class="sr-only" id="viewStatus" aria-live="polite">Board view</span>
+                <a class="btn" href="screens/projects.html" data-app-link title="Browse projects and their boards"><svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg><span class="action-label">Projects</span></a>
+                <button class="btn primary" id="addCardBtn" type="button" aria-label="Add card" title="Add card">
                   <svg class="icon" aria-hidden="true"><use href="#i-plus"></use></svg>
-                  Add card
+                  <span class="action-label">Add card</span>
                 </button>
+                <button class="icon-btn" id="fullscreenBtn" type="button" aria-label="Enter fullscreen" title="Enter fullscreen" aria-pressed="false">
+                  <svg class="icon fullscreen-enter" aria-hidden="true"><use href="#i-maximize"></use></svg>
+                  <svg class="icon fullscreen-exit" aria-hidden="true"><use href="#i-minimize"></use></svg>
+                </button>
+                <span class="sr-only" id="workspaceModeStatus" aria-live="polite"></span>
               </div>
             </div>
-          </div>
-
-          <div class="summary" aria-label="Board summary">
-            <div class="summary-stat">
-              <span class="label">Total cards</span>
-              <span class="value" id="statTotal">12</span>
-            </div>
-            <div class="summary-stat">
-              <span class="label">Due in 7 days</span>
-              <span class="value" id="statSoon">3</span>
-            </div>
-            <div class="summary-stat alert">
-              <span class="label">Overdue</span>
-              <span class="value" id="statOverdue">1</span>
-            </div>
-            <div class="summary-stat done">
-              <span class="label">Completed</span>
-              <span class="value" id="statDone">6</span>
-            </div>
-            <div class="summary-bars">
-              <div class="summary-bars-top">
-                <span>Cards by column</span>
-                <em>From live column counts, not progress estimates</em>
-              </div>
-              <div class="distribution" id="distribution" role="img" aria-label="Card distribution by column"></div>
-              <div class="dist-legend" id="distLegend"></div>
-            </div>
-          </div>
 
           <div class="toolbar" aria-label="Board tools">
-            <span class="view-pill">
-              <svg class="icon icon-sm" aria-hidden="true"><use href="#i-board"></use></svg>
-              Board
-            </span>
-
             <div class="search-field" id="searchField">
               <svg class="icon icon-sm" aria-hidden="true"><use href="#i-search"></use></svg>
               <label class="sr-only" for="searchInput">Search cards</label>
-              <input id="searchInput" type="search" placeholder="Search cards…" autocomplete="off" />
+              <input id="searchInput" type="search" placeholder="Search…" autocomplete="off" />
               <button class="clear-search" id="clearSearch" type="button" aria-label="Clear search">
                 <svg class="icon icon-sm" aria-hidden="true"><use href="#i-x"></use></svg>
               </button>
             </div>
 
             <div class="filter-wrap">
-              <button class="filter-btn" id="assigneeFilterBtn" type="button" aria-expanded="false" aria-controls="assigneeMenu">
+              <button class="filter-btn" id="assigneeFilterBtn" type="button" aria-label="Filter by assignee" title="Filter by assignee" aria-expanded="false" aria-controls="assigneeMenu">
                 <svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg>
-                Assignees
+                <span class="sr-only">Assignees</span>
                 <span class="badge" id="assigneeFilterCount" hidden>0</span>
                 <svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
               </button>
               <div class="filter-menu" id="assigneeMenu" hidden>
-                <h3>Assigned to</h3>
+                <h2>Assigned to</h2>
                 <label class="filter-option"><input type="checkbox" name="assigneeFilter" value="alice" /> <span class="avatar alice" aria-hidden="true">AO</span> Alice Owner</label>
                 <label class="filter-option"><input type="checkbox" name="assigneeFilter" value="charlie" /> <span class="avatar charlie" aria-hidden="true">CM</span> Charlie Manager</label>
                 <label class="filter-option"><input type="checkbox" name="assigneeFilter" value="david" /> <span class="avatar david" aria-hidden="true">DM</span> David Member</label>
@@ -219,14 +184,14 @@
             </div>
 
             <div class="filter-wrap">
-              <button class="filter-btn" id="dueFilterBtn" type="button" aria-expanded="false" aria-controls="dueMenu">
+              <button class="filter-btn" id="dueFilterBtn" type="button" aria-label="Filter by due date" title="Filter by due date" aria-expanded="false" aria-controls="dueMenu">
                 <svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg>
-                Due date
+                <span class="sr-only">Due date</span>
                 <span class="badge" id="dueFilterCount" hidden>1</span>
                 <svg class="icon icon-sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg>
               </button>
               <div class="filter-menu" id="dueMenu" hidden>
-                <h3>Due date</h3>
+                <h2>Due date</h2>
                 <label class="filter-option"><input type="radio" name="dueFilter" value="any" checked /> Any date</label>
                 <label class="filter-option"><input type="radio" name="dueFilter" value="overdue" /> Overdue</label>
                 <label class="filter-option"><input type="radio" name="dueFilter" value="soon" /> Due in 7 days</label>
@@ -236,22 +201,48 @@
 
             <button class="clear-filters" id="clearFilters" type="button" hidden>Clear all</button>
             <div class="toolbar-spacer"></div>
+            <label class="card-style-control" id="cardStyleControl">
+              <span>Cards</span>
+              <select id="cardStyleSelect" aria-label="Card appearance">
+                <option value="focus">Focus</option>
+                <option value="glass">Soft glass</option>
+              </select>
+            </label>
+            <span class="sr-only" id="cardStyleStatus" aria-live="polite">Focus cards</span>
+            <div class="filter-wrap card-display-control" id="cardDisplayControl">
+              <button class="icon-btn" id="cardDisplaySettingsBtn" type="button" aria-label="Card display settings" title="Card display settings" aria-expanded="false" aria-controls="cardDisplayMenu"><svg class="icon" aria-hidden="true"><use href="#i-settings"></use></svg></button>
+              <div class="filter-menu card-display-menu" id="cardDisplayMenu" hidden>
+                <h2>Card display</h2>
+                <label class="filter-option"><input id="showCardImages" type="checkbox" /> Show image previews</label>
+              </div>
+            </div>
+            <div class="board-status" role="group" aria-label="All cards on this board, before filters">
+              <div class="summary-overview">
+                <h2><span id="statTotal">12</span> cards</h2>
+                <span class="sr-only"><span id="statOpen">6</span> open · <span id="statDone">6</span> completed</span>
+              </div>
+              <div class="distribution" id="distribution" role="group" aria-label="Cards by column"></div>
+              <div class="summary-health">
+                <span class="summary-note is-overdue" id="overdueNote" role="img" tabindex="0" aria-label="1 overdue card" title="1 overdue card"><svg class="icon" aria-hidden="true"><use href="#i-clock-alert"></use></svg><span id="statOverdue">1</span></span>
+                <span class="summary-note" id="soonNote" role="img" tabindex="0" aria-label="3 cards due in 7 days" title="3 cards due in 7 days"><svg class="icon" aria-hidden="true"><use href="#i-calendar-clock"></use></svg><span id="statSoon">3</span></span>
+              </div>
+              <div class="dist-legend" id="distLegend" hidden></div>
+            </div>
             <span class="filter-hint" id="filterHint">
               <svg class="icon icon-sm" aria-hidden="true"><use href="#i-move"></use></svg>
-              Filters on — use Move instead of drag
+              Use Move
             </span>
             <span class="result-note" id="resultNote" aria-live="polite"></span>
           </div>
         </section>
 
         <section class="board" id="board" aria-label="Website Kanban board"></section>
+        <p class="board-scroll-hint" aria-hidden="true">Swipe to browse columns</p>
 
         <footer class="board-foot">
           <span class="foot-role" id="footRole">Owner · full project access</span>
           <span class="sep" aria-hidden="true"></span>
-          <span>Drag cards, or use Move for keyboard and filtered views</span>
-          <span class="sep" aria-hidden="true"></span>
-          <span>Design-only prototype · synthetic data · no API</span>
+          <span id="boardInteractionHint">Drag cards, or use Move for keyboard and filtered views</span>
         </footer>
       </main>
     </div>
@@ -264,7 +255,7 @@
       <div class="drawer-crumb">
         <strong id="drawerKey">WEB-101</strong>
         <span class="sep">/</span>
-        <span>Website Kanban</span>
+        <span id="drawerBoardName">Website Kanban</span>
       </div>
       <div class="drawer-head-actions">
         <button class="btn ghost sm" id="drawerMoveBtn" type="button" aria-label="Move card">
@@ -464,13 +455,20 @@
           <span class="field-error" id="columnNameError" hidden>Enter a column name.</span>
         </div>
         <div class="dialog-field">
-          <span class="field-label">Accent</span>
-          <div class="color-options" id="colorOptions" role="radiogroup" aria-label="Column accent">
-            <button class="color-swatch" type="button" data-tone="backlog" aria-label="Stone" role="radio" aria-checked="true"><i class="swatch-backlog"></i></button>
-            <button class="color-swatch" type="button" data-tone="progress" aria-label="Blue" role="radio" aria-checked="false"><i class="swatch-progress"></i></button>
-            <button class="color-swatch" type="button" data-tone="testing" aria-label="Amber" role="radio" aria-checked="false"><i class="swatch-testing"></i></button>
-            <button class="color-swatch" type="button" data-tone="completed" aria-label="Green" role="radio" aria-checked="false"><i class="swatch-completed"></i></button>
+          <span class="field-label">Pastel color</span>
+          <div class="color-options" id="colorOptions" role="radiogroup" aria-label="Pastel column colors">
+            <button class="color-swatch pastel-choice" type="button" data-tone="backlog" data-tooltip="Lavender pastel" aria-label="Lavender" role="radio" aria-checked="true" tabindex="0"><i class="swatch-backlog" aria-hidden="true"></i><span class="swatch-label">Lavender</span></button>
+            <button class="color-swatch pastel-choice" type="button" data-tone="progress" data-tooltip="Ice blue pastel" aria-label="Ice blue" role="radio" aria-checked="false" tabindex="-1"><i class="swatch-progress" aria-hidden="true"></i><span class="swatch-label">Ice blue</span></button>
+            <button class="color-swatch pastel-choice" type="button" data-tone="testing" data-tooltip="Cool grey pastel" aria-label="Grey" role="radio" aria-checked="false" tabindex="-1"><i class="swatch-testing" aria-hidden="true"></i><span class="swatch-label">Grey</span></button>
+            <button class="color-swatch pastel-choice" type="button" data-tone="completed" data-tooltip="Pastel green" aria-label="Green" role="radio" aria-checked="false" tabindex="-1"><i class="swatch-completed" aria-hidden="true"></i><span class="swatch-label">Green</span></button>
+            <button class="color-swatch pastel-choice" type="button" data-tone="blocked" data-tooltip="Soft coral pastel" aria-label="Coral" role="radio" aria-checked="false" tabindex="-1"><i class="swatch-blocked" aria-hidden="true"></i><span class="swatch-label">Coral</span></button>
+            <button class="color-swatch pastel-choice" type="button" data-tone="rose" data-tooltip="Rose pastel" aria-label="Rose" role="radio" aria-checked="false" tabindex="-1"><i class="swatch-rose" aria-hidden="true"></i><span class="swatch-label">Rose</span></button>
+            <button class="color-swatch pastel-choice" type="button" data-tone="mint" data-tooltip="Mint pastel" aria-label="Mint" role="radio" aria-checked="false" tabindex="-1"><i class="swatch-mint" aria-hidden="true"></i><span class="swatch-label">Mint</span></button>
+            <button class="color-swatch pastel-choice" type="button" data-tone="peach" data-tooltip="Peach pastel" aria-label="Peach" role="radio" aria-checked="false" tabindex="-1"><i class="swatch-peach" aria-hidden="true"></i><span class="swatch-label">Peach</span></button>
+            <button class="color-swatch pastel-choice" type="button" data-tone="butter" data-tooltip="Butter pastel" aria-label="Butter" role="radio" aria-checked="false" tabindex="-1"><i class="swatch-butter" aria-hidden="true"></i><span class="swatch-label">Butter</span></button>
+            <button class="color-swatch pastel-choice" type="button" data-tone="iris" data-tooltip="Lilac pastel" aria-label="Lilac" role="radio" aria-checked="false" tabindex="-1"><i class="swatch-iris" aria-hidden="true"></i><span class="swatch-label">Lilac</span></button>
           </div>
+          <span class="field-error" id="columnColorError" hidden>Choose one of the pastel colors.</span>
         </div>
         <div class="settings-preview" id="settingsPreview">
           <span class="column-dot"></span>
@@ -527,7 +525,7 @@
         </div>
         <p class="hint">
           <svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg>
-          Prototype only: no email is sent and no access is granted. Invitations are a backend-gated feature.
+          Invitations are not active here. No email is sent and no project access is granted.
         </p>
       </div>
       <footer class="dialog-foot">
@@ -563,6 +561,11 @@
   <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
     <defs>
       <symbol id="i-board" viewBox="0 0 24 24"><rect x="3.5" y="4" width="17" height="16" rx="2.5"/><path d="M9.5 4v16M15 4v9"/></symbol>
+      <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 6h.01M4 12h.01M4 18h.01" stroke-width="3"/></symbol>
+      <symbol id="i-maximize" viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M21 16v5h-5M8 21H3v-5"/></symbol>
+      <symbol id="i-minimize" viewBox="0 0 24 24"><path d="M3 8h5V3M21 8h-5V3M16 21v-5h5M3 16h5v5"/></symbol>
+      <symbol id="i-clock-alert" viewBox="0 0 24 24"><path d="M20.4 14A8.5 8.5 0 1 1 16 4.5"/><path d="M11 7v5l3 2M20 3v5M20 11v.01"/></symbol>
+      <symbol id="i-calendar-clock" viewBox="0 0 24 24"><path d="M19 9V6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5M7 2v4M15 2v4M3 9h16"/><circle cx="17" cy="17" r="4.5"/><path d="M17 14.5V17l1.5 1"/></symbol>
       <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3.5 7.5A2.5 2.5 0 0 1 6 5h3l2 2h7a2.5 2.5 0 0 1 2.5 2.5v7A2.5 2.5 0 0 1 18 19H6a2.5 2.5 0 0 1-2.5-2.5z"/></symbol>
       <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M4 13.5 6.5 5h11L20 13.5V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><path d="M4 13.5h4l1.5 2.5h5l1.5-2.5h4"/></symbol>
       <symbol id="i-activity" viewBox="0 0 24 24"><path d="M3 12h4l2.2-5.5 3.6 11L15 12h6"/></symbol>
@@ -602,9 +605,17 @@
   </svg>
 
   <script src="data.js"></script>
+  <script src="screens/data.js"></script>
+  <script src="board-bridge.js"></script>
+  <script src="screens/portfolio-model.js"></script>
+  <script src="board-context.js"></script>
   <script src="board.js"></script>
   <script src="dialogs.js"></script>
+  <script src="image-compression.js"></script>
   <script src="detail.js"></script>
   <script src="discussion.js"></script>
+  <script src="workspace.js"></script>
+  <div id="boardHoverTip" role="tooltip" hidden></div>
+  <script src="board-interactions.js"></script>
 </body>
 </html>

@@ -1,0 +1,35 @@
+$ npm run typecheck
+
+
+> typecheck
+> tsc --noEmit
+
+
+exitCode: 0
+
+$ WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts
+▶ CRD-01 through CRD-11: Card Lifecycle, Movement, OCC & Discovery Suite
+  ✔ CRD-01: Quick creation, permissions, position ranks & board structure version (85.17025ms)
+  ✔ CRD-02: Compact CardSummary representation and lightweight payload (6.586167ms)
+  ✔ CRD-03: Card detail entity, independent authorization & assignees PersonDisplay (7.247916ms)
+  ✔ CRD-04: Title & description bounds, OCC conflict (409 STALE_VERSION) (16.037041ms)
+  ✔ CRD-05: Priority & Gregorian calendar date validation (leap years & month bounds) (11.458291ms)
+  ✔ CRD-06: Assign active teammates, reject sibling/outsider/removed, max 20 limit (36.359333ms)
+  ✔ CRD-07: Card movement, relative neighbor ranking, empty column, dual OCC (30.791333ms)
+  ✔ CRD-08 & CRD-09: Placement query for first, last, before, after and movingCard exclusion (8.817ms)
+  ✔ CRD-10: Concurrent edit conflict & concurrent move conflict error envelopes (7.422167ms)
+  ✔ CRD-11: Mandatory Idempotency-Key, exact replay, conflict detection & 422 error details (12.055667ms)
+  ✔ Discovery: Search project cards & My Tasks assigned view (14.894125ms)
+  ✔ CRD-11: Receipt replay rechecks current role and stores only a minimal outcome (8.124708ms)
+  ✔ CRD-11: Parallel same-key creates commit one card and replay its identifier (8.634542ms)
+✔ CRD-01 through CRD-11: Card Lifecycle, Movement, OCC & Discovery Suite (257.656167ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 417.710209
+
+exitCode: 0

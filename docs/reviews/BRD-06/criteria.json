@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "BRD-06"
+  ],
+  "mandatoryCriteria": [
+    "Remove empty column: DELETE /api/v1/boards/:boardId/columns/:columnId succeeds when column contains no cards",
+    "Reject final column deletion: Rejects deletion if board has only 1 column remaining with 400 FINAL_COLUMN_CANNOT_BE_DELETED",
+    "Reject column with active cards: Rejects deletion with 400 or 409 if column contains active cards; no silent cascade",
+    "Reject column with restorable cards: Rejects deletion or flags blocked restore if column contains trashed cards within 24h restore window"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "brd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Safe empty column deletion with reference guards."
+}

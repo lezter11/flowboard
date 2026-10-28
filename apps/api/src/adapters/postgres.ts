@@ -11,13 +11,14 @@ let globalPool: pg.Pool | null = null;
 export const poolStorage = new AsyncLocalStorage<pg.Pool>();
 
 export function createPool(connectionString: string, maxConnections = 4): pg.Pool {
+  const isLocal = connectionString.includes('127.0.0.1') || connectionString.includes('localhost');
   const pool = new pg.Pool({
     connectionString,
     max: maxConnections,
-    connectionTimeoutMillis: 2_000,
-    idleTimeoutMillis: 5_000,
-    statement_timeout: 3_000,
-    query_timeout: 4_000,
+    connectionTimeoutMillis: isLocal ? 2_000 : 10_000,
+    idleTimeoutMillis: 10_000,
+    statement_timeout: isLocal ? 3_000 : 15_000,
+    query_timeout: isLocal ? 4_000 : 15_000,
     application_name: 'flowboard-api',
   });
   pool.on('error', () => console.error('Idle PostgreSQL connection failed'));

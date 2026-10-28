@@ -1,0 +1,48 @@
+Flowboard Projects redesign — review checks
+Date: 27 October 2026
+Source manifest: projects-redesign-2026-10-27-manifest.json (18 files; all SHA-256 verified against the reviewed source)
+
+STATIC
+- node --check: 17 JavaScript files, including portfolio-model.js, projects.js, project.js, all-work.js and screens.js. Pass.
+- HTML unique IDs: projects.html 27, project.html 55, all-work.html 25, screens/index.html 10. No duplicates.
+- Local href/src assets resolve for all four pages; no missing files.
+- CSS brace balance: projects-hub.css 378/378, all-work.css 141/141, screens.css 689/689, styles.css 375/375.
+- Palette audit: only the six approved tokens are declared; --ph-plum-ink removed; tone-slate maps to plum (#715087 light, #e4c9f0 dark).
+- Documentation: readiness source line links resolve; reference note no longer says board access inherits from the project; hub reads 13 screens / 14 cards; README reload copy matches sessionStorage behavior.
+
+RENDERED (headless Chromium via CDP)
+- Role cycle on all-work.html?project=my-fashion, Owner -> Manager -> Member -> Viewer -> Owner -> Manager:
+  card totals 10 / 4 / 7 / 3 / 10 / 4; branch counts match totals; Operations and fashion-operations absent from
+  visible text, DOM and project options for every non-owner; 0 console errors.
+- B1 stale board strip: fixed; the strip rebuilds when the authorized board-id set changes.
+- B2 hidden DOM after role switch, all five paths:
+  card preview (source/title/signals/hrefs cleared), people reach (peopleList emptied), access editor
+  (members/title/subtitle/error cleared), new-board editor (members/name/description/error cleared),
+  denied project (boards, people, access, banner, actions, title, description, path, root node, glance,
+  work links and breadcrumb cleared). Switching back to Owner restores the current project.
+- Create board with initial grants: "Launch QA" with Charlie -> 2 members; Manager sees Web + Launch QA;
+  Viewer sees Marketing only. Owner remains implicit and locked.
+- Grant revoke/restore: revoking David on Web changes 3 -> 2 members and Member sees Marketing only;
+  restoring returns 3 and both boards.
+- Archived project: New board and the access editor are hidden; list-view Reopen is a 32x32 icon at 390px;
+  reopen restores editing.
+- Width sweep on project.html?project=my-fashion at 390/481/500/560/600/620/680/720/760/800/1024/1440:
+  scrollWidth === clientWidth at every width. No horizontal overflow.
+- Dialogs at 390px: new board 366x743, access 366x500, card 366x329; all inside the viewport.
+- 390px list view: archive/reopen icon visible (32x32, aria-label present); board chips are links.
+- Project work board-denied deep link: "This board is unavailable...", totals hidden, strip lists only
+  authorized boards; project-denied deep link: "Work unavailable" with no data.
+- Fonts: Inter loaded on the three project pages and the hub; document.fonts.check("16px Inter") true.
+  The approved board is intentionally untouched.
+- Toasts: an old "Access updated for Operations" toast is cleared on role switch; the new role announcement
+  remains. No hidden-board name survives in #toasts.
+- Session storage: demo project/board/grant edits survive reload under flowboard-portfolio-demo-v2;
+  closing the tab resets them.
+
+LIMITS
+- No API, database, authentication or server-side authorization is exercised. All access is synthetic
+  session state; these checks say nothing about backend enforcement.
+- Chromium-only; no Safari/Firefox, screen reader, 200% zoom, forced-colors or text-scaling pass.
+- Load-more is unreachable with the 10-card fixture; the limit URL state is verified through the handler.
+- Inter depends on Google Fonts at runtime; offline rendering falls back.
+- The approved board and sign-in artifacts were preserved; this review covers the Projects screens only.

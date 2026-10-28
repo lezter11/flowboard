@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "ACC-04"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/ACC-04/criteria.json",
+  "startedAt": "2026-10-26T05:30:00Z",
+  "completedAt": "2026-10-26T05:35:00Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "7e44e3cf-29d2-4f7d-ba58-a053cdb570fc",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "263f7d31-5f0e-47eb-a161-7e0ed9504854",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/ACC-04/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/ACC-04/criteria.json",
+      "docs/reviews/ACC-04/reviewer-session.md",
+      "docs/reviews/ACC-04/test.log",
+      "apps/api/src/adapters/idempotency.ts",
+      "apps/api/src/http/routes/workspaces.ts",
+      "apps/api/src/http/middleware/auth.ts",
+      "apps/api/src/adapters/session.ts",
+      "apps/api/test/acc04-workspaces.test.ts"
+    ],
+    "files": {
+      "docs/reviews/ACC-04/criteria.json": "cb3e94876bbc05f725df352e73ad1cd171a50451d6e6e446e2f678a567a92568",
+      "docs/reviews/ACC-04/reviewer-session.md": "ce8ee68f9a5fe475c3b61a46405e5540fd09fda2faca33fa94026163810ace1f",
+      "docs/reviews/ACC-04/test.log": "5611f032ff977f2d9b18ee2b547ddd042706c3d80e9446874a74cb1ac315d73e",
+      "apps/api/src/adapters/idempotency.ts": "86408f3959a81d1c3f3e1f917a53d6f47e85a4c14c645588d69c01c8d0bf9e22",
+      "apps/api/src/http/routes/workspaces.ts": "65610bb078fe13624802e4a43e2da8ea73bb656e263d421cd04611b483b7bf1f",
+      "apps/api/src/http/middleware/auth.ts": "72c7985ceba0e2b4fdfe5890d8d3aa3129dfd837e80891607b386b89cd195740",
+      "apps/api/src/adapters/session.ts": "929ec47d18980b30ccbc5ce4ba1cdf63244ffc597060f32d9300d7bedd17349c",
+      "apps/api/test/acc04-workspaces.test.ts": "011ff802e72d70e647374bf1c8aa294e92d879a5ef354e49ee4880841e6c8ad6"
+    },
+    "digest": "42e579865045839ef2753c46530d81dd529f3ac96b4da42b86b21b634566ef75"
+  },
+  "criteriaResults": {
+    "Single-owner workspace atomicity: Creating a workspace atomically sets owner_id = actor.id in PostgreSQL transaction": "pass",
+    "Mandatory Idempotency-Key: POST /api/v1/workspaces requires valid Idempotency-Key (16-128 ASCII chars), rejecting missing/invalid with 400 IDEMPOTENCY_KEY_REQUIRED": "pass",
+    "Idempotency replay: Subsequent identical request returns HTTP 201 with replayed: true and exact identical response payload without duplicate workspace creation": "pass",
+    "Idempotency conflict: Duplicate key with divergent payload returns HTTP 409 IDEMPOTENCY_CONFLICT": "pass",
+    "Concurrent duplicate-key safety: Parallel identical requests handle ON CONFLICT gracefully without 500 error": "pass",
+    "Receipt expiration: Expired idempotency receipts (expires_at <= NOW()) allow clean reuse of the key for a fresh mutation": "pass",
+    "Authentication enforcement: Unauthenticated requests return HTTP 401 UNAUTHORIZED": "pass",
+    "Input validation: Invalid timezone or empty workspace name returns HTTP 422 VALIDATION_ERROR with structured issues": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "42e579865045839ef2753c46530d81dd529f3ac96b4da42b86b21b634566ef75",
+      "evidencePath": "docs/reviews/ACC-04/test.log"
+    },
+    {
+      "id": "acc04-workspaces-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/acc04-workspaces.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "42e579865045839ef2753c46530d81dd529f3ac96b4da42b86b21b634566ef75",
+      "evidencePath": "docs/reviews/ACC-04/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.6",
+      "reason": "Authentication required on all workspace endpoints; single-owner assignment guarantees no workspace created without an owner; idempotency keys scoped by actor_id prevents cross-tenant replay collision attacks.",
+      "evidencePaths": [
+        "docs/reviews/ACC-04/reviewer-session.md",
+        "docs/reviews/ACC-04/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.8",
+      "reason": "Strict enforcement of docs/API.md v0.3; clean 201 Created (with replayed: false or true), 400 IDEMPOTENCY_KEY_REQUIRED, 401 UNAUTHORIZED, 409 IDEMPOTENCY_CONFLICT, and 422 VALIDATION_ERROR responses; canonical JSON serialization with sorted keys guarantees deterministic body hashes.",
+      "evidencePaths": [
+        "docs/reviews/ACC-04/reviewer-session.md",
+        "docs/reviews/ACC-04/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Full transactional atomicity (BEGIN ... COMMIT); parallel concurrent requests tested with Promise.all and direct multi-client saveReceipt races; no duplicate workspaces and no 500 unique violation errors.",
+      "evidencePaths": [
+        "docs/reviews/ACC-04/reviewer-session.md",
+        "docs/reviews/ACC-04/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Comprehensive 11-test suite with real PostgreSQL database; covers validation, unauthenticated calls, happy-path creation, exact replays, body conflicts, concurrent racing clients, and expired receipt key reuse.",
+      "evidencePaths": [
+        "docs/reviews/ACC-04/reviewer-session.md",
+        "docs/reviews/ACC-04/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.4",
+      "reason": "Clean separation between workspace routes and idempotency adapter; reusable across all mutating endpoints (projects, cards, etc.); fully typed with TypeScript strict mode.",
+      "evidencePaths": [
+        "docs/reviews/ACC-04/reviewer-session.md",
+        "docs/reviews/ACC-04/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.2",
+      "reason": "7-day TTL on receipts with clean index-backed queries; graceful transaction rollbacks on conflicts and replays prevent resource leaks and database bloat.",
+      "evidencePaths": [
+        "docs/reviews/ACC-04/reviewer-session.md",
+        "docs/reviews/ACC-04/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.64",
+  "findings": [
+    {
+      "id": "ACC-04-F01",
+      "severity": "info",
+      "description": "Background worker cleanup job for expired idempotency receipts is scheduled for future background task as noted in frozen criteria scope.",
+      "disposition": "resolved",
+      "rationale": "Explicitly declared in frozen criteria scopeAndExclusions; transactional inline expiration handling on insert allows expired keys to be reused immediately.",
+      "mandatory": false,
+      "blocking": false
+    }
+  ],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

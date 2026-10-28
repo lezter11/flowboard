@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BRD-06/e9c6ca4bb4954af8ad78d0ca4fb1153cf5b2dd66f50f891f703857843bd3e1c7-round-1.json",
+  "summary": "BRD-06 Column deletion guards: implemented DELETE /api/v1/boards/:boardId/columns/:columnId for removing empty columns with manager/owner authorization and OCC, protecting against final column deletion (400 FINAL_COLUMN_CANNOT_BE_DELETED), rejecting deletion of columns with active cards (409 COLUMN_HAS_ACTIVE_CARDS), rejecting deletion of columns with restorable trashed cards within the 24-hour restore window (409 COLUMN_HAS_RESTORABLE_CARDS), and atomically recompacting remaining column positions to 0..N-1. Audited and passed with weighted score 9.46/10.",
+  "api_contract": "docs/API.md v0.3",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-06/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "result": "All 16 tests passed. Review score > 8.5."
+    }
+  ]
+}

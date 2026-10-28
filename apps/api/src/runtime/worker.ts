@@ -1,9 +1,12 @@
 import { createPool, queryDatabase } from '../adapters/postgres.ts';
 import { createApp } from '../http/app.ts';
+import { purgeExpiredTrash } from '../services/trash-purge.ts';
+import { processOutboxLease } from '../adapters/notifications.ts';
 
 export type WorkerBindings = {
   HYPERDRIVE: { connectionString: string };
   DATABASE_URL?: string;
+  CURSOR_SECRET?: string;
 };
 
 export default {
@@ -24,9 +27,21 @@ export default {
     }
 
     const pool = createPool(connectionString, 1);
-    const app = createApp(() => queryDatabase(pool), { pool });
+    const app = createApp(() => queryDatabase(pool), { pool, deadlineMs: 25_000 });
     try {
       return await app.fetch(request, env);
+    } finally {
+      await pool.end();
+    }
+  },
+
+  async scheduled(_event: unknown, env: WorkerBindings): Promise<void> {
+    const connectionString = env.HYPERDRIVE?.connectionString ?? env.DATABASE_URL;
+    if (!connectionString) return;
+    const pool = createPool(connectionString, 1);
+    try {
+      await purgeExpiredTrash(pool);
+      await processOutboxLease(pool);
     } finally {
       await pool.end();
     }

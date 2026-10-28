@@ -1,0 +1,25 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ACC-03"
+  ],
+  "mandatoryCriteria": [
+    "Profile update endpoint: PATCH /api/v1/session/profile updates displayName and avatarUrl",
+    "Input validation: Rejects empty strings and enforces URL format on avatarUrl",
+    "Historical attribution persistence: Prior activity and comments retain actor attribution after membership is removed",
+    "Account privacy: PersonDisplay projection strictly excludes email, password_hash, or secret account fields"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "acc-lifecycle-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/acc-lifecycle.test.ts"
+  },
+  "minimumWeightedScore": "8.500",
+  "categoryMinimums": {
+    "security": "8.0",
+    "correctness": "8.0",
+    "integrity": "8.0",
+    "tests": "8.0",
+    "maintainability": "7.5",
+    "operations": "7.0"
+  }
+}

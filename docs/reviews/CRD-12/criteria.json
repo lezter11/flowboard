@@ -1,0 +1,25 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-12"
+  ],
+  "mandatoryCriteria": [
+    "Authorized versioned move: Undo executes a new move back to the previous column with position rank recalculation",
+    "Activity log provenance: Prior destination is accurately derived from latest card_moved activity fact",
+    "OCC conflict prevention: If card was modified in the interim, undo fails with 409 STALE_VERSION",
+    "Single execution and idempotency: Undo succeeds once, increments card version, and retries return replayed: true"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "lifecycle-undo-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/lifecycle-undo.test.ts"
+  },
+  "minimumWeightedScore": "8.500",
+  "categoryMinimums": {
+    "security": "8.0",
+    "correctness": "8.0",
+    "integrity": "8.0",
+    "tests": "8.0",
+    "maintainability": "7.5",
+    "operations": "7.0"
+  }
+}

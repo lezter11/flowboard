@@ -1,0 +1,20 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/IMP-09/c84420d224b61cec96c30134e59aee671520d45787f284d5a25b8bf033bcff1c-round-1.json",
+  "summary": "IMP-09 Results and safe error download verified. Generates downloadable CSV report of import row outcomes and errors; neutralizes formula injection characters (=, +, -, @) by prefixing with single quote; links created card IDs; isolates reports to granted project members. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "GET /api/v1/imports/:importId/report (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/IMP-09/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts",
+      "result": "All 13 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant (Owner or Project Manager).",
+    "Accepts supported macro-free XLSX only (<= 5 MiB compressed, <= 20 MiB expanded XML, <= 200 non-empty rows).",
+    "Formulas, external package links, macros, and XXE declarations strictly disallowed.",
+    "Atomic all-or-nothing confirmation: any row validation failure rolls back the entire batch."
+  ]
+}

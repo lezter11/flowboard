@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "CRD-12"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/CRD-12/criteria.json",
+  "startedAt": "2026-10-26T13:17:19.366692+00:00",
+  "completedAt": "2026-10-26T13:17:19.366692+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2630ea55-89d4-4c26-bc1e-b56f5555b3c5",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "6a12bd24-7baf-4cac-99fe-0f396b9bb499",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/CRD-12/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/CRD-12/criteria.json",
+      "docs/reviews/CRD-12/reviewer-session.md",
+      "docs/reviews/CRD-12/test.log",
+      "apps/api/src/adapters/projects.ts",
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/adapters/cards.ts",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/http/routes/projects.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/src/http/routes/cards.ts",
+      "apps/api/test/lifecycle-undo.test.ts"
+    ],
+    "files": {
+      "docs/reviews/CRD-12/criteria.json": "d38469d5e0bd175ad8e2943d060494b3c598f5422a34703398d8c3f75e8aeca2",
+      "docs/reviews/CRD-12/reviewer-session.md": "8256c83d0e64cbba262fef565d93afb2d86046d99d63b7423d1372e67a981e3a",
+      "docs/reviews/CRD-12/test.log": "d192079d1d53868bbed4b93d937c9751a9c59696765b518dd4917b4914174e7b",
+      "apps/api/src/adapters/projects.ts": "feb511c3472233c2bdcb86fcc5e69e500c280c84420d291d0c90b3648445a79a",
+      "apps/api/src/adapters/boards.ts": "1128d2681207df3b5d9bc55c04463202dfb3bee3bdcf3f8bc3a7a47343ad12a8",
+      "apps/api/src/adapters/cards.ts": "e8787b4a363ed49ab80f4f490f12c635c1d06c4a5772759075d728a65a2ad0c4",
+      "apps/api/src/adapters/rbac.ts": "0de89f07e4ad44ba8a158977366e2d647efdbfec524f623bb1fb6707e45b81b4",
+      "apps/api/src/http/routes/projects.ts": "c68090ea532667fd8180c85341b4f0002264e5a307402ca20a5c030813e0f638",
+      "apps/api/src/http/routes/boards.ts": "ef5ed5febd3c283c1a385696a7ec2cfaed2b898174697ca5d73a08a98f38899d",
+      "apps/api/src/http/routes/cards.ts": "b6fdce28f8bd175ad4dee738e074b71c591a4607d12ef8b59d83a645f9f42661",
+      "apps/api/test/lifecycle-undo.test.ts": "a823e642ea950ff3df23eeccb418d019c779397a2935a2b20c2f0fea820ec74a"
+    },
+    "digest": "f54914e8db0111b924dca509a813ea63edbb1c9c87f4fb1535754bd026a1ba2a"
+  },
+  "criteriaResults": {
+    "Authorized versioned move: Undo executes a new move back to the previous column with position rank recalculation": "pass",
+    "Activity log provenance: Prior destination is accurately derived from latest card_moved activity fact": "pass",
+    "OCC conflict prevention: If card was modified in the interim, undo fails with 409 STALE_VERSION": "pass",
+    "Single execution and idempotency: Undo succeeds once, increments card version, and retries return replayed: true": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "node v20.x, typescript 5.x",
+      "isolatedSynthetic": true,
+      "targetDigest": "f54914e8db0111b924dca509a813ea63edbb1c9c87f4fb1535754bd026a1ba2a",
+      "evidencePath": "docs/reviews/CRD-12/test.log"
+    },
+    {
+      "id": "lifecycle-undo-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/lifecycle-undo.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "f54914e8db0111b924dca509a813ea63edbb1c9c87f4fb1535754bd026a1ba2a",
+      "evidencePath": "docs/reviews/CRD-12/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Requires active project member grant; writable project context lock enforces non-archived status.",
+      "evidencePaths": [
+        "docs/reviews/CRD-12/reviewer-session.md",
+        "docs/reviews/CRD-12/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Exact OCC version checking prevents lost updates; accurately restores previous column; idempotency support.",
+      "evidencePaths": [
+        "docs/reviews/CRD-12/reviewer-session.md",
+        "docs/reviews/CRD-12/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Move undo writes a new card_moved activity fact, maintaining an unbroken chronological audit trail.",
+      "evidencePaths": [
+        "docs/reviews/CRD-12/reviewer-session.md",
+        "docs/reviews/CRD-12/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Integration test validates move, undo reversal, version increment, idempotency replay, and stale version conflict.",
+      "evidencePaths": [
+        "docs/reviews/CRD-12/reviewer-session.md",
+        "docs/reviews/CRD-12/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Reuses centralized moveCard adapter logic and activity_log provenance.",
+      "evidencePaths": [
+        "docs/reviews/CRD-12/reviewer-session.md",
+        "docs/reviews/CRD-12/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "Indexed lookup on activity_log(card_id, created_at DESC).",
+      "evidencePaths": [
+        "docs/reviews/CRD-12/reviewer-session.md",
+        "docs/reviews/CRD-12/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

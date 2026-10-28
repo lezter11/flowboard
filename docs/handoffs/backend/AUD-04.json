@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/AUD-04/2d1f91089d9bf214910ffa0c450436a1b0618df7457afeea073fc6fea0bc43f3-round-1.json",
+  "summary": "AUD-04 Manager and member audit scopes verified. Implemented project-wide audit endpoint accessible only to project managers and workspace owners, while restricting members and viewers to card-level activity only. Audited with unrounded score 9.620/10.0.",
+  "api_contract": "GET /api/v1/projects/:projectId/activity (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/AUD-04/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Activity logs are append-only; retention redaction scrubs sensitive content without deleting facts.",
+    "Outbox processor uses exponential backoff and dead-letter quarantine after maxRetries."
+  ]
+}

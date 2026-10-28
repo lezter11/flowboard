@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BRD-07/42a925c6c6240050bbb6eabae1f2fbed2636ec1c6ca6f97e6ff7961784421869-round-1.json",
+  "summary": "BRD-07 Paginated cards with filter resumption: implemented GET /api/v1/boards/:boardId/cards with multi-dimension filtering (columnId, title substring, priority, assigneeId, dueDate), deterministic ordering by (position ASC, id ASC), opaque cursor-based pagination with nextCursor for gapless resumption, and bounded page sizes (max 100). Audited and passed with weighted score 9.425/10.",
+  "api_contract": "docs/API.md v0.3",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-07/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "result": "All 16 tests passed. Review score > 8.5."
+    }
+  ]
+}

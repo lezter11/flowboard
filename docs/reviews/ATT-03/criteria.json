@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ATT-03"
+  ],
+  "mandatoryCriteria": [
+    "Gallery query authorization: Workspace owner, project manager, member, and viewer can view finalized card images; ungranted users receive 404 NOT_FOUND",
+    "Finalized filter: GET /api/v1/cards/:cardId/images returns only finalized images; pending, staged, failed, or cancelled uploads are strictly excluded",
+    "Gallery item metadata: Each image item includes id, cardId, filename, byteLength, contentType, width, height, createdAt, contentUrl, and thumbnailUrl",
+    "Badge count consistency: CardSummary imageCount and Card detail imageCount match the exact count of finalized attachments"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "att-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: ATT-03 private image and card attachment handling on PostgreSQL. Out-of-scope: UI components."
+}

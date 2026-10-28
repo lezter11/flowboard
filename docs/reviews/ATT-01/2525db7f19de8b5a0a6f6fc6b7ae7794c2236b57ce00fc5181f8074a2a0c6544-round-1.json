@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "ATT-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/ATT-01/criteria.json",
+  "startedAt": "2026-10-26T10:06:25.462932+00:00",
+  "completedAt": "2026-10-26T10:06:25.462932+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "ad772234-4182-46fa-ae45-ae96061b197d",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "1c7b9629-326a-4cf8-aad0-15495025a9dc",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/ATT-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/ATT-01/criteria.json",
+      "docs/reviews/ATT-01/reviewer-session.md",
+      "docs/reviews/ATT-01/test.log",
+      "apps/api/src/adapters/images.ts",
+      "apps/api/src/adapters/storage.ts",
+      "apps/api/src/services/image-validator.ts",
+      "apps/api/src/http/routes/images.ts",
+      "apps/api/src/services/trash-purge.ts",
+      "apps/api/test/att01-att07.test.ts",
+      "database/migrations/0005_card_images.sql",
+      "packages/contracts/src/images.ts"
+    ],
+    "files": {
+      "docs/reviews/ATT-01/criteria.json": "1f4c4d4d3338167871964d523dbf7b08d76d6728799d29a8ffe2a1ab4a819b23",
+      "docs/reviews/ATT-01/reviewer-session.md": "e8ccc9c9548e44529f930cdc38abf60baa27e515403bf5925b097eae8d6e7bd3",
+      "docs/reviews/ATT-01/test.log": "b7145fea259eb4e672d3c28feb7005fffdc454c986356eaa7379b63d0e405a88",
+      "apps/api/src/adapters/images.ts": "a53c89f3b7287b22e1be1a8d31a3b5109c46582c3759b3b23563b82a621c44dd",
+      "apps/api/src/adapters/storage.ts": "53fc6ce9c28cd158c33336890b643e734c645d6121bf8e6aea3523618bfe19d1",
+      "apps/api/src/services/image-validator.ts": "458a795af04c6e3a2a13274eb39dc7f84721cc409d352fec52ffd972a77d6d8a",
+      "apps/api/src/http/routes/images.ts": "90bbdf782aee0e40c30fbb04c4b74dd8781c55bd1a7ae7120badeee23407f822",
+      "apps/api/src/services/trash-purge.ts": "9712ebd02d48b1bbec6eb812cf8867e256d43813f902955b121967c90ad892b0",
+      "apps/api/test/att01-att07.test.ts": "624b0135ae8cc22d5110befd6b623e79bf59defba08af5448feb841aa154bba4",
+      "database/migrations/0005_card_images.sql": "983a46376d7fb68243629deff8b5230835a6f1b98268870badb81f6a26b80546",
+      "packages/contracts/src/images.ts": "10d1c52aa7469d0002e145a433fd9836802e46751e6fa8eeab601d2126c67d21"
+    },
+    "digest": "2525db7f19de8b5a0a6f6fc6b7ae7794c2236b57ce00fc5181f8074a2a0c6544"
+  },
+  "criteriaResults": {
+    "Authorized staging request: Workspace owner, project manager, or project member can request upload staging via POST /api/v1/cards/:cardId/image-uploads; viewers receive 403 FORBIDDEN and ungranted users receive 404 NOT_FOUND": "pass",
+    "Sibling project isolation: Upload staging rejects attempts to attach files across sibling projects with 404 NOT_FOUND": "pass",
+    "File parameter validation: Enforces filename length <= 255, byte length <= 10 MiB (10485760 bytes), valid contentType ('image/png', 'image/jpeg', 'image/webp'), and valid sha256 64-hex string": "pass",
+    "Quota check before staging: Rejects staging with 422 IMAGE_LIMIT_EXCEEDED if card already has 10 finalized attachments": "pass",
+    "Staged record lifecycle: Creates card_image_uploads record with state='staged', expires_at set to 1 hour in future, and storage_key assigned": "pass",
+    "Staging inspection and cancellation: GET /api/v1/image-uploads/:uploadId returns upload state; DELETE /api/v1/image-uploads/:uploadId cancels staging before finalization": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "2525db7f19de8b5a0a6f6fc6b7ae7794c2236b57ce00fc5181f8074a2a0c6544",
+      "evidencePath": "docs/reviews/ATT-01/test.log"
+    },
+    {
+      "id": "att-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "2525db7f19de8b5a0a6f6fc6b7ae7794c2236b57ce00fc5181f8074a2a0c6544",
+      "evidencePath": "docs/reviews/ATT-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Acquires project write grant lock; validates member authority; blocks viewers with 403; returns 404 on sibling projects; isolates storage key under project/card namespace.",
+      "evidencePaths": [
+        "docs/reviews/ATT-01/reviewer-session.md",
+        "docs/reviews/ATT-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Generates UUID upload record with 1-hour expiration; state='staged'; enforces max 10 attachments per card before allocating upload slot.",
+      "evidencePaths": [
+        "docs/reviews/ATT-01/reviewer-session.md",
+        "docs/reviews/ATT-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Foreign key constraints link upload record to workspace, project, card, and user; staging inspection and cancellation prevent orphaned dangling states.",
+      "evidencePaths": [
+        "docs/reviews/ATT-01/reviewer-session.md",
+        "docs/reviews/ATT-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Comprehensive integration tests verify role checks, parameter bounds, quota rejection, staging inspection, and cancellation.",
+      "evidencePaths": [
+        "docs/reviews/ATT-01/reviewer-session.md",
+        "docs/reviews/ATT-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clean separation between contracts schema, images adapter, and HTTP routes.",
+      "evidencePaths": [
+        "docs/reviews/ATT-01/reviewer-session.md",
+        "docs/reviews/ATT-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "1-hour TTL on staged uploads and indexed state queries allow safe background cleanup of abandoned uploads.",
+      "evidencePaths": [
+        "docs/reviews/ATT-01/reviewer-session.md",
+        "docs/reviews/ATT-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

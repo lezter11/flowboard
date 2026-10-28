@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "IMP-03"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/IMP-03/criteria.json",
+  "startedAt": "2026-10-26T12:16:46.947070+00:00",
+  "completedAt": "2026-10-26T12:16:46.947070+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8523d3da-7482-4254-9365-1bea2b7a649d",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "f4c93a81-d102-47e9-b520-94e8a101b0f5",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/IMP-03/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/IMP-03/criteria.json",
+      "docs/reviews/IMP-03/reviewer-session.md",
+      "docs/reviews/IMP-03/test.log",
+      "apps/api/src/services/excel-parser.ts",
+      "apps/api/src/adapters/imports.ts",
+      "apps/api/src/http/routes/imports.ts",
+      "apps/api/test/imp01-imp06.test.ts",
+      "database/migrations/0001_initial.sql",
+      "database/migrations/0003_constraints.sql",
+      "packages/contracts/src/imports.ts"
+    ],
+    "files": {
+      "docs/reviews/IMP-03/criteria.json": "cc1531f21dfece81d9deeb26d170c53e267733995c24844ad7a66a5323dddb50",
+      "docs/reviews/IMP-03/reviewer-session.md": "5acd64b4c753c803c8e6c9163e4217d9bd4f1b213cf440cdafa0bd1507d9176e",
+      "docs/reviews/IMP-03/test.log": "9b8c55992a4635d8853061bc488985ade29b09279cccc53ebf8df7fd62202d26",
+      "apps/api/src/services/excel-parser.ts": "0a196b86761f519722e5dbc9b9a1c0d485cdd4d5b181bf05677a3f247642c462",
+      "apps/api/src/adapters/imports.ts": "b7c83eaa355616aa7dd049d14f829a932e96c56d581bd8b7ce9c07a42e78516c",
+      "apps/api/src/http/routes/imports.ts": "f6e7f87163adced7369a2a44055104435b6bdee7efcc2a8c0487a1ebf8163c89",
+      "apps/api/test/imp01-imp06.test.ts": "9a7a9af780e2e228de4308f507adb176107cdf7e8e957a1803dea4404360175d",
+      "database/migrations/0001_initial.sql": "31f1e2e889951dc35e1dd141b91c3a357ebee22043916d9c08b601b3c9d40293",
+      "database/migrations/0003_constraints.sql": "84278975a601c45573f61cfbf70a2018bc18e89b9f10c63132f94b6a0fc5ef97",
+      "packages/contracts/src/imports.ts": "7c086bbf6e0c5c4fbd6c4a0848b371f4bf3b08bbd38f7eac70b0c5feeafbca56"
+    },
+    "digest": "8d4b19ddcf9c1637994133016438157ff0de126eded8b868e0329a29e7898ccf"
+  },
+  "criteriaResults": {
+    "Pure TypeScript ZIP decompression: Decompresses valid XLSX containers using Node built-in zlib without third-party dependencies": "pass",
+    "Resource & size bounds: Enforces upload file size <= 5 MiB (5242880 bytes) and expanded XML content <= 20 MiB (20971520 bytes) to prevent ZIP bomb denial-of-service": "pass",
+    "Row limit enforcement: Enforces maximum 200 non-empty rows, rejecting workbooks with >200 non-empty rows with 422 ROW_LIMIT_EXCEEDED": "pass",
+    "Formula and macro rejection: Strictly rejects formulas (<f> elements) with 422 FORMULA_REJECTED and binary macro packages (.bin, vbaProject.bin) with 422 MACRO_OR_EXECUTABLE_REJECTED without evaluating expressions": "pass",
+    "External links, OLE and XXE defense: Strictly rejects external package references, embedded OLE objects, and XML External Entity (XXE) declarations": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "8d4b19ddcf9c1637994133016438157ff0de126eded8b868e0329a29e7898ccf",
+      "evidencePath": "docs/reviews/IMP-03/test.log"
+    },
+    {
+      "id": "imp-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "8d4b19ddcf9c1637994133016438157ff0de126eded8b868e0329a29e7898ccf",
+      "evidencePath": "docs/reviews/IMP-03/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Pure TypeScript parser with zero native C++ bindings; complete defense against formula injection, macro execution, XXE, and ZIP bombs.",
+      "evidencePaths": [
+        "docs/reviews/IMP-03/reviewer-session.md",
+        "docs/reviews/IMP-03/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Exact bounds: <= 5 MiB compressed, <= 20 MiB expanded, <= 200 rows; literal values read without expression evaluation.",
+      "evidencePaths": [
+        "docs/reviews/IMP-03/reviewer-session.md",
+        "docs/reviews/IMP-03/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Malformed or malicious packages rejected cleanly before touching the database.",
+      "evidencePaths": [
+        "docs/reviews/IMP-03/reviewer-session.md",
+        "docs/reviews/IMP-03/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Thorough tests verify formulas, macros, external links, OLE, XXE, 201-row limit, and corrupt files all return 422.",
+      "evidencePaths": [
+        "docs/reviews/IMP-03/reviewer-session.md",
+        "docs/reviews/IMP-03/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Self-contained excel-parser.ts with clean separation of ZIP extraction, XML scanning, and row parsing.",
+      "evidencePaths": [
+        "docs/reviews/IMP-03/reviewer-session.md",
+        "docs/reviews/IMP-03/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Bounded memory consumption prevents Node.js event loop starvation and out-of-memory crashes.",
+      "evidencePaths": [
+        "docs/reviews/IMP-03/reviewer-session.md",
+        "docs/reviews/IMP-03/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

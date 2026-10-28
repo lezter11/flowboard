@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-01",
+    "CRD-02",
+    "CRD-03",
+    "CRD-04",
+    "CRD-05",
+    "CRD-06",
+    "CRD-07",
+    "CRD-08",
+    "CRD-09",
+    "CRD-10",
+    "CRD-11"
+  ],
+  "target": {
+    "kind": "sha256-manifest",
+    "manifestPath": "docs/reviews/STAGE2-REPAIR-20261026/source-manifest-round-2.json",
+    "digest": "b8f1cd4def58d26b4d688888ced46ab88e12a1cee930ff94277709caff24e0cd",
+    "fileCount": 164,
+    "verifiedBefore": true,
+    "verifiedAfter": true
+  },
+  "reviewer": {
+    "identity": "/root/round2_audit_cards",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "actorSessionIds": "not exposed; not invented"
+  },
+  "scope": "CRD-01 through CRD-11 full reachable API behavior and shared dependencies; source/handoff read-only.",
+  "criteriaPaths": [
+    "BACKEND_REVIEW_GATE.md",
+    "docs/FEATURE_SPEC.md",
+    "docs/API.md",
+    "docs/reviews/STAGE2-REPAIR-20261026/criteria.md",
+    "docs/reviews/STAGE2-REPAIR-20261026/criteria-round-2.md",
+    "docs/reviews/STAGE2-REPAIR-20261026/criteria-round-2.json"
+  ],
+  "tests": [
+    {
+      "command": "npm run typecheck",
+      "cwd": ".",
+      "exitCode": 0,
+      "environment": "local workspace",
+      "evidencePath": "docs/reviews/STAGE2-REPAIR-20261026/cards/round-2-typecheck.log"
+    },
+    {
+      "command": "DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55441/flowboard_harness node --test --test-concurrency=1 test/crd01-crd11.test.ts",
+      "cwd": "apps/api",
+      "exitCode": 0,
+      "environment": "isolated synthetic PostgreSQL at 127.0.0.1:55441/flowboard_harness; approved local TCP access",
+      "isolatedSynthetic": true,
+      "summary": "14 passed, 0 failed",
+      "evidencePath": "docs/reviews/STAGE2-REPAIR-20261026/cards/round-2-crd01-crd11-postgres-approved.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "score": "8.0",
+      "weight": 30,
+      "minimum": "9.0",
+      "reason": "Project/grant locks and minimal receipts are sound; stale lifecycle replay can return an outcome after card access changes."
+    },
+    "correctness": {
+      "score": "6.5",
+      "weight": 25,
+      "minimum": "8.5",
+      "reason": "Rank/neighbor, moving-card, overdue-search and card-cursor behavior contradict documented requirements."
+    },
+    "integrity": {
+      "score": "6.2",
+      "weight": 15,
+      "minimum": "8.5",
+      "reason": "Invalid neighbor pairs can create duplicate ranks; concurrent OCC and lifecycle replay races are not covered."
+    },
+    "tests": {
+      "score": "7.0",
+      "weight": 15,
+      "minimum": "8.5",
+      "reason": "Requested focused PostgreSQL suite and typecheck pass; key negative cases and the broader frozen command family are not evidenced in this card review."
+    },
+    "maintainability": {
+      "score": "7.8",
+      "weight": 10,
+      "minimum": "7.5",
+      "reason": "Typed boundaries and shared locks are readable, but duplicated adapter routes plus mount-order ambiguity complicate reachability."
+    },
+    "operations": {
+      "score": "7.0",
+      "weight": 5,
+      "minimum": "7.0",
+      "reason": "Meets minimum; pagination is bounded but stale-cursor and rank-recovery behavior have gaps."
+    }
+  },
+  "weightedScore": "7.135",
+  "findings": [
+    {
+      "id": "F-01",
+      "severity": "high",
+      "mandatory": true,
+      "blocking": true,
+      "disposition": "open",
+      "description": "apps/api/src/adapters/cards.ts:681-772: null/null neighbors set rank 1000 without checking emptiness; two existing nonadjacent destination neighbors are accepted and midpoint rank can collide because DB position index is non-unique.",
+      "counterevidence": "Board lock/OCC serializes normal moves and tests cover valid positions; no adjacency, empty-destination, or unique-rank assertion."
+    },
+    {
+      "id": "F-02",
+      "severity": "high",
+      "mandatory": true,
+      "blocking": true,
+      "disposition": "open",
+      "description": "Mounted boardsRoutes placement adapter apps/api/src/adapters/boards.ts:740-780 never loads or validates movingCardId; it returns 200 placement for nonexistent, trashed, or foreign IDs. Route mount order puts boardsRoutes before cardsRoutes.",
+      "counterevidence": "Board/column and project access are checked; valid placement cases pass."
+    },
+    {
+      "id": "F-03",
+      "severity": "medium",
+      "mandatory": true,
+      "blocking": true,
+      "disposition": "open",
+      "description": "Project search apps/api/src/adapters/cards.ts:1085-1091 marks all due_date < CURRENT_DATE as overdue, including done-column cards and ignoring workspace timezone. FEATURE_SPEC excludes done cards and defines workspace today.",
+      "counterevidence": "Board listing helper excludes done cards; project search is a separate route and remains faulty."
+    },
+    {
+      "id": "F-04",
+      "severity": "high",
+      "mandatory": true,
+      "blocking": true,
+      "disposition": "open",
+      "description": "Mounted board card cursor has only position/id in apps/api/src/adapters/boards.ts:36-60,1239-1265; no filter/board/snapshot binding or stale-snapshot detection. Cursor reuse or intervening moves/inserts can skip or repeat cards, contrary to API.md.",
+      "counterevidence": "Same-filter valid continuation and malformed JSON cursor checks exist; cross-scope reuse and mutation between pages are not tested."
+    },
+    {
+      "id": "F-05",
+      "severity": "high",
+      "mandatory": true,
+      "blocking": true,
+      "disposition": "open",
+      "description": "PATCH/move routes read card state outside the transaction and before receipt lookup (apps/api/src/http/routes/cards.ts:148-157,221-230). Concurrent trash can win after this read; receipt replay then returns before the adapter locks/rechecks active card lifecycle.",
+      "counterevidence": "New non-replay commands lock and check active state; project/archive/grant locks are correctly checked before receipt lookup. No trash/replay race test exists."
+    }
+  ],
+  "coverageGaps": [
+    "Full npm run check and BRD/COM/DEL suites not run in this cards subreview.",
+    "CRD-10 stale-version tests are sequential, not concurrent edit/move requests.",
+    "No PostgreSQL negative test for rank collision, invalid movingCardId, project-search overdue done-card exclusion, card cursor scope/snapshot binding, or trash racing card replay.",
+    "No Worker dry-run, browser/UI, hosted or production verification."
+  ],
+  "hardBlockers": [
+    "F-01 duplicate or noncanonical rank outcome",
+    "F-02 placement accepts invalid moving card identity",
+    "F-04 card cursors are not bound to scope/filter/snapshot",
+    "F-05 card mutation replay can outlive active lifecycle",
+    "Category minima fail; weighted total does not exceed 8.5"
+  ],
+  "verdict": "fail",
+  "completedAt": "2026-10-26T08:20:43.540654+00:00",
+  "reportPath": "docs/reviews/STAGE2-REPAIR-20261026/cards/round-2-independent-review.md"
+}

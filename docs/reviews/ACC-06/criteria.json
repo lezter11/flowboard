@@ -1,0 +1,25 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ACC-06"
+  ],
+  "mandatoryCriteria": [
+    "Owned workspace listing: Returns workspaces where owner_id = actor.id",
+    "Accessible project listing: Returns projects where actor is workspace owner or active project member",
+    "Strict cross-container isolation: Ownership in Workspace A grants no access or visibility into Workspace B",
+    "Removed membership exclusion: Revoked project memberships are excluded from accessibleProjects"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "acc-lifecycle-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/acc-lifecycle.test.ts"
+  },
+  "minimumWeightedScore": "8.500",
+  "categoryMinimums": {
+    "security": "8.0",
+    "correctness": "8.0",
+    "integrity": "8.0",
+    "tests": "8.0",
+    "maintainability": "7.5",
+    "operations": "7.0"
+  }
+}

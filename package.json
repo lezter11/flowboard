@@ -4,23 +4,34 @@
   "type": "module",
   "workspaces": [
     "apps/api",
+    "apps/web",
     "packages/contracts"
   ],
-  "engines": { "node": ">=24.15.0 <25" },
+  "engines": {
+    "node": ">=24.15.0 <25"
+  },
   "packageManager": "npm@11.12.1",
   "scripts": {
     "typecheck": "tsc --noEmit",
     "build": "npm run build --workspace @flowboard/api",
+    "build:web": "npm run build --workspace @flowboard/web",
+    "dev:web": "npm run dev --workspace @flowboard/web",
+    "typecheck:web": "npm run typecheck --workspace @flowboard/web",
     "test": "npm run test --workspace @flowboard/api && npm run test --workspace @flowboard/contracts",
     "dev:api": "npm run dev:node --workspace @flowboard/api",
     "dev:worker": "npm run dev:worker --workspace @flowboard/api",
     "db:up": "docker compose -f database/compose.local.yaml up -d --wait",
     "db:down": "docker compose -f database/compose.local.yaml down",
+    "db:migrate": "npm run db:migrate --workspace @flowboard/api",
     "check": "npm run typecheck && npm run build && npm test"
   },
   "devDependencies": {
     "@types/node": "24.19.2",
     "@types/pg": "8.23.1",
     "typescript": "7.0.2"
+  },
+  "dependencies": {
+    "@neon/config": "^1.9.4",
+    "@neon/env": "^1.6.5"
   }
 }

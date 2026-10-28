@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ATT-06"
+  ],
+  "mandatoryCriteria": [
+    "Hard attachment quota: Rejects staging if card already has 10 attachments with 422 IMAGE_LIMIT_EXCEEDED",
+    "Quota failure isolation: Quota rejection does not corrupt, lock, or modify existing card fields, comments, or attachments",
+    "Orphan upload sweeping: cleanupOrphanUploads identifies expired staged uploads (state IN ('staged', 'content_received') AND expires_at < NOW()) or state='cancelled'",
+    "Storage reclamation: Deletes unreferenced binary storage objects from storage driver and marks uploads as 'expired'",
+    "Maintenance authorization: Cleanup endpoint restricted to Workspace Owners and Project Managers"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "att-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: ATT-06 private image and card attachment handling on PostgreSQL. Out-of-scope: UI components."
+}

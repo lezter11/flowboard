@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "ACC-05"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/ACC-05/criteria.json",
+  "startedAt": "2026-10-26T12:34:41.232540+00:00",
+  "completedAt": "2026-10-26T12:34:41.232540+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2630ea55-89d4-4c26-bc1e-b56f5555b3c5",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "5b4e0975-7baf-4cac-99fe-0f396b9bb498",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/ACC-05/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/ACC-05/criteria.json",
+      "docs/reviews/ACC-05/reviewer-session.md",
+      "docs/reviews/ACC-05/test.log",
+      "apps/api/src/adapters/session.ts",
+      "apps/api/src/adapters/invitations.ts",
+      "apps/api/src/adapters/notifications.ts",
+      "apps/api/src/http/routes/session.ts",
+      "apps/api/src/http/routes/workspaces.ts",
+      "apps/api/src/services/email-adapter.ts",
+      "apps/api/test/acc-lifecycle.test.ts",
+      "packages/contracts/src/workspaces.ts",
+      "packages/contracts/src/auth.ts"
+    ],
+    "files": {
+      "docs/reviews/ACC-05/criteria.json": "0fbd9f297e50aff916f2fa7404ba4c962681623a6a53fcae73d30d58c9980880",
+      "docs/reviews/ACC-05/reviewer-session.md": "98d69bfa3c556a34c33217c508a0867cb61dd534f9d67247e7298d8ec96b1a10",
+      "docs/reviews/ACC-05/test.log": "a132453a8ce4ae041d7cbc7cd487e8173a9388011cd1ef686aa8c091e3fce34f",
+      "apps/api/src/adapters/session.ts": "929ec47d18980b30ccbc5ce4ba1cdf63244ffc597060f32d9300d7bedd17349c",
+      "apps/api/src/adapters/invitations.ts": "1d3ec5a707b4572aaeffba9b14a428eb09a8c2f0f6f6225966f82dc0eb983851",
+      "apps/api/src/adapters/notifications.ts": "44f0b760a38e59b6ba6afdeb295a5dcb41fa4e056c7a778839eeda0672a91676",
+      "apps/api/src/http/routes/session.ts": "e38fb037968ad4e77294b0e07efca7a2ef4b939eda2bc8a0701b4580d45c6464",
+      "apps/api/src/http/routes/workspaces.ts": "65610bb078fe13624802e4a43e2da8ea73bb656e263d421cd04611b483b7bf1f",
+      "apps/api/src/services/email-adapter.ts": "9a5b430d86216b4ce1e18eb093536df17172b099559bcaa9dc2eb7b75c4b0f21",
+      "apps/api/test/acc-lifecycle.test.ts": "d4aaf19e930b6d39e3992673e59e7145d37a77eca7c9eb834df3a87bed2fc27d",
+      "packages/contracts/src/workspaces.ts": "6caab9af3a5c63b565333740c0ec4b2042a7a9c65712775f28c36c3260502a39",
+      "packages/contracts/src/auth.ts": "016d97ceb8ba76fe35057534ec2d8526cc55a61ad6a2664471861cba5da0ff91"
+    },
+    "digest": "2b6597ab5c2f5587a1b6ec96060482fdeb955b52ca16b49b6f9d4960f0b32034"
+  },
+  "criteriaResults": {
+    "Owner-only authorization: Workspace owner can update name and timezone; non-owners receive 403 FORBIDDEN": "pass",
+    "OCC version protection: Updating requires expectedVersion; stale version returns 409 STALE_VERSION": "pass",
+    "Timezone validation: Accepts valid timezone strings (e.g. UTC, America/New_York)": "pass",
+    "Date-only deadline invariance: Date-only task deadlines remain fixed calendar dates regardless of workspace timezone change": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "node v20.x, typescript 5.x",
+      "isolatedSynthetic": true,
+      "targetDigest": "2b6597ab5c2f5587a1b6ec96060482fdeb955b52ca16b49b6f9d4960f0b32034",
+      "evidencePath": "docs/reviews/ACC-05/test.log"
+    },
+    {
+      "id": "acc-lifecycle-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/acc-lifecycle.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "2b6597ab5c2f5587a1b6ec96060482fdeb955b52ca16b49b6f9d4960f0b32034",
+      "evidencePath": "docs/reviews/ACC-05/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict owner gating; non-owners blocked with 403 FORBIDDEN; outsiders blocked with 404 NOT_FOUND.",
+      "evidencePaths": [
+        "docs/reviews/ACC-05/reviewer-session.md",
+        "docs/reviews/ACC-05/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Atomic update with OCC version increment; Gregorian date preservation.",
+      "evidencePaths": [
+        "docs/reviews/ACC-05/reviewer-session.md",
+        "docs/reviews/ACC-05/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Row-level locking (FOR UPDATE) prevents lost updates from concurrent preference edits.",
+      "evidencePaths": [
+        "docs/reviews/ACC-05/reviewer-session.md",
+        "docs/reviews/ACC-05/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Integration test validates owner update, non-owner 403, and OCC conflict 409.",
+      "evidencePaths": [
+        "docs/reviews/ACC-05/reviewer-session.md",
+        "docs/reviews/ACC-05/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Clean route handler using standard contracts schemas and HttpError patterns.",
+      "evidencePaths": [
+        "docs/reviews/ACC-05/reviewer-session.md",
+        "docs/reviews/ACC-05/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "Single row transactional update with indexed workspace primary key.",
+      "evidencePaths": [
+        "docs/reviews/ACC-05/reviewer-session.md",
+        "docs/reviews/ACC-05/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

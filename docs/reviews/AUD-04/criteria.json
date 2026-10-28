@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "AUD-04"
+  ],
+  "mandatoryCriteria": [
+    "Project manager audit scope: Project manager can view project-wide activity via GET /api/v1/projects/:projectId/activity",
+    "Workspace owner scope: Workspace owner can view project-wide activity for projects in owned workspace",
+    "Member & viewer exclusion: Project members and viewers receive 403 FORBIDDEN on project-wide activity endpoint",
+    "Card-level scope boundary: Members and viewers can view card activity via GET /cards/:cardId/activity for granted cards only",
+    "Outsider protection: Outsiders receive 404 NOT_FOUND on project-wide activity"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "aud-ntf-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: AUD-04 activity tracking and notifications on PostgreSQL. Out-of-scope: UI components."
+}

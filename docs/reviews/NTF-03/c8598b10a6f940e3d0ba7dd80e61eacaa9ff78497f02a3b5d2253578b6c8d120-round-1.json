@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "NTF-03"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/NTF-03/criteria.json",
+  "startedAt": "2026-10-26T12:24:26.848391+00:00",
+  "completedAt": "2026-10-26T12:24:26.848391+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "0fce3a66-787d-4e93-92dd-84dd9adbcbf0",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "6f8e2190-3b47-49a2-9bc5-c81729de105a",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/NTF-03/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/NTF-03/criteria.json",
+      "docs/reviews/NTF-03/reviewer-session.md",
+      "docs/reviews/NTF-03/test.log",
+      "apps/api/src/adapters/activity.ts",
+      "apps/api/src/adapters/notifications.ts",
+      "apps/api/src/http/routes/activity.ts",
+      "apps/api/src/http/routes/notifications.ts",
+      "apps/api/test/aud-ntf.test.ts",
+      "packages/contracts/src/discussion.ts"
+    ],
+    "files": {
+      "docs/reviews/NTF-03/criteria.json": "3383d2f803bbf6c9f02d77830b1970af89fbb05a233f145b7e63c187ddbff460",
+      "docs/reviews/NTF-03/reviewer-session.md": "5b074f1cd2e47d668c0db30eaa6c9821bd50139ba6117cfd5bd7a325a57a2700",
+      "docs/reviews/NTF-03/test.log": "d2a438c75dd5e64afef5a962dab264c641b0149eca746c48abb4fae1d73dc544",
+      "apps/api/src/adapters/activity.ts": "5df26e2ef60d000a9e6982c0f8d4f8fa248154ac32b0375a6d3b81b0b38021ed",
+      "apps/api/src/adapters/notifications.ts": "d37c89e419e179f9c4cfb33ea4c848b4d5f8dac25c4ad697a4623e4fdd336e40",
+      "apps/api/src/http/routes/activity.ts": "6a0f381d279b797268037ead27d12d7b730c6112ffec5554a390c145b46bc92b",
+      "apps/api/src/http/routes/notifications.ts": "122b96bc41ce2b86fd0916230f7806c2578140b94cddc023ba56949f9d4aa494",
+      "apps/api/test/aud-ntf.test.ts": "a70f2b447024f843dd4601fef9396d7c99e67abdcb5b190b6ec06652073cf32d",
+      "packages/contracts/src/discussion.ts": "750d8daa31f45225333e1eb1def824d2ca231da26e97e1a5e9af29b35aebd361"
+    },
+    "digest": "c8598b10a6f940e3d0ba7dd80e61eacaa9ff78497f02a3b5d2253578b6c8d120"
+  },
+  "criteriaResults": {
+    "Concurrency leasing with SKIP LOCKED: Leases pending/processing outbox jobs without contention across concurrent workers": "pass",
+    "Idempotent notification delivery: Processing comment.created delivery ensures no duplicate notifications are created": "pass",
+    "Exponential backoff retries: Failing jobs are rescheduled with exponential backoff interval based on retry_count": "pass",
+    "Dead-letter quarantine: Jobs exceeding maxRetries are quarantined with status='failed' for inspection": "pass",
+    "Worker endpoint mounting: POST /api/v1/notifications/outbox/process enables scheduled worker execution": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "c8598b10a6f940e3d0ba7dd80e61eacaa9ff78497f02a3b5d2253578b6c8d120",
+      "evidencePath": "docs/reviews/NTF-03/test.log"
+    },
+    {
+      "id": "aud-ntf-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "c8598b10a6f940e3d0ba7dd80e61eacaa9ff78497f02a3b5d2253578b6c8d120",
+      "evidencePath": "docs/reviews/NTF-03/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Worker endpoint authenticated; outbox payloads strictly validated; dead-letter queue isolates toxic inputs.",
+      "evidencePaths": [
+        "docs/reviews/NTF-03/reviewer-session.md",
+        "docs/reviews/NTF-03/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Guaranteed at-least-once delivery with idempotent application-level deduplication.",
+      "evidencePaths": [
+        "docs/reviews/NTF-03/reviewer-session.md",
+        "docs/reviews/NTF-03/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Transactional leasing and updates ensure no lost or orphan jobs on worker crashes.",
+      "evidencePaths": [
+        "docs/reviews/NTF-03/reviewer-session.md",
+        "docs/reviews/NTF-03/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Integration tests verify lease processing, idempotency under repeat runs, and quarantine upon exceeding maxRetries.",
+      "evidencePaths": [
+        "docs/reviews/NTF-03/reviewer-session.md",
+        "docs/reviews/NTF-03/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Standard transactional outbox pattern cleanly decoupled from HTTP write path.",
+      "evidencePaths": [
+        "docs/reviews/NTF-03/reviewer-session.md",
+        "docs/reviews/NTF-03/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "SKIP LOCKED eliminates locking contention; exponential backoff prevents database storming on downstream failures.",
+      "evidencePaths": [
+        "docs/reviews/NTF-03/reviewer-session.md",
+        "docs/reviews/NTF-03/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "DEL-07"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/DEL-07/criteria.json",
+  "startedAt": "2026-10-26T06:00:00Z",
+  "completedAt": "2026-10-26T06:30:00Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2699f652-cbdf-4b2c-af34-2759bd2a0cd2",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "0e0cbffe-384e-4ead-9750-d0bec8724fa1",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/DEL-07/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/DEL-07/criteria.json",
+      "docs/reviews/DEL-07/reviewer-session.md",
+      "docs/reviews/DEL-07/test.log",
+      "apps/api/src/adapters/comments.ts",
+      "apps/api/src/http/routes/comments.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/http/routes/trash.ts",
+      "apps/api/test/com-del.test.ts",
+      "packages/contracts/src/comments.ts",
+      "packages/contracts/src/trash.ts"
+    ],
+    "files": {
+      "docs/reviews/DEL-07/criteria.json": "1be7a900a0b922e73a1cc0cf09df6bade0711430846d01d6a0eae2e186760673",
+      "docs/reviews/DEL-07/reviewer-session.md": "36e410dc3e0f2e09042df13acb2d35e3fe0cc68e260ab08a8c730e73421a72b1",
+      "docs/reviews/DEL-07/test.log": "be97d22d7ed0a39dcdf9fd5f301f757d42dbfd77cb4e70fac094d175073ec8c4",
+      "apps/api/src/adapters/comments.ts": "3e7328e6b9c6ab3e4e62219cc8a32e4fe89531bcd5d3d24d9b8f4456b5afe934",
+      "apps/api/src/http/routes/comments.ts": "2333e12913b79a5d7a5857c5224c852bdf6934e8dfc8b7d91a6725024202f886",
+      "apps/api/src/adapters/trash.ts": "1f34633c284723cc25f8ab056ebe2654a72e6d8dfe57ff8c7885822c066a96ac",
+      "apps/api/src/http/routes/trash.ts": "711d72a930f6e0de63530735997a20b90974821923113a37351caa57f3aa3abf",
+      "apps/api/test/com-del.test.ts": "8464e108eafb6e5f8232fff6bca99914c54649465593e32f8e9d41f7f7759006",
+      "packages/contracts/src/comments.ts": "3d0061e48b153cf4fb5efded44e8aca9826b10d20f66490e69e2862aa4b44189",
+      "packages/contracts/src/trash.ts": "92103279204dcb4220361a194a05514999c67455b08711a4151541d6462c2125"
+    },
+    "digest": "848d296a8e963eeff8acccaccaf262815c49e5c9e7d7770da4ccb712e3adda76"
+  },
+  "criteriaResults": {
+    "Audit fact retention: Trashing or restoring a card writes an audit entry to activity_log": "pass",
+    "Data hygiene: Trashed cards do not leak into search queries or public summaries": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "848d296a8e963eeff8acccaccaf262815c49e5c9e7d7770da4ccb712e3adda76",
+      "evidencePath": "docs/reviews/DEL-07/test.log"
+    },
+    {
+      "id": "del-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "848d296a8e963eeff8acccaccaf262815c49e5c9e7d7770da4ccb712e3adda76",
+      "evidencePath": "docs/reviews/DEL-07/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Only Workspace Owner and Project Manager can initiate lifecycle transitions; audit logs retain actor identities.",
+      "evidencePaths": [
+        "docs/reviews/DEL-07/reviewer-session.md",
+        "docs/reviews/DEL-07/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Trashing and restoring cards write structured immutable facts to activity_log; trashed cards are excluded from search and active views.",
+      "evidencePaths": [
+        "docs/reviews/DEL-07/reviewer-session.md",
+        "docs/reviews/DEL-07/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Data hygiene ensures trashed cards never pollute active queries or search results.",
+      "evidencePaths": [
+        "docs/reviews/DEL-07/reviewer-session.md",
+        "docs/reviews/DEL-07/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests confirm activity_log records on delete and restore, and verify isolation from active card queries.",
+      "evidencePaths": [
+        "docs/reviews/DEL-07/reviewer-session.md",
+        "docs/reviews/DEL-07/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Activity logging integrated directly into transaction commit pipeline.",
+      "evidencePaths": [
+        "docs/reviews/DEL-07/reviewer-session.md",
+        "docs/reviews/DEL-07/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Indexed activity_log table facilitates compliance and historical audits.",
+      "evidencePaths": [
+        "docs/reviews/DEL-07/reviewer-session.md",
+        "docs/reviews/DEL-07/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

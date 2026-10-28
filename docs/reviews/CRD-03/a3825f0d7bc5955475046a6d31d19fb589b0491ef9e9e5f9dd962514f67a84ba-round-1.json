@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "CRD-03"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/CRD-03/criteria.json",
+  "startedAt": "2026-10-26T06:31:51.083541Z",
+  "completedAt": "2026-10-26T06:31:51.083541Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "604b9d65-c37e-4ad1-8aad-218d24eb57e9",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "5a01873c-03fc-4d41-a899-50666318b657",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/CRD-03/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/CRD-03/criteria.json",
+      "docs/reviews/CRD-03/reviewer-session.md",
+      "docs/reviews/CRD-03/test.log",
+      "apps/api/src/adapters/cards.ts",
+      "apps/api/src/http/routes/cards.ts",
+      "apps/api/test/crd01-crd11.test.ts",
+      "packages/contracts/src/cards.ts"
+    ],
+    "files": {
+      "docs/reviews/CRD-03/criteria.json": "aea09dcc596adc040f9eb88947ed6d6d923ddde564e8584f143755aa6d8cefb5",
+      "docs/reviews/CRD-03/reviewer-session.md": "dfcb1dbb51d3f211b0fcd7f60526ead687c25ef4bd405cf5bd8c99e3fcc1eeb4",
+      "docs/reviews/CRD-03/test.log": "462f9f3f797df2225760be01fefffa09ab7bfc44b1e0cd4eb5b54f2cb2e7da40",
+      "apps/api/src/adapters/cards.ts": "b1a3974330e061cbc4bb98d05e095dfd53bf2613f858fa1b37885482bdfeee93",
+      "apps/api/src/http/routes/cards.ts": "aff9aff93d2367164b9cde012c4affab4da52ca03a51cf567864c04d94d396d3",
+      "apps/api/test/crd01-crd11.test.ts": "3beaa32f3746dedcdd54fcbec6d94f12ad064984bbe0a7ed800ad421ec4c741f",
+      "packages/contracts/src/cards.ts": "9da39d2cbed92627d51fda16f51c6eec117de6babd4de24e0397a36819f8b9bf"
+    },
+    "digest": "a3825f0d7bc5955475046a6d31d19fb589b0491ef9e9e5f9dd962514f67a84ba"
+  },
+  "criteriaResults": {
+    "Card detail query: GET /api/v1/cards/:cardId returns full card entity including description and state": "pass",
+    "Access verification: Granted project members can view card detail; ungranted users receive 404 NOT_FOUND": "pass",
+    "Referenced people display: Response includes PersonDisplay for card assignees": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "a3825f0d7bc5955475046a6d31d19fb589b0491ef9e9e5f9dd962514f67a84ba",
+      "evidencePath": "docs/reviews/CRD-03/test.log"
+    },
+    {
+      "id": "crd-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "a3825f0d7bc5955475046a6d31d19fb589b0491ef9e9e5f9dd962514f67a84ba",
+      "evidencePath": "docs/reviews/CRD-03/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.5",
+      "reason": "Strict authorization via acquireWriteGrantLock and resolveProjectRole. Anti-enumeration returns 404 NOT_FOUND to sibling and outsider users.",
+      "evidencePaths": [
+        "docs/reviews/CRD-03/reviewer-session.md",
+        "docs/reviews/CRD-03/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Complete implementation of CRD-03 matching contracts in packages/contracts/src/cards.ts and API spec.",
+      "evidencePaths": [
+        "docs/reviews/CRD-03/reviewer-session.md",
+        "docs/reviews/CRD-03/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Transactional consistency with row-level locks, dual OCC checks, and transactional idempotency receipts.",
+      "evidencePaths": [
+        "docs/reviews/CRD-03/reviewer-session.md",
+        "docs/reviews/CRD-03/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Comprehensive integration test coverage in apps/api/test/crd01-crd11.test.ts exercising wired endpoints against PostgreSQL.",
+      "evidencePaths": [
+        "docs/reviews/CRD-03/reviewer-session.md",
+        "docs/reviews/CRD-03/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.0",
+      "reason": "Decoupled route/adapter/contract architecture with zero TypeScript errors on npm run typecheck.",
+      "evidencePaths": [
+        "docs/reviews/CRD-03/reviewer-session.md",
+        "docs/reviews/CRD-03/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Fast indexing, batch count aggregation queries avoiding N+1, and guaranteed connection cleanup.",
+      "evidencePaths": [
+        "docs/reviews/CRD-03/reviewer-session.md",
+        "docs/reviews/CRD-03/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.425",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

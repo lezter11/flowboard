@@ -1,17 +1,19 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/FND-03/f3be24baa626558b8f77a086e59163f4acd78fd21d0648d2c57ea1bb2a6fa23e-round-1.json",
+  "reviewPath": "docs/reviews/FND-03/dd074ee092fe1057d238e54fed99c97a838a52f539f7287aab798ff9b32ffdf9-round-1.json",
   "summary": "FND-03 Shared contracts package validation: implemented complete Zod schemas and TypeScript types in @flowboard/contracts, Gregorian astronomical calendar and leap year validation, UTC ISO timestamps ending in Z, 16-128 char ASCII idempotency keys, canonical error codes and envelopes, and comprehensive OpenAPI 3.1 catalog covering 36 endpoints. All 41 unit tests passed; audited and certified by independent reviewer with score 9.825/10.0.",
   "api_contract": "docs/API.md v0.3 and packages/contracts/src/openapi/index.ts",
   "limitations": [
     "Contracts define runtime schema validation and boundary types; database persistence and SQL constraints are verified in migrations.",
     "UI and integrated acceptance remain separately owned and unverified."
   ],
-  "evidence": [{
-    "path": "docs/evidence/FND-03-local.md",
-    "command": "npm run typecheck && npm run test --workspace @flowboard/contracts",
-    "result": "Strict typecheck passed with 0 errors; 41 unit tests passed across 19 suites, 0 failed, 0 skipped. Independent audit score: 9.825 / 10.0.",
-    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, TypeScript 7.0.2, Zod 3.24.2."
-  }],
+  "evidence": [
+    {
+      "path": "docs/evidence/FND-03-local.md",
+      "command": "npm run typecheck && npm run test --workspace @flowboard/contracts",
+      "result": "Strict typecheck passed with 0 errors; 41 unit tests passed across 19 suites, 0 failed, 0 skipped. Independent audit score: 9.825 / 10.0.",
+      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, TypeScript 7.0.2, Zod 3.24.2."
+    }
+  ],
   "next_dependency_ready_task": "Stage 1 domain features (ACC-01, PRJ-01, RBAC-01)."
 }

@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-06/46c4e3c316e26f3970f6e0205915a55abbe4281a1d6f45f0213c4ef5651ce661-round-1.json",
+  "summary": "CRD-06 Teammate assignment bounds verified. Implemented relational assignee boundaries ensuring all assignees are active project members or the workspace owner, rejecting sibling project members, outsiders, removed members, and duplicate IDs with 422 VALIDATION_ERROR, and capping assignees at 20. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "PATCH /api/v1/cards/:cardId (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-06/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 12 tests passed. Review score 9.425/10."
+    }
+  ]
+}

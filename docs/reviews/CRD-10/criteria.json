@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-10"
+  ],
+  "mandatoryCriteria": [
+    "Concurrent edit conflict handling: Rejects stale card edits with 409 STALE_VERSION",
+    "Concurrent move conflict handling: Rejects stale card moves with 409 STALE_VERSION or 409 STALE_BOARD_VERSION",
+    "Preserve client data: Error envelope provides current version details allowing client to re-read and preserve unsaved draft"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "crd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: OCC conflict detection on edits and moves."
+}

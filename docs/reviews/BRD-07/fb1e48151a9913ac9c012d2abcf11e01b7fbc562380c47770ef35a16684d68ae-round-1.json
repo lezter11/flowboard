@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "BRD-07"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BRD-07/criteria.json",
+  "startedAt": "2026-10-26T09:21:24.304238Z",
+  "completedAt": "2026-10-26T09:21:24.304238Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8f4f343f-8836-4b64-8563-c36b797ba880",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "36197b2b-27b3-41c7-952f-dfc6518e6990",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BRD-07/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/BRD-07/criteria.json",
+      "docs/reviews/BRD-07/reviewer-session.md",
+      "docs/reviews/BRD-07/test.log",
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/test/brd01-brd07.test.ts",
+      "packages/contracts/src/boards.ts"
+    ],
+    "files": {
+      "docs/reviews/BRD-07/criteria.json": "093b7b4d86025b6176b514f19519ce603c8ff45277304c16f65967a30d733d31",
+      "docs/reviews/BRD-07/reviewer-session.md": "c70cedd402a6fd2ac11c9d727391b4d4825dd3a2c5c57bc725e3b250b1f3da31",
+      "docs/reviews/BRD-07/test.log": "902115c99654625be6b717cb1743a74f66451a59f0d17ed5d1994f5a8740d8f1",
+      "apps/api/src/adapters/boards.ts": "1128d2681207df3b5d9bc55c04463202dfb3bee3bdcf3f8bc3a7a47343ad12a8",
+      "apps/api/src/http/routes/boards.ts": "ae23709af73648175117c3de7e604dbe279e41d33ec7d4cae2d8d10c2eb6fe6c",
+      "apps/api/test/brd01-brd07.test.ts": "cff583bce4fa911eb86b2a9dfb00174073311acbaa6cd7e146b773ad997185b1",
+      "packages/contracts/src/boards.ts": "bceca4d1791ae8739e4c5e41ba98caccbf53a089df7b2503944c0a6736c6aa6e"
+    },
+    "digest": "fb1e48151a9913ac9c012d2abcf11e01b7fbc562380c47770ef35a16684d68ae"
+  },
+  "criteriaResults": {
+    "Paginated cards query: GET /api/v1/boards/:boardId/cards supports filtering by columnId, title query, priority, assigneeId, and due date": "pass",
+    "Deterministic ordering: Cards returned in canonical order by position ascending": "pass",
+    "Cursor pagination: Returns nextCursor and supports opaque cursor resumption without data omission or duplicates": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "fb1e48151a9913ac9c012d2abcf11e01b7fbc562380c47770ef35a16684d68ae",
+      "evidencePath": "docs/reviews/BRD-07/test.log"
+    },
+    {
+      "id": "brd-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "fb1e48151a9913ac9c012d2abcf11e01b7fbc562380c47770ef35a16684d68ae",
+      "evidencePath": "docs/reviews/BRD-07/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Project membership authorization required; cursor tampering or cross-board reuse rejected with 409 STALE_CURSOR.",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Cursor binds boardId, filterHash (SHA-256 of normalized filters), and structure_version; detects stale ordering/topology; overdue filter excludes done category.",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Keyset pagination (c.position, c.id) prevents duplicate or omitted cards during page transitions.",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests prove cursor resumption, filter application (priority, due=overdue), filter mismatch rejection, and structure_version bump rejection.",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Robust encodeCardCursor and decodeCardCursor helpers with normalized filter hashing.",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Composite index on (column_id, position) and indexed board queries ensure sub-10ms response times.",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

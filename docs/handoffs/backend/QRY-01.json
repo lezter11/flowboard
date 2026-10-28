@@ -1,0 +1,18 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/QRY-01/f71ef6b7125dc6709f1d450812fa9ea9dece4331f6880a101d442a8dd279ebeb-round-1.json",
+  "summary": "QRY-01 Project-scoped card search verified. Implemented bounded text search matching card title and description within a single project, project reader authorization check rejecting ungranted users with 404 NOT_FOUND, strict sibling-project privacy (404 on sibling project), and exclusion of soft-deleted/trashed cards. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "GET /api/v1/projects/:projectId/cards/search (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/QRY-01/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/qry01-qry03.test.ts",
+      "result": "All tests passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project rejects writes.",
+    "Query search bounded to active cards; trashed cards excluded."
+  ]
+}

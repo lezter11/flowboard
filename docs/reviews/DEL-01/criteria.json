@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "DEL-01"
+  ],
+  "mandatoryCriteria": [
+    "Soft delete card: POST /api/v1/cards/:cardId/delete transitions card state from active to trashed",
+    "Administrator authorization: Only workspace owner or project manager can delete cards; members/viewers receive 403 FORBIDDEN",
+    "Restore window computation: Sets deleted_at = NOW(), deleted_by = actor.id, restore_until = NOW() + INTERVAL '24 hours'",
+    "Active board exclusion: Trashed cards immediately disappear from board snapshot, card search, and active counts",
+    "Board version update: Increments board structure_version and snapshot_version"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "del-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Card soft-delete with 24-hour restore window."
+}

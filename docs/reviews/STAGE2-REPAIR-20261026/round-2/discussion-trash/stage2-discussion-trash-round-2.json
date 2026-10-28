@@ -1,0 +1,234 @@
+{
+  "schemaVersion": 1,
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "COM-01",
+    "COM-02",
+    "COM-03",
+    "COM-04",
+    "COM-05",
+    "COM-06",
+    "DEL-01",
+    "DEL-02",
+    "DEL-03",
+    "DEL-04",
+    "DEL-05",
+    "DEL-06",
+    "DEL-07",
+    "DEL-08"
+  ],
+  "criteriaPath": "docs/reviews/STAGE2-REPAIR-20261026/criteria-round-2.json",
+  "startedAt": "2026-10-26T00:00:00Z",
+  "completedAt": "2026-10-26T00:00:00Z",
+  "implementer": {
+    "actorId": "not supplied to reviewer",
+    "sessionId": "not supplied to reviewer",
+    "model": "unknown"
+  },
+  "reviewer": {
+    "actorId": "/root/round2_audit_discussion_trash",
+    "sessionId": "not exposed to subagent",
+    "model": "GPT-6 delegated reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "This report is produced by a separate delegated read-only audit task; platform actor/session identifiers were not exposed."
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "Supplied exact manifest: docs/reviews/STAGE2-REPAIR-20261026/source-manifest-round-2.json (164 files)"
+    ],
+    "files": {},
+    "digest": "b8f1cd4def58d26b4d688888ced46ab88e12a1cee930ff94277709caff24e0cd"
+  },
+  "scope": "COM-01..COM-06 and DEL-01..DEL-08 with shared idempotency/RBAC/context locks, migration/schema, mounted routes, tests, Node runtime, API/FEATURE_SPEC contracts. Other Stage 2 surfaces were hash-verified but not functionally re-audited.",
+  "criteriaResults": {
+    "All 32 mounted Stage 2 board, card, discussion, and trash feature paths conform to FEATURE_SPEC.md, API.md, contracts, and their frozen specifications.": "incomplete",
+    "Archived project or board contexts reject card create/update/move, comment post/edit/delete, and card delete with 409 READ_ONLY_CONTEXT before any receipt or side effect; transaction row locks serialize writes against archive transitions.": "pass",
+    "Comment delete receipt replay requires current member-or-higher access for an author retry and manager-or-owner access for moderation; demoted moderators cannot replay old success.": "pass",
+    "Comment post/edit/delete retries recheck parent-card lifecycle and cannot replay success after the card is trashed or purged.": "pass",
+    "Comment pagination is deterministic ascending (created_at,id), scoped to the requested card, and safely rejects malformed or foreign cursors.": "pass",
+    "The full selected PostgreSQL check, Worker dry-run build, API tests, and contract tests pass on the frozen target.": "incomplete",
+    "No unresolved hard blocker, category minimum failure, or mandatory acceptance defect remains; only then may any scoped feature be marked verified.": "fail"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "Local checkout, root package; target digest b8f1cd4def58d26b4d688888ced46ab88e12a1cee930ff94277709caff24e0cd verified before and after.",
+      "isolatedSynthetic": true,
+      "targetDigest": "b8f1cd4def58d26b4d688888ced46ab88e12a1cee930ff94277709caff24e0cd",
+      "evidencePath": "docs/reviews/STAGE2-REPAIR-20261026/round-2/discussion-trash/typecheck.log"
+    },
+    {
+      "id": "discussion-trash-initial-setup-attempt",
+      "command": "DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55439/stage2_discussion node --test --test-concurrency=1 test/com-del.test.ts",
+      "exitCode": 1,
+      "environment": "Initial requested URL rejected before DB access because apps/api/src/runtime/local-config.ts requires pathname /flowboard_harness. Preserved for traceability; superseded by corrected isolated run.",
+      "isolatedSynthetic": true,
+      "targetDigest": "b8f1cd4def58d26b4d688888ced46ab88e12a1cee930ff94277709caff24e0cd",
+      "evidencePath": "docs/reviews/STAGE2-REPAIR-20261026/round-2/discussion-trash/com-del.test.log"
+    },
+    {
+      "id": "discussion-trash",
+      "command": "DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55442/flowboard_harness node --test --test-concurrency=1 test/com-del.test.ts",
+      "exitCode": 0,
+      "environment": "Parent-provided dedicated disposable local PostgreSQL container, port 55442, database flowboard_harness; actual test run 36 pass, 0 fail. Initial sandbox EPERM attempt is preserved in com-del-corrected.test.log only if there are duplicate run logs; this final log is the approved local-network execution.",
+      "isolatedSynthetic": true,
+      "targetDigest": "b8f1cd4def58d26b4d688888ced46ab88e12a1cee930ff94277709caff24e0cd",
+      "evidencePath": "docs/reviews/STAGE2-REPAIR-20261026/round-2/discussion-trash/com-del-corrected.test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": 7.5,
+      "reason": "Current grant locking, role-specific comment-delete replay, and archive-context locks are present. However lifecycle/retention gaps and the unexecuted isolated PostgreSQL acceptance suite prevent a passing security/authority score; category minimum is 9.0.",
+      "evidencePaths": [
+        "apps/api/src/adapters/idempotency.ts",
+        "apps/api/src/adapters/rbac.ts",
+        "apps/api/src/http/routes/comments.ts",
+        "apps/api/src/http/routes/trash.ts",
+        "docs/reviews/STAGE2-REPAIR-20261026/round-2/discussion-trash/com-del.test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": 6.5,
+      "reason": "Comment keyset pagination and archive/lifecycle prechecks are implemented. Trash listing has no paging, restore does not restore near surviving anchors, and required cleanup/purge behavior is absent; minimum is 8.5.",
+      "evidencePaths": [
+        "apps/api/src/adapters/comments.ts",
+        "apps/api/src/adapters/trash.ts",
+        "docs/API.md",
+        "docs/FEATURE_SPEC.md"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": 5.5,
+      "reason": "Receipts are reduced to identifiers/status/version, and mutations use transactions. Purge cleanup/fencing is not implemented; comments, notification bodies, and activity title copies are not cleaned, leaving data-retention invariants unfulfilled; minimum is 8.5.",
+      "evidencePaths": [
+        "apps/api/src/adapters/idempotency.ts",
+        "apps/api/src/adapters/comments.ts",
+        "apps/api/src/adapters/trash.ts",
+        "database/migrations/0001_initial.sql"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": 7.5,
+      "reason": "The focused PostgreSQL mounted-route suite ran successfully (36/36) after using the parent-provided isolated database. It covers pagination, archive rejection, authority replay and comment lifecycle retry. No actual purge worker/fencing or concurrent two-connection race is tested, and the broader full-check/Worker build/other Stage 2 suites were not run in this delegated scope; minimum is 8.5.",
+      "evidencePaths": [
+        "apps/api/test/com-del.test.ts",
+        "apps/api/src/runtime/local-config.ts",
+        "docs/reviews/STAGE2-REPAIR-20261026/round-2/discussion-trash/com-del.test.log",
+        "docs/reviews/STAGE2-REPAIR-20261026/round-2/discussion-trash/typecheck.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": 7.5,
+      "reason": "Typed adapters and a shared receipt/context-lock helper are understandable; routes repeat transaction/replay boilerplate and the unbounded trash result has no cursor contract in implementation. At the 7.5 minimum, this does not repair other category failures.",
+      "evidencePaths": [
+        "apps/api/src/adapters/idempotency.ts",
+        "apps/api/src/http/routes/comments.ts",
+        "apps/api/src/http/routes/trash.ts",
+        "apps/api/src/adapters/trash.ts"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": 4.0,
+      "reason": "No real purge/cleanup worker or fencing lifecycle is present; trash returns every row and lacks bounded page/query behavior. Minimum is 7.0.",
+      "evidencePaths": [
+        "apps/api/src/adapters/trash.ts",
+        "apps/api/test/com-del.test.ts",
+        "docs/API.md"
+      ]
+    }
+  },
+  "weightedScore": "6.775",
+  "findings": [
+    {
+      "id": "COMDEL-ROUND2-01",
+      "severity": "major",
+      "description": "Focused COM/DEL PostgreSQL route tests passed 36/36 on the corrected parent-provided dedicated database at port 55442. The first instructed URL ending /stage2_discussion was rejected by apps/api/src/runtime/local-config.ts:5-12 before DB access; that attempt is preserved in com-del.test.log and was superseded. The required broader full-check, Worker dry-run and BRD/CRD suites from criteria-round-2.json were not run in this delegated COM/DEL audit.",
+      "disposition": "open",
+      "rationale": "The corrected focused run satisfies the COM/DEL slice's requested DB test. The full criteria still names broader checks that remain unverified; the report does not represent them as passing. Counterevidence: typecheck and the focused DB suite pass.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "COMDEL-ROUND2-02",
+      "severity": "blocker",
+      "description": "Purge/cleanup is not implemented in the reachable application. Search of apps/api/src and migrations finds no purge job or card transition/deletion worker; DEL-06 test/com-del.test.ts:1152-1176 directly UPDATEs cards.state='purged' to simulate a worker and tests only that restore returns 404. There is no claim/fencing token, lease, compare-and-swap winner, child-content cleanup, or retry path. FEATURE_SPEC.md:93-95 and API.md:121 require fenced purge and cleanup. Impact: expired cards can remain indefinitely and retained content copies are not cleaned; restore-vs-real-purge race is unproved.",
+      "disposition": "open",
+      "rationale": "Hard blocker: required feature behavior and concurrency proof missing. Counterevidence: restore uses FOR UPDATE at trash.ts:399-425 and checks the exact deadline at 459-468, but this only serializes restore with another operation using the same lock; no worker exists to demonstrate the other side of the race.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "COMDEL-ROUND2-03",
+      "severity": "blocker",
+      "description": "Private comment/card content survives in durable copies without a purge cleanup path. comments.ts:356-368 inserts notification body as the first 200 comment characters; trash.ts:226-240 records the card title in activity_log.safe_changes. Comment tombstoning at comments.ts:663-688 does not redact the old comments.body, and there is no purge/delete of notification/activity copies. FEATURE_SPEC.md:75 and 95 / API.md:101 and 121 require redaction/retention of private bodies after deletion/purge. Reproduction path: post or edit text/title, delete/trash then allow restore window to expire; inspect notifications/activity/comments. Cleanup cannot occur in current code.",
+      "disposition": "open",
+      "rationale": "Hard blocker for retention invariant. Counterevidence: receipt JSON is now minimal via idempotency.ts:17-46 and comment-created activity/outbox contain comment ID/count only at comments.ts:371-405. Those safe copies do not cover notifications, the card_trashed activity title, or old comment rows.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "COMDEL-ROUND2-04",
+      "severity": "major",
+      "description": "Trash pagination/bounds are missing. listProjectTrash has no pagination options; trash.ts:276-319 selects every trashed row and line 318 orders all rows; it returns nextCursor:null at 372-376. API.md:7 and 143 specify bounded list sizes and a nextCursor contract. Repro: create more than 100 trashed cards and GET /api/v1/projects/:projectId/trash; every row is returned in one response. Resource use and response size grow without bound.",
+      "disposition": "open",
+      "rationale": "Acceptance defect in the API surface and operational concern. Counterevidence: project scoping and manager/owner authorization are checked at trash.ts:264-271, and card comments are paginated separately.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "COMDEL-ROUND2-05",
+      "severity": "major",
+      "description": "Restore placement does not implement nearest surviving anchors. deleteCard stores no neighbor IDs/order anchors (trash.ts:153-171, 200-224); restoreCard uses the original column or explicit toColumnId and updates column_id only, retaining existing position (trash.ts:470-525). It neither finds nearest previous/next surviving cards nor computes a safe destination rank. Repro: delete a card, remove/reorder its neighbors, then restore; it reuses stale position and may not land adjacent to the original anchors. FEATURE_SPEC.md:91 / API.md:121 require original valid column and nearest surviving anchors or explicit destination when unavailable.",
+      "disposition": "open",
+      "rationale": "Mandatory restore behavior remains unimplemented. Counterevidence: missing original column requires an explicit destination and cross-board restore is not offered; test/com-del.test.ts:876-946 covers that fallback only.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "COMDEL-ROUND2-07",
+      "severity": "major",
+      "description": "Comment cursor route silently normalizes malformed limits instead of rejecting them, and accepts parseInt prefixes. comments.ts route:22-27 returns default 50 for invalid or <1 and clamps >100; parseInt('10junk',10) becomes 10. FEATURE_SPEC/API unknown fields and bounded list requirements favor strict query validation. Main page query is correctly ordered/keyset/scoped in comments.ts:113-140 and cursor decoding checks version/card/date/id at 44-61.",
+      "disposition": "open",
+      "rationale": "Nonblocking unless strict query validation is treated mandatory. Counterevidence: result pages are bounded at 100 and the actual nextCursor logic is deterministic.",
+      "mandatory": false,
+      "blocking": false
+    },
+    {
+      "id": "COMDEL-ROUND2-08",
+      "severity": "major",
+      "description": "The focused PostgreSQL suite passes, but the purported DEL-06 purge winner test is only a sequential direct UPDATE and restore request (apps/api/test/com-del.test.ts:1152-1176), not two concurrent connections or a fenced job. It cannot establish restore-versus-purge serialization. No true same-key parallel DB test appears in this suite.",
+      "disposition": "open",
+      "rationale": "Concurrency and fencing remain unproved for purge because the purge worker itself is absent. Counterevidence: route-level archive, role replay and comment lifecycle tests now pass on PostgreSQL; this is strong but narrower evidence.",
+      "mandatory": true,
+      "blocking": true
+    }
+  ],
+  "hardBlockers": [
+    "COMDEL-ROUND2-01 Broader criteria-required full check, Worker dry-run and BRD/CRD suites were not executed within this delegated COM/DEL review.",
+    "COMDEL-ROUND2-02 No purge/cleanup worker or real purge fencing; hard-delete behavior is absent.",
+    "COMDEL-ROUND2-03 Comment/notification/activity private-content retention copies are not purged/redacted.",
+    "COMDEL-ROUND2-04 Trash listing is unbounded and has no pagination.",
+    "COMDEL-ROUND2-05 Restore placement does not re-anchor to nearest surviving neighbors."
+  ],
+  "coverageGaps": [
+    "No actual purge job/runtime/wiring exists to audit or race against restore.",
+    "No real concurrent two-connection purge/restore or same-key race test was executed; DEL-06 test simulates a purge with direct UPDATE.",
+    "Full root npm run check, Worker dry-run and BRD/CRD PostgreSQL suites from criteria-round-2.json were not run in this delegated COM/DEL scope.",
+    "Other BRD/CRD feature paths in the 164-file manifest were hash-verified but not behaviorally audited.",
+    "Hosted/deployed behavior and dependency advisory status remain unverified.",
+    "Platform did not expose actual actor/session identifiers; report does not claim validator-ready independent identity metadata."
+  ],
+  "verdict": "fail"
+}

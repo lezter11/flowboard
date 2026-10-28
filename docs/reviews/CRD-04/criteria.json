@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-04"
+  ],
+  "mandatoryCriteria": [
+    "Edit title and description: PATCH /api/v1/cards/:cardId updates title and description",
+    "Length bounds: Title 1-200 characters; description up to 20,000 characters",
+    "OCC version check: Verifies expectedVersion against card version; increments card version on success; returns 409 STALE_VERSION on conflict"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "crd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Title and description editing."
+}

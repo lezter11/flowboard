@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "QRY-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/QRY-01/criteria.json",
+  "startedAt": "2026-10-26T12:14:54.427553+00:00",
+  "completedAt": "2026-10-26T12:14:54.427553+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2630ea55-89d4-4c26-bc1e-b56f5555b3c5",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "4a39d647-291f-4a13-3a70-ac3836218be8",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/QRY-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/QRY-01/criteria.json",
+      "docs/reviews/QRY-01/reviewer-session.md",
+      "docs/reviews/QRY-01/test.log",
+      "apps/api/src/adapters/cards.ts",
+      "apps/api/src/http/routes/cards.ts",
+      "apps/api/test/qry01-qry03.test.ts",
+      "packages/contracts/src/cards.ts"
+    ],
+    "files": {
+      "docs/reviews/QRY-01/criteria.json": "0d73775aa1008dd3cd2ea00dee6954e2f371b6514ea910f7d4e8bf1293e7bc78",
+      "docs/reviews/QRY-01/reviewer-session.md": "bc127ed48d07f9d03f36b34a3125088a2969f4284cc5c04ce912fd6a4c848459",
+      "docs/reviews/QRY-01/test.log": "c24ebbcefd38f783d062380626fb75f81477ccd0444e021c7412efc99a025a3b",
+      "apps/api/src/adapters/cards.ts": "e8787b4a363ed49ab80f4f490f12c635c1d06c4a5772759075d728a65a2ad0c4",
+      "apps/api/src/http/routes/cards.ts": "c5e1cc1190e498b3501658c6fe781c4afa0ef791a8d3fddcc83ea153b70fcfad",
+      "apps/api/test/qry01-qry03.test.ts": "f7f38f866fa709218f5753e4ca9fa03a77b567d4a01ca774d3fc4e49ef57f501",
+      "packages/contracts/src/cards.ts": "9da39d2cbed92627d51fda16f51c6eec117de6babd4de24e0397a36819f8b9bf"
+    },
+    "digest": "30d14719cdfab43384bcde379a941e7d54451def7915b6abf005736938fc046d"
+  },
+  "criteriaResults": {
+    "Project-scoped text search: GET /api/v1/projects/:projectId/cards/search matches search text against title and description": "pass",
+    "Sibling project privacy: Requesting search on a sibling project without a grant returns 404 NOT_FOUND": "pass",
+    "Outsider access rejection: Outsiders without project membership receive 404 NOT_FOUND": "pass",
+    "Soft-deleted card exclusion: Trashed cards (state != 'active') are strictly excluded from search results": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "30d14719cdfab43384bcde379a941e7d54451def7915b6abf005736938fc046d",
+      "evidencePath": "docs/reviews/QRY-01/test.log"
+    },
+    {
+      "id": "qry-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/qry01-qry03.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "30d14719cdfab43384bcde379a941e7d54451def7915b6abf005736938fc046d",
+      "evidencePath": "docs/reviews/QRY-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict project boundary check via resolveProjectRole; anti-enumeration 404 on ungranted projects prevents existence leakage; excludes trashed cards.",
+      "evidencePaths": [
+        "docs/reviews/QRY-01/reviewer-session.md",
+        "docs/reviews/QRY-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Case-insensitive substring search matches both title and description; bounded limit clamping (1..100); preserves active state integrity.",
+      "evidencePaths": [
+        "docs/reviews/QRY-01/reviewer-session.md",
+        "docs/reviews/QRY-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Zero data disclosure across sibling projects; respects soft-deletion state boundaries.",
+      "evidencePaths": [
+        "docs/reviews/QRY-01/reviewer-session.md",
+        "docs/reviews/QRY-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Unit and integration tests verify title search, description search, sibling 404, outsider 404, and trash exclusion.",
+      "evidencePaths": [
+        "docs/reviews/QRY-01/reviewer-session.md",
+        "docs/reviews/QRY-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Reusable query builder joining columns and fetching batch counts.",
+      "evidencePaths": [
+        "docs/reviews/QRY-01/reviewer-session.md",
+        "docs/reviews/QRY-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Indexed project_id, state, and bounded limit prevent full-table scan degradation.",
+      "evidencePaths": [
+        "docs/reviews/QRY-01/reviewer-session.md",
+        "docs/reviews/QRY-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

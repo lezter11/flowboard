@@ -294,13 +294,15 @@ export async function acquireWriteGrantLock(
   projectId: string,
   userId: string,
   minRole: 'manager' | 'member' = 'member',
+  boardId?: string,
 ): Promise<{ role: Role; isOwner: boolean; ownerId: string }> {
   // 1. Verify project exists and check workspace owner
   const prjRes = await client.query<{ id: string; workspace_id: string; owner_id: string }>(
     `SELECT p.id, p.workspace_id, w.owner_id
      FROM projects p
      JOIN workspaces w ON p.workspace_id = w.id
-     WHERE p.id = $1`,
+     WHERE p.id = $1
+     FOR SHARE OF w`,
     [projectId],
   );
 
@@ -309,6 +311,16 @@ export async function acquireWriteGrantLock(
   }
 
   const projectRow = prjRes.rows[0]!;
+  if (boardId) {
+    const boardRes = await client.query<{ id: string }>(
+      `SELECT id FROM boards
+       WHERE id = $1 AND project_id = $2 AND workspace_id = $3`,
+      [boardId, projectId, projectRow.workspace_id],
+    );
+    if (!boardRes.rows[0]) {
+      throw HttpError.notFound('Board not found.', 'NOT_FOUND');
+    }
+  }
   if (projectRow.owner_id === userId) {
     return { role: 'owner', isOwner: true, ownerId: projectRow.owner_id };
   }
@@ -331,6 +343,23 @@ export async function acquireWriteGrantLock(
     throw HttpError.notFound('Project not found or access revoked.', 'NOT_FOUND');
   }
 
+  // 3. A board-scoped write always requires an explicit grant. Missing grant
+  // schema is a deployment failure, never permission to fall back to the
+  // broader project role.
+  if (boardId) {
+    const grantRes = await client.query<{ board_id: string }>(
+      `SELECT board_id FROM board_grants
+       WHERE board_id = $1 AND project_id = $2 AND workspace_id = $3 AND user_id = $4
+       FOR SHARE`,
+      [boardId, projectId, projectRow.workspace_id, userId],
+    );
+    if (!grantRes.rows[0]) {
+      throw HttpError.notFound('Board not found.', 'NOT_FOUND');
+    }
+  }
+
+  // Check the action's role only after checking board visibility, so a user
+  // with no board grant gets the same private 404 for every board operation.
   if (member.role === 'viewer') {
     throw HttpError.forbidden('Viewers cannot perform write operations.', 'FORBIDDEN');
   }
@@ -340,6 +369,61 @@ export async function acquireWriteGrantLock(
   }
 
   return { role: member.role, isOwner: false, ownerId: projectRow.owner_id };
+}
+
+/**
+ * Locks the project and optional board context and rejects writes to archived
+ * data. The row locks make a future archive transition wait for this mutation
+ * (or make this mutation observe the committed archive state first).
+ */
+export async function acquireWritableProjectContextLock(
+  client: pg.ClientBase,
+  projectId: string,
+  boardId?: string,
+): Promise<void> {
+  if (boardId) {
+    const contextRes = await client.query<{
+      project_archived: boolean;
+      board_archived: boolean;
+    }>(
+      `SELECT p.archived AS project_archived, b.archived AS board_archived
+       FROM projects p
+       JOIN boards b ON b.project_id = p.id
+       WHERE p.id = $1 AND b.id = $2
+       FOR SHARE OF p, b`,
+      [projectId, boardId],
+    );
+    if (!contextRes.rows[0]) {
+      throw HttpError.notFound('Board not found.', 'NOT_FOUND');
+    }
+    if (contextRes.rows[0].project_archived) {
+      throw HttpError.conflict('READ_ONLY_CONTEXT', 'Cannot write in an archived project.', {
+        reason: 'project_archived',
+        contextId: projectId,
+      });
+    }
+    if (contextRes.rows[0].board_archived) {
+      throw HttpError.conflict('READ_ONLY_CONTEXT', 'Cannot write on an archived board.', {
+        reason: 'board_archived',
+        contextId: boardId,
+      });
+    }
+    return;
+  }
+
+  const projectRes = await client.query<{ archived: boolean }>(
+    'SELECT archived FROM projects WHERE id = $1 FOR SHARE',
+    [projectId],
+  );
+  if (!projectRes.rows[0]) {
+    throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+  }
+  if (projectRes.rows[0].archived) {
+    throw HttpError.conflict('READ_ONLY_CONTEXT', 'Cannot write in an archived project.', {
+      reason: 'project_archived',
+      contextId: projectId,
+    });
+  }
 }
 
 // ============================================================================
@@ -360,8 +444,33 @@ export async function getProjectPeople(
   query?: string,
   cursor?: string,
   limit = 50,
+  boardId?: string,
+  actorId?: string,
 ): Promise<{ data: PersonDisplay[]; nextCursor: string | null }> {
   const pool = clientOrPool ?? getPool();
+
+  let boardEligibleIds: Set<string> | null = null;
+  if (boardId) {
+    const board = await pool.query<{ owner_id: string }>(
+      `SELECT w.owner_id FROM boards b
+       JOIN projects p ON p.id = b.project_id AND p.workspace_id = b.workspace_id
+       JOIN workspaces w ON w.id = p.workspace_id
+       WHERE b.id = $1 AND b.project_id = $2 AND b.archived = FALSE`,
+      [boardId, projectId],
+    );
+    if (!board.rows[0]) throw HttpError.notFound('Board not found.', 'NOT_FOUND');
+    const grants = await pool.query<{ user_id: string }>(
+      `SELECT bg.user_id FROM board_grants bg
+       JOIN project_memberships pm ON pm.project_id = bg.project_id
+         AND pm.user_id = bg.user_id AND pm.status = 'active'
+       WHERE bg.board_id = $1 AND bg.project_id = $2`,
+      [boardId, projectId],
+    );
+    boardEligibleIds = new Set([board.rows[0].owner_id, ...grants.rows.map((row) => row.user_id)]);
+    if (actorId && !boardEligibleIds.has(actorId)) {
+      throw HttpError.notFound('Board not found.', 'NOT_FOUND');
+    }
+  }
 
   const res = await pool.query<{
     id: string;
@@ -422,6 +531,7 @@ export async function getProjectPeople(
     const isActive = row.status === 'active';
     const role = row.scoped_role;
     const isWritableRole = role === 'owner' || role === 'manager' || role === 'member';
+    const hasBoardAccess = !boardEligibleIds || boardEligibleIds.has(row.id);
 
     return {
       id: row.id,
@@ -429,8 +539,8 @@ export async function getProjectPeople(
       avatarUrl: row.avatar_url ?? null,
       activeInProject: isActive,
       scopedRole: role,
-      assignable: isActive && isWritableRole,
-      mentionable: isActive,
+      assignable: isActive && isWritableRole && hasBoardAccess,
+      mentionable: isActive && hasBoardAccess,
     };
   });
 
@@ -469,8 +579,9 @@ export async function getEligibleAssignees(
   clientOrPool: pg.Pool | pg.ClientBase,
   projectId: string,
   query?: string,
+  boardId?: string,
 ): Promise<PersonDisplay[]> {
-  const { data } = await getProjectPeople(clientOrPool, projectId, 'assignee', query, undefined, 100);
+  const { data } = await getProjectPeople(clientOrPool, projectId, 'assignee', query, undefined, 100, boardId);
   return data;
 }
 
@@ -478,8 +589,9 @@ export async function getEligibleMentionees(
   clientOrPool: pg.Pool | pg.ClientBase,
   projectId: string,
   query?: string,
+  boardId?: string,
 ): Promise<PersonDisplay[]> {
-  const { data } = await getProjectPeople(clientOrPool, projectId, 'mention', query, undefined, 100);
+  const { data } = await getProjectPeople(clientOrPool, projectId, 'mention', query, undefined, 100, boardId);
   return data;
 }
 
@@ -558,6 +670,7 @@ export async function getProjectAccessSummary(
   clientOrPool: pg.Pool | pg.ClientBase,
   projectId: string,
   actorId: string,
+  authorizedBoardIds?: string[] | null,
 ): Promise<ProjectAccessSummary> {
   const pool = clientOrPool ?? getPool();
 
@@ -597,12 +710,21 @@ export async function getProjectAccessSummary(
     throw HttpError.notFound('Project not found.', 'NOT_FOUND');
   }
 
-  // Active boards count
+  // Count only boards visible to this actor. A project member may have no
+  // board grants, and the total number of hidden boards is private.
   const boardCountRes = await pool.query<{ board_count: string }>(
     `SELECT COUNT(*)::INT AS board_count
-     FROM boards
-     WHERE project_id = $1 AND archived = FALSE`,
-    [projectId],
+     FROM boards b
+     WHERE b.project_id = $1 AND b.archived = FALSE
+       AND ($4::text[] IS NULL OR b.id = ANY($4::text[]))
+       AND ($3::boolean OR EXISTS (
+         SELECT 1 FROM board_grants bg
+         JOIN project_memberships pm ON pm.project_id = bg.project_id
+           AND pm.user_id = bg.user_id AND pm.status = 'active'
+         WHERE bg.board_id = b.id AND bg.project_id = b.project_id
+           AND bg.workspace_id = b.workspace_id AND bg.user_id = $2
+       ))`,
+    [projectId, actorId, actorRole === 'owner', authorizedBoardIds ?? null],
   );
 
   // Active memberships summary
@@ -638,11 +760,11 @@ export async function getProjectAccessSummary(
       inheritedFrom: actorRole === 'owner' ? 'workspace_owner' : 'project_membership',
     },
     boardInheritance: {
-      model: 'project_scoped',
-      allBoardsInherit: true,
-      hasBoardOnlyExceptions: false,
+      model: 'explicit_board_grants',
+      allBoardsInherit: false,
+      hasBoardOnlyExceptions: true,
       boardCount: Number(boardCountRes.rows[0]?.board_count ?? 0),
-      disclosure: 'All boards in this project inherit project-level role permissions directly. No board-level guest permissions or hidden exceptions exist.',
+      disclosure: 'Project membership alone does not grant board access. This count includes only boards you can open; the workspace Owner can open all boards.',
     },
     memberSummary: {
       activeManagers: roleCounts['manager'] ?? 0,

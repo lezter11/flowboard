@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "COM-03"
+  ],
+  "mandatoryCriteria": [
+    "Mention teammate validation: Mentions list contains valid non-overlapping UTF-16 span offsets (start < end)",
+    "Mention privacy enforcement: Mentioned user IDs must be active project members; rejects sibling users or non-members with 400 or 422",
+    "Notification creation: Inserts in-app notification record for mentioned users; self-mentions do not create notifications"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "com-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Structured mention parsing, validation, and in-app notifications."
+}

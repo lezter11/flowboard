@@ -1,0 +1,15 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-02"
+  ],
+  "mandatoryCriteria": [
+    "Compact card summary schema: CardSummary contains id, boardId, columnId, title, priority, dueDate, assigneeIds, position, version, commentCount, imageCount",
+    "Lightweight payload: Excludes full description, discussion, and activity for performance"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "crd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Card summary representation."
+}

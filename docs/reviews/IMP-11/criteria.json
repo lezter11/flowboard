@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "IMP-11"
+  ],
+  "mandatoryCriteria": [
+    "Batch activity logging: commitCardImport inserts card_import_committed into activity_log with batch metadata",
+    "Individual card provenance: Each created card has a card_created fact in activity_log linking import provenance",
+    "Traceability: Batch ID links import session to all resulting cards and audit records"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "imp-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: IMP-11 Excel import engine on PostgreSQL. Out-of-scope: UI components."
+}

@@ -1,0 +1,24 @@
+{"probe":"project-archive-after-committed-ownership-transfer","status":200,"body":{"data":{"id":"p","workspaceId":"w","name":"Private Project","description":null,"isArchived":true,"version":2,"createdAt":"2026-10-28T12:36:08.907Z","updatedAt":"2026-10-28T12:36:08.920Z"},"replayed":false}}
+{"probe":"project-reopen-after-committed-ownership-transfer","status":200,"body":{"data":{"id":"p","workspaceId":"w","name":"Private Project","description":null,"isArchived":false,"version":3,"createdAt":"2026-10-28T12:36:08.907Z","updatedAt":"2026-10-28T12:36:08.937Z"},"replayed":false}}
+{"probe":"project-create-after-committed-ownership-transfer","status":201,"body":{"data":{"id":"prj_8479a5a4-dba7-404c-b862-5dc3f4b04ac5","workspaceId":"w","name":"Created by former Owner","description":null,"isArchived":false,"version":1,"createdAt":"2026-10-28T12:36:08.948Z","updatedAt":"2026-10-28T12:36:08.948Z"},"replayed":false}}
+{"probe":"membership-receipt-after-owner-lost-all-project-access","status":200,"body":{"data":{"id":"pm","version":2,"role":"viewer","projectId":"p","status":"active"},"replayed":true}}
+{"probe":"membership-delete-receipt-after-owner-lost-project-access","status":200,"body":{"data":{"success":true},"replayed":true}}
+node:internal/modules/run_main:107
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: {"error":{"code":"IDEMPOTENCY_KEY_REQUIRED","message":"Missing or invalid Idempotency-Key header.","requestId":"ae7e4eb6-73e3-4000-9313-c14029168212"}}
+
+400 !== 201
+
+    at file:///Users/shubham/Documents/Flowboard/docs/reviews/BOARD-ACCESS-REPAIR-20261028/reviewer-probes-round-7.ts:66:112
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: 400,
+  expected: 201,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v24.15.0

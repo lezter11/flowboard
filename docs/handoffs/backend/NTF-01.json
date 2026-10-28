@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/NTF-01/25c0ad69bd3649eb5fe43921c3d3c16051795e663136c70d06b8b2344477d2d9-round-1.json",
+  "summary": "NTF-01 Durable in-app mention inbox verified. Implemented durable mention notifications on comment creation, self-mention omission, stable pagination, and dynamic project grant verification excluding revoked project notifications. Audited with unrounded score 9.620/10.0.",
+  "api_contract": "GET /api/v1/notifications (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/NTF-01/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Activity logs are append-only; retention redaction scrubs sensitive content without deleting facts.",
+    "Outbox processor uses exponential backoff and dead-letter quarantine after maxRetries."
+  ]
+}

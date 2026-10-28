@@ -1,382 +1,99 @@
-/* Flowboard UI artifact — project people, roles, invitations and role matrix. */
-(function () {
+/* Project team preview. Project and board access remain separate; no API writes. */
+(function(){
   "use strict";
-
-  const SD = window.SD;
-  const $ = (selector, root) => (root || document).querySelector(selector);
-  const $$ = (selector, root) => Array.from((root || document).querySelectorAll(selector));
-  const escape = window.Screens.escape;
-  const PROJECT_ID = "website-redesign";
-
-  function me() { return window.Screens.currentUser(); }
-  function project() { return SD.project(PROJECT_ID); }
-  function canManage() { return window.Screens.can("managePeople"); }
-  function isOwner() { return window.Screens.role === "owner"; }
-
-  function memberRecord(personId) {
-    return SD.members.find((member) => member.personId === personId) || null;
+  const S=window.Screens, P=window.Portfolio, SD=window.SD, FB=window.FB;
+  const $=s=>document.querySelector(s), esc=S.escape, icon=S.icon;
+  const state={q:"",role:""};
+  let draft=null;
+  function manageableProjects(){
+    const user=S.currentUser();
+    if(S.role==="owner")return P.projects().filter(p=>p.ownerId===user.id);
+    if(S.role==="manager")return P.projects().filter(p=>SD.project(p.id)&&SD.member(user.id,p.id)?.role==="Manager");
+    return [];
   }
-
-  function roster() {
-    const current = project();
-    if (!current) return [];
-    return current.memberIds
-      .map((id) => memberRecord(id))
-      .filter(Boolean);
+  function currentProject(){
+    if(!S.projectContext.valid)return null;
+    return manageableProjects().find(p=>p.id===S.projectContext.projectId)||null;
   }
-
-  function pending() {
-    return SD.pendingInvites.filter((invite) => invite.projectId === PROJECT_ID);
+  function members(project){
+    if(!project)return [];
+    return project.memberIds.map(id=>{
+      const person=FB.person(id); if(!person)return null;
+      const sample=SD.members.find(member=>member.personId===id);
+      const role=id===project.ownerId?"Owner":sample?.role||person.role||"Member";
+      return {id, name:person.name, role};
+    }).filter(Boolean);
   }
-
-  function roleOptions() {
-    return isOwner() ? ["Manager", "Member", "Viewer"] : ["Member", "Viewer"];
+  function destination(page, projectId){
+    const q=new URLSearchParams({project:projectId});
+    if(S.role!=="owner")q.set("role",S.role);
+    if(document.documentElement.dataset.theme==="dark")q.set("theme","dark");
+    return `${page}.html?${q}`;
   }
-
-  function roleTone(role) {
-    return role === "Owner" ? "info" : role === "Manager" ? "active" : role === "Viewer" ? "" : "plain";
-  }
-
-  function renderHeader() {
-    const current = project();
-    const people = roster();
-    $("#peopleSub").innerHTML = `<span>${people.length} project ${people.length === 1 ? "person" : "people"}</span><span class="dot" aria-hidden="true"></span><span>Roles are per project</span><span class="dot" aria-hidden="true"></span><span>${canManage() ? "Administration available" : "Read-only roster"}</span>`;
-    $("#peopleRoleBadge").textContent = `${window.Screens.roleLabel()} preview`;
-    const fixture = memberRecord(me().id);
-    const mismatch = fixture && fixture.role.toLowerCase() !== window.Screens.role;
-    const previewNote = $("#peoplePreviewNote");
-    previewNote.hidden = !mismatch;
-    if (mismatch) {
-      $("#peoplePreviewNoteText").innerHTML = `<strong>Preview fixture mismatch.</strong> The fixed ${escape(window.Screens.roleLabel())} preview uses ${escape(me().name)}, whose local roster grant is now ${escape(fixture.role)}. Roster edits do not change preview identities; reload this page to restore the synthetic roster.`;
-    }
-    $("#peopleScopeBar").className = `review-bar${canManage() ? "" : " note"}`;
-    $("#peopleScopeCopy").innerHTML = isOwner()
-      ? "<strong>Owner preview.</strong> You can invite people, grant or remove Manager, and change any non-owner role. Ownership transfer is later scope."
-      : window.Screens.role === "manager"
-        ? "<strong>Manager preview.</strong> You can invite Member/Viewer and change Member/Viewer grants. Manager grants stay Owner-only, and you cannot edit a peer Manager."
-        : "<strong>Read-only roster.</strong> You can see who is on this project, but you cannot invite people, change roles or remove grants.";
-    $("#teamCount").textContent = `${people.length} ${people.length === 1 ? "person" : "people"}`;
-    $("#teamSub").textContent = canManage()
-      ? "Roles are per project. Changes take effect on the next authorized request."
-      : "Roles are per project. Your role can read this roster but cannot change it.";
-    $("#matrixRoleBadge").textContent = window.Screens.roleLabel();
-    $("#peopleActions").innerHTML = [
-      canManage() ? `<button class="btn primary" type="button" id="inviteBtn">${window.Screens.icon("user-plus")}Invite people</button>` : "",
-      `<a class="btn" href="${window.Screens.screenHref("project", { project: PROJECT_ID })}">${window.Screens.icon("folder")}Project overview</a>`
-    ].join("");
-    const invite = $("#inviteBtn");
-    if (invite) invite.addEventListener("click", openInvite);
-  }
-
-  function roleControl(member) {
-    const person = window.FB.person(member.personId);
-    const isYou = member.personId === me().id;
-    if (member.role === "Owner") {
-      return `<span class="status-chip info plain">Owner</span><span class="tiny faint nowrap">Workspace owner</span>`;
-    }
-    if (!canManage() || isYou) {
-      return `<span class="status-chip ${roleTone(member.role)} plain">${escape(member.role)}</span>${isYou ? '<span class="badge accent">You</span>' : ""}`;
-    }
-    if (!isOwner() && member.role === "Manager") {
-      return `<span class="status-chip active plain">Manager</span><span class="tiny faint nowrap" title="Only the Owner can change a Manager grant">${window.Screens.icon("lock")} Owner only</span>`;
-    }
-    const options = roleOptions().map((role) => `<option value="${role}"${role === member.role ? " selected" : ""}>${role}</option>`).join("");
-    return `<label class="sr-only" for="role-${member.personId}">Role for ${escape(person ? person.name : member.personId)}</label>
-      <select class="role-select" id="role-${member.personId}" data-role-person="${member.personId}">${options}</select>`;
-  }
-
-  function removeButton(member) {
-    if (!canManage()) return "";
-    if (member.role === "Owner" || member.personId === me().id) return "";
-    if (!isOwner() && member.role === "Manager") return "";
-    return `<button class="icon-btn" type="button" data-remove-member="${member.personId}" aria-label="Remove ${escape(window.Screens.personName(member.personId))}" title="Remove from project">
-      ${window.Screens.icon("x")}
-    </button>`;
-  }
-
-  function renderTeam() {
-    const list = roster();
-    $("#teamList").innerHTML = list.map((member) => {
-      const person = window.FB.person(member.personId);
-      if (!person) return "";
-      const isYou = member.personId === me().id;
-      return `<div class="person-row${isYou ? " is-you" : ""}" data-person-id="${member.personId}">
-        ${window.Screens.avatar(member.personId, "lg")}
-        <div class="person-copy">
-          <strong>${escape(person.name)}${isYou ? ' <span class="badge accent">You</span>' : ""}</strong>
-          <span>${escape(member.email)} · ${member.role === "Owner" ? "full workspace access" : `joined ${escape(window.Screens.formatDate(member.joinedAt))}`}</span>
-        </div>
-        <div class="person-actions">
-          ${roleControl(member)}
-          ${removeButton(member)}
-        </div>
-        <span class="tiny faint nowrap" style="min-width:74px;text-align:right;">${member.role === "Owner" ? "Always active" : `Active ${escape(window.Screens.relativeTime(member.lastActive))}`}</span>
-      </div>`;
-    }).join("");
-  }
-
-  function renderPending() {
-    const panel = $("#pendingPanel");
-    if (!canManage()) {
-      panel.hidden = true;
+  function clear(){state.q=state.role="";$("#peopleSearch").value="";render();}
+  function render(){
+    const project=currentProject(), content=$("#peopleContent"), unavailable=$("#peopleUnavailable");
+    content.hidden=!project;unavailable.hidden=!!project;
+    if(!project){
+      $("#peopleSub").textContent="";$("#peopleActions").replaceChildren();$("#teamList").replaceChildren();$("#peopleProject").replaceChildren();$("#unavailableProjects").href=S.screenHref("projects");
+      for(const id of ["statMembers","statManagers","statMembersOnly","statViewers"])$("#"+id).textContent="0";
+      $("#teamCount").textContent="";$("#peopleResultCount").textContent="";
+      const crumb=$("#crumbs a");if(crumb){crumb.textContent="Projects";crumb.href=S.screenHref("projects");}
       return;
     }
-    panel.hidden = false;
-    const list = pending();
-    $("#pendingCount").textContent = `${list.length} pending`;
-    $("#pendingList").innerHTML = list.length
-      ? list.map((invite) => {
-        const initials = invite.name.split(/\s+/).map((word) => word[0]).slice(0, 2).join("").toUpperCase();
-        return `<div class="pending-row" data-invite-id="${invite.id}">
-          <span class="pending-avatar" aria-hidden="true">${escape(initials)}</span>
-          <div class="person-copy">
-            <strong>${escape(invite.name)} <span class="status-chip pending plain">Pending</span></strong>
-            <span>${escape(invite.email)} · invited ${escape(window.Screens.relativeTime(invite.invitedAt))} by ${escape(window.Screens.personName(invite.invitedBy))}</span>
-          </div>
-          <div class="person-actions">
-            <span class="status-chip ${invite.role === "Viewer" ? "" : "active"} plain">${escape(invite.role)}</span>
-            <button class="btn sm" type="button" data-resend-invite="${invite.id}">Resend</button>
-            <button class="btn sm ghost" type="button" data-revoke-invite="${invite.id}">Revoke</button>
-          </div>
-        </div>`;
-      }).join("")
-      : `<div class="empty-state" style="padding:22px 12px;">
-          ${window.Screens.icon("mail")}
-          <strong>No pending invitations</strong>
-          <span>Invite a Member or Viewer. Only accepted invitations appear in the project roster.</span>
-          <button class="btn sm" type="button" data-open-invite>Invite someone</button>
-        </div>`;
-    $$("[data-open-invite]", $("#pendingList")).forEach((button) => button.addEventListener("click", openInvite));
+    const list=members(project), q=state.q.trim().toLowerCase();
+    const filtered=list.filter(p=>(!state.role||p.role===state.role)&&(!q||p.name.toLowerCase().includes(q)));
+    $("#peopleSub").textContent=project.name;
+    const isOwner=S.role==="owner"&&project.ownerId===S.currentUser().id;
+    $("#peopleActions").innerHTML=isOwner&&project.status!=="archived"?`${P.boards(project.id).length?`<button class="btn" type="button" data-manage="boards">${icon("lock")}Board access</button>`:""}<button class="btn primary" type="button" data-manage="members">${icon("users")}Manage members</button>`:`<a class="btn" href="${esc(destination("project",project.id))}">${icon("folder")}Project overview</a>`;
+    const counts={Manager:0,Member:0,Viewer:0};for(const person of list)if(Object.hasOwn(counts,person.role))counts[person.role]++;
+    $("#statMembers").textContent=list.length;$("#statManagers").textContent=counts.Manager;$("#statMembersOnly").textContent=counts.Member;$("#statViewers").textContent=counts.Viewer;
+    $("#managerLabel").textContent=counts.Manager===1?"manager":"managers";$("#memberLabel").textContent=counts.Member===1?"member":"members";$("#viewerLabel").textContent=counts.Viewer===1?"viewer":"viewers";
+    $("#teamCount").textContent=`${filtered.length} ${filtered.length===1?"person":"people"}`;
+    const projects=manageableProjects();$("#peopleProject").innerHTML=projects.map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("");$("#peopleProject").value=project.id;
+    $("#peopleRole").value=state.role;const active=!!(state.q||state.role);$("#clearPeopleFilters").hidden=!active;
+    $("#peopleResultCount").textContent=active?`${filtered.length} matching ${filtered.length===1?"person":"people"}`:"All project members";
+    $("#teamList").innerHTML=filtered.length?filtered.map(person=>`<article class="team-row"><span class="person-avatar">${S.avatar(person.id,"lg")}</span><div class="member-name"><strong>${esc(person.name)}</strong>${person.id===S.currentUser().id?'<span class="you-label">You</span>':""}</div><span class="member-role role-${esc(person.role.toLowerCase())}"><span aria-hidden="true" class="role-dot"></span>${esc(person.role)}</span><span class="member-icon" aria-hidden="true">${icon("user-check")}</span></article>`).join(""):`<div class="people-empty">${icon("users")}<strong>${active?"No matching people":"No members yet"}</strong><span>${active?"Try a different search or role.":"Members will appear here."}</span>${active?'<button type="button" data-clear>Clear filters</button>':""}</div>`;
+    const crumb=$("#crumbs a");if(crumb){crumb.textContent=project.name;crumb.href=destination("project",project.id);}
   }
-
-  function renderSummary() {
-    const list = roster();
-    const counts = {
-      Owner: list.filter((member) => member.role === "Owner").length,
-      Manager: list.filter((member) => member.role === "Manager").length,
-      Member: list.filter((member) => member.role === "Member").length,
-      Viewer: list.filter((member) => member.role === "Viewer").length
-    };
-    $("#statMembers").textContent = list.length;
-    $("#statManagers").textContent = counts.Manager;
-    $("#statMembersOnly").textContent = counts.Member;
-    $("#statViewers").textContent = counts.Viewer;
-    $("#statPending").textContent = canManage() ? pending().length : "—";
-    $("#roleHint").textContent = `${list.length} people`;
-    const segments = [
-      { key: "Owner", count: counts.Owner, color: "var(--ink-soft)" },
-      { key: "Manager", count: counts.Manager, color: "var(--dot-progress)" },
-      { key: "Member", count: counts.Member, color: "var(--dot-testing)" },
-      { key: "Viewer", count: counts.Viewer, color: "var(--faint)" }
-    ].filter((segment) => segment.count > 0);
-    $("#roleBar").innerHTML = segments.length
-      ? segments.map((segment) => `<span style="flex:${segment.count};background:${segment.color}" title="${segment.key}: ${segment.count}"></span>`).join("")
-      : '<span style="flex:1;background:var(--surface-3)"></span>';
-    $("#roleLegend").innerHTML = segments.map((segment) => `<span><i style="background:${segment.color}"></i>${segment.key} ${segment.count}</span>`).join("") || "<span>No project people</span>";
+  function drawManagement(){
+    const project=currentProject(); if(!draft||!project||project.id!==draft.projectId)return;
+    const isBoard=draft.kind==="boards";
+    $("#peopleManageTitle").textContent=isBoard?"Board access":"Project members";
+    $("#peopleManageSubtitle").textContent=project.name+" · local preview";
+    $("#peopleManageHelp").textContent=isBoard?"Choose which project members can open this board. Project roles and board access are separate.":"Choose from existing preview people. Adding someone does not grant board access; removing them also removes their board access. Email invitations and role changes are not connected.";
+    $("#peopleBoardLabel").hidden=!isBoard;
+    if(isBoard){$("#peopleBoardSelect").innerHTML=P.boards(project.id).map(b=>`<option value="${esc(b.id)}">${esc(b.name)}</option>`).join("");$("#peopleBoardSelect").value=draft.boardId||"";}
+    const candidates=isBoard?P.availableMembers(project.id):P.candidateMembers(project.id);
+    const focusIndex=candidates.findIndex(person=>person.id!==project.ownerId);
+    $("#peopleManageList").innerHTML=candidates.map((person,i)=>`<label class="people-manage-person"><input type="checkbox" data-person="${esc(person.id)}" ${draft.selected.has(person.id)?"checked":""} ${person.id===project.ownerId?"disabled":""} ${i===focusIndex?"data-autofocus":""}><span><strong>${esc(person.name)}</strong>${person.id===project.ownerId?'<small>Owner · always has access</small>':""}</span></label>`).join("")||'<p>No people available.</p>';
+    $("#peopleManageSave").disabled=isBoard&&!draft.boardId;
+    $("#peopleManageError").hidden=true;
   }
-
-  const MATRIX_ROWS = [
-    ["Read project, boards and cards", true, true, true, true],
-    ["Create, edit, assign and move cards", true, true, true, false],
-    ["Comment and upload private images", true, true, true, false],
-    ["Delete card and restore before 24h", true, true, false, false],
-    ["Invite Member or Viewer", true, true, false, false],
-    ["Grant or remove Manager", true, false, false, false],
-    ["Configure boards and columns", true, true, false, false],
-    ["Create, archive or reopen project", true, false, false, false],
-    ["Upload and confirm Excel imports", true, true, false, false],
-    ["See project access events", true, true, false, false]
-  ];
-
-  function renderMatrix() {
-    const current = window.Screens.roleLabel();
-    const head = ["Action", "Owner", "Manager", "Member", "Viewer"].map((label) => {
-      const isCurrent = label === current;
-      return `<th${isCurrent ? ' class="is-current"' : ""}>${label}${isCurrent ? " · you" : ""}</th>`;
-    }).join("");
-    const body = MATRIX_ROWS.map((row) => {
-      const action = row[0];
-      const cells = row.slice(1).map((allowed, index) => {
-        const label = ["Owner", "Manager", "Member", "Viewer"][index];
-        const isCurrent = label === current;
-        return `<td${isCurrent ? ' class="is-current"' : ""}>${allowed
-          ? `<span class="yes" title="Allowed">${window.Screens.icon("check")}<span class="sr-only">Allowed</span></span>`
-          : `<span class="no" title="Not allowed">${window.Screens.icon("x")}<span class="sr-only">Not allowed</span></span>`}</td>`;
-      }).join("");
-      return `<tr><td>${escape(action)}</td>${cells}</tr>`;
-    }).join("");
-    $("#roleMatrix").innerHTML = `<table class="role-matrix"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+  function openManagement(kind){
+    const project=currentProject();if(!project||S.role!=="owner"||project.ownerId!==S.currentUser().id||project.status==="archived")return;
+    const boardId=kind==="boards"?P.boards(project.id)[0]?.id:null;if(kind==="boards"&&!boardId)return;
+    draft={kind,projectId:project.id,boardId,selected:new Set(kind==="boards"?(boardId?P.boardMembers(boardId):[]):project.memberIds)};
+    $("#peopleBoardSelect").disabled=false;
+    drawManagement();S.openDialog("peopleManageLayer",document.activeElement);
   }
-
-  function render() {
-    renderHeader();
-    renderSummary();
-    renderTeam();
-    renderPending();
-    renderMatrix();
-    bindTeam();
-    bindPending();
+  function closeManagement(){draft=null;S.closeDialog("peopleManageLayer");}
+  function saveManagement(){
+    const project=currentProject();if(!draft||!project||draft.projectId!==project.id||S.role!=="owner"||project.ownerId!==S.currentUser().id)return;
+    const saved=draft.kind==="boards"?draft.boardId&&P.setBoardMembers(draft.boardId,[...draft.selected]):P.setProjectMembers(project.id,[...draft.selected]);
+    if(!saved){$("#peopleManageError").textContent="Changes could not be saved in this preview. Check browser storage and try again.";$("#peopleManageError").hidden=false;return;}
+    closeManagement();render();S.toast("Changes saved in this local preview.",{tone:"success"});
   }
-
-  function bindTeam() {
-    $$("[data-role-person]", $("#teamList")).forEach((select) => {
-      select.addEventListener("change", async (event) => {
-        const personId = select.dataset.rolePerson;
-        const member = memberRecord(personId);
-        if (!member) return;
-        const previous = member.role;
-        const next = select.value;
-        if (next === previous) return;
-        const person = window.FB.person(personId);
-        const accepted = await window.Screens.confirm({
-          title: next === "Manager" ? `Grant Manager to ${person ? person.name : personId}?` : `Change role to ${next}?`,
-          copy: next === "Manager"
-            ? "Managers can configure this project, invite Member/Viewer and delete or restore cards. They cannot grant Manager or edit a peer Manager. This is a local prototype change."
-            : `The ${next.toLowerCase()} grant for ${person ? person.name : personId} takes effect on the next authorized request. Existing cards, comments and images stay with the project.`,
-          confirmLabel: next === "Manager" ? "Grant Manager" : "Change role",
-          tone: next === "Manager" ? "primary" : "primary",
-          icon: "shield"
-        });
-        if (!accepted) {
-          select.value = previous;
-          return;
-        }
-        member.role = next;
-        render();
-        window.Screens.toast(`${person ? person.name : personId} is now ${next}. Prototype state only.`, { tone: "success", icon: "users" });
-      });
-    });
-    $$("[data-remove-member]", $("#teamList")).forEach((button) => {
-      button.addEventListener("click", () => removeMember(button.dataset.removeMember));
-    });
+  function init(){
+    $("#peopleSearch").addEventListener("input",e=>{state.q=e.target.value;render();});
+    $("#peopleRole").addEventListener("change",e=>{state.role=e.target.value;render();});
+    $("#peopleProject").addEventListener("change",e=>{if(manageableProjects().some(p=>p.id===e.target.value))location.href=destination("people",e.target.value);});
+    $("#clearPeopleFilters").addEventListener("click",clear);$("#teamList").addEventListener("click",e=>{if(e.target.closest("[data-clear]"))clear();});
+    $("#peopleActions").addEventListener("click",e=>{const button=e.target.closest("[data-manage]");if(button)openManagement(button.dataset.manage);});
+    $("#peopleManageLayer").addEventListener("click",e=>{if(e.target.closest("[data-people-close]"))closeManagement();});
+    $("#peopleManageList").addEventListener("change",e=>{if(!draft||!e.target.dataset.person)return;e.target.checked?draft.selected.add(e.target.dataset.person):draft.selected.delete(e.target.dataset.person);if(draft.kind==="boards"){$("#peopleBoardSelect").disabled=true;$("#peopleManageHelp").textContent="Save or cancel these changes before choosing another board. Project roles and board access are separate.";}});
+    $("#peopleBoardSelect").addEventListener("change",e=>{const project=currentProject();if(!draft||!project||!P.boards(project.id).some(b=>b.id===e.target.value))return;draft.boardId=e.target.value;draft.selected=new Set(P.boardMembers(draft.boardId));drawManagement();});
+    $("#peopleManageSave").addEventListener("click",saveManagement);render();
   }
-
-  function bindPending() {
-    $$("[data-resend-invite]", $("#pendingList")).forEach((button) => {
-      button.addEventListener("click", () => {
-        const invite = pending().find((entry) => entry.id === button.dataset.resendInvite);
-        if (!invite) return;
-        invite.invitedAt = new Date().toISOString();
-        render();
-        window.Screens.toast(`Invitation to ${invite.email} marked for resend. No email was sent.`, { icon: "mail" });
-      });
-    });
-    $$("[data-revoke-invite]", $("#pendingList")).forEach((button) => {
-      button.addEventListener("click", () => revokeInvite(button.dataset.revokeInvite));
-    });
-  }
-
-  async function removeMember(personId) {
-    const member = memberRecord(personId);
-    if (!member || !canManage()) return;
-    if (member.role === "Owner" || personId === me().id) return;
-    if (!isOwner() && member.role === "Manager") return;
-    const person = window.FB.person(personId);
-    const accepted = await window.Screens.confirm({
-      title: `Remove ${person ? person.name : personId} from Website Redesign?`,
-      copy: "Their project grant is removed on the next authorized request. Cards, comments and images they created stay in the project. This does not delete their account.",
-      confirmLabel: "Remove from project",
-      tone: "danger",
-      icon: "x-circle"
-    });
-    if (!accepted) return;
-    const current = project();
-    current.memberIds = current.memberIds.filter((id) => id !== personId);
-    render();
-    window.Screens.toast(`${person ? person.name : personId} removed from Website Redesign.`, { icon: "user-check" });
-  }
-
-  async function revokeInvite(id) {
-    const invite = pending().find((entry) => entry.id === id);
-    if (!invite) return;
-    const accepted = await window.Screens.confirm({
-      title: `Revoke the invitation to ${invite.email}?`,
-      copy: "The pending grant is removed. If the person already accepted elsewhere, that account is unchanged. This prototype sends no email.",
-      confirmLabel: "Revoke invitation",
-      tone: "danger",
-      icon: "mail"
-    });
-    if (!accepted) return;
-    SD.pendingInvites.splice(SD.pendingInvites.indexOf(invite), 1);
-    render();
-    window.Screens.toast(`Invitation to ${invite.email} revoked.`, { icon: "x-circle" });
-  }
-
-  function openInvite() {
-    if (!canManage()) return;
-    $("#inviteForm").reset();
-    $("#inviteRole").value = "Member";
-    $("#inviteEmailError").hidden = true;
-    $("#inviteEmail").classList.remove("is-invalid");
-    window.Screens.openDialog("inviteLayer");
-  }
-
-  function submitInvite(event) {
-    event.preventDefault();
-    if (!canManage()) return;
-    const emailField = $("#inviteEmail");
-    const email = emailField.value.trim().toLowerCase();
-    const role = $("#inviteRole").value;
-    const error = $("#inviteEmailError");
-    error.hidden = true;
-    emailField.classList.remove("is-invalid");
-
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      error.textContent = "Enter a valid email address.";
-      error.hidden = false;
-      emailField.classList.add("is-invalid");
-      emailField.focus();
-      return;
-    }
-    if (SD.members.some((member) => member.email.toLowerCase() === email)) {
-      error.textContent = "This person is already on the project.";
-      error.hidden = false;
-      emailField.classList.add("is-invalid");
-      emailField.focus();
-      return;
-    }
-    if (pending().some((invite) => invite.email.toLowerCase() === email)) {
-      error.textContent = "An invitation is already pending for this email.";
-      error.hidden = false;
-      emailField.classList.add("is-invalid");
-      emailField.focus();
-      return;
-    }
-
-    const local = email.split("@")[0].replace(/[._-]+/g, " ").trim();
-    const name = local.split(/\s+/).map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") || email;
-    SD.pendingInvites.push({
-      id: `inv_${Date.now()}`,
-      name,
-      email,
-      role,
-      invitedBy: me().id,
-      invitedAt: new Date().toISOString(),
-      projectId: PROJECT_ID,
-      status: "pending"
-    });
-    window.Screens.closeDialog("inviteLayer");
-    render();
-    window.Screens.toast(`Invitation recorded for ${email} as ${role}. No email was sent.`, { tone: "success", icon: "mail" });
-  }
-
-  window.FBPage = {
-    init() {
-      $("#inviteForm").addEventListener("submit", submitInvite);
-      $$("[data-close-dialog]").forEach((button) => {
-        button.addEventListener("click", () => window.Screens.closeDialog(button.dataset.closeDialog));
-      });
-      render();
-      if (new URLSearchParams(window.location.search).get("invite") === "1" && canManage()) {
-        setTimeout(openInvite, 60);
-      }
-    },
-    render() {
-      render();
-    },
-    beforeRoleChange() {
-      window.Screens.closeDialog("inviteLayer");
-      return true;
-    }
-  };
+  window.FBPage={init,render,beforeRoleChange(){state.q=state.role="";$("#peopleSearch").value="";return true;}};
 })();

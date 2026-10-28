@@ -27,13 +27,13 @@ Detailed explanations, options and primary sources: [data items 01–25](researc
 | 06 | Optimistic Locking | [ ] Planned; D1 prototype | Card/comment versions and board structure/snapshot revisions | Two writers, one winner; stale 409 with draft retained |
 | 07 | Pessimistic Locking | [ ] Planned | PostgreSQL row lock for short board-order mutation; fixed lock order | Contention, timeouts, membership-removal race and no network IO under lock |
 | 08 | Connection Pooling | [ ] Planned | Runtime driver/pool adapter with caps; account for all instances | Burst test: pool wait, connection budget and no session-state leakage |
-| 09 | N+1 Queries | [ ] Planned | Bounded joins/batched relations; avoid per-card calls | Query count stays bounded as board page size grows |
+| 09 | N+1 Queries | [ ] Planned | Bounded joins/batched relations; avoid per-card calls | Query count stays bounded as board page size grows; Stage 2 route suites passed locally 16/14/36 on 2026-10-27, no scale benchmark |
 | 10 | Database Indexes | [ ] Planned; D1 prototype | Tenant/order, comments, inbox, due-date and outbox indexes | Selected DB plans + read/write/index-size measurement |
-| 11 | Query Optimization | [ ] Planned | Keyset pagination, projections, bounded snapshots | Representative p95/p99 and realistic cardinality/skew plans |
+| 11 | Query Optimization | [ ] Planned | Keyset pagination, projections, bounded snapshots | Cursor/filter/order revision and trash bounds covered by local PostgreSQL tests on 2026-10-27; representative p95/p99 and realistic cardinality/skew plans remain open |
 | 12 | EXPLAIN ANALYZE | [ ] Planned | PostgreSQL execution plans on safe synthetic data; SQLite uses different tools | Stored before/after plans; avoid executing live mutations via ANALYZE |
 | 13 | Foreign Key Constraints | [ ] Planned; D1 prototype | Composite tenant/board ancestry constraints | Actual PostgreSQL wrong-tenant/board negatives and valid write tests |
 | 14 | Unique Constraints | [ ] Planned; D1 prototype | Receipts, provider identities, assignment and notification dedupe | Duplicate/race tests; ownership-transfer invariant separately proved |
-| 15 | Database Migrations | [ ] Planned | Versioned SQL, single deploy runner, forward/backward compatibility | Clean install + upgrade from previous schema |
+| 15 | Database Migrations | [ ] Planned | Versioned SQL, single deploy runner, forward/backward compatibility | Migration 0006 clean-install path passed the local full check on 2026-10-27; upgrade/rollback rehearsal remains open |
 | 16 | Zero-Downtime Migrations | [ ] Planned | Expand/backfill/contract; concurrent indexes where suitable | Old/new versions run together; lock duration + rollback rehearsal |
 | 17 | Read Replicas | [ ] Deferred | Add after measured primary read pressure; keep critical reads primary | Replica routing, failover and consistency contract tests |
 | 18 | Replication Lag | [ ] Deferred | Staleness budget, primary fallback, no stale auth/read-after-write | Inject lag; verify revocation and version freshness |
@@ -44,8 +44,8 @@ Detailed explanations, options and primary sources: [data items 01–25](researc
 | 23 | Cache Stampedes | [ ] Deferred | Coalesce rebuilds, bounded stale safe reads, TTL jitter | Simultaneous miss test; bounded DB pressure |
 | 24 | Distributed Caching | [ ] Deferred | No process-local authority; scoped keys/TTL/version | Multi-instance invalidation and cold-cache performance |
 | 25 | Idempotency | [ ] Planned; D1 prototype | Actor/workspace keys, payload hash, transaction receipt, side-effect dedupe | Lost response, concurrent duplicate, changed hash, expiry/revoked-access tests |
-| 26 | Retry Mechanisms | [ ] Planned | Classify failures; bounded attempts and total deadlines | Transient success/permanent failure/no duplicate side effects |
-| 27 | Exponential Backoff | [ ] Planned | Capped delay growth; respect Retry-After | Fake-clock timing and end-to-end retry deadline tests |
+| 26 | Retry Mechanisms | [ ] Planned | Classify failures; durable storage-delete queue retains keys after transient failure | Cleanup retry regression passed locally on 2026-10-27; real object-store outage/recovery remains unverified |
+| 27 | Exponential Backoff | [ ] Planned | Capped exponential delay with expiring worker leases | Retry-key regression passed locally on 2026-10-27; fake-clock schedule and long-running recovery remain unverified |
 | 28 | Jitter | [ ] Planned | Randomize bounded retries to spread bursts | Seeded distribution/limits tests and burst recovery |
 | 29 | Circuit Breakers | [ ] Deferred | Per-dependency breaker after observed sustained failures | Open/half-open recovery, fleet/runtime-scope behavior, no silent loss |
 | 30 | Rate Limiting | [ ] Planned | Actor/tenant and edge abuse controls; exact quotas need strong authority | Multi-location bypass/load, 429 and recovery; no approximate hard quotas |
@@ -77,3 +77,5 @@ Check a delivery box only with a dated link to code plus relevant test/run evide
 ## Product scope revision v0.3
 
 The controls above now apply to explicit project grants, Owner/Project Manager administration, private image fetch/upload, exact 24-hour restore/purge and XLSX preview/commit. Revocation races cover project grants; cache/replica policies must not leak sibling projects; outbox/retry/deadline controls also cover invitation email, import jobs and cleanup. See FEATURE_SPEC.md/API.md and the separate 98-item product checklist. Old SQLite checks remain historical and do not mark these selected-stack delivery controls complete.
+
+2026-10-26 repair evidence: receipt implementation now takes a per-key transaction lock and Stage 2 replay checks the current project grant first; PostgreSQL route tests cover concurrent same-key card creation, role demotion and receipt body redaction. Migration 0004 removes older copied bodies. Item 25 remains unchecked until fresh independent full-scope review and expiry, revocation, conflict and recovery coverage pass.

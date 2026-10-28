@@ -14,6 +14,8 @@ Persist receipt outcome as resource IDs, versions, operation/status metadata, no
 
 ## Authorization model
 
+**Revision pending implementation:** the user has selected separate per-board grants for non-Owners, Owner-only board-grant administration, and no automatic grants for existing project members. Project Managers may create boards. See [board-access decisions](handoffs/proposals/board-access-decisions-2026-10-27.md). The route descriptions below document the older implemented project-inheritance behavior until the full authorization cutover is completed; they must not be treated as the new access contract or as deployment approval.
+
 Exactly one workspace owner has access to all owned projects. project_memberships stores role manager/member/viewer, active/removed status and version. Workspace membership alone is not project access. The workspace owner is included as an eligible project person without requiring an accidental blanket grant for other workspace users. Every child query joins/checks workspace/project/board ancestry. Owner invited elsewhere receives only the destination grant.
 
 Manager configures its project/boards, invites/changes/removes member/viewer, trashes/restores cards, moderates and imports. Only owner creates/archives projects, appoints/removes managers and transfers ownership. Member creates/edits/moves cards, comments and uploads, without administration/trash/import. Viewer reads granted project cards/history/images only. [Full matrix](FEATURE_SPEC.md#2-people-projects-and-permissions). No project manager can modify peer manager/owner grants.
@@ -81,7 +83,7 @@ Read multi-query snapshots under short read-only Repeatable Read, or one proven 
 | PATCH /cards/:cid | Editable fields + expectedVersion; excludes ancestry, creator, position and lifecycle |
 | POST /cards/:cid/move | toColumnId, previousCardId|null, nextCardId|null, expectedVersion, expectedBoardVersion |
 | GET /projects/:pid/cards/search | Bounded active title/filter query, project-only |
-| GET /me/tasks | Actor assignments across accessible projects only; bounded project/card scope |
+| GET /me/tasks?projectId=:id | Actor assignments within the selected accessible project only; explicit board grants still apply |
 
 Both null neighbors mean empty destination. First uses next=first, previous=null; last uses previous=last, next=null; exclude moving card and verify adjacency/correct board. Rank is server-owned and compaction guarded. Filtered views use placement+Move menu and disable ambiguous drag. Undo (S6) is a new normal move under current versions, not a state overwrite. Save affects fields only; comment posting and uploads are independent.
 
@@ -118,7 +120,7 @@ No user audit-edit API. Sensitive body copies/tokens are excluded or redacted un
 
 PNG/JPEG/WebP only; proposed 10 MiB each/10 finalized per card/20 megapixels/8192 max dimension. Verify actual content; no SVG/HTML/arbitrary files or remote URL fetching. Use a private storage adapter, no public bucket or reusable URL bypassing current access. Presigned URLs are not the v1 authorization path.
 
-State active → trashed → restored active OR purged. restoreUntil=server deletedAt+24h; restore strictly before cutoff. At/after cutoff, authorized administrator gets 410 RESTORE_WINDOW_EXPIRED even with delayed cleanup. Nonadministrator normal card reads stay private/not-found. Restore preserves same ID/content/comments/finalized files; unavailable original destination needs explicit active target, not silent relocation. Project/board archive must be reopened before restore there. Restore/purge are fenced conditional winners. Purged card/content cannot reappear through import/retry/history/notification copies; retain minimal audit and duplicate markers. No immediate permanent-delete or card-archive API in v1.
+State active → trashed → restored active OR purged. restoreUntil=server deletedAt+24h; restore strictly before cutoff. At/after cutoff, authorized administrator gets 410 RESTORE_WINDOW_EXPIRED even with delayed cleanup. Nonadministrator normal card reads stay private/not-found. Restore preserves same ID/content/comments/finalized files; unavailable original destination needs explicit active target, not silent relocation. Project/board archive must be reopened before restore there. Restore/purge are fenced conditional winners. Purged cards retain only a placeholder title and minimal audit/duplicate markers; descriptions, comment bodies, notification copies and images are removed. Object deletion uses durable retry keys after the purge transition, so a temporary storage failure cannot erase the key needed to retry. No immediate permanent-delete or card-archive API in v1.
 
 ## Excel imports (S5)
 

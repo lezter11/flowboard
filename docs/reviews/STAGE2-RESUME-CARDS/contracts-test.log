@@ -1,0 +1,91 @@
+
+> @flowboard/contracts@0.3.0 test
+> node --test --test-concurrency=1 test/*.test.ts
+
+▶ Contracts Schema Validation Tests
+  ▶ Gregorian Date Validation
+    ✔ validates leap years and non-leap years accurately (0.286417ms)
+    ✔ parses valid date-only strings and rejects invalid ones via Zod (0.479792ms)
+  ✔ Gregorian Date Validation (0.999583ms)
+  ▶ UTC ISO Timestamps
+    ✔ accepts UTC timestamps ending in Z with ISO representation (0.076042ms)
+    ✔ rejects timestamps with local timezone offsets or missing Z (0.076208ms)
+  ✔ UTC ISO Timestamps (0.201166ms)
+  ▶ Idempotency Key Validation
+    ✔ accepts valid ASCII keys between 16 and 128 characters (0.085542ms)
+    ✔ rejects short, long, or non-ASCII / forbidden characters (0.108459ms)
+  ✔ Idempotency Key Validation (0.243875ms)
+  ▶ Standard Error Codes and Envelopes
+    ✔ validates all canonical error codes (0.102ms)
+    ✔ validates standard error envelope (0.408208ms)
+    ✔ validates mutation responses with receipts and replayed boolean (0.121125ms)
+  ✔ Standard Error Codes and Envelopes (0.690542ms)
+  ▶ Auth and Session Schemas
+    ✔ validates GetSessionResponse structure (0.4395ms)
+    ✔ validates LogoutResponse structure (0.056625ms)
+  ✔ Auth and Session Schemas (0.525875ms)
+  ▶ PersonDisplay Validation
+    ✔ validates active project reader display identity (0.043084ms)
+    ✔ permits null avatarUrl and inactive project status (0.025583ms)
+  ✔ PersonDisplay Validation (0.088875ms)
+  ▶ Workspace Schemas
+    ✔ validates workspace creation input (0.046583ms)
+    ✔ rejects empty or whitespace-only name (0.052167ms)
+    ✔ requires at least one field in workspace update (0.051584ms)
+    ✔ validates ownership transfer input (0.021416ms)
+  ✔ Workspace Schemas (0.199125ms)
+  ▶ Project & Membership Schemas
+    ✔ validates project creation and update inputs (0.041625ms)
+    ✔ validates member role and status updates (0.024833ms)
+  ✔ Project & Membership Schemas (0.083ms)
+  ▶ Invitations Schemas
+    ✔ normalizes email to lowercase and validates role (0.0645ms)
+    ✔ validates accept invitation token bounds (0.036125ms)
+  ✔ Invitations Schemas (0.123458ms)
+  ▶ Board and Column Schemas
+    ✔ validates column creation and category enum (0.034958ms)
+    ✔ enforces column reordering limits (up to 12 columns, unique IDs) (0.096833ms)
+    ✔ validates placement query rules (anchorCardId required for before/after) (0.055167ms)
+  ✔ Board and Column Schemas (0.214208ms)
+  ▶ Card Schemas
+    ✔ validates card creation input with defaults (0.065334ms)
+    ✔ rejects card with duplicate assignees or >20 assignees (0.101ms)
+    ✔ validates card movement input with nullable neighbors (0.031584ms)
+  ✔ Card Schemas (0.221459ms)
+  ▶ Discussion & Mentions
+    ✔ validates non-overlapping mentions and defaults empty list (0.101666ms)
+    ✔ rejects overlapping mention spans (0.035125ms)
+    ✔ rejects mention where start >= end (0.027958ms)
+  ✔ Discussion & Mentions (0.18875ms)
+  ▶ Image Upload Schemas
+    ✔ validates image upload request within limits (0.03975ms)
+    ✔ rejects image exceeding 10 MiB limit or unsupported content type (0.139208ms)
+  ✔ Image Upload Schemas (0.197583ms)
+  ▶ Trash and Exact 24h Window
+    ✔ validates soft-delete and restore inputs (0.058167ms)
+    ✔ validates trash row representation with blocked reason (0.0685ms)
+    ✔ validates special trash error detail schemas (0.045459ms)
+  ✔ Trash and Exact 24h Window (0.210666ms)
+  ▶ Excel Import Schemas
+    ✔ validates commit import input and status mapping inputs (0.045ms)
+    ✔ validates import status and rows (0.081458ms)
+  ✔ Excel Import Schemas (0.1445ms)
+  ▶ Board Snapshot Data Schema
+    ✔ validates complete board snapshot with totals, columns, and people (0.167375ms)
+  ✔ Board Snapshot Data Schema (0.179375ms)
+  ▶ OpenAPI Metadata and Routes Catalog
+    ✔ has valid OpenAPI 3.1 metadata and comprehensive route catalog (0.034208ms)
+  ✔ OpenAPI Metadata and Routes Catalog (0.047333ms)
+  ▶ Validation Error Helper
+    ✔ formats error issues cleanly with parseOrThrow (0.139167ms)
+    ✔ returns structured safeParse result on success and failure (0.045ms)
+  ✔ Validation Error Helper (0.203333ms)
+✔ Contracts Schema Validation Tests (5.119917ms)
+ℹ tests 41
+ℹ suites 19
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 69.081625

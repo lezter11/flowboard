@@ -92,10 +92,15 @@
     const due = $("#cardDue");
     const titleError = $("#titleError");
     const dueError = $("#dueError");
+    const priority = $("#cardPriority");
+    const priorityError = $("#priorityError");
     let valid = true;
 
     title.classList.remove("is-invalid");
     due.classList.remove("is-invalid");
+    priority.classList.remove("is-invalid");
+    priority.removeAttribute("aria-invalid");
+    priorityError.hidden = true;
     titleError.hidden = true;
     dueError.hidden = true;
 
@@ -109,6 +114,13 @@
       titleError.textContent = "Keep the title to 200 characters or fewer.";
       titleError.hidden = false;
       title.classList.add("is-invalid");
+      valid = false;
+    }
+
+    if (!["low", "medium", "high", "urgent"].includes(priority.value)) {
+      priorityError.hidden = false;
+      priority.classList.add("is-invalid");
+      priority.setAttribute("aria-invalid", "true");
       valid = false;
     }
 
@@ -301,7 +313,10 @@
     $("#addCardForm").hidden = false;
     $("#addCardForm").reset();
     $("#cardColumn").value = "col_backlog";
-    $("#cardPriority").value = "none";
+    $("#cardPriority").value = "";
+    $("#priorityError").hidden = true;
+    $("#cardPriority").classList.remove("is-invalid");
+    $("#cardPriority").removeAttribute("aria-invalid");
     $("#titleError").hidden = true;
     $("#dueError").hidden = true;
     $("#cardTitle").classList.remove("is-invalid");
@@ -353,6 +368,11 @@
       countChars(event.target, $("#commentCount"), 5000);
     });
     $("#addCardForm").addEventListener("change", (event) => {
+      if (event.target === $("#cardPriority") && ["low", "medium", "high", "urgent"].includes(event.target.value)) {
+        $("#priorityError").hidden = true;
+        event.target.classList.remove("is-invalid");
+        event.target.removeAttribute("aria-invalid");
+      }
       if (event.target.name === "assignee") renderAssigneeSummary();
       markDirty();
     });

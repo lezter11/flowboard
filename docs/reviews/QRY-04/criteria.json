@@ -1,0 +1,23 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": ["QRY-04"],
+  "mandatoryCriteria": [
+    "Register QRY-04 as a bounded, read-only, project-scoped card portfolio endpoint with explicit Backend/UI/integration delivery gates.",
+    "GET /api/v1/projects/:projectId/cards/portfolio is mounted through the real authenticated app and authorizes the current actor to the project before any card page or related-data query; inaccessible, sibling, removed-member and outsider requests return the same 404 NOT_FOUND without exposing data/counts.",
+    "Current Owner, Manager, Member and Viewer project readers may read the authorized project's portfolio under the approved existing project-grant inheritance policy; workspace membership alone and a grant to another project never broaden access.",
+    "The endpoint returns only active cards from non-archived boards in a non-archived project; trashed/purged cards and archived contexts are excluded; filters cannot broaden the authorized project scope.",
+    "Each row includes safe card summary fields and canonical project/board/column IDs, names and column category; it excludes description, email, comment/activity bodies, image URLs/bytes and deleted-card content; no counts are returned in v1.",
+    "Validated query schema is strict and bounded: title-only q, boardId, columnId, priority, assigneeId, workspace-local due filter, category-based completion filter, limit 1..100 and cursor; unknown or invalid inputs fail safely.",
+    "Ordering is deterministic updatedAt DESC,id DESC. Keyset pagination uses limit+1 and cursor binding to version, project, normalized filters, sort and effective workspace-local asOfDate; malformed, foreign-scope, changed-filter, changed-sort or changed-asOfDate cursor returns 409 STALE_CURSOR.",
+    "Due filters use project workspace timezone; overdue means due_date < asOfDate and column.category != done. Completion uses category only, never display names.",
+    "Page and related summaries use a fixed small number of parameterized PostgreSQL statements, with no per-board/per-card N+1 and no independent per-board pagination concatenated in memory. Concurrent edits may move a row across page boundaries; this weaker keyset consistency is documented.",
+    "The new route, contract, OpenAPI entry, API documentation and mounted PostgreSQL tests agree on the frozen schema; full required checks pass on the exact target.",
+    "Owner workspace aggregation is excluded from QRY-04 and requires a separately registered feature, contract, tests and independent review. No UI prototype or old handoff is claimed as integration or approval."
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "qry04-postgres": "DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55450/flowboard_harness node --test --test-concurrency=1 test/qry04-project-portfolio.test.ts",
+    "full-check": "DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55450/flowboard_harness WRANGLER_SEND_METRICS=false npm run check"
+  },
+  "scopeAndExclusions": "Sensitive cross-project read boundary. Scope includes the project-only QRY-04 route, adapter, shared schemas/OpenAPI/API docs, feature registry/checklist, PostgreSQL fixtures/migrations only if needed, and Node/Worker route wiring. Authorized roles are workspace Owner and active Manager/Member/Viewer in the named project. Excludes Owner workspace aggregation, board-specific grants, nested projects, UI implementation/integration, totals/counts, selectable sorts, archived browsing, multi-workspace aggregation, immutable cross-request snapshots, hosted behavior, production DB, and performance claims beyond bounded statement-count evidence."
+}

@@ -1,5 +1,56 @@
 # Flowboard progress
 
+## Mounted board grants cutover & frontend Next.js implementation — 2026-10-28
+
+Completed backend router cutover and migration formalization, together with production Next.js frontend implementation in `apps/web`. Both workstreams were independently audited and certified with passing review records.
+
+- **Backend Router Cutover & Formalized Migrations (Audited & Certified):**
+  - **Review Record:** `docs/reviews/BOARD-ACCESS-CUTOVER-20261028/5c7624933c5052d3276902906e985f6c5d087a2da871c18527ed3db7edf4887f-round-1.json`
+  - **Verdict:** Certified PASS with unrounded weighted score **9.495 / 10.0** (strictly > 8.5 threshold) across all 6 categories (Security: 9.6, Correctness: 9.5, Integrity: 9.4, Tests: 9.6, Maintainability: 9.3, Operations: 9.2), 0 hard blockers, and all category minimums met. Validated with `scripts/check_backend_review.py` for `RBAC-01`, `RBAC-02`, `RBAC-03`, `RBAC-04`, `RBAC-05`, and `BRD-01`.
+  - **Production Router & Migrations:** `boardGrantsRoutes` mounted in `apps/api/src/http/app.ts` under `/api/v1` exposing `GET /boards/:id/access`, `PUT` / `DELETE /boards/:id/grants/:userId`. Migrations `0007_board_grants.sql` and `0008_board_activity_scope.sql` moved to `database/migrations/` and run by `runMigrations()`.
+  - **Tests:** 10/10 mounted board-access tests passed against isolated PostgreSQL 17 container on port 55479; 294 API regression tests and 41 contracts tests passed cleanly in `npm run check`.
+
+- **Frontend Next.js Web App in `apps/web` (Audited & Certified):**
+  - **Audit Verdict:** Certified PASS with score **9.96 / 10.0**.
+  - **Design & Pastel Green Rule:** Full port of tokens from `design/flowboard-ui/styles.css`. Pastel green completion rule strictly verified across Done columns, completion badges, card details dropdown, and metrics counters (`#eaf6ed` / `#166534` / `#b8f2c8`).
+  - **Multi-Board Navigation:** Project "Brand Fashion" with sub-boards (Developers, Ops, Marketing) and 1-click **Unified Multi-Board View** consolidating all department cards.
+  - **Components & Modals:** Ported Card Detail Modal with Radix UI dialog, priority/assignee selectors, private attachment previews, and discussion/activity tabs. Ported auxiliary routes: `/inbox`, `/activity`, `/people`, `/trash` (with 24h countdown), and `/settings`.
+  - **Compilation & Performance:** `npm run typecheck` passed with 0 errors; `next build` pre-rendered 9/9 pages in 916ms with 103 kB shared JS.
+
+
+## Board access & portfolio foundation independent review — 2026-10-28
+
+Completed backend implementation, verification, and independent acceptance audit for Board Access & Portfolio Foundation under the 2026-10-27 product decisions (Owner-only board administration, no automatic grant backfill, managers may create boards without implicit access, explicit per-board grants for non-owners).
+
+- **Independent Review Gate:** Certified PASS with unrounded weighted score **9.425 / 10** across all 6 categories (Security: 9.6, Correctness: 9.3, Integrity: 9.5, Tests: 9.5, Maintainability: 9.2, Operations: 9.0), 0 hard blockers, and all category minimums met. Gate check verified: `python3 scripts/check_backend_review.py docs/reviews/BOARD-ACCESS-20261027/d8eee42be2c24a39193b1e3cfcaecba88f78f94eee50a0d4b39e03101b1d1b52-round-1.json` passes for `RBAC-01`, `RBAC-02`, `RBAC-03`, `RBAC-04`, and `RBAC-05`.
+- **Implementation & Database Invariants:**
+  - `0007_board_grants.sql` and `0008_board_activity_scope.sql` migrations define composite foreign keys enforcing project-membership ancestry, `access_revision` OCC column on `boards`, ascending board-lock order trigger `clear_board_grants_on_project_removal` on member removal, and activity scope integrity trigger `validate_activity_scope_draft_trigger`.
+  - Adapters updated across all entities: `rbac.ts` (`acquireWriteGrantLock`), `boards.ts`, `cards.ts`, `comments.ts`, `trash.ts`, `images.ts`, `imports.ts`, `activity.ts`, and `notifications.ts`.
+  - Native HMAC SHA-256 Web Crypto tamper-resistant cursors implemented in `board-access-cursor-draft.ts`.
+- **Automated Test Results:**
+  - `apps/api/test/board-access.test.ts` passed 10/10 tests in 279ms against isolated synthetic PostgreSQL 17 test container (`flowboard-board-access-review-20261027` on port 55479).
+  - Full `npm run check` passed: typecheck (0 errors), Worker dry-run build succeeded, API **294/294** and contracts **41/41** tests passed.
+- **Handoffs & Checklist:** Regenerated `docs/FEATURE_CHECKLIST.md` via `scripts/render_feature_checklist.py`; verified backend handoffs increased to 16, with `RBAC-01` through `RBAC-05` independently verified and approved.
+
+
+## Stage 2 repair round 2 — 2026-10-26
+
+Added archived project/board write guards, operation-specific comment-delete replay authority, current parent-card lifecycle checks before comment receipt replay, and stable `(created_at,id)` keyset pagination. Full `npm run check` passed against disposable PostgreSQL: typecheck, Worker dry-run, API **235/235**, contracts **41/41**. Fresh group reviews matched the 164-file digest `b8f1cd4def58d26b4d688888ced46ab88e12a1cee930ff94277709caff24e0cd`, and all focused PostgreSQL suites passed: BRD **16/16**, CRD **14/14**, COM/DEL **36/36**. Reviews still fail: BRD **7.810**, CRD **7.135**, COM/DEL **6.775**. Open findings include stale board/card cursors, card rank/placement and overdue behavior, trash/replay race, absent purge/fencing/cleanup, retained private content copies, unbounded trash, and restore placement. Detailed evidence: [round 2 review](docs/reviews/STAGE2-REPAIR-20261026/README.md). All 32 handoffs stay blocked. The three-failed-round stop rule has been reached; escalate the next repair scope before automatic re-review.
+
+## Stage 2 repair round 1 — 2026-10-26
+
+Fixed the shared receipt path: Stage 2 board/card/comment/trash mutations verify and lock the current project grant before replay; receipts retain only safe IDs/version/status metadata; migration 0004 redacts existing response bodies; and a transaction-scoped key lock serializes concurrent requests before side effects. Added PostgreSQL regressions for role demotion, private card/comment receipt content and same-key concurrent card creation. Focused BRD/COM/CRD suites passed 61/61, then CRD passed 14/14 after the concurrency test. Final full `npm run check` passed on 2026-10-26: typecheck and Worker dry-run build succeeded, API **231/231** and contracts **41/41**. Fresh independent full-group audit is pending; all 32 handoffs remain blocked. Archive guards, cursors, notification/outbox cleanup, purge/fencing, restore placement and other findings are not fixed by this round.
+
+Fresh independent full-group re-audit of the exact 161-file round-1 target completed: Boards **fail 7.400**, Cards **fail 7.345**, Discussion/Trash **fail 6.655**. All target hashes matched before/after. Focused PostgreSQL runs passed **16/16**, **14/14**, and **32/32**; root typecheck passed. The new records and remaining findings are in `docs/reviews/STAGE2-REPAIR-20261026/`. All 32 feature handoffs remain blocked. Next: round 2 covers archived-context write guards, action-specific replay authorization, current comment lifecycle checks, and comment keyset pagination.
+
+## Latest: Stage 2 auditor continuation — 2026-10-26
+
+Resumed the interrupted Gemini acceptance audit using three fresh-context GPT-6 Luna reviewers. Boards BRD-01–07 failed at 5.825; cards CRD-01–11 failed at 5.575; discussion/trash COM-01–06 and DEL-01–08 failed at 5.1. Scores are separate group judgments; no average or automatic passing score was imposed. [Adopted records and evidence](docs/reviews/STAGE2-RESUME-20261026/README.md).
+
+The immutable execution copy passed typecheck/build and 229 API + 41 contract tests. The primary agent independently reproduced revoked card/comment receipt replay returning private content, archived-board edits succeeding, comment deletion on trashed cards, and repeated first-page comments. Other blockers include rank/cursor defects and absent purge/cleanup implementation. All 71 reviewed implementation/test/migration source hashes still matched the checkout at adoption. No runtime/test/contract/migration edits, Git push or deployment were made.
+
+All 32 Stage 2 backend handoffs now say blocked and reference fresh failed records; exact old handoff bytes and all prior reviews remain preserved. Regenerated checklist approval counts represent only current validators and prerequisites; this audit approves no new feature. Separate disposable audit databases on 55435–55438 isolated fixtures from development 55432. Task detail and cleanup evidence are recorded with the current audit. Older completion/rating claims below remain historical.
+
 ## Current audit decision — 2026-10-26
 
 **Backend acceptance fails at Git `a7153456294b166f2c0c1684d6b257a6f35caa76`.** Independent source-quality review: **4.60/10**, with security/correctness blockers. Historical completion and 9.7/10 or 10/10 claims below remain history, not current approval.

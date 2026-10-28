@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "IMP-07"
+  ],
+  "mandatoryCriteria": [
+    "Leading-zero preservation: External ID preserves leading zeros and unicode characters",
+    "Duplicate skipping: Re-uploading identical row payload marks outcome as 'already_imported' and skips insertion",
+    "Conflict detection: Changed row payload for existing External ID marks outcome as 'conflict'",
+    "Trash reservation: Trashed cards retain duplicate markers to prevent resurrection or restore bypass"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "imp-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: IMP-07 Excel import engine on PostgreSQL. Out-of-scope: UI components."
+}

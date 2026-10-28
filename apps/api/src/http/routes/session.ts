@@ -9,9 +9,10 @@ import {
   getSessionCookieOptions,
   getUserByEmail,
   revokeSession,
+  updateUserProfile,
 } from '../../adapters/session.ts';
 import { HttpError } from '../errors.ts';
-import { getSessionResponseSchema } from '@flowboard/contracts';
+import { getSessionResponseSchema, parseOrThrow } from '@flowboard/contracts';
 
 const devLoginRequestSchema = z.object({
   email: z.string().email(),
@@ -47,7 +48,29 @@ sessionRoutes.get('/', authMiddleware, async (c) => {
   return c.json(response);
 });
 
-// 2. POST /api/v1/session/logout
+// 2. PATCH /api/v1/session/profile (ACC-03)
+sessionRoutes.patch('/profile', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Authentication required.');
+  }
+
+  const rawBody = await c.req.json();
+  const schema = z
+    .object({
+      displayName: z.string().trim().min(1).max(100).optional(),
+      avatarUrl: z.string().url().nullable().optional(),
+    })
+    .refine((data) => data.displayName !== undefined || data.avatarUrl !== undefined, {
+      message: 'At least one field (displayName or avatarUrl) must be provided',
+    });
+
+  const parsed = parseOrThrow(schema, rawBody);
+  const updatedActor = await updateUserProfile(actor.id, parsed);
+  return c.json({ data: updatedActor }, 200);
+});
+
+// 3. POST /api/v1/session/logout
 sessionRoutes.post('/logout', optionalAuthMiddleware, async (c) => {
   const sessionId = c.get('sessionId');
   if (sessionId) {
@@ -68,7 +91,15 @@ sessionRoutes.post('/logout', optionalAuthMiddleware, async (c) => {
 // 3. POST /api/v1/session/dev-login
 // Dev-login is strictly for non-production environments; returns 404 NOT_FOUND in production.
 sessionRoutes.post('/dev-login', async (c) => {
-  if (process.env.NODE_ENV === 'production') {
+  const workerBindings = c.env as { HYPERDRIVE?: unknown; DATABASE_URL?: string } | undefined;
+  const testMode = process.env.NODE_ENV === 'test';
+  const localDevelopmentMode = process.env.NODE_ENV === 'development'
+    && process.env.DEV_LOGIN_ENABLED === 'true'
+    && typeof process.env.DEV_LOGIN_SECRET === 'string'
+    && process.env.DEV_LOGIN_SECRET.length >= 32;
+  // A deployed Worker must never expose email-only session issuance. The Node
+  // route is opt-in for local development and is available to synthetic tests.
+  if (workerBindings?.HYPERDRIVE || workerBindings?.DATABASE_URL || (!testMode && !localDevelopmentMode)) {
     throw HttpError.notFound('Route not found.');
   }
 

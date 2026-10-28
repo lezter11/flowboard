@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "QRY-02"
+  ],
+  "mandatoryCriteria": [
+    "Multi-facet filtering: Supports filtering by assigneeId, priority, columnId, and due state (overdue, today, upcoming, none)",
+    "Active vs matching count distinction: Response provides activeCardCount and matchingCardCount",
+    "Overdue business logic: Overdue filter requires due_date < workspace today AND column category is NOT 'done'",
+    "Combinable facets: Multiple filter parameters combine predictably via logical AND"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "qry-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/qry01-qry03.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: QRY-02 discovery, search, and personal task view. Out-of-scope: UI view rendering."
+}

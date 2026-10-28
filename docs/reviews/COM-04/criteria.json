@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "COM-04"
+  ],
+  "mandatoryCriteria": [
+    "Edit own comment: PATCH /api/v1/comments/:commentId allows author to edit comment body and mentions",
+    "Non-author prohibition: Non-author project members or managers cannot edit someone else's comment (403 FORBIDDEN)",
+    "OCC version check: Verifies expectedVersion against comment version; increments version on success; returns 409 STALE_VERSION on conflict"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "com-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Comment author editing with OCC."
+}

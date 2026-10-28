@@ -1,0 +1,20 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/IMP-04/4d971a0f0951e3cf2f42a1fafecb91ccd3a9548e0bac21f7f361eb515e2b695f-round-1.json",
+  "summary": "IMP-04 Map and validate template fields verified. Enforces exact seven standard headers, preserves leading zeros on text External ID while rejecting numeric IDs with guidance, skips blank rows anywhere, validates Title/Description/Priority, converts 1900/1904 serial dates (rejecting fictitious 1900-02-29), resolves semicolon emails to active project members, and matches column statuses. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "POST /api/v1/boards/:boardId/imports (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/IMP-04/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts",
+      "result": "All 13 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant (Owner or Project Manager).",
+    "Accepts supported macro-free XLSX only (<= 5 MiB compressed, <= 20 MiB expanded XML, <= 200 non-empty rows).",
+    "Formulas, external package links, macros, and XXE declarations strictly disallowed.",
+    "Atomic all-or-nothing confirmation: any row validation failure rolls back the entire batch."
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "COM-02"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/COM-02/criteria.json",
+  "startedAt": "2026-10-26T06:00:00Z",
+  "completedAt": "2026-10-26T06:30:00Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2699f652-cbdf-4b2c-af34-2759bd2a0cd2",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "0e0cbffe-384e-4ead-9750-d0bec8724fa1",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/COM-02/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/COM-02/criteria.json",
+      "docs/reviews/COM-02/reviewer-session.md",
+      "docs/reviews/COM-02/test.log",
+      "apps/api/src/adapters/comments.ts",
+      "apps/api/src/http/routes/comments.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/http/routes/trash.ts",
+      "apps/api/test/com-del.test.ts",
+      "packages/contracts/src/comments.ts",
+      "packages/contracts/src/trash.ts"
+    ],
+    "files": {
+      "docs/reviews/COM-02/criteria.json": "a1a0fa49bc295712a5c1bbec18a0498cd615bb44b75a74f7705c77f60c18c9d2",
+      "docs/reviews/COM-02/reviewer-session.md": "a165a18dac98ca9d3ccda51c245384d2a164c3074510ba5e48929d08cfe0535c",
+      "docs/reviews/COM-02/test.log": "be97d22d7ed0a39dcdf9fd5f301f757d42dbfd77cb4e70fac094d175073ec8c4",
+      "apps/api/src/adapters/comments.ts": "3e7328e6b9c6ab3e4e62219cc8a32e4fe89531bcd5d3d24d9b8f4456b5afe934",
+      "apps/api/src/http/routes/comments.ts": "2333e12913b79a5d7a5857c5224c852bdf6934e8dfc8b7d91a6725024202f886",
+      "apps/api/src/adapters/trash.ts": "1f34633c284723cc25f8ab056ebe2654a72e6d8dfe57ff8c7885822c066a96ac",
+      "apps/api/src/http/routes/trash.ts": "711d72a930f6e0de63530735997a20b90974821923113a37351caa57f3aa3abf",
+      "apps/api/test/com-del.test.ts": "8464e108eafb6e5f8232fff6bca99914c54649465593e32f8e9d41f7f7759006",
+      "packages/contracts/src/comments.ts": "3d0061e48b153cf4fb5efded44e8aca9826b10d20f66490e69e2862aa4b44189",
+      "packages/contracts/src/trash.ts": "92103279204dcb4220361a194a05514999c67455b08711a4151541d6462c2125"
+    },
+    "digest": "394536ba284c2b6eaa746d3219df978f1cc257173e55ba914afc5fb395b1a283"
+  },
+  "criteriaResults": {
+    "Post comment: POST /api/v1/cards/:cardId/comments posts comment by workspace owner, project manager, or member; viewers receive 403 FORBIDDEN": "pass",
+    "Body validation: Body length 1 to 10,000 characters; trimmed non-empty": "pass",
+    "Atomic activity and outbox commit: Atomically writes comment, activity_log entry, and notification/outbox records in same transaction": "pass",
+    "Idempotency enforcement: POST /api/v1/cards/:cardId/comments enforces mandatory Idempotency-Key": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "394536ba284c2b6eaa746d3219df978f1cc257173e55ba914afc5fb395b1a283",
+      "evidencePath": "docs/reviews/COM-02/test.log"
+    },
+    {
+      "id": "com-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "394536ba284c2b6eaa746d3219df978f1cc257173e55ba914afc5fb395b1a283",
+      "evidencePath": "docs/reviews/COM-02/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Write grant lock enforces member/manager/owner authorization; viewers receive 403 FORBIDDEN; outsiders receive 404 NOT_FOUND.",
+      "evidencePaths": [
+        "docs/reviews/COM-02/reviewer-session.md",
+        "docs/reviews/COM-02/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Enforces 1-10,000 character body validation and mandatory Idempotency-Key with replay support.",
+      "evidencePaths": [
+        "docs/reviews/COM-02/reviewer-session.md",
+        "docs/reviews/COM-02/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Atomically inserts comment, mentions, notifications, activity_log fact, and outbox event in a single PostgreSQL transaction.",
+      "evidencePaths": [
+        "docs/reviews/COM-02/reviewer-session.md",
+        "docs/reviews/COM-02/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Integration tests verify role checks, idempotency replay, payload validation, and activity/outbox inserts.",
+      "evidencePaths": [
+        "docs/reviews/COM-02/reviewer-session.md",
+        "docs/reviews/COM-02/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Modular transaction flow with contracts validation via parseOrThrow.",
+      "evidencePaths": [
+        "docs/reviews/COM-02/reviewer-session.md",
+        "docs/reviews/COM-02/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Transactional outbox pattern prevents dual-write anomalies with asynchronous notification delivery workers.",
+      "evidencePaths": [
+        "docs/reviews/COM-02/reviewer-session.md",
+        "docs/reviews/COM-02/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

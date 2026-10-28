@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/ATT-01/2525db7f19de8b5a0a6f6fc6b7ae7794c2236b57ce00fc5181f8074a2a0c6544-round-1.json",
+  "summary": "ATT-01 Image upload staging verified. Implemented bounded upload staging for cards, verifying workspace owner, manager, or member role authorization while rejecting viewers (403 FORBIDDEN) and ungranted/sibling requests (404 NOT_FOUND), enforcing 10 MiB limit, image MIME check, SHA-256 digest format, 10-image card quota check, and staging inspection & cancellation. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "POST /api/v1/cards/:cardId/image-uploads (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/ATT-01/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Supported formats restricted to PNG, JPEG, and WebP (max 10 MiB, <=8192px, <=20 MP).",
+    "Max 10 attachments per card; temporary storage cleaned after 1-hour TTL."
+  ]
+}

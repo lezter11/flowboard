@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/AUD-03/917438a559cc55af9e02d3f12f58a2097948c2c017a7b81101f1ea18dffc4b4c-round-1.json",
+  "summary": "AUD-03 Owner cross-project activity verified. Implemented workspace owner activity feed with filtering across project, card, actor, action, and date ranges, with strict 403/404 isolation blocking invited members and outsiders. Audited with unrounded score 9.620/10.0.",
+  "api_contract": "GET /api/v1/workspaces/:workspaceId/activity (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/AUD-03/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Activity logs are append-only; retention redaction scrubs sensitive content without deleting facts.",
+    "Outbox processor uses exponential backoff and dead-letter quarantine after maxRetries."
+  ]
+}

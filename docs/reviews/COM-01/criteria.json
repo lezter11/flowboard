@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "COM-01"
+  ],
+  "mandatoryCriteria": [
+    "Paginated comment list: GET /api/v1/cards/:cardId/comments returns chronological comments for card readers",
+    "Author display identity: Each comment includes author PersonDisplay (name, email, avatarUrl)",
+    "Tombstone handling: Deleted comments returned with body omitted/hidden or marked as deleted without leaking private content"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "com-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Comment reading and chronological pagination."
+}

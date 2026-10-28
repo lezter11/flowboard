@@ -929,9 +929,9 @@ test('RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)', async (t) => {
   });
 
   // ==========================================================================
-  // RBAC-05: Project Inheritance Disclosure Tests
+  // RBAC-05: Explicit board access disclosure tests
   // ==========================================================================
-  await t.test('RBAC-05: GET /api/v1/projects/:projectId/access-summary discloses board inheritance model', async () => {
+  await t.test('RBAC-05: GET /api/v1/projects/:projectId/access-summary discloses explicit board grants without hidden counts', async () => {
     // 1. Member requests access summary
     const res = await app.request(`/api/v1/projects/${prjMainId}/access-summary`, {
       headers: { Cookie: memberCookie },
@@ -953,12 +953,13 @@ test('RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)', async (t) => {
     assert.equal(json.data.actor.role, 'member');
     assert.equal(json.data.actor.inheritedFrom, 'project_membership');
 
-    // Board inheritance model
-    assert.equal(json.data.boardInheritance.model, 'project_scoped');
-    assert.equal(json.data.boardInheritance.allBoardsInherit, true);
-    assert.equal(json.data.boardInheritance.hasBoardOnlyExceptions, false);
-    assert.equal(json.data.boardInheritance.boardCount, 1);
-    assert.match(json.data.boardInheritance.disclosure, /All boards in this project inherit project-level role permissions directly/);
+    // A member with project access but no board grant must not learn how many
+    // boards the project contains.
+    assert.equal(json.data.boardInheritance.model, 'explicit_board_grants');
+    assert.equal(json.data.boardInheritance.allBoardsInherit, false);
+    assert.equal(json.data.boardInheritance.hasBoardOnlyExceptions, true);
+    assert.equal(json.data.boardInheritance.boardCount, 0);
+    assert.match(json.data.boardInheritance.disclosure, /Project membership alone does not grant board access/);
 
     // Member summary
     assert.equal(json.data.memberSummary.activeManagers, 1);
@@ -977,6 +978,7 @@ test('RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)', async (t) => {
     assert.equal(json.data.actor.id, ownerUserId);
     assert.equal(json.data.actor.role, 'owner');
     assert.equal(json.data.actor.inheritedFrom, 'workspace_owner');
+    assert.equal(json.data.boardInheritance.boardCount, 1);
   });
 
   await t.test('RBAC-05: Sibling project member or outsider access-summary returns 404 NOT_FOUND', async () => {

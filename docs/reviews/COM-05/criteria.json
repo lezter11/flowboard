@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "COM-05"
+  ],
+  "mandatoryCriteria": [
+    "Delete own comment: Author can delete their own comment via DELETE /api/v1/comments/:commentId",
+    "Owner and manager moderation: Workspace owner and project manager can delete comments authored by other members within their project",
+    "Tombstone preservation: Deletion sets deleted_at = NOW() and marks body as removed; does not delete the audit row entirely"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "com-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Comment deletion and moderation."
+}

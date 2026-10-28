@@ -66,3 +66,8 @@ When executing any task or parallel tasks, follow the subagent branching workflo
 4. **Independent Validation Auditor:** Launch a dedicated validation auditor subagent for each task to evaluate the completed work against the pre-established criteria, compute a numerical rating, and verify that all tests pass.
 5. **Quality Gate:** Fix failed acceptance and re-review a new immutable target. Keep every failed round. Stop automatic retries after three failures and escalate while keeping the task open. Backend handoffs require a valid independent `reviewPath`; run `scripts/check_backend_review.py` and regenerate the checklist. Historical scores alone do not pass. The procedural validator cannot prove an agent's identity or the truth of a test log; Architect must inspect independent evidence.
 
+
+
+## Latest user-directed board access boundary — 2026-10-27
+
+The confirmed Projects revision in FEATURE_SPEC/PRD supersedes older project-wide board visibility: non-Owners need project membership plus separate board access, and a combined card view stays within one project. On 2026-10-27 the user chose no automatic board grants for existing project members, Owner-only board-grant administration, and Manager permission to create boards. The Owner-only grant rule is an exception to broader Manager project administration. Those decisions are recorded in docs/handoffs/proposals/board-access-decisions-2026-10-27.md; they do not establish backend enforcement. Do not treat older project-grant-only tests or handoffs as evidence for this new boundary. Follow docs/handoffs/proposals/project-board-access-v2-2026-10-27.md for the full authorization cutover.

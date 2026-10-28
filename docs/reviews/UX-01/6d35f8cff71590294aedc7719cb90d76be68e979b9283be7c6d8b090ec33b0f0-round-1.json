@@ -1,0 +1,147 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "UX-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/UX-01/criteria.json",
+  "startedAt": "2026-10-26T13:22:27.518582+00:00",
+  "completedAt": "2026-10-26T13:22:27.518582+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2630ea55-89d4-4c26-bc1e-b56f5555b3c5",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "7b23cd45-8cbf-4cac-99fe-0f396b9bb500",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/UX-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/UX-01/criteria.json",
+      "docs/reviews/UX-01/reviewer-session.md",
+      "docs/reviews/UX-01/test.log",
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/adapters/cards.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/http/errors.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/src/http/routes/cards.ts",
+      "apps/api/test/ux-integration.test.ts",
+      "packages/contracts/src/boards.ts",
+      "packages/contracts/src/cards.ts",
+      "packages/contracts/src/common.ts"
+    ],
+    "files": {
+      "docs/reviews/UX-01/criteria.json": "c8b82343a42fea3402ecb72afca6c0ea2d7bbcd2bfbcb2b7ff5c71a7935ccf89",
+      "docs/reviews/UX-01/reviewer-session.md": "e2e9b3999c84af48224199e627d8ff9380b1a1e0bd124e7f81f5659dab9cb407",
+      "docs/reviews/UX-01/test.log": "d38a8c164cf78f087f3fc3bd94d700f0bcf3ffd8559e263cc8635f52be1e14c7",
+      "apps/api/src/adapters/boards.ts": "1128d2681207df3b5d9bc55c04463202dfb3bee3bdcf3f8bc3a7a47343ad12a8",
+      "apps/api/src/adapters/cards.ts": "e8787b4a363ed49ab80f4f490f12c635c1d06c4a5772759075d728a65a2ad0c4",
+      "apps/api/src/adapters/trash.ts": "040283b28f9223ca69db6e428a819fee8c9cc12903b29ef4ee30fc351173b0f6",
+      "apps/api/src/adapters/rbac.ts": "0de89f07e4ad44ba8a158977366e2d647efdbfec524f623bb1fb6707e45b81b4",
+      "apps/api/src/http/errors.ts": "45d13204a4aa9b7885cfc77e49975673e4273a42f53c3a33367f1663d1cae430",
+      "apps/api/src/http/routes/boards.ts": "ef5ed5febd3c283c1a385696a7ec2cfaed2b898174697ca5d73a08a98f38899d",
+      "apps/api/src/http/routes/cards.ts": "b6fdce28f8bd175ad4dee738e074b71c591a4607d12ef8b59d83a645f9f42661",
+      "apps/api/test/ux-integration.test.ts": "9a8a523a74e23bf8eb7bb1c274e40b05e5e5da2b0d29658912a245936358db5a",
+      "packages/contracts/src/boards.ts": "bceca4d1791ae8739e4c5e41ba98caccbf53a089df7b2503944c0a6736c6aa6e",
+      "packages/contracts/src/cards.ts": "9da39d2cbed92627d51fda16f51c6eec117de6babd4de24e0397a36819f8b9bf",
+      "packages/contracts/src/common.ts": "2640cd78033ee95615b614ae9b921776852655bdcc1ffc86c661a70e17a36126"
+    },
+    "digest": "6d35f8cff71590294aedc7719cb90d76be68e979b9283be7c6d8b090ec33b0f0"
+  },
+  "criteriaResults": {
+    "Empty state responses: Empty boards, search results, trash lists, and notification inboxes return clean 200 responses with empty data arrays": "pass",
+    "Error taxonomy consistency: 400, 401, 403, 404, 409, 422 return standardized { error: { code, message, details, requestId } }": "pass",
+    "Safe error masking: Internal database connection errors or unhandled exceptions mask credentials and return 503 DATABASE_UNAVAILABLE": "pass",
+    "Preservation of client state: Forbidden and conflict errors return distinct codes (FORBIDDEN, STALE_VERSION) without destructive state resets": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "node v20.x, typescript 5.x",
+      "isolatedSynthetic": true,
+      "targetDigest": "6d35f8cff71590294aedc7719cb90d76be68e979b9283be7c6d8b090ec33b0f0",
+      "evidencePath": "docs/reviews/UX-01/test.log"
+    },
+    {
+      "id": "ux-integration-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/ux-integration.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "6d35f8cff71590294aedc7719cb90d76be68e979b9283be7c6d8b090ec33b0f0",
+      "evidencePath": "docs/reviews/UX-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Standard error envelopes mask sensitive SQL details, connection strings, and backend stack traces.",
+      "evidencePaths": [
+        "docs/reviews/UX-01/reviewer-session.md",
+        "docs/reviews/UX-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Exact HTTP status code mapping matching contracts taxonomy; structured empty data arrays.",
+      "evidencePaths": [
+        "docs/reviews/UX-01/reviewer-session.md",
+        "docs/reviews/UX-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Empty container queries preserve relational invariants and database consistency.",
+      "evidencePaths": [
+        "docs/reviews/UX-01/reviewer-session.md",
+        "docs/reviews/UX-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Integration test covers empty board snapshots, zero search matches, empty trash, and the complete error code matrix.",
+      "evidencePaths": [
+        "docs/reviews/UX-01/reviewer-session.md",
+        "docs/reviews/UX-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Centralized HttpError helper class and global Hono error handler.",
+      "evidencePaths": [
+        "docs/reviews/UX-01/reviewer-session.md",
+        "docs/reviews/UX-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "Standard requestId propagation enables correlation across server and client logs.",
+      "evidencePaths": [
+        "docs/reviews/UX-01/reviewer-session.md",
+        "docs/reviews/UX-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

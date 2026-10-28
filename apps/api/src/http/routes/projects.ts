@@ -9,11 +9,14 @@ import {
   type Project,
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
+import { lockBoardAccess, lockProjectBoardReadScope } from '../../adapters/board-grants-foundation.ts';
 import { checkOrReplayReceipt, saveReceipt } from '../../adapters/idempotency.ts';
 import {
   resolveProjectRole,
   getProjectPeople,
   getProjectAccessSummary,
+  acquireWriteGrantLock,
+  acquireWritableProjectContextLock,
 } from '../../adapters/rbac.ts';
 import {
   getWorkspaceProjects,
@@ -25,6 +28,34 @@ import { HttpError } from '../errors.ts';
 import { authMiddleware } from '../middleware/auth.ts';
 
 export const projectsRoutes = new Hono();
+
+async function lockProjectOwner(
+  client: import('pg').ClientBase,
+  projectId: string,
+  actorId: string,
+  action: 'archive' | 'reopen' = 'archive',
+) {
+  const res = await client.query<{ owner_id: string; role: string | null }>(
+    `SELECT w.owner_id, pm.role
+     FROM projects p
+     JOIN workspaces w ON w.id = p.workspace_id
+     LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $2 AND pm.status = 'active'
+     WHERE p.id = $1
+     FOR SHARE OF w`,
+    [projectId, actorId],
+  );
+  const row = res.rows[0];
+  if (!row) {
+    throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+  }
+  if (row.owner_id === actorId) {
+    return;
+  }
+  if (row.role) {
+    throw HttpError.forbidden(`Only workspace owner can ${action} projects.`, 'FORBIDDEN');
+  }
+  throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+}
 
 function parseLimit(limitParam?: string): number {
   if (!limitParam) return 50;
@@ -84,6 +115,12 @@ projectsRoutes.post('/api/v1/workspaces/:workspaceId/projects', authMiddleware, 
     await client.query('BEGIN');
 
     const methodPath = `/api/v1/workspaces/${workspaceId}/projects`;
+    const currentOwner = await client.query<{ owner_id: string }>(
+      'SELECT owner_id FROM workspaces WHERE id = $1 FOR SHARE', [workspaceId],
+    );
+    if (currentOwner.rows[0]?.owner_id !== actor.id) {
+      throw HttpError.notFound('Workspace not found.', 'NOT_FOUND');
+    }
     const replay = await checkOrReplayReceipt(
       client,
       actor.id,
@@ -180,8 +217,27 @@ projectsRoutes.get('/api/v1/workspaces/:workspaceId/projects', authMiddleware, a
   const cursor = queryParams.cursor;
 
   const pool = getPool();
-  const result = await getWorkspaceProjects(pool, actor, workspaceId, { limit, cursor });
-  return c.json(result, 200);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const workspace = await client.query<{ owner_id: string }>(
+      'SELECT owner_id FROM workspaces WHERE id = $1 FOR SHARE', [workspaceId],
+    );
+    if (!workspace.rows[0]) throw HttpError.notFound('Workspace not found.', 'NOT_FOUND');
+    if (workspace.rows[0].owner_id !== actor.id) {
+      const memberships = await client.query<{ id: string }>(
+        `SELECT id FROM project_memberships WHERE workspace_id = $1 AND user_id = $2
+         AND status = 'active' ORDER BY project_id FOR SHARE`, [workspaceId, actor.id],
+      );
+      if (memberships.rows.length === 0) throw HttpError.notFound('Workspace not found.', 'NOT_FOUND');
+    }
+    const result = await getWorkspaceProjects(client, actor, workspaceId, { limit, cursor });
+    await client.query('COMMIT');
+    return c.json(result, 200);
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally { client.release(); }
 });
 
 // 4. GET /api/v1/projects/:projectId: Single project details
@@ -261,6 +317,9 @@ projectsRoutes.patch('/api/v1/projects/:projectId', authMiddleware, async (c) =>
   try {
     await client.query('BEGIN');
 
+    await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
+    await acquireWritableProjectContextLock(client, projectId);
+
     const methodPath = `/api/v1/projects/${projectId}`;
     const replay = await checkOrReplayReceipt(
       client,
@@ -273,17 +332,6 @@ projectsRoutes.patch('/api/v1/projects/:projectId', authMiddleware, async (c) =>
     );
 
     if (replay) {
-      // Recheck current authorization before replay
-      const role = await resolveProjectRole(projectId, actor.id, client);
-      if (!role) {
-        throw HttpError.notFound('Project not found.', 'NOT_FOUND');
-      }
-      if (role !== 'owner' && role !== 'manager') {
-        throw HttpError.forbidden(
-          'Insufficient permissions to update project settings.',
-          'FORBIDDEN',
-        );
-      }
       await client.query('ROLLBACK');
       return c.json(
         { ...(replay.responseBody as object), replayed: true },
@@ -333,8 +381,17 @@ projectsRoutes.get('/api/v1/projects/:projectId/members', authMiddleware, async 
 
   const projectId = c.req.param('projectId');
   const pool = getPool();
-  const result = await getProjectMembers(pool, actor, projectId);
-  return c.json(result, 200);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await lockProjectBoardReadScope(client, projectId, actor.id);
+    const result = await getProjectMembers(client, actor, projectId);
+    await client.query('COMMIT');
+    return c.json(result, 200);
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally { client.release(); }
 });
 
 // 7. GET /api/v1/projects/:projectId/people: Project people picker
@@ -348,24 +405,32 @@ projectsRoutes.get('/api/v1/projects/:projectId/people', authMiddleware, async (
   const pool = getPool();
 
   // Authorize actor in this project
-  const actorRole = await resolveProjectRole(projectId, actor.id, pool);
-  if (!actorRole) {
-    throw HttpError.notFound('Project not found.', 'NOT_FOUND');
-  }
-
   const queryParams = c.req.query();
   const parsedQuery = parseOrThrow(projectPeopleQuerySchema, queryParams);
-
-  const result = await getProjectPeople(
-    pool,
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await lockProjectBoardReadScope(client, projectId, actor.id);
+    if (parsedQuery.boardId) {
+      const access = await lockBoardAccess(client, parsedQuery.boardId, actor.id);
+      if (access.projectId !== projectId) throw HttpError.notFound('Board not found.', 'NOT_FOUND');
+    }
+    const result = await getProjectPeople(
+    client,
     projectId,
     parsedQuery.purpose ?? 'display',
     parsedQuery.query,
     parsedQuery.cursor,
     parsedQuery.limit ?? 50,
+    parsedQuery.boardId,
+    actor.id,
   );
-
-  return c.json(result, 200);
+    await client.query('COMMIT');
+    return c.json(result, 200);
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally { client.release(); }
 });
 
 // 8. GET /api/v1/projects/:projectId/access-summary: Project access summary
@@ -378,6 +443,247 @@ projectsRoutes.get('/api/v1/projects/:projectId/access-summary', authMiddleware,
   const projectId = c.req.param('projectId');
   const pool = getPool();
 
-  const summary = await getProjectAccessSummary(pool, projectId, actor.id);
-  return c.json({ data: summary }, 200);
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const boardIds = await lockProjectBoardReadScope(client, projectId, actor.id);
+    const summary = await getProjectAccessSummary(client, projectId, actor.id, boardIds);
+    await client.query('COMMIT');
+    return c.json({ data: summary }, 200);
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+});
+
+// 9. POST /api/v1/projects/:projectId/archive (PRJ-04: Owner only)
+projectsRoutes.post('/api/v1/projects/:projectId/archive', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Invalid or missing authentication session.');
+  }
+
+  const projectId = c.req.param('projectId');
+  const idempotencyKey = c.req.header('idempotency-key');
+  if (!idempotencyKey || !idempotencyKeySchema.safeParse(idempotencyKey).success) {
+    throw HttpError.badRequest(
+      'Missing or invalid Idempotency-Key header.',
+      'IDEMPOTENCY_KEY_REQUIRED',
+    );
+  }
+
+  const pool = getPool();
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const methodPath = `/api/v1/projects/${projectId}/archive`;
+    await lockProjectOwner(client, projectId, actor.id, 'archive');
+    const replay = await checkOrReplayReceipt(
+      client,
+      actor.id,
+      'project',
+      projectId,
+      idempotencyKey,
+      methodPath,
+      {},
+    );
+
+    if (replay) {
+      const role = await resolveProjectRole(projectId, actor.id, client);
+      if (!role) {
+        throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+      }
+      if (role !== 'owner') {
+        throw HttpError.forbidden('Only workspace owner can archive projects.', 'FORBIDDEN');
+      }
+      await client.query('ROLLBACK');
+      return c.json(
+        { ...(replay.responseBody as object), replayed: true },
+        replay.statusCode as any,
+      );
+    }
+
+    const role = await resolveProjectRole(projectId, actor.id, client);
+    if (!role) {
+      throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+    }
+    if (role !== 'owner') {
+      throw HttpError.forbidden('Only workspace owner can archive projects.', 'FORBIDDEN');
+    }
+
+    const updateRes = await client.query<{
+      id: string;
+      workspace_id: string;
+      name: string;
+      description: string | null;
+      archived: boolean;
+      version: number;
+      created_at: Date;
+      updated_at: Date;
+    }>(
+      `UPDATE projects
+       SET archived = TRUE, version = version + 1, updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
+      [projectId],
+    );
+
+    const row = updateRes.rows[0]!;
+    const project = {
+      id: row.id,
+      workspaceId: row.workspace_id,
+      name: row.name,
+      description: row.description,
+      isArchived: true,
+      version: row.version,
+      createdAt: new Date(row.created_at).toISOString(),
+      updatedAt: new Date(row.updated_at).toISOString(),
+    };
+
+    const responsePayload = { data: project };
+    const saved = await saveReceipt(
+      client,
+      actor.id,
+      'project',
+      projectId,
+      idempotencyKey,
+      methodPath,
+      {},
+      200,
+      responsePayload,
+    );
+
+    await client.query('COMMIT');
+    if (saved?.replayed) {
+      return c.json(
+        { ...(saved.responseBody as object), replayed: true },
+        saved.statusCode as any,
+      );
+    }
+    return c.json({ ...responsePayload, replayed: false }, 200);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+});
+
+// 10. POST /api/v1/projects/:projectId/reopen (PRJ-04: Owner only)
+projectsRoutes.post('/api/v1/projects/:projectId/reopen', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Invalid or missing authentication session.');
+  }
+
+  const projectId = c.req.param('projectId');
+  const idempotencyKey = c.req.header('idempotency-key');
+  if (!idempotencyKey || !idempotencyKeySchema.safeParse(idempotencyKey).success) {
+    throw HttpError.badRequest(
+      'Missing or invalid Idempotency-Key header.',
+      'IDEMPOTENCY_KEY_REQUIRED',
+    );
+  }
+
+  const pool = getPool();
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const methodPath = `/api/v1/projects/${projectId}/reopen`;
+    await lockProjectOwner(client, projectId, actor.id, 'reopen');
+    const replay = await checkOrReplayReceipt(
+      client,
+      actor.id,
+      'project',
+      projectId,
+      idempotencyKey,
+      methodPath,
+      {},
+    );
+
+    if (replay) {
+      const role = await resolveProjectRole(projectId, actor.id, client);
+      if (!role) {
+        throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+      }
+      if (role !== 'owner') {
+        throw HttpError.forbidden('Only workspace owner can reopen projects.', 'FORBIDDEN');
+      }
+      await client.query('ROLLBACK');
+      return c.json(
+        { ...(replay.responseBody as object), replayed: true },
+        replay.statusCode as any,
+      );
+    }
+
+    const role = await resolveProjectRole(projectId, actor.id, client);
+    if (!role) {
+      throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+    }
+    if (role !== 'owner') {
+      throw HttpError.forbidden('Only workspace owner can reopen projects.', 'FORBIDDEN');
+    }
+
+    const updateRes = await client.query<{
+      id: string;
+      workspace_id: string;
+      name: string;
+      description: string | null;
+      archived: boolean;
+      version: number;
+      created_at: Date;
+      updated_at: Date;
+    }>(
+      `UPDATE projects
+       SET archived = FALSE, version = version + 1, updated_at = NOW()
+       WHERE id = $1
+       RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
+      [projectId],
+    );
+
+    const row = updateRes.rows[0]!;
+    const project = {
+      id: row.id,
+      workspaceId: row.workspace_id,
+      name: row.name,
+      description: row.description,
+      isArchived: false,
+      version: row.version,
+      createdAt: new Date(row.created_at).toISOString(),
+      updatedAt: new Date(row.updated_at).toISOString(),
+    };
+
+    const responsePayload = { data: project };
+    const saved = await saveReceipt(
+      client,
+      actor.id,
+      'project',
+      projectId,
+      idempotencyKey,
+      methodPath,
+      {},
+      200,
+      responsePayload,
+    );
+
+    await client.query('COMMIT');
+    if (saved?.replayed) {
+      return c.json(
+        { ...(saved.responseBody as object), replayed: true },
+        saved.statusCode as any,
+      );
+    }
+    return c.json({ ...responsePayload, replayed: false }, 200);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 });

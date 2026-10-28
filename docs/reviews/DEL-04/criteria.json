@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "DEL-04"
+  ],
+  "mandatoryCriteria": [
+    "Restore destination conflict handling: If original column was deleted while card was trashed, restore requires explicit toColumnId",
+    "Missing destination rejection: Attempting to restore without toColumnId when original column is missing returns 400 or 409 DESTINATION_MISSING with details",
+    "Active column verification: Provided toColumnId must be an active column on the same board"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "del-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Destination column conflict resolution on restore."
+}

@@ -329,7 +329,7 @@ export const OPENAPI_ROUTES: OpenApiRouteDefinition[] = [
     method: 'GET',
     path: '/me/tasks',
     summary: 'Get assigned tasks',
-    description: 'Lists tasks assigned to the actor across accessible projects.',
+    description: 'Lists tasks assigned to the actor within the required projectId query scope.',
     minimumRole: 'authenticated',
   },
 

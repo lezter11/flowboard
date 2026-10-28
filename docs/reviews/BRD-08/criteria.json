@@ -1,0 +1,25 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "BRD-08"
+  ],
+  "mandatoryCriteria": [
+    "Owner and manager authorization: Workspace owner and project manager can archive and reopen board; members receive 403",
+    "Read-only context enforcement: Writes on archived boards are blocked with 409 READ_ONLY_CONTEXT",
+    "Card retention: No cards or columns are deleted when a board is archived",
+    "Safe reopening: Reopening sets archived = FALSE and immediately resumes write operations"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "lifecycle-undo-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/lifecycle-undo.test.ts"
+  },
+  "minimumWeightedScore": "8.500",
+  "categoryMinimums": {
+    "security": "8.0",
+    "correctness": "8.0",
+    "integrity": "8.0",
+    "tests": "8.0",
+    "maintainability": "7.5",
+    "operations": "7.0"
+  }
+}

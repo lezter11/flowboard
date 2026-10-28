@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "BRD-05"
+  ],
+  "mandatoryCriteria": [
+    "Column reordering: POST /api/v1/boards/:boardId/columns/reorder takes complete array of columnIds and updates position column values sequentially",
+    "Complete column set validation: Rejects reorder request if columnIds array does not match the exact set of active columns on the board with 400 or 422",
+    "Optimistic board versioning: Reorder verifies expectedBoardVersion against board structure_version; increments structure_version on success"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "brd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Atomic column position reordering."
+}

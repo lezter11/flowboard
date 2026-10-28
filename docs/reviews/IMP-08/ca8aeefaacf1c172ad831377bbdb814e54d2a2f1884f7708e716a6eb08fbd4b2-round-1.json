@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "IMP-08"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/IMP-08/criteria.json",
+  "startedAt": "2026-10-26T12:16:46.964671+00:00",
+  "completedAt": "2026-10-26T12:16:46.964671+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8523d3da-7482-4254-9365-1bea2b7a649d",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "f4c93a81-d102-47e9-b520-94e8a101b0f5",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/IMP-08/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/IMP-08/criteria.json",
+      "docs/reviews/IMP-08/reviewer-session.md",
+      "docs/reviews/IMP-08/test.log",
+      "apps/api/src/services/excel-parser.ts",
+      "apps/api/src/adapters/imports.ts",
+      "apps/api/src/http/routes/imports.ts",
+      "apps/api/test/imp01-imp06.test.ts",
+      "database/migrations/0001_initial.sql",
+      "database/migrations/0003_constraints.sql",
+      "packages/contracts/src/imports.ts"
+    ],
+    "files": {
+      "docs/reviews/IMP-08/criteria.json": "d298d30e7fcea274c98958029785e75a80692904ae52e30fef92183f8d2db719",
+      "docs/reviews/IMP-08/reviewer-session.md": "7d806de7a24862055f7f1b337202bdef6b129433cbca0f69328e94f2b9638dac",
+      "docs/reviews/IMP-08/test.log": "9b8c55992a4635d8853061bc488985ade29b09279cccc53ebf8df7fd62202d26",
+      "apps/api/src/services/excel-parser.ts": "0a196b86761f519722e5dbc9b9a1c0d485cdd4d5b181bf05677a3f247642c462",
+      "apps/api/src/adapters/imports.ts": "b7c83eaa355616aa7dd049d14f829a932e96c56d581bd8b7ce9c07a42e78516c",
+      "apps/api/src/http/routes/imports.ts": "f6e7f87163adced7369a2a44055104435b6bdee7efcc2a8c0487a1ebf8163c89",
+      "apps/api/test/imp01-imp06.test.ts": "9a7a9af780e2e228de4308f507adb176107cdf7e8e957a1803dea4404360175d",
+      "database/migrations/0001_initial.sql": "31f1e2e889951dc35e1dd141b91c3a357ebee22043916d9c08b601b3c9d40293",
+      "database/migrations/0003_constraints.sql": "84278975a601c45573f61cfbf70a2018bc18e89b9f10c63132f94b6a0fc5ef97",
+      "packages/contracts/src/imports.ts": "7c086bbf6e0c5c4fbd6c4a0848b371f4bf3b08bbd38f7eac70b0c5feeafbca56"
+    },
+    "digest": "ca8aeefaacf1c172ad831377bbdb814e54d2a2f1884f7708e716a6eb08fbd4b2"
+  },
+  "criteriaResults": {
+    "Date system conversion: Handles both 1900 and 1904 date systems, converting serial numbers to YYYY-MM-DD date-only": "pass",
+    "Fictitious leap day rejection: Rejects serial 60 (1900-02-29) as invalid date": "pass",
+    "Multi-assignee email resolution: Semicolon-separated emails resolve to active project member user IDs": "pass",
+    "Ineligible assignee rejection: Unknown emails or members of sibling projects without a grant produce row errors": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "ca8aeefaacf1c172ad831377bbdb814e54d2a2f1884f7708e716a6eb08fbd4b2",
+      "evidencePath": "docs/reviews/IMP-08/test.log"
+    },
+    {
+      "id": "imp-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "ca8aeefaacf1c172ad831377bbdb814e54d2a2f1884f7708e716a6eb08fbd4b2",
+      "evidencePath": "docs/reviews/IMP-08/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict email resolution prevents adding unauthorized or sibling project users as assignees.",
+      "evidencePaths": [
+        "docs/reviews/IMP-08/reviewer-session.md",
+        "docs/reviews/IMP-08/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Accurate 1900/1904 calendar math and Gregorian leap year validation.",
+      "evidencePaths": [
+        "docs/reviews/IMP-08/reviewer-session.md",
+        "docs/reviews/IMP-08/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Deduplicates multiple occurrences of same assignee email in single cell.",
+      "evidencePaths": [
+        "docs/reviews/IMP-08/reviewer-session.md",
+        "docs/reviews/IMP-08/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests prove 1900 date, 1904 date, serial 60 rejection, ISO date string, and valid/invalid email resolution.",
+      "evidencePaths": [
+        "docs/reviews/IMP-08/reviewer-session.md",
+        "docs/reviews/IMP-08/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Pure functions for date conversion with zero native dependencies.",
+      "evidencePaths": [
+        "docs/reviews/IMP-08/reviewer-session.md",
+        "docs/reviews/IMP-08/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Batch user email lookup in single query avoids N+1 database queries.",
+      "evidencePaths": [
+        "docs/reviews/IMP-08/reviewer-session.md",
+        "docs/reviews/IMP-08/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

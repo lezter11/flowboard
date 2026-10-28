@@ -325,7 +325,7 @@
   function saveDraft() {
     const card = activeCard();
     const draft = state.draft;
-    if (!card || !draft) return;
+    if (!card || !draft || !can("edit")) return;
 
     const title = draft.title.trim();
     if (!title) {
@@ -462,7 +462,13 @@
     const progress = $("#uploadProgress");
     progress.hidden = false;
     try {
-      const sources = await Promise.all(valid.map(readFile));
+      const compressed = await Promise.all(valid.map(file => window.compressCardImage(file)));
+      const sources = await Promise.all(compressed.map(readFile));
+      if (activeCard() !== card || !can("upload")) return;
+      if (card.images.length + valid.length > 10) {
+        FB.toast("The image limit changed while processing. Choose fewer images and try again.", { tone: "danger", icon: "alert" });
+        return;
+      }
       valid.forEach((file, index) => {
         card.images.push({
           id: `img_${Date.now()}_${index}`,
@@ -476,7 +482,7 @@
       renderImages();
       if (FB.renderDiscussion) FB.renderDiscussion(card);
       FB.renderAll();
-      FB.toast(valid.length === 1 ? "Image uploaded privately." : `${valid.length} images uploaded privately.`, { tone: "success", icon: "lock" });
+      FB.toast(valid.length === 1 ? "Image added to this local preview." : `${valid.length} images added to this local preview.`, { tone: "success", icon: "lock" });
       if (rejected) FB.toast(`${rejected} file${rejected === 1 ? " was" : "s were"} skipped. Use PNG, JPEG or WebP up to 10 MiB.`, { tone: "danger", icon: "alert" });
     } catch (error) {
       FB.toast("That image could not be read. Try another file.", { tone: "danger", icon: "alert" });

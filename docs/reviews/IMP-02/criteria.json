@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "IMP-02"
+  ],
+  "mandatoryCriteria": [
+    "Role authorization matrix: Workspace owner and project manager permitted to upload and create import preview; project members and viewers rejected with 403 FORBIDDEN; outsiders and unauthenticated requests rejected with 404 NOT_FOUND / 401 UNAUTHORIZED",
+    "Sibling project isolation: Members of a sibling project without a grant in the target project receive 404 NOT_FOUND",
+    "Target ancestry validation: Verifies project and board are active (not archived) and default column belongs to the target board",
+    "Resource creation protection: Spreadsheet import cannot create workspaces, projects, boards, columns, users, or modify membership grants"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "imp-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: IMP-02 Excel import engine on PostgreSQL. Out-of-scope: UI components."
+}

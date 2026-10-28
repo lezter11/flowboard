@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-07"
+  ],
+  "mandatoryCriteria": [
+    "Card movement: POST /api/v1/cards/:cardId/move moves card to destination column and position",
+    "Relative neighbor calculation: Computes new position rank between previousCardId and nextCardId",
+    "Empty column handling: Handles null previousCardId and null nextCardId for empty column",
+    "Dual version check: Validates both expectedVersion (card) and expectedBoardVersion (board structure)"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "crd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Card movement across and within columns."
+}

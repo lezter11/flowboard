@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "AUD-03"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/AUD-03/criteria.json",
+  "startedAt": "2026-10-26T12:24:26.827742+00:00",
+  "completedAt": "2026-10-26T12:24:26.827742+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "0fce3a66-787d-4e93-92dd-84dd9adbcbf0",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "6f8e2190-3b47-49a2-9bc5-c81729de105a",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/AUD-03/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/AUD-03/criteria.json",
+      "docs/reviews/AUD-03/reviewer-session.md",
+      "docs/reviews/AUD-03/test.log",
+      "apps/api/src/adapters/activity.ts",
+      "apps/api/src/adapters/notifications.ts",
+      "apps/api/src/http/routes/activity.ts",
+      "apps/api/src/http/routes/notifications.ts",
+      "apps/api/test/aud-ntf.test.ts",
+      "packages/contracts/src/discussion.ts"
+    ],
+    "files": {
+      "docs/reviews/AUD-03/criteria.json": "3a400f5cce1873969a8d25adab900bf94b65abc26c8eae2552f2f855cea7e336",
+      "docs/reviews/AUD-03/reviewer-session.md": "6defb087ce04756cd40f13693147a78f59fdced670c2b446e83937d89dfba852",
+      "docs/reviews/AUD-03/test.log": "d2a438c75dd5e64afef5a962dab264c641b0149eca746c48abb4fae1d73dc544",
+      "apps/api/src/adapters/activity.ts": "5df26e2ef60d000a9e6982c0f8d4f8fa248154ac32b0375a6d3b81b0b38021ed",
+      "apps/api/src/adapters/notifications.ts": "d37c89e419e179f9c4cfb33ea4c848b4d5f8dac25c4ad697a4623e4fdd336e40",
+      "apps/api/src/http/routes/activity.ts": "6a0f381d279b797268037ead27d12d7b730c6112ffec5554a390c145b46bc92b",
+      "apps/api/src/http/routes/notifications.ts": "122b96bc41ce2b86fd0916230f7806c2578140b94cddc023ba56949f9d4aa494",
+      "apps/api/test/aud-ntf.test.ts": "a70f2b447024f843dd4601fef9396d7c99e67abdcb5b190b6ec06652073cf32d",
+      "packages/contracts/src/discussion.ts": "750d8daa31f45225333e1eb1def824d2ca231da26e97e1a5e9af29b35aebd361"
+    },
+    "digest": "38e3cb4846e4d13dedeea06acf3439281707567df596552aaa06c07b5813b8f0"
+  },
+  "criteriaResults": {
+    "Workspace owner authorization: Workspace owner can view unified cross-project activity via GET /api/v1/workspaces/:workspaceId/activity": "pass",
+    "Cross-project filtering: Supports filtering by projectId, cardId, actorId, action, fromDate, and toDate": "pass",
+    "Sibling project privacy: Invited project managers and members attempting to query workspace activity are rejected with 403 FORBIDDEN": "pass",
+    "Outsider protection: Complete outsiders receive 404 NOT_FOUND": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "38e3cb4846e4d13dedeea06acf3439281707567df596552aaa06c07b5813b8f0",
+      "evidencePath": "docs/reviews/AUD-03/test.log"
+    },
+    {
+      "id": "aud-ntf-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "38e3cb4846e4d13dedeea06acf3439281707567df596552aaa06c07b5813b8f0",
+      "evidencePath": "docs/reviews/AUD-03/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Workspace owner restriction enforced; sibling project members receive 403 FORBIDDEN; outsiders receive 404 NOT_FOUND.",
+      "evidencePaths": [
+        "docs/reviews/AUD-03/reviewer-session.md",
+        "docs/reviews/AUD-03/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Accurate cross-project query execution with multi-facet filtering and cursor pagination.",
+      "evidencePaths": [
+        "docs/reviews/AUD-03/reviewer-session.md",
+        "docs/reviews/AUD-03/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Filtered project and card references strictly validated against workspace ancestry.",
+      "evidencePaths": [
+        "docs/reviews/AUD-03/reviewer-session.md",
+        "docs/reviews/AUD-03/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Integration tests verify multi-project aggregation, facet filtering, 403 for members, and 404 for outsiders.",
+      "evidencePaths": [
+        "docs/reviews/AUD-03/reviewer-session.md",
+        "docs/reviews/AUD-03/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Parameterized SQL query builder prevents SQL injection while supporting dynamic filters.",
+      "evidencePaths": [
+        "docs/reviews/AUD-03/reviewer-session.md",
+        "docs/reviews/AUD-03/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "Paginated queries bounded to limit 50 (max 100) with descending chronological index support.",
+      "evidencePaths": [
+        "docs/reviews/AUD-03/reviewer-session.md",
+        "docs/reviews/AUD-03/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

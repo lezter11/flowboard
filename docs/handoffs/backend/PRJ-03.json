@@ -1,16 +1,18 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/PRJ-03/503aba7661ab455df8baa3bc316f3239daa377f3c3209bb6f8d1618dc28677b1-round-1.json",
+  "reviewPath": "docs/reviews/PRJ-03/126a652c86c3ecd667e5728a95d1bbda44aba136e47c70e54e25e7fe327411dc-round-1.json",
   "summary": "PRJ-03 Project settings: implemented PATCH /api/v1/projects/:projectId allowing Workspace Owner and Project Managers to update project name and description. Enforces role restrictions (members/viewers rejected with 403 FORBIDDEN, outsiders with 404 NOT_FOUND), prevents managers from altering workspace ownership, and enforces Optimistic Concurrency Control (OCC) rejecting stale expectedVersion with 409 STALE_VERSION. All 15 integration tests in prj02-prj05.test.ts pass against local PostgreSQL.",
   "api_contract": "docs/API.md (PATCH /projects/:pid)",
   "limitations": [
     "Project archive and reopen actions are handled separately under PRJ-04 / PRJ-06."
   ],
-  "evidence": [{
-    "path": "docs/evidence/PRJ-03-local.md",
-    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts",
-    "result": "Strict typecheck passed with 0 errors; 15 integration tests passed, 0 failed, 0 skipped.",
-    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
-  }],
+  "evidence": [
+    {
+      "path": "docs/evidence/PRJ-03-local.md",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts",
+      "result": "Strict typecheck passed with 0 errors; 15 integration tests passed, 0 failed, 0 skipped.",
+      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+    }
+  ],
   "next_dependency_ready_task": "UI PRJ-03 (Project settings form), PRJ-04 (Archive project)."
 }

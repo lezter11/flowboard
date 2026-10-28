@@ -40,7 +40,8 @@ export async function createInvitation(
     `SELECT p.id, p.workspace_id, p.archived, w.owner_id
      FROM projects p
      JOIN workspaces w ON p.workspace_id = w.id
-     WHERE p.id = $1`,
+     WHERE p.id = $1
+     FOR SHARE OF w`,
     [projectId],
   );
 
@@ -399,7 +400,8 @@ export async function resendInvitation(
     `SELECT p.id, p.workspace_id, p.archived, w.owner_id
      FROM projects p
      JOIN workspaces w ON p.workspace_id = w.id
-     WHERE p.id = $1`,
+     WHERE p.id = $1
+     FOR SHARE OF w`,
     [projectId],
   );
 
@@ -604,7 +606,8 @@ export async function revokeInvitation(
     `SELECT p.id, p.workspace_id, p.archived, w.owner_id
      FROM projects p
      JOIN workspaces w ON p.workspace_id = w.id
-     WHERE p.id = $1`,
+     WHERE p.id = $1
+     FOR SHARE OF w`,
     [projectId],
   );
 
@@ -733,7 +736,8 @@ export async function listInvitations(
     `SELECT p.id, p.workspace_id, w.owner_id
      FROM projects p
      JOIN workspaces w ON p.workspace_id = w.id
-     WHERE p.id = $1`,
+     WHERE p.id = $1
+     FOR SHARE OF w`,
     [projectId],
   );
 
@@ -832,7 +836,8 @@ export async function leaveProject(
     `SELECT p.id, p.workspace_id, w.owner_id
      FROM projects p
      JOIN workspaces w ON p.workspace_id = w.id
-     WHERE p.id = $1`,
+     WHERE p.id = $1
+     FOR SHARE OF w`,
     [projectId],
   );
 

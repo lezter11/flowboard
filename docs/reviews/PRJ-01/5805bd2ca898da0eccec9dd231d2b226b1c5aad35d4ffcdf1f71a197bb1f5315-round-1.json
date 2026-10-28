@@ -1,0 +1,155 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "PRJ-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/PRJ-01/criteria.json",
+  "startedAt": "2026-10-26T05:37:52.675607Z",
+  "completedAt": "2026-10-26T05:37:52.675607Z",
+  "implementer": {
+    "actorId": "backend-implementer",
+    "sessionId": "builder-prj-01-session",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "antigravity-acceptance-auditor",
+    "sessionId": "0715d43b-fc65-4541-bec2-434e91be2f91",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/PRJ-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/idempotency.ts",
+      "apps/api/src/adapters/migrations.ts",
+      "apps/api/src/adapters/postgres.ts",
+      "apps/api/src/adapters/projects.ts",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/adapters/session.ts",
+      "apps/api/src/http/app.ts",
+      "apps/api/src/http/errors.ts",
+      "apps/api/src/http/middleware/auth.ts",
+      "apps/api/src/http/routes/projects.ts",
+      "apps/api/test/prj01-projects.test.ts",
+      "docs/reviews/PRJ-01/criteria.json",
+      "docs/reviews/PRJ-01/reviewer-session.md",
+      "docs/reviews/PRJ-01/test.log",
+      "packages/contracts/src/common.ts",
+      "packages/contracts/src/index.ts",
+      "packages/contracts/src/projects.ts"
+    ],
+    "files": {
+      "apps/api/src/adapters/idempotency.ts": "86408f3959a81d1c3f3e1f917a53d6f47e85a4c14c645588d69c01c8d0bf9e22",
+      "apps/api/src/adapters/migrations.ts": "768d57afc48f780e4f95e112a096974b384d43b17661634d627f103f66b64e22",
+      "apps/api/src/adapters/postgres.ts": "75b4c2d2e7fd8494fd4bb3834b30d1ed30c1214dd26344468cb8f34b71160ccf",
+      "apps/api/src/adapters/projects.ts": "feb511c3472233c2bdcb86fcc5e69e500c280c84420d291d0c90b3648445a79a",
+      "apps/api/src/adapters/rbac.ts": "0de89f07e4ad44ba8a158977366e2d647efdbfec524f623bb1fb6707e45b81b4",
+      "apps/api/src/adapters/session.ts": "929ec47d18980b30ccbc5ce4ba1cdf63244ffc597060f32d9300d7bedd17349c",
+      "apps/api/src/http/app.ts": "bad16d7271df67880d1e8b5868528a905f15e8e9162365fc875dc4c40e7d911b",
+      "apps/api/src/http/errors.ts": "45d13204a4aa9b7885cfc77e49975673e4273a42f53c3a33367f1663d1cae430",
+      "apps/api/src/http/middleware/auth.ts": "72c7985ceba0e2b4fdfe5890d8d3aa3129dfd837e80891607b386b89cd195740",
+      "apps/api/src/http/routes/projects.ts": "54727ede18f2c9b7a8964556bb50e4ac1dc90549e17c01aa2bb5f2f55128c894",
+      "apps/api/test/prj01-projects.test.ts": "fa9a37f423efdf41f1d142992e9da1c7e4095eeb51968569ee6c524e03f18fb1",
+      "docs/reviews/PRJ-01/criteria.json": "41d9294e43f42c8517a381ec964e4b3159e6e5d57e8753e3a5195ba973b7e0f3",
+      "docs/reviews/PRJ-01/reviewer-session.md": "d5efa6185cb9bf90c00cce1ea7b24ac86ee4c244dbd39e5e9fac28c829f1c7b0",
+      "docs/reviews/PRJ-01/test.log": "5f99f576c3609ea07046b85a7b0a7bec4f42f44b0733908e6a9530b7081d1719",
+      "packages/contracts/src/common.ts": "2640cd78033ee95615b614ae9b921776852655bdcc1ffc86c661a70e17a36126",
+      "packages/contracts/src/index.ts": "f15bf985e542dbeb62aba046b001e5b97befcf6fac8e15da8c3b22a015bd75b2",
+      "packages/contracts/src/projects.ts": "99b489e3957805022a5d075f0b7812e6717367917dffbef0e9844bad3aac8f3b"
+    },
+    "digest": "5805bd2ca898da0eccec9dd231d2b226b1c5aad35d4ffcdf1f71a197bb1f5315"
+  },
+  "criteriaResults": {
+    "Owner-only project creation: Only workspace owner can create projects in the workspace via POST /api/v1/workspaces/:workspaceId/projects; non-owners receive 403 FORBIDDEN (or 404 for ungranted workspace)": "pass",
+    "Project isolation: Projects created in the same workspace maintain independent memberships, boards, and access controls": "pass",
+    "Sibling project privacy: Users without grant on a project receive 404 NOT_FOUND on GET /api/v1/projects/:projectId": "pass",
+    "Project listing scoping: GET /api/v1/workspaces/:workspaceId/projects lists all workspace projects for owner, but only granted projects for non-owner members": "pass",
+    "Input validation: Project name is required non-empty string; description is optional string; unknown fields rejected with 400 or 422": "pass",
+    "Idempotency support: Project creation requires and enforces Idempotency-Key with transactional receipt": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "5805bd2ca898da0eccec9dd231d2b226b1c5aad35d4ffcdf1f71a197bb1f5315",
+      "evidencePath": "docs/reviews/PRJ-01/test.log"
+    },
+    {
+      "id": "prj01-projects-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/prj01-projects.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "5805bd2ca898da0eccec9dd231d2b226b1c5aad35d4ffcdf1f71a197bb1f5315",
+      "evidencePath": "docs/reviews/PRJ-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.5",
+      "reason": "Workspace owner authorization strictly enforced; non-owners and ungranted workspace probes receive 404 NOT_FOUND preventing enumeration; sibling privacy completely hides projects from non-members.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-01/reviewer-session.md",
+        "docs/reviews/PRJ-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Full REST API contracts implemented; project creation, retrieval, and scoped listing match API spec; unknown fields rejected with strict Zod parsing.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-01/reviewer-session.md",
+        "docs/reviews/PRJ-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Transactional boundary encompasses project insertion and idempotency receipt creation; duplicate key replays safely cached.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-01/reviewer-session.md",
+        "docs/reviews/PRJ-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "All 8 tests pass against PostgreSQL 17; adversarial sibling access, outsider rejection, and payload mismatch conflicts verified.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-01/reviewer-session.md",
+        "docs/reviews/PRJ-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.0",
+      "reason": "Clean separation across Hono routes, PostgreSQL adapters, and Zod contracts; clean typecheck with zero errors.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-01/reviewer-session.md",
+        "docs/reviews/PRJ-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Safe transaction rollback on error; connection released in finally block; bounded request bodies.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-01/reviewer-session.md",
+        "docs/reviews/PRJ-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.425",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

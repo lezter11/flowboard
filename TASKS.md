@@ -1,5 +1,13 @@
 # Flowboard ordered tasks
 
+## Resumed Stage 2 acceptance — 2026-10-26
+
+Gemini's interrupted BRD-01–07, CRD-01–11, COM-01–06 and DEL-01–08 audits were independently resumed using three fresh Luna reviewers with primary-agent supervision. **All three groups failed acceptance; all 32 handoffs are blocked.** See [current reports, exact targets and next bounded repair](docs/reviews/STAGE2-RESUME-20261026/README.md). Existing source and prior reviews are preserved; passing existing tests is not feature approval.
+
+Repair round 1 is complete as a code slice but not as feature acceptance. Three fresh audits rechecked the same 161-file target and still failed: BRD 7.400, CRD 7.345, COM/DEL 6.655. See [repair round 1 and re-audit](docs/reviews/STAGE2-REPAIR-20261026/README.md). Current-grant replay, minimal receipts and same-key card create were verified; archive/lifecycle guards, canonical movement/cursors, copied-content cleanup and real purge remain open. All 32 handoffs stay blocked until complete feature acceptance passes.
+
+Repair round 2 added archived-context write guards, operation-equivalent comment-delete replay permissions, current comment lifecycle checks before replay, and stable comment pagination. Full check passed (typecheck, Worker dry-run, API 235/235, contracts 41/41), but the fresh group audits still failed: BRD 7.810, CRD 7.135, COM/DEL 6.775. Board/card cursor binding, card rank and placement rules, overdue search, trash/replay concurrency, purge/cleanup, private content retention, bounded trash and restore placement remain open. See [round 2 evidence](docs/reviews/STAGE2-REPAIR-20261026/README.md). All 32 handoffs remain blocked. The backend gate's three-failed-round limit has been reached; preserve the reports and request a concrete Architect/user decision before another automatic review cycle.
+
 ## Audit hold — 2026-10-26
 
 The backend at `a7153456294b166f2c0c1684d6b257a6f35caa76` fails independent acceptance. Preserve older implementation claims as history; they do not authorize new UI integration or deployment. Follow BACKEND_REVIEW_GATE.md and docs/reviews/README.md. Historical handoffs need independent review before reapproval.

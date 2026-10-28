@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-03/a3825f0d7bc5955475046a6d31d19fb589b0491ef9e9e5f9dd962514f67a84ba-round-1.json",
+  "summary": "CRD-03 Independent card detail query verified. Implemented independent authorization on direct card fetch, strict sibling project privacy returning 404 NOT_FOUND to unauthorized callers to prevent existence enumeration, and rich PersonDisplay enrichment for assignees. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "GET /api/v1/cards/:cardId (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-03/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 12 tests passed. Review score 9.425/10."
+    }
+  ]
+}

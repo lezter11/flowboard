@@ -1,0 +1,91 @@
+Flowboard project workspace unification — review checks
+Date: 27 October 2026
+Source manifest: project-workspace-unification-2026-10-27-manifest.json (20 files; 20/20 SHA-256 verified against the reviewed source)
+Reviewer pass: independent reviewer, second pass after the fix set, browser cache disabled
+
+STATIC
+- Manifest SHA-256: 20/20 exact; committed manifest matches the supplied list.
+- node --check: project.js, projects.js, portfolio-model.js, screens.js, hub.js. 5/5 pass.
+- HTML unique IDs and local refs:
+  project.html 78 ids / 0 duplicates / 15 local refs / 0 missing.
+  projects.html 26 / 0 / 9 / 0.
+  all-work.html 3 / 0 / 5 / 0.
+  screens/index.html 10 / 0 / 58 / 0.
+- CSS brace balance: project-work.css 193/193, projects-hub.css 378/378,
+  screens.css 689/689, styles.css 398/398, detail.css 282/282.
+- Stale references: no all-work.js, no all-work.css, no "Project work" nav or card.
+  all-work.html survives only as the redirect shim.
+- Backend files in this revision: none. 17 design files + 3 docs/ files;
+  no apps/api path in the manifest.
+- Hub structure: 1 h1, hero heading is h2 (42px/700), aria-labelledby resolves,
+  lede lists "Project workspace", 12-screen count matches.
+
+RENDERED (headless Chromium 156 via CDP, cache disabled)
+- B1 compact summary strip, four consumers x three widths, light + dark:
+  .summary.compact flex-direction row, padding 0; .summary-stat display flex /
+  column; label/value stacked; .summary-bars column; .distribution 8px.
+  Card heights at 1440px: hub 82, activity 110, people 110, trash 82
+  (was 375/440). 800px: 110/138/110/110, no overflow. 390px: 196/252/234/196,
+  stats 180px two-up, scrollWidth === clientWidth. Dark: 82px row, same layout.
+  Approved board keeps .board-status / .summary-overview and is unaffected.
+- M1 role-switch URL: Owner on Operations -> Member gives
+  ?role=member&project=my-fashion, aria-current = Overview,
+  overviewTitle = "Project overview", fashion-operations absent from the DOM,
+  no denied panel. Readable tabs preserved: Web -> Member keeps
+  board=fashion-web; Marketing -> Viewer keeps board=fashion-marketing;
+  All boards -> Member keeps tab=all.
+- Direct denied deep link ?role=member&project=my-fashion&board=fashion-operations:
+  "Board unavailable", no board id or name in the DOM.
+- Archived project: exactly 1 Reopen element ("Reopen project", in the banner);
+  header actions are "All boards" only.
+- Project marks: projects map MF tone-thistle, WR tone-sky, BR tone-icy (archived);
+  workspace header matches (project-root-node tone-* and --tone #cdb4db / #a2d2ff / icy).
+- Overview default: project URL opens Overview; switcher shows
+  [Overview] [Web 4] [Marketing 3] [Operations 3] [All boards 10] for the Owner.
+- Web board tab: ?project=my-fashion&board=fashion-web, title "Web - My Fashion",
+  columns Ready / Building / Review / Published, 4 cards.
+- All boards list: ?tab=all, "10 shown - 10 matching cards", 10 cards,
+  totals 10 cards / 7 open / 3 completed / 1 overdue.
+- All boards board layout: ?view=board, stages To do 3 / In progress 4 / Completed 3,
+  10 cards, no list node.
+- Filters: stage=done -> 3 shown / 3 matching / 10 in project; reset then
+  q=checkout -> 1 shown, title "Improve mobile checkout".
+- Card preview: opens with card=fashion-card-2, source "My Fashion / Web / Building",
+  signals High / WEB-2 / Due 28 Oct 2026, source href board tab; Escape closes and
+  removes card from the URL.
+- Role cycle in All boards: Manager 4 cards / 3 open / 1 completed / 0 overdue,
+  tabs [Overview][Web 4][All boards 4]; Member 7 cards, tabs
+  [Overview][Web 4][Marketing 3][All boards 7]; Viewer 3 cards, tabs
+  [Overview][Marketing 3][All boards 3]. Operations absent from text and DOM
+  for all three. New board hidden and 0 access buttons for non-owners.
+- Portfolio links: board arrows ->
+  project.html?project=my-fashion&board=fashion-web (and marketing / operations);
+  "All boards in this project" -> ?tab=all; "Open project" -> bare project URL.
+- Legacy redirect: all-work.html?project=my-fashion&board=fashion-marketing&card=fashion-card-5
+  lands on the Marketing board with "Plan the weekend campaign" preview open.
+  All-boards filters (q, view) forward to ?tab=all.
+- Board creation: "Support" created with 0 cards, active tab Support 0,
+  dialog closed, grants list Owner locked.
+- Access dialog: "Access for Web", members Alice/Charlie/David/Eve,
+  checked alice/charlie/david, Owner input disabled.
+- Archived workspace: read-only banner, tabs [Overview][Brand Guidelines 0][All boards 0],
+  New board hidden, single Reopen.
+- Responsive: 800px All boards card 102px tall, 3px tone edge, .work-card-tone
+  display none, no horizontal overflow. 390-class widths have no document overflow.
+- Theme: light and dark both render; theme toggle persists to
+  flowboard-ui-theme.
+- Console: 0 logs and 0 exceptions on project Overview, board tab, All boards,
+  projects.html and screens/index.html.
+
+LIMITS
+- No API, database, authentication or server-side authorization is exercised.
+  All access is synthetic session state; these checks say nothing about backend
+  enforcement.
+- Chromium-only; no Safari/Firefox, screen reader, 200% zoom, forced-colors or
+  text-scaling pass. Contrast figures are computed from tokens.
+- A first measurement pass reused a cached screens.css and mis-reported the hero
+  heading; all numbers above come from the cache-disabled run.
+- Sign-in, invitation, My tasks, Add card, Import and Settings were not reviewed
+  beyond their hub links.
+- The approved board and sign-in artifacts were otherwise preserved; this review
+  covers the project workspace revision only.

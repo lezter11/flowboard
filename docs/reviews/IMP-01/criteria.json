@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "IMP-01"
+  ],
+  "mandatoryCriteria": [
+    "Versioned seven-column template download: GET /api/v1/import/template and /boards/:boardId/card-import-template return standard .xlsx workbook with Content-Type and Content-Disposition headers",
+    "Official template structure: Workbook contains only 'Cards' and optional 'Instructions' sheets; Cards starts blank with 200 formatted rows",
+    "Zero cards on blank import: Uploading the blank template skips all 200 formatted empty rows and creates zero cards",
+    "Instructions sheet isolation: Instructions text, guidelines, and example tasks are never imported into domain cards"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "imp-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: IMP-01 Excel import engine on PostgreSQL. Out-of-scope: UI components."
+}

@@ -1,0 +1,25 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "UX-04"
+  ],
+  "mandatoryCriteria": [
+    "Versioned snapshot exposure: Board snapshot returns structureVersion and snapshotVersion",
+    "Stale overwrite prevention: Outdated tab write is rejected with 409 STALE_VERSION without corrupting newer server data",
+    "Cursor-based safe polling: Keyset cursors ensure reconnecting tabs paginate without missed or duplicate entries",
+    "Safe version reconciliation: Clients can re-fetch snapshot to reconcile state upon reconnecting"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "ux-integration-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/ux-integration.test.ts"
+  },
+  "minimumWeightedScore": "8.500",
+  "categoryMinimums": {
+    "security": "8.0",
+    "correctness": "8.0",
+    "integrity": "8.0",
+    "tests": "8.0",
+    "maintainability": "7.5",
+    "operations": "7.0"
+  }
+}

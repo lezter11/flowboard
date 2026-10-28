@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "AUD-05"
+  ],
+  "mandatoryCriteria": [
+    "Lifecycle event traceability: Trash, restore, purge, import, and image actions create traceable events in activity_log",
+    "Secret token exclusion: No secret token, idempotency token, dev secret, or auth credential appears in activity payloads",
+    "Raw binary and media exclusion: No raw file buffer, base64 data, or image payload appears in safe_changes",
+    "Project and card association: Lifecycle events correctly associate with workspace_id, project_id, and card_id (or null for batch import)"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "aud-ntf-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: AUD-05 activity tracking and notifications on PostgreSQL. Out-of-scope: UI components."
+}

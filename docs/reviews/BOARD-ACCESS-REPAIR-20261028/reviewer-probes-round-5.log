@@ -1,0 +1,11 @@
+{"probe":"committed-manager-demotion-during-storage-read","route":"content","status":200,"role":"member"}
+{"probe":"trashed-image-delivery-after-demotion","route":"content","status":404,"body":"{\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"Image not found.\",\"requestId\":\"d7e040a2-1872-4d07-910f-286ce2af3cf8\"}}"}
+{"probe":"fresh-request-after-demotion","route":"content","status":404}
+{"probe":"committed-manager-demotion-during-storage-read","route":"thumbnail","status":200,"role":"member"}
+{"probe":"trashed-image-delivery-after-demotion","route":"thumbnail","status":404,"body":"{\"error\":{\"code\":\"NOT_FOUND\",\"message\":\"Image not found.\",\"requestId\":\"5149a075-fbfb-44cb-986c-d86a0b283940\"}}"}
+{"probe":"fresh-request-after-demotion","route":"thumbnail","status":404}
+Both mounted private binary routes reject delivery after committed Manager demotion.
+{"probe":"committed-ownership-transfer-before-board-count","status":200}
+{"probe":"access-summary-after-owner-transfer","status":200,"body":{"data":{"projectId":"p","projectName":"Review Project","workspaceId":"w","workspaceName":"Review","workspaceOwner":{"id":"usr_2ba98154103cf766","displayName":"Owner","avatarUrl":null,"role":"owner","inherited":true,"disclosure":"Workspace owner holds full administrative authority across all boards in this project."},"actor":{"id":"usr_2ba98154103cf766","role":"owner","inheritedFrom":"workspace_owner"},"boardInheritance":{"model":"explicit_board_grants","allBoardsInherit":false,"hasBoardOnlyExceptions":true,"boardCount":1,"disclosure":"Project membership alone does not grant board access. This count includes only boards you can open; the workspace Owner can open all boards."},"memberSummary":{"activeManagers":0,"activeMembers":1,"activeViewers":0,"totalActiveMembers":1}}}}
+{"probe":"fresh-access-summary-after-transfer","status":404}
+Mounted access-summary returned private board count after ownership transfer committed.

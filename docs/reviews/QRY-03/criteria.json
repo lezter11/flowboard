@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "QRY-03"
+  ],
+  "mandatoryCriteria": [
+    "Personal task aggregation: GET /api/v1/me/tasks returns active cards where current user is assigned across accessible projects",
+    "Access boundary enforcement: Excludes cards in projects where actor lacks an active membership or ownership",
+    "Workspace scoping: GET /api/v1/workspaces/:workspaceId/my-tasks filters personal tasks to target workspace",
+    "Instant revocation: Setting membership to 'removed' immediately hides tasks from that project on the next request",
+    "Enriched entity context: Response items include projectName, boardName, and columnTitle"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "qry-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/qry01-qry03.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: QRY-03 discovery, search, and personal task view. Out-of-scope: UI view rendering."
+}

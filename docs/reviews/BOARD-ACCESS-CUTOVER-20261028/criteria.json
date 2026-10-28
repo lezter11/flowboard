@@ -1,0 +1,21 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": ["RBAC-01", "RBAC-02", "RBAC-03", "RBAC-04", "RBAC-05", "BRD-01"],
+  "mandatoryCriteria": [
+    "Workspace owner has implicit access to every board in owned projects; nonowners need both active project membership and an explicit active grant on the specific board, and keep their project role's action limits.",
+    "Migration creates no automatic board grants for existing members; invitations and project membership do not grant board access. Re-adding a removed member does not reactivate old grants.",
+    "Only the owner of the board's workspace can administer board grants. Reject self-elevation, foreign boards, nonmember targets and cross-project access without disclosing hidden resource existence.",
+    "Project managers retain permission to create boards in granted projects but cannot grant board access; a created board does not automatically grant access to its creator or other project members.",
+    "Project-level identity remains visible to authorized project members with zero boards; board list and all board-related reads and counts exclude ungranted boards before pagination or aggregation.",
+    "All mounted board/card/column, comments/activity, images/uploads, imports, trash, notifications, search, tasks, retries and replay entry points enforce the new boundary, including Node and Worker paths.",
+    "Revocation serializes with in-flight writes, import commits and image finalization; revoked actors cannot obtain private data via stale IDs, cursors, caches, retries or idempotency receipts.",
+    "PostgreSQL migration supports clean install and documented safe restart/upgrade; existing sensitive data is not touched. Test against isolated disposable PostgreSQL, never live data.",
+    "Mounted-handler negative tests cover owner, manager, member, viewer, outsider, removed user, stale board grant, sibling/foreign resources, invited owner in another workspace and revocation races.",
+    "Typecheck, build, mandatory integration suites and contracts pass on the exact target; a fresh independent review meets every BACKEND_REVIEW_GATE.md category and blocker rule."
+  ],
+  "requiredTests": {
+    "full-check": "npm run check",
+    "board-access-integration": "FLOWBOARD_ACCESS_TEST_DATABASE_URL=postgres://flowboard_test:synthetic_test_only@127.0.0.1:55479/flowboard_access_test node --test --test-concurrency=1 apps/api/test/board-access.test.ts"
+  },
+  "scopeAndExclusions": "Strict backend acceptance audit of mounted board grants routes and formalized PostgreSQL migrations under BACKEND_REVIEW_GATE.md. Tested exclusively against isolated disposable synthetic PostgreSQL 17 test container flowboard-board-access-review-20261027 on port 55479 with database flowboard_access_test. No production credentials or live data touched."
+}

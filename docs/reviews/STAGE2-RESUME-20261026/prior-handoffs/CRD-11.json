@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-11/242fd4d3e0567113662e0d451a206e24b9cace824bf1c1f55120bb0f5e66d989-round-1.json",
+  "summary": "CRD-11 Card mutation idempotency verified. Implemented mandatory Idempotency-Key validation on card creation and movement, atomic receipt recording inside PostgreSQL transactions, exact replay returning original payload with replayed=true, conflict detection on altered payloads (409 IDEMPOTENCY_CONFLICT), and structured 422 VALIDATION_ERROR responses. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "POST /api/v1/boards/:boardId/cards & POST /api/v1/cards/:cardId/move (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-11/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 12 tests passed. Review score 9.425/10."
+    }
+  ]
+}

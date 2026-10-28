@@ -1,0 +1,25 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "UX-01"
+  ],
+  "mandatoryCriteria": [
+    "Empty state responses: Empty boards, search results, trash lists, and notification inboxes return clean 200 responses with empty data arrays",
+    "Error taxonomy consistency: 400, 401, 403, 404, 409, 422 return standardized { error: { code, message, details, requestId } }",
+    "Safe error masking: Internal database connection errors or unhandled exceptions mask credentials and return 503 DATABASE_UNAVAILABLE",
+    "Preservation of client state: Forbidden and conflict errors return distinct codes (FORBIDDEN, STALE_VERSION) without destructive state resets"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "ux-integration-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/ux-integration.test.ts"
+  },
+  "minimumWeightedScore": "8.500",
+  "categoryMinimums": {
+    "security": "8.0",
+    "correctness": "8.0",
+    "integrity": "8.0",
+    "tests": "8.0",
+    "maintainability": "7.5",
+    "operations": "7.0"
+  }
+}

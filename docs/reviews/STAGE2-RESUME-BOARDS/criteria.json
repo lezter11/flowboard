@@ -1,0 +1,53 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "BRD-01",
+    "BRD-02",
+    "BRD-03",
+    "BRD-04",
+    "BRD-05",
+    "BRD-06",
+    "BRD-07"
+  ],
+  "mandatoryCriteria": [
+    "Owner and manager board creation: Workspace owner and project manager can create boards via POST /api/v1/projects/:projectId/boards; members and viewers receive 403 FORBIDDEN (404 for ungranted project)",
+    "Atomic default columns: Creating a board atomically inserts exactly 4 default columns in order: \"Not started\" (todo, pos 0), \"In progress\" (active, pos 1), \"Testing\" (active, pos 2), \"Completed\" (done, pos 3)",
+    "Ancestry and versioning: Board inherits workspace_id and project_id from project; initializes structure_version=1 and snapshot_version=1",
+    "Idempotency enforcement: POST /api/v1/projects/:projectId/boards requires valid Idempotency-Key header and returns idempotent receipt",
+    "BRD-01 canonical acceptance: Owner/manager creates a board with default columns atomically inside an authorized project.",
+    "Board listing: GET /api/v1/projects/:projectId/boards returns active boards for granted project members; ungranted users receive 404 NOT_FOUND",
+    "Board update: PATCH /api/v1/boards/:boardId updates board name when called by owner or manager; members/viewers receive 403 FORBIDDEN",
+    "Optimistic concurrency: PATCH /api/v1/boards/:boardId verifies expectedVersion matches current snapshot_version; returns 409 STALE_VERSION on conflict",
+    "Idempotency enforcement: PATCH /api/v1/boards/:boardId requires Idempotency-Key header",
+    "BRD-02 canonical acceptance: List only accessible project boards; owner/manager renames a board without breaking card IDs/links.",
+    "Bounded consistent snapshot: GET /api/v1/boards/:boardId returns snapshot object with board metadata, filters, asOfDate, totals, columns, and people",
+    "Accurate active vs matching counts: totals.activeCardCount counts all active cards; totals.matchingCardCount counts cards matching filters; excludes trashed cards",
+    "Column card nesting: Each column in the snapshot contains cards array bounded by cardLimitPerColumn (default 10, max 15) and nextCursor if more exist",
+    "People disclosure: Returns distinct PersonDisplay records for all card assignees and creators referenced on the board",
+    "BRD-03 canonical acceptance: Metadata, counts and first column pages share one snapshot; caps/cursors are explicit and all filters count beyond the visible page.",
+    "Add column: POST /api/v1/boards/:boardId/columns adds new column with name, color, category, expectedBoardVersion",
+    "Max 12 columns bound: Rejects column creation if board already has 12 columns with 400 or 422",
+    "Duplicate column name check: Rejects duplicate column names within the board (case-insensitive, trimmed) with 400 or 409",
+    "Rename and edit column: PATCH /api/v1/boards/:boardId/columns/:columnId updates name, color, category with expectedBoardVersion; rejects duplicate name",
+    "BRD-04 canonical acceptance: Owner/manager configures unique normalized names, colors and todo/active/done categories with expected board version.",
+    "Column reordering: POST /api/v1/boards/:boardId/columns/reorder takes complete array of columnIds and updates position column values sequentially",
+    "Complete column set validation: Rejects reorder request if columnIds array does not match the exact set of active columns on the board with 400 or 422",
+    "Optimistic board versioning: Reorder verifies expectedBoardVersion against board structure_version; increments structure_version on success",
+    "BRD-05 canonical acceptance: Pointer and click/tap/keyboard ordering persist atomically; missing/duplicate/foreign IDs and stale revisions fail clearly.",
+    "Remove empty column: DELETE /api/v1/boards/:boardId/columns/:columnId succeeds when column contains no cards",
+    "Reject final column deletion: Rejects deletion if board has only 1 column remaining with 400 FINAL_COLUMN_CANNOT_BE_DELETED",
+    "Reject column with active cards: Rejects deletion with 400 or 409 if column contains active cards; no silent cascade",
+    "Reject column with restorable cards: Rejects deletion or flags blocked restore if column contains trashed cards within 24h restore window",
+    "BRD-06 canonical acceptance: Owner/manager cannot remove final column or any column referenced by active/restorable cards; no silent card deletion/move occurs.",
+    "Paginated cards query: GET /api/v1/boards/:boardId/cards supports filtering by columnId, title query, priority, assigneeId, and due date",
+    "Deterministic ordering: Cards returned in canonical order by position ascending",
+    "Cursor pagination: Returns nextCursor and supports opaque cursor resumption without data omission or duplicates",
+    "BRD-07 canonical acceptance: Load more retains canonical order without duplicates; empty column and empty filtered column are distinct and stale cursors refresh.",
+    "BRD-07 stale cursor handling: after a board/card order change or filter mismatch, an old cursor is rejected with a stable stale-cursor response so the client refreshes; continuation must not silently omit or duplicate cards."
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "brd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts"
+  },
+  "scopeAndExclusions": "Backend acceptance for BRD-01 through BRD-07 on the immutable 71-file source snapshot. Includes mounted HTTP routes, auth and grant checks, receipt handling, PostgreSQL adapters/migrations, contracts, Node/Worker runtime wiring, tests and relevant API/feature requirements. UI interaction criteria such as pointer/touch/keyboard drag are reported as UI-owned and are not promoted to backend completion. Out of scope: BRD-08, cards CRD features except shared code dependencies, hosted or production behavior."
+}

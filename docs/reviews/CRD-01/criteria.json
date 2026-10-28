@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-01"
+  ],
+  "mandatoryCriteria": [
+    "Card quick creation: POST /api/v1/boards/:boardId/cards creates card with title and columnId, defaulting priority=none, dueDate=null, assigneeIds=[]",
+    "Permission check: Workspace owner, project manager, or project member can create cards; viewers receive 403 FORBIDDEN",
+    "Position rank allocation: Assigns unique position integer at the bottom of the target column",
+    "Board version check: Verifies expectedBoardVersion matches board structure_version; increments structure_version on success"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "crd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Quick card creation and position assignment."
+}

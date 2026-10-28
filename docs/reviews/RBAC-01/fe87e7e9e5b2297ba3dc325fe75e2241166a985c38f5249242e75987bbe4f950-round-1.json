@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "RBAC-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/RBAC-01/criteria.json",
+  "startedAt": "2026-10-26T05:31:35Z",
+  "completedAt": "2026-10-26T05:35:51Z",
+  "implementer": {
+    "actorId": "builder",
+    "sessionId": "builder-session-id",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-reviewer",
+    "sessionId": "b54e0975-7baf-4cac-99fe-0f396b9bb498",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/RBAC-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/RBAC-01/criteria.json",
+      "docs/reviews/RBAC-01/reviewer-session.md",
+      "docs/reviews/RBAC-01/test.log",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/http/middleware/rbac.ts",
+      "apps/api/test/rbac01-matrix.test.ts"
+    ],
+    "files": {
+      "docs/reviews/RBAC-01/criteria.json": "534313b3fb50575fb37a007954ad1e6f638bb44ac337ff40e9700f5b5f1c051c",
+      "docs/reviews/RBAC-01/reviewer-session.md": "a015864b319267c855493fcb4657cd68bc8f06a8dbb01ad1d0beeb9ce545c56c",
+      "docs/reviews/RBAC-01/test.log": "c3cdd6e6a1d439f04800804bb21e296f079a1aec191aca7185e231bd91dce745",
+      "apps/api/src/adapters/rbac.ts": "0de89f07e4ad44ba8a158977366e2d647efdbfec524f623bb1fb6707e45b81b4",
+      "apps/api/src/http/middleware/rbac.ts": "1a17510b23563e086bb15fc3a6b403103736b37c821b293f87470660ad2e0a37",
+      "apps/api/test/rbac01-matrix.test.ts": "e0becbdcfafade24390ca9c8d0272a8b4abff78c8e53eed3e8f21c5301d5008b"
+    },
+    "digest": "fe87e7e9e5b2297ba3dc325fe75e2241166a985c38f5249242e75987bbe4f950"
+  },
+  "criteriaResults": {
+    "Session-derived authorization: Every request derives active actor identity, workspace ownership, and project memberships strictly from verified server session": "pass",
+    "Owner authority inheritance: Workspace owner inherits automatic full administrative authority over all projects in the workspace": "pass",
+    "Project-scoped manager authority: Project Manager authority is strictly confined to their granted project; manager has zero administrative power in sibling projects": "pass",
+    "Member and viewer privilege boundaries: Member cannot perform administration, invite users, or trash cards; viewer has read-only access to granted project": "pass",
+    "Sibling project privacy: Accessing an ungranted project returns uniform 404 NOT_FOUND with zero information disclosure": "pass",
+    "No insecure development bypass: dev-login and test helpers are not accessible in production and do not bypass session or role checks": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "fe87e7e9e5b2297ba3dc325fe75e2241166a985c38f5249242e75987bbe4f950",
+      "evidencePath": "docs/reviews/RBAC-01/test.log"
+    },
+    {
+      "id": "rbac01-matrix-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac01-matrix.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "fe87e7e9e5b2297ba3dc325fe75e2241166a985c38f5249242e75987bbe4f950",
+      "evidencePath": "docs/reviews/RBAC-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict session-derived identity, workspace owner inheritance verified in resolveProjectRole, manager authority strictly scoped to project, sibling project privacy enforced via 404 NOT_FOUND preventing enumeration, and immediate revocation on status != 'active'.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-01/reviewer-session.md",
+        "docs/reviews/RBAC-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.7",
+      "reason": "Complete role hierarchy enforcement (owner > manager > member > viewer), standard contracts mapping, and proper error mappings (401, 403, 404) verified across all 7 integration tests.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-01/reviewer-session.md",
+        "docs/reviews/RBAC-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Relational integrity anchored in PostgreSQL schema; active project_memberships join ensures immediate access cutoff when status changes to 'removed'.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-01/reviewer-session.md",
+        "docs/reviews/RBAC-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.9",
+      "reason": "Typecheck clean with 0 errors. All 7 integration tests in rbac01-matrix.test.ts passed against real PostgreSQL 17 test database covering owner, manager, member, viewer, removed, and sibling 404 cases.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-01/reviewer-session.md",
+        "docs/reviews/RBAC-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.5",
+      "reason": "Clear separation between database adapters (rbac.ts) and HTTP middleware (rbac.ts). Explicit types imported from @flowboard/contracts.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-01/reviewer-session.md",
+        "docs/reviews/RBAC-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.5",
+      "reason": "Bounded queries with indexed lookups on (project_id, user_id), no information leakage on unauthorized queries, safe HTTP error envelopes.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-01/reviewer-session.md",
+        "docs/reviews/RBAC-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.715",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

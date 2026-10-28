@@ -1,0 +1,15 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "DEL-08"
+  ],
+  "mandatoryCriteria": [
+    "Deleted card interaction guards: Direct GET /api/v1/cards/:cardId for trashed card returns 404 NOT_FOUND to normal readers",
+    "Write rejection: Attempting to edit, move, or add comments/images to a trashed card is rejected with 400 or 404"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "del-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Security guards preventing interaction with trashed cards."
+}

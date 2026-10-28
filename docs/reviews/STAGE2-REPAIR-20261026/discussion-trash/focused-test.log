@@ -1,0 +1,41 @@
+▶ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite
+  ✔ COM-02: Viewers cannot post comments (403 FORBIDDEN) (66.576709ms)
+  ✔ COM-02: Outsiders receive 404 NOT_FOUND on comment post (2.580208ms)
+  ✔ COM-02: Comment post requires mandatory Idempotency-Key header (0.917958ms)
+  ✔ COM-02: Comment body validation (rejects empty or whitespace-only body) (1.061625ms)
+  ✔ COM-02: Member posts valid comment with outbox and activity_log (8.955375ms)
+  ✔ COM-02: Idempotency replay returns identical comment with replayed=true (5.522ms)
+  ✔ COM-02: Idempotency conflict on same key with different body (2.541292ms)
+  ✔ COM-03: Rejects overlapping mention spans (0.878375ms)
+  ✔ COM-03: Rejects mentions of sibling project users or non-members (4.3175ms)
+  ✔ COM-03: Valid mentions notify teammates but self-mentions do NOT notify (8.225458ms)
+  ✔ COM-01: GET /cards/:cardId/comments returns chronological comments for readers (3.121ms)
+  ✔ COM-01: Outsiders receive 404 NOT_FOUND on comment listing (1.469416ms)
+  ✔ COM-04: Non-author cannot edit another user comment (403 FORBIDDEN) (2.842833ms)
+  ✔ COM-04: Edit comment OCC conflict returns 409 STALE_VERSION (3.075208ms)
+  ✔ COM-04: Author successfully edits comment and increments version (4.972291ms)
+  ✔ COM-05: Regular member cannot delete another member comment (403 FORBIDDEN) (8.792666ms)
+  ✔ COM-05: Workspace owner moderates and deletes comment (11.456958ms)
+  ✔ COM-05: Author deletes their own comment (5.907541ms)
+  ✔ DEL-01: Regular member/viewer cannot delete card (403 FORBIDDEN) (3.655875ms)
+  ✔ DEL-01: Delete card OCC check returns 409 STALE_VERSION (3.1135ms)
+  ✔ DEL-01: Manager soft-deletes card with 24-hour restore window and board version increment (6.20825ms)
+  ✔ DEL-08: Trashed card returns 404 NOT_FOUND on direct GET /cards/:cardId (0.912166ms)
+  ✔ DEL-08: Trashed card comments return 404 NOT_FOUND on GET /cards/:cardId/comments (0.747459ms)
+  ✔ COM-06: Posting comment on trashed card is rejected with 400 CARD_IS_TRASHED (2.454416ms)
+  ✔ DEL-02: Non-administrators (members/viewers) receive 403 on trash listing (2.932334ms)
+  ✔ DEL-02: Owner and Manager can list trash with canRestore and blockedReason details (2.136958ms)
+  ✔ DEL-03: Non-admin cannot restore card (403 FORBIDDEN) (1.729125ms)
+  ✔ DEL-03: Manager restores card before deadline with OCC checks (7.386334ms)
+  ✔ DEL-04: Destination missing requires explicit toColumnId (18.803958ms)
+  ✔ DEL-05: Expired restore returns HTTP 410 RESTORE_WINDOW_EXPIRED with details (9.701541ms)
+  ✔ DEL-06: Purged card cannot be restored (404 NOT_FOUND, fenced winner) (4.458417ms)
+✔ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite (210.531708ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 358.614209

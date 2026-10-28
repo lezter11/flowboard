@@ -1,0 +1,25 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "UX-02"
+  ],
+  "mandatoryCriteria": [
+    "Relative keyboard placement: POST /cards/:cardId/move accepts previousCardId and nextCardId for precise keyboard rank positioning",
+    "Full card detail payload: GET /api/v1/cards/:cardId returns complete card fields, column info, and hydrated people array",
+    "Color-independent cues: Column representations include category enums (backlog, in_progress, review, done) alongside color strings",
+    "Adjacency validation: Reject invalid neighbor combinations with 422 VALIDATION_ERROR"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "ux-integration-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/ux-integration.test.ts"
+  },
+  "minimumWeightedScore": "8.500",
+  "categoryMinimums": {
+    "security": "8.0",
+    "correctness": "8.0",
+    "integrity": "8.0",
+    "tests": "8.0",
+    "maintainability": "7.5",
+    "operations": "7.0"
+  }
+}

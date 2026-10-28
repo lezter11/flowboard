@@ -388,7 +388,11 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
     assert.equal(replayRes.status, 200);
     const replayBody = await replayRes.json();
     assert.equal(replayBody.replayed, true);
-    assert.equal(replayBody.data.name, 'Project Alpha Renamed');
+    assert.deepEqual(replayBody.data, {
+      id: projectAlphaId,
+      version: currentAlphaVersion,
+      workspaceId: workspace1Id,
+    });
 
     // Test Idempotency Conflict: same key + different payload
     const conflictRes = await app.request(`/api/v1/projects/${projectAlphaId}`, {

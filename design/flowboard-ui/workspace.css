@@ -1,0 +1,123 @@
+/* Compact board workspace. Scoped so other screen artifacts keep their layout. */
+.board-app { --context-height: 44px; }
+.board-app .workspace { height: 100dvh; min-height: 0; }
+.board-app .topbar { height: var(--context-height); min-height: var(--context-height); flex: none; padding: 5px 16px; gap: 10px; }
+.board-app .presence-label, .board-app .role-control > span { display: none; }
+.board-app .role-control { padding: 2px 4px; box-shadow: none; }
+.board-app .role-control select { font-size: 12px; }
+.board-app .rail-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.board-app .page {
+  height: calc(100dvh - var(--context-height)); min-height: 0; max-width: none;
+  padding: 10px 16px 12px; gap: 8px;
+}
+.board-app .board-head { flex: none; gap: 8px; }
+.board-app .board-title-row { min-width: 0; min-height: 34px; gap: 12px; flex-wrap: nowrap; }
+.board-app .board-heading { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 1; }
+.board-app .board-title-row h1 { min-width: 0; font-size: 21px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.board-app .icon-btn.menu-btn { display: grid; }
+.board-app .board-actions { flex: none; width: auto; gap: 6px; flex-wrap: nowrap; }
+.board-app .board-actions .btn { flex: none; }
+.board-app .board-actions #addCardBtn { min-height: 34px; padding: 6px 12px; flex: 0 0 auto; }
+.board-app .share-control { width: 32px; height: 32px; }
+.board-app .view-switch { padding: 3px; grid-template-columns: repeat(2, 64px); }
+.board-app .view-switch::before { inset: 3px auto 3px 3px; width: calc((100% - 6px) / 2); }
+.board-app .view-switch button { min-height: 28px; padding: 4px 6px; gap: 5px; }
+.board-app .view-switch .icon { width: 14px; height: 14px; }
+.fullscreen-exit { display: none; }
+#fullscreenBtn[aria-pressed="true"] .fullscreen-enter { display: none; }
+#fullscreenBtn[aria-pressed="true"] .fullscreen-exit { display: block; }
+.board-app .toolbar { gap: 8px; padding: 0; }
+.board-app .toolbar-spacer { display: none; }
+.board-app .search-field { min-width: 88px; max-width: 280px; height: 34px; flex: 1 1 180px; padding: 6px 0; order: 0; }
+.board-app .filter-wrap { order: 0; }
+.board-app .filter-btn { height: 34px; min-width: 34px; padding: 6px 8px; gap: 4px; }
+.board-app .filter-btn > .icon:last-child { display: none; }
+.board-app .filter-menu { max-width: calc(100vw - 28px); }
+.board-app .card-display-control { order: 0; flex: none; }
+.board-app .card-display-menu {
+  left: auto; right: 0; max-width: calc(100vw - 24px);
+}
+.board-app .card-style-control { height: 34px; padding: 6px 8px; gap: 0; order: 0; }
+.board-app .card-style-control > span { display: none; }
+.board-app .card-style-control select { min-width: 76px; max-width: 90px; }
+.board-app .board-status {
+  display: flex; font-variant-numeric: tabular-nums;
+  flex: 0 1 58%; min-width: 0; max-width: none; margin-left: auto;
+  flex-direction: row; align-items: center; flex-wrap: nowrap; gap: 10px;
+  padding: 0; border: 0; border-radius: 0; background: transparent;
+}
+.board-app .summary-overview { flex: none; gap: 0; }
+.board-app .summary-overview h2 { font-size: 12px; font-weight: 500; line-height: 1.2; letter-spacing: 0; white-space: nowrap; }
+.board-app #statTotal { font-size: 16px; font-weight: 650; }
+.board-app .distribution { flex: 1 1 auto; min-width: 32px; max-width: none; height: 8px; gap: 3px; }
+.board-app .summary-health { flex: none; gap: 10px; }
+.board-app .summary-note { gap: 4px; font-size: 12px; }
+.board-app .result-note, .board-app .filter-hint { order: 2; font-size: 12px; }
+.board-app .clear-filters { order: 0; }
+.board-app .board { flex: 1; min-height: 0; padding-bottom: 8px; }
+.board-app .board:not(.is-list) .column { flex: 1 1 240px; width: auto; min-width: 240px; max-width: none; height: 100%; min-height: 0; max-height: none; container-type: inline-size; }
+.board-app .board:not(.is-list) .column-body {
+  min-height: 0; overflow-y: auto; gap: 12px; padding: 1px 4px 4px;
+}
+.board-app .board:not(.is-list) .column-cards { flex: 0 0 auto; }
+.board-app .board:not(.is-list) .quick-add {
+  box-sizing: border-box; flex: 0 0 auto; width: 100%; min-width: 0; margin-top: 0;
+}
+.board-app .board:not(.is-list) .quick-add-actions { flex-wrap: wrap; }
+.board-app .board:not(.is-list) .quick-add-actions .hint { flex: 1 1 auto; min-width: 7ch; }
+.board-app .board:not(.is-list) .quick-add-actions .btn { flex: 0 0 auto; }
+.board-app .board.is-list { min-height: 0; overflow-y: auto; overflow-x: hidden; }
+.board-app .board-foot, .board-app .board-scroll-hint { display: none; }
+.board-app .board:not(.is-list) .card-desc { max-width: 68ch; }
+.board-app .board:not(.is-list) .card-title { max-width: 60ch; }
+.board-app.nav-drawer-open { overflow: hidden; }
+.board-app .rail-scrim { position: fixed; inset: 0; z-index: 85; background: rgba(29, 22, 35, 0.35); }
+
+/* Collapsing the rail changes available layout width without animating width. */
+@media (min-width: 981px) {
+  .board-app.nav-collapsed:not(.board-fullscreen) .app { grid-template-columns: 0 minmax(0, 1fr); }
+  .board-app.nav-collapsed:not(.board-fullscreen) .rail { width: var(--rail-width); visibility: hidden; pointer-events: none; }
+}
+.board-app.board-fullscreen { --context-height: 0px; overflow: hidden; }
+.board-app.board-fullscreen .app { grid-template-columns: minmax(0, 1fr); }
+.board-app.board-fullscreen .topbar { display: none; }
+.board-app.board-fullscreen .page { height: 100dvh; padding: 8px 12px; }
+.board-app.board-fullscreen .rail {
+  position: fixed; inset: 0 auto 0 0; z-index: 90; width: 256px; height: 100dvh;
+  visibility: hidden; transform: translateX(-102%); box-shadow: var(--shadow-lg);
+}
+.board-app.board-fullscreen .rail.is-open { visibility: visible; transform: none; }
+@container (min-width: 440px) {
+  .board-app .board:not(.is-list) .card-desc { -webkit-line-clamp: 2; font-size: 13px; }
+  .board-app .board:not(.is-list) .assignee-names { max-width: 140px; }
+}
+@media (max-width: 720px) {
+  .board-app { --context-height: 40px; }
+  .board-app .topbar { padding: 3px 12px; }
+  .board-app .page { padding: 8px 12px; }
+  .board-app .toolbar { gap: 6px; }
+  .board-app .search-field { flex-basis: 88px; }
+  .board-app .card-style-control { padding: 6px; }
+  .board-app .card-style-control select { min-width: 70px; max-width: 78px; }
+  .board-app .board-status { order: 1; flex-basis: 100%; min-width: 0; max-width: none; margin-left: 0; min-height: 24px; }
+  .board-app .distribution { max-width: none; }
+  .board-app .result-note { flex: none; }
+  .board-app .board:not(.is-list) .column { flex: 0 0 min(86vw, 400px); width: min(86vw, 400px); }
+}
+@media (max-width: 520px) {
+  .board-app .board-title-row { gap: 8px; }
+  .board-app .board-heading { gap: 6px; }
+  .board-app .board-title-row h1 { font-size: 17px; }
+  .board-app .board-actions { gap: 4px; }
+  .board-app .view-switch { grid-template-columns: repeat(2, 28px); }
+  .board-app .view-label, .board-app .action-label { display: none; }
+  .board-app .board-actions #addCardBtn { width: 32px; min-width: 32px; min-height: 32px; padding: 7px; }
+}
+/* Zoomed or very short windows keep a reachable canvas instead of shrinking it to zero. */
+@media (max-height: 480px) {
+  .board-app.board-fullscreen { overflow: auto; }
+  .board-app .workspace { height: auto; min-height: 100dvh; }
+  .board-app .page { height: auto; min-height: calc(100dvh - var(--context-height)); }
+  .board-app .board { min-height: 280px; }
+  .board-app .board:not(.is-list) .column { height: 280px; }
+}

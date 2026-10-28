@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BRD-04/42a31d192b45d0fe158759ae65d6334e07c32fad40205301c7b35e276a6dd149-round-1.json",
+  "summary": "BRD-04 Column addition & field update bounds: implemented POST /api/v1/boards/:boardId/columns and PATCH /api/v1/boards/:boardId/columns/:columnId with optimistic concurrency control on structure_version, strict 12-column ceiling bound enforcement (rejecting 13th with 400 COLUMN_LIMIT_EXCEEDED), case-insensitive and trimmed name uniqueness (rejecting collisions with 409 DUPLICATE_COLUMN_NAME), and transactional idempotency. Audited and passed with weighted score 9.445/10.",
+  "api_contract": "docs/API.md v0.3",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-04/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "result": "All 16 tests passed. Review score > 8.5."
+    }
+  ]
+}

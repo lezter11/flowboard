@@ -96,6 +96,7 @@ export type ProjectPeoplePurpose = z.infer<typeof projectPeoplePurposeSchema>;
 
 export const projectPeopleQuerySchema = z.object({
   purpose: projectPeoplePurposeSchema.default('display').optional(),
+  boardId: z.string().min(1).max(200).optional(),
   query: z.string().trim().max(100).optional(),
   cursor: z.string().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50).optional(),
@@ -124,9 +125,9 @@ export const projectAccessSummarySchema = z.object({
     inheritedFrom: z.enum(['workspace_owner', 'project_membership']),
   }),
   boardInheritance: z.object({
-    model: z.literal('project_scoped'),
-    allBoardsInherit: z.literal(true),
-    hasBoardOnlyExceptions: z.literal(false),
+    model: z.literal('explicit_board_grants'),
+    allBoardsInherit: z.literal(false),
+    hasBoardOnlyExceptions: z.literal(true),
     boardCount: z.number().int().nonnegative(),
     disclosure: z.string().min(1),
   }),

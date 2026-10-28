@@ -1,0 +1,139 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "IMP-02"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/IMP-02/criteria.json",
+  "startedAt": "2026-10-26T11:38:44.794107+00:00",
+  "completedAt": "2026-10-26T11:38:44.794107+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8523d3da-7482-4254-9365-1bea2b7a649d",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "f4c93a81-d102-47e9-b520-94e8a101b0f5",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/IMP-02/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/IMP-02/criteria.json",
+      "docs/reviews/IMP-02/reviewer-session.md",
+      "docs/reviews/IMP-02/test.log",
+      "apps/api/src/services/excel-parser.ts",
+      "apps/api/src/adapters/imports.ts",
+      "apps/api/src/http/routes/imports.ts",
+      "apps/api/test/imp01-imp06.test.ts",
+      "database/migrations/0001_initial.sql",
+      "database/migrations/0003_constraints.sql",
+      "packages/contracts/src/imports.ts"
+    ],
+    "files": {
+      "docs/reviews/IMP-02/criteria.json": "9aa63dd8a0d7619d75fa462b2a167c2d0614d478e0bda7b48a330ca1562ab8fb",
+      "docs/reviews/IMP-02/reviewer-session.md": "ddfd04f06cd26bc783e02892c7c5e53c33c666aef92b256ae5d9a1dbeda452fe",
+      "docs/reviews/IMP-02/test.log": "57dd6b5a20584bd564465eef8cf149049fe729538b79597891d2ad65b85b3a86",
+      "apps/api/src/services/excel-parser.ts": "0a196b86761f519722e5dbc9b9a1c0d485cdd4d5b181bf05677a3f247642c462",
+      "apps/api/src/adapters/imports.ts": "b7c83eaa355616aa7dd049d14f829a932e96c56d581bd8b7ce9c07a42e78516c",
+      "apps/api/src/http/routes/imports.ts": "f6e7f87163adced7369a2a44055104435b6bdee7efcc2a8c0487a1ebf8163c89",
+      "apps/api/test/imp01-imp06.test.ts": "9a7a9af780e2e228de4308f507adb176107cdf7e8e957a1803dea4404360175d",
+      "database/migrations/0001_initial.sql": "31f1e2e889951dc35e1dd141b91c3a357ebee22043916d9c08b601b3c9d40293",
+      "database/migrations/0003_constraints.sql": "84278975a601c45573f61cfbf70a2018bc18e89b9f10c63132f94b6a0fc5ef97",
+      "packages/contracts/src/imports.ts": "7c086bbf6e0c5c4fbd6c4a0848b371f4bf3b08bbd38f7eac70b0c5feeafbca56"
+    },
+    "digest": "f0dc6e07006be994ab405978db005de2234347c38a7c8ff6e22ebeb2997ee5f4"
+  },
+  "criteriaResults": {
+    "Role authorization matrix: Workspace owner and project manager permitted to upload and create import preview; project members and viewers rejected with 403 FORBIDDEN; outsiders and unauthenticated requests rejected with 404 NOT_FOUND / 401 UNAUTHORIZED": "pass",
+    "Sibling project isolation: Members of a sibling project without a grant in the target project receive 404 NOT_FOUND": "pass",
+    "Target ancestry validation: Verifies project and board are active (not archived) and default column belongs to the target board": "pass",
+    "Resource creation protection: Spreadsheet import cannot create workspaces, projects, boards, columns, users, or modify membership grants": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "f0dc6e07006be994ab405978db005de2234347c38a7c8ff6e22ebeb2997ee5f4",
+      "evidencePath": "docs/reviews/IMP-02/test.log"
+    },
+    {
+      "id": "imp-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "f0dc6e07006be994ab405978db005de2234347c38a7c8ff6e22ebeb2997ee5f4",
+      "evidencePath": "docs/reviews/IMP-02/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict owner/manager gate; member/viewer blocked with 403; cross-project sibling blocked with 404; acquireWriteGrantLock guarantees no concurrent bypass.",
+      "evidencePaths": [
+        "docs/reviews/IMP-02/reviewer-session.md",
+        "docs/reviews/IMP-02/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Verifies board and default column ancestry; checks board active status; returns 422 on invalid default column.",
+      "evidencePaths": [
+        "docs/reviews/IMP-02/reviewer-session.md",
+        "docs/reviews/IMP-02/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Foreign key constraints link import session to workspace, project, board, column, and uploader.",
+      "evidencePaths": [
+        "docs/reviews/IMP-02/reviewer-session.md",
+        "docs/reviews/IMP-02/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests prove owner/manager pass, member/viewer 403, outsider/sibling 404, bad column 422, unauthenticated 401.",
+      "evidencePaths": [
+        "docs/reviews/IMP-02/reviewer-session.md",
+        "docs/reviews/IMP-02/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Unified RBAC enforcement through shared acquireWriteGrantLock helper.",
+      "evidencePaths": [
+        "docs/reviews/IMP-02/reviewer-session.md",
+        "docs/reviews/IMP-02/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Fast fail-early validation before workbook body parsing.",
+      "evidencePaths": [
+        "docs/reviews/IMP-02/reviewer-session.md",
+        "docs/reviews/IMP-02/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

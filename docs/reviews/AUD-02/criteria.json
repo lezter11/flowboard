@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "AUD-02"
+  ],
+  "mandatoryCriteria": [
+    "Safe before/after diff projection: Captures old and new values for title, priority, due date, and assignees.added/removed",
+    "Column movement details: Captures fromColumnId, toColumnId, fromColumnTitle, toColumnTitle, fromPosition, and toPosition",
+    "Historical identity preservation: Historical name changes and removed people remain understandable via getHistoricalPersonDisplay",
+    "Sensitive data protection: No private secret tokens, raw file contents, or session credentials appear in safe_changes"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "aud-ntf-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: AUD-02 activity tracking and notifications on PostgreSQL. Out-of-scope: UI components."
+}

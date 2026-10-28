@@ -1,0 +1,15 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "DEL-06"
+  ],
+  "mandatoryCriteria": [
+    "Purge and restore concurrency: Atomic row locking (FOR UPDATE) prevents race conditions between restore and cleanup/purge worker",
+    "Fenced winner: Exactly one transaction wins; restore cannot succeed if purge has committed"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "del-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Serialized restore vs purge concurrency."
+}

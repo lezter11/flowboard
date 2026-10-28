@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ATT-05"
+  ],
+  "mandatoryCriteria": [
+    "Removal authorization: Image uploader, project manager, or workspace owner can delete image; normal members cannot delete another user's image (403 FORBIDDEN); viewers receive 403; outsiders receive 404",
+    "OCC version check: DELETE accepts expectedVersion parameter and verifies image version; throws 409 STALE_VERSION on conflict",
+    "Card and board updates: Removes image row, decrements card image count, bumps card version and board snapshot_version",
+    "Activity logging: Atomically logs image_removed fact with filename and image ID in activity_log",
+    "Storage cleanup: Asynchronously or atomically cleans up underlying storage object via storage driver"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "att-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: ATT-05 private image and card attachment handling on PostgreSQL. Out-of-scope: UI components."
+}

@@ -1,0 +1,19 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "IMP-05"
+  ],
+  "mandatoryCriteria": [
+    "Pure dry run guarantee: Upload and preview create temporary staging records only; zero cards, users, or grants are created or modified in the database during preview",
+    "Accurate row classification: Rows classified into 'new', 'already_imported', 'invalid', and 'conflict'; counts accurately reflect batch composition",
+    "Deterministic preview digest: Computes SHA-256 preview digest over import target, version, and row outcomes",
+    "Paginated cursor inspection: GET /api/v1/imports/:importId supports limit and cursor query parameters for bounded row retrieval",
+    "Status mapping revalidation: POST /api/v1/imports/:importId/mappings updates unmapped status labels to board columns, clears errors, increments version, and updates preview digest",
+    "Pre-commit cancellation: DELETE /api/v1/imports/:importId cancels preview staging (state='cancelled') before commit execution"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "imp-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: IMP-05 Excel import engine on PostgreSQL. Out-of-scope: UI components."
+}

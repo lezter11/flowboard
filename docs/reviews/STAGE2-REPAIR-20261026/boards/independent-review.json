@@ -1,0 +1,148 @@
+{
+  "recordType": "flowboard-backend-independent-acceptance-review",
+  "schemaVersion": 1,
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": ["BRD-01", "BRD-02", "BRD-03", "BRD-04", "BRD-05", "BRD-06", "BRD-07"],
+  "startedAt": "not-recorded",
+  "completedAt": "2026-10-26T08:05:02Z",
+  "reviewer": {
+    "identity": "/root/reaudit_boards",
+    "model": "GPT-6 (Codex subagent; exact model build not exposed)",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "identityLimit": "Platform did not expose durable actor or session UUIDs; none are fabricated."
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "manifestPath": "docs/reviews/STAGE2-REPAIR-20261026/boards/source-manifest.json",
+    "manifestOriginalPath": "docs/reviews/STAGE2-REPAIR-20261026/source-manifest.json",
+    "digest": "6030645ad47e30135acca9e50e6043b192dff5a221e6684dc332e4ef94ee25d1",
+    "fileCount": 161,
+    "verifiedBeforeReview": true,
+    "verifiedAfterReview": true
+  },
+  "scope": [
+    "Mounted board HTTP routes and route wiring",
+    "Board/column adapters, cursor encoding and lifecycle checks",
+    "Shared idempotency receipt and project grant lock",
+    "PostgreSQL migrations and relational constraints",
+    "BRD-01 through BRD-07 integration tests",
+    "API.md, FEATURE_SPEC.md, frozen round-1 repair criteria, backend review gate"
+  ],
+  "acceptance": {
+    "BRD-01": {"status": "pass_with_limits", "evidence": "Mounted PostgreSQL create-board tests pass; default columns are inserted in the same transaction. No failure-injection rollback test."},
+    "BRD-02": {"status": "pass_with_limits", "evidence": "Mounted role/list/name/version tests pass; writes use grant lock and optimistic version. No archive behavior claimed here."},
+    "BRD-03": {"status": "pass_with_limits", "evidence": "Mounted snapshot/filter/count test passes. Snapshot cursor is only position/id and is not revision/filter-bound."},
+    "BRD-04": {"status": "pass_with_limits", "evidence": "Mounted add/rename/role/uniqueness/12-column tests pass."},
+    "BRD-05": {"status": "pass_with_limits", "evidence": "Mounted exact-set reorder and placement tests pass. No parallel reorder or stale-page test."},
+    "BRD-06": {"status": "pass_with_limits", "evidence": "Mounted active/restorable/final-column guards pass. Expired trashed references remain a nonblocking lifecycle edge."},
+    "BRD-07": {"status": "fail", "evidence": "Malformed cursor is rejected, but valid old cursor has no board revision/filter binding; stale order/filter changes cannot return STALE_CURSOR and can omit/duplicate cards."}
+  },
+  "criteriaResults": {
+    "current project grant is checked and locked before project-write receipt replay": "pass_in_source; board-route regression after revoke/demotion absent",
+    "receipt outcomes retain only minimum non-private identifiers/version metadata": "pass_in_source; no BRD receipt storage inspection test",
+    "authorized lost-response replay and same-key conflict behavior": "pass for ordinary sequential board create; same-key board concurrency untested",
+    "mounted PostgreSQL replay after access removal/demotion, same-key concurrency, collision, and receipt-body inspection": "fail; only ordinary sequential replay/collision is present in the BRD suite",
+    "stale board/order/filter cursor returns stable refresh response without silent omission/duplication": "fail"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "Local workspace; Node/npm runtime; typecheck does not use the database.",
+      "isolatedSynthetic": true,
+      "targetDigest": "6030645ad47e30135acca9e50e6043b192dff5a221e6684dc332e4ef94ee25d1",
+      "evidencePath": "docs/reviews/STAGE2-REPAIR-20261026/boards/typecheck.log"
+    },
+    {
+      "id": "brd01-brd07-postgres",
+      "command": "DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55440/flowboard_harness node --test --test-concurrency=1 test/brd01-brd07.test.ts",
+      "workingDirectory": "apps/api",
+      "exitCode": 0,
+      "result": "16 passed, 0 failed",
+      "environment": "Local synthetic PostgreSQL harness at 127.0.0.1:55440; sandbox localhost denial was followed by approved isolated database execution.",
+      "isolatedSynthetic": true,
+      "targetDigest": "6030645ad47e30135acca9e50e6043b192dff5a221e6684dc332e4ef94ee25d1",
+      "evidencePath": "docs/reviews/STAGE2-REPAIR-20261026/boards/brd01-brd07.test.log"
+    },
+    {
+      "id": "builder-full-check-log",
+      "command": "npm run check",
+      "exitCode": 0,
+      "result": "Supplied builder log reports typecheck, build including Worker dry-run, API tests and contracts tests succeeded; not independently rerun as a full check.",
+      "environment": "Builder-provided evidence, not reviewer execution.",
+      "isolatedSynthetic": true,
+      "targetDigest": "6030645ad47e30135acca9e50e6043b192dff5a221e6684dc332e4ef94ee25d1",
+      "evidencePath": "docs/reviews/STAGE2-REPAIR-20261026/npm-check.log"
+    }
+  ],
+  "categories": {
+    "security": {"weight": 30, "score": "8.5", "reason": "Shared receipt path rechecks and locks current project grant before replay; source is sound, but required board-route revoked/demoted replay regression is absent, so security minimum 9 is not met."},
+    "correctness": {"weight": 25, "score": "6.5", "reason": "Core flows pass; stale board cursors are accepted across order/filter changes, contradicting BRD-07 and API.md. Expired-trash column deletion has an unresolved generic FK failure edge."},
+    "integrity": {"weight": 15, "score": "6.5", "reason": "Transactions, optimistic versions and grant/idempotency locks are present, but continuation pages are not a stable snapshot and concurrent board mutation behavior is not exercised."},
+    "tests": {"weight": 15, "score": "7.5", "reason": "Reviewer typecheck and all 16 focused PostgreSQL tests pass. Required stale-after-change, board revoke/demote replay, same-key concurrency and receipt retention assertions are missing."},
+    "maintainability": {"weight": 10, "score": "8", "reason": "Typed contracts, parameterized SQL and clear route/adapter separation; cursor encoding omits context needed by its contract and endpoint replay regressions are incomplete."},
+    "operations": {"weight": 5, "score": "6.5", "reason": "Limits are present, but stale traversal can silently omit work, placement/snapshot performance is unmeasured, and expired references can surface as database failures."}
+  },
+  "weightedScore": "7.4",
+  "findings": [
+    {
+      "id": "F-01",
+      "severity": "high",
+      "disposition": "open",
+      "mandatory": true,
+      "blocking": true,
+      "source": "apps/api/src/adapters/boards.ts:41-60,1239-1265; apps/api/test/brd01-brd07.test.ts:823-830",
+      "description": "BRD-07 cursor contains only position and id; current board/order/filter revision is not bound. The query applies an old tuple to the changed result set, accepting stale cursors and potentially omitting or duplicating cards. Test rejects malformed cursor only.",
+      "impact": "A teammate changing order or filters while the user pages can cause cards to disappear from traversal or repeat without refresh notification.",
+      "counterevidence": "Normal continuation and malformed-cursor tests pass; those do not exercise a valid cursor after a board/filter change.",
+      "fix": "Bind cursor to board/order revision and normalized filters; return STALE_CURSOR when context changes; add mounted PostgreSQL order/filter-change tests."
+    },
+    {
+      "id": "F-02",
+      "severity": "high",
+      "disposition": "open",
+      "mandatory": true,
+      "blocking": true,
+      "source": "apps/api/src/http/routes/boards.ts; apps/api/src/adapters/idempotency.ts:14-80; apps/api/test/brd01-brd07.test.ts:217-231",
+      "description": "Repair criteria require mounted PostgreSQL tests for replay after grant removal/demotion, same-key concurrency and receipt-body inspection. The BRD suite has only ordinary sequential board create replay/collision. Shared card tests do not prove each board route's required replay family coverage.",
+      "impact": "The implementation change fixing a previous revoked-replay disclosure lacks regression evidence on the affected board routes and persistent receipt contents.",
+      "counterevidence": "All mounted board routes call the shared grant-locking receipt helper; broader card tests exercise role recheck and same-key writes.",
+      "fix": "Add BRD route tests for access removal/demotion, parallel same-key request, conflicting key and persisted receipt inspection."
+    },
+    {
+      "id": "F-03",
+      "severity": "medium",
+      "disposition": "open",
+      "mandatory": false,
+      "blocking": false,
+      "source": "apps/api/src/adapters/boards.ts:693-703; database/migrations/0001_initial.sql:101; database/migrations/0003_constraints.sql:51; apps/api/test/brd01-brd07.test.ts:640-660",
+      "description": "Adapter blocks only restorable trashed cards then deletes a referenced column. Expired but unpurged rows still reference the column under ON DELETE RESTRICT, resulting in a database constraint failure rather than a deliberate domain response. Existing test only covers a restorable trash row.",
+      "impact": "Column deletion can fail as an internal server error while expired trash waits for purge.",
+      "counterevidence": "BRD-06 explicitly names active/restorable cards; the expiring row is no longer restorable, so this is outside its narrow blocker wording.",
+      "fix": "Clarify the expired-trash policy and return a stable conflict or safely detach/purge according to that policy, with a PostgreSQL regression."
+    }
+  ],
+  "hardBlockers": [
+    "F-01: BRD-07 valid stale cursors are not detected after order/filter changes.",
+    "F-02: Frozen repair criteria's required mounted board replay regression evidence is incomplete."
+  ],
+  "coverageGaps": [
+    "No valid cursor-after-reorder or cursor-after-filter-change regression.",
+    "No BRD mounted-route replay test after grant removal/demotion.",
+    "No parallel same-key board mutation test or direct stored receipt body assertion.",
+    "No expired-trash column deletion test.",
+    "No concurrent board reorder/column change stress or failure injection for default-column rollback.",
+    "No BRD-specific Worker runtime execution or representative large-board benchmark.",
+    "Dependency advisory status is unverified; no advisory lookup was performed."
+  ],
+  "verdict": "fail",
+  "limitations": [
+    "Review start time was not recorded; completion time is the observed UTC clock time. This record preserves that limitation instead of inventing a start timestamp.",
+    "The provided npm run check log is builder evidence; only typecheck and the focused BRD PostgreSQL suite were independently run.",
+    "No standalone database repro of the stale cursor was run in this round; the blocker follows directly from the current cursor encoding and continuation SQL, and the prior review recorded an order-change repro against the same unchanged logic.",
+    "Reviewer durable actor/session UUIDs and exact model build were unavailable from the agent runtime and are not claimed."
+  ]
+}

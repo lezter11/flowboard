@@ -182,8 +182,7 @@ test('ACC-04: Create workspace and owner & Idempotency Replay Suite', async (t) 
     const body = await res.json();
     assert.equal(body.replayed, true);
     assert.equal(body.data.id, createdWorkspaceId);
-    assert.equal(body.data.name, 'Acme Global');
-    assert.equal(body.data.ownerId, aliceUserId);
+    assert.deepEqual(body.data, { id: createdWorkspaceId, version: 1 });
 
     // Verify row count in DB is still 1
     const client = await pool.connect();
@@ -266,8 +265,8 @@ test('ACC-04: Create workspace and owner & Idempotency Replay Suite', async (t) 
 
     // Verify same workspace id
     assert.equal(bodyA.data.id, bodyB.data.id);
-    assert.equal(bodyA.data.name, 'Acme Concurrent');
-    assert.equal(bodyB.data.name, 'Acme Concurrent');
+    assert.ok(bodyA.data.id);
+    assert.equal(bodyB.data.id, bodyA.data.id);
 
     // Exactly one replayed = false and one replayed = true
     const replayedValues = [bodyA.replayed, bodyB.replayed].sort();
@@ -320,7 +319,7 @@ test('ACC-04: Create workspace and owner & Idempotency Replay Suite', async (t) 
       assert.ok(save2);
       assert.equal(save2.replayed, true);
       assert.equal(save2.statusCode, 201);
-      assert.deepEqual(save2.responseBody, responsePayload);
+      assert.deepEqual(save2.responseBody, { data: { id: 'ws_winner_direct' } });
     } finally {
       client1.release();
       client2.release();

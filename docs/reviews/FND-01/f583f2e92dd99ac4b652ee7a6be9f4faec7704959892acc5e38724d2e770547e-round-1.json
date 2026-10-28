@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "FND-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/FND-01/criteria.json",
+  "startedAt": "2026-10-26T05:31:35Z",
+  "completedAt": "2026-10-26T05:41:00Z",
+  "implementer": {
+    "actorId": "builder",
+    "sessionId": "builder-session-id",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-reviewer",
+    "sessionId": "b54e0975-7baf-4cac-99fe-0f396b9bb498",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/FND-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/FND-01/criteria.json",
+      "docs/reviews/FND-01/reviewer-session.md",
+      "docs/reviews/FND-01/test.log",
+      "apps/api/src/adapters/migrations.ts",
+      "database/migrations/0001_initial.sql",
+      "database/migrations/0002_sessions.sql",
+      "database/migrations/0003_constraints.sql",
+      "apps/api/test/migrations.test.ts"
+    ],
+    "files": {
+      "docs/reviews/FND-01/criteria.json": "e3c521336cd5cdadef51d925ffb8bae88e80245f03ffd8df947b1b2d40f7f04a",
+      "docs/reviews/FND-01/reviewer-session.md": "00636c3956a4a562397c5103f65b78560b6b76185c6478b50c369f73b029602a",
+      "docs/reviews/FND-01/test.log": "6de7b5b4a612885cbad36c613f7a14eaa292631e805a958b25de7e816b6d4e14",
+      "apps/api/src/adapters/migrations.ts": "768d57afc48f780e4f95e112a096974b384d43b17661634d627f103f66b64e22",
+      "database/migrations/0001_initial.sql": "31f1e2e889951dc35e1dd141b91c3a357ebee22043916d9c08b601b3c9d40293",
+      "database/migrations/0002_sessions.sql": "9fc47e82a74928ea9fa52cb2e9f7403f823874bc5b4d0ec5b7b1ccb338c63405",
+      "database/migrations/0003_constraints.sql": "84278975a601c45573f61cfbf70a2018bc18e89b9f10c63132f94b6a0fc5ef97",
+      "apps/api/test/migrations.test.ts": "fc134e95ece75c451e6b5d15ae76ad05f85db80401c02abaf20e48d3a58c7e0e"
+    },
+    "digest": "f583f2e92dd99ac4b652ee7a6be9f4faec7704959892acc5e38724d2e770547e"
+  },
+  "criteriaResults": {
+    "PostgreSQL baseline: Schema migrations apply cleanly and establish relational integrity": "pass",
+    "Restricted foreign keys: fk_workspaces_owner prevents deleting active workspace owners": "pass",
+    "Advisory locks: Concurrent migration runners serialize cleanly without race conditions or schema corruption": "pass",
+    "Failure rollback: Failed migrations roll back completely without leaving partial artifacts": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "f583f2e92dd99ac4b652ee7a6be9f4faec7704959892acc5e38724d2e770547e",
+      "evidencePath": "docs/reviews/FND-01/test.log"
+    },
+    {
+      "id": "migrations-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/migrations.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "f583f2e92dd99ac4b652ee7a6be9f4faec7704959892acc5e38724d2e770547e",
+      "evidencePath": "docs/reviews/FND-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Restricted foreign keys prevent dangling workspace ownership and orphaned tenants. Composite constraints prevent cross-tenant/cross-project resource injection.",
+      "evidencePaths": [
+        "docs/reviews/FND-01/reviewer-session.md",
+        "docs/reviews/FND-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.8",
+      "reason": "Idempotent migration execution, ordered version discovery, and individual transaction wrapping verified across all 17 integration tests.",
+      "evidencePaths": [
+        "docs/reviews/FND-01/reviewer-session.md",
+        "docs/reviews/FND-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.9",
+      "reason": "Session-level advisory lock prevents concurrent migration corruption. Failure rollback cleanly reverses partial SQL without polluting tracking table.",
+      "evidencePaths": [
+        "docs/reviews/FND-01/reviewer-session.md",
+        "docs/reviews/FND-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.9",
+      "reason": "Typecheck clean. 17 tests verify positive hierarchy insertion, negative foreign key violations (23503), unique constraint violations (23505), ON DELETE RESTRICT, composite ancestry, and concurrent runner serialization.",
+      "evidencePaths": [
+        "docs/reviews/FND-01/reviewer-session.md",
+        "docs/reviews/FND-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.6",
+      "reason": "Declarative SQL migration scripts with zero ORM lock-in; clear runner abstraction supporting pool or client.",
+      "evidencePaths": [
+        "docs/reviews/FND-01/reviewer-session.md",
+        "docs/reviews/FND-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.6",
+      "reason": "Advisory locks eliminate migration coordination issues across horizontally scaled API instances.",
+      "evidencePaths": [
+        "docs/reviews/FND-01/reviewer-session.md",
+        "docs/reviews/FND-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.8",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

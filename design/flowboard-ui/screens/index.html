@@ -7,6 +7,9 @@
   <meta name="description" content="Flowboard UI artifact screen library. Design-only screens with synthetic data." />
   <title>Screen library — Flowboard design prototype</title>
   <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../styles.css" />
   <link rel="stylesheet" href="../detail.css" />
   <link rel="stylesheet" href="screens.css" />
@@ -24,7 +27,7 @@
             <p class="eyebrow">Design review <span class="badge">Screen library</span></p>
             <h1>Flowboard screens</h1>
             <p class="page-sub">
-              <span>Nine product surfaces beyond the approved board</span>
+              <span>Twelve product surfaces beyond the approved board</span>
               <span class="dot" aria-hidden="true"></span>
               <span>Synthetic data only</span>
               <span class="dot" aria-hidden="true"></span>
@@ -53,11 +56,11 @@
         <section class="hub-hero" aria-labelledby="hubTitle">
           <div class="hub-hero-main">
             <p class="eyebrow">Flowboard UI · remaining screens</p>
-            <h1 id="hubTitle">The rest of Flowboard, <em>ready to review.</em></h1>
+            <h2 id="hubTitle">The rest of Flowboard, <em>ready to review.</em></h2>
             <p class="lede">
-              The approved board and card detail stay untouched. This separate library adds Add card,
-              Projects, Inbox, Activity, Trash, People, Import and Settings with the same tokens,
-              role matrix and honest data rules.
+              The approved board and card detail stay untouched. This separate library adds Sign in,
+              Invitation accept, My tasks, Add card, Projects, Project workspace, Inbox, Activity, Trash, People, Import and Settings
+              with the same tokens, role matrix and honest data rules.
             </p>
             <div class="hub-badges">
               <span class="badge accent">Design prototype</span>
@@ -67,8 +70,8 @@
               <span class="badge">Mobile ready</span>
             </div>
             <div class="hub-actions">
-              <a class="btn primary" data-screen="projects" href="projects.html">
-                Start with Projects
+              <a class="btn primary" href="signin.html">
+                Start with Sign in
                 <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
               </a>
               <a class="btn" href="../index.html?role=viewer&card=card_106">
@@ -85,10 +88,10 @@
           <aside class="hub-side" aria-labelledby="pathTitle">
             <h2 id="pathTitle">Suggested review path</h2>
             <div class="hub-path">
-              <div class="hub-path-step"><span class="num">1</span><span><strong>Projects</strong> — active, archived and project-only access.</span></div>
-              <div class="hub-path-step"><span class="num">2</span><span><strong>Project overview</strong> — boards, team, real counts and role actions.</span></div>
-              <div class="hub-path-step"><span class="num">3</span><span><strong>Add card</strong> — save first, then images and comments.</span></div>
-              <div class="hub-path-step"><span class="num">4</span><span><strong>Inbox</strong> — mentions, assignments and unread state.</span></div>
+              <div class="hub-path-step"><span class="num">1</span><span><strong>Sign in and invitation</strong> — provider states, return path and a token-safe preview.</span></div>
+              <div class="hub-path-step"><span class="num">2</span><span><strong>My tasks</strong> — a personal queue with project context and due buckets.</span></div>
+              <div class="hub-path-step"><span class="num">3</span><span><strong>Projects and project workspace</strong> — active, archived, board tabs and project-only access.</span></div>
+              <div class="hub-path-step"><span class="num">4</span><span><strong>Add card and Inbox</strong> — save first, then mentions and assignments.</span></div>
               <div class="hub-path-step"><span class="num">5</span><span><strong>Trash, People, Import, Settings</strong> — the admin surfaces.</span></div>
             </div>
             <div class="note">
@@ -99,17 +102,17 @@
         </section>
 
         <div class="summary compact" aria-label="Screen library summary">
-          <div class="summary-stat"><span class="label">New screens</span><span class="value">9</span></div>
+          <div class="summary-stat"><span class="label">New screens</span><span class="value">12</span></div>
           <div class="summary-stat"><span class="label">Approved board</span><span class="value">1</span></div>
           <div class="summary-stat"><span class="label">Roles previewed</span><span class="value">4</span></div>
           <div class="summary-stat"><span class="label">Themes</span><span class="value">2</span></div>
           <div class="summary-bars">
             <div class="summary-bars-top"><span>Surface coverage</span><em>Design only</em></div>
-            <div class="distribution" aria-label="Nine new screens and one approved board">
-              <span class="dist-progress" style="flex:9" title="New screens: 9"></span>
+            <div class="distribution" aria-label="Twelve new screens and one approved board">
+              <span class="dist-progress" style="flex:12" title="New screens: 12"></span>
               <span class="dist-completed" style="flex:1" title="Approved board: 1"></span>
             </div>
-            <div class="dist-legend"><span><i class="dist-progress"></i>New screens 9</span><span><i class="dist-completed"></i>Approved 1</span></div>
+            <div class="dist-legend"><span><i class="dist-progress"></i>New screens 12</span><span><i class="dist-completed"></i>Approved 1</span></div>
           </div>
         </div>
 
@@ -119,27 +122,30 @@
               <h2 class="panel-title" id="screensTitle">Screen inventory</h2>
               <p class="panel-sub">Open a screen, then use the role and theme controls. Each card lists a few review states.</p>
             </div>
-            <div class="panel-actions"><span class="badge">9 screens</span></div>
+            <div class="panel-actions"><span class="badge">12 screens</span></div>
           </div>
 
           <div class="hub-grid">
             <article class="hub-card">
               <div class="hub-card-top"><span class="num">01</span><h2>Projects</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg></span></div>
-              <p>Active and archived projects, project-only visibility, create project, archive and reopen.</p>
+              <p>Project map or compact list: authorized board branches, per-board counts, create project and Owner archive/reopen.</p>
               <div class="hub-links">
-                <a data-screen="projects" href="projects.html">Owner</a>
+                <a data-screen="projects" href="projects.html">Map</a>
+                <a data-screen="projects" data-params="view=list" href="projects.html?view=list">List</a>
                 <a data-screen="projects" data-params="tab=archived" href="projects.html?tab=archived">Archived</a>
-                <a data-fixed-role href="projects.html?role=manager">Manager</a>
+                <a data-fixed-role href="projects.html?role=member">Member</a>
               </div>
             </article>
 
             <article class="hub-card">
-              <div class="hub-card-top"><span class="num">02</span><h2>Project overview</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg></span></div>
-              <p>One project's boards, real card counts, team, activity, trash and import entry points.</p>
+              <div class="hub-card-top"><span class="num">02</span><h2>Project workspace</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg></span></div>
+              <p>One project workspace: Overview first, persistent board switcher, board tabs in project context, read-only All boards, people/access, create board with initial grants and the per-board access editor.</p>
               <div class="hub-links">
-                <a data-screen="project" data-params="project=website-redesign" href="project.html">Website</a>
+                <a data-screen="project" data-params="project=my-fashion" href="project.html?project=my-fashion">Overview</a>
+                <a data-screen="project" data-params="project=my-fashion&board=fashion-web" href="project.html?project=my-fashion&board=fashion-web">Web board</a>
+                <a data-screen="project" data-params="project=my-fashion&tab=all" href="project.html?project=my-fashion&tab=all">All boards</a>
+                <a data-fixed-role href="project.html?project=my-fashion&role=member">Member</a>
                 <a data-fixed-role href="project.html?role=owner&project=brand-refresh">Archived</a>
-                <a data-fixed-role href="project.html?role=manager">Manager</a>
               </div>
             </article>
 
@@ -214,6 +220,39 @@
             </article>
 
             <article class="hub-card">
+              <div class="hub-card-top"><span class="num">10</span><h2>Sign in</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-key"></use></svg></span></div>
+              <p>Provider-agnostic entry, callback/expiry/rate-limit states, return path and honest “no provider selected” copy.</p>
+              <div class="hub-links">
+                <a data-fixed-role href="signin.html">Signed out</a>
+                <a data-fixed-role href="signin.html?state=callback-error">Callback error</a>
+                <a data-fixed-role href="signin.html?state=expired">Expired</a>
+                <a data-fixed-role href="signin.html?state=locked">Rate limited</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">11</span><h2>Invitation accept</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg></span></div>
+              <p>Token-safe preview with project, inviter, role and expiry; signed-out, accepted, expired, revoked and mismatch states.</p>
+              <div class="hub-links">
+                <a data-fixed-role href="invitation.html">Signed out</a>
+                <a data-fixed-role href="invitation.html?signed=1">Signed in</a>
+                <a data-fixed-role href="invitation.html?state=expired">Expired</a>
+                <a data-fixed-role href="invitation.html?state=mismatch&signed=1">Wrong account</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
+              <div class="hub-card-top"><span class="num">12</span><h2>My tasks</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-list"></use></svg></span></div>
+              <p>Actor-owned assignments across accessible projects, grouped by due date with project context and completion states.</p>
+              <div class="hub-links">
+                <a data-fixed-role href="my-tasks.html">Owner</a>
+                <a data-fixed-role href="my-tasks.html?role=member">Member</a>
+                <a data-fixed-role href="my-tasks.html?role=viewer">Viewer empty</a>
+                <a data-fixed-role href="my-tasks.html?priority=high">High priority</a>
+              </div>
+            </article>
+
+            <article class="hub-card">
               <div class="hub-card-top"><span class="num">—</span><h2>Approved board</h2><span class="hub-icon"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg></span></div>
               <p>The approved board and card-detail artifact. Kept unchanged and linked here for comparison.</p>
               <div class="hub-links">
@@ -237,8 +276,11 @@
             </div>
             <div class="panel-body">
               <div class="hub-coverage">
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Sign in:</strong> provider-agnostic layout, callback/expiry/rate-limit states and an honest provider-pending note.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Invitation accept:</strong> token-safe preview, signed-out/in, accepted, expired, revoked, mismatch and invalid states.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>My tasks:</strong> actor-owned assignments, due buckets, project context, filters and local completion.</span></div>
                 <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Projects:</strong> active/archived lists, project-only visibility, create, archive and reopen.</span></div>
-                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Project overview:</strong> boards, real card counts, team, access, trash and import entry points.</span></div>
+                <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Project workspace:</strong> Overview first, board tabs in project context, read-only All boards, team and access.</span></div>
                 <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Add card:</strong> save-first contract, 200-character title, date-only due date, eligible assignees.</span></div>
                 <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Inbox:</strong> actor-owned notifications, unread/read, mentions, assignments and deep links.</span></div>
                 <div class="hub-coverage-item"><svg class="icon" aria-hidden="true"><use href="#i-check"></use></svg><span><strong>Activity:</strong> owner workspace scope, manager project scope, member/viewer card scope.</span></div>
@@ -260,7 +302,7 @@
                 </div>
               </div>
               <div class="panel-body stack-sm">
-                <div class="note warn"><svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg><span><strong>No API or persistence.</strong> Reloading resets every change except the theme preference.</span></div>
+                <div class="note warn"><svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg><span><strong>No API or persistence.</strong> Reloading keeps this tab's demo edits; nothing is saved by the API. The theme preference persists.</span></div>
                 <div class="note"><svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg><span><strong>No authorization.</strong> Role preview hides controls, but only the API can enforce project access.</span></div>
                 <div class="note"><svg class="icon" aria-hidden="true"><use href="#i-file"></use></svg><span><strong>No XLSX parsing or uploads.</strong> Import uses sample rows; no workbook bytes leave the browser.</span></div>
                 <div class="note"><svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg><span><strong>No email delivery.</strong> Invitations are recorded locally and send nothing.</span></div>

@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "DEL-02"
+  ],
+  "mandatoryCriteria": [
+    "Project trash list: GET /api/v1/projects/:projectId/trash returns trashed cards in the project for owner/manager",
+    "Non-administrator privacy: Non-administrators (members/viewers) receive 403 FORBIDDEN on trash listing",
+    "Trash row details: Returns id, title, deletedAt, deletedBy, restoreUntil, canRestore, blockedReason, serverNow"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "del-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Project trash query for administrators."
+}

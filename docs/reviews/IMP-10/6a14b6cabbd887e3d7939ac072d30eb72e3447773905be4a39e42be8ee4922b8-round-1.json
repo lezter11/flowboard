@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "IMP-10"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/IMP-10/criteria.json",
+  "startedAt": "2026-10-26T12:16:46.971385+00:00",
+  "completedAt": "2026-10-26T12:16:46.971385+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8523d3da-7482-4254-9365-1bea2b7a649d",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "f4c93a81-d102-47e9-b520-94e8a101b0f5",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/IMP-10/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/IMP-10/criteria.json",
+      "docs/reviews/IMP-10/reviewer-session.md",
+      "docs/reviews/IMP-10/test.log",
+      "apps/api/src/services/excel-parser.ts",
+      "apps/api/src/adapters/imports.ts",
+      "apps/api/src/http/routes/imports.ts",
+      "apps/api/test/imp01-imp06.test.ts",
+      "database/migrations/0001_initial.sql",
+      "database/migrations/0003_constraints.sql",
+      "packages/contracts/src/imports.ts"
+    ],
+    "files": {
+      "docs/reviews/IMP-10/criteria.json": "ce1fd9f18a153553661332ba54f01fd8fa95adfdeb6b5d9ce11de9762135305c",
+      "docs/reviews/IMP-10/reviewer-session.md": "0123f2f485d839b531ca789b07eb48b286c3c1c72c4c4bdc9545f3c7becc3697",
+      "docs/reviews/IMP-10/test.log": "9b8c55992a4635d8853061bc488985ade29b09279cccc53ebf8df7fd62202d26",
+      "apps/api/src/services/excel-parser.ts": "0a196b86761f519722e5dbc9b9a1c0d485cdd4d5b181bf05677a3f247642c462",
+      "apps/api/src/adapters/imports.ts": "b7c83eaa355616aa7dd049d14f829a932e96c56d581bd8b7ce9c07a42e78516c",
+      "apps/api/src/http/routes/imports.ts": "f6e7f87163adced7369a2a44055104435b6bdee7efcc2a8c0487a1ebf8163c89",
+      "apps/api/test/imp01-imp06.test.ts": "9a7a9af780e2e228de4308f507adb176107cdf7e8e957a1803dea4404360175d",
+      "database/migrations/0001_initial.sql": "31f1e2e889951dc35e1dd141b91c3a357ebee22043916d9c08b601b3c9d40293",
+      "database/migrations/0003_constraints.sql": "84278975a601c45573f61cfbf70a2018bc18e89b9f10c63132f94b6a0fc5ef97",
+      "packages/contracts/src/imports.ts": "7c086bbf6e0c5c4fbd6c4a0848b371f4bf3b08bbd38f7eac70b0c5feeafbca56"
+    },
+    "digest": "6a14b6cabbd887e3d7939ac072d30eb72e3447773905be4a39e42be8ee4922b8"
+  },
+  "criteriaResults": {
+    "Pre-commit cancellation: DELETE /api/v1/imports/:importId cancels staging and marks state='cancelled'": "pass",
+    "Preview expiration: Imports expire 30 minutes after validation; commit rejected if expired": "pass",
+    "Clean rollback: Cancelled preview leaves zero domain cards or membership side effects": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "6a14b6cabbd887e3d7939ac072d30eb72e3447773905be4a39e42be8ee4922b8",
+      "evidencePath": "docs/reviews/IMP-10/test.log"
+    },
+    {
+      "id": "imp-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "6a14b6cabbd887e3d7939ac072d30eb72e3447773905be4a39e42be8ee4922b8",
+      "evidencePath": "docs/reviews/IMP-10/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Restricted to authorized project manager or owner; rejects unauthorized cancellation.",
+      "evidencePaths": [
+        "docs/reviews/IMP-10/reviewer-session.md",
+        "docs/reviews/IMP-10/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "State machine transition to 'cancelled'; prevents subsequent commits.",
+      "evidencePaths": [
+        "docs/reviews/IMP-10/reviewer-session.md",
+        "docs/reviews/IMP-10/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Cascading deletion or state update cleans temporary rows cleanly.",
+      "evidencePaths": [
+        "docs/reviews/IMP-10/reviewer-session.md",
+        "docs/reviews/IMP-10/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests verify pre-commit cancel, post-commit rejection, and zero card residue.",
+      "evidencePaths": [
+        "docs/reviews/IMP-10/reviewer-session.md",
+        "docs/reviews/IMP-10/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clean adapter function cancelCardImport.",
+      "evidencePaths": [
+        "docs/reviews/IMP-10/reviewer-session.md",
+        "docs/reviews/IMP-10/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Safe background expiration allows periodic sweeping of abandoned previews.",
+      "evidencePaths": [
+        "docs/reviews/IMP-10/reviewer-session.md",
+        "docs/reviews/IMP-10/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

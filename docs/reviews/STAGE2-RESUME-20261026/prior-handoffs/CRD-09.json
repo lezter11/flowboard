@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-09/6d76cb2bf77e48699da6b0cb56de9d8c39c46e51eb646a805c122332a398a0a6-round-1.json",
+  "summary": "CRD-09 Filter-aware placement calculation verified. Verified that placement queries resolve against the full canonical column ordering in PostgreSQL, preventing invisible displacement or position corruption when users move cards in filtered or searched board views. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "GET /api/v1/boards/:boardId/columns/:columnId/placement (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-09/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 12 tests passed. Review score 9.425/10."
+    }
+  ]
+}

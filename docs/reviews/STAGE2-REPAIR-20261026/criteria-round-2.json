@@ -1,0 +1,31 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "BRD-01", "BRD-02", "BRD-03", "BRD-04", "BRD-05", "BRD-06", "BRD-07",
+    "CRD-01", "CRD-02", "CRD-03", "CRD-04", "CRD-05", "CRD-06", "CRD-07", "CRD-08", "CRD-09", "CRD-10", "CRD-11",
+    "COM-01", "COM-02", "COM-03", "COM-04", "COM-05", "COM-06",
+    "DEL-01", "DEL-02", "DEL-03", "DEL-04", "DEL-05", "DEL-06", "DEL-07", "DEL-08"
+  ],
+  "mandatoryCriteria": [
+    "All 32 mounted Stage 2 board, card, discussion, and trash feature paths conform to FEATURE_SPEC.md, API.md, contracts, and their frozen specifications.",
+    "Archived project or board contexts reject card create/update/move, comment post/edit/delete, and card delete with 409 READ_ONLY_CONTEXT before any receipt or side effect; transaction row locks serialize writes against archive transitions.",
+    "Comment delete receipt replay requires current member-or-higher access for an author retry and manager-or-owner access for moderation; demoted moderators cannot replay old success.",
+    "Comment post/edit/delete retries recheck parent-card lifecycle and cannot replay success after the card is trashed or purged.",
+    "Comment pagination is deterministic ascending (created_at,id), scoped to the requested card, and safely rejects malformed or foreign cursors.",
+    "The full selected PostgreSQL check, Worker dry-run build, API tests, and contract tests pass on the frozen target.",
+    "No unresolved hard blocker, category minimum failure, or mandatory acceptance defect remains; only then may any scoped feature be marked verified."
+  ],
+  "requiredTests": {
+    "full-check": "DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55439/flowboard_harness WRANGLER_SEND_METRICS=false npm run check",
+    "boards": "DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55440/flowboard_harness node --test --test-concurrency=1 test/brd01-brd07.test.ts",
+    "cards": "DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55441/flowboard_harness node --test --test-concurrency=1 test/crd01-crd11.test.ts",
+    "discussion-trash": "DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55442/flowboard_harness node --test --test-concurrency=1 test/com-del.test.ts"
+  },
+  "acceptedScope": "Full reachable Stage 2 BRD/CRD/COM/DEL feature surfaces, shared authorization/idempotency, PostgreSQL migrations and constraints, contracts, mounted routes, Node and Worker wiring, and tests.",
+  "knownExclusions": [
+    "Hosted/deployed behavior and production database verification.",
+    "UI rendering, browser workflows, and integrated frontend acceptance.",
+    "Dependency advisory status unless a separate online advisory review is explicitly run."
+  ],
+  "roundNotes": "Frozen before round-two source edits; appended criteria add archived-context guards, current operation authority/lifecycle checks, and keyset comments pagination. Existing open findings remain mandatory until verified fixed."
+}

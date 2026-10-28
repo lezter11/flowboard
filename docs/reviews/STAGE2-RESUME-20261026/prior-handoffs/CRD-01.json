@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-01/f3b1be91132893360530fa6bb35d6a301e5aa93c89ee662402f712de3062425d-round-1.json",
+  "summary": "CRD-01 Quick card creation & ranking verified. Implemented atomic quick card creation at the bottom of target columns with position ranking (+1000 step), role authorization restricting creation to owners, managers, and members while rejecting viewers with 403 FORBIDDEN, board structure version verification (OCC), and transactional idempotency. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "POST /api/v1/boards/:boardId/cards (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-01/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 12 tests passed. Review score 9.425/10."
+    }
+  ]
+}

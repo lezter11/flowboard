@@ -1,0 +1,20 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "IMP-04"
+  ],
+  "mandatoryCriteria": [
+    "Strict header validation: Row 1 must match the seven standard headers (External ID, Title, Description, Priority, Due Date, Assignees, Status); unknown or duplicate headers rejected with 422 UNKNOWN_HEADER or DUPLICATE_HEADER; missing required headers rejected with 422 MISSING_REQUIRED_HEADER",
+    "Leading zeros and numeric ID rejection: Preserves leading zeros on text External ID (e.g. '00123'); rejects numeric External ID with format-as-text guidance",
+    "Blank row skipping: Fully blank rows anywhere in the sheet are ignored without producing empty cards or errors",
+    "Field length & priority bounds: Enforces Title 1-200 chars, Description <= 20000 chars, priority normalized to 'none'|'low'|'medium'|'high'|'urgent' (blank becomes 'none')",
+    "Date system conversion: Converts genuine Excel serial dates respecting 1900 and 1904 date systems to Gregorian YYYY-MM-DD; rejects fictitious 1900-02-29 (serial 60 in 1900 system) with INVALID_DATE",
+    "Assignee email resolution: Resolves semicolon-separated verified emails to active owner/manager/members of the target project; rejects unknown or sibling members with UNKNOWN_OR_INELIGIBLE_ASSIGNEE; deduplicates repeated emails; enforces max 20 assignees",
+    "Column status matching: Matches source status to existing board columns case-insensitively, or falls back to default column when blank"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "imp-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: IMP-04 Excel import engine on PostgreSQL. Out-of-scope: UI components."
+}

@@ -1,0 +1,21 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "IMP-06"
+  ],
+  "mandatoryCriteria": [
+    "Concurrency and OCC guards: Validates expectedVersion and previewDigest; rejects stale versions with 409 STALE_VERSION and digest changes with 409 PREVIEW_STALE",
+    "Zero error requirement: Rejects commit with 422 IMPORT_HAS_ERRORS if any row in the import has outcome 'invalid' or 'conflict'",
+    "Fresh grant & assignee revalidation: Re-verifies actor's project owner/manager role and active status of all assignees; revoked manager role returns 403; removed assignee returns 409 PREVIEW_STALE",
+    "Single transaction atomicity: Inserts all 'new' cards, assigns positions, records assignees, inserts card_import_duplicates markers, updates board snapshot_version, and records activity_log in ONE bounded transaction; any failure rolls back all cards",
+    "Duplicate & conflict protection (IMP-07): Duplicate rows are marked 'skipped' without duplicating cards; changed payloads conflict; 24-hour trash cards cannot be resurrected or bypassed",
+    "Idempotency & replay: Requires Idempotency-Key header; identical confirmation requests return 200 with replayed: true from idempotency_receipts",
+    "Cancellation lockdown: Post-commit cancellation attempts return 409 COMMIT_IN_PROGRESS",
+    "Import provenance & activity (IMP-11): Links import receipt to created cards and logs batch commit event in activity_log"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "imp-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: IMP-06 Excel import engine on PostgreSQL. Out-of-scope: UI components."
+}

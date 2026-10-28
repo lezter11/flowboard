@@ -18,7 +18,7 @@ export interface SessionWithUser {
 export interface SessionCookieOptions {
   path: string;
   httpOnly: boolean;
-  sameSite: 'Lax';
+  sameSite: 'Lax' | 'None' | 'Strict';
   secure: boolean;
   maxAge: number;
 }
@@ -26,7 +26,7 @@ export interface SessionCookieOptions {
 export interface ClearSessionCookieOptions {
   path: string;
   httpOnly: boolean;
-  sameSite: 'Lax';
+  sameSite: 'Lax' | 'None' | 'Strict';
   secure: boolean;
   maxAge: number;
 }
@@ -60,7 +60,7 @@ export function getSessionCookieOptions(hostOrHostname?: string): SessionCookieO
   return {
     path: '/',
     httpOnly: true,
-    sameSite: 'Lax',
+    sameSite: local ? 'Lax' : 'None',
     secure: !local,
     maxAge: 7 * 24 * 3600,
   };
@@ -71,7 +71,7 @@ export function getClearSessionCookieOptions(hostOrHostname?: string): ClearSess
   return {
     path: '/',
     httpOnly: true,
-    sameSite: 'Lax',
+    sameSite: local ? 'Lax' : 'None',
     secure: !local,
     maxAge: 0,
   };
@@ -239,5 +239,52 @@ export async function createDevUserAndSession(
       displayName: userRow.display_name,
       avatarUrl: userRow.avatar_url ?? null,
     },
+  };
+}
+
+export async function updateUserProfile(
+  userId: string,
+  input: { displayName?: string | undefined; avatarUrl?: string | null | undefined },
+  clientOrPool?: pg.Pool | pg.ClientBase,
+): Promise<SessionActor> {
+  const pool = clientOrPool ?? getPool();
+  const fields: string[] = [];
+  const values: any[] = [];
+  let idx = 1;
+
+  if (input.displayName !== undefined) {
+    fields.push(`display_name = $${idx++}`);
+    values.push(input.displayName.trim());
+  }
+  if (input.avatarUrl !== undefined) {
+    fields.push(`avatar_url = $${idx++}`);
+    values.push(input.avatarUrl);
+  }
+  fields.push(`updated_at = NOW()`);
+  values.push(userId);
+
+  const res = await pool.query<{
+    id: string;
+    email: string;
+    display_name: string;
+    avatar_url: string | null;
+  }>(
+    `UPDATE users
+     SET ${fields.join(', ')}
+     WHERE id = $${idx}
+     RETURNING id, email, display_name, avatar_url`,
+    values,
+  );
+
+  const row = res.rows[0];
+  if (!row) {
+    throw new Error('User not found');
+  }
+
+  return {
+    id: row.id,
+    email: row.email,
+    displayName: row.display_name,
+    avatarUrl: row.avatar_url ?? null,
   };
 }

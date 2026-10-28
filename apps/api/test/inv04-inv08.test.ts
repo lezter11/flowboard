@@ -261,7 +261,7 @@ test('INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Su
     assert.equal(json.error.code, 'INVALID_INVITATION');
   });
 
-  await t.test('INV-04: Idempotency replay on resend returns identical token and replayed=true', async () => {
+  await t.test('INV-04: Idempotency replay confirms resend without retaining the invitation token', async () => {
     const res = await app.request(`/api/v1/projects/${projectId}/invitations/${managerInvId}/resend`, {
       method: 'POST',
       headers: {
@@ -274,7 +274,8 @@ test('INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Su
     assert.equal(res.status, 200);
     const json = await res.json();
     assert.equal(json.replayed, true);
-    assert.equal(json.data.token, newManagerRawToken);
+    assert.equal(json.data.id, managerInvId);
+    assert.equal('token' in json.data, false);
   });
 
   await t.test('INV-04: PM resends member invitation -> succeeds', async () => {

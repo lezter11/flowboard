@@ -27,7 +27,14 @@
 
   function me() { return window.Screens.currentUser(); }
   function sampleData() { return state.sample ? SD.importSamples[state.sample] : null; }
-  function sampleRows() { return sampleData() ? sampleData().rows : []; }
+  function sampleRows() {
+    return (sampleData() ? sampleData().rows : []).map((row) => {
+      if (!["low", "medium", "high", "urgent"].includes(row.priority)) {
+        return { ...row, result: "invalid", field: "Priority", message: "Choose Low, Medium, High or Urgent for every new card." };
+      }
+      return row;
+    });
+  }
 
   function sampleCounts() {
     const rows = sampleRows();
@@ -404,7 +411,7 @@
     const created = rows.map((row) => {
       const key = `WEB-${next}`;
       next += 1;
-      return { key, title: row.title, externalId: row.externalId, row: row.row };
+      return { key, title: row.title, externalId: row.externalId, row: row.row, priority: row.priority };
     });
     return {
       sample: state.sample,
@@ -439,7 +446,7 @@
         title: card.title,
         description: "",
         columnId: "col_backlog",
-        priority: "none",
+        priority: card.priority,
         assignees: [],
         due: null,
         images: [],

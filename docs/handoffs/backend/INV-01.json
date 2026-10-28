@@ -6,11 +6,13 @@
   "limitations": [
     "Outbox queue delivery worker is implemented in INV-02."
   ],
-  "evidence": [{
-    "path": "docs/evidence/INV-01-local.md",
-    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/inv01-inv03.test.ts",
-    "result": "Strict typecheck passed with 0 errors; all tests in inv01-inv03 test suite passed (8 passed, 0 failed, 0 skipped).",
-    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
-  }],
+  "evidence": [
+    {
+      "path": "docs/evidence/INV-01-local.md",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/inv01-inv03.test.ts",
+      "result": "Strict typecheck passed with 0 errors; all tests in inv01-inv03 test suite passed (8 passed, 0 failed, 0 skipped).",
+      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+    }
+  ],
   "next_dependency_ready_task": "INV-02 (Invitation delivery), INV-04 (Resend and revoke invitation), INV-05 (Pending invitations list), RBAC-05 (Project inheritance disclosure)."
 }

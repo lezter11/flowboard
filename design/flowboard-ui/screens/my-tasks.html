@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Your assigned work in Flowboard." />
+  <title>My tasks — Flowboard</title>
+  <script>try { if (localStorage.getItem('flowboard-ui-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (_) {}</script>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../detail.css" />
+  <link rel="stylesheet" href="screens.css" />
+  <link rel="stylesheet" href="my-tasks.css?v=2" />
+</head>
+<body data-page="tasks">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <div class="app">
+    <aside class="rail" id="rail" aria-label="Workspace navigation"></aside>
+    <div class="rail-scrim" id="railScrim" hidden></div>
+    <div class="workspace">
+      <header class="topbar" id="topbar"></header>
+      <main class="page my-work" id="main">
+        <header class="work-heading">
+          <div><p class="work-kicker">YOUR WORK</p><h1>My tasks</h1><p id="taskSub" class="work-sub">Loading tasks…</p></div>
+          <a class="btn work-board-link" href="projects.html"><svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg>Browse projects</a>
+        </header>
+        <section class="work-overview" aria-label="Task overview">
+          <div class="overview-intro"><span class="overview-icon"><svg class="icon" aria-hidden="true"><use href="#i-check-circle"></use></svg></span><div><strong id="openCount">0</strong><span>open tasks</span></div></div>
+          <div class="overview-divider" aria-hidden="true"></div>
+          <button class="overview-item attention" data-quick-due="overdue" type="button" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg><span><strong id="statOverdue">0</strong> overdue</span></button>
+          <button class="overview-item today" data-quick-due="today" type="button" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-calendar"></use></svg><span><strong id="statToday">0</strong> due today</span></button>
+          <button class="overview-item week" data-quick-due="week" type="button" aria-pressed="false"><svg class="icon" aria-hidden="true"><use href="#i-clock"></use></svg><span><strong id="statWeek">0</strong> next 7 days</span></button>
+        </section>
+        <section class="queue" aria-labelledby="queueTitle">
+          <div class="queue-header"><div><h2 id="queueTitle">Your queue</h2><p>Tasks assigned to you, organized by due date.</p></div><span class="queue-total" id="taskTotalBadge"></span></div>
+          <div class="queue-toolbar">
+            <label class="queue-search" for="taskSearch"><svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg><span class="sr-only">Search tasks</span><input type="search" id="taskSearch" placeholder="Search tasks" autocomplete="off" /></label>
+            <label class="filter-field"><span class="sr-only">Project</span><select id="taskProject" aria-label="Filter by project"><option value="">All projects</option></select><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg></label>
+            <label class="filter-field"><span class="sr-only">Priority</span><select id="taskPriority" aria-label="Filter by priority"><option value="">All priorities</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option><option value="none">No priority</option></select><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg></label>
+            <label class="filter-field"><span class="sr-only">Due date</span><select id="taskDue" aria-label="Filter by due date"><option value="">Any due date</option><option value="overdue">Overdue</option><option value="today">Due today</option><option value="week">Next 7 days</option><option value="later">Later</option><option value="none">No due date</option></select><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg></label>
+            <button class="clear-filters" id="clearTaskFilters" type="button" hidden>Clear filters</button>
+          </div>
+          <div class="queue-results"><span id="taskFilterSummary" aria-live="polite"></span><span>Sorted by due date</span></div>
+          <div id="taskList" class="queue-list"></div>
+          <button class="completed-toggle" id="completedToggle" type="button" aria-expanded="false" aria-controls="completedList"><svg class="icon" aria-hidden="true"><use href="#i-check-circle"></use></svg><span>Completed</span><span class="completed-count" id="completedCount">0</span><svg class="icon completed-chevron" id="completedChevron" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>
+          <div id="completedList" class="completed-list" hidden></div>
+        </section>
+        <p class="work-foot">Preview data · Changes are made on the source board</p>
+      </main>
+    </div>
+  </div>
+  <script src="../data.js"></script><script src="data.js"></script><script src="screens.js"></script><script src="portfolio-model.js"></script><script src="my-tasks.js?v=3"></script>
+</body>
+</html>

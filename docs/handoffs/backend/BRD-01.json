@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BOARD-ACCESS-REPAIR-20261028/8b2be92f3eb2a151acd6992c8ee153a013d18de58a3128164a3e7df7fa1bd49a-round-8.json",
+  "summary": "BRD-01 Create board & atomic default columns verified. Implemented atomic board creation creating 4 default columns ('Not started', 'In progress', 'Testing', 'Completed'), role authorization restricting creation to Workspace Owners and Project Managers while rejecting members/viewers with 403 FORBIDDEN and outsiders with 404 NOT_FOUND, and transactional idempotency. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "POST /api/v1/projects/:projectId/boards (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-01/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "result": "All 16 tests passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ]
+}

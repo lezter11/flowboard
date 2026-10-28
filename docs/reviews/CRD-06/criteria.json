@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-06"
+  ],
+  "mandatoryCriteria": [
+    "Teammate assignment: PATCH /api/v1/cards/:cardId updates assigneeIds array",
+    "Active project member verification: All assigned user IDs must be active project members; rejects non-members or sibling users with 400 or 422",
+    "Assignee limit: Enforces maximum 20 assignees per card and uniqueness"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "crd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Assignee membership validation and limits."
+}

@@ -2,6 +2,8 @@ import crypto from 'node:crypto';
 import { Hono } from 'hono';
 import {
   createWorkspaceInputSchema,
+  updateWorkspaceInputSchema,
+  transferWorkspaceOwnershipInputSchema,
   idempotencyKeySchema,
   parseOrThrow,
   type Workspace,
@@ -155,4 +157,257 @@ workspacesRoutes.get('/api/v1/workspaces', authMiddleware, async (c) => {
   }));
 
   return c.json({ data: workspaces, nextCursor: null }, 200);
+});
+
+// PATCH /api/v1/workspaces/:workspaceId (ACC-05)
+workspacesRoutes.patch('/api/v1/workspaces/:workspaceId', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Invalid or missing authentication session.');
+  }
+
+  const workspaceId = c.req.param('workspaceId');
+  const rawBody = await c.req.json();
+  const body = parseOrThrow(updateWorkspaceInputSchema, rawBody);
+
+  const pool = getPool();
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    // 1. Lock workspace for update
+    const wsRes = await client.query<{
+      id: string;
+      name: string;
+      timezone: string;
+      owner_id: string;
+      version: number;
+      created_at: Date;
+      updated_at: Date;
+    }>(
+      `SELECT id, name, timezone, owner_id, version, created_at, updated_at
+       FROM workspaces
+       WHERE id = $1
+       FOR UPDATE`,
+      [workspaceId],
+    );
+
+    if (wsRes.rows.length === 0 || !wsRes.rows[0]) {
+      await client.query('ROLLBACK');
+      throw HttpError.notFound('Workspace not found.', 'NOT_FOUND');
+    }
+
+    const current = wsRes.rows[0];
+
+    // 2. Only owner can update workspace preferences (ACC-05)
+    if (current.owner_id !== actor.id) {
+      await client.query('ROLLBACK');
+      throw HttpError.forbidden('Only workspace owner can update workspace preferences.');
+    }
+
+    // 3. OCC check
+    if (current.version !== body.expectedVersion) {
+      await client.query('ROLLBACK');
+      throw HttpError.conflict('STALE_VERSION', 'Workspace version does not match expected version.');
+    }
+
+    const newName = body.name ?? current.name;
+    const newTimezone = body.timezone ?? current.timezone;
+    const newVersion = current.version + 1;
+    const nowIso = new Date().toISOString();
+
+    const updateRes = await client.query<{
+      id: string;
+      name: string;
+      timezone: string;
+      owner_id: string;
+      version: number;
+      created_at: Date;
+      updated_at: Date;
+    }>(
+      `UPDATE workspaces
+       SET name = $1, timezone = $2, version = $3, updated_at = $4
+       WHERE id = $5
+       RETURNING id, name, timezone, owner_id, version, created_at, updated_at`,
+      [newName, newTimezone, newVersion, nowIso, workspaceId],
+    );
+
+    await client.query('COMMIT');
+
+    const updatedRow = updateRes.rows[0]!;
+    const workspace: Workspace = {
+      id: updatedRow.id,
+      name: updatedRow.name,
+      timezone: updatedRow.timezone,
+      ownerId: updatedRow.owner_id,
+      version: updatedRow.version,
+      createdAt: new Date(updatedRow.created_at).toISOString(),
+      updatedAt: new Date(updatedRow.updated_at).toISOString(),
+    };
+
+    return c.json({ data: workspace }, 200);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+});
+
+// POST /api/v1/workspaces/:workspaceId/transfer-ownership (ACC-07)
+workspacesRoutes.post('/api/v1/workspaces/:workspaceId/transfer-ownership', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Invalid or missing authentication session.');
+  }
+
+  const workspaceId = c.req.param('workspaceId');
+
+  const idempotencyKey = c.req.header('idempotency-key');
+  if (!idempotencyKey || !idempotencyKeySchema.safeParse(idempotencyKey).success) {
+    throw HttpError.badRequest(
+      'Missing or invalid Idempotency-Key header.',
+      'IDEMPOTENCY_KEY_REQUIRED',
+    );
+  }
+
+  const rawBody = await c.req.json();
+  const body = parseOrThrow(transferWorkspaceOwnershipInputSchema, rawBody);
+
+  const pool = getPool();
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+
+    const methodPath = `/api/v1/workspaces/${workspaceId}/transfer-ownership`;
+    const replay = await checkOrReplayReceipt(
+      client,
+      actor.id,
+      'workspace',
+      workspaceId,
+      idempotencyKey,
+      methodPath,
+      body,
+    );
+
+    if (replay) {
+      await client.query('ROLLBACK');
+      return c.json(
+        { ...(replay.responseBody as object), replayed: true },
+        replay.statusCode as any,
+      );
+    }
+
+    // 1. Lock workspace for update
+    const wsRes = await client.query<{
+      id: string;
+      name: string;
+      timezone: string;
+      owner_id: string;
+      version: number;
+      created_at: Date;
+      updated_at: Date;
+    }>(
+      `SELECT id, name, timezone, owner_id, version, created_at, updated_at
+       FROM workspaces
+       WHERE id = $1
+       FOR UPDATE`,
+      [workspaceId],
+    );
+
+    if (wsRes.rows.length === 0 || !wsRes.rows[0]) {
+      await client.query('ROLLBACK');
+      throw HttpError.notFound('Workspace not found.', 'NOT_FOUND');
+    }
+
+    const current = wsRes.rows[0];
+
+    // 2. Only current owner can transfer ownership (ACC-07)
+    if (current.owner_id !== actor.id) {
+      await client.query('ROLLBACK');
+      throw HttpError.forbidden('Only the current workspace owner can transfer ownership.');
+    }
+
+    // 3. Target user cannot be current owner
+    if (body.targetUserId === actor.id) {
+      await client.query('ROLLBACK');
+      throw HttpError.badRequest('Cannot transfer ownership to yourself.');
+    }
+
+    // 4. Validate target user exists
+    const userCheck = await client.query<{ id: string }>(
+      'SELECT id FROM users WHERE id = $1',
+      [body.targetUserId],
+    );
+    if (userCheck.rows.length === 0) {
+      await client.query('ROLLBACK');
+      throw HttpError.notFound('Target user not found.', 'NOT_FOUND');
+    }
+
+    // 5. OCC check
+    if (current.version !== body.expectedVersion) {
+      await client.query('ROLLBACK');
+      throw HttpError.conflict('STALE_VERSION', 'Workspace version does not match expected version.');
+    }
+
+    const newVersion = current.version + 1;
+    const nowIso = new Date().toISOString();
+
+    // 6. Atomically update owner: guaranteed exactly one owner at all times
+    const updateRes = await client.query<{
+      id: string;
+      name: string;
+      timezone: string;
+      owner_id: string;
+      version: number;
+      created_at: Date;
+      updated_at: Date;
+    }>(
+      `UPDATE workspaces
+       SET owner_id = $1, version = $2, updated_at = $3
+       WHERE id = $4
+       RETURNING id, name, timezone, owner_id, version, created_at, updated_at`,
+      [body.targetUserId, newVersion, nowIso, workspaceId],
+    );
+
+    const updatedRow = updateRes.rows[0]!;
+    const workspace: Workspace = {
+      id: updatedRow.id,
+      name: updatedRow.name,
+      timezone: updatedRow.timezone,
+      ownerId: updatedRow.owner_id,
+      version: updatedRow.version,
+      createdAt: new Date(updatedRow.created_at).toISOString(),
+      updatedAt: new Date(updatedRow.updated_at).toISOString(),
+    };
+
+    const responsePayload = { data: workspace };
+    const saved = await saveReceipt(
+      client,
+      actor.id,
+      'workspace',
+      workspaceId,
+      idempotencyKey,
+      methodPath,
+      body,
+      200,
+      responsePayload,
+    );
+
+    await client.query('COMMIT');
+    if (saved?.replayed) {
+      return c.json(
+        { ...(saved.responseBody as object), replayed: true },
+        saved.statusCode as any,
+      );
+    }
+    return c.json({ ...responsePayload, replayed: false }, 200);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 });

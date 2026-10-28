@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "QRY-02"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/QRY-02/criteria.json",
+  "startedAt": "2026-10-26T13:23:41.548147+00:00",
+  "completedAt": "2026-10-26T13:23:41.548147+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2630ea55-89d4-4c26-bc1e-b56f5555b3c5",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "4a39d647-291f-4a13-3a70-ac3836218be8",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/QRY-02/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/QRY-02/criteria.json",
+      "docs/reviews/QRY-02/reviewer-session.md",
+      "docs/reviews/QRY-02/test.log",
+      "apps/api/src/adapters/cards.ts",
+      "apps/api/src/http/routes/cards.ts",
+      "apps/api/test/qry01-qry03.test.ts",
+      "packages/contracts/src/cards.ts"
+    ],
+    "files": {
+      "docs/reviews/QRY-02/criteria.json": "55ea82d9e52f893a682998564487cbfe9e0c69df1b2d3878a8bde1f2c2e5bd7a",
+      "docs/reviews/QRY-02/reviewer-session.md": "81d4f706432001a6d9ea02244f9484efc7176e439235ec48721eb5fb00faaec6",
+      "docs/reviews/QRY-02/test.log": "579d29ff658c4d4e9769c8fa24571263bdc0a26bfc3353b8d45728e9d81bee20",
+      "apps/api/src/adapters/cards.ts": "e8787b4a363ed49ab80f4f490f12c635c1d06c4a5772759075d728a65a2ad0c4",
+      "apps/api/src/http/routes/cards.ts": "b6fdce28f8bd175ad4dee738e074b71c591a4607d12ef8b59d83a645f9f42661",
+      "apps/api/test/qry01-qry03.test.ts": "f7f38f866fa709218f5753e4ca9fa03a77b567d4a01ca774d3fc4e49ef57f501",
+      "packages/contracts/src/cards.ts": "9da39d2cbed92627d51fda16f51c6eec117de6babd4de24e0397a36819f8b9bf"
+    },
+    "digest": "04aa0bc3111b2870712baeda879748fc6113a91ac88b2794cf96b4b56a1bf39a"
+  },
+  "criteriaResults": {
+    "Multi-facet filtering: Supports filtering by assigneeId, priority, columnId, and due state (overdue, today, upcoming, none)": "pass",
+    "Active vs matching count distinction: Response provides activeCardCount and matchingCardCount": "pass",
+    "Overdue business logic: Overdue filter requires due_date < workspace today AND column category is NOT 'done'": "pass",
+    "Combinable facets: Multiple filter parameters combine predictably via logical AND": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "04aa0bc3111b2870712baeda879748fc6113a91ac88b2794cf96b4b56a1bf39a",
+      "evidencePath": "docs/reviews/QRY-02/test.log"
+    },
+    {
+      "id": "qry-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/qry01-qry03.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "04aa0bc3111b2870712baeda879748fc6113a91ac88b2794cf96b4b56a1bf39a",
+      "evidencePath": "docs/reviews/QRY-02/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Filters execute strictly within authorized project context; parameter sanitization via contracts Zod schema.",
+      "evidencePaths": [
+        "docs/reviews/QRY-02/reviewer-session.md",
+        "docs/reviews/QRY-02/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Accurate active vs matching counts; overdue logic correctly respects column category != 'done' and workspace timezone.",
+      "evidencePaths": [
+        "docs/reviews/QRY-02/reviewer-session.md",
+        "docs/reviews/QRY-02/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Consistent query aggregation with card counts (comments, attachments, assignees) hydrated.",
+      "evidencePaths": [
+        "docs/reviews/QRY-02/reviewer-session.md",
+        "docs/reviews/QRY-02/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests prove priority, assignee, column, overdue, and combined query combinations.",
+      "evidencePaths": [
+        "docs/reviews/QRY-02/reviewer-session.md",
+        "docs/reviews/QRY-02/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Structured cardsQuerySchema in packages/contracts/src/cards.ts.",
+      "evidencePaths": [
+        "docs/reviews/QRY-02/reviewer-session.md",
+        "docs/reviews/QRY-02/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Count query uses filtered WHERE clause with project index.",
+      "evidencePaths": [
+        "docs/reviews/QRY-02/reviewer-session.md",
+        "docs/reviews/QRY-02/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

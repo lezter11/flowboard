@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BRD-04/551825db4664504c8864ade6a79d0ebbf0ccb9c046cbd6eccaf82128b0842408-round-1.json",
+  "summary": "BRD-04 Add & edit columns verified. Enforces max 12 columns limit per board, column name uniqueness (trimmed, case-insensitive), structure_version OCC verification, and role authorization. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "POST & PATCH /api/v1/boards/:boardId/columns (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-04/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "result": "All 16 tests passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ]
+}

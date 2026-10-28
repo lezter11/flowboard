@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "RBAC-01",
+    "RBAC-02",
+    "RBAC-03",
+    "RBAC-04",
+    "RBAC-05",
+    "BRD-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BOARD-ACCESS-REPAIR-20261028/criteria.json",
+  "startedAt": "2026-10-28T04:57:44.256577+00:00",
+  "completedAt": "2026-10-28T04:57:44.256577+00:00",
+  "implementer": {
+    "actorId": "/root",
+    "sessionId": "not-provided-to-reviewer",
+    "model": "not-provided-to-reviewer"
+  },
+  "reviewer": {
+    "actorId": "/root/backend_reaudit",
+    "sessionId": "agent-task:/root/backend_reaudit",
+    "model": "Codex GPT-6 task-inherited",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BOARD-ACCESS-REPAIR-20261028/reviewer-session-round-2.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "AGENTS.md",
+      "RULES.md",
+      "BACKEND_REVIEW_GATE.md",
+      "docs/FEATURE_SPEC.md",
+      "docs/API.md",
+      "docs/reviews/BOARD-ACCESS-REPAIR-20261028/criteria.json",
+      "docs/reviews/BOARD-ACCESS-REPAIR-20261028/reviewer-session-round-2.md",
+      "docs/reviews/BOARD-ACCESS-REPAIR-20261028/complete-suite.log",
+      "apps/api/src",
+      "apps/api/test",
+      "apps/api/package.json",
+      "apps/api/wrangler.jsonc",
+      "database/migrations",
+      "packages/contracts/src",
+      "packages/contracts/package.json",
+      "package.json",
+      "package-lock.json",
+      "scripts/check_backend_review.py",
+      "scripts/generate_review_record.py"
+    ],
+    "files": {},
+    "digest": "COMPUTED_ON_FINALIZE"
+  },
+  "criteriaResults": {
+    "Every mounted board-derived read filters by current board access before pagination, counts, title/body delivery, or receipt replay, including board snapshots, cards, search, My Tasks, activity, inbox, images, imports and trash.": "fail",
+    "Every mounted board-derived write reauthorizes current board access in the same transaction and serializes with grant removal, including cards, comments, images, imports, columns, archive/reopen, trash and notification read state.": "incomplete",
+    "No route silently falls back to project-only access if the board-grants migration is missing. Malformed or legacy records fail closed for non-Owners.": "fail",
+    "Revoked and never-granted actors receive non-enumerating private not-found responses and cannot recover board IDs, names, titles, counts, links, assets or saved receipt data.": "incomplete",
+    "Mounted-handler tests on isolated PostgreSQL cover Owner, Manager, Member, Viewer, no grant, revoked grant, sibling project, replay and relevant races; Node and Worker paths are reviewed.": "fail",
+    "Current source, migrations, route files, shared helpers, contracts and tests are included in an exact manifest and a fresh independent review passes all BACKEND_REVIEW_GATE.md rules.": "fail"
+  },
+  "tests": [
+    {
+      "id": "complete-suite",
+      "command": "npm run check",
+      "exitCode": 0,
+      "environment": "Supplied log: local isolated synthetic PostgreSQL databases and local workerd; not rerun by reviewer",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/BOARD-ACCESS-REPAIR-20261028/complete-suite.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "7.0",
+      "reason": "Open cross-project title disclosure via malformed outbox scope; stale board snapshot can outlive revocation.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/reviewer-session-round-2.md",
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/complete-suite.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "8.0",
+      "reason": "Mounted happy paths and project-scoped My Tasks are covered, but current-access delivery criterion fails.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/reviewer-session-round-2.md",
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/complete-suite.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "8.0",
+      "reason": "Outbox payload lacks ancestry binding; snapshot transaction does not serialize with grant revocation.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/reviewer-session-round-2.md",
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/complete-suite.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "8.0",
+      "reason": "Supplied complete suite passes, but mismatched outbox and snapshot race cases are absent; reviewer did not rerun it.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/reviewer-session-round-2.md",
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/complete-suite.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "8.0",
+      "reason": "Clear mounted route structure, with divergent read authorization and legacy helper patterns.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/reviewer-session-round-2.md",
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/complete-suite.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "7.5",
+      "reason": "Scheduled Worker and local workerd tested; no hosted evidence or measured failure recovery for these cases.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/reviewer-session-round-2.md",
+        "docs/reviews/BOARD-ACCESS-REPAIR-20261028/complete-suite.log"
+      ]
+    }
+  },
+  "weightedScore": "7.675",
+  "findings": [
+    {
+      "id": "BAR2-01",
+      "severity": "high",
+      "description": "GET board snapshot uses REPEATABLE READ READ ONLY and plain grant SELECT, so in-flight snapshot may return board content after Owner revocation commits. See reviewer-session-round-2.md.",
+      "disposition": "open",
+      "rationale": "Violates current board access before delivery; mounted separate-connection race missing.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "BAR2-02",
+      "severity": "high",
+      "description": "Scheduled outbox consumer does not bind payload card/comment project and workspace to outbox row; malformed row can copy another project card title to outbox project Owner inbox. See reviewer-session-round-2.md.",
+      "disposition": "open",
+      "rationale": "Outbox JSON has no ancestry constraint; Owner notification visibility trusts row scope.",
+      "mandatory": true,
+      "blocking": true
+    }
+  ],
+  "hardBlockers": [
+    "BAR2-01: board snapshot revocation race",
+    "BAR2-02: malformed outbox cross-project title disclosure"
+  ],
+  "coverageGaps": [
+    "No mounted separate-connection board snapshot revocation race test",
+    "No malformed cross-project outbox row and Owner inbox test",
+    "Opaque provider reviewer session ID unavailable"
+  ],
+  "verdict": "fail",
+  "reviewLimit": "Source-level findings; tests inferred from supplied log; not deployed proof."
+}

@@ -1,0 +1,15 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "COM-06"
+  ],
+  "mandatoryCriteria": [
+    "Independent comment drafts: Comment posting and editing operate independently of card field saves",
+    "Card active state check: Posting or editing comments on trashed or purged cards is rejected with 400 or 404"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "com-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Comment draft independence and lifecycle guards."
+}

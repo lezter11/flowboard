@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-05/dfcc5000fe6f29149e29afd235c918b8964b93e98a2b962055fe5c9e24de8098-round-1.json",
+  "summary": "CRD-05 Priority & due date validation verified. Implemented strict priority enum validation (none/low/medium/high/urgent) and Gregorian calendar due date validation correctly handling leap years (2028-02-29 accepted, 2026-02-29 rejected), 30-day month boundaries, and nullable clearing. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "PATCH /api/v1/cards/:cardId (docs/API.md v0.3)",
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-05/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 14 tests passed. Review score 9.425/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ]
+}

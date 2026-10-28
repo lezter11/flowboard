@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-05"
+  ],
+  "mandatoryCriteria": [
+    "Priority and due date editing: PATCH /api/v1/cards/:cardId updates priority (none/low/medium/high/urgent) and dueDate",
+    "Gregorian date validation: Due date validated as YYYY-MM-DD Gregorian date, rejecting invalid leap years and dates",
+    "OCC version enforcement: Enforces expectedVersion check on update"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "crd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Priority and due date validation."
+}

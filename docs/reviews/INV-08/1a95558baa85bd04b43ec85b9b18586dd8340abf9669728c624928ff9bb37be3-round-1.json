@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "INV-08"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/INV-08/criteria.json",
+  "startedAt": "2026-10-26T05:39:59.537007Z",
+  "completedAt": "2026-10-26T05:39:59.537007Z",
+  "implementer": {
+    "actorId": "backend-builder",
+    "sessionId": "7e44e3cf-29d2-4f7d-ba58-a053cdb570fc",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-auditor-inv",
+    "sessionId": "5664ffe4-311c-4302-85fd-63d6eac1ff11",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/INV-08/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/invitations.ts",
+      "apps/api/src/http/routes/invitations.ts",
+      "apps/api/test/inv04-inv08.test.ts",
+      "docs/reviews/INV-08/criteria.json",
+      "docs/reviews/INV-08/reviewer-session.md",
+      "docs/reviews/INV-08/test.log"
+    ],
+    "files": {
+      "apps/api/src/adapters/invitations.ts": "1d3ec5a707b4572aaeffba9b14a428eb09a8c2f0f6f6225966f82dc0eb983851",
+      "apps/api/src/http/routes/invitations.ts": "18717ba6b85e95fa6847733b908dbd3cd27ca915f6cdaaf93bc02b046ce10364",
+      "apps/api/test/inv04-inv08.test.ts": "1c426d4264132a5c4002e9737128c53d1fcda8faf5561bfc1c4cbf9dbd75632a",
+      "docs/reviews/INV-08/criteria.json": "407a17efe3bd4ebae95d87bab59aa76de64873d2a3ca73d4d51b529b80e0ecd5",
+      "docs/reviews/INV-08/reviewer-session.md": "aab098b345d6b89e718df23ceebc86da3cd91ea1ed8111632605d35e94bd6d00",
+      "docs/reviews/INV-08/test.log": "10e48f2a66395decc7b119f13deff37b2eac3e70e26e27adb16b4b9d6f04f5c3"
+    },
+    "digest": "1a95558baa85bd04b43ec85b9b18586dd8340abf9669728c624928ff9bb37be3"
+  },
+  "criteriaResults": {
+    "Voluntary departure: Active project manager, member, or viewer can leave their granted project via POST /api/v1/projects/:projectId/leave": "pass",
+    "Owner protection: Workspace owner cannot leave their workspace project (returns 403 FORBIDDEN; must transfer workspace ownership)": "pass",
+    "Outsider rejection: User without active grant on the project receives 404 NOT_FOUND": "pass",
+    "Status transition: Updates project_memberships.status to 'removed' and increments version atomically": "pass",
+    "Immediate access cut-off: Subsequent requests by the departed user to project resources immediately return 404 NOT_FOUND": "pass",
+    "Historical attribution preserved: Existing card assignments, authored comments, and audit trails remain intact": "pass",
+    "Idempotency support: Repeated leave calls replay safely without error": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "1a95558baa85bd04b43ec85b9b18586dd8340abf9669728c624928ff9bb37be3",
+      "evidencePath": "docs/reviews/INV-08/test.log"
+    },
+    {
+      "id": "inv04-inv08-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv04-inv08.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "1a95558baa85bd04b43ec85b9b18586dd8340abf9669728c624928ff9bb37be3",
+      "evidencePath": "docs/reviews/INV-08/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.6",
+      "reason": "Owner cannot orphan project; outsiders get 404; immediate 404 cutoff upon leave; pending invites revoked.",
+      "evidencePaths": [
+        "docs/reviews/INV-08/reviewer-session.md",
+        "docs/reviews/INV-08/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Adheres strictly to the /projects/:projectId/leave specification with proper status codes (200, 403, 404) and payload.",
+      "evidencePaths": [
+        "docs/reviews/INV-08/reviewer-session.md",
+        "docs/reviews/INV-08/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "FOR UPDATE lock on actor's membership; transactional multi-table update of membership and invitations; OCC version increment.",
+      "evidencePaths": [
+        "docs/reviews/INV-08/reviewer-session.md",
+        "docs/reviews/INV-08/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Comprehensive test coverage across all member roles (Manager, Member, Viewer), owner restriction, and replay behavior.",
+      "evidencePaths": [
+        "docs/reviews/INV-08/reviewer-session.md",
+        "docs/reviews/INV-08/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clean implementation in invitations.ts with explicit parameterized queries.",
+      "evidencePaths": [
+        "docs/reviews/INV-08/reviewer-session.md",
+        "docs/reviews/INV-08/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Direct indexed lookup and atomic transition within a single short-lived transaction.",
+      "evidencePaths": [
+        "docs/reviews/INV-08/reviewer-session.md",
+        "docs/reviews/INV-08/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.475",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

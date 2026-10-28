@@ -10,7 +10,19 @@
   const page = document.body.dataset.page || "hub";
 
   const state = { role: "owner", theme: "light", railOpen: false };
+  const requested = new URLSearchParams(window.location.search);
   const themeListeners = [];
+
+  function resolveProjectContext() {
+    const projectId = requested.get("project") || "website-redesign";
+    const previewUserId = currentUser().id;
+    const project = window.Portfolio ? window.Portfolio.project(projectId) : window.SD?.project(projectId);
+    const boardId = requested.get("board") || project?.boardIds?.[0] || window.Portfolio?.boards(projectId)?.[0]?.id || "";
+    const board = window.Portfolio ? window.Portfolio.board(boardId) : window.SD?.board(boardId);
+    const valid = Boolean(project && project.memberIds?.includes(previewUserId)
+      && (!requested.get("board") || (board && board.projectId === projectId)));
+    return { projectId: valid ? projectId : "", boardId: valid ? boardId : "", valid };
+  }
 
   const rolePermissions = {
     owner: {
@@ -45,6 +57,9 @@
     project: { nav: "projects", crumbs: [{ label: "Acme Corp", href: "projects.html" }, { label: "Projects", href: "projects.html" }, { label: "Project" }] },
     "add-card": { nav: "board", crumbs: [{ label: "Website Redesign", href: "project.html" }, { label: "Website Kanban", href: "../index.html" }, { label: "New card" }] },
     inbox: { nav: "inbox", crumbs: [{ label: "Acme Corp", href: "projects.html" }, { label: "Inbox" }] },
+    tasks: { nav: "tasks", crumbs: [{ label: "Acme Corp", href: "projects.html" }, { label: "My tasks" }] },
+    signin: { nav: "hub", crumbs: [{ label: "Design review" }, { label: "Sign in" }] },
+    invitation: { nav: "hub", crumbs: [{ label: "Design review" }, { label: "Invitation" }] },
     activity: { nav: "activity", crumbs: [{ label: "Website Redesign", href: "project.html" }, { label: "Activity" }] },
     trash: { nav: "trash", crumbs: [{ label: "Website Redesign", href: "project.html" }, { label: "Trash" }] },
     people: { nav: "people", crumbs: [{ label: "Website Redesign", href: "project.html" }, { label: "People" }] },
@@ -99,7 +114,19 @@
   }
 
   function boardHref(cardId) {
+    const projectContext = resolveProjectContext();
+    if (!projectContext.valid) return screenHref("projects");
+    const portfolio=window.Portfolio;
+    const projectId = projectContext.projectId || "website-redesign";
+    const boardId = projectContext.boardId || "board_website";
+    if(portfolio && !portfolio.board(boardId))return screenHref("projects");
+    if(portfolio?.project(projectId)?.status==="archived") {
+      const href=portfolio.workHref({projectId,boardId});
+      return cardId?href+"&card="+encodeURIComponent(cardId):href;
+    }
     const params = new URLSearchParams();
+    params.set("project", projectId);
+    params.set("board", boardId);
     if (state.role !== "owner") params.set("role", state.role);
     if (cardId) params.set("card", cardId);
     return `../index.html${params.toString() ? "?" + params.toString() : ""}`;
@@ -107,6 +134,11 @@
 
   function screenHref(pageName, params) {
     const search = new URLSearchParams(params || {});
+    const projectContext = resolveProjectContext();
+    if (["people", "settings"].includes(pageName) && projectContext.valid) {
+      if (!search.has("project")) search.set("project", projectContext.projectId);
+      if (!search.has("board")) search.set("board", projectContext.boardId);
+    }
     if (state.role !== "owner") search.set("role", state.role);
     return `${pageName}.html${search.toString() ? "?" + search.toString() : ""}`;
   }
@@ -228,6 +260,7 @@
     const user = currentUser();
     const unread = window.SD ? window.SD.unreadCount(user.id) : 0;
     const trashCount = window.SD && can("browseTrash") ? window.SD.trash.length : 0;
+    const taskCount = FB.cards.filter((card) => card.assignees.includes(user.id) && card.columnId !== "col_completed").length;
     const activeNav = (PAGE_META[page] || PAGE_META.hub).nav;
 
     const item = (id, label, iconName, href, badge, quiet, manageOnly) => {
@@ -245,14 +278,14 @@
           </svg>
         </span>
         <span class="brand-name">Flowboard</span>
-        <span class="brand-tag">Prototype</span>
+        ${["projects", "project"].includes(page) ? "" : '<span class="brand-tag">Prototype</span>'}
       </div>
 
       <a class="workspace-switch" href="${link("projects.html")}" title="Switch project">
         <span class="workspace-avatar" aria-hidden="true">AC</span>
         <span class="workspace-copy">
           <strong>Acme Corp</strong>
-          <span>1 active · 4 people</span>
+          <span>${window.Portfolio ? window.Portfolio.projects().length + " projects" : "Your projects"}</span>
         </span>
         ${icon("chevron-down")}
       </a>
@@ -260,9 +293,10 @@
       <nav class="rail-nav" aria-label="Primary">
         <div class="nav-group">
           <p class="nav-label">Workspace</p>
-          ${item("board", "Board", "board", "../index.html")}
+          ${item("board", "Board", "board", boardHref())}
           ${item("projects", "Projects", "folder", "projects.html")}
           ${item("inbox", "Inbox", "inbox", "inbox.html", unread || "", false, false)}
+          ${item("tasks", "My tasks", "list", "my-tasks.html", taskCount || "", true)}
           ${item("activity", "Activity", "activity", "activity.html")}
         </div>
 
@@ -275,8 +309,6 @@
         </div>
 
         <div class="nav-group">
-          <p class="nav-label">Design review</p>
-          ${item("hub", "Screen library", "grid", "index.html")}
         </div>
 
         <div class="rail-note">
@@ -298,11 +330,18 @@
   function topbarHTML() {
     const user = currentUser();
     const meta = PAGE_META[page] || PAGE_META.hub;
+    const projectContext = resolveProjectContext();
     const crumbs = meta.crumbs.map((crumb, index) => {
       const isLast = index === meta.crumbs.length - 1;
-      const label = escape(crumb.label);
-      const node = crumb.href && !isLast
-        ? `<a href="${link(crumb.href)}">${label}</a>`
+      const crumbLabel = crumb.label === "Website Redesign"
+        ? (projectContext.valid ? (window.Portfolio ? window.Portfolio.project(projectContext.projectId) : window.SD?.project(projectContext.projectId))?.name || "Project" : "Project")
+        : crumb.label;
+      const label = escape(crumbLabel);
+      const crumbHref = crumb.label === "Website Redesign" && projectContext.valid
+        ? screenHref("project", { project: projectContext.projectId })
+        : crumb.href;
+      const node = crumbHref && !isLast
+        ? `<a href="${link(crumbHref)}">${label}</a>`
         : `<span${isLast ? ' class="current"' : ""}>${label}</span>`;
       return `${node}${isLast ? "" : '<span class="sep">/</span>'}`;
     }).join("");
@@ -312,7 +351,7 @@
       </button>
       <nav class="crumbs" id="crumbs" aria-label="Breadcrumb">${crumbs}</nav>
       <div class="topbar-spacer"></div>
-      <div class="presence" aria-label="3 people online">
+      <div class="presence" aria-label="Sample team"${["projects", "project"].includes(page)?' hidden':''}>
         <span class="presence-label">3 online</span>
         ${avatar("alice")}${avatar("charlie")}${avatar("david")}
       </div>
@@ -462,6 +501,8 @@
       history.replaceState(null, "", url.pathname.split("/").pop() + url.search + url.hash);
     }
     setRail(false);
+    const toasts = $("#toasts");
+    if (toasts) toasts.replaceChildren();
     refreshShell();
     if (opts.render && window.FBPage && typeof window.FBPage.render === "function") {
       window.FBPage.render(role);
@@ -699,6 +740,7 @@
   });
 
   window.Screens = {
+    get projectContext() { return resolveProjectContext(); },
     get role() { return state.role; },
     get theme() { return state.theme; },
     can,

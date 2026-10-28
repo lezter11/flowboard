@@ -30,13 +30,17 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
 
   await t.test('1. Runs migrations and records applied versions', async () => {
     const result = await runMigrations(pool);
-    assert.equal(result.applied.length >= 3, true);
+    assert.equal(result.applied.length >= 5, true);
     assert.equal(result.applied[0]?.version, '0001');
     assert.equal(result.applied[0]?.name, '0001_initial.sql');
     assert.equal(result.applied[1]?.version, '0002');
     assert.equal(result.applied[1]?.name, '0002_sessions.sql');
     assert.equal(result.applied[2]?.version, '0003');
     assert.equal(result.applied[2]?.name, '0003_constraints.sql');
+    assert.equal(result.applied[3]?.version, '0004');
+    assert.equal(result.applied[3]?.name, '0004_minimal_idempotency_receipts.sql');
+    assert.equal(result.applied[4]?.version, '0005');
+    assert.equal(result.applied[4]?.name, '0005_card_images.sql');
 
     // Verify schema_migrations table has the record
     const client = await pool.connect();
@@ -55,6 +59,39 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
       assert.equal(queryRes3.rows.length, 1);
       assert.equal(queryRes3.rows[0].version, '0003');
       assert.equal(queryRes3.rows[0].name, '0003_constraints.sql');
+
+      const queryRes4 = await client.query('SELECT version, name FROM schema_migrations WHERE version = $1', ['0004']);
+      assert.equal(queryRes4.rows.length, 1);
+      assert.equal(queryRes4.rows[0].version, '0004');
+      assert.equal(queryRes4.rows[0].name, '0004_minimal_idempotency_receipts.sql');
+
+      await client.query(
+        `INSERT INTO users (id, email, display_name, created_at, updated_at)
+         VALUES ('usr_receipt_migration', 'receipt-migration@flowboard.example', 'Receipt Migration', NOW(), NOW())`,
+      );
+      await client.query(
+        `INSERT INTO idempotency_receipts (
+           id, actor_id, scope_type, scope_id, idempotency_key, method_path_hash,
+           body_hash, status_code, response_body, expires_at, created_at
+         ) VALUES (
+           'rcp_migration_test', 'usr_receipt_migration', 'project', 'prj_receipt_migration',
+           'receipt_migration_key', 'path-hash', 'body-hash', 201,
+           '{"data":{"id":"crd_private_migration","version":3,"title":"private title","description":"private description"}}'::jsonb,
+           NOW() + INTERVAL '7 days', NOW()
+         )`,
+      );
+      const receiptMigration = await fs.readFile(
+        new URL('../../../database/migrations/0004_minimal_idempotency_receipts.sql', import.meta.url),
+        'utf8',
+      );
+      await client.query(receiptMigration);
+      const sanitizedReceipt = await client.query<{ response_body: unknown }>(
+        'SELECT response_body FROM idempotency_receipts WHERE id = $1',
+        ['rcp_migration_test'],
+      );
+      assert.deepEqual(sanitizedReceipt.rows[0]?.response_body, {
+        data: { id: 'crd_private_migration', version: 3 },
+      });
     } finally {
       client.release();
     }

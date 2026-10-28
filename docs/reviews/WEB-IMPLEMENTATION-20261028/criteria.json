@@ -1,0 +1,13 @@
+{
+  "target": "Next.js implementation of the selected Flowboard HTML screens, followed by live integration only with backend-verified endpoints",
+  "mandatoryCriteria": [
+    "The intended project, board, sign-in, invitation, My Tasks, inbox, activity, people, trash, settings and import journeys have real responsive pages or an explicitly documented deliberate unavailable state.",
+    "A dynamic board route uses its board ID and does not display another board's fixture data. Combined view includes authorized boards only within one selected project.",
+    "Visible actions perform their documented behavior or have a clear disabled state with reason. No fake save, invite, restore, upload, comment or grant-success feedback.",
+    "Card creation requires an explicit priority and preserves the draft on validation or network failure. Completed states use the approved pastel green semantic tokens.",
+    "Typecheck and production build pass. Keyboard, narrow-screen and full-screen navigation are checked. A fresh independent UI review records the exact target and limitations.",
+    "Live integration uses only backend-reviewed endpoints, shows pending/error/conflict/permission states and is verified against isolated synthetic PostgreSQL before any release claim."
+  ],
+  "requiredChecks": ["npm run typecheck:web", "npm run build:web", "browser checks for route/navigation and core actions", "source-bound independent UI review"],
+  "exclusions": ["Production deployment remains a separate stage after integrated acceptance."]
+}

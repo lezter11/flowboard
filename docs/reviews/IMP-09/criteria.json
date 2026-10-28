@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "IMP-09"
+  ],
+  "mandatoryCriteria": [
+    "CSV report generation: GET /api/v1/imports/:importId/report downloads outcome summary and per-row error report",
+    "Formula injection neutralization: Cells starting with =, +, -, @ are escaped with leading single quote",
+    "Access boundary: Only granted project managers and owners can download report; outsiders receive 404"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "imp-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: IMP-09 Excel import engine on PostgreSQL. Out-of-scope: UI components."
+}

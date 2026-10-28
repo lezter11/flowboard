@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "NTF-01"
+  ],
+  "mandatoryCriteria": [
+    "Durable notification delivery: Mentioning active project reader creates durable notification record in notifications table",
+    "Self-mention omission: Comments mentioning the author do not create notifications for the author",
+    "Inbox query pagination: GET /api/v1/notifications returns user's notifications with limit and cursor pagination",
+    "Revocation filtering: Notifications for projects where the user is no longer an active member are strictly filtered out",
+    "Safe deep linking: Notifications contain direct deep link to project, board, and card context"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "aud-ntf-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: NTF-01 activity tracking and notifications on PostgreSQL. Out-of-scope: UI components."
+}

@@ -1,0 +1,30 @@
+$ npm run typecheck
+
+
+> typecheck
+> tsc --noEmit
+
+
+exitCode: 0
+
+$ WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts
+▶ ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Suite
+  ✔ 0. Setup Workspace, Projects, Members and Initial Card (101.232291ms)
+  ✔ ATT-01: Stage upload authorization and bounds (22.971459ms)
+  ✔ ATT-02: Binary upload, validation, spoofing rejection, and finalization (71.605458ms)
+  ✔ ATT-03: Gallery listing shows finalized images only (6.870875ms)
+  ✔ ATT-04: Authenticated proxy delivery and security headers (9.257709ms)
+  ✔ ATT-05: Remove attached image with OCC, role check, and activity (18.960042ms)
+  ✔ ATT-06: Quota enforcement (max 10) and orphan upload cleanup (130.369166ms)
+  ✔ ATT-07: Attachment preservation in trash, restore, and purge (50.452834ms)
+✔ ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Suite (414.321125ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 574.432667
+
+exitCode: 0

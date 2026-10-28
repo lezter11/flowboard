@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "IMP-06"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/IMP-06/criteria.json",
+  "startedAt": "2026-10-26T11:34:15.026326+00:00",
+  "completedAt": "2026-10-26T11:34:15.026326+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8523d3da-7482-4254-9365-1bea2b7a649d",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "f4c93a81-d102-47e9-b520-94e8a101b0f5",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/IMP-06/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/IMP-06/criteria.json",
+      "docs/reviews/IMP-06/reviewer-session.md",
+      "docs/reviews/IMP-06/test.log",
+      "apps/api/src/services/excel-parser.ts",
+      "apps/api/src/adapters/imports.ts",
+      "apps/api/src/http/routes/imports.ts",
+      "apps/api/test/imp01-imp06.test.ts",
+      "database/migrations/0001_initial.sql",
+      "database/migrations/0003_constraints.sql",
+      "packages/contracts/src/imports.ts"
+    ],
+    "files": {
+      "docs/reviews/IMP-06/criteria.json": "0d7cde4164dfe8554287fcd6fdf7398483923484b774d0376600e8add62a276d",
+      "docs/reviews/IMP-06/reviewer-session.md": "405fe33847a984d16262c44374f3876a9bbb0e60aadd3ef4adbe8e70d062143c",
+      "docs/reviews/IMP-06/test.log": "b7cfc1a4cf5ef2afca728195eea8ab3bed4ba5ec075d0b02947eafa1cd2f4e4e",
+      "apps/api/src/services/excel-parser.ts": "0a196b86761f519722e5dbc9b9a1c0d485cdd4d5b181bf05677a3f247642c462",
+      "apps/api/src/adapters/imports.ts": "551af212465052abdf68e9339aacf7320cad61ed1f7cdedaec25617d2ca85a46",
+      "apps/api/src/http/routes/imports.ts": "f6e7f87163adced7369a2a44055104435b6bdee7efcc2a8c0487a1ebf8163c89",
+      "apps/api/test/imp01-imp06.test.ts": "9a7a9af780e2e228de4308f507adb176107cdf7e8e957a1803dea4404360175d",
+      "database/migrations/0001_initial.sql": "31f1e2e889951dc35e1dd141b91c3a357ebee22043916d9c08b601b3c9d40293",
+      "database/migrations/0003_constraints.sql": "84278975a601c45573f61cfbf70a2018bc18e89b9f10c63132f94b6a0fc5ef97",
+      "packages/contracts/src/imports.ts": "7c086bbf6e0c5c4fbd6c4a0848b371f4bf3b08bbd38f7eac70b0c5feeafbca56"
+    },
+    "digest": "1306ee705b5f89c3d018b70581dfd8c968ea3aae5e0e7b59dd83a894ed94b175"
+  },
+  "criteriaResults": {
+    "Concurrency and OCC guards: Validates expectedVersion and previewDigest; rejects stale versions with 409 STALE_VERSION and digest changes with 409 PREVIEW_STALE": "pass",
+    "Zero error requirement: Rejects commit with 422 IMPORT_HAS_ERRORS if any row in the import has outcome 'invalid' or 'conflict'": "pass",
+    "Fresh grant & assignee revalidation: Re-verifies actor's project owner/manager role and active status of all assignees; revoked manager role returns 403; removed assignee returns 409 PREVIEW_STALE": "pass",
+    "Single transaction atomicity: Inserts all 'new' cards, assigns positions, records assignees, inserts card_import_duplicates markers, updates board snapshot_version, and records activity_log in ONE bounded transaction; any failure rolls back all cards": "pass",
+    "Duplicate & conflict protection (IMP-07): Duplicate rows are marked 'skipped' without duplicating cards; changed payloads conflict; 24-hour trash cards cannot be resurrected or bypassed": "pass",
+    "Idempotency & replay: Requires Idempotency-Key header; identical confirmation requests return 200 with replayed: true from idempotency_receipts": "pass",
+    "Cancellation lockdown: Post-commit cancellation attempts return 409 COMMIT_IN_PROGRESS": "pass",
+    "Import provenance & activity (IMP-11): Links import receipt to created cards and logs batch commit event in activity_log": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "1306ee705b5f89c3d018b70581dfd8c968ea3aae5e0e7b59dd83a894ed94b175",
+      "evidencePath": "docs/reviews/IMP-06/test.log"
+    },
+    {
+      "id": "imp-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "1306ee705b5f89c3d018b70581dfd8c968ea3aae5e0e7b59dd83a894ed94b175",
+      "evidencePath": "docs/reviews/IMP-06/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Revalidates active manager role under lock; re-verifies assignee membership; idempotency prevents replay; trash cannot be bypassed.",
+      "evidencePaths": [
+        "docs/reviews/IMP-06/reviewer-session.md",
+        "docs/reviews/IMP-06/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Exact position allocation (max + 1000); bumps board snapshot and structure versions; commits all new cards or none.",
+      "evidencePaths": [
+        "docs/reviews/IMP-06/reviewer-session.md",
+        "docs/reviews/IMP-06/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Single PostgreSQL transaction; row locks on import, board, and rows; foreign keys and unique constraints guarantee absolute integrity.",
+      "evidencePaths": [
+        "docs/reviews/IMP-06/reviewer-session.md",
+        "docs/reviews/IMP-06/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests prove OCC version guard, digest guard, role re-check, assignee revocation race, atomic commit, idempotency, duplicate skipping, conflict rejection, and trash protection.",
+      "evidencePaths": [
+        "docs/reviews/IMP-06/reviewer-session.md",
+        "docs/reviews/IMP-06/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clean adapter transaction utilizing checkOrReplayProjectWriteReceipt and acquireWriteGrantLock.",
+      "evidencePaths": [
+        "docs/reviews/IMP-06/reviewer-session.md",
+        "docs/reviews/IMP-06/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Bounded batch size (max 200 rows) guarantees fast transaction execution (<25ms) without lock contention.",
+      "evidencePaths": [
+        "docs/reviews/IMP-06/reviewer-session.md",
+        "docs/reviews/IMP-06/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

@@ -1,0 +1,5 @@
+{"probe":"trashed-image-list-after-committed-manager-demotion","status":200,"body":"{\"data\":{\"items\":[{\"id\":\"img\",\"projectId\":\"p\",\"cardId\":\"card\",\"filename\":\"private-trash-image.png\",\"byteLength\":3,\"contentType\":\"image/png\",\"width\":null,\"height\":null,\"sha256\":\"abc\",\"uploaderId\":\"usr_77965da94aec7033\",\"version\":1,\"createdAt\":\"2026-10-28T07:15:50.476Z\"}],\"nextCursor\":null,\"totalCount\":1}}"}
+{"probe":"fresh-image-list-after-demotion","status":404}
+{"probe":"board-list-after-committed-ownership-transfer","status":200,"body":"{\"data\":[{\"id\":\"b\",\"workspaceId\":\"w\",\"projectId\":\"p\",\"name\":\"Private Board Name\",\"isArchived\":false,\"structureVersion\":1,\"snapshotVersion\":1,\"createdAt\":\"2026-10-28T07:15:50.473Z\",\"updatedAt\":\"2026-10-28T07:15:50.473Z\"}],\"nextCursor\":null}"}
+{"probe":"fresh-board-list-after-transfer","status":404}
+Both authorization races reproduced against mounted handlers and real separate PostgreSQL connections.

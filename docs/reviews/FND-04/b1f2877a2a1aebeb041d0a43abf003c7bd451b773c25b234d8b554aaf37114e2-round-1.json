@@ -1,0 +1,140 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "FND-04"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/FND-04/criteria.json",
+  "startedAt": "2026-10-26T05:31:35Z",
+  "completedAt": "2026-10-26T05:44:00Z",
+  "implementer": {
+    "actorId": "builder",
+    "sessionId": "builder-session-id",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-reviewer",
+    "sessionId": "b54e0975-7baf-4cac-99fe-0f396b9bb498",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/FND-04/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/FND-04/criteria.json",
+      "docs/reviews/FND-04/reviewer-session.md",
+      "docs/reviews/FND-04/test.log",
+      "apps/api/src/http/middleware/correlation.ts",
+      "apps/api/src/http/middleware/timing.ts",
+      "apps/api/src/http/middleware/limits.ts",
+      "apps/api/src/http/middleware/error-handler.ts",
+      "apps/api/src/http/errors.ts",
+      "apps/api/src/http/app.ts",
+      "apps/api/test/observability.test.ts"
+    ],
+    "files": {
+      "docs/reviews/FND-04/criteria.json": "8e83d8611591b914079549267eeb78020541304131d2951eda326a7f64163570",
+      "docs/reviews/FND-04/reviewer-session.md": "7bbb39af6f91ad14f18d03da77898a2a955ceee4d7d536996b5a4b537d4e0253",
+      "docs/reviews/FND-04/test.log": "b7a491cad55799c0bf191b313873958d28d9cfe65de4d66cc245193a177120ef",
+      "apps/api/src/http/middleware/correlation.ts": "9eb238a9152ba474f7b306181d1fb815c95d5e09d0dbf6d496b736a1fd2f4ebd",
+      "apps/api/src/http/middleware/timing.ts": "8a184c4c9fe23c88aab20bb1d552da8f3c2add506262d58b03b002de49833672",
+      "apps/api/src/http/middleware/limits.ts": "fe5d2b29f742b736235f67b2414642aa013d30a8ef951c529d0c20f97bba02f8",
+      "apps/api/src/http/middleware/error-handler.ts": "4fd10dee7c427f28e7434075306970d0aafb53ee8f822a6f62f94327ee763e4a",
+      "apps/api/src/http/errors.ts": "74789ba4389fe70f33b99db2fbb1034b52eb88d93d1980a6461659da93c72349",
+      "apps/api/src/http/app.ts": "57056c1103f4520e7d9ce7b2e7afc94da092af2eefa5b7425274226ef3bf7d5f",
+      "apps/api/test/observability.test.ts": "4b3901c4130f0757b436cd87636e3ed7135aea12dccd0a2f03fca30dbdab1fd9"
+    },
+    "digest": "b1f2877a2a1aebeb041d0a43abf003c7bd451b773c25b234d8b554aaf37114e2"
+  },
+  "criteriaResults": {
+    "Correlation IDs: Propagates valid incoming x-request-id or generates safe UUID; attached on all success and error responses": "pass",
+    "Server-Timing: Measures handler duration and attaches Server-Timing: app;dur=<ms> header": "pass",
+    "Safe error masking: Internal errors masked without leaking database credentials, connection strings, or SQL internals": "pass",
+    "Body size limits: Rejects bodies exceeding 1 MiB with HTTP 413 PAYLOAD_TOO_LARGE": "pass",
+    "Request timeouts: Aborts requests exceeding deadline with HTTP 504 DEADLINE_EXCEEDED": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "b1f2877a2a1aebeb041d0a43abf003c7bd451b773c25b234d8b554aaf37114e2",
+      "evidencePath": "docs/reviews/FND-04/test.log"
+    },
+    {
+      "id": "observability-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/observability.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "b1f2877a2a1aebeb041d0a43abf003c7bd451b773c25b234d8b554aaf37114e2",
+      "evidencePath": "docs/reviews/FND-04/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Safe 500 error handler masks all sensitive internal database connection strings, credentials, and SQL queries. 1 MiB body limit prevents memory denial of service.",
+      "evidencePaths": [
+        "docs/reviews/FND-04/reviewer-session.md",
+        "docs/reviews/FND-04/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.8",
+      "reason": "Correlation IDs properly validated or generated; attached on all success and error responses. Server-Timing correctly measured and formatted.",
+      "evidencePaths": [
+        "docs/reviews/FND-04/reviewer-session.md",
+        "docs/reviews/FND-04/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Standard error envelopes with requestId, structured validation error issue details for 422, and standard 400 for malformed JSON.",
+      "evidencePaths": [
+        "docs/reviews/FND-04/reviewer-session.md",
+        "docs/reviews/FND-04/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.9",
+      "reason": "Typecheck clean. 20 tests across 9 test suites covering correlation ID edges, timing headers, 404, 400/422 validation, safe 500 masking, 413 body limits, 504 timeouts, and status mappings.",
+      "evidencePaths": [
+        "docs/reviews/FND-04/reviewer-session.md",
+        "docs/reviews/FND-04/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.7",
+      "reason": "Modular middleware components (correlation, timing, limits, error-handler) chained cleanly in createApp.",
+      "evidencePaths": [
+        "docs/reviews/FND-04/reviewer-session.md",
+        "docs/reviews/FND-04/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.9",
+      "reason": "Server-Timing header provides real-time performance observability; deadlineMiddleware prevents hung connections with 504; Retry-After header on 429.",
+      "evidencePaths": [
+        "docs/reviews/FND-04/reviewer-session.md",
+        "docs/reviews/FND-04/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.795",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

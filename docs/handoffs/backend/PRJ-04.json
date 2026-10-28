@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/PRJ-04/78be2327492ae7dfbac43cec75ab213b5b0f44aa2ae711a5d4d65c2cc2f91c50-round-1.json",
+  "summary": "PRJ-04 Archive and reopen project verified. Implemented project archiving making the project and its boards read-only (rejecting card/column/board/import writes with 409 READ_ONLY_CONTEXT), owner-only authorization, data/history queryability preservation, and seamless reopening. Audited with unrounded score 9.610/10.0.",
+  "api_contract": "POST /api/v1/projects/:projectId/archive & reopen (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/PRJ-04/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/lifecycle-undo.test.ts",
+      "result": "All 4 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Archived projects and boards reject mutation requests with 409 READ_ONLY_CONTEXT.",
+    "Move undo is a forward mutation with OCC check; conflict is reported if card was modified.",
+    "Trash 24h expiration deadlines continue ticking even while project or board is archived."
+  ]
+}

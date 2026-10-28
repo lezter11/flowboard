@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "BRD-02"
+  ],
+  "mandatoryCriteria": [
+    "Board listing: GET /api/v1/projects/:projectId/boards returns active boards for granted project members; ungranted users receive 404 NOT_FOUND",
+    "Board update: PATCH /api/v1/boards/:boardId updates board name when called by owner or manager; members/viewers receive 403 FORBIDDEN",
+    "Optimistic concurrency: PATCH /api/v1/boards/:boardId verifies expectedVersion matches current snapshot_version; returns 409 STALE_VERSION on conflict",
+    "Idempotency enforcement: PATCH /api/v1/boards/:boardId requires Idempotency-Key header"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "brd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Board listing and renaming with OCC."
+}

@@ -1,0 +1,25 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "UX-03"
+  ],
+  "mandatoryCriteria": [
+    "Long description handling: Accepts and preserves multi-paragraph markdown descriptions up to 10,000 characters",
+    "Bounded pagination limits: Rejects limit > 100 with 422 to protect narrow mobile viewports from oversized payloads",
+    "Card title length bound: Enforces 255 character limit on card titles",
+    "Multi-assignee bounds: Supports up to 20 assignees per card without layout-breaking JSON bloat"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "ux-integration-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/ux-integration.test.ts"
+  },
+  "minimumWeightedScore": "8.500",
+  "categoryMinimums": {
+    "security": "8.0",
+    "correctness": "8.0",
+    "integrity": "8.0",
+    "tests": "8.0",
+    "maintainability": "7.5",
+    "operations": "7.0"
+  }
+}

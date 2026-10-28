@@ -1,0 +1,133 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "BRD-02"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BRD-02/criteria.json",
+  "startedAt": "2026-10-26T06:30:26.556435Z",
+  "completedAt": "2026-10-26T06:30:26.556435Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8f4f343f-8836-4b64-8563-c36b797ba880",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "36197b2b-27b3-41c7-952f-dfc6518e6990",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BRD-02/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/test/brd01-brd07.test.ts",
+      "docs/reviews/BRD-02/criteria.json",
+      "docs/reviews/BRD-02/reviewer-session.md",
+      "docs/reviews/BRD-02/test.log",
+      "packages/contracts/src/boards.ts"
+    ],
+    "files": {
+      "apps/api/src/adapters/boards.ts": "12ab9920d5efb1df7d93441fc05c7ac8d0f748366d6f431a005af553184174c6",
+      "apps/api/src/http/routes/boards.ts": "651ad386fcadbeb4aa4ce305814ee8c496446c464d6db324a0f58cb199215dee",
+      "apps/api/test/brd01-brd07.test.ts": "aff5ae8903787ee40ef4ada349cd0e3bb32116e2eb80fa6b96b23247e5b672f3",
+      "docs/reviews/BRD-02/criteria.json": "9ab4e55022d4aabe30262fe8036877370fbea07a25c781a0f35e2d52252436d3",
+      "docs/reviews/BRD-02/reviewer-session.md": "409f6fbbfd08eb59162afa09f7cb486b0ac049d371d1132b2339ed311fe952cf",
+      "docs/reviews/BRD-02/test.log": "476251470dbeda79cac1827dfe390f87b088800d83a2d3f3504d8bb6eeb86bf9",
+      "packages/contracts/src/boards.ts": "bceca4d1791ae8739e4c5e41ba98caccbf53a089df7b2503944c0a6736c6aa6e"
+    },
+    "digest": "aea771109cade52588be049403126b3fc3bc2e4e7d3cee534419a0d5fd324b3c"
+  },
+  "criteriaResults": {
+    "Board listing: GET /api/v1/projects/:projectId/boards returns active boards for granted project members; ungranted users receive 404 NOT_FOUND": "pass",
+    "Board update: PATCH /api/v1/boards/:boardId updates board name when called by owner or manager; members/viewers receive 403 FORBIDDEN": "pass",
+    "Optimistic concurrency: PATCH /api/v1/boards/:boardId verifies expectedVersion matches current snapshot_version; returns 409 STALE_VERSION on conflict": "pass",
+    "Idempotency enforcement: PATCH /api/v1/boards/:boardId requires Idempotency-Key header": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "aea771109cade52588be049403126b3fc3bc2e4e7d3cee534419a0d5fd324b3c",
+      "evidencePath": "docs/reviews/BRD-02/test.log"
+    },
+    {
+      "id": "brd-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "aea771109cade52588be049403126b3fc3bc2e4e7d3cee534419a0d5fd324b3c",
+      "evidencePath": "docs/reviews/BRD-02/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.5",
+      "reason": "Scoped access enforcement strictly bounds board visibility to project members; non-members receive 404 NOT_FOUND. Board updates require manager or owner authority, rejecting members and viewers with 403 FORBIDDEN.",
+      "evidencePaths": [
+        "docs/reviews/BRD-02/reviewer-session.md",
+        "docs/reviews/BRD-02/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Matches REST contracts in packages/contracts/src/boards.ts; enforces Zod input schemas; returns consistent data envelopes; active boards filtered correctly (archived = FALSE).",
+      "evidencePaths": [
+        "docs/reviews/BRD-02/reviewer-session.md",
+        "docs/reviews/BRD-02/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Row-level locking with SELECT ... FOR UPDATE combined with optimistic concurrency control on snapshot_version prevents lost updates and race conditions during concurrent renames.",
+      "evidencePaths": [
+        "docs/reviews/BRD-02/reviewer-session.md",
+        "docs/reviews/BRD-02/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "All 16 integration tests pass against isolated PostgreSQL 17; validates viewer/member listing, outsider 404, stale version 409 STALE_VERSION, manager rename success, and member 403 forbidden.",
+      "evidencePaths": [
+        "docs/reviews/BRD-02/reviewer-session.md",
+        "docs/reviews/BRD-02/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Modular code organization with clear route-to-adapter delegation; shared contract typing; zero TypeScript errors.",
+      "evidencePaths": [
+        "docs/reviews/BRD-02/reviewer-session.md",
+        "docs/reviews/BRD-02/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Safe transaction management; automatic rollback on error with connection release in finally block; bounded string length (100 chars) prevents payload bloat.",
+      "evidencePaths": [
+        "docs/reviews/BRD-02/reviewer-session.md",
+        "docs/reviews/BRD-02/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.445",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

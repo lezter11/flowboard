@@ -1,0 +1,135 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "INV-04"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/INV-04/criteria.json",
+  "startedAt": "2026-10-26T05:39:59.240075Z",
+  "completedAt": "2026-10-26T05:39:59.240075Z",
+  "implementer": {
+    "actorId": "backend-builder",
+    "sessionId": "7e44e3cf-29d2-4f7d-ba58-a053cdb570fc",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-auditor-inv",
+    "sessionId": "5664ffe4-311c-4302-85fd-63d6eac1ff11",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/INV-04/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/invitations.ts",
+      "apps/api/src/http/routes/invitations.ts",
+      "apps/api/test/inv04-inv08.test.ts",
+      "docs/reviews/INV-04/criteria.json",
+      "docs/reviews/INV-04/reviewer-session.md",
+      "docs/reviews/INV-04/test.log"
+    ],
+    "files": {
+      "apps/api/src/adapters/invitations.ts": "1d3ec5a707b4572aaeffba9b14a428eb09a8c2f0f6f6225966f82dc0eb983851",
+      "apps/api/src/http/routes/invitations.ts": "18717ba6b85e95fa6847733b908dbd3cd27ca915f6cdaaf93bc02b046ce10364",
+      "apps/api/test/inv04-inv08.test.ts": "1c426d4264132a5c4002e9737128c53d1fcda8faf5561bfc1c4cbf9dbd75632a",
+      "docs/reviews/INV-04/criteria.json": "fd015ad3edbd39487bda6bdeb5ff0874e4aa2ac78102e82d2bf3aff1914ea73f",
+      "docs/reviews/INV-04/reviewer-session.md": "e8701426b0bce2d51bb368b98e9af0e076797e716ebe6fa26d8a1fc43a431abb",
+      "docs/reviews/INV-04/test.log": "bf137ac14f00ea08e94ee980302a09a545327caf109a8873710ae726d55a17b2"
+    },
+    "digest": "cf73931473584c18b0d6b023fa8236959ce734c34f670bd220e0209c53fbdabd"
+  },
+  "criteriaResults": {
+    "Owner authority: Workspace owner can resend or revoke any invitation across workspace projects": "pass",
+    "Project Manager authority limit: Project Manager can resend or revoke member and viewer invitations only in their granted project; attempting to resend or revoke a manager invitation returns 403 FORBIDDEN": "pass",
+    "Token rotation on resend: Resending rotates the cryptographic token with fresh 256-bit entropy, updates SHA-256 hash in project_invitations, refreshes expires_at (+7 days), transitions status to 'pending', and emits a fresh outbox event": "pass",
+    "Prior token invalidation: Prior token is immediately invalidated upon resend; subsequent attempts to accept the old token fail": "pass",
+    "Revocation status transition: Revoking sets status to 'revoked' under row-level lock; revoked tokens cannot be accepted": "pass",
+    "Sibling project privacy: Outsiders and non-members receive 404 NOT_FOUND on resend and revoke endpoints": "pass",
+    "Concurrency and race protection: Concurrent accept vs revoke/resend operations serialize cleanly via PostgreSQL row-level locks with at most one winner": "pass",
+    "Idempotency support: Resend and revoke mutations require and enforce Idempotency-Key with transactional replay receipts": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "cf73931473584c18b0d6b023fa8236959ce734c34f670bd220e0209c53fbdabd",
+      "evidencePath": "docs/reviews/INV-04/test.log"
+    },
+    {
+      "id": "inv04-inv08-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv04-inv08.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "cf73931473584c18b0d6b023fa8236959ce734c34f670bd220e0209c53fbdabd",
+      "evidencePath": "docs/reviews/INV-04/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.6",
+      "reason": "Owner vs PM authority limits enforced; manager invitations protected from PM manipulation; 404 for outsiders; cryptographic token rotation with 256-bit entropy.",
+      "evidencePaths": [
+        "docs/reviews/INV-04/reviewer-session.md",
+        "docs/reviews/INV-04/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Endpoints /resend and /revoke adhere to contracts, return proper HTTP status codes (200, 400, 403, 404) and response payloads.",
+      "evidencePaths": [
+        "docs/reviews/INV-04/reviewer-session.md",
+        "docs/reviews/INV-04/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "FOR UPDATE row lock on target invitation; atomic update of token_hash, status, and outbox event dispatch in a single transaction.",
+      "evidencePaths": [
+        "docs/reviews/INV-04/reviewer-session.md",
+        "docs/reviews/INV-04/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Thorough tests covering PM authority boundaries, invalidation of old tokens, rejection of revoked/accepted re-resends, and idempotency replays.",
+      "evidencePaths": [
+        "docs/reviews/INV-04/reviewer-session.md",
+        "docs/reviews/INV-04/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Code structure cleanly separates resend and revoke handlers with consistent validation and transaction management.",
+      "evidencePaths": [
+        "docs/reviews/INV-04/reviewer-session.md",
+        "docs/reviews/INV-04/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Efficient indexed queries by primary key with row locking; transactional outbox event ensures reliable notification dispatch.",
+      "evidencePaths": [
+        "docs/reviews/INV-04/reviewer-session.md",
+        "docs/reviews/INV-04/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.475",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

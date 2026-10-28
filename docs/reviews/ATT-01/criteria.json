@@ -1,0 +1,19 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ATT-01"
+  ],
+  "mandatoryCriteria": [
+    "Authorized staging request: Workspace owner, project manager, or project member can request upload staging via POST /api/v1/cards/:cardId/image-uploads; viewers receive 403 FORBIDDEN and ungranted users receive 404 NOT_FOUND",
+    "Sibling project isolation: Upload staging rejects attempts to attach files across sibling projects with 404 NOT_FOUND",
+    "File parameter validation: Enforces filename length <= 255, byte length <= 10 MiB (10485760 bytes), valid contentType ('image/png', 'image/jpeg', 'image/webp'), and valid sha256 64-hex string",
+    "Quota check before staging: Rejects staging with 422 IMAGE_LIMIT_EXCEEDED if card already has 10 finalized attachments",
+    "Staged record lifecycle: Creates card_image_uploads record with state='staged', expires_at set to 1 hour in future, and storage_key assigned",
+    "Staging inspection and cancellation: GET /api/v1/image-uploads/:uploadId returns upload state; DELETE /api/v1/image-uploads/:uploadId cancels staging before finalization"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "att-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: ATT-01 private image and card attachment handling on PostgreSQL. Out-of-scope: UI components."
+}

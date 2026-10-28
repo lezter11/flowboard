@@ -4,12 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
-  <meta name="description" content="Flowboard inbox. Design prototype with synthetic notifications." />
+  <meta name="description" content="Flowboard inbox. A triage desk for mentions, assignments, imports, restores and access events. Design prototype with synthetic notifications." />
   <title>Inbox — Flowboard design prototype</title>
   <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
   <link rel="stylesheet" href="../styles.css" />
   <link rel="stylesheet" href="../detail.css" />
   <link rel="stylesheet" href="screens.css" />
+  <link rel="stylesheet" href="inbox.css?v=6" />
 </head>
 <body data-page="inbox">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -18,140 +19,121 @@
     <div class="rail-scrim" id="railScrim" hidden></div>
     <div class="workspace">
       <header class="topbar" id="topbar"></header>
-      <main class="page" id="main">
-        <div class="page-head">
+      <main class="page inbox-page" id="main">
+        <div class="page-head inbox-head">
           <div class="page-head-copy">
-            <p class="eyebrow">Acme Corp <span class="badge">Personal inbox</span></p>
             <h1>Inbox</h1>
             <p class="page-sub" id="inboxSub"><span>Loading notifications…</span></p>
           </div>
           <div class="page-actions">
+            <button class="btn soft" type="button" id="nextUnreadBtn">
+              <svg class="icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg>
+              Next unread
+              <kbd class="kbd" aria-hidden="true">U</kbd>
+            </button>
             <button class="btn" type="button" id="markAllBtn">
               <svg class="icon" aria-hidden="true"><use href="#i-check-circle"></use></svg>
-              Mark all as read
+              Mark all read
             </button>
-            <a class="btn ghost" id="inboxPrefs" href="settings.html?tab=account">
-              <svg class="icon" aria-hidden="true"><use href="#i-settings"></use></svg>
-              Preferences
-            </a>
+            <button class="icon-btn shortcuts-btn" type="button" id="shortcutsBtn" aria-haspopup="dialog" aria-label="Keyboard shortcuts" title="Keyboard shortcuts">
+              <svg class="icon" aria-hidden="true"><use href="#i-key"></use></svg>
+            </button>
           </div>
         </div>
 
-        <div class="review-bar">
-          <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
-          <span><strong>Only your notifications.</strong> This inbox is filtered by the signed-in person. A mention, assignment or access notice for someone else is never shown here.</span>
-          <span class="spacer"></span>
-          <span class="badge" id="inboxOwnerBadge">Alice · Owner</span>
+        <div class="triage-bar">
+          <div class="lane-tabs" role="group" aria-label="Filter notifications" id="laneTabs">
+            <button class="lane-tab" type="button" data-lane="all" aria-pressed="true">
+              <svg class="icon lane-icon" aria-hidden="true"><use href="#i-inbox"></use></svg>
+              All <span class="lane-count" id="countAll">—</span>
+            </button>
+            <button class="lane-tab" type="button" data-lane="needs" aria-pressed="false">
+              <svg class="icon lane-icon" aria-hidden="true"><use href="#i-bell"></use></svg>
+              Needs you <span class="lane-count" id="countNeeds">—</span>
+            </button>
+            <button class="lane-tab" type="button" data-lane="updates" aria-pressed="false">
+              <svg class="icon lane-icon" aria-hidden="true"><use href="#i-activity"></use></svg>
+              Updates <span class="lane-count" id="countUpdates">—</span>
+            </button>
+            <button class="lane-tab" type="button" data-lane="access" aria-pressed="false">
+              <svg class="icon lane-icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+              Access <span class="lane-count" id="countAccess">—</span>
+            </button>
+          </div>
+          <label class="inbox-search" for="inboxSearch">
+            <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+            <input id="inboxSearch" type="search" autocomplete="off" placeholder="Search card, person or project" aria-label="Search notifications" />
+            <kbd class="kbd" aria-hidden="true">/</kbd>
+          </label>
         </div>
 
-        <div class="split-layout">
-          <section class="panel" aria-labelledby="notificationsTitle">
-            <div class="panel-head">
-              <div class="panel-head-copy">
-                <h2 class="panel-title" id="notificationsTitle">Notifications</h2>
-                <p class="panel-sub" id="notificationsSub">Newest first, grouped by day.</p>
-              </div>
-              <div class="panel-actions">
-                <span class="badge accent" id="unreadBadge">— unread</span>
-              </div>
+        <div class="inbox-desk">
+          <section class="inbox-stream" aria-labelledby="streamTitle">
+            <h2 class="sr-only" id="streamTitle">Notifications</h2>
+            <div class="stream-scroll" id="streamScroll" tabindex="0" role="region" aria-label="Notification threads">
+              <div class="stream-inner" id="streamInner"></div>
             </div>
-
-            <div class="panel-body tight" style="border-bottom:1px solid var(--line);">
-              <div class="inbox-toolbar">
-                <div class="tabs" style="margin-bottom:0;border-bottom:0;" role="tablist" aria-label="Notification filters">
-                  <button class="tab" type="button" role="tab" data-inbox-filter="all" aria-selected="true">All <span class="count" id="allCount">—</span></button>
-                  <button class="tab" type="button" role="tab" data-inbox-filter="unread" aria-selected="false">Unread <span class="count" id="unreadCount">—</span></button>
-                  <button class="tab" type="button" role="tab" data-inbox-filter="mention" aria-selected="false">Mentions <span class="count" id="mentionCount">—</span></button>
-                </div>
-                <span class="spacer"></span>
-                <span class="tiny faint" id="filterSummary"></span>
-              </div>
+            <div class="stream-foot">
+              <span id="streamCount" class="tabular"></span>
+              <span class="spacer"></span>
+              <span class="stream-hint"><kbd class="kbd">J</kbd><kbd class="kbd">K</kbd> move</span>
+              <span class="stream-hint"><kbd class="kbd">E</kbd> read</span>
+              <span class="stream-hint"><kbd class="kbd">?</kbd> keys</span>
             </div>
-
-            <div class="inbox-list" id="inboxList"></div>
           </section>
 
-          <aside class="stack">
-            <section class="panel">
-              <div class="panel-head">
-                <div class="panel-head-copy">
-                  <h2 class="panel-title">What appears here</h2>
-                  <p class="panel-sub">Notifications, not a second activity feed</p>
-                </div>
-              </div>
-              <div class="panel-body stack-sm">
-                <div class="hub-coverage-item">
-                  <svg class="icon" aria-hidden="true"><use href="#i-at"></use></svg>
-                  <span><strong>Mentions</strong> in comments on cards you can access.</span>
-                </div>
-                <div class="hub-coverage-item">
-                  <svg class="icon" aria-hidden="true"><use href="#i-user-check"></use></svg>
-                  <span><strong>Assignments</strong> when someone adds you to a card.</span>
-                </div>
-                <div class="hub-coverage-item">
-                  <svg class="icon" aria-hidden="true"><use href="#i-upload"></use></svg>
-                  <span><strong>Import results</strong> for imports in projects you can access.</span>
-                </div>
-                <div class="hub-coverage-item">
-                  <svg class="icon" aria-hidden="true"><use href="#i-restore"></use></svg>
-                  <span><strong>Restore events</strong> when a deleted card returns before its deadline.</span>
-                </div>
-                <div class="hub-coverage-item">
-                  <svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg>
-                  <span><strong>Invitation state</strong> when you join a project or a pending invite is accepted.</span>
-                </div>
-              </div>
-            </section>
-
-            <section class="panel">
-              <div class="panel-head">
-                <div class="panel-head-copy">
-                  <h2 class="panel-title">Notification rules</h2>
-                  <p class="panel-sub">Keep the signal small</p>
-                </div>
-              </div>
-              <div class="panel-body stack-sm">
-                <div class="note">
-                  <svg class="icon" aria-hidden="true"><use href="#i-eye"></use></svg>
-                  <span>Opening a notification marks it read. It does not mark every notification in the same card thread read.</span>
-                </div>
-                <div class="note">
-                  <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
-                  <span>Deep links are re-authorized on arrival. A link to a project you lost access to shows an access-denied state, not the card.</span>
-                </div>
-                <div class="note warn">
-                  <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
-                  <span><strong>No email is sent.</strong> Delivery, digest frequency and unsubscribe are not implemented in this prototype.</span>
-                </div>
-              </div>
-            </section>
-
-            <section class="panel">
-              <div class="panel-head">
-                <div class="panel-head-copy">
-                  <h2 class="panel-title">Preview note</h2>
-                </div>
-              </div>
-              <div class="panel-body">
-                <p class="small muted" style="line-height:1.55;">Use <strong>View as</strong> to switch between Alice, Charlie, David and Eve. Each person has a different inbox and unread count.</p>
-              </div>
-            </section>
-          </aside>
+          <aside class="inbox-detail" id="inboxDetail" aria-labelledby="detailTitle" tabindex="-1"></aside>
         </div>
 
-        <footer class="board-foot">
-          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-          <span>Inbox · synthetic notifications · design evidence only</span>
-          <span class="sep"></span>
-          <span>No email delivery, push notification or persistence is implemented.</span>
+        <p class="sr-only" id="inboxLive" role="status" aria-live="polite"></p>
+
+        <footer class="inbox-foot">
+          <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+          <span>Preview data · changes stay in this browser tab</span>
         </footer>
       </main>
     </div>
   </div>
 
+  <div class="dialog-layer" id="shortcutsLayer" hidden>
+    <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="shortcutsTitle">
+      <div class="dialog-head">
+        <div class="dialog-head-copy">
+          <h2 id="shortcutsTitle">Inbox keys</h2>
+          <p>Previewing a thread does not mark it read. Opening the card does.</p>
+        </div>
+        <button class="dialog-close" type="button" data-close-dialog="shortcutsLayer" aria-label="Close">
+          <svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg>
+        </button>
+      </div>
+      <div class="dialog-body">
+        <dl class="key-list">
+          <div><dt><kbd class="kbd">J</kbd><kbd class="kbd">↓</kbd></dt><dd>Next thread</dd></div>
+          <div><dt><kbd class="kbd">K</kbd><kbd class="kbd">↑</kbd></dt><dd>Previous thread</dd></div>
+          <div><dt><kbd class="kbd">Enter</kbd></dt><dd>Open the selected card or target</dd></div>
+          <div><dt><kbd class="kbd">E</kbd></dt><dd>Mark the selected thread read or unread</dd></div>
+          <div><dt><kbd class="kbd">U</kbd></dt><dd>Jump to the next unread thread</dd></div>
+          <div><dt><kbd class="kbd">/</kbd></dt><dd>Search notifications</dd></div>
+          <div><dt><kbd class="kbd">Esc</kbd></dt><dd>Clear search, or return focus to the list</dd></div>
+        </dl>
+        <p class="dialog-note">
+          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <span>Shortcuts stay out of the way while you type, while a dialog is open, and when a modifier key is held.</span>
+        </p>
+      </div>
+      <footer class="dialog-foot">
+        <span class="spacer"></span>
+        <button class="btn" type="button" data-close-dialog="shortcutsLayer">Close</button>
+      </footer>
+    </div>
+  </div>
+
   <script src="../data.js"></script>
-  <script src="data.js"></script>
+  <script src="data.js?v=1"></script>
+  <script src="../vendor/gsap.min.js"></script>
+  <script src="../vendor/lenis.min.js"></script>
   <script src="screens.js"></script>
-  <script src="inbox.js"></script>
+  <script src="portfolio-model.js"></script>
+  <script src="inbox.js?v=6"></script>
 </body>
 </html>

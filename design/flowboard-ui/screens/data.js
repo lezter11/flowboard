@@ -81,9 +81,9 @@
   const inbox = {
     alice: [
       {
-        id: "n_a1", type: "mention", read: false, actorId: "charlie",
-        text: "mentioned you in WEB-104", excerpt: "Please keep the board's own scrolling native. Smooth page scrolling should not fight drag and drop.",
-        at: H.hoursAgo(11), href: "../index.html?card=card_104", projectId: "website-redesign", cardId: "card_104"
+        id: "n_a1", type: "mention", read: false, actorId: "david",
+        text: "mentioned you in WEB-104", excerpt: "Tested at 200% zoom on Chrome. The focus ring is visible on every control.",
+        at: H.hoursAgo(4), href: "../index.html?card=card_104", projectId: "website-redesign", cardId: "card_104"
       },
       {
         id: "n_a2", type: "mention", read: false, actorId: "david",

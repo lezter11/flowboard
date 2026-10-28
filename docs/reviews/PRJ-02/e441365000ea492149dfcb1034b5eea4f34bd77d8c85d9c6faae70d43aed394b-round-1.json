@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "PRJ-02"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/PRJ-02/criteria.json",
+  "startedAt": "2026-10-26T05:37:52.750827Z",
+  "completedAt": "2026-10-26T05:37:52.750827Z",
+  "implementer": {
+    "actorId": "backend-implementer",
+    "sessionId": "builder-prj-02-session",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "antigravity-acceptance-auditor",
+    "sessionId": "0715d43b-fc65-4541-bec2-434e91be2f91",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/PRJ-02/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/idempotency.ts",
+      "apps/api/src/adapters/migrations.ts",
+      "apps/api/src/adapters/postgres.ts",
+      "apps/api/src/adapters/projects.ts",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/adapters/session.ts",
+      "apps/api/src/http/app.ts",
+      "apps/api/src/http/errors.ts",
+      "apps/api/src/http/middleware/auth.ts",
+      "apps/api/src/http/routes/projects.ts",
+      "apps/api/test/prj02-prj05.test.ts",
+      "docs/reviews/PRJ-02/criteria.json",
+      "docs/reviews/PRJ-02/reviewer-session.md",
+      "docs/reviews/PRJ-02/test.log",
+      "packages/contracts/src/common.ts",
+      "packages/contracts/src/index.ts",
+      "packages/contracts/src/projects.ts"
+    ],
+    "files": {
+      "apps/api/src/adapters/idempotency.ts": "86408f3959a81d1c3f3e1f917a53d6f47e85a4c14c645588d69c01c8d0bf9e22",
+      "apps/api/src/adapters/migrations.ts": "768d57afc48f780e4f95e112a096974b384d43b17661634d627f103f66b64e22",
+      "apps/api/src/adapters/postgres.ts": "75b4c2d2e7fd8494fd4bb3834b30d1ed30c1214dd26344468cb8f34b71160ccf",
+      "apps/api/src/adapters/projects.ts": "feb511c3472233c2bdcb86fcc5e69e500c280c84420d291d0c90b3648445a79a",
+      "apps/api/src/adapters/rbac.ts": "0de89f07e4ad44ba8a158977366e2d647efdbfec524f623bb1fb6707e45b81b4",
+      "apps/api/src/adapters/session.ts": "929ec47d18980b30ccbc5ce4ba1cdf63244ffc597060f32d9300d7bedd17349c",
+      "apps/api/src/http/app.ts": "30762dda8598965a8bd1c6ea62eae555cc5b69d1ffbfe6be1818c71782c6cd01",
+      "apps/api/src/http/errors.ts": "45d13204a4aa9b7885cfc77e49975673e4273a42f53c3a33367f1663d1cae430",
+      "apps/api/src/http/middleware/auth.ts": "72c7985ceba0e2b4fdfe5890d8d3aa3129dfd837e80891607b386b89cd195740",
+      "apps/api/src/http/routes/projects.ts": "c68090ea532667fd8180c85341b4f0002264e5a307402ca20a5c030813e0f638",
+      "apps/api/test/prj02-prj05.test.ts": "cb41dab7e523850e3660e1e17a1e28353dd95a7ebea8036c11324522729e9585",
+      "docs/reviews/PRJ-02/criteria.json": "6bcfd5f4961acb2aecf915bbb8b1d70a6960de8bc4fbe2c2d0d887b17bd8c4b1",
+      "docs/reviews/PRJ-02/reviewer-session.md": "b470f6572d5ae8c2891954e3f5a56d05770d58ec5ac7f06b31a3bf8c5a6904c4",
+      "docs/reviews/PRJ-02/test.log": "ea2d7c7e85605bb1fe429b1d7907c084929892c61b4004515b01786461373d1e",
+      "packages/contracts/src/common.ts": "2640cd78033ee95615b614ae9b921776852655bdcc1ffc86c661a70e17a36126",
+      "packages/contracts/src/index.ts": "f15bf985e542dbeb62aba046b001e5b97befcf6fac8e15da8c3b22a015bd75b2",
+      "packages/contracts/src/projects.ts": "99b489e3957805022a5d075f0b7812e6717367917dffbef0e9844bad3aac8f3b"
+    },
+    "digest": "e441365000ea492149dfcb1034b5eea4f34bd77d8c85d9c6faae70d43aed394b"
+  },
+  "criteriaResults": {
+    "Workspace project list scoping: GET /api/v1/workspaces/:workspaceId/projects returns all workspace projects for owner, but strictly granted active projects for members": "pass",
+    "Cross-workspace project listing: GET /api/v1/projects returns all projects accessible to the authenticated actor across workspaces with role annotation": "pass",
+    "Sibling project privacy: Outsiders receive 404 NOT_FOUND when requesting project lists for ungranted workspaces": "pass",
+    "Keyset cursor pagination: List endpoints support deterministic cursor-based pagination (ORDER BY name ASC, id ASC) with bounded page sizes (default 50, max 100)": "pass",
+    "No metadata leakage: Hidden or inaccessible projects leak no name, count, or existence in list results": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "e441365000ea492149dfcb1034b5eea4f34bd77d8c85d9c6faae70d43aed394b",
+      "evidencePath": "docs/reviews/PRJ-02/test.log"
+    },
+    {
+      "id": "prj02-prj05-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "e441365000ea492149dfcb1034b5eea4f34bd77d8c85d9c6faae70d43aed394b",
+      "evidencePath": "docs/reviews/PRJ-02/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.5",
+      "reason": "Strict scoping guarantees no project data is leaked across siblings; ungranted workspaces return 404 NOT_FOUND; cross-workspace listing enforces authenticated session with strict active grant join.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-02/reviewer-session.md",
+        "docs/reviews/PRJ-02/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Keyset cursor pagination with deterministic (name, id) ordering; handles malformed limits gracefully without NaN SQL error; role annotation across global projects.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-02/reviewer-session.md",
+        "docs/reviews/PRJ-02/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.0",
+      "reason": "Keyset cursor pagination avoids offset drift and phantom read duplicates during concurrent modifications.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-02/reviewer-session.md",
+        "docs/reviews/PRJ-02/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "All 17 tests in prj02-prj05.test.ts pass against real PostgreSQL 17; comprehensive negative and cursor pagination tests.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-02/reviewer-session.md",
+        "docs/reviews/PRJ-02/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.0",
+      "reason": "Modular cursor encoder/decoder and pagination result types; clean typecheck with 0 errors.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-02/reviewer-session.md",
+        "docs/reviews/PRJ-02/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Indexed queries with bounded limit (max 100) prevent resource exhaustion and quadratic offset performance degradation.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-02/reviewer-session.md",
+        "docs/reviews/PRJ-02/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.35",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

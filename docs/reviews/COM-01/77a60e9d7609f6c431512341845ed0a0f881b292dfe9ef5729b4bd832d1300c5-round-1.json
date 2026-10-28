@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "COM-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/COM-01/criteria.json",
+  "startedAt": "2026-10-26T06:00:00Z",
+  "completedAt": "2026-10-26T06:30:00Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2699f652-cbdf-4b2c-af34-2759bd2a0cd2",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "0e0cbffe-384e-4ead-9750-d0bec8724fa1",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/COM-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/COM-01/criteria.json",
+      "docs/reviews/COM-01/reviewer-session.md",
+      "docs/reviews/COM-01/test.log",
+      "apps/api/src/adapters/comments.ts",
+      "apps/api/src/http/routes/comments.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/http/routes/trash.ts",
+      "apps/api/test/com-del.test.ts",
+      "packages/contracts/src/comments.ts",
+      "packages/contracts/src/trash.ts"
+    ],
+    "files": {
+      "docs/reviews/COM-01/criteria.json": "d3508f26234d7d38b9dd08c70a564593df1a546907ce7b234530c6222bf467b3",
+      "docs/reviews/COM-01/reviewer-session.md": "0888d636102660ef82693ff42108c0fee106400fedaff6af265ce59ad62c80a6",
+      "docs/reviews/COM-01/test.log": "be97d22d7ed0a39dcdf9fd5f301f757d42dbfd77cb4e70fac094d175073ec8c4",
+      "apps/api/src/adapters/comments.ts": "4a9488fe397e248214481c319d6b009eb42019c15f848a96ed2c54a73af24580",
+      "apps/api/src/http/routes/comments.ts": "f82977341cbd7d3a227f2d69c32c8fa7a526be273af3c9081ef68c9521cff9e7",
+      "apps/api/src/adapters/trash.ts": "040283b28f9223ca69db6e428a819fee8c9cc12903b29ef4ee30fc351173b0f6",
+      "apps/api/src/http/routes/trash.ts": "25bc3082201d8e42e18b9c6ce1c380d1fafc8df3d784fdba9b3fa6772699b84e",
+      "apps/api/test/com-del.test.ts": "fb011487dfd9b0fc00e8db80d244e0ccbe67794fd6183316493be2fe052ac8f6",
+      "packages/contracts/src/comments.ts": "3d0061e48b153cf4fb5efded44e8aca9826b10d20f66490e69e2862aa4b44189",
+      "packages/contracts/src/trash.ts": "92103279204dcb4220361a194a05514999c67455b08711a4151541d6462c2125"
+    },
+    "digest": "77a60e9d7609f6c431512341845ed0a0f881b292dfe9ef5729b4bd832d1300c5"
+  },
+  "criteriaResults": {
+    "Paginated comment list: GET /api/v1/cards/:cardId/comments returns chronological comments for card readers": "pass",
+    "Author display identity: Each comment includes author PersonDisplay (name, email, avatarUrl)": "pass",
+    "Tombstone handling: Deleted comments returned with body omitted/hidden or marked as deleted without leaking private content": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "77a60e9d7609f6c431512341845ed0a0f881b292dfe9ef5729b4bd832d1300c5",
+      "evidencePath": "docs/reviews/COM-01/test.log"
+    },
+    {
+      "id": "com-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "77a60e9d7609f6c431512341845ed0a0f881b292dfe9ef5729b4bd832d1300c5",
+      "evidencePath": "docs/reviews/COM-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict project-boundary verification prevents ungranted readers from accessing comments (404 NOT_FOUND on ungranted or missing cards). Deleted comments are sanitized to tombstones with body replaced and mentions cleared.",
+      "evidencePaths": [
+        "docs/reviews/COM-01/reviewer-session.md",
+        "docs/reviews/COM-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Comments query orders by created_at ASC, id ASC; cursor pagination works reliably; author PersonDisplay is attached to each comment.",
+      "evidencePaths": [
+        "docs/reviews/COM-01/reviewer-session.md",
+        "docs/reviews/COM-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Tombstones preserve row integrity and discussion flow without leaking deleted body text or mention metadata.",
+      "evidencePaths": [
+        "docs/reviews/COM-01/reviewer-session.md",
+        "docs/reviews/COM-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Full test suite passes with 0 failures; verifies chronological ordering, author display, and 404 isolation.",
+      "evidencePaths": [
+        "docs/reviews/COM-01/reviewer-session.md",
+        "docs/reviews/COM-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clear separation between repository query, tombstone mapping, and HTTP route handling.",
+      "evidencePaths": [
+        "docs/reviews/COM-01/reviewer-session.md",
+        "docs/reviews/COM-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Database query uses indexed card_id and limit clamping to protect server performance.",
+      "evidencePaths": [
+        "docs/reviews/COM-01/reviewer-session.md",
+        "docs/reviews/COM-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

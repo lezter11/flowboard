@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BRD-07/5a050b89b2498eff6445a7458162a34e4bb7160429f600c5d783d1ffd8f84a4a-round-1.json",
+  "summary": "BRD-07 Paginated cards query with bound cursors & filters verified. Implemented keyset pagination with cursors bound to boardId, filterHash, and structure_version (409 STALE_CURSOR on mismatch), deterministic ordering by position ASC, and multi-field filtering. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "GET /api/v1/boards/:boardId/cards (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-07/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "result": "All 16 tests passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ]
+}

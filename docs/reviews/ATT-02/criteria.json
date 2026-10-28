@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ATT-02"
+  ],
+  "mandatoryCriteria": [
+    "Binary upload receiving: PUT /api/v1/image-uploads/:uploadId/content accepts raw binary bytes matching staged byte length and SHA-256 digest",
+    "MIME magic bytes inspection: Inspects binary headers to verify PNG (89 50 4E 47), JPEG (FF D8 FF), or WebP (RIFF...WEBP)",
+    "Dimension and megapixel extraction: Parses true image width and height from headers; rejects images exceeding 8192px max dimension or 20 megapixels with 422 DIMENSIONS_EXCEEDED or MEGAPIXELS_EXCEEDED",
+    "Anti-spoofing and polyglot rejection: Rejects SVG, HTML, XML, script payloads disguised as images (e.g. text/html with .png extension or SVG polyglot) with 422 INVALID_IMAGE_CONTENT",
+    "OCC and atomic finalization: Finalization verifies upload state='content_received', card active state, card attachment quota <= 10; atomically inserts card_images, updates upload state to 'finalized', bumps board snapshot_version, and records activity_log 'image_attached'"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "att-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: ATT-02 private image and card attachment handling on PostgreSQL. Out-of-scope: UI components."
+}

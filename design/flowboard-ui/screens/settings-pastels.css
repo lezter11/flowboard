@@ -1,0 +1,163 @@
+/* Board-column color choices, scoped to the Settings preview dialog. */
+:root {
+  --settings-col-rose: #faeaf0;
+  --settings-col-mint: #e8f3ec;
+  --settings-col-peach: #fbece2;
+  --settings-col-butter: #f8f1d8;
+  --settings-col-iris: #f0eaf7;
+  --settings-dot-rose: #b65c7b;
+  --settings-dot-mint: #538269;
+  --settings-dot-peach: #aa6940;
+  --settings-dot-butter: #907529;
+  --settings-dot-iris: #765e92;
+}
+
+[data-theme="dark"] {
+  --settings-col-rose: #3e2e37;
+  --settings-col-mint: #283a31;
+  --settings-col-peach: #42342b;
+  --settings-col-butter: #423b25;
+  --settings-col-iris: #383044;
+  --settings-dot-rose: #ecabc2;
+  --settings-dot-mint: #9ed9b1;
+  --settings-dot-peach: #efba91;
+  --settings-dot-butter: #e3d18b;
+  --settings-dot-iris: #c9b4df;
+}
+
+.settings-pastel-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(84px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.settings-pastel-choice {
+  position: relative;
+  min-width: 0;
+  min-height: 78px;
+  display: grid;
+  grid-template-rows: 30px auto;
+  justify-items: center;
+  align-content: center;
+  gap: 5px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 12px;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
+}
+
+.settings-pastel-choice:hover { border-color: var(--line-strong); background: var(--surface-2); }
+.settings-pastel-choice:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.settings-pastel-choice.is-selected {
+  border: 2px solid var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 16%, transparent);
+}
+
+.settings-pastel-chip {
+  width: 28px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  border-radius: 50%;
+}
+
+.pastel-lavender { background: #cdb4db; }
+.pastel-ice-blue { background: #bde0fe; }
+.pastel-mist-grey { background: #d5dce4; }
+.pastel-soft-green { background: #b8f2c8; }
+.pastel-coral { background: #f1b5aa; }
+.pastel-rose { background: #f4c9d8; }
+.pastel-mint { background: #b9dfc8; }
+.pastel-peach { background: #f0c8a8; }
+.pastel-butter { background: #ecd991; }
+.pastel-lilac { background: #d7c6ea; }
+
+.settings-pastel-choice > span:nth-child(2) { text-align: center; overflow-wrap: anywhere; }
+.settings-pastel-check { display: none; }
+.settings-pastel-choice.is-selected .settings-pastel-check {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  display: block;
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.settings-pastel-preview {
+  --preview-tone: var(--col-backlog);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 40px;
+  margin-top: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--preview-tone);
+}
+
+.settings-pastel-preview[data-tone="backlog"] { --preview-tone: var(--col-backlog); }
+.settings-pastel-preview[data-tone="progress"] { --preview-tone: var(--col-progress); }
+.settings-pastel-preview[data-tone="testing"] { --preview-tone: var(--col-testing); }
+.settings-pastel-preview[data-tone="completed"] { --preview-tone: var(--col-completed); }
+.settings-pastel-preview[data-tone="blocked"] { --preview-tone: var(--col-blocked); }
+.settings-pastel-preview[data-tone="rose"] { --preview-tone: var(--settings-col-rose); }
+.settings-pastel-preview[data-tone="mint"] { --preview-tone: var(--settings-col-mint); }
+.settings-pastel-preview[data-tone="peach"] { --preview-tone: var(--settings-col-peach); }
+.settings-pastel-preview[data-tone="butter"] { --preview-tone: var(--settings-col-butter); }
+.settings-pastel-preview[data-tone="iris"] { --preview-tone: var(--settings-col-iris); }
+.settings-pastel-preview .column-dot { flex: none; }
+.settings-pastel-preview[data-tone="rose"] .column-dot { background: var(--settings-dot-rose); }
+.settings-pastel-preview[data-tone="mint"] .column-dot { background: var(--settings-dot-mint); }
+.settings-pastel-preview[data-tone="peach"] .column-dot { background: var(--settings-dot-peach); }
+.settings-pastel-preview[data-tone="butter"] .column-dot { background: var(--settings-dot-butter); }
+.settings-pastel-preview[data-tone="iris"] .column-dot { background: var(--settings-dot-iris); }
+.settings-pastel-preview-name { font-size: 12px; font-weight: 620; }
+.settings-pastel-preview-count { margin-left: auto; color: var(--muted); font-size: 12px; }
+
+.settings-column-row { background: var(--settings-row-tone, var(--surface)); }
+.settings-column-row[data-tone="backlog"] { --settings-row-tone: var(--col-backlog); }
+.settings-column-row[data-tone="progress"] { --settings-row-tone: var(--col-progress); }
+.settings-column-row[data-tone="testing"] { --settings-row-tone: var(--col-testing); }
+.settings-column-row[data-tone="completed"] { --settings-row-tone: var(--col-completed); }
+.settings-column-row[data-tone="blocked"] { --settings-row-tone: var(--col-blocked); }
+.settings-column-row[data-tone="rose"] { --settings-row-tone: var(--settings-col-rose); }
+.settings-column-row[data-tone="mint"] { --settings-row-tone: var(--settings-col-mint); }
+.settings-column-row[data-tone="peach"] { --settings-row-tone: var(--settings-col-peach); }
+.settings-column-row[data-tone="butter"] { --settings-row-tone: var(--settings-col-butter); }
+.settings-column-row[data-tone="iris"] { --settings-row-tone: var(--settings-col-iris); }
+.settings-column-row .column-dot { background: color-mix(in srgb, var(--ink) 38%, var(--settings-row-tone)); }
+.settings-column-row[data-tone="rose"] .column-dot { background: var(--settings-dot-rose); }
+.settings-column-row[data-tone="mint"] .column-dot { background: var(--settings-dot-mint); }
+.settings-column-row[data-tone="peach"] .column-dot { background: var(--settings-dot-peach); }
+.settings-column-row[data-tone="butter"] .column-dot { background: var(--settings-dot-butter); }
+.settings-column-row[data-tone="iris"] .column-dot { background: var(--settings-dot-iris); }
+
+@media (max-width: 540px) {
+  .settings-pastel-options { grid-template-columns: repeat(auto-fit, minmax(84px, 1fr)); gap: 8px; }
+  .settings-pastel-choice { min-height: 78px; padding: 8px; font-size: 12px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-pastel-choice { transition: none; }
+}
+
+@media (forced-colors: active) {
+  .settings-pastel-choice.is-selected { border-color: Highlight; box-shadow: none; }
+  .settings-pastel-chip { border: 1px solid CanvasText; }
+  .settings-pastel-check { color: Highlight; }
+}
+
+/* The column editor must not inherit the legacy screen microcopy sizes. */
+#columnLayer .field-help,
+#columnLayer .form-error,
+#columnLayer .field-label,
+#columnLayer .dialog-field > label { font-size: 12px; }

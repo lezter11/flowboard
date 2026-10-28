@@ -106,6 +106,51 @@ export class HttpError extends HTTPException {
     return new HttpError(409, code, message, details);
   }
 
+  static payloadTooLarge(message = 'Payload too large.', code = 'PAYLOAD_TOO_LARGE'): HttpError {
+    return new HttpError(413, code, message);
+  }
+
+  static internal(message = 'Internal server error.', code = 'INTERNAL_ERROR'): HttpError {
+    return new HttpError(500, code, message);
+  }
+
+  static unprocessableEntity(
+    first = 'Unprocessable entity.',
+    second?: string,
+    third?: Record<string, unknown>,
+  ): HttpError {
+    return HttpError.unprocessable(first, second, third);
+  }
+
+  static unprocessable(
+    first = 'Unprocessable entity.',
+    second?: string,
+    third?: Record<string, unknown>,
+  ): HttpError {
+    let code = 'VALIDATION_ERROR';
+    let message = 'Unprocessable entity.';
+    let details: Record<string, unknown> | undefined;
+
+    if (typeof second === 'string') {
+      if (/^[A-Z0-9_]+$/.test(first) && !/^[A-Z0-9_]+$/.test(second)) {
+        code = first;
+        message = second;
+      } else {
+        message = first;
+        code = second;
+      }
+      details = third;
+    } else if (second && typeof second === 'object') {
+      message = first;
+      details = second;
+    } else if (/^[A-Z0-9_]+$/.test(first)) {
+      code = first;
+    } else {
+      message = first;
+    }
+    return new HttpError(422, code, message, details);
+  }
+
   static serviceUnavailable(
     first = 'SERVICE_UNAVAILABLE',
     second?: string,

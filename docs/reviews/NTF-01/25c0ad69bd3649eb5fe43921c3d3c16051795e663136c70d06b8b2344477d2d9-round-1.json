@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "NTF-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/NTF-01/criteria.json",
+  "startedAt": "2026-10-26T12:35:23.446579+00:00",
+  "completedAt": "2026-10-26T12:35:23.446579+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "0fce3a66-787d-4e93-92dd-84dd9adbcbf0",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "6f8e2190-3b47-49a2-9bc5-c81729de105a",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/NTF-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/NTF-01/criteria.json",
+      "docs/reviews/NTF-01/reviewer-session.md",
+      "docs/reviews/NTF-01/test.log",
+      "apps/api/src/adapters/activity.ts",
+      "apps/api/src/adapters/notifications.ts",
+      "apps/api/src/http/routes/activity.ts",
+      "apps/api/src/http/routes/notifications.ts",
+      "apps/api/test/aud-ntf.test.ts",
+      "packages/contracts/src/discussion.ts"
+    ],
+    "files": {
+      "docs/reviews/NTF-01/criteria.json": "a907b4aef81729ba9c720f5c71be5a0c97d08a5dfabb7f7ef9717a0646bd98fa",
+      "docs/reviews/NTF-01/reviewer-session.md": "1bf1c7878fac1b23683603deb35dc8b8512bb6cda1ad21e2cc972f8a4a676cfa",
+      "docs/reviews/NTF-01/test.log": "9eaae01269008fc9aa41362381af5a5b6ba589ad6b1b0f23b3b6a9ac37fd13e2",
+      "apps/api/src/adapters/activity.ts": "5df26e2ef60d000a9e6982c0f8d4f8fa248154ac32b0375a6d3b81b0b38021ed",
+      "apps/api/src/adapters/notifications.ts": "44f0b760a38e59b6ba6afdeb295a5dcb41fa4e056c7a778839eeda0672a91676",
+      "apps/api/src/http/routes/activity.ts": "6a0f381d279b797268037ead27d12d7b730c6112ffec5554a390c145b46bc92b",
+      "apps/api/src/http/routes/notifications.ts": "122b96bc41ce2b86fd0916230f7806c2578140b94cddc023ba56949f9d4aa494",
+      "apps/api/test/aud-ntf.test.ts": "a70f2b447024f843dd4601fef9396d7c99e67abdcb5b190b6ec06652073cf32d",
+      "packages/contracts/src/discussion.ts": "750d8daa31f45225333e1eb1def824d2ca231da26e97e1a5e9af29b35aebd361"
+    },
+    "digest": "25c0ad69bd3649eb5fe43921c3d3c16051795e663136c70d06b8b2344477d2d9"
+  },
+  "criteriaResults": {
+    "Durable notification delivery: Mentioning active project reader creates durable notification record in notifications table": "pass",
+    "Self-mention omission: Comments mentioning the author do not create notifications for the author": "pass",
+    "Inbox query pagination: GET /api/v1/notifications returns user's notifications with limit and cursor pagination": "pass",
+    "Revocation filtering: Notifications for projects where the user is no longer an active member are strictly filtered out": "pass",
+    "Safe deep linking: Notifications contain direct deep link to project, board, and card context": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "25c0ad69bd3649eb5fe43921c3d3c16051795e663136c70d06b8b2344477d2d9",
+      "evidencePath": "docs/reviews/NTF-01/test.log"
+    },
+    {
+      "id": "aud-ntf-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "25c0ad69bd3649eb5fe43921c3d3c16051795e663136c70d06b8b2344477d2d9",
+      "evidencePath": "docs/reviews/NTF-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Dynamic project grant join prevents stale private previews from leaking after access revocation; self-mentions excluded.",
+      "evidencePaths": [
+        "docs/reviews/NTF-01/reviewer-session.md",
+        "docs/reviews/NTF-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Accurate notification delivery, deep linking, and cursor pagination.",
+      "evidencePaths": [
+        "docs/reviews/NTF-01/reviewer-session.md",
+        "docs/reviews/NTF-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Atomic commit of comment, activity, notifications, and outbox rows within single transaction.",
+      "evidencePaths": [
+        "docs/reviews/NTF-01/reviewer-session.md",
+        "docs/reviews/NTF-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests verify mention delivery, self-mention exclusion, pagination, and revocation filtering.",
+      "evidencePaths": [
+        "docs/reviews/NTF-01/reviewer-session.md",
+        "docs/reviews/NTF-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Clean separation of notification adapter and routes.",
+      "evidencePaths": [
+        "docs/reviews/NTF-01/reviewer-session.md",
+        "docs/reviews/NTF-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "Leverages idx_notifications_user_unread index for fast unread inbox loading.",
+      "evidencePaths": [
+        "docs/reviews/NTF-01/reviewer-session.md",
+        "docs/reviews/NTF-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

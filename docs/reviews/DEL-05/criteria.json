@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "DEL-05"
+  ],
+  "mandatoryCriteria": [
+    "Expired restore denial: POST /api/v1/cards/:cardId/restore returns HTTP 410 RESTORE_WINDOW_EXPIRED when serverNow >= restore_until",
+    "Structured 410 error: Error response includes code=RESTORE_WINDOW_EXPIRED and details { serverNow, restoreUntil }",
+    "No retry extension: Retried restore requests cannot extend or reopen the expired window"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "del-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Strict 24h deadline enforcement and 410 RESTORE_WINDOW_EXPIRED response."
+}

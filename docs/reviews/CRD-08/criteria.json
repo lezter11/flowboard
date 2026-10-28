@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-08"
+  ],
+  "mandatoryCriteria": [
+    "Placement query: GET /api/v1/boards/:boardId/columns/:columnId/placement computes canonical neighbors for moving card",
+    "Placement positions: Supports at=first, at=last, at=before, at=after with anchorCardId",
+    "Neighbor exclusion: Excludes the moving card itself from neighbor calculation"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "crd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Neighbor placement resolution."
+}

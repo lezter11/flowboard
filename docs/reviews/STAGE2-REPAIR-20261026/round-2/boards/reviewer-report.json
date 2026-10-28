@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "reviewType": "independent-read-only-acceptance-review",
+  "featureIds": ["BRD-01", "BRD-02", "BRD-03", "BRD-04", "BRD-05", "BRD-06", "BRD-07"],
+  "target": {
+    "kind": "sha256-manifest",
+    "manifestPath": "docs/reviews/STAGE2-REPAIR-20261026/source-manifest-round-2.json",
+    "digest": "b8f1cd4def58d26b4d688888ced46ab88e12a1cee930ff94277709caff24e0cd",
+    "fileCount": 164,
+    "verifiedBefore": true,
+    "verifiedAfter": true,
+    "manifestHashMismatches": 0
+  },
+  "reviewer": {
+    "agent": "/root/round2_audit_boards",
+    "model": "gpt-6-luna",
+    "modelEvidence": "User-authorized Luna delegation was specified by the parent task; runtime model metadata was not exposed to this agent, so this exact model label is not independently verifiable.",
+    "freshContext": true,
+    "implementedTarget": false,
+    "identityLimitations": "The delegated agent context is fresh and did not receive implementer context. Stable actor ID and session ID are not exposed by the available tools, so the review cannot establish the distinct actor/session identity required by BACKEND_REVIEW_GATE.md and docs/reviews/README.md. No identity claim is made."
+  },
+  "scope": {
+    "reviewed": [
+      "BRD-01..BRD-07 mounted routes and adapters",
+      "shared idempotency receipt handling and RBAC grant/context locks",
+      "board card cursor encoding, decoding, filtering, pagination, and related contracts/tests",
+      "API and feature requirements plus frozen round-1 and round-2 criteria"
+    ],
+    "notReviewedAsAcceptance": [
+      "CRD/COM/DEL end-to-end feature paths outside board dependencies",
+      "Worker runtime test execution",
+      "hosted/deployed behavior and production database"
+    ]
+  },
+  "commands": [
+    {
+      "id": "root-typecheck",
+      "command": "npm run typecheck",
+      "workingDirectory": "/Users/shubham/Documents/Flowboard",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/STAGE2-REPAIR-20261026/round-2/boards/typecheck.log",
+      "environment": "Local checkout; TypeScript compiler via root package script."
+    },
+    {
+      "id": "brd-postgresql-suite",
+      "command": "DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55439/stage2_boards node --test --test-concurrency=1 test/brd01-brd07.test.ts",
+      "workingDirectory": "/Users/shubham/Documents/Flowboard/apps/api",
+      "exitCode": 1,
+      "evidencePath": "docs/reviews/STAGE2-REPAIR-20261026/round-2/boards/boards-postgres.log",
+      "environment": "The test stopped before running cases. localDatabaseUrl() rejected database name stage2_boards because it only allows /flowboard_harness. No database connection or mutation occurred. The provided isolated target was not changed to another database because the suite truncates tables and the requested isolated DB could not be selected safely."
+    }
+  ],
+  "criteriaAssessment": [
+    {
+      "criterion": "BRD-01..BRD-06 behaviors and current grant authorization before board receipt replay",
+      "result": "partially-supported-by-source; PostgreSQL evidence unavailable",
+      "evidence": ["apps/api/src/http/routes/boards.ts:64-73", "apps/api/src/adapters/idempotency.ts:53-74", "apps/api/src/adapters/rbac.ts:350-398"],
+      "counterevidence": "All board write handlers inspected route through checkOrReplayProjectWriteReceipt before replay. This helper locks the current grant and writable project/board context before receipt lookup. Source inspection supports the changed behavior, but the requested board suite did not run."
+    },
+    {
+      "criterion": "Receipt body retention and replay regression evidence",
+      "result": "source-improved; mandatory regression coverage missing",
+      "evidence": ["apps/api/src/adapters/idempotency.ts:17-46", "apps/api/src/adapters/idempotency.ts:53-74", "apps/api/test/brd01-brd07.test.ts:216-247"],
+      "counterevidence": "The receipt sanitizer only retains identifiers/version/status markers and the existing board suite contains an active same-key replay and changed-body collision case. The board suite does not exercise grant removal/demotion replay, same-key concurrency, or inspect stored response_body for private content. The test suite could not execute in this review."
+    },
+    {
+      "criterion": "BRD-07 cursor scope, filter, and ordering revision binding",
+      "result": "fail",
+      "evidence": ["apps/api/src/adapters/boards.ts:36-60", "apps/api/src/adapters/boards.ts:1239-1264", "apps/api/src/adapters/boards.ts:1303-1307"],
+      "counterevidence": "The continuation SQL stays constrained to the requested board and active cards, uses deterministic position/id ordering, and rejects malformed cursors. The cursor is not bound to board ID, query filters, or board/order revision, and the route does not verify snapshot/structure version. A card moved to a position before an existing cursor can be silently omitted; a cursor from another board or filter is accepted as a raw seek position. This violates the stale-cursor refresh contract."
+    },
+    {
+      "criterion": "Round-2 frozen full check and all mounted BRD/CRD/COM/DEL checks",
+      "result": "incomplete",
+      "evidence": ["docs/reviews/STAGE2-REPAIR-20261026/criteria-round-2.json", "docs/reviews/STAGE2-REPAIR-20261026/criteria-round-2.md"],
+      "counterevidence": "The root typecheck passed. The frozen JSON also requires npm run check, Worker dry-run build, API and contract tests, plus card and discussion/trash PostgreSQL suites; those did not run in this BRD-focused review."
+    }
+  ],
+  "categories": {
+    "security": {"weight": 30, "score": 8.8, "reason": "The previous replay-before-authorization flaw appears corrected in mounted board mutation paths: current grant and archive-context locks precede receipt access. No runtime regression suite ran, and reviewer identity IDs are unavailable."},
+    "correctness": {"weight": 25, "score": 6.5, "reason": "BRD-07 cursor does not detect stale board/order/filter context and can silently omit cards after ordering changes. Other board paths are statically implemented against the route set, but runtime acceptance was unavailable."},
+    "integrity": {"weight": 15, "score": 7.5, "reason": "Board and column writes use transactions, optimistic versions, constraints, and receipt serialization. Same-key race and stale-page integrity behavior are not evidenced by the requested suite."},
+    "tests": {"weight": 15, "score": 5.0, "reason": "Typecheck passed, but the required PostgreSQL suite failed before any test case; required receipt regressions and the broader frozen checks are absent or unrun."},
+    "maintainability": {"weight": 10, "score": 8.0, "reason": "Typed contracts, modular adapters, parameterized SQL, and a shared authorization-aware receipt helper are clear. The cursor format is an unversioned bare tuple and receipt calls are repeated across route handlers."},
+    "operations": {"weight": 5, "score": 7.5, "reason": "Queries are bounded and database clients are generally released in finally blocks. No performance, Worker, or operational failure checks were run for this review."}
+  },
+  "weightedScore": 7.315,
+  "findings": [
+    {
+      "id": "BRD-R2-01",
+      "severity": "high",
+      "blocking": true,
+      "mandatory": true,
+      "description": "BRD-07 cursor only carries position and card ID. listBoardCards accepts it without binding or comparing board ID, canonical filters, or a snapshot/structure revision. After a move changes ordering, a previously paged card can fall before the cursor and disappear from the remaining traversal instead of producing STALE_CURSOR. Cross-board/filter cursors are also accepted as raw seek points.",
+      "source": "apps/api/src/adapters/boards.ts:36-60,1239-1264,1303-1307",
+      "counterevidence": "The query remains scoped to the requested board and active cards, and ordering is deterministic by position then ID. These controls do not enforce stale cursor semantics or prevent omissions.",
+      "remediation": "Encode and validate board, normalized filters, and the relevant snapshot/order revision in the cursor; reject mismatched or stale continuation with 409 STALE_CURSOR and add mounted PostgreSQL regressions for reorder, board mismatch, and filter mismatch."
+    },
+    {
+      "id": "BRD-R2-02",
+      "severity": "high",
+      "blocking": true,
+      "mandatory": true,
+      "description": "Required acceptance evidence is incomplete. The requested PostgreSQL suite stops before tests because the runtime guard only permits database path /flowboard_harness, while the requested isolated path is /stage2_boards. The BRD suite also lacks regressions for replay after grant removal/demotion, concurrent same-key replay, and stored receipt body inspection. The frozen round-2 JSON requires additional full-check, Worker, API/contract, CRD and COM/DEL checks.",
+      "source": "apps/api/src/runtime/local-config.ts:4-14; apps/api/test/brd01-brd07.test.ts:216-247; docs/reviews/STAGE2-REPAIR-20261026/criteria-round-2.json",
+      "counterevidence": "Root typecheck passes; existing BRD test source includes allowed create replay and IDEMPOTENCY_CONFLICT cases. No PostgreSQL test execution is claimed.",
+      "remediation": "Provide a test-safe database configuration that permits the specifically isolated stage2_boards database without broadening access to shared/live data, then execute frozen tests and add the missing receipt regressions."
+    },
+    {
+      "id": "BRD-R2-03",
+      "severity": "moderate",
+      "blocking": true,
+      "mandatory": true,
+      "description": "Reviewer identity cannot be fully attested under the record schema: the agent tool exposes no stable actor ID or session ID. This agent had fresh context and did not implement the target, but distinct actor/session IDs cannot be verified.",
+      "source": "BACKEND_REVIEW_GATE.md:4,9; docs/reviews/README.md:13-15",
+      "counterevidence": "This is a delegated fresh-context reviewer task, and no implementation instructions or builder session were supplied to this reviewer.",
+      "remediation": "Have the orchestrating task attach verifiable reviewer actor/session metadata if available, or record that the repository's strict independent-review identity gate cannot be satisfied by this tool context."
+    }
+  ],
+  "coverageGaps": [
+    "PostgreSQL BRD suite did not execute",
+    "same-key concurrency and receipt body inspection were not tested",
+    "BRD cursor reorder/filter/foreign-board regression was not executed",
+    "round-2 npm run check, Worker dry-run, CRD suite, COM/DEL suite, and contract suite were not run",
+    "stable reviewer actor/session IDs are unavailable"
+  ],
+  "hardBlockers": [
+    "BRD-07 stale cursor behavior contradicts the required stale-cursor contract and can omit cards",
+    "Required PostgreSQL and frozen round-2 test evidence is missing",
+    "Distinct reviewer actor/session identity cannot be established by available tool metadata"
+  ],
+  "verdict": "fail",
+  "completedAt": "2026-10-26"
+}

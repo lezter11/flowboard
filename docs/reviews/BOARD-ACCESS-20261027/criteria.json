@@ -1,0 +1,21 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": ["RBAC-01", "RBAC-02", "RBAC-03", "RBAC-04", "RBAC-05"],
+  "mandatoryCriteria": [
+    "Workspace owner has implicit access to every board in owned projects; nonowners need both active project membership and an explicit active grant on the specific board, and keep their project role's action limits.",
+    "Migration creates no automatic board grants for existing members; invitations and project membership do not grant board access. Re-adding a removed member does not reactivate old grants.",
+    "Only the owner of the board's workspace can administer board grants. Reject self-elevation, foreign boards, nonmember targets and cross-project access without disclosing hidden resource existence.",
+    "Project managers retain permission to create boards in granted projects but cannot grant board access; a created board does not automatically grant access to its creator or other project members.",
+    "Project-level identity remains visible to authorized project members with zero boards; board list and all board-related reads and counts exclude ungranted boards before pagination or aggregation.",
+    "All mounted board/card/column, comments/activity, images/uploads, imports, trash, notifications, search, tasks, retries and replay entry points enforce the new boundary, including Node and Worker paths.",
+    "Revocation serializes with in-flight writes, import commits and image finalization; revoked actors cannot obtain private data via stale IDs, cursors, caches, retries or idempotency receipts.",
+    "PostgreSQL migration supports clean install and documented safe restart/upgrade; existing sensitive data is not touched. Test against isolated disposable PostgreSQL, never live data.",
+    "Mounted-handler negative tests cover owner, manager, member, viewer, outsider, removed user, stale board grant, sibling/foreign resources, invited owner in another workspace and revocation races.",
+    "Typecheck, build, mandatory integration suites and contracts pass on the exact target; a fresh independent review meets every BACKEND_REVIEW_GATE.md category and blocker rule."
+  ],
+  "requiredTests": {
+    "full-check": "npm run check",
+    "board-access-integration": "node --test --test-concurrency=1 apps/api/test/board-access.test.ts"
+  },
+  "scopeAndExclusions": "High-risk authorization cutover for project and per-board access against local disposable PostgreSQL and actual mounted API routes. No live-data migration, deployment, UI integration, or portfolio-query implementation is claimed. Partial implementation must never be called verified. A manager creating a board receives no implicit grant. Full review covers every reachable access path and runtime."
+}

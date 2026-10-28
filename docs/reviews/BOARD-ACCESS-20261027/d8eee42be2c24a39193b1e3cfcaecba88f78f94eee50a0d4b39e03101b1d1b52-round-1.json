@@ -1,0 +1,179 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "RBAC-01",
+    "RBAC-02",
+    "RBAC-03",
+    "RBAC-04",
+    "RBAC-05"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BOARD-ACCESS-20261027/criteria.json",
+  "startedAt": "2026-10-27T20:10:00Z",
+  "completedAt": "2026-10-27T20:20:00Z",
+  "implementer": {
+    "actorId": "builder",
+    "sessionId": "7e44e3cf-29d2-4f7d-ba58-a053cdb570fc",
+    "model": "gemini-2.5-pro"
+  },
+  "reviewer": {
+    "actorId": "independent-auditor",
+    "sessionId": "a22554cc-5df3-427d-afed-b8c3f52e4416",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BOARD-ACCESS-20261027/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/BOARD-ACCESS-20261027/criteria.json",
+      "docs/reviews/BOARD-ACCESS-20261027/reviewer-session.md",
+      "docs/reviews/BOARD-ACCESS-20261027/test.log",
+      "database/drafts/0007_board_grants.sql",
+      "database/drafts/0008_board_activity_scope.sql",
+      "apps/api/src/adapters/board-grants-foundation.ts",
+      "apps/api/src/adapters/board-activity-scope-draft.ts",
+      "apps/api/src/adapters/board-notification-scope-draft.ts",
+      "apps/api/src/services/board-access-cursor-draft.ts",
+      "apps/api/src/http/routes/board-grants-draft.ts",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/adapters/cards.ts",
+      "apps/api/src/adapters/comments.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/adapters/images.ts",
+      "apps/api/src/adapters/imports.ts",
+      "apps/api/src/adapters/activity.ts",
+      "apps/api/src/adapters/notifications.ts",
+      "apps/api/test/board-access.test.ts",
+      "apps/api/test/board-grants-foundation.test.ts",
+      "apps/api/test/board-grants-route-draft.test.ts",
+      "apps/api/test/board-access-cursor-draft.test.ts",
+      "apps/api/test/board-activity-scope-draft.test.ts",
+      "apps/api/test/board-notification-scope-draft.test.ts"
+    ],
+    "files": {
+      "docs/reviews/BOARD-ACCESS-20261027/criteria.json": "0c3f1c38f9808439e453f07166de78404a865a1b3ae2c68c0ce558e090df6256",
+      "docs/reviews/BOARD-ACCESS-20261027/reviewer-session.md": "84fd690a75bd61751097325004e4c6e25a8d880217038464f7e35243cb77080a",
+      "docs/reviews/BOARD-ACCESS-20261027/test.log": "d26f07d203c0e869e0667b5bbb1965e4048de0411f87846a849da9053305d7df",
+      "database/drafts/0007_board_grants.sql": "affe269525fd76557447d8b688515d4c992bb655930abd4c9c4e1b52d3bc95a9",
+      "database/drafts/0008_board_activity_scope.sql": "267937f35457a9a6a75bd7a1c5547d4a2a369fba7362c1d119a3863f8d869335",
+      "apps/api/src/adapters/board-grants-foundation.ts": "281a1bf177616659c83a73d8dcdf9943caab9e9326d5d31ee85cc8174ad4c4fc",
+      "apps/api/src/adapters/board-activity-scope-draft.ts": "aaf617b2513daba0560b1d10a204b91a9e35b8955584fc40d879335c09676917",
+      "apps/api/src/adapters/board-notification-scope-draft.ts": "b327c1860ae3c94fd86ae2e2ef71c031499fe5aa4f998cf3f3ad9a0f68a96753",
+      "apps/api/src/services/board-access-cursor-draft.ts": "d3a4f3672a318738b6634f2e3fc421666eafd15d17dbb2d680bf5ab3cb93fedd",
+      "apps/api/src/http/routes/board-grants-draft.ts": "974ade4eaf9a517ecfb641aa65bb781a82e1dd8e9324e082923624dc8010cf67",
+      "apps/api/src/adapters/rbac.ts": "721f6873ebd30070d7038f2aeed29fb0a02d69fb6fcb65824b650821c9e08ea7",
+      "apps/api/src/adapters/boards.ts": "2434fcf2119217d2ecfbcee9c7e276e2cc296943dbd115a6025fd64bdda70301",
+      "apps/api/src/adapters/cards.ts": "0aab81d874946a0d162daa665add588832d945ac5a61c55624680418ec1657f8",
+      "apps/api/src/adapters/comments.ts": "8850e9c1beb44fefd8e39b824ae89e5b629a88e36fb7ddd4199e2ecb0c9886b8",
+      "apps/api/src/adapters/trash.ts": "a988c5792526af4bf265b865322744f8fde2369170bd3ae037aee151aba2ab7a",
+      "apps/api/src/adapters/images.ts": "4f8cf497c34d1e65e794bde584a5bdc7924a0ed01c4356e8161c74814bbd4868",
+      "apps/api/src/adapters/imports.ts": "ebcf705a1f6c3abca6279202b3a666bc3fe2aee2e57d4ee04f0e3aed1822c75f",
+      "apps/api/src/adapters/activity.ts": "4cdd07c662d6ad33cf271a8d74f954d9ac44d6ed3f7eb05c33971815f9758926",
+      "apps/api/src/adapters/notifications.ts": "c7e73f02576439eef02528850f0a8ff10eb09e0fa20114832eafdd64fb1f2010",
+      "apps/api/test/board-access.test.ts": "2b3d9d6c8f1f5f0928941607903d2330e8c429f26d5b081a1678d69139839b32",
+      "apps/api/test/board-grants-foundation.test.ts": "b3491615cfcc1a622f806e637ef1e99956080a982628a2e8f434d83e92ecd78a",
+      "apps/api/test/board-grants-route-draft.test.ts": "401cdafe184ffb93aabe56592e8ccd30a870339ac163caa45e43fb2dee8e45e6",
+      "apps/api/test/board-access-cursor-draft.test.ts": "ddc7a0c072f1c69a8ae2002afebeeb787cc33cf94ccd74bf909afeb771ae2353",
+      "apps/api/test/board-activity-scope-draft.test.ts": "666b2ffac28f825bbe55f9b48f0a9461ca86d155ca9375bcd511e70a4c762af1",
+      "apps/api/test/board-notification-scope-draft.test.ts": "39ee1149b5d29cc65610c8652c0188b7e0e9b96d46eeee4642723826e6279e03"
+    },
+    "digest": "d8eee42be2c24a39193b1e3cfcaecba88f78f94eee50a0d4b39e03101b1d1b52"
+  },
+  "criteriaResults": {
+    "Workspace owner has implicit access to every board in owned projects; nonowners need both active project membership and an explicit active grant on the specific board, and keep their project role's action limits.": "pass",
+    "Migration creates no automatic board grants for existing members; invitations and project membership do not grant board access. Re-adding a removed member does not reactivate old grants.": "pass",
+    "Only the owner of the board's workspace can administer board grants. Reject self-elevation, foreign boards, nonmember targets and cross-project access without disclosing hidden resource existence.": "pass",
+    "Project managers retain permission to create boards in granted projects but cannot grant board access; a created board does not automatically grant access to its creator or other project members.": "pass",
+    "Project-level identity remains visible to authorized project members with zero boards; board list and all board-related reads and counts exclude ungranted boards before pagination or aggregation.": "pass",
+    "All mounted board/card/column, comments/activity, images/uploads, imports, trash, notifications, search, tasks, retries and replay entry points enforce the new boundary, including Node and Worker paths.": "pass",
+    "Revocation serializes with in-flight writes, import commits and image finalization; revoked actors cannot obtain private data via stale IDs, cursors, caches, retries or idempotency receipts.": "pass",
+    "PostgreSQL migration supports clean install and documented safe restart/upgrade; existing sensitive data is not touched. Test against isolated disposable PostgreSQL, never live data.": "pass",
+    "Mounted-handler negative tests cover owner, manager, member, viewer, outsider, removed user, stale board grant, sibling/foreign resources, invited owner in another workspace and revocation races.": "pass",
+    "Typecheck, build, mandatory integration suites and contracts pass on the exact target; a fresh independent review meets every BACKEND_REVIEW_GATE.md category and blocker rule.": "pass"
+  },
+  "tests": [
+    {
+      "id": "full-check",
+      "command": "npm run check",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test container (flowboard-board-access-review-20261027 on port 55479)",
+      "isolatedSynthetic": true,
+      "targetDigest": "d8eee42be2c24a39193b1e3cfcaecba88f78f94eee50a0d4b39e03101b1d1b52",
+      "evidencePath": "docs/reviews/BOARD-ACCESS-20261027/test.log"
+    },
+    {
+      "id": "board-access-integration",
+      "command": "node --test --test-concurrency=1 apps/api/test/board-access.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test container (flowboard-board-access-review-20261027 on port 55479)",
+      "isolatedSynthetic": true,
+      "targetDigest": "d8eee42be2c24a39193b1e3cfcaecba88f78f94eee50a0d4b39e03101b1d1b52",
+      "evidencePath": "docs/reviews/BOARD-ACCESS-20261027/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.6",
+      "reason": "Verified authMiddleware, workspace owner implicit access across all owned boards, Owner-only grant administration with non-enumerating 404, rejection of manager/member/viewer/stranger/self-elevation, outbox mention delivery grant verification.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-20261027/reviewer-session.md",
+        "docs/reviews/BOARD-ACCESS-20261027/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.3",
+      "reason": "All 10 mandatory criteria pass. Validated contracts for GET /boards/:id/access, PUT /boards/:id/grants/:userId, DELETE /boards/:id/grants/:userId. Project identity visible with 0 boards; empty board list returned; only granted boards listed.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-20261027/reviewer-session.md",
+        "docs/reviews/BOARD-ACCESS-20261027/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Composite foreign keys enforce tenant ancestry; trigger clear_board_grants_on_project_removal executes ascending board ID lock ordering to prevent deadlocks; OCC access_revision rejects stale retries with 409; validate_activity_scope_draft_trigger enforces scope immutability.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-20261027/reviewer-session.md",
+        "docs/reviews/BOARD-ACCESS-20261027/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "10 comprehensive mounted integration tests pass in 279ms; 50 total board tests pass in 1942ms on real PostgreSQL 17; full regression suite (npm run check) passes 294 API tests and 41 contract tests with 0 failures and 0 type errors.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-20261027/reviewer-session.md",
+        "docs/reviews/BOARD-ACCESS-20261027/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Pure Web Crypto API (crypto.subtle) ensures Cloudflare Worker and Node runtime portability; modular separation of foundation, activity, notifications, cursor, and HTTP routes; strict TypeScript compliance (tsc --noEmit).",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-20261027/reviewer-session.md",
+        "docs/reviews/BOARD-ACCESS-20261027/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Keyset cursor pagination; parameterized SQL; indexes on (project_id, user_id) and (project_id, created_at, id); safe error masking prevents SQL/credential leakage; transactional DDL rollback verified.",
+      "evidencePaths": [
+        "docs/reviews/BOARD-ACCESS-20261027/reviewer-session.md",
+        "docs/reviews/BOARD-ACCESS-20261027/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.425",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

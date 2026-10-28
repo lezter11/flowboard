@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/ATT-07/d9c5df4e5be2dd6c29e1b95dc8a5ca8348c516965c3b39bd8fca101d8c61e8b6-round-1.json",
+  "summary": "ATT-07 Attachment lifecycle in trash verified. Implemented complete trash lifecycle for attachments: trashing preserves finalized card images until 24-hour restore deadline while blocking normal member access (404), restoring a card recovers all images and gallery availability, and permanent purge scrubs card_images records and permanently deletes binary objects from the storage driver. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "POST /api/v1/cards/:cardId/trash & /restore & /purge (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/ATT-07/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Supported formats restricted to PNG, JPEG, and WebP (max 10 MiB, <=8192px, <=20 MP).",
+    "Max 10 attachments per card; temporary storage cleaned after 1-hour TTL."
+  ]
+}

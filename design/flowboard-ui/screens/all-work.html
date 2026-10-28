@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <meta name="description" content="Project work opens in the full Board workspace for a single project." />
+  <title>Opening project workspace — Flowboard design prototype</title>
+  <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../detail.css" />
+  <link rel="stylesheet" href="screens.css" />
+  <style>
+    .redirect-page { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+    .redirect-card { width: min(100%, 520px); padding: 26px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface); box-shadow: var(--shadow-md); }
+    .redirect-card h1 { margin: 6px 0 8px; color: var(--ink); font-size: 26px; line-height: 1.15; letter-spacing: -0.03em; }
+    .redirect-card p { color: var(--muted); font-size: 14px; line-height: 1.55; }
+    .redirect-card .redirect-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+  </style>
+</head>
+<body data-page="redirect">
+  <a class="skip-link" href="#main">Skip to content</a>
+  <main class="redirect-page" id="main">
+    <section class="redirect-card" aria-labelledby="redirectTitle">
+      <p class="eyebrow">One Project workspace</p>
+      <h1 id="redirectTitle">Project work now opens in Board</h1>
+      <p>The full Board workspace shows every card from boards you can access within one project.</p>
+      <div class="redirect-actions">
+        <a class="btn primary" id="redirectLink" href="projects.html">Choose a project <span aria-hidden="true">→</span></a>
+        <a class="btn" href="projects.html">Browse projects</a>
+      </div>
+    </section>
+  </main>
+  <script>
+    (function () {
+      var source = new URLSearchParams(location.search);
+      var target = new URLSearchParams();
+      ["role", "theme"].forEach(function (key) {
+        var value = source.get(key);
+        if (value) target.set(key, value);
+      });
+      var project = source.get("project");
+      var board = source.get("board");
+      if (project) target.set("project", project);
+      var card = source.get("card");
+      var hasBoard = source.has("board");
+      if (hasBoard) {
+        target.set("board", board || "");
+        if (card) target.set("card", card);
+        if (source.get("view")) target.set("view", source.get("view"));
+      } else {
+        if (!project) { location.replace("projects.html"); return; }
+        target.set("scope", "all");
+        ["view", "card"].forEach(function (key) {
+          var value = source.get(key);
+          if (value) target.set(key, value);
+        });
+      }
+      var url = "../index.html?" + target.toString();
+      var link = document.getElementById("redirectLink");
+      if (link) link.href = url;
+      location.replace(url);
+    })();
+  </script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "DEL-07"
+  ],
+  "mandatoryCriteria": [
+    "Audit fact retention: Trashing or restoring a card writes an audit entry to activity_log",
+    "Data hygiene: Trashed cards do not leak into search queries or public summaries"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "del-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Activity logging and data hygiene."
+}

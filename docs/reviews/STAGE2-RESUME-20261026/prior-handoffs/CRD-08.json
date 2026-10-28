@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-08/03454028c4d1441524238320a48caf4546d9b82609f831736effe7ed89111afb-round-1.json",
+  "summary": "CRD-08 Placement calculation verified. Implemented server-side placement query computing canonical insertion neighbors (previousCardId, nextCardId) for at=first, at=last, at=before, and at=after with anchor card validation and moving card self-exclusion. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "GET /api/v1/boards/:boardId/columns/:columnId/placement (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-08/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 12 tests passed. Review score 9.425/10."
+    }
+  ]
+}

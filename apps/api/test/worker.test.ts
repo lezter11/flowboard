@@ -6,6 +6,8 @@ import { createTestHarness } from 'wrangler';
 import { localDatabaseUrl } from '../src/runtime/local-config.ts';
 import { runMigrations } from '../src/adapters/migrations.ts';
 import { getPool } from '../src/adapters/postgres.ts';
+import worker from '../src/runtime/worker.ts';
+import { createDevUserAndSession } from '../src/adapters/session.ts';
 
 const configPath = fileURLToPath(new URL('wrangler.jsonc', import.meta.url));
 
@@ -55,7 +57,7 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
       const unauthWorkspaces = await worker.fetch('http://localhost/api/v1/workspaces');
       assert.equal(unauthWorkspaces.status, 401);
 
-      // 5. Dev login via Worker executes against injected runtime database
+      // 5. The deployed Worker entry point cannot issue email-only sessions.
       const loginRes = await worker.fetch('http://localhost/api/v1/session/dev-login', {
         method: 'POST',
         headers: {
@@ -67,22 +69,13 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
           displayName: 'Worker R4 User',
         }),
       });
-      assert.equal(loginRes.status, 200);
-      const setCookie = loginRes.headers.get('set-cookie');
-      assert.ok(setCookie, 'Expected Set-Cookie header on successful dev login');
-      assert.match(setCookie, /flowboard_session=[a-f0-9]{64};/);
-      assert.match(setCookie, /HttpOnly/i);
+      assert.equal(loginRes.status, 404);
 
-      const cookieMatch = setCookie.match(/flowboard_session=([a-f0-9]{64})/);
-      assert.ok(cookieMatch && cookieMatch[1]);
-      const sessionCookie = `flowboard_session=${cookieMatch[1]}`;
-
-      const loginBody = (await loginRes.json()) as {
-        data: { actor: { id: string; email: string; displayName: string }; session: { id: string } };
-      };
-      const userId = loginBody.data.actor.id;
-      assert.equal(loginBody.data.actor.email, testEmail);
-      assert.equal(loginBody.data.actor.displayName, 'Worker R4 User');
+      // Seed a synthetic session directly in the disposable test database so
+      // the mounted Worker can still prove authenticated route behavior.
+      const seeded = await createDevUserAndSession(testEmail, 'Worker R4 User', setupPool);
+      const sessionCookie = `flowboard_session=${seeded.session.id}`;
+      const userId = seeded.user.id;
 
       // 6. Authenticated GET /api/v1/session via Worker
       const sessionRes = await worker.fetch('http://localhost/api/v1/session', {
@@ -199,7 +192,22 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
         headers: { Cookie: sessionCookie },
       });
       assert.equal(postRevokeRes.status, 401);
+
     } finally {
       await harness.close();
     }
+  });
+
+test('local workerd: scheduled callback runs purge and outbox jobs against the isolated DB binding',
+  { timeout: 30_000 }, async () => {
+    const setupPool = getPool();
+    await runMigrations(setupPool);
+    // The API suites intentionally create malformed and expired trash rows to
+    // exercise failure paths. Give the scheduled-worker check a clean synthetic
+    // database so it verifies the callback itself, not another suite's fixtures.
+    await setupPool.query('TRUNCATE workspaces CASCADE');
+    await worker.scheduled(
+      { scheduledTime: Date.now() },
+      { HYPERDRIVE: { connectionString: localDatabaseUrl(process.env['DATABASE_URL']) } },
+    );
   });

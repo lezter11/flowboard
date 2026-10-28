@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "BRD-07"
+  ],
+  "mandatoryCriteria": [
+    "Paginated cards query: GET /api/v1/boards/:boardId/cards supports filtering by columnId, title query, priority, assigneeId, and due date",
+    "Deterministic ordering: Cards returned in canonical order by position ascending",
+    "Cursor pagination: Returns nextCursor and supports opaque cursor resumption without data omission or duplicates"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "brd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Board card list and filtering query."
+}

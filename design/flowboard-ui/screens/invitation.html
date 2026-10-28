@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
+  <meta name="description" content="Flowboard invitation acceptance design prototype. Synthetic invitation states only." />
+  <title>Invitation — Flowboard design prototype</title>
+  <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="stylesheet" href="../styles.css" />
+  <link rel="stylesheet" href="../detail.css" />
+  <link rel="stylesheet" href="screens.css" />
+</head>
+<body data-page="invitation">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="invite-shell">
+    <header class="invite-top">
+      <a class="brand" href="index.html" aria-label="Flowboard screen library">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
+            <path d="M4.5 6.5h6"/><path d="M4.5 12h15"/><path d="M13.5 17.5h6"/>
+          </svg>
+        </span>
+        <span class="brand-name">Flowboard</span>
+        <span class="brand-tag">Design prototype</span>
+      </a>
+      <span class="spacer"></span>
+      <a class="btn ghost sm" href="signin.html">
+        <svg class="icon" aria-hidden="true"><use href="#i-arrow-left"></use></svg>
+        Back to sign in
+      </a>
+      <button class="icon-btn" id="inviteTheme" type="button" aria-label="Switch to dark theme" aria-pressed="false">
+        <svg class="icon theme-icon-light" aria-hidden="true"><use href="#i-sun"></use></svg>
+        <svg class="icon theme-icon-dark" aria-hidden="true"><use href="#i-moon"></use></svg>
+      </button>
+    </header>
+
+    <main class="invite-main" id="main">
+      <div>
+        <div id="inviteCard" aria-live="polite"></div>
+
+        <section class="invite-preview" aria-labelledby="invitePreviewTitle">
+          <div class="panel">
+            <div class="panel-head">
+              <div class="panel-head-copy">
+                <h2 class="panel-title" id="invitePreviewTitle">Preview invitation states</h2>
+                <p class="panel-sub">Each state is a design fixture. No token is read, stored or sent.</p>
+              </div>
+              <div class="panel-actions"><span class="badge">Design review</span></div>
+            </div>
+            <div class="panel-body">
+              <div class="invite-state-grid" role="group" aria-label="Invitation states">
+                <button class="btn sm" type="button" data-invite-state="valid" data-signed="0" aria-pressed="true">Valid · signed out</button>
+                <button class="btn sm" type="button" data-invite-state="valid" data-signed="1">Valid · signed in</button>
+                <button class="btn sm" type="button" data-invite-state="accepted" data-signed="1">Accepted</button>
+                <button class="btn sm" type="button" data-invite-state="expired" data-signed="0">Expired</button>
+                <button class="btn sm" type="button" data-invite-state="revoked" data-signed="0">Revoked</button>
+                <button class="btn sm" type="button" data-invite-state="mismatch" data-signed="1">Wrong account</button>
+                <button class="btn sm" type="button" data-invite-state="already" data-signed="1">Already member</button>
+                <button class="btn sm" type="button" data-invite-state="invalid" data-signed="0">Invalid link</button>
+              </div>
+              <p class="hint" style="margin-top:9px;">
+                <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+                The preview shows only project name, inviter, role and expiry before acceptance. Member lists, card content and project descriptions stay hidden.
+              </p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="../data.js"></script>
+  <script src="data.js"></script>
+  <script src="screens.js"></script>
+  <script src="invitation.js"></script>
+</body>
+</html>

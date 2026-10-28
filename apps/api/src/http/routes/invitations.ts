@@ -18,6 +18,7 @@ import {
 } from '../../adapters/invitations.ts';
 import { HttpError } from '../errors.ts';
 import { authMiddleware } from '../middleware/auth.ts';
+import { acquireWriteGrantLock, acquireWritableProjectContextLock } from '../../adapters/rbac.ts';
 
 export const invitationsRoutes = new Hono();
 
@@ -46,6 +47,13 @@ invitationsRoutes.post('/projects/:projectId/invitations', authMiddleware, async
 
   try {
     await client.query('BEGIN');
+
+    const grant = await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
+    await acquireWritableProjectContextLock(client, projectId);
+
+    if (!grant.isOwner && body.role === 'manager') {
+      throw HttpError.forbidden('Only workspace owners can invite managers.', 'FORBIDDEN');
+    }
 
     const methodPath = `/api/v1/projects/${projectId}/invitations`;
     const replay = await checkOrReplayReceipt(
@@ -142,6 +150,22 @@ invitationsRoutes.post('/invitations/accept', authMiddleware, async (c) => {
     );
 
     if (replay) {
+      const respData = (replay.responseBody as any)?.data;
+      if (respData?.projectId) {
+        const checkRes = await client.query<{ owner_id: string; member_status: string | null }>(
+          `SELECT w.owner_id, pm.status AS member_status
+           FROM projects p
+           JOIN workspaces w ON p.workspace_id = w.id
+           LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $2
+           WHERE p.id = $1
+           FOR SHARE OF w`,
+          [respData.projectId, actor.id],
+        );
+        const check = checkRes.rows[0];
+        if (!check || (check.owner_id !== actor.id && check.member_status !== 'active')) {
+          throw HttpError.notFound('Project not found or access revoked.', 'NOT_FOUND');
+        }
+      }
       await client.query('ROLLBACK');
       return c.json(
         { ...(replay.responseBody as object), replayed: true },
@@ -205,16 +229,28 @@ invitationsRoutes.get('/projects/:projectId/invitations', authMiddleware, async 
 
   const projectId = c.req.param('projectId');
   const pool = getPool();
+  const client = await pool.connect();
 
-  const invitations = await listInvitations(pool, actor, projectId);
+  try {
+    await client.query('BEGIN');
+    await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
 
-  return c.json(
-    {
-      data: invitations,
-      nextCursor: null,
-    },
-    200,
-  );
+    const invitations = await listInvitations(client, actor, projectId);
+    await client.query('COMMIT');
+
+    return c.json(
+      {
+        data: invitations,
+        nextCursor: null,
+      },
+      200,
+    );
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
 });
 
 // POST /api/v1/projects/:projectId/invitations/:invitationId/resend
@@ -243,6 +279,20 @@ invitationsRoutes.post(
 
     try {
       await client.query('BEGIN');
+
+      const grant = await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
+      await acquireWritableProjectContextLock(client, projectId);
+
+      const targetInv = await client.query<{ role: string; status: string }>(
+        `SELECT role, status FROM project_invitations WHERE id = $1 AND project_id = $2 FOR SHARE`,
+        [invitationId, projectId],
+      );
+      if (!targetInv.rows[0]) {
+        throw HttpError.notFound('Invitation not found.', 'NOT_FOUND');
+      }
+      if (!grant.isOwner && targetInv.rows[0].role === 'manager') {
+        throw HttpError.forbidden('Only workspace owners can resend invitations for managers.', 'FORBIDDEN');
+      }
 
       const methodPath = `/api/v1/projects/${projectId}/invitations/${invitationId}/resend`;
       const replay = await checkOrReplayReceipt(
@@ -330,6 +380,20 @@ invitationsRoutes.post(
     try {
       await client.query('BEGIN');
 
+      const grant = await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
+      await acquireWritableProjectContextLock(client, projectId);
+
+      const targetInv = await client.query<{ role: string; status: string }>(
+        `SELECT role, status FROM project_invitations WHERE id = $1 AND project_id = $2 FOR SHARE`,
+        [invitationId, projectId],
+      );
+      if (!targetInv.rows[0]) {
+        throw HttpError.notFound('Invitation not found.', 'NOT_FOUND');
+      }
+      if (!grant.isOwner && targetInv.rows[0].role === 'manager') {
+        throw HttpError.forbidden('Only workspace owners can revoke invitations for managers.', 'FORBIDDEN');
+      }
+
       const methodPath = `/api/v1/projects/${projectId}/invitations/${invitationId}/revoke`;
       const replay = await checkOrReplayReceipt(
         client,
@@ -414,6 +478,16 @@ invitationsRoutes.post('/projects/:projectId/leave', authMiddleware, async (c) =
     );
 
     if (replay) {
+      const prj = await client.query<{ owner_id: string }>(
+        `SELECT w.owner_id FROM projects p JOIN workspaces w ON p.workspace_id = w.id WHERE p.id = $1 FOR SHARE OF w`,
+        [projectId],
+      );
+      if (!prj.rows[0]) {
+        throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+      }
+      if (prj.rows[0].owner_id === actor.id) {
+        throw HttpError.forbidden('Workspace owners cannot leave their project.', 'FORBIDDEN');
+      }
       await client.query('ROLLBACK');
       return c.json(
         { ...(replay.responseBody as object), replayed: true },

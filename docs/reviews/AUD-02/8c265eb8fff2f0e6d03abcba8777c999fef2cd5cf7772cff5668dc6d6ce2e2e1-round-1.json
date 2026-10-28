@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "AUD-02"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/AUD-02/criteria.json",
+  "startedAt": "2026-10-26T11:33:42.016711+00:00",
+  "completedAt": "2026-10-26T11:33:42.016711+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "0fce3a66-787d-4e93-92dd-84dd9adbcbf0",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "6f8e2190-3b47-49a2-9bc5-c81729de105a",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/AUD-02/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/AUD-02/criteria.json",
+      "docs/reviews/AUD-02/reviewer-session.md",
+      "docs/reviews/AUD-02/test.log",
+      "apps/api/src/adapters/activity.ts",
+      "apps/api/src/adapters/notifications.ts",
+      "apps/api/src/http/routes/activity.ts",
+      "apps/api/src/http/routes/notifications.ts",
+      "apps/api/test/aud-ntf.test.ts",
+      "packages/contracts/src/discussion.ts"
+    ],
+    "files": {
+      "docs/reviews/AUD-02/criteria.json": "e6bd18e826c59e21c276b26b1d6c02d22d3cff48b9df1b3aaf1f837ecfb01e0e",
+      "docs/reviews/AUD-02/reviewer-session.md": "f9043d5e14757a6d161d648f741e2be4dfaaa74e680ae91a04628c793c3ec46e",
+      "docs/reviews/AUD-02/test.log": "fab1630b1a3f6300b4a65b440c0371a44bfa655d1b73156182ba5dcb7f954e61",
+      "apps/api/src/adapters/activity.ts": "5df26e2ef60d000a9e6982c0f8d4f8fa248154ac32b0375a6d3b81b0b38021ed",
+      "apps/api/src/adapters/notifications.ts": "d37c89e419e179f9c4cfb33ea4c848b4d5f8dac25c4ad697a4623e4fdd336e40",
+      "apps/api/src/http/routes/activity.ts": "6a0f381d279b797268037ead27d12d7b730c6112ffec5554a390c145b46bc92b",
+      "apps/api/src/http/routes/notifications.ts": "122b96bc41ce2b86fd0916230f7806c2578140b94cddc023ba56949f9d4aa494",
+      "apps/api/test/aud-ntf.test.ts": "f7f9a885e78bf81599ea27d87656b9ee655f6a28707ac4e145cb0f0b7e138f6c",
+      "packages/contracts/src/discussion.ts": "750d8daa31f45225333e1eb1def824d2ca231da26e97e1a5e9af29b35aebd361"
+    },
+    "digest": "8c265eb8fff2f0e6d03abcba8777c999fef2cd5cf7772cff5668dc6d6ce2e2e1"
+  },
+  "criteriaResults": {
+    "Safe before/after diff projection: Captures old and new values for title, priority, due date, and assignees.added/removed": "pass",
+    "Column movement details: Captures fromColumnId, toColumnId, fromColumnTitle, toColumnTitle, fromPosition, and toPosition": "pass",
+    "Historical identity preservation: Historical name changes and removed people remain understandable via getHistoricalPersonDisplay": "pass",
+    "Sensitive data protection: No private secret tokens, raw file contents, or session credentials appear in safe_changes": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "8c265eb8fff2f0e6d03abcba8777c999fef2cd5cf7772cff5668dc6d6ce2e2e1",
+      "evidencePath": "docs/reviews/AUD-02/test.log"
+    },
+    {
+      "id": "aud-ntf-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "8c265eb8fff2f0e6d03abcba8777c999fef2cd5cf7772cff5668dc6d6ce2e2e1",
+      "evidencePath": "docs/reviews/AUD-02/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strictly avoids storing authentication tokens or raw file buffers; isolates metadata to authorized card readers.",
+      "evidencePaths": [
+        "docs/reviews/AUD-02/reviewer-session.md",
+        "docs/reviews/AUD-02/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Exact before/after value diffing and column title resolution on card movements.",
+      "evidencePaths": [
+        "docs/reviews/AUD-02/reviewer-session.md",
+        "docs/reviews/AUD-02/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Column titles and position ranks accurately reflect state at time of movement.",
+      "evidencePaths": [
+        "docs/reviews/AUD-02/reviewer-session.md",
+        "docs/reviews/AUD-02/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Unit and integration tests verify before/after field changes, assignee diffs, and column names.",
+      "evidencePaths": [
+        "docs/reviews/AUD-02/reviewer-session.md",
+        "docs/reviews/AUD-02/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Standardized safe_changes JSON structure across all event types.",
+      "evidencePaths": [
+        "docs/reviews/AUD-02/reviewer-session.md",
+        "docs/reviews/AUD-02/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "Compact JSONB payloads prevent table bloat while supporting rich timeline rendering.",
+      "evidencePaths": [
+        "docs/reviews/AUD-02/reviewer-session.md",
+        "docs/reviews/AUD-02/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

@@ -2,14 +2,31 @@
 <html lang="en" data-theme="light">
 <head>
   <meta charset="utf-8" />
+  <script>
+    (function () {
+      var source = new URLSearchParams(location.search);
+      if (!source.has("board") && source.get("tab") !== "all") return;
+      var target = new URLSearchParams();
+      ["role", "theme", "project", "board", "card", "view"].forEach(function (key) {
+        var value = source.get(key); if (value) target.set(key, value);
+      });
+      if (source.has("board")) target.set("board", source.get("board") || "");
+      else { target.set("project", source.get("project") || "my-fashion"); target.set("scope", "all"); }
+      location.replace("../index.html?" + target.toString());
+    })();
+  </script>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
-  <meta name="description" content="Flowboard project overview. Design prototype with synthetic data." />
-  <title>Project overview — Flowboard design prototype</title>
+  <meta name="description" content="One project workspace with Overview, board tabs and a read-only All boards view. Local Flowboard design prototype with synthetic data." />
+  <title>Project workspace — Flowboard design prototype</title>
   <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../styles.css" />
   <link rel="stylesheet" href="../detail.css" />
   <link rel="stylesheet" href="screens.css" />
+  <link rel="stylesheet" href="projects-hub.css" />
+  <link rel="stylesheet" href="project-work.css" />
 </head>
 <body data-page="project">
   <a class="skip-link" href="#main">Skip to content</a>
@@ -18,81 +35,300 @@
     <div class="rail-scrim" id="railScrim" hidden></div>
     <div class="workspace">
       <header class="topbar" id="topbar"></header>
-      <main class="page" id="main">
-        <div id="projectContent">
-          <div class="page-head">
-            <div class="page-head-copy">
-              <p class="eyebrow" id="projectEyebrow">Acme Corp <span class="badge">Project overview</span></p>
-              <div class="row" style="align-items:flex-start;gap:12px;margin-top:4px;">
-                <span class="project-mark gold" id="projectMark" aria-hidden="true">WR</span>
-                <div>
-                  <h1 id="projectTitle">Website Redesign</h1>
-                  <p class="page-sub" id="projectSub"><span>Loading project…</span></p>
-                </div>
+      <main class="page portfolio-page project-workspace" id="main">
+        <section id="projectContent" aria-labelledby="projectTitle">
+          <div class="project-overview-heading">
+            <div class="project-overview-identity">
+              <div class="project-root-node" id="projectRootNode" role="img" aria-label="Project"><span aria-hidden="true"></span></div>
+              <div class="project-overview-copy">
+                <p class="project-path"><a href="projects.html" id="projectListLink">Projects</a><span aria-hidden="true">/</span><span id="projectPathName">Project</span></p>
+                <h1 id="projectTitle">Loading project…</h1>
+                <p id="projectDescription" class="project-overview-description"></p>
               </div>
             </div>
             <div class="page-actions" id="projectActions"></div>
           </div>
 
-          <div id="projectBanner"></div>
+          <div id="projectBanner" class="project-state-banner"></div>
 
-          <div class="summary compact" id="projectSummary" aria-label="Project summary">
-            <div class="summary-stat"><span class="label">Boards</span><span class="value" id="pStatBoards">—</span></div>
-            <div class="summary-stat"><span class="label">Cards</span><span class="value" id="pStatCards">—</span></div>
-            <div class="summary-stat"><span class="label">People</span><span class="value" id="pStatPeople">—</span></div>
-            <div class="summary-stat"><span class="label">In trash</span><span class="value" id="pStatTrash">—</span></div>
-            <div class="summary-stat"><span class="label">Due in 7 days</span><span class="value" id="pStatSoon">—</span></div>
-            <div class="summary-stat alert"><span class="label">Overdue</span><span class="value" id="pStatOverdue">—</span></div>
-          </div>
+          <nav class="project-switcher" id="projectSwitcher" aria-label="Project views"></nav>
 
-          <div class="split-layout">
-            <div class="stack">
-              <section class="panel" aria-labelledby="boardsTitle">
-                <div class="panel-head">
-                  <div class="panel-head-copy">
-                    <h2 class="panel-title" id="boardsTitle">Boards</h2>
-                    <p class="panel-sub">Every board inherits project access. There are no board-only grants.</p>
+          <section class="project-panel" id="overviewPanel" aria-labelledby="overviewTitle">
+            <h2 class="sr-only" id="overviewTitle" tabindex="-1">Project overview</h2>
+            <div class="project-layout">
+              <div class="project-main">
+                <section class="project-boards-section" aria-labelledby="boardsTitle">
+                  <div class="project-boards-heading">
+                    <div>
+                      <h2 id="boardsTitle">Boards <span id="boardsCount">0</span></h2>
+                      <p id="boardsSummary">Boards belong to this project and have separate access.</p>
+                    </div>
+                    <div class="page-actions">
+                      <button class="btn primary" type="button" id="newBoardBtn" hidden>New board</button>
+                      <a class="btn" href="project.html" id="allBoardsLink">All boards <span aria-hidden="true">→</span></a>
+                    </div>
                   </div>
-                  <div class="panel-actions" id="boardsActions"></div>
-                </div>
-                <div class="panel-body" id="boardsPanel"></div>
-              </section>
-
-              <section class="panel" aria-labelledby="recentTitle">
-                <div class="panel-head">
-                  <div class="panel-head-copy">
-                    <h2 class="panel-title" id="recentTitle">Recent activity</h2>
-                    <p class="panel-sub" id="recentSub">Card events and project access events.</p>
+                  <div id="boardsPanel" class="project-boards-panel" aria-live="polite"></div>
+                  <div class="project-boards-foot">
+                    <span id="boardsFootNote">Only boards you can open appear here.</span>
+                    <a href="project.html" id="boardsWorkLink">Open all boards <span aria-hidden="true">→</span></a>
                   </div>
-                  <div class="panel-actions"><a class="btn sm" id="viewActivityLink" href="activity.html">View all</a></div>
-                </div>
-                <div class="panel-body" id="recentPanel"></div>
-              </section>
+                </section>
 
-              <section class="panel" aria-labelledby="teamTitle">
-                <div class="panel-head">
-                  <div class="panel-head-copy">
-                    <h2 class="panel-title" id="teamTitle">Project team</h2>
-                    <p class="panel-sub">Roles are per project. A workspace membership is not a project grant.</p>
-                  </div>
-                  <div class="panel-actions" id="teamActions"></div>
+                <div class="portfolio-note project-provenance" role="note">
+                  <span class="portfolio-note-mark" aria-hidden="true"><svg class="icon"><use href="#i-info"></use></svg></span>
+                  <p><strong>Preview source:</strong> project, board, member and card records come from local synthetic fixtures. Overview, board tabs and All boards are read-only previews; the approved board remains the editable card experience. Nothing on this page is read from the Flowboard API. Local create, archive, reopen and board-access changes reset when the preview session ends.</p>
                 </div>
-                <div class="panel-body" id="teamPanel"></div>
-              </section>
+              </div>
+
+              <aside class="project-aside" aria-label="Project summary">
+                <section class="aside-card" aria-labelledby="glanceTitle">
+                  <div class="aside-head">
+                    <div>
+                      <h2 id="glanceTitle">At a glance</h2>
+                      <p id="glanceSub">Across the boards you can open</p>
+                    </div>
+                    <a class="aside-link" id="glanceWorkLink" href="project.html">All boards <span aria-hidden="true">→</span></a>
+                  </div>
+                  <div class="glance-body">
+                    <div class="donut" id="glanceDonut" role="img" aria-label="Completion">
+                      <div class="donut-copy"><strong id="glancePercent">0%</strong><span>complete</span></div>
+                    </div>
+                    <div class="glance-legend">
+                      <span class="glance-row"><i class="tone-open" aria-hidden="true"></i>Open<strong id="glanceOpen">0</strong></span>
+                      <span class="glance-row"><i class="tone-done" aria-hidden="true"></i>Completed<strong id="glanceDone">0</strong></span>
+                      <span class="glance-row"><i class="tone-overdue" aria-hidden="true"></i>Overdue<strong id="glanceOverdue">0</strong></span>
+                      <span class="glance-row"><i aria-hidden="true"></i>Total cards<strong id="glanceTotal">0</strong></span>
+                    </div>
+                  </div>
+                  <div class="glance-foot"><span id="glanceBoards">0 boards</span><span id="glanceScope">Read-only previews</span></div>
+                </section>
+
+                <section class="aside-card" id="peopleCard" aria-labelledby="peopleTitle" hidden>
+                  <div class="aside-head">
+                    <div>
+                      <h2 id="peopleTitle">People</h2>
+                      <p>Board reach inside this project</p>
+                    </div>
+                    <button class="btn" type="button" id="manageProjectMembers" hidden>Manage members</button>
+                  </div>
+                  <div class="people-list" id="peopleList"></div>
+                  <div class="glance-foot"><span>Owner sees every board</span><span>Grant per board</span></div>
+                </section>
+
+                <section class="aside-card" id="myAccessCard" aria-labelledby="myAccessTitle" hidden>
+                  <div class="aside-head">
+                    <div>
+                      <h2 id="myAccessTitle">Your access</h2>
+                      <p>Project membership plus board grants</p>
+                    </div>
+                  </div>
+                  <div class="my-access-list" id="myAccessList"></div>
+                  <div class="glance-foot"><span id="myAccessCount">0 boards</span><span>Read-only preview</span></div>
+                </section>
+
+                <section class="aside-card" aria-label="Access rule">
+                  <p class="access-note">
+                    <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+                    <span><strong>Project access is not board access.</strong> A non-owner needs the project grant and a grant for each board. Hidden boards never appear in names, tabs, counts or work lists.</span>
+                  </p>
+                </section>
+              </aside>
             </div>
 
-            <aside class="stack" id="projectAside" aria-label="Project context"></aside>
+            <footer class="portfolio-footer project-overview-footer">
+              <span class="portfolio-footer-line" aria-hidden="true"></span>
+              <p>Boards stay inside this project. A board tab is the board in context; All boards is a read-only combined view. Project access does not reveal sibling projects or automatically grant access to every board.</p>
+              <a href="project.html" id="allWorkLink">Browse all boards <span aria-hidden="true">→</span></a>
+            </footer>
+          </section>
+
+          <section class="project-panel" id="boardPanel" aria-labelledby="boardViewTitle" hidden>
+            <div id="boardView"></div>
+          </section>
+
+          <section class="project-panel" id="allBoardsPanel" aria-labelledby="allBoardsTitle" hidden>
+            <div class="project-work">
+              <div class="work-panel-head">
+                <div class="work-panel-copy">
+                  <p class="work-eyebrow">Read-only combined view</p>
+                  <h2 id="allBoardsTitle" tabindex="-1">All boards</h2>
+                  <p id="allBoardsSubtitle">Cards from every board you can open in this project. A card keeps its source board and column.</p>
+                </div>
+              </div>
+
+              <section class="work-scope" aria-label="Project scope">
+                <p class="work-scope-note"><svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg><span><strong>One project at a time.</strong> Cards never combine across projects, and each board keeps its own columns. Hidden boards contribute no names, counts or cards.</span></p>
+                <div class="work-totals" id="workTotals"></div>
+              </section>
+
+              <section class="work-tools" aria-label="Filter project work">
+                <label class="work-search" for="workSearch"><span>Search</span>
+                  <svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg>
+                  <input class="control" id="workSearch" type="search" autocomplete="off" placeholder="Search titles or keys in this project" />
+                </label>
+                <label for="workStage"><span>Stage</span>
+                  <select class="control" id="workStage">
+                    <option value="">All stages</option>
+                    <option value="todo">To do</option>
+                    <option value="active">In progress</option>
+                    <option value="done">Completed</option>
+                  </select>
+                </label>
+                <label for="workPriority"><span>Priority</span>
+                  <select class="control" id="workPriority">
+                    <option value="">All priorities</option>
+                    <option value="urgent">Urgent</option>
+                    <option value="high">High</option>
+                    <option value="medium">Medium</option>
+                    <option value="low">Low</option>
+                    <option value="none">No priority</option>
+                  </select>
+                </label>
+                <label for="workSort"><span>Sort</span>
+                  <select class="control" id="workSort">
+                    <option value="title">Card title</option>
+                    <option value="due">Due date</option>
+                  </select>
+                </label>
+                <div class="work-tools-end">
+                  <div class="work-view" role="group" aria-label="Work layout">
+                    <button type="button" data-work-view="list" aria-pressed="true">List</button>
+                    <button type="button" data-work-view="board" aria-pressed="false">Board</button>
+                  </div>
+                  <button class="work-reset" type="button" id="workReset">Clear filters</button>
+                </div>
+              </section>
+
+              <p class="work-result-status" id="workResultStatus" aria-live="polite"></p>
+              <section id="workResults" aria-label="Project cards"></section>
+              <div class="work-more"><button class="btn" type="button" id="workLoadMore" hidden>Load more cards</button></div>
+
+              <footer class="work-foot">
+                <span class="work-foot-mark" aria-hidden="true"></span>
+                <p>This combined view is read-only. A card keeps its original board and column; move or edit it in the source board. Hidden boards contribute no names, counts or cards.</p>
+                <span class="work-foot-sample">Sample workspace</span>
+              </footer>
+            </div>
+          </section>
+        </section>
+
+        <section id="projectDenied" hidden></section>
+
+        <div class="dialog-layer" id="boardAccessLayer" hidden>
+          <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="boardAccessTitle" aria-describedby="boardAccessHelp">
+            <div class="dialog-head">
+              <div class="dialog-head-copy">
+                <h2 id="boardAccessTitle">Board access</h2>
+                <p id="boardAccessSubtitle">Choose project members who can open this board.</p>
+              </div>
+              <button class="dialog-close" type="button" data-close-board-access aria-label="Close board access dialog"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg></button>
+            </div>
+            <div class="dialog-body board-access-body">
+              <p class="board-access-help" id="boardAccessHelp">Only people who already belong to this project can receive board access. Changes in this local preview are not saved by the API.</p>
+              <fieldset class="board-access-fieldset">
+                <legend>Project members</legend>
+                <div id="boardAccessMembers" class="board-access-members"></div>
+              </fieldset>
+              <p id="boardAccessError" class="form-error" role="status" aria-live="polite" hidden></p>
+            </div>
+            <footer class="dialog-foot">
+              <button class="btn" type="button" data-cancel-board-access>Cancel</button>
+              <span class="spacer"></span>
+              <button class="btn primary" type="button" id="saveBoardAccess">Save access</button>
+            </footer>
           </div>
         </div>
 
-        <section id="projectDenied" hidden></section>
+        <div class="dialog-layer" id="projectMembersLayer" hidden>
+          <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="projectMembersTitle" aria-describedby="projectMembersHelp">
+            <div class="dialog-head">
+              <div class="dialog-head-copy">
+                <h2 id="projectMembersTitle">Project members</h2>
+                <p id="projectMembersSubtitle">Choose who belongs to this project.</p>
+              </div>
+              <button class="dialog-close" type="button" data-close-project-members aria-label="Close project members dialog"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg></button>
+            </div>
+            <div class="dialog-body board-access-body">
+              <p class="board-access-help" id="projectMembersHelp">Project membership lets someone see this project. It does not grant access to any board; assign board access separately for each board.</p>
+              <fieldset class="board-access-fieldset">
+                <legend>People</legend>
+                <div id="projectMembersList" class="board-access-members"></div>
+              </fieldset>
+              <p id="projectMembersError" class="form-error" role="status" aria-live="polite" hidden></p>
+            </div>
+            <footer class="dialog-foot">
+              <button class="btn" type="button" data-close-project-members>Cancel</button>
+              <span class="spacer"></span>
+              <button class="btn primary" type="button" id="saveProjectMembers">Save members</button>
+            </footer>
+          </div>
+        </div>
+
+        <div class="dialog-layer" id="newBoardLayer" hidden>
+          <div class="dialog wide" role="dialog" aria-modal="true" aria-labelledby="newBoardTitle" aria-describedby="newBoardHint">
+            <div class="dialog-head">
+              <div class="dialog-head-copy">
+                <h2 id="newBoardTitle">Create a board</h2>
+                <p>A board is one team’s workflow inside this project.</p>
+              </div>
+              <button class="dialog-close" type="button" data-close-new-board aria-label="Close create board dialog"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg></button>
+            </div>
+            <form id="newBoardForm" novalidate>
+              <div class="dialog-body board-create-body">
+                <div class="dialog-field">
+                  <label for="newBoardName">Board name</label>
+                  <input class="control" id="newBoardName" name="name" type="text" maxlength="100" autocomplete="off" placeholder="e.g. Marketing" required data-autofocus aria-describedby="newBoardNameError" />
+                  <p class="form-error" id="newBoardNameError" aria-live="polite" hidden></p>
+                </div>
+                <div class="dialog-field">
+                  <label for="newBoardDescription">Description <span class="faint">(optional)</span></label>
+                  <textarea class="control textarea" id="newBoardDescription" name="description" maxlength="2000" placeholder="What does this team track here?" aria-describedby="newBoardHint"></textarea>
+                  <p class="hint" id="newBoardHint">The board starts with its own columns. The Owner always keeps access; you can change who else can open it at any time.</p>
+                </div>
+                <fieldset class="board-access-fieldset">
+                  <legend>Who can open this board?</legend>
+                  <div id="newBoardMembers" class="board-access-members"></div>
+                </fieldset>
+                <p class="portfolio-local-note"><strong>Sample workspace:</strong> this board stays in this browser session and does not create API records.</p>
+              </div>
+              <footer class="dialog-foot">
+                <button class="btn" type="button" data-close-new-board>Cancel</button>
+                <span class="spacer"></span>
+                <button class="btn primary" type="submit">Create board</button>
+              </footer>
+            </form>
+          </div>
+        </div>
+
+        <div class="dialog-layer" id="workCardLayer" hidden>
+          <div class="dialog work-detail" role="dialog" aria-modal="true" aria-labelledby="workCardTitle" aria-describedby="workCardSource">
+            <div class="dialog-head">
+              <div class="dialog-head-copy">
+                <p class="work-provenance" id="workCardSource">Project / Board / Column</p>
+                <h2 id="workCardTitle">Card</h2>
+              </div>
+              <button class="dialog-close" type="button" data-close-work-card aria-label="Close card preview"><svg class="icon" aria-hidden="true"><use href="#i-x"></use></svg></button>
+            </div>
+            <div class="dialog-body">
+              <div id="workCardSignals"></div>
+              <p class="work-detail-note">Read-only project work. The card stays in its source board; open that board to change its column, assignee or details.</p>
+            </div>
+            <footer class="dialog-foot">
+              <a class="btn" id="workSourceBoard" href="#">Open source board <span aria-hidden="true">→</span></a>
+              <span class="spacer"></span>
+              <button class="btn" type="button" data-close-work-card>Close</button>
+              <a class="btn primary" id="workOriginalCard" href="#">Open full card</a>
+            </footer>
+          </div>
+        </div>
       </main>
     </div>
   </div>
-
   <script src="../data.js"></script>
   <script src="data.js"></script>
   <script src="screens.js"></script>
+  <script src="portfolio-model.js"></script>
   <script src="project.js"></script>
 </body>
 </html>

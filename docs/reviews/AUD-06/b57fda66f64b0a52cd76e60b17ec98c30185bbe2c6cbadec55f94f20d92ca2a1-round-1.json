@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "AUD-06"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/AUD-06/criteria.json",
+  "startedAt": "2026-10-26T11:33:42.027142+00:00",
+  "completedAt": "2026-10-26T11:33:42.027142+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "0fce3a66-787d-4e93-92dd-84dd9adbcbf0",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "6f8e2190-3b47-49a2-9bc5-c81729de105a",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/AUD-06/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/AUD-06/criteria.json",
+      "docs/reviews/AUD-06/reviewer-session.md",
+      "docs/reviews/AUD-06/test.log",
+      "apps/api/src/adapters/activity.ts",
+      "apps/api/src/adapters/notifications.ts",
+      "apps/api/src/http/routes/activity.ts",
+      "apps/api/src/http/routes/notifications.ts",
+      "apps/api/test/aud-ntf.test.ts",
+      "packages/contracts/src/discussion.ts"
+    ],
+    "files": {
+      "docs/reviews/AUD-06/criteria.json": "ab6a30aa40ddba1dbcca1581d5aebb988a496e3d4e22bc5169bc805813335bda",
+      "docs/reviews/AUD-06/reviewer-session.md": "f873b394826e29c37200e5b35f4a276b0eb3055bdbe5636a133f8008bf94051b",
+      "docs/reviews/AUD-06/test.log": "fab1630b1a3f6300b4a65b440c0371a44bfa655d1b73156182ba5dcb7f954e61",
+      "apps/api/src/adapters/activity.ts": "5df26e2ef60d000a9e6982c0f8d4f8fa248154ac32b0375a6d3b81b0b38021ed",
+      "apps/api/src/adapters/notifications.ts": "d37c89e419e179f9c4cfb33ea4c848b4d5f8dac25c4ad697a4623e4fdd336e40",
+      "apps/api/src/http/routes/activity.ts": "6a0f381d279b797268037ead27d12d7b730c6112ffec5554a390c145b46bc92b",
+      "apps/api/src/http/routes/notifications.ts": "122b96bc41ce2b86fd0916230f7806c2578140b94cddc023ba56949f9d4aa494",
+      "apps/api/test/aud-ntf.test.ts": "f7f9a885e78bf81599ea27d87656b9ee655f6a28707ac4e145cb0f0b7e138f6c",
+      "packages/contracts/src/discussion.ts": "750d8daa31f45225333e1eb1def824d2ca231da26e97e1a5e9af29b35aebd361"
+    },
+    "digest": "b57fda66f64b0a52cd76e60b17ec98c30185bbe2c6cbadec55f94f20d92ca2a1"
+  },
+  "criteriaResults": {
+    "Append-only immutability: No user-facing endpoints exist to modify or delete activity log records": "pass",
+    "Retention redaction: Scrubbing safe_changes for purged cards replaces content with minimal tombstone { cardId, purged: true }": "pass",
+    "Fact persistence: Activity log ID, actor_id, action, card_id, and created_at persist permanently after redaction": "pass",
+    "No data leaks: Redacted records reveal zero private titles, descriptions, or comment bodies": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "b57fda66f64b0a52cd76e60b17ec98c30185bbe2c6cbadec55f94f20d92ca2a1",
+      "evidencePath": "docs/reviews/AUD-06/test.log"
+    },
+    {
+      "id": "aud-ntf-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "b57fda66f64b0a52cd76e60b17ec98c30185bbe2c6cbadec55f94f20d92ca2a1",
+      "evidencePath": "docs/reviews/AUD-06/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Zero mutation endpoints prevent audit log tampering; retention redaction scrubs sensitive payloads safely.",
+      "evidencePaths": [
+        "docs/reviews/AUD-06/reviewer-session.md",
+        "docs/reviews/AUD-06/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Tombstone sanitization replaces body content while preserving immutable audit facts.",
+      "evidencePaths": [
+        "docs/reviews/AUD-06/reviewer-session.md",
+        "docs/reviews/AUD-06/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Foreign key constraints and immutable timestamps prevent historical fact manipulation.",
+      "evidencePaths": [
+        "docs/reviews/AUD-06/reviewer-session.md",
+        "docs/reviews/AUD-06/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests verify absence of mutation routes, retention scrubbing execution, and fact preservation.",
+      "evidencePaths": [
+        "docs/reviews/AUD-06/reviewer-session.md",
+        "docs/reviews/AUD-06/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Encapsulated redactCardActivity helper reused across adapter and background trash purge service.",
+      "evidencePaths": [
+        "docs/reviews/AUD-06/reviewer-session.md",
+        "docs/reviews/AUD-06/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "Zero performance impact on read paths; atomic single-query redaction.",
+      "evidencePaths": [
+        "docs/reviews/AUD-06/reviewer-session.md",
+        "docs/reviews/AUD-06/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

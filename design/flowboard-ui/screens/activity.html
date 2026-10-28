@@ -1,164 +1,34 @@
 <!doctype html>
 <html lang="en" data-theme="light">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='6' fill='%23235c4b'/%3E%3Cpath d='M5 7h5M5 12h14M14 17h5' stroke='%23fff' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E" />
-  <meta name="description" content="Flowboard activity feed. Design prototype with synthetic events." />
-  <title>Activity — Flowboard design prototype</title>
-  <script>try { var t = localStorage.getItem("flowboard-ui-theme"); if (t === "dark") document.documentElement.dataset.theme = "dark"; } catch (e) {}</script>
-  <link rel="stylesheet" href="../styles.css" />
-  <link rel="stylesheet" href="../detail.css" />
-  <link rel="stylesheet" href="screens.css" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Activity across your Flowboard projects." /><title>Activity — Flowboard</title>
+  <script>try { if (localStorage.getItem('flowboard-ui-theme') === 'dark') document.documentElement.dataset.theme = 'dark'; } catch (_) {}</script>
+  <link rel="stylesheet" href="../styles.css" /><link rel="stylesheet" href="../detail.css" /><link rel="stylesheet" href="screens.css" /><link rel="stylesheet" href="activity.css?v=1" />
 </head>
 <body data-page="activity">
   <a class="skip-link" href="#main">Skip to content</a>
-  <div class="app">
-    <aside class="rail" id="rail" aria-label="Workspace navigation"></aside>
-    <div class="rail-scrim" id="railScrim" hidden></div>
-    <div class="workspace">
-      <header class="topbar" id="topbar"></header>
-      <main class="page" id="main">
-        <div class="page-head">
-          <div class="page-head-copy">
-            <p class="eyebrow">Acme Corp <span class="badge" id="scopeBadge">Workspace activity</span></p>
-            <h1>Activity</h1>
-            <p class="page-sub" id="activitySub"><span>Loading activity…</span></p>
-          </div>
-          <div class="page-actions">
-            <a class="btn" id="activityProjectLink" href="project.html">
-              <svg class="icon" aria-hidden="true"><use href="#i-board"></use></svg>
-              Project overview
-            </a>
-            <button class="btn ghost" type="button" id="resetFilters">
-              <svg class="icon" aria-hidden="true"><use href="#i-refresh"></use></svg>
-              Reset filters
-            </button>
-          </div>
+  <div class="app"><aside class="rail" id="rail" aria-label="Workspace navigation"></aside><div class="rail-scrim" id="railScrim" hidden></div><div class="workspace">
+    <header class="topbar" id="topbar"></header>
+    <main class="page activity-page" id="main">
+      <header class="activity-heading"><div><p class="activity-kicker">WORKSPACE</p><h1>Activity</h1><p class="activity-sub">A clear view of recent changes.</p></div><a class="btn activity-project-link" href="projects.html"><svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg>Browse projects</a></header>
+      <section class="activity-overview" aria-label="Activity overview"><span class="overview-mark"><svg class="icon" aria-hidden="true"><use href="#i-activity"></use></svg></span><div class="overview-copy"><strong id="eventTotal">0</strong><span>events</span></div><div class="overview-separator" aria-hidden="true"></div><div class="overview-metric"><svg class="icon" aria-hidden="true"><use href="#i-folder"></use></svg><span><strong id="projectTotal">0</strong> projects</span></div><div class="overview-metric people"><svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg><span><strong id="peopleTotal">0</strong> people</span></div></section>
+      <section class="activity-queue" aria-labelledby="feedTitle">
+        <div class="activity-queue-head"><div><h2 id="feedTitle">Recent activity</h2><p>Recorded changes across accessible work.</p></div><span class="feed-count" id="feedCount"></span></div>
+        <div class="activity-toolbar">
+          <label class="activity-search" for="activitySearch"><svg class="icon" aria-hidden="true"><use href="#i-search"></use></svg><span class="sr-only">Search activity</span><input type="search" id="activitySearch" placeholder="Search activity" autocomplete="off" /></label>
+          <label class="activity-filter"><span class="sr-only">Project</span><select id="activityProject" aria-label="Filter by project"></select><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg></label>
+          <label class="activity-filter"><span class="sr-only">Person</span><select id="activityActor" aria-label="Filter by person"></select><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg></label>
+          <label class="activity-filter"><span class="sr-only">Action</span><select id="activityAction" aria-label="Filter by action"></select><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg></label>
+          <label class="activity-filter"><span class="sr-only">Date</span><select id="activityDate" aria-label="Filter by date"><option value="all">All dates</option><option value="7">Last 7 days</option><option value="30">Last 30 days</option><option value="90">Last 90 days</option></select><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"></use></svg></label>
+          <button class="activity-clear" id="resetFilters" type="button" hidden>Clear filters</button>
         </div>
-
-        <div class="review-bar" id="scopeBar">
-          <svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg>
-          <span id="scopeCopy"><strong>Role-scoped feed.</strong> Loading the permitted scope…</span>
-          <span class="spacer"></span>
-          <span class="badge" id="accessBadge">—</span>
-        </div>
-
-        <div class="summary compact" aria-label="Activity summary">
-          <div class="summary-stat"><span class="label">Events shown</span><span class="value" id="statShown">—</span></div>
-          <div class="summary-stat"><span class="label">Projects</span><span class="value" id="statProjects">—</span></div>
-          <div class="summary-stat"><span class="label">People</span><span class="value" id="statPeople">—</span></div>
-          <div class="summary-stat"><span class="label">Access events</span><span class="value" id="statAccess">—</span></div>
-          <div class="summary-bars">
-            <div class="summary-bars-top"><span>Visible categories</span><em id="categoryHint">—</em></div>
-            <div class="distribution" id="categoryBars" aria-label="Visible event categories"></div>
-            <div class="dist-legend" id="categoryLegend"></div>
-          </div>
-        </div>
-
-        <div class="split-layout">
-          <section class="panel" aria-labelledby="feedTitle">
-            <div class="panel-head">
-              <div class="panel-head-copy">
-                <h2 class="panel-title" id="feedTitle">Feed</h2>
-                <p class="panel-sub" id="feedSub">Newest first. Card history and permitted access events.</p>
-              </div>
-              <div class="panel-actions">
-                <span class="badge" id="feedCount">—</span>
-              </div>
-            </div>
-
-            <div class="panel-body" style="border-bottom:1px solid var(--line);">
-              <div class="activity-filters">
-                <label class="sr-only" for="activityProject">Project</label>
-                <select class="control" id="activityProject"></select>
-                <label class="sr-only" for="activityActor">Person</label>
-                <select class="control" id="activityActor"></select>
-                <label class="sr-only" for="activityAction">Action</label>
-                <select class="control" id="activityAction"></select>
-                <label class="sr-only" for="activityDate">Date range</label>
-                <select class="control" id="activityDate">
-                  <option value="all">All dates</option>
-                  <option value="7">Last 7 days</option>
-                  <option value="30">Last 30 days</option>
-                  <option value="90">Last 90 days</option>
-                </select>
-                <span class="spacer"></span>
-                <span class="tiny faint" id="filterNote">—</span>
-              </div>
-            </div>
-
-            <div class="panel-body" id="feedPanel"></div>
-            <div class="panel-foot">
-              <span class="tiny faint" id="loadNote">—</span>
-              <span class="spacer"></span>
-              <button class="btn sm" type="button" id="loadMoreBtn">Load more</button>
-            </div>
-          </section>
-
-          <aside class="stack">
-            <section class="panel">
-              <div class="panel-head">
-                <div class="panel-head-copy">
-                  <h2 class="panel-title">Who sees what</h2>
-                  <p class="panel-sub">Activity is scoped before it is filtered</p>
-                </div>
-              </div>
-              <div class="panel-body stack-sm">
-                <div class="feed-item" style="padding-top:0;">
-                  <span class="feed-icon access"><svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg></span>
-                  <div class="feed-main"><p class="feed-text"><strong>Owner</strong> sees card history and access events across every owned project.</p></div>
-                </div>
-                <div class="feed-item">
-                  <span class="feed-icon access"><svg class="icon" aria-hidden="true"><use href="#i-users"></use></svg></span>
-                  <div class="feed-main"><p class="feed-text"><strong>Manager</strong> sees card history and access events for granted projects only.</p></div>
-                </div>
-                <div class="feed-item">
-                  <span class="feed-icon"><svg class="icon" aria-hidden="true"><use href="#i-activity"></use></svg></span>
-                  <div class="feed-main"><p class="feed-text"><strong>Member and Viewer</strong> see card history in granted projects. Access, trash, import and settings events stay hidden.</p></div>
-                </div>
-                <div class="note">
-                  <svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg>
-                  <span>Filters never widen scope. They can only narrow the events the current role may already see.</span>
-                </div>
-              </div>
-            </section>
-
-            <section class="panel">
-              <div class="panel-head">
-                <div class="panel-head-copy">
-                  <h2 class="panel-title">About this feed</h2>
-                  <p class="panel-sub">Read-only history</p>
-                </div>
-              </div>
-              <div class="panel-body stack-sm">
-                <p class="small muted" style="line-height:1.55;">Activity records are append-only in the product. This prototype keeps them in memory and does not write an audit log.</p>
-                <div class="note warn">
-                  <svg class="icon" aria-hidden="true"><use href="#i-alert"></use></svg>
-                  <span><strong>Not an audit trail.</strong> A production owner-visible access log needs server-side retention, immutability and export rules that are not designed here.</span>
-                </div>
-                <div class="note">
-                  <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-                  <span>Card links open the approved board artifact with the current role. Access-event links open project, trash or import screens where the role allows.</span>
-                </div>
-              </div>
-            </section>
-          </aside>
-        </div>
-
-        <footer class="board-foot">
-          <svg class="icon" aria-hidden="true"><use href="#i-info"></use></svg>
-          <span>Activity · synthetic events · design evidence only</span>
-          <span class="sep"></span>
-          <span>No audit log, export or persistence is implemented.</span>
-        </footer>
-      </main>
-    </div>
-  </div>
-
-  <script src="../data.js"></script>
-  <script src="data.js"></script>
-  <script src="screens.js"></script>
-  <script src="activity.js"></script>
-</body>
-</html>
+        <div class="activity-results"><span id="filterNote" aria-live="polite"></span><span>Newest first</span></div>
+        <div id="feedPanel"></div>
+        <div class="activity-more"><span id="loadNote"></span><button class="btn" type="button" id="loadMoreBtn">Load more</button></div>
+      </section>
+      <p class="activity-foot">Preview data · Some projects have no recorded preview history</p>
+    </main>
+  </div></div>
+  <script src="../data.js"></script><script src="data.js"></script><script src="screens.js"></script><script src="portfolio-model.js"></script><script src="activity.js?v=2"></script>
+</body></html>

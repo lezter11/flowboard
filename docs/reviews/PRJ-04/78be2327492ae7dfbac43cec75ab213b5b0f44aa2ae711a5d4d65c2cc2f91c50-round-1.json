@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "PRJ-04"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/PRJ-04/criteria.json",
+  "startedAt": "2026-10-26T13:17:19.358137+00:00",
+  "completedAt": "2026-10-26T13:17:19.358137+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2630ea55-89d4-4c26-bc1e-b56f5555b3c5",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "6a12bd24-7baf-4cac-99fe-0f396b9bb499",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/PRJ-04/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/PRJ-04/criteria.json",
+      "docs/reviews/PRJ-04/reviewer-session.md",
+      "docs/reviews/PRJ-04/test.log",
+      "apps/api/src/adapters/projects.ts",
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/adapters/cards.ts",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/http/routes/projects.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/src/http/routes/cards.ts",
+      "apps/api/test/lifecycle-undo.test.ts"
+    ],
+    "files": {
+      "docs/reviews/PRJ-04/criteria.json": "c415080244c809f60b007e53972f8b46ac656b5a26933ffa52fcb5823ff7b683",
+      "docs/reviews/PRJ-04/reviewer-session.md": "20deaf7dffb4119693886ca74ba97bafb241e409f59d475028c36fc29a34d634",
+      "docs/reviews/PRJ-04/test.log": "cf7126d48083fc671a0043622b41482e9a3bfa4fed4cf63eb2f3c3a258cd2ed4",
+      "apps/api/src/adapters/projects.ts": "feb511c3472233c2bdcb86fcc5e69e500c280c84420d291d0c90b3648445a79a",
+      "apps/api/src/adapters/boards.ts": "1128d2681207df3b5d9bc55c04463202dfb3bee3bdcf3f8bc3a7a47343ad12a8",
+      "apps/api/src/adapters/cards.ts": "e8787b4a363ed49ab80f4f490f12c635c1d06c4a5772759075d728a65a2ad0c4",
+      "apps/api/src/adapters/rbac.ts": "0de89f07e4ad44ba8a158977366e2d647efdbfec524f623bb1fb6707e45b81b4",
+      "apps/api/src/http/routes/projects.ts": "c68090ea532667fd8180c85341b4f0002264e5a307402ca20a5c030813e0f638",
+      "apps/api/src/http/routes/boards.ts": "ef5ed5febd3c283c1a385696a7ec2cfaed2b898174697ca5d73a08a98f38899d",
+      "apps/api/src/http/routes/cards.ts": "b6fdce28f8bd175ad4dee738e074b71c591a4607d12ef8b59d83a645f9f42661",
+      "apps/api/test/lifecycle-undo.test.ts": "a823e642ea950ff3df23eeccb418d019c779397a2935a2b20c2f0fea820ec74a"
+    },
+    "digest": "78be2327492ae7dfbac43cec75ab213b5b0f44aa2ae711a5d4d65c2cc2f91c50"
+  },
+  "criteriaResults": {
+    "Owner-only authorization: Workspace owner can archive and reopen; non-owners receive 403 FORBIDDEN": "pass",
+    "Read-only context enforcement: Writes in archived projects are blocked with 409 READ_ONLY_CONTEXT": "pass",
+    "Data and history preservation: Project, boards, columns, and cards remain queryable via GET": "pass",
+    "Safe reopening: Reopening sets archived = FALSE and immediately resumes write operations": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "node v20.x, typescript 5.x",
+      "isolatedSynthetic": true,
+      "targetDigest": "78be2327492ae7dfbac43cec75ab213b5b0f44aa2ae711a5d4d65c2cc2f91c50",
+      "evidencePath": "docs/reviews/PRJ-04/test.log"
+    },
+    {
+      "id": "lifecycle-undo-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/lifecycle-undo.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "78be2327492ae7dfbac43cec75ab213b5b0f44aa2ae711a5d4d65c2cc2f91c50",
+      "evidencePath": "docs/reviews/PRJ-04/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict owner role requirement; anti-enumeration 404 for outsiders; all mutation routes verify writable context lock.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-04/reviewer-session.md",
+        "docs/reviews/PRJ-04/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Exact HTTP 409 READ_ONLY_CONTEXT error envelope; version increment on state transitions; idempotency support.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-04/reviewer-session.md",
+        "docs/reviews/PRJ-04/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Zero data loss; relational hierarchy, activity history, and trash recovery deadlines remain fully intact.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-04/reviewer-session.md",
+        "docs/reviews/PRJ-04/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Integration test covers owner archive, non-owner 403, outsider 404, write rejection, read preservation, and reopen write resumption.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-04/reviewer-session.md",
+        "docs/reviews/PRJ-04/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Centralized acquireWritableProjectContextLock shared across all write endpoints.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-04/reviewer-session.md",
+        "docs/reviews/PRJ-04/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "Single atomic UPDATE statement; indexed lookup on project primary key.",
+      "evidencePaths": [
+        "docs/reviews/PRJ-04/reviewer-session.md",
+        "docs/reviews/PRJ-04/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

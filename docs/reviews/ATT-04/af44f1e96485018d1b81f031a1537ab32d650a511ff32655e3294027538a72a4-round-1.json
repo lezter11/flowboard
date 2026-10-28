@@ -1,0 +1,142 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "ATT-04"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/ATT-04/criteria.json",
+  "startedAt": "2026-10-26T10:06:25.474164+00:00",
+  "completedAt": "2026-10-26T10:06:25.474164+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "ad772234-4182-46fa-ae45-ae96061b197d",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "1c7b9629-326a-4cf8-aad0-15495025a9dc",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/ATT-04/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/ATT-04/criteria.json",
+      "docs/reviews/ATT-04/reviewer-session.md",
+      "docs/reviews/ATT-04/test.log",
+      "apps/api/src/adapters/images.ts",
+      "apps/api/src/adapters/storage.ts",
+      "apps/api/src/services/image-validator.ts",
+      "apps/api/src/http/routes/images.ts",
+      "apps/api/src/services/trash-purge.ts",
+      "apps/api/test/att01-att07.test.ts",
+      "database/migrations/0005_card_images.sql",
+      "packages/contracts/src/images.ts"
+    ],
+    "files": {
+      "docs/reviews/ATT-04/criteria.json": "cc2f55733bdbfeafc49a54d9d07faea2d18c14a82fbeab2a5a32c962e97c89a9",
+      "docs/reviews/ATT-04/reviewer-session.md": "76498555c7152d271de5466d2a67f3f97a3f20ebfa1ac9656fa25de3281a8605",
+      "docs/reviews/ATT-04/test.log": "b7145fea259eb4e672d3c28feb7005fffdc454c986356eaa7379b63d0e405a88",
+      "apps/api/src/adapters/images.ts": "a53c89f3b7287b22e1be1a8d31a3b5109c46582c3759b3b23563b82a621c44dd",
+      "apps/api/src/adapters/storage.ts": "53fc6ce9c28cd158c33336890b643e734c645d6121bf8e6aea3523618bfe19d1",
+      "apps/api/src/services/image-validator.ts": "458a795af04c6e3a2a13274eb39dc7f84721cc409d352fec52ffd972a77d6d8a",
+      "apps/api/src/http/routes/images.ts": "90bbdf782aee0e40c30fbb04c4b74dd8781c55bd1a7ae7120badeee23407f822",
+      "apps/api/src/services/trash-purge.ts": "9712ebd02d48b1bbec6eb812cf8867e256d43813f902955b121967c90ad892b0",
+      "apps/api/test/att01-att07.test.ts": "624b0135ae8cc22d5110befd6b623e79bf59defba08af5448feb841aa154bba4",
+      "database/migrations/0005_card_images.sql": "983a46376d7fb68243629deff8b5230835a6f1b98268870badb81f6a26b80546",
+      "packages/contracts/src/images.ts": "10d1c52aa7469d0002e145a433fd9836802e46751e6fa8eeab601d2126c67d21"
+    },
+    "digest": "af44f1e96485018d1b81f031a1537ab32d650a511ff32655e3294027538a72a4"
+  },
+  "criteriaResults": {
+    "Authenticated proxy delivery: GET /api/v1/images/:imageId/content and /thumbnail require valid session and active project membership": "pass",
+    "Instant revocation enforcement: If a user's membership is removed or role revoked, subsequent image requests immediately return 404 NOT_FOUND": "pass",
+    "Sibling project privacy: Members of sibling projects without a grant in the image's project receive 404 NOT_FOUND": "pass",
+    "Security response headers: Delivery sets Cache-Control: private, no-cache, no-store, must-revalidate and X-Content-Type-Options: nosniff": "pass",
+    "Binary stream delivery: Streams exact verified binary bytes with correct Content-Type, Content-Length, and Content-Disposition": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "af44f1e96485018d1b81f031a1537ab32d650a511ff32655e3294027538a72a4",
+      "evidencePath": "docs/reviews/ATT-04/test.log"
+    },
+    {
+      "id": "att-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "af44f1e96485018d1b81f031a1537ab32d650a511ff32655e3294027538a72a4",
+      "evidencePath": "docs/reviews/ATT-04/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Zero public buckets; fresh database permission check executed on every single byte request; prevents link sharing and post-revocation data leaks; nosniff header prevents MIME confusion.",
+      "evidencePaths": [
+        "docs/reviews/ATT-04/reviewer-session.md",
+        "docs/reviews/ATT-04/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Returns exact binary stream matching original upload bytes; thumbnail endpoint routes safely through authenticated proxy.",
+      "evidencePaths": [
+        "docs/reviews/ATT-04/reviewer-session.md",
+        "docs/reviews/ATT-04/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Fresh lookup against project_memberships table guarantees authorization is never stale.",
+      "evidencePaths": [
+        "docs/reviews/ATT-04/reviewer-session.md",
+        "docs/reviews/ATT-04/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests verify authenticated retrieval, 401 unauthenticated, 404 post-revocation, 404 sibling project, and security headers.",
+      "evidencePaths": [
+        "docs/reviews/ATT-04/reviewer-session.md",
+        "docs/reviews/ATT-04/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Abstract StorageDriver interface enables seamless migration from in-memory/disk to Cloudflare R2 / S3.",
+      "evidencePaths": [
+        "docs/reviews/ATT-04/reviewer-session.md",
+        "docs/reviews/ATT-04/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Zero-copy stream piping through HTTP runtime minimizes memory overhead.",
+      "evidencePaths": [
+        "docs/reviews/ATT-04/reviewer-session.md",
+        "docs/reviews/ATT-04/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

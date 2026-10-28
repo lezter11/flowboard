@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "AUD-03"
+  ],
+  "mandatoryCriteria": [
+    "Workspace owner authorization: Workspace owner can view unified cross-project activity via GET /api/v1/workspaces/:workspaceId/activity",
+    "Cross-project filtering: Supports filtering by projectId, cardId, actorId, action, fromDate, and toDate",
+    "Sibling project privacy: Invited project managers and members attempting to query workspace activity are rejected with 403 FORBIDDEN",
+    "Outsider protection: Complete outsiders receive 404 NOT_FOUND"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "aud-ntf-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: AUD-03 activity tracking and notifications on PostgreSQL. Out-of-scope: UI components."
+}

@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "AUD-01"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/AUD-01/criteria.json",
+  "startedAt": "2026-10-26T12:35:23.425353+00:00",
+  "completedAt": "2026-10-26T12:35:23.425353+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "0fce3a66-787d-4e93-92dd-84dd9adbcbf0",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "6f8e2190-3b47-49a2-9bc5-c81729de105a",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/AUD-01/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/AUD-01/criteria.json",
+      "docs/reviews/AUD-01/reviewer-session.md",
+      "docs/reviews/AUD-01/test.log",
+      "apps/api/src/adapters/activity.ts",
+      "apps/api/src/adapters/notifications.ts",
+      "apps/api/src/http/routes/activity.ts",
+      "apps/api/src/http/routes/notifications.ts",
+      "apps/api/test/aud-ntf.test.ts",
+      "packages/contracts/src/discussion.ts"
+    ],
+    "files": {
+      "docs/reviews/AUD-01/criteria.json": "c0aca401245b60c0334c794aca0f365c6945d6f836cd6d5d2d16c58497cf9c11",
+      "docs/reviews/AUD-01/reviewer-session.md": "eafda1bd3b990625de3659b09ec9ac4284046f3fa64e72822357c5bd5b0ebf25",
+      "docs/reviews/AUD-01/test.log": "9eaae01269008fc9aa41362381af5a5b6ba589ad6b1b0f23b3b6a9ac37fd13e2",
+      "apps/api/src/adapters/activity.ts": "5df26e2ef60d000a9e6982c0f8d4f8fa248154ac32b0375a6d3b81b0b38021ed",
+      "apps/api/src/adapters/notifications.ts": "44f0b760a38e59b6ba6afdeb295a5dcb41fa4e056c7a778839eeda0672a91676",
+      "apps/api/src/http/routes/activity.ts": "6a0f381d279b797268037ead27d12d7b730c6112ffec5554a390c145b46bc92b",
+      "apps/api/src/http/routes/notifications.ts": "122b96bc41ce2b86fd0916230f7806c2578140b94cddc023ba56949f9d4aa494",
+      "apps/api/test/aud-ntf.test.ts": "a70f2b447024f843dd4601fef9396d7c99e67abdcb5b190b6ec06652073cf32d",
+      "packages/contracts/src/discussion.ts": "750d8daa31f45225333e1eb1def824d2ca231da26e97e1a5e9af29b35aebd361"
+    },
+    "digest": "92a6b0c4207e996cf074d4f76c3e65e345d5e8d07072b39580686a4b4adf2ba7"
+  },
+  "criteriaResults": {
+    "Chronological timeline retrieval: GET /api/v1/cards/:cardId/activity returns card events ordered chronologically (created_at ASC, id ASC)": "pass",
+    "Comprehensive event coverage: Timeline captures card creation, field edits, assignees, movements, and comments with actor PersonDisplay hydration": "pass",
+    "Stable cursor pagination: Cursor encoding and decoding (timestamp + ID) guarantees pagination with limit without duplication or missing events": "pass",
+    "Project reader authorization: Workspace owner, manager, member, and viewer in granted project can read card activity; trashed/purged cards hidden": "pass",
+    "Sibling project and outsider isolation: Requests across sibling projects or by outsiders return 404 NOT_FOUND": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "92a6b0c4207e996cf074d4f76c3e65e345d5e8d07072b39580686a4b4adf2ba7",
+      "evidencePath": "docs/reviews/AUD-01/test.log"
+    },
+    {
+      "id": "aud-ntf-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "92a6b0c4207e996cf074d4f76c3e65e345d5e8d07072b39580686a4b4adf2ba7",
+      "evidencePath": "docs/reviews/AUD-01/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Verifies project reader role; blocks sibling members and outsiders with 404 NOT_FOUND; hides trashed cards from normal viewers.",
+      "evidencePaths": [
+        "docs/reviews/AUD-01/reviewer-session.md",
+        "docs/reviews/AUD-01/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Strict chronological ordering with stable cursor pagination; complete PersonDisplay hydration.",
+      "evidencePaths": [
+        "docs/reviews/AUD-01/reviewer-session.md",
+        "docs/reviews/AUD-01/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Activity records reference valid cards, projects, workspaces, and users with foreign key integrity.",
+      "evidencePaths": [
+        "docs/reviews/AUD-01/reviewer-session.md",
+        "docs/reviews/AUD-01/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Comprehensive integration tests cover timeline sequencing, actor display, pagination, and multi-role authorization.",
+      "evidencePaths": [
+        "docs/reviews/AUD-01/reviewer-session.md",
+        "docs/reviews/AUD-01/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Clean adapter separation in activity.ts and route definitions in activity.ts.",
+      "evidencePaths": [
+        "docs/reviews/AUD-01/reviewer-session.md",
+        "docs/reviews/AUD-01/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "Indexed query on activity_log(card_id); bounded page limits clamp between 1 and 100.",
+      "evidencePaths": [
+        "docs/reviews/AUD-01/reviewer-session.md",
+        "docs/reviews/AUD-01/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

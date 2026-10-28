@@ -3,6 +3,7 @@ import fsSync from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type pg from 'pg';
+import { EMBEDDED_MIGRATIONS, type EmbeddedMigration } from './embedded-migrations.ts';
 
 export interface MigrationRecord {
   version: string;
@@ -17,17 +18,21 @@ export interface RunMigrationsResult {
   applied: MigrationRecord[];
 }
 
-function resolveDefaultMigrationsDir(): string {
-  const currentDir = path.dirname(fileURLToPath(import.meta.url));
-  const candidate1 = path.resolve(currentDir, '../../../../database/migrations');
-  if (fsSync.existsSync(candidate1)) {
-    return candidate1;
+function resolveDefaultMigrationsDir(): string | undefined {
+  try {
+    const currentDir = path.dirname(fileURLToPath(import.meta.url));
+    const candidate1 = path.resolve(currentDir, '../../../../database/migrations');
+    if (fsSync.existsSync(candidate1)) {
+      return candidate1;
+    }
+    const candidate2 = path.resolve(process.cwd(), 'database/migrations');
+    if (fsSync.existsSync(candidate2)) {
+      return candidate2;
+    }
+  } catch {
+    // In edge isolates, fileURLToPath or fsSync may not be supported
   }
-  const candidate2 = path.resolve(process.cwd(), 'database/migrations');
-  if (fsSync.existsSync(candidate2)) {
-    return candidate2;
-  }
-  return candidate1;
+  return undefined;
 }
 
 function isPool(target: pg.Pool | pg.ClientBase): target is pg.Pool {
@@ -36,7 +41,7 @@ function isPool(target: pg.Pool | pg.ClientBase): target is pg.Pool {
 
 async function executeMigrationsWithClient(
   client: pg.ClientBase,
-  migrationsDir: string
+  migrationsDir?: string
 ): Promise<RunMigrationsResult> {
   const applied: MigrationRecord[] = [];
 
@@ -59,35 +64,53 @@ async function executeMigrationsWithClient(
     );
     const appliedVersions = new Set(existing.rows.map((row) => row.version));
 
-    // Discover and sort migration files.
-    const dirEntries = await fs.readdir(migrationsDir, { withFileTypes: true });
-    const migrationFiles = dirEntries
-      .filter((entry) => entry.isFile() && /^(\d+)_([a-zA-Z0-9_\-]+)\.sql$/.test(entry.name))
-      .map((entry) => entry.name)
-      .sort((a, b) => a.localeCompare(b));
+    // Discover migration items: from filesystem if available, otherwise from EMBEDDED_MIGRATIONS
+    type MigrationItem = { version: string; name: string; sql: string };
+    let migrationItems: MigrationItem[] = [];
+
+    let hasFsDir = false;
+    if (migrationsDir) {
+      try {
+        hasFsDir = fsSync.existsSync(migrationsDir);
+      } catch {
+        hasFsDir = false;
+      }
+    }
+
+    if (hasFsDir && migrationsDir) {
+      const dirEntries = await fs.readdir(migrationsDir, { withFileTypes: true });
+      const migrationFiles = dirEntries
+        .filter((entry) => entry.isFile() && /^(\d+)_([a-zA-Z0-9_\-]+)\.sql$/.test(entry.name))
+        .map((entry) => entry.name)
+        .sort((a, b) => a.localeCompare(b));
+
+      for (const file of migrationFiles) {
+        const match = /^(\d+)_([a-zA-Z0-9_\-]+)\.sql$/.exec(file);
+        if (!match) continue;
+        const version = match[1]!;
+        const filePath = path.join(migrationsDir, file);
+        const sqlContent = await fs.readFile(filePath, 'utf8');
+        migrationItems.push({ version, name: file, sql: sqlContent });
+      }
+    } else {
+      migrationItems = EMBEDDED_MIGRATIONS;
+    }
 
     // Execute each pending migration within its own ACID transaction.
-    for (const file of migrationFiles) {
-      const match = /^(\d+)_([a-zA-Z0-9_\-]+)\.sql$/.exec(file);
-      if (!match) continue;
-      const version = match[1]!;
-
-      if (appliedVersions.has(version)) {
+    for (const item of migrationItems) {
+      if (appliedVersions.has(item.version)) {
         continue;
       }
 
-      const filePath = path.join(migrationsDir, file);
-      const sqlContent = await fs.readFile(filePath, 'utf8');
-
       await client.query('BEGIN');
       try {
-        await client.query(sqlContent);
+        await client.query(item.sql);
         await client.query(
           'INSERT INTO schema_migrations (version, name, applied_at) VALUES ($1, $2, NOW())',
-          [version, file]
+          [item.version, item.name]
         );
         await client.query('COMMIT');
-        applied.push({ version, name: file });
+        applied.push({ version: item.version, name: item.name });
       } catch (error) {
         await client.query('ROLLBACK');
         throw error;

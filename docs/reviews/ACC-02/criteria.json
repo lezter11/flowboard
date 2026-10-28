@@ -1,0 +1,25 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ACC-02"
+  ],
+  "mandatoryCriteria": [
+    "Server-side session revocation: POST /api/v1/session/logout deletes session record from DB",
+    "Cookie clearing: Response returns Set-Cookie header with flowboard_session=; Max-Age=0",
+    "Immediate revocation effect: Requests with revoked session cookie return 401 UNAUTHORIZED",
+    "Expired session handling: Sessions past expires_at return 401 UNAUTHORIZED"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "acc-lifecycle-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/acc-lifecycle.test.ts"
+  },
+  "minimumWeightedScore": "8.500",
+  "categoryMinimums": {
+    "security": "8.0",
+    "correctness": "8.0",
+    "integrity": "8.0",
+    "tests": "8.0",
+    "maintainability": "7.5",
+    "operations": "7.0"
+  }
+}

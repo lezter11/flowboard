@@ -49,7 +49,7 @@
   function dueInfo(card) {
     if (!card.due) return null;
     const days = daysUntil(card.due);
-    const done = card.columnId === "col_completed";
+    const done = window.FB ? window.FB.isDone(card) : card.columnId === "col_completed";
     if (done) return { label: `Done · ${formatShort(card.due)}`, state: "done" };
     if (days < 0) {
       const n = Math.abs(days);
@@ -128,6 +128,7 @@
     { id: "col_backlog", name: "Not started", tone: "backlog" },
     { id: "col_progress", name: "In progress", tone: "progress" },
     { id: "col_testing", name: "Testing", tone: "testing" },
+    { id: "col_blocked", name: "Blocked", tone: "blocked" },
     { id: "col_completed", name: "Completed", tone: "completed" }
   ];
 
@@ -161,8 +162,8 @@
       description: "Source SVG and PNG lockups, then confirm usage rights in writing. Keep the files private to the project.",
       columnId: "col_backlog", priority: "low", assignees: ["alice"], due: isoDate(-2), createdAt: hoursAgo(96),
       images: [
-        image("img_102_1", "Primary lockup", "#e7d9c0", "#b28a53", "#6f4d22", 2),
-        image("img_102_2", "Compact mark", "#d8d3c5", "#857f70", "#4f4a3e", 5)
+        image("img_102_1", "Primary lockup", "#eee5f3", "#cdb4db", "#684b7c", 2),
+        image("img_102_2", "Compact mark", "#fceaf1", "#ffafcc", "#79384f", 5)
       ],
       comments: [
         comment("c_102_1", "alice", "Brand sent SVG and PNG. Both are uploaded here; they stay private to this project.", 30)
@@ -184,7 +185,7 @@
       id: "card_104", key: "WEB-104", title: "Build responsive navigation",
       description: "Mobile drawer, keyboard focus order and a reduced-motion variant. Escape must close the drawer and return focus.",
       columnId: "col_progress", priority: "high", assignees: ["charlie"], due: isoDate(4), createdAt: hoursAgo(120),
-      images: [image("img_104_1", "Mobile nav exploration", "#c9d6e4", "#6e8cad", "#2f4d70", 3)],
+      images: [image("img_104_1", "Mobile nav exploration", "#e7f3fc", "#a2d2ff", "#315a76", 3)],
       comments: [
         comment("c_104_1", "charlie", "Keyboard order now follows the visual order. Escape closes the drawer and focus returns to the menu button.", 16),
         comment("c_104_2", "alice", "Please keep the board's own scrolling native. Smooth page scrolling should not fight drag and drop.", 11),
@@ -217,7 +218,7 @@
       id: "card_106", key: "WEB-106", title: "QA mobile menu and focus states",
       description: "Test keyboard traps, Escape behavior and focus return on iOS Safari and Chrome. Include the viewer read-only state.",
       columnId: "col_testing", priority: "medium", assignees: ["alice"], due: isoDate(1), createdAt: hoursAgo(100),
-      images: [image("img_106_1", "Focus state capture", "#d7e2d9", "#7f9f88", "#365a41", 7)],
+      images: [image("img_106_1", "Focus state capture", "#e8f4fc", "#bde0fe", "#39759e", 7)],
       comments: [
         comment("c_106_1", "alice", "Found one focus trap on iOS Safari when the drawer is open. The fix is in progress.", 26),
         comment("c_106_2", "david", "Reproduced it once. It only happens when the on-screen keyboard is visible.", 18),
@@ -236,8 +237,8 @@
       description: "Settle the 4px spacing base and the responsive heading scale for board and detail views.",
       columnId: "col_completed", priority: "none", assignees: ["charlie"], due: isoDate(-6), createdAt: hoursAgo(260),
       images: [
-        image("img_107_1", "Type scale", "#e3dccd", "#9c8f79", "#5d5241", 4),
-        image("img_107_2", "Spacing ramp", "#d6ddd8", "#8b9a90", "#435248", 8)
+        image("img_107_1", "Type scale", "#eee5f3", "#cdb4db", "#543866", 4),
+        image("img_107_2", "Spacing ramp", "#e7f3fc", "#a2d2ff", "#315a76", 8)
       ],
       comments: [
         comment("c_107_1", "charlie", "Tokens are in the design file. The 4px base survived the compact board test.", 60),
@@ -252,7 +253,7 @@
       id: "card_108", key: "WEB-108", title: "Create reusable button styles",
       description: "Primary, secondary, ghost and destructive states with visible focus in both themes.",
       columnId: "col_completed", priority: "low", assignees: ["david"], due: isoDate(-8), createdAt: hoursAgo(300),
-      images: [image("img_108_1", "Button states", "#ddd8ce", "#8f887b", "#4f4a41", 6)],
+      images: [image("img_108_1", "Button states", "#fceaf1", "#ffc8dd", "#79384f", 6)],
       comments: [],
       activity: [
         act("david", "plus", "created this card", 300),
@@ -290,7 +291,7 @@
       id: "card_111", key: "WEB-111", title: "Write image privacy notes",
       description: "Explain authenticated delivery and why a signed link cannot outlive project access.",
       columnId: "col_completed", priority: "none", assignees: ["david"], due: isoDate(-5), createdAt: hoursAgo(280),
-      images: [image("img_111_1", "Privacy sketch", "#d9d2c7", "#93836f", "#584a3a", 9)],
+      images: [image("img_111_1", "Privacy sketch", "#e8f4fc", "#bde0fe", "#39759e", 9)],
       comments: [
         comment("c_111_1", "david", "Added a note that previously downloaded bytes cannot be recalled after revocation.", 150),
         comment("c_111_2", "alice", "Accurate. Keep the wording plain and avoid promising DRM.", 140)
@@ -319,6 +320,9 @@
     theme: "light",
     filters: { q: "", assignees: [], due: "any" },
     composerColumn: null,
+    quickAddText: "",
+    quickAddPriority: "",
+    quickAddError: "",
     expandedCompleted: false,
     activeCardId: null,
     draft: null,
@@ -355,11 +359,22 @@
     card(id) {
       return cards.find((c) => c.id === id) || null;
     },
+    createCard(card) {
+      const allowedPriorities = ["low", "medium", "high", "urgent"];
+      if (!card || !allowedPriorities.includes(card.priority)) {
+        return { ok: false, error: "Choose a priority before creating the card." };
+      }
+      if (!String(card.title || "").trim()) {
+        return { ok: false, error: "Enter a card title before creating the card." };
+      }
+      cards.push(card);
+      return { ok: true, card };
+    },
     person(id) {
       return people[id] || null;
     },
     isDone(card) {
-      return card.columnId === "col_completed";
+      return (columns.find((column) => column.id === card.columnId)?.category || (card.columnId === "col_completed" ? "done" : "active")) === "done";
     }
   };
 })();

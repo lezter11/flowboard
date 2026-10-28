@@ -1,0 +1,136 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "RBAC-03"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/RBAC-03/criteria.json",
+  "startedAt": "2026-10-26T05:31:35Z",
+  "completedAt": "2026-10-26T05:38:00Z",
+  "implementer": {
+    "actorId": "builder",
+    "sessionId": "builder-session-id",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-reviewer",
+    "sessionId": "b54e0975-7baf-4cac-99fe-0f396b9bb498",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/RBAC-03/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/RBAC-03/criteria.json",
+      "docs/reviews/RBAC-03/reviewer-session.md",
+      "docs/reviews/RBAC-03/test.log",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/adapters/projects.ts",
+      "apps/api/src/http/routes/members.ts",
+      "apps/api/src/http/routes/projects.ts",
+      "apps/api/test/rbac-advanced.test.ts"
+    ],
+    "files": {
+      "docs/reviews/RBAC-03/criteria.json": "5b7a0e2ced8212a753652c4377926a2dfd8dc118db448c26dbd127f06cbb2eb4",
+      "docs/reviews/RBAC-03/reviewer-session.md": "84fc6b7d8f922f20fee1d9b522e0b8f66bb16756261f421f0346d477e2e8b5fe",
+      "docs/reviews/RBAC-03/test.log": "9ca92c3064c07a5405a42dfb734ac900e3e4f7e5bc08263704e847eca6a3c8d4",
+      "apps/api/src/adapters/rbac.ts": "0de89f07e4ad44ba8a158977366e2d647efdbfec524f623bb1fb6707e45b81b4",
+      "apps/api/src/adapters/projects.ts": "feb511c3472233c2bdcb86fcc5e69e500c280c84420d291d0c90b3648445a79a",
+      "apps/api/src/http/routes/members.ts": "0a100e504a5249c8503194f68c254fec4ad662e247df8e5035167794bd65cf3a",
+      "apps/api/src/http/routes/projects.ts": "c68090ea532667fd8180c85341b4f0002264e5a307402ca20a5c030813e0f638",
+      "apps/api/test/rbac-advanced.test.ts": "befaa7518b4d1b6d48012944fc64c76742bbb97520cb7f2ecdc7ebb2d8f9f0e2"
+    },
+    "digest": "3487e4cbdf194094ab73f8fa6fc9e2b3e1a6fc6477d22b823059eadafa2bd2e1"
+  },
+  "criteriaResults": {
+    "Row-level locking protocol: Write transactions acquire FOR SHARE lock on actor's project_memberships row (or verify workspace ownership) before mutating project resources": "pass",
+    "Revocation serialization: Role revocation or removal acquires an exclusive lock; concurrent writes wait and re-read committed membership state": "pass",
+    "Immediate abortion on removed status: If actor's status is 'removed', write mutation transaction immediately aborts with 404 NOT_FOUND": "pass",
+    "No write commit after revocation: A write cannot commit after a preceding revocation transaction commits; strict serialization": "pass",
+    "R3 Audit compliance: Tested with concurrent requests through real PostgreSQL connection pool exercising row-level locks": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "3487e4cbdf194094ab73f8fa6fc9e2b3e1a6fc6477d22b823059eadafa2bd2e1",
+      "evidencePath": "docs/reviews/RBAC-03/test.log"
+    },
+    {
+      "id": "rbac-advanced-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/rbac-advanced.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "3487e4cbdf194094ab73f8fa6fc9e2b3e1a6fc6477d22b823059eadafa2bd2e1",
+      "evidencePath": "docs/reviews/RBAC-03/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.9",
+      "reason": "Flawless row-level locking protocol via acquireWriteGrantLock (FOR SHARE) and revocation serialization (FOR UPDATE). Prevents post-revocation writes and TOCTOU privilege race conditions.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-03/reviewer-session.md",
+        "docs/reviews/RBAC-03/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.8",
+      "reason": "Strict role validation, status = 'removed' 404 aborts, and manager cannot modify manager/owner boundaries correctly enforced.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-03/reviewer-session.md",
+        "docs/reviews/RBAC-03/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.9",
+      "reason": "Adversarial concurrency verified with 2 comprehensive probes against real PostgreSQL transactions and row locks: Probe 1 (writer held while revocation blocks) and Probe 2 (concurrent promotion blocks manager deletion with 403).",
+      "evidencePaths": [
+        "docs/reviews/RBAC-03/reviewer-session.md",
+        "docs/reviews/RBAC-03/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.9",
+      "reason": "Full suite passes. Adversarial concurrency probes intercept connection queries and test real interleaved transaction timing across parallel database connections.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-03/reviewer-session.md",
+        "docs/reviews/RBAC-03/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.6",
+      "reason": "Centralized acquireWriteGrantLock adapter reused across write transactions, keeping routes concise and consistent.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-03/reviewer-session.md",
+        "docs/reviews/RBAC-03/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.5",
+      "reason": "FOR SHARE permits concurrent readers and writers on distinct projects without global table locking.",
+      "evidencePaths": [
+        "docs/reviews/RBAC-03/reviewer-session.md",
+        "docs/reviews/RBAC-03/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.825",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

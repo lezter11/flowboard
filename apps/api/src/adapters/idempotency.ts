@@ -1,11 +1,76 @@
 import crypto from 'node:crypto';
 import type pg from 'pg';
 import { HttpError } from '../http/errors.ts';
+import { acquireWriteGrantLock, acquireWritableProjectContextLock } from './rbac.ts';
 
 export interface ReplayReceiptResult {
   statusCode: number;
   responseBody: unknown;
   replayed: true;
+}
+
+/**
+ * Receipt bodies are long-lived retry metadata, not a second copy of a resource.
+ * Keep only identifiers/version markers so trash/purge cannot be bypassed through
+ * an old card or comment response stored in this table.
+ */
+function minimalReceiptOutcome(responseBody: unknown): unknown {
+  const parseValue = (value: unknown): unknown => {
+    if (Array.isArray(value)) {
+      return value.map(parseValue);
+    }
+    if (!value || typeof value !== 'object') {
+      return undefined;
+    }
+
+    const record = value as Record<string, unknown>;
+    const outcome: Record<string, unknown> = {};
+    for (const key of [
+      'id', 'version', 'structureVersion', 'snapshotVersion', 'operationId',
+      'success', 'role', 'projectId', 'workspaceId', 'state', 'status',
+    ]) {
+      const field = record[key];
+      if (typeof field === 'string' || typeof field === 'number' || typeof field === 'boolean') {
+        outcome[key] = field;
+      }
+    }
+
+    // Preserve only the response envelope and safe operation identifiers. An
+    // array result (for example a canonical column order) is reduced itemwise.
+    if (Object.hasOwn(record, 'data')) {
+      outcome.data = parseValue(record.data) ?? {};
+    }
+    return outcome;
+  };
+
+  return parseValue(responseBody) ?? {};
+}
+
+/**
+ * Project-write variant: serialize current role/revocation against this
+ * transaction before a receipt can disclose even its minimal outcome.
+ */
+export async function checkOrReplayProjectWriteReceipt(
+  client: pg.ClientBase,
+  actorId: string,
+  projectId: string,
+  minRole: 'manager' | 'member',
+  idempotencyKey: string,
+  methodPath: string,
+  body: unknown,
+  boardId?: string,
+): Promise<ReplayReceiptResult | null> {
+  await acquireWriteGrantLock(client, projectId, actorId, minRole, boardId);
+  await acquireWritableProjectContextLock(client, projectId, boardId);
+  return checkOrReplayReceipt(
+    client,
+    actorId,
+    'project',
+    projectId,
+    idempotencyKey,
+    methodPath,
+    body,
+  );
 }
 
 /**
@@ -52,6 +117,14 @@ export async function checkOrReplayReceipt(
   methodPath: string,
   body: unknown,
 ): Promise<ReplayReceiptResult | null> {
+  // Only one transaction for an actor/scope/key may pass the initial lookup.
+  // Without this lock, parallel identical creates can both perform their
+  // side effect before saveReceipt discovers the unique-key collision.
+  await client.query(
+    'SELECT pg_advisory_xact_lock(hashtext($1))',
+    [JSON.stringify([actorId, scopeType, scopeId, idempotencyKey])],
+  );
+
   const currentPathHash = sha256(methodPath);
   const currentBodyHash = sha256(canonicalJson(body ?? {}));
 
@@ -80,7 +153,7 @@ export async function checkOrReplayReceipt(
         : receipt.response_body;
     return {
       statusCode: receipt.status_code,
-      responseBody,
+      responseBody: minimalReceiptOutcome(responseBody),
       replayed: true,
     };
   }
@@ -137,7 +210,7 @@ export async function saveReceipt(
       methodPathHash,
       bodyHash,
       statusCode,
-      JSON.stringify(responseBody),
+      JSON.stringify(minimalReceiptOutcome(responseBody)),
       expiresAt.toISOString(),
       now.toISOString(),
     ],
@@ -178,7 +251,7 @@ export async function saveReceipt(
 
     return {
       statusCode: winner.status_code,
-      responseBody: parsedWinnerBody,
+      responseBody: minimalReceiptOutcome(parsedWinnerBody),
       replayed: true,
     };
   }

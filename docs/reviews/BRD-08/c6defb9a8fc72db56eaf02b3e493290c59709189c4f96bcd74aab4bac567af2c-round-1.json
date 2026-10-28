@@ -1,0 +1,141 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "BRD-08"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BRD-08/criteria.json",
+  "startedAt": "2026-10-26T13:17:19.362474+00:00",
+  "completedAt": "2026-10-26T13:17:19.362474+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2630ea55-89d4-4c26-bc1e-b56f5555b3c5",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "6a12bd24-7baf-4cac-99fe-0f396b9bb499",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BRD-08/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/BRD-08/criteria.json",
+      "docs/reviews/BRD-08/reviewer-session.md",
+      "docs/reviews/BRD-08/test.log",
+      "apps/api/src/adapters/projects.ts",
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/adapters/cards.ts",
+      "apps/api/src/adapters/rbac.ts",
+      "apps/api/src/http/routes/projects.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/src/http/routes/cards.ts",
+      "apps/api/test/lifecycle-undo.test.ts"
+    ],
+    "files": {
+      "docs/reviews/BRD-08/criteria.json": "2fc52a7190972f9e115e4f0bd71feaed0d4dc69c8b0a2c07befdcd2ff2f10405",
+      "docs/reviews/BRD-08/reviewer-session.md": "a57ddaf72d04369344e8138d715cb6ba7c0faa63fbb5608d65e050a350432d9b",
+      "docs/reviews/BRD-08/test.log": "bbb30708027a99346d6630bdc2c50491d9a180f1995cec6022a17888f5a28077",
+      "apps/api/src/adapters/projects.ts": "feb511c3472233c2bdcb86fcc5e69e500c280c84420d291d0c90b3648445a79a",
+      "apps/api/src/adapters/boards.ts": "1128d2681207df3b5d9bc55c04463202dfb3bee3bdcf3f8bc3a7a47343ad12a8",
+      "apps/api/src/adapters/cards.ts": "e8787b4a363ed49ab80f4f490f12c635c1d06c4a5772759075d728a65a2ad0c4",
+      "apps/api/src/adapters/rbac.ts": "0de89f07e4ad44ba8a158977366e2d647efdbfec524f623bb1fb6707e45b81b4",
+      "apps/api/src/http/routes/projects.ts": "c68090ea532667fd8180c85341b4f0002264e5a307402ca20a5c030813e0f638",
+      "apps/api/src/http/routes/boards.ts": "ef5ed5febd3c283c1a385696a7ec2cfaed2b898174697ca5d73a08a98f38899d",
+      "apps/api/src/http/routes/cards.ts": "b6fdce28f8bd175ad4dee738e074b71c591a4607d12ef8b59d83a645f9f42661",
+      "apps/api/test/lifecycle-undo.test.ts": "a823e642ea950ff3df23eeccb418d019c779397a2935a2b20c2f0fea820ec74a"
+    },
+    "digest": "c6defb9a8fc72db56eaf02b3e493290c59709189c4f96bcd74aab4bac567af2c"
+  },
+  "criteriaResults": {
+    "Owner and manager authorization: Workspace owner and project manager can archive and reopen board; members receive 403": "pass",
+    "Read-only context enforcement: Writes on archived boards are blocked with 409 READ_ONLY_CONTEXT": "pass",
+    "Card retention: No cards or columns are deleted when a board is archived": "pass",
+    "Safe reopening: Reopening sets archived = FALSE and immediately resumes write operations": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "node v20.x, typescript 5.x",
+      "isolatedSynthetic": true,
+      "targetDigest": "c6defb9a8fc72db56eaf02b3e493290c59709189c4f96bcd74aab4bac567af2c",
+      "evidencePath": "docs/reviews/BRD-08/test.log"
+    },
+    {
+      "id": "lifecycle-undo-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/lifecycle-undo.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "c6defb9a8fc72db56eaf02b3e493290c59709189c4f96bcd74aab4bac567af2c",
+      "evidencePath": "docs/reviews/BRD-08/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict manager/owner role check; anti-enumeration 404 on ungranted boards; write lock prevents bypass.",
+      "evidencePaths": [
+        "docs/reviews/BRD-08/reviewer-session.md",
+        "docs/reviews/BRD-08/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Exact HTTP 409 READ_ONLY_CONTEXT code and reason; snapshot_version and structure_version increments.",
+      "evidencePaths": [
+        "docs/reviews/BRD-08/reviewer-session.md",
+        "docs/reviews/BRD-08/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Zero card or column deletion; pending 24h trash retention deadlines continue.",
+      "evidencePaths": [
+        "docs/reviews/BRD-08/reviewer-session.md",
+        "docs/reviews/BRD-08/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Integration test covers role authorization, idempotency replay, write rejection, card retention, and reopen write resumption.",
+      "evidencePaths": [
+        "docs/reviews/BRD-08/reviewer-session.md",
+        "docs/reviews/BRD-08/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Clean route handlers in boards.ts utilizing standard receipt helpers.",
+      "evidencePaths": [
+        "docs/reviews/BRD-08/reviewer-session.md",
+        "docs/reviews/BRD-08/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "Single atomic UPDATE on boards primary key.",
+      "evidencePaths": [
+        "docs/reviews/BRD-08/reviewer-session.md",
+        "docs/reviews/BRD-08/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

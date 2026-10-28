@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "IMP-10"
+  ],
+  "mandatoryCriteria": [
+    "Pre-commit cancellation: DELETE /api/v1/imports/:importId cancels staging and marks state='cancelled'",
+    "Preview expiration: Imports expire 30 minutes after validation; commit rejected if expired",
+    "Clean rollback: Cancelled preview leaves zero domain cards or membership side effects"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "imp-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: IMP-10 Excel import engine on PostgreSQL. Out-of-scope: UI components."
+}

@@ -1,0 +1,137 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "AUD-05"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/AUD-05/criteria.json",
+  "startedAt": "2026-10-26T12:35:23.439850+00:00",
+  "completedAt": "2026-10-26T12:35:23.439850+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "0fce3a66-787d-4e93-92dd-84dd9adbcbf0",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "6f8e2190-3b47-49a2-9bc5-c81729de105a",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/AUD-05/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/AUD-05/criteria.json",
+      "docs/reviews/AUD-05/reviewer-session.md",
+      "docs/reviews/AUD-05/test.log",
+      "apps/api/src/adapters/activity.ts",
+      "apps/api/src/adapters/notifications.ts",
+      "apps/api/src/http/routes/activity.ts",
+      "apps/api/src/http/routes/notifications.ts",
+      "apps/api/test/aud-ntf.test.ts",
+      "packages/contracts/src/discussion.ts"
+    ],
+    "files": {
+      "docs/reviews/AUD-05/criteria.json": "251ed430d9fee47e8b144cfb73b9afa1b22ec627bcf20eac11a5e261cbcdaf35",
+      "docs/reviews/AUD-05/reviewer-session.md": "f525ccc34e1411de6990640d5c9364e55e719e6fe854a0e93cf6055ded56d629",
+      "docs/reviews/AUD-05/test.log": "9eaae01269008fc9aa41362381af5a5b6ba589ad6b1b0f23b3b6a9ac37fd13e2",
+      "apps/api/src/adapters/activity.ts": "5df26e2ef60d000a9e6982c0f8d4f8fa248154ac32b0375a6d3b81b0b38021ed",
+      "apps/api/src/adapters/notifications.ts": "44f0b760a38e59b6ba6afdeb295a5dcb41fa4e056c7a778839eeda0672a91676",
+      "apps/api/src/http/routes/activity.ts": "6a0f381d279b797268037ead27d12d7b730c6112ffec5554a390c145b46bc92b",
+      "apps/api/src/http/routes/notifications.ts": "122b96bc41ce2b86fd0916230f7806c2578140b94cddc023ba56949f9d4aa494",
+      "apps/api/test/aud-ntf.test.ts": "a70f2b447024f843dd4601fef9396d7c99e67abdcb5b190b6ec06652073cf32d",
+      "packages/contracts/src/discussion.ts": "750d8daa31f45225333e1eb1def824d2ca231da26e97e1a5e9af29b35aebd361"
+    },
+    "digest": "7445927e9d8f98d414241e43f0cc186309484474dfd74bf1d3caa3b8873f6198"
+  },
+  "criteriaResults": {
+    "Lifecycle event traceability: Trash, restore, purge, import, and image actions create traceable events in activity_log": "pass",
+    "Secret token exclusion: No secret token, idempotency token, dev secret, or auth credential appears in activity payloads": "pass",
+    "Raw binary and media exclusion: No raw file buffer, base64 data, or image payload appears in safe_changes": "pass",
+    "Project and card association: Lifecycle events correctly associate with workspace_id, project_id, and card_id (or null for batch import)": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "7445927e9d8f98d414241e43f0cc186309484474dfd74bf1d3caa3b8873f6198",
+      "evidencePath": "docs/reviews/AUD-05/test.log"
+    },
+    {
+      "id": "aud-ntf-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "7445927e9d8f98d414241e43f0cc186309484474dfd74bf1d3caa3b8873f6198",
+      "evidencePath": "docs/reviews/AUD-05/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict payload sanitization prevents credential, secret token, and raw file data exposure in audit logs.",
+      "evidencePaths": [
+        "docs/reviews/AUD-05/reviewer-session.md",
+        "docs/reviews/AUD-05/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Accurate event tracking for all lifecycle transitions with proper actor attribution and timestamps.",
+      "evidencePaths": [
+        "docs/reviews/AUD-05/reviewer-session.md",
+        "docs/reviews/AUD-05/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Foreign key constraints and ancestry binding guarantee activity log references valid workspace and project records.",
+      "evidencePaths": [
+        "docs/reviews/AUD-05/reviewer-session.md",
+        "docs/reviews/AUD-05/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Integration test covers card trash, restore, image attachment, and batch import traceability with zero-secret verification.",
+      "evidencePaths": [
+        "docs/reviews/AUD-05/reviewer-session.md",
+        "docs/reviews/AUD-05/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.3",
+      "reason": "Standardized event logging helper and structured safe_changes schemas across adapters.",
+      "evidencePaths": [
+        "docs/reviews/AUD-05/reviewer-session.md",
+        "docs/reviews/AUD-05/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.1",
+      "reason": "Payload size bounds prevent activity log bloat from large payloads.",
+      "evidencePaths": [
+        "docs/reviews/AUD-05/reviewer-session.md",
+        "docs/reviews/AUD-05/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.62",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

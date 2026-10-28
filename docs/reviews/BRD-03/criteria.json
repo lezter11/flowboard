@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "BRD-03"
+  ],
+  "mandatoryCriteria": [
+    "Bounded consistent snapshot: GET /api/v1/boards/:boardId returns snapshot object with board metadata, filters, asOfDate, totals, columns, and people",
+    "Accurate active vs matching counts: totals.activeCardCount counts all active cards; totals.matchingCardCount counts cards matching filters; excludes trashed cards",
+    "Column card nesting: Each column in the snapshot contains cards array bounded by cardLimitPerColumn (default 10, max 15) and nextCursor if more exist",
+    "People disclosure: Returns distinct PersonDisplay records for all card assignees and creators referenced on the board"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "brd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Board snapshot query with filters and count contracts."
+}

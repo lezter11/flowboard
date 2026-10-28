@@ -1,0 +1,25 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "UX-05"
+  ],
+  "mandatoryCriteria": [
+    "Execution latency benchmark: Warm board snapshot query executes in < 50ms",
+    "Cross-project isolation: Sibling project queries by ungranted member strictly return 404 NOT_FOUND",
+    "Exact 24h restore deadline boundary: Trashed card restore after 24h is strictly denied with 410 RESTORE_WINDOW_EXPIRED",
+    "Batch import replay idempotency: Batch import commit replay returns replayed: true with identical cards and zero duplicates"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "ux-integration-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/ux-integration.test.ts"
+  },
+  "minimumWeightedScore": "8.500",
+  "categoryMinimums": {
+    "security": "8.0",
+    "correctness": "8.0",
+    "integrity": "8.0",
+    "tests": "8.0",
+    "maintainability": "7.5",
+    "operations": "7.0"
+  }
+}

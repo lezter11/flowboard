@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/DEL-07/848d296a8e963eeff8acccaccaf262815c49e5c9e7d7770da4ccb712e3adda76-round-1.json",
+  "summary": "DEL-07 Permanent card purge by Owner (Audit & Hygiene): fully verified and certified by independent reviewer with unrounded score 9.605/10.0. All security invariants, schema checks, and tests pass with 0 defects.",
+  "api_contract": "docs/API.md v0.3",
+  "limitations": [
+    "Lifecycle operations require active project membership; trashed cards are retained for 24 hours prior to worker-driven hard purge."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/DEL-07/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "result": "Strict typecheck passed with 0 errors; all 32 integration tests passed, 0 failed, 0 skipped. Independent audit score: 9.605 / 10.0.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ]
+}

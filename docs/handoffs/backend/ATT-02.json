@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/ATT-02/7b2cadd1d929fe34ed53a2542b3576ad5d08226792e6e3fd2b8b6a02af857dff-round-1.json",
+  "summary": "ATT-02 Validate and finalize image verified. Implemented binary streaming upload with SHA-256 validation, deep binary magic-byte inspection for PNG, JPEG, and WebP, true dimension and megapixel limits (<=8192px, <=20 MP), strict rejection of HTML/SVG/script polyglots, and transactional finalization with OCC board snapshot version bump and activity logging. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "PUT /api/v1/image-uploads/:uploadId/content & POST /api/v1/image-uploads/:uploadId/finalize (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/ATT-02/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Supported formats restricted to PNG, JPEG, and WebP (max 10 MiB, <=8192px, <=20 MP).",
+    "Max 10 attachments per card; temporary storage cleaned after 1-hour TTL."
+  ]
+}

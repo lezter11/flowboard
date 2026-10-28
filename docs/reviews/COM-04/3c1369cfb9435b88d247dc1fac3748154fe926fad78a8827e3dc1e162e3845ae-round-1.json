@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "COM-04"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/COM-04/criteria.json",
+  "startedAt": "2026-10-26T06:00:00Z",
+  "completedAt": "2026-10-26T06:30:00Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2699f652-cbdf-4b2c-af34-2759bd2a0cd2",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "0e0cbffe-384e-4ead-9750-d0bec8724fa1",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/COM-04/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/COM-04/criteria.json",
+      "docs/reviews/COM-04/reviewer-session.md",
+      "docs/reviews/COM-04/test.log",
+      "apps/api/src/adapters/comments.ts",
+      "apps/api/src/http/routes/comments.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/http/routes/trash.ts",
+      "apps/api/test/com-del.test.ts",
+      "packages/contracts/src/comments.ts",
+      "packages/contracts/src/trash.ts"
+    ],
+    "files": {
+      "docs/reviews/COM-04/criteria.json": "7d7f56991e68008400b4df2d54f38b8ddc50737c3642cd75272751f6d94fec76",
+      "docs/reviews/COM-04/reviewer-session.md": "3339ad0a86d25af02c11450fe3519352e6c57eca92e502bbeafd23a4eb2305a3",
+      "docs/reviews/COM-04/test.log": "be97d22d7ed0a39dcdf9fd5f301f757d42dbfd77cb4e70fac094d175073ec8c4",
+      "apps/api/src/adapters/comments.ts": "3e7328e6b9c6ab3e4e62219cc8a32e4fe89531bcd5d3d24d9b8f4456b5afe934",
+      "apps/api/src/http/routes/comments.ts": "2333e12913b79a5d7a5857c5224c852bdf6934e8dfc8b7d91a6725024202f886",
+      "apps/api/src/adapters/trash.ts": "1f34633c284723cc25f8ab056ebe2654a72e6d8dfe57ff8c7885822c066a96ac",
+      "apps/api/src/http/routes/trash.ts": "711d72a930f6e0de63530735997a20b90974821923113a37351caa57f3aa3abf",
+      "apps/api/test/com-del.test.ts": "8464e108eafb6e5f8232fff6bca99914c54649465593e32f8e9d41f7f7759006",
+      "packages/contracts/src/comments.ts": "3d0061e48b153cf4fb5efded44e8aca9826b10d20f66490e69e2862aa4b44189",
+      "packages/contracts/src/trash.ts": "92103279204dcb4220361a194a05514999c67455b08711a4151541d6462c2125"
+    },
+    "digest": "3c1369cfb9435b88d247dc1fac3748154fe926fad78a8827e3dc1e162e3845ae"
+  },
+  "criteriaResults": {
+    "Edit own comment: PATCH /api/v1/comments/:commentId allows author to edit comment body and mentions": "pass",
+    "Non-author prohibition: Non-author project members or managers cannot edit someone else's comment (403 FORBIDDEN)": "pass",
+    "OCC version check: Verifies expectedVersion against comment version; increments version on success; returns 409 STALE_VERSION on conflict": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "3c1369cfb9435b88d247dc1fac3748154fe926fad78a8827e3dc1e162e3845ae",
+      "evidencePath": "docs/reviews/COM-04/test.log"
+    },
+    {
+      "id": "com-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "3c1369cfb9435b88d247dc1fac3748154fe926fad78a8827e3dc1e162e3845ae",
+      "evidencePath": "docs/reviews/COM-04/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Only the original author can edit a comment; non-authors (even managers) receive 403 FORBIDDEN.",
+      "evidencePaths": [
+        "docs/reviews/COM-04/reviewer-session.md",
+        "docs/reviews/COM-04/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Enforces expectedVersion OCC checks; increments version on update; returns 409 STALE_VERSION on conflict.",
+      "evidencePaths": [
+        "docs/reviews/COM-04/reviewer-session.md",
+        "docs/reviews/COM-04/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Re-validates mentions, updates comment_mentions table, and records comment_updated in activity_log atomically.",
+      "evidencePaths": [
+        "docs/reviews/COM-04/reviewer-session.md",
+        "docs/reviews/COM-04/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests cover author-only permission, OCC conflict handling, successful edit, and board snapshot increment.",
+      "evidencePaths": [
+        "docs/reviews/COM-04/reviewer-session.md",
+        "docs/reviews/COM-04/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Single-responsibility editing pipeline with strong validation.",
+      "evidencePaths": [
+        "docs/reviews/COM-04/reviewer-session.md",
+        "docs/reviews/COM-04/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Row-level FOR UPDATE locking protects concurrent updates from race conditions.",
+      "evidencePaths": [
+        "docs/reviews/COM-04/reviewer-session.md",
+        "docs/reviews/COM-04/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

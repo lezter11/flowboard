@@ -9,8 +9,43 @@ import { checkOrReplayReceipt, saveReceipt } from '../../adapters/idempotency.ts
 import { updateProjectMember, removeProjectMember } from '../../adapters/members.ts';
 import { HttpError } from '../errors.ts';
 import { authMiddleware } from '../middleware/auth.ts';
+import { acquireWriteGrantLock, acquireWritableProjectContextLock } from '../../adapters/rbac.ts';
 
 export const membersRoutes = new Hono();
+
+async function authorizeMemberReplay(
+  client: import('pg').ClientBase,
+  projectId: string,
+  actorId: string,
+  targetUserId: string,
+  newRole?: string,
+) {
+  const grant = await acquireWriteGrantLock(client, projectId, actorId, 'manager');
+  await acquireWritableProjectContextLock(client, projectId);
+
+  const target = await client.query<{ role: string }>(
+    `SELECT role FROM project_memberships WHERE project_id = $1 AND user_id = $2 FOR SHARE`,
+    [projectId, targetUserId],
+  );
+  if (!target.rows[0]) {
+    throw HttpError.notFound('Member not found.', 'NOT_FOUND');
+  }
+
+  if (!grant.isOwner) {
+    if (targetUserId === actorId) {
+      throw HttpError.forbidden('Cannot modify own membership.', 'FORBIDDEN');
+    }
+    if (targetUserId === grant.ownerId) {
+      throw HttpError.forbidden('Project managers cannot modify workspace owner.', 'FORBIDDEN');
+    }
+    if (target.rows[0].role === 'manager') {
+      throw HttpError.forbidden('Project managers cannot modify other managers.', 'FORBIDDEN');
+    }
+    if (newRole === 'manager') {
+      throw HttpError.forbidden('Only workspace owners can appoint managers.', 'FORBIDDEN');
+    }
+  }
+}
 
 // PATCH /api/v1/projects/:projectId/members/:userId (mounted under /api/v1)
 membersRoutes.patch('/projects/:projectId/members/:userId', authMiddleware, async (c) => {
@@ -51,6 +86,7 @@ membersRoutes.patch('/projects/:projectId/members/:userId', authMiddleware, asyn
     );
 
     if (replay) {
+      await authorizeMemberReplay(client, projectId, actor.id, userId, body.role);
       await client.query('ROLLBACK');
       return c.json(
         { ...(replay.responseBody as object), replayed: true },
@@ -135,6 +171,7 @@ membersRoutes.delete('/projects/:projectId/members/:userId', authMiddleware, asy
     );
 
     if (replay) {
+      await authorizeMemberReplay(client, projectId, actor.id, userId);
       await client.query('ROLLBACK');
       return c.json(
         { ...(replay.responseBody as object), replayed: true },

@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "BRD-05"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BRD-05/criteria.json",
+  "startedAt": "2026-10-26T13:23:24.936073Z",
+  "completedAt": "2026-10-26T13:23:24.936073Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8f4f343f-8836-4b64-8563-c36b797ba880",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "36197b2b-27b3-41c7-952f-dfc6518e6990",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BRD-05/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/BRD-05/criteria.json",
+      "docs/reviews/BRD-05/reviewer-session.md",
+      "docs/reviews/BRD-05/test.log",
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/test/brd01-brd07.test.ts",
+      "packages/contracts/src/boards.ts"
+    ],
+    "files": {
+      "docs/reviews/BRD-05/criteria.json": "a629fb83b80d755d0743739f3f62e0e14488a292c400a287390fb83c4782651a",
+      "docs/reviews/BRD-05/reviewer-session.md": "b5567d7b9f39ab7555d69881d55be8b5e0257d860e76dcb9c0c7e39e3276dd1a",
+      "docs/reviews/BRD-05/test.log": "d5c060656d7fff4062882a7daee1403144f033d11b5f33de31521dc36a93fa1e",
+      "apps/api/src/adapters/boards.ts": "1128d2681207df3b5d9bc55c04463202dfb3bee3bdcf3f8bc3a7a47343ad12a8",
+      "apps/api/src/http/routes/boards.ts": "ef5ed5febd3c283c1a385696a7ec2cfaed2b898174697ca5d73a08a98f38899d",
+      "apps/api/test/brd01-brd07.test.ts": "cff583bce4fa911eb86b2a9dfb00174073311acbaa6cd7e146b773ad997185b1",
+      "packages/contracts/src/boards.ts": "bceca4d1791ae8739e4c5e41ba98caccbf53a089df7b2503944c0a6736c6aa6e"
+    },
+    "digest": "562ae9d2dc7b7741224f803710e3ad3b5f86d2f382d6b00fd850051429c35a04"
+  },
+  "criteriaResults": {
+    "Column reordering: POST /api/v1/boards/:boardId/columns/reorder takes complete array of columnIds and updates position column values sequentially": "pass",
+    "Complete column set validation: Rejects reorder request if columnIds array does not match the exact set of active columns on the board with 400 or 422": "pass",
+    "Optimistic board versioning: Reorder verifies expectedBoardVersion against board structure_version; increments structure_version on success": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "562ae9d2dc7b7741224f803710e3ad3b5f86d2f382d6b00fd850051429c35a04",
+      "evidencePath": "docs/reviews/BRD-05/test.log"
+    },
+    {
+      "id": "brd-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "562ae9d2dc7b7741224f803710e3ad3b5f86d2f382d6b00fd850051429c35a04",
+      "evidencePath": "docs/reviews/BRD-05/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Reorder restricted to Owner/Manager; placement query requires project reader role; moving card validated to belong to active board.",
+      "evidencePaths": [
+        "docs/reviews/BRD-05/reviewer-session.md",
+        "docs/reviews/BRD-05/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Reorder checks exact column array matching all board columns without omissions or duplicates; placement correctly computes first, last, before, after.",
+      "evidencePaths": [
+        "docs/reviews/BRD-05/reviewer-session.md",
+        "docs/reviews/BRD-05/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Reorder assigns 0..N-1 positions atomically; placement excludes movingCardId from destination calculations.",
+      "evidencePaths": [
+        "docs/reviews/BRD-05/reviewer-session.md",
+        "docs/reviews/BRD-05/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests prove complete column set validation, OCC structure version checks, and placement neighbor resolution for first, last, before, and after.",
+      "evidencePaths": [
+        "docs/reviews/BRD-05/reviewer-session.md",
+        "docs/reviews/BRD-05/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Shared placement logic reused by cards adapter for drag-and-drop calculations.",
+      "evidencePaths": [
+        "docs/reviews/BRD-05/reviewer-session.md",
+        "docs/reviews/BRD-05/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Batch position updates execute in single transaction under board coordination lock.",
+      "evidencePaths": [
+        "docs/reviews/BRD-05/reviewer-session.md",
+        "docs/reviews/BRD-05/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

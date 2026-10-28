@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-02/a13710bb6bee1327ea8aaa470b3e17cad377afaac9aff2a86a9081f7c34ddfc5-round-1.json",
+  "summary": "CRD-02 Compact card representation verified. Implemented lightweight CardSummary entity omitting heavy markdown description, comments, and activity histories while providing badge counts (commentCount, imageCount) via batch aggregation queries. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "GET /api/v1/boards/:boardId/cards (docs/API.md v0.3)",
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-02/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 14 tests passed. Review score 9.425/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ]
+}

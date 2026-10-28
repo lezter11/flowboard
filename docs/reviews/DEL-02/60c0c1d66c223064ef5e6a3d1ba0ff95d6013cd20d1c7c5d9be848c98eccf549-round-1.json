@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "DEL-02"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/DEL-02/criteria.json",
+  "startedAt": "2026-10-26T06:00:00Z",
+  "completedAt": "2026-10-26T06:30:00Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2699f652-cbdf-4b2c-af34-2759bd2a0cd2",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "0e0cbffe-384e-4ead-9750-d0bec8724fa1",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/DEL-02/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/DEL-02/criteria.json",
+      "docs/reviews/DEL-02/reviewer-session.md",
+      "docs/reviews/DEL-02/test.log",
+      "apps/api/src/adapters/comments.ts",
+      "apps/api/src/http/routes/comments.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/http/routes/trash.ts",
+      "apps/api/test/com-del.test.ts",
+      "packages/contracts/src/comments.ts",
+      "packages/contracts/src/trash.ts"
+    ],
+    "files": {
+      "docs/reviews/DEL-02/criteria.json": "54f9e434e2cd16455345ed84b00c4a80046e3ef019b14d2033ea9170a67e073c",
+      "docs/reviews/DEL-02/reviewer-session.md": "bd5bea6ac803443c9724fd359470d9c198817976ea89e54ec4ddb87eccd89c2f",
+      "docs/reviews/DEL-02/test.log": "be97d22d7ed0a39dcdf9fd5f301f757d42dbfd77cb4e70fac094d175073ec8c4",
+      "apps/api/src/adapters/comments.ts": "3e7328e6b9c6ab3e4e62219cc8a32e4fe89531bcd5d3d24d9b8f4456b5afe934",
+      "apps/api/src/http/routes/comments.ts": "2333e12913b79a5d7a5857c5224c852bdf6934e8dfc8b7d91a6725024202f886",
+      "apps/api/src/adapters/trash.ts": "1f34633c284723cc25f8ab056ebe2654a72e6d8dfe57ff8c7885822c066a96ac",
+      "apps/api/src/http/routes/trash.ts": "711d72a930f6e0de63530735997a20b90974821923113a37351caa57f3aa3abf",
+      "apps/api/test/com-del.test.ts": "8464e108eafb6e5f8232fff6bca99914c54649465593e32f8e9d41f7f7759006",
+      "packages/contracts/src/comments.ts": "3d0061e48b153cf4fb5efded44e8aca9826b10d20f66490e69e2862aa4b44189",
+      "packages/contracts/src/trash.ts": "92103279204dcb4220361a194a05514999c67455b08711a4151541d6462c2125"
+    },
+    "digest": "60c0c1d66c223064ef5e6a3d1ba0ff95d6013cd20d1c7c5d9be848c98eccf549"
+  },
+  "criteriaResults": {
+    "Project trash list: GET /api/v1/projects/:projectId/trash returns trashed cards in the project for owner/manager": "pass",
+    "Non-administrator privacy: Non-administrators (members/viewers) receive 403 FORBIDDEN on trash listing": "pass",
+    "Trash row details: Returns id, title, deletedAt, deletedBy, restoreUntil, canRestore, blockedReason, serverNow": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "60c0c1d66c223064ef5e6a3d1ba0ff95d6013cd20d1c7c5d9be848c98eccf549",
+      "evidencePath": "docs/reviews/DEL-02/test.log"
+    },
+    {
+      "id": "del-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "60c0c1d66c223064ef5e6a3d1ba0ff95d6013cd20d1c7c5d9be848c98eccf549",
+      "evidencePath": "docs/reviews/DEL-02/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Trash listing restricted to Owner and Manager; regular members and viewers receive 403 FORBIDDEN; outsiders receive 404 NOT_FOUND.",
+      "evidencePaths": [
+        "docs/reviews/DEL-02/reviewer-session.md",
+        "docs/reviews/DEL-02/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Computes canRestore boolean and blockedReason (window_expired, destination_missing, project_archived, board_archived) relative to serverNow.",
+      "evidencePaths": [
+        "docs/reviews/DEL-02/reviewer-session.md",
+        "docs/reviews/DEL-02/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Attaches deletedBy PersonDisplay identity and accurate timestamp comparisons.",
+      "evidencePaths": [
+        "docs/reviews/DEL-02/reviewer-session.md",
+        "docs/reviews/DEL-02/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests confirm non-admin 403, outsider 404, admin retrieval, canRestore calculation, and blockedReason accuracy.",
+      "evidencePaths": [
+        "docs/reviews/DEL-02/reviewer-session.md",
+        "docs/reviews/DEL-02/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Single SQL query joins board, project, column existence, and user metadata for efficient evaluation.",
+      "evidencePaths": [
+        "docs/reviews/DEL-02/reviewer-session.md",
+        "docs/reviews/DEL-02/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Single round-trip query avoids N+1 database roundtrips.",
+      "evidencePaths": [
+        "docs/reviews/DEL-02/reviewer-session.md",
+        "docs/reviews/DEL-02/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

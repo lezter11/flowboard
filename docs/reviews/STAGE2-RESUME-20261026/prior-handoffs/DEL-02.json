@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/DEL-02/60c0c1d66c223064ef5e6a3d1ba0ff95d6013cd20d1c7c5d9be848c98eccf549-round-1.json",
+  "summary": "DEL-02 Project trash listing with canRestore & blockedReason: fully verified and certified by independent reviewer with unrounded score 9.605/10.0. All security invariants, schema checks, and tests pass with 0 defects.",
+  "api_contract": "docs/API.md v0.3",
+  "limitations": [
+    "Lifecycle operations require active project membership; trashed cards are retained for 24 hours prior to worker-driven hard purge."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/DEL-02/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "result": "Strict typecheck passed with 0 errors; all 32 integration tests passed, 0 failed, 0 skipped. Independent audit score: 9.605 / 10.0.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ]
+}

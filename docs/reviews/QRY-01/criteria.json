@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "QRY-01"
+  ],
+  "mandatoryCriteria": [
+    "Project-scoped text search: GET /api/v1/projects/:projectId/cards/search matches search text against title and description",
+    "Sibling project privacy: Requesting search on a sibling project without a grant returns 404 NOT_FOUND",
+    "Outsider access rejection: Outsiders without project membership receive 404 NOT_FOUND",
+    "Soft-deleted card exclusion: Trashed cards (state != 'active') are strictly excluded from search results"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "qry-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/qry01-qry03.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: QRY-01 discovery, search, and personal task view. Out-of-scope: UI view rendering."
+}

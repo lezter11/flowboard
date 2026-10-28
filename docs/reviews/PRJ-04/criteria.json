@@ -1,0 +1,25 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "PRJ-04"
+  ],
+  "mandatoryCriteria": [
+    "Owner-only authorization: Workspace owner can archive and reopen; non-owners receive 403 FORBIDDEN",
+    "Read-only context enforcement: Writes in archived projects are blocked with 409 READ_ONLY_CONTEXT",
+    "Data and history preservation: Project, boards, columns, and cards remain queryable via GET",
+    "Safe reopening: Reopening sets archived = FALSE and immediately resumes write operations"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "lifecycle-undo-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/lifecycle-undo.test.ts"
+  },
+  "minimumWeightedScore": "8.500",
+  "categoryMinimums": {
+    "security": "8.0",
+    "correctness": "8.0",
+    "integrity": "8.0",
+    "tests": "8.0",
+    "maintainability": "7.5",
+    "operations": "7.0"
+  }
+}

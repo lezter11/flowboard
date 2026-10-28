@@ -1,0 +1,132 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "BRD-07"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/BRD-07/criteria.json",
+  "startedAt": "2026-10-26T06:35:39.706533Z",
+  "completedAt": "2026-10-26T06:35:39.706533Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "8f4f343f-8836-4b64-8563-c36b797ba880",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "7e44e3cf-29d2-4f7d-ba58-a053cdb570fc",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/BRD-07/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/boards.ts",
+      "apps/api/src/http/routes/boards.ts",
+      "apps/api/test/brd01-brd07.test.ts",
+      "docs/reviews/BRD-07/criteria.json",
+      "docs/reviews/BRD-07/reviewer-session.md",
+      "docs/reviews/BRD-07/test.log",
+      "packages/contracts/src/boards.ts"
+    ],
+    "files": {
+      "apps/api/src/adapters/boards.ts": "12ab9920d5efb1df7d93441fc05c7ac8d0f748366d6f431a005af553184174c6",
+      "apps/api/src/http/routes/boards.ts": "651ad386fcadbeb4aa4ce305814ee8c496446c464d6db324a0f58cb199215dee",
+      "apps/api/test/brd01-brd07.test.ts": "aff5ae8903787ee40ef4ada349cd0e3bb32116e2eb80fa6b96b23247e5b672f3",
+      "docs/reviews/BRD-07/criteria.json": "093b7b4d86025b6176b514f19519ce603c8ff45277304c16f65967a30d733d31",
+      "docs/reviews/BRD-07/reviewer-session.md": "bca1154675de871f5d86d888c7fb500a2f85a0083c4dc8e7a130601e4301cad1",
+      "docs/reviews/BRD-07/test.log": "476251470dbeda79cac1827dfe390f87b088800d83a2d3f3504d8bb6eeb86bf9",
+      "packages/contracts/src/boards.ts": "bceca4d1791ae8739e4c5e41ba98caccbf53a089df7b2503944c0a6736c6aa6e"
+    },
+    "digest": "42a925c6c6240050bbb6eabae1f2fbed2636ec1c6ca6f97e6ff7961784421869"
+  },
+  "criteriaResults": {
+    "Paginated cards query: GET /api/v1/boards/:boardId/cards supports filtering by columnId, title query, priority, assigneeId, and due date": "pass",
+    "Deterministic ordering: Cards returned in canonical order by position ascending": "pass",
+    "Cursor pagination: Returns nextCursor and supports opaque cursor resumption without data omission or duplicates": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "42a925c6c6240050bbb6eabae1f2fbed2636ec1c6ca6f97e6ff7961784421869",
+      "evidencePath": "docs/reviews/BRD-07/test.log"
+    },
+    {
+      "id": "brd-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "42a925c6c6240050bbb6eabae1f2fbed2636ec1c6ca6f97e6ff7961784421869",
+      "evidencePath": "docs/reviews/BRD-07/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.5",
+      "reason": "Board card listing requires project grant access; ungranted users receive 404 NOT_FOUND. Read-only endpoint with no mutation side effects.",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Fulfills REST contract; supports all documented filter dimensions (columnId, title, priority, assigneeId, dueDate); returns standardized data envelope with nextCursor.",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Deterministic ordering by (position ASC, id ASC) prevents data loss across pages; cursor-based resumption guarantees no omission or duplicates.",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Integration test against live PostgreSQL 17 verifies filtering, pagination, cursor resumption, and empty result sets. All 16 tests pass.",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.0",
+      "reason": "Clean query builder pattern with parameterized SQL; filter predicates are additive and clearly readable.",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Bounded page size (default 50, max 100) prevents unbounded result sets. Index-friendly ORDER BY on (position, id).",
+      "evidencePaths": [
+        "docs/reviews/BRD-07/reviewer-session.md",
+        "docs/reviews/BRD-07/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.425",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

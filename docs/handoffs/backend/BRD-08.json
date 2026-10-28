@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BRD-08/c6defb9a8fc72db56eaf02b3e493290c59709189c4f96bcd74aab4bac567af2c-round-1.json",
+  "summary": "BRD-08 Archive and reopen board verified. Implemented board archiving making the board read-only, owner and project manager authorization, write rejection with 409 READ_ONLY_CONTEXT, card and column retention without deletion, and reopening. Audited with unrounded score 9.610/10.0.",
+  "api_contract": "POST /api/v1/boards/:boardId/archive & reopen (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-08/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/lifecycle-undo.test.ts",
+      "result": "All 4 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Archived projects and boards reject mutation requests with 409 READ_ONLY_CONTEXT.",
+    "Move undo is a forward mutation with OCC check; conflict is reported if card was modified.",
+    "Trash 24h expiration deadlines continue ticking even while project or board is archived."
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "DEL-03"
+  ],
+  "mandatoryCriteria": [
+    "Restore before deadline: POST /api/v1/cards/:cardId/restore succeeds when called strictly before restore_until (NOW() < restore_until)",
+    "State transition: Transitions card state back to active; clears deleted_at and restore_until",
+    "Preserve identity and contents: Restores card with identical id, title, description, assignees, comments, and images",
+    "Board version increment: Increments board structure_version and snapshot_version"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "del-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Card restoration prior to deadline."
+}

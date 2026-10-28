@@ -1,17 +1,19 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/PRJ-05/1d2be88ab56f76b5a2161b82667dde469ecdf668f451939160eb2b22944d9306-round-1.json",
+  "reviewPath": "docs/reviews/PRJ-05/835840508c26c044673ed637d426dc4034dcdd402cc5ab2aed78256077e93032-round-1.json",
   "summary": "PRJ-05 Project people directory: implemented GET /api/v1/projects/:projectId/members accessible by Workspace Owner and all project members (manager, member, viewer). Outsiders receive 404 NOT_FOUND. Returns active project members with user info (id, name, email, avatarUrl, role, status, version), automatically includes the Workspace Owner even when not explicitly in the membership table, and strictly excludes sibling project members. All 15 integration tests in prj02-prj05.test.ts pass against local PostgreSQL.",
   "api_contract": "docs/API.md (GET /projects/:pid/members, GET /projects/:pid/people)",
   "limitations": [
     "Directory exposes active members and workspace owner; removed identities are filtered out."
   ],
-  "evidence": [{
-    "path": "docs/evidence/PRJ-05-local.md",
-    "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts",
-    "result": "Strict typecheck passed with 0 errors; 15 integration tests passed, 0 failed, 0 skipped.",
-    "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container.",
-    "role": "Backend"
-  }],
+  "evidence": [
+    {
+      "path": "docs/evidence/PRJ-05-local.md",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts",
+      "result": "Strict typecheck passed with 0 errors; 15 integration tests passed, 0 failed, 0 skipped.",
+      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container.",
+      "role": "Backend"
+    }
+  ],
   "next_dependency_ready_task": "UI PRJ-05 (Project directory view), CRD-06 (Assign project teammates), COM-03 (Mention project teammate)."
 }

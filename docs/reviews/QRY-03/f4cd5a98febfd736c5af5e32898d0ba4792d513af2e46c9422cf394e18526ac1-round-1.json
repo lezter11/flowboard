@@ -1,0 +1,134 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "QRY-03"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/QRY-03/criteria.json",
+  "startedAt": "2026-10-26T13:23:41.550878+00:00",
+  "completedAt": "2026-10-26T13:23:41.550878+00:00",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2630ea55-89d4-4c26-bc1e-b56f5555b3c5",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "4a39d647-291f-4a13-3a70-ac3836218be8",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/QRY-03/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/QRY-03/criteria.json",
+      "docs/reviews/QRY-03/reviewer-session.md",
+      "docs/reviews/QRY-03/test.log",
+      "apps/api/src/adapters/cards.ts",
+      "apps/api/src/http/routes/cards.ts",
+      "apps/api/test/qry01-qry03.test.ts",
+      "packages/contracts/src/cards.ts"
+    ],
+    "files": {
+      "docs/reviews/QRY-03/criteria.json": "a61ccdb6e540f1010b48e01c22e70b1695af3a2e74e52d5c19ae46694ed1e7e3",
+      "docs/reviews/QRY-03/reviewer-session.md": "6efc2cea768c460fffba0b1d7fa4e11412c054ba5f810f3f93f40e554c1d7a6b",
+      "docs/reviews/QRY-03/test.log": "579d29ff658c4d4e9769c8fa24571263bdc0a26bfc3353b8d45728e9d81bee20",
+      "apps/api/src/adapters/cards.ts": "e8787b4a363ed49ab80f4f490f12c635c1d06c4a5772759075d728a65a2ad0c4",
+      "apps/api/src/http/routes/cards.ts": "b6fdce28f8bd175ad4dee738e074b71c591a4607d12ef8b59d83a645f9f42661",
+      "apps/api/test/qry01-qry03.test.ts": "f7f38f866fa709218f5753e4ca9fa03a77b567d4a01ca774d3fc4e49ef57f501",
+      "packages/contracts/src/cards.ts": "9da39d2cbed92627d51fda16f51c6eec117de6babd4de24e0397a36819f8b9bf"
+    },
+    "digest": "f4cd5a98febfd736c5af5e32898d0ba4792d513af2e46c9422cf394e18526ac1"
+  },
+  "criteriaResults": {
+    "Personal task aggregation: GET /api/v1/me/tasks returns active cards where current user is assigned across accessible projects": "pass",
+    "Access boundary enforcement: Excludes cards in projects where actor lacks an active membership or ownership": "pass",
+    "Workspace scoping: GET /api/v1/workspaces/:workspaceId/my-tasks filters personal tasks to target workspace": "pass",
+    "Instant revocation: Setting membership to 'removed' immediately hides tasks from that project on the next request": "pass",
+    "Enriched entity context: Response items include projectName, boardName, and columnTitle": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "f4cd5a98febfd736c5af5e32898d0ba4792d513af2e46c9422cf394e18526ac1",
+      "evidencePath": "docs/reviews/QRY-03/test.log"
+    },
+    {
+      "id": "qry-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/qry01-qry03.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "f4cd5a98febfd736c5af5e32898d0ba4792d513af2e46c9422cf394e18526ac1",
+      "evidencePath": "docs/reviews/QRY-03/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Strict join against active project_memberships guarantees zero post-revocation leakage; outsider gets empty array without disclosing project existence.",
+      "evidencePaths": [
+        "docs/reviews/QRY-03/reviewer-session.md",
+        "docs/reviews/QRY-03/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "Accurate sorting by due_date ASC NULLS LAST; returns complete CardSummary attributes plus contextual names.",
+      "evidencePaths": [
+        "docs/reviews/QRY-03/reviewer-session.md",
+        "docs/reviews/QRY-03/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "State filter c.state = 'active' prevents trashed cards from appearing in task list.",
+      "evidencePaths": [
+        "docs/reviews/QRY-03/reviewer-session.md",
+        "docs/reviews/QRY-03/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests verify member view, owner view, workspace filter, sibling isolation, and instant revocation.",
+      "evidencePaths": [
+        "docs/reviews/QRY-03/reviewer-session.md",
+        "docs/reviews/QRY-03/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clean adapter function getMyTasks with typed options.",
+      "evidencePaths": [
+        "docs/reviews/QRY-03/reviewer-session.md",
+        "docs/reviews/QRY-03/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Indexed card_assignees(user_id) join provides sub-10ms personal task resolution.",
+      "evidencePaths": [
+        "docs/reviews/QRY-03/reviewer-session.md",
+        "docs/reviews/QRY-03/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

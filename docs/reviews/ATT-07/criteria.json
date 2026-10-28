@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ATT-07"
+  ],
+  "mandatoryCriteria": [
+    "Trash preservation: Trashing a card preserves its finalized card_images and underlying storage objects without modification",
+    "Access lockdown during trash: Trashed card images return 404 NOT_FOUND to normal readers and cannot be modified or added to",
+    "Complete restoration: Restoring a card recovers all finalized images, restoring gallery visibility and download availability",
+    "Permanent purge: Purging an expired trashed card permanently scrubs all card_images records and permanently deletes binary objects from storage driver",
+    "Purge safety guard: Purge cannot destroy images of a card that was restored before the restore cutoff"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "att-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: ATT-07 private image and card attachment handling on PostgreSQL. Out-of-scope: UI components."
+}

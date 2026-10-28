@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "BRD-01"
+  ],
+  "mandatoryCriteria": [
+    "Owner and manager board creation: Workspace owner and project manager can create boards via POST /api/v1/projects/:projectId/boards; members and viewers receive 403 FORBIDDEN (404 for ungranted project)",
+    "Atomic default columns: Creating a board atomically inserts exactly 4 default columns in order: \"Not started\" (todo, pos 0), \"In progress\" (active, pos 1), \"Testing\" (active, pos 2), \"Completed\" (done, pos 3)",
+    "Ancestry and versioning: Board inherits workspace_id and project_id from project; initializes structure_version=1 and snapshot_version=1",
+    "Idempotency enforcement: POST /api/v1/projects/:projectId/boards requires valid Idempotency-Key header and returns idempotent receipt"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "brd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Board creation and atomic default column creation with idempotency on PostgreSQL. Out-of-scope: Archiving board (BRD-08)."
+}

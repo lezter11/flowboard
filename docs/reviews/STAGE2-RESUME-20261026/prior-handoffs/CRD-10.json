@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-10/aba2b174eba1c501fb5782f12e4693f76e76e341d451b841bf5e9cf79fe703da-round-1.json",
+  "summary": "CRD-10 Concurrent move/edit conflict handling verified. Implemented robust Optimistic Concurrency Control returning structured 409 STALE_VERSION and 409 STALE_BOARD_VERSION envelopes containing current version coordinates, enabling clients to preserve unsaved user drafts and prompt for graceful resolution. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "PATCH /api/v1/cards/:cardId & POST /api/v1/cards/:cardId/move (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-10/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 12 tests passed. Review score 9.425/10."
+    }
+  ]
+}

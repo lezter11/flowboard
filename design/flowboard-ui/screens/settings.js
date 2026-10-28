@@ -6,9 +6,22 @@
   const $ = (selector, root) => (root || document).querySelector(selector);
   const $$ = (selector, root) => Array.from((root || document).querySelectorAll(selector));
   const escape = window.Screens.escape;
-  const PROJECT_ID = "website-redesign";
-  const BOARD_ID = "board_website";
+  let PROJECT_ID = "";
+  let BOARD_ID = "";
   const TABS = ["project", "board", "account", "appearance"];
+  const PASTELS = [
+    { tone: "backlog", name: "Lavender", css: "lavender" },
+    { tone: "progress", name: "Ice blue", css: "ice-blue" },
+    { tone: "testing", name: "Mist grey", css: "mist-grey" },
+    { tone: "completed", name: "Soft green", css: "soft-green" },
+    { tone: "blocked", name: "Coral", css: "coral" },
+    { tone: "rose", name: "Rose", css: "rose" },
+    { tone: "mint", name: "Mint", css: "mint" },
+    { tone: "peach", name: "Peach", css: "peach" },
+    { tone: "butter", name: "Butter", css: "butter" },
+    { tone: "iris", name: "Lilac", css: "lilac" }
+  ];
+  const PASTEL_TONES = new Set(PASTELS.map((choice) => choice.tone));
 
   const params = new URLSearchParams(window.location.search);
   const state = {
@@ -16,25 +29,43 @@
     projectDirty: false,
     boardDirty: false,
     columnEdit: null,
-    columns: window.FB.columns.map((column) => ({
-      ...column,
-      category: column.id === "col_backlog" ? "todo" : column.id === "col_completed" ? "done" : "active",
-      cardCount: window.FB.cards.filter((card) => card.columnId === column.id).length
-    }))
+    columns: []
   };
 
   function me() { return window.Screens.currentUser(); }
-  function project() { return SD.project(PROJECT_ID); }
-  function board() { return SD.board(BOARD_ID); }
-  function memberRecord(personId) { return SD.members.find((member) => member.personId === personId) || null; }
-  function canManageProject() { return window.Screens.can("manageProject"); }
-  function canManageBoard() { return window.Screens.can("manageBoard"); }
-  function canArchive() { return window.Screens.can("archiveProject"); }
+  function project() { return PROJECT_ID ? (window.Portfolio ? window.Portfolio.project(PROJECT_ID) : SD.project(PROJECT_ID)) : null; }
+  function board() {
+    const b = BOARD_ID ? (window.Portfolio ? window.Portfolio.board(BOARD_ID) : SD.board(BOARD_ID)) : null;
+    return b && b.projectId === PROJECT_ID ? b : null;
+  }
+  function supportsMutation() { return !window.Portfolio && Boolean(SD.project(PROJECT_ID) && SD.board(BOARD_ID)); }
+  function defaultColumns() {
+    const source = BOARD_ID === "board_website" ? window.FB.columns : window.Portfolio?.columns(BOARD_ID);
+    const columns = source?.length ? source : [
+      { id: `${BOARD_ID || "board"}_todo`, name: "Not started", tone: "backlog", category: "todo" },
+      { id: `${BOARD_ID || "board"}_active`, name: "In progress", tone: "progress", category: "active" },
+      { id: `${BOARD_ID || "board"}_done`, name: "Completed", tone: "completed", category: "done" }
+    ];
+    return columns.map((column) => ({
+      ...column,
+      tone: PASTEL_TONES.has(column.tone) ? column.tone : "backlog",
+      category: column.category || (column.id === "col_backlog" ? "todo" : column.id === "col_completed" ? "done" : "active"),
+      cardCount: BOARD_ID === "board_website" ? window.FB.cards.filter((card) => card.columnId === column.id).length : 0
+    }));
+  }
+  function memberRecord(personId) {
+    const p = project();
+    return p?.memberIds.includes(personId) ? SD.members.find((member) => member.personId === personId) || null : null;
+  }
+  function canManageProject() { return supportsMutation() && window.Screens.can("manageProject") && Boolean(project()?.memberIds.includes(me().id)); }
+  function canManageBoard() { return supportsMutation() && window.Screens.can("manageBoard") && Boolean(project()?.memberIds.includes(me().id)) && Boolean(board()); }
+  function canArchive() { return supportsMutation() && window.Screens.can("archiveProject") && project()?.ownerId === me().id; }
   function projectArchived() { const p = project(); return Boolean(p && p.status === "archived"); }
 
   function renderHeader() {
     const p = project();
-    $("#settingsSub").innerHTML = `<span>${escape(p ? p.name : "Project")}</span><span class="dot" aria-hidden="true"></span><span>${escape(window.Screens.roleLabel())} preview</span><span class="dot" aria-hidden="true"></span><span>In-memory settings</span>`;
+    $("#settingsProjectName").textContent = p ? p.name : "Project";
+    $("#settingsSub").textContent = p ? p.name : "Project settings";
     $("#settingsRoleBadge").textContent = `${window.Screens.roleLabel()} preview`;
     $("#settingsProjectLink").href = window.Screens.screenHref("project", { project: PROJECT_ID });
     $("#settingsBoardLink").href = window.Screens.boardHref();
@@ -95,7 +126,9 @@
     $("#projectStatusBadge").textContent = projectArchived() ? "Archived" : "Active";
     $("#projectStatusBadge").className = `badge${projectArchived() ? "" : " accent"}`;
     $("#projectSettingsSub").textContent = `Name and description for ${p.name}.`;
-    $("#projectRoleNote").innerHTML = canManageProject()
+    $("#projectRoleNote").innerHTML = !supportsMutation()
+      ? `<svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg><span>Project editing is not connected in this preview.</span>`
+      : canManageProject()
       ? projectArchived()
         ? `<svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg><span>This project is archived. Reopen it before changing its name, description or boards.</span>`
         : `<svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg><span>You can rename and describe this project. ${canArchive() ? "You can also archive or reopen it." : "Archiving is Owner-only."}</span>`
@@ -126,11 +159,11 @@
       const removeTitle = column.cardCount > 0
         ? `Cannot remove ${column.name}: ${column.cardCount} active card${column.cardCount === 1 ? "" : "s"} reference this column.`
         : "Cannot remove the final column.";
-      return `<div class="column-row" data-tone="${column.tone}" data-column-id="${column.id}">
+      return `<div class="column-row settings-column-row" data-tone="${escape(column.tone)}" data-column-id="${escape(column.id)}">
         <span class="column-dot" aria-hidden="true"></span>
         <span class="col-copy">
           <span class="col-name">${escape(column.name)}</span>
-          <span class="col-meta">${escape(column.id)} · ${column.cardCount} card${column.cardCount === 1 ? "" : "s"} · ${escape(column.category)} category</span>
+          <span class="col-meta">${escape(column.category)}</span>
         </span>
         <span class="col-actions">
           <button class="icon-btn" type="button" data-move-column="${column.id}" data-direction="-1" aria-label="Move ${escape(column.name)} up" title="Move up"${!editable || index === 0 ? " disabled" : ""}>${window.Screens.icon("chevron-up")}</button>
@@ -144,7 +177,7 @@
     $("#resetColumnsBtn").disabled = !editable;
     $("#columnNote").textContent = editable
       ? `${state.columns.length} of 12 columns. Changes are preview-only; the approved board artifact is not modified.`
-      : "Only Owner and Manager can change board columns. This roster is read-only for your role.";
+      : "Column editing is not connected in this preview.";
     bindColumnActions();
   }
 
@@ -172,7 +205,9 @@
     $("#boardStatusBadge").textContent = projectArchived() ? "Read-only" : "Active";
     $("#boardStatusBadge").className = `badge${projectArchived() ? "" : " accent"}`;
     $("#boardSettingsSub").textContent = `Board name and column order for ${b.name}.`;
-    $("#boardRoleNote").innerHTML = canManageBoard()
+    $("#boardRoleNote").innerHTML = !supportsMutation()
+      ? `<svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg><span>Board editing is not connected in this preview.</span>`
+      : canManageBoard()
       ? projectArchived()
         ? `<svg class="icon" aria-hidden="true"><use href="#i-lock"></use></svg><span>This project is archived. Reopen it before changing board settings or columns.</span>`
         : `<svg class="icon" aria-hidden="true"><use href="#i-shield"></use></svg><span>You can rename this board and change its column order. Removing a column with cards is blocked with an explanation.</span>`
@@ -250,6 +285,27 @@
   }
 
   function render() {
+    if (!window.Screens.projectContext.valid || !PROJECT_ID || !project() || !board()) {
+      $("#settingsSub").textContent = "This project or board context is unavailable.";
+      $("#settingsProjectName").textContent = "Project";
+      $(".page-actions").hidden = true;
+      $(".review-bar").hidden = true;
+      $(".settings-tabs").hidden = true;
+      $("#settingsPanels").hidden = true;
+      $("#projectName").value = "";
+      $("#projectDescription").value = "";
+      $("#boardName").value = "";
+      $("#boardDescription").value = "";
+      $("#accountName").textContent = "";
+      $("#accountEmail").textContent = "";
+      $("#accountDisplayName").value = "";
+      $("#accountEmailField").value = "";
+      return;
+    }
+    $(".page-actions").hidden = false;
+    $(".review-bar").hidden = false;
+    $(".settings-tabs").hidden = false;
+    $("#settingsPanels").hidden = false;
     renderHeader();
     renderTabs();
     renderProject();
@@ -282,20 +338,75 @@
     if (!canManageBoard() || projectArchived()) return;
     const column = id ? state.columns.find((entry) => entry.id === id) : null;
     state.columnEdit = { mode, id: id || null };
-    $("#columnDialogTitle").textContent = mode === "rename" ? "Rename column" : "Add a column";
+    $("#columnDialogTitle").textContent = mode === "rename" ? "Edit column" : "Add a column";
+    $("#columnSubmitBtn").textContent = mode === "rename" ? "Save column" : "Add column";
     $("#columnName").value = column ? column.name : "";
-    $("#columnTone").value = column ? column.tone : "backlog";
+    const tone = column && PASTEL_TONES.has(column.tone) ? column.tone : "backlog";
+    renderPastelChoices(tone);
+    $("#columnColorError").hidden = true;
+    $("#columnColorError").textContent = "";
     $("#columnCategory").value = column ? column.category : "todo";
+    updateColumnPreview();
     $("#columnError").hidden = true;
     $("#columnName").classList.remove("is-invalid");
     window.Screens.openDialog("columnLayer");
+  }
+
+  function renderPastelChoices(selectedTone) {
+    const group = $("#columnToneOptions");
+    group.innerHTML = PASTELS.map((choice) => {
+      const selected = choice.tone === selectedTone;
+      return `<button class="settings-pastel-choice${selected ? " is-selected" : ""}" type="button" role="radio" data-tone="${choice.tone}" aria-label="${choice.name}" aria-checked="${selected}" tabindex="${selected ? "0" : "-1"}"><span class="settings-pastel-chip pastel-${choice.css}" aria-hidden="true"></span><span>${choice.name}</span><span class="settings-pastel-check" aria-hidden="true">✓</span></button>`;
+    }).join("");
+    $$("[data-tone]", group).forEach((button) => button.addEventListener("click", () => selectPastel(button.dataset.tone, true)));
+  }
+
+  function selectedPastel() {
+    return $("#columnToneOptions [aria-checked='true']")?.dataset.tone || "";
+  }
+
+  function selectPastel(tone, focus) {
+    if (!PASTEL_TONES.has(tone)) return;
+    $$("[role=radio]", $("#columnToneOptions")).forEach((button) => {
+      const selected = button.dataset.tone === tone;
+      button.setAttribute("aria-checked", String(selected));
+      button.tabIndex = selected ? 0 : -1;
+      button.classList.toggle("is-selected", selected);
+      if (selected && focus) button.focus();
+    });
+    $("#columnColorError").hidden = true;
+    updateColumnPreview();
+  }
+
+  function onPastelKeydown(event) {
+    const choices = $$("[role=radio]", $("#columnToneOptions"));
+    const index = choices.indexOf(event.target.closest("[role=radio]"));
+    if (index < 0) return;
+    let next = index;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % choices.length;
+    else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (index - 1 + choices.length) % choices.length;
+    else if (event.key === "Home") next = 0;
+    else if (event.key === "End") next = choices.length - 1;
+    else return;
+    event.preventDefault();
+    selectPastel(choices[next].dataset.tone, true);
+  }
+
+  function updateColumnPreview() {
+    const tone = selectedPastel();
+    const choice = PASTELS.find((entry) => entry.tone === tone) || PASTELS[0];
+    const name = $("#columnName").value.trim() || "New column";
+    const preview = $("#columnColorPreview");
+    preview.dataset.tone = choice.tone;
+    $("#columnColorPreviewName").textContent = name;
+    $("#columnColorPreviewValue").textContent = choice.name;
   }
 
   function submitColumn(event) {
     event.preventDefault();
     if (!canManageBoard() || projectArchived() || !state.columnEdit) return;
     const name = $("#columnName").value.trim();
-    const tone = $("#columnTone").value;
+    const tone = selectedPastel();
     const category = $("#columnCategory").value;
     const error = $("#columnError");
     error.hidden = true;
@@ -305,6 +416,13 @@
       error.hidden = false;
       $("#columnName").classList.add("is-invalid");
       $("#columnName").focus();
+      return;
+    }
+    if (!PASTEL_TONES.has(tone)) {
+      const colorError = $("#columnColorError");
+      colorError.textContent = "Choose one of the listed pastel colors before saving.";
+      colorError.hidden = false;
+      $("#columnToneOptions").querySelector("[role=radio]")?.focus();
       return;
     }
     const duplicate = state.columns.some((column) => column.name.trim().toLowerCase() === name.toLowerCase() && column.id !== state.columnEdit.id);
@@ -472,16 +590,14 @@
     $("#addColumnBtn").addEventListener("click", () => openColumnDialog("add"));
     $("#resetColumnsBtn").addEventListener("click", () => {
       if (!canManageBoard() || projectArchived()) return;
-      state.columns = window.FB.columns.map((column) => ({
-        ...column,
-        category: column.id === "col_backlog" ? "todo" : column.id === "col_completed" ? "done" : "active",
-        cardCount: window.FB.cards.filter((card) => card.columnId === column.id).length
-      }));
+      state.columns = defaultColumns();
       markBoardDirty();
       renderColumns();
       window.Screens.toast("Columns reset to the approved board order. Save to keep this local preview.", { icon: "refresh" });
     });
     $("#columnForm").addEventListener("submit", submitColumn);
+    $("#columnName").addEventListener("input", updateColumnPreview);
+    $("#columnToneOptions").addEventListener("keydown", onPastelKeydown);
     $$("[data-close-dialog]").forEach((button) => {
       button.addEventListener("click", () => window.Screens.closeDialog(button.dataset.closeDialog));
     });
@@ -495,6 +611,10 @@
 
   window.FBPage = {
     init() {
+      const context = window.Screens.projectContext;
+      PROJECT_ID = context.projectId;
+      BOARD_ID = context.boardId;
+      state.columns = defaultColumns();
       bind();
       window.Screens.onTheme(updateThemeUI);
       render();

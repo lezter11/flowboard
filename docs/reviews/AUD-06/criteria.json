@@ -1,0 +1,17 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "AUD-06"
+  ],
+  "mandatoryCriteria": [
+    "Append-only immutability: No user-facing endpoints exist to modify or delete activity log records",
+    "Retention redaction: Scrubbing safe_changes for purged cards replaces content with minimal tombstone { cardId, purged: true }",
+    "Fact persistence: Activity log ID, actor_id, action, card_id, and created_at persist permanently after redaction",
+    "No data leaks: Redacted records reveal zero private titles, descriptions, or comment bodies"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "aud-ntf-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: AUD-06 activity tracking and notifications on PostgreSQL. Out-of-scope: UI components."
+}

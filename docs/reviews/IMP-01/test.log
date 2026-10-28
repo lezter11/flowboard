@@ -1,0 +1,34 @@
+$ npm run typecheck
+
+
+> typecheck
+> tsc --noEmit
+
+
+exitCode: 0
+
+$ WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts
+▶ IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite
+  ✔ 0. Setup Workspace, Projects, Members and Boards (78.908583ms)
+  ✔ IMP-01: Download Excel template with versioned 7-column schema (4.637208ms)
+  ✔ IMP-02: Role authorization and target boundaries (Owner/Manager pass, Member/Viewer 403, Outsider 404) (13.640708ms)
+  ✔ IMP-03: Security boundaries: formulas, macros, external links, OLE, XXE, row limits (23.031916ms)
+  ✔ IMP-04: Header validation, leading zeros, numeric rejection, date systems, assignee resolution (26.49325ms)
+  ✔ IMP-05: Dry run preview, pagination, unmapped status update, and cancel before commit (17.418542ms)
+  ✔ IMP-06: Atomic confirmation, OCC guards, role re-check, and single transaction commit (23.097834ms)
+  ✔ IMP-07: Duplicate skips unchanged row, conflicts on changed payload, and protects 24-hour trash (9.861875ms)
+  ✔ IMP-09: Safe CSV report download with formula injection neutralization (1.406125ms)
+  ✔ Adversarial: Revoked manager authority race between preview and commit returns 403 FORBIDDEN (5.490625ms)
+  ✔ Adversarial: Removed assignee between preview and commit returns 409 PREVIEW_STALE (7.697084ms)
+  ✔ IMP-11: Batch and card provenance activity log links (0.349041ms)
+✔ IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite (215.440875ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 13
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 385.947667
+
+exitCode: 0

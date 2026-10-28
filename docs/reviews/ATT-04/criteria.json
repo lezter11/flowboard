@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "ATT-04"
+  ],
+  "mandatoryCriteria": [
+    "Authenticated proxy delivery: GET /api/v1/images/:imageId/content and /thumbnail require valid session and active project membership",
+    "Instant revocation enforcement: If a user's membership is removed or role revoked, subsequent image requests immediately return 404 NOT_FOUND",
+    "Sibling project privacy: Members of sibling projects without a grant in the image's project receive 404 NOT_FOUND",
+    "Security response headers: Delivery sets Cache-Control: private, no-cache, no-store, must-revalidate and X-Content-Type-Options: nosniff",
+    "Binary stream delivery: Streams exact verified binary bytes with correct Content-Type, Content-Length, and Content-Disposition"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "att-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: ATT-04 private image and card attachment handling on PostgreSQL. Out-of-scope: UI components."
+}

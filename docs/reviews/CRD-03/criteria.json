@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-03"
+  ],
+  "mandatoryCriteria": [
+    "Card detail query: GET /api/v1/cards/:cardId returns full card entity including description and state",
+    "Access verification: Granted project members can view card detail; ungranted users receive 404 NOT_FOUND",
+    "Referenced people display: Response includes PersonDisplay for card assignees"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "crd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Card detail retrieval and independent authorization."
+}

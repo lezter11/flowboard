@@ -1,0 +1,20 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/IMP-08/ca8aeefaacf1c172ad831377bbdb814e54d2a2f1884f7708e716a6eb08fbd4b2-round-1.json",
+  "summary": "IMP-08 Date and multi-assignee conversion verified. Real 1900 and 1904 Excel serial numbers convert accurately to YYYY-MM-DD Gregorian dates; Lotus 1-2-3 fictitious leap day is rejected; semicolon-separated account emails resolve active project members only; unknown/ineligible emails produce descriptive validation errors. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "excel-parser date and assignee resolution (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/IMP-08/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts",
+      "result": "All 13 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant (Owner or Project Manager).",
+    "Accepts supported macro-free XLSX only (<= 5 MiB compressed, <= 20 MiB expanded XML, <= 200 non-empty rows).",
+    "Formulas, external package links, macros, and XXE declarations strictly disallowed.",
+    "Atomic all-or-nothing confirmation: any row validation failure rolls back the entire batch."
+  ]
+}

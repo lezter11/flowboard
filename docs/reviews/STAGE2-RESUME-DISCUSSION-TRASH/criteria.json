@@ -1,0 +1,28 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": ["COM-01", "COM-02", "COM-03", "COM-04", "COM-05", "COM-06", "DEL-01", "DEL-02", "DEL-03", "DEL-04", "DEL-05", "DEL-06", "DEL-07", "DEL-08"],
+  "mandatoryCriteria": [
+    "COM-01 mounted GET comment listing is project scoped, denies cross-project/sibling access without metadata leakage, emits chronological stable cursor pages and safe historical author displays, and hides tombstone body/mentions.",
+    "COM-02 mounted POST accepts only bounded plain text and validated eligible structured mentions; literal at-name text is not a mention; member/manager/owner can post while viewer cannot; comment, activity, mention intent/notification, outbox, idempotency receipt and snapshot version commit atomically and retries do not duplicate effects.",
+    "COM-03 mention ranges use UTF-16 code units, reject overlaps/out-of-range/surrogate splits and ineligible identities, and edits do not resend mention notifications.",
+    "COM-04 only the active author edits a comment with expected version; stale edits conflict, activity and board snapshot version advance atomically, and edit does not re-notify.",
+    "COM-05 author or in-project owner/manager may tombstone with expected version; other members/viewers cannot moderate; tombstone activity persists and normal reads redact body/mentions.",
+    "COM-06 is client-only independent-draft behavior. Backend review must report it as not implemented/not evidenced for backend and must not credit a dormant helper or schema as UI implementation.",
+    "DEL-01 mounted delete route is owner/manager only; requires expected card and board versions; server timestamp sets exact restoreUntil=deletedAt+24h; active board/search/count paths exclude trash and lifecycle activity/version updates are atomic.",
+    "DEL-02 mounted trash list is project scoped and owner/manager only; exposes required metadata and serverNow without revealing other projects.",
+    "DEL-03 restore before server cutoff recovers same card identity and retained content, does not extend deadline on no-op/retry, and uses guarded current versions and project/board writable state.",
+    "DEL-04 restore defaults to the valid original board/column and nearest surviving position; missing/read-only original destination requires explicit valid active target or reopening; no cross-board relocation.",
+    "DEL-05 at or after exact cutoff restore returns stable 410 RESTORE_WINDOW_EXPIRED based on server time even before purge.",
+    "DEL-06 restore/purge races are transactionally fenced so exactly one state wins and cleanup cannot purge restored content or images.",
+    "DEL-07 purge removes recoverable card/comment/image content and sensitive receipt/notification payload copies after cutoff while retaining only documented minimal audit/idempotency tombstones; cleanup is retryable.",
+    "DEL-08 trashed/purged card reads and all edit/move/comment/upload mutations are blocked at mounted handlers; no helper-only or route bypass can mutate deleted content.",
+    "Trace production-local Node and Worker entry points, mounted routes, auth/session/origin/body limits, project ancestry and grant locks, PostgreSQL constraints/migrations, transaction and receipt/outbox behavior, response contracts, active board/search/count surfaces, and tests throughout reachable source.",
+    "Use only isolated synthetic PostgreSQL on 127.0.0.1:55438 (database/user flowboard_harness) with DATABASE_URL=postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55438/flowboard_harness; never run commands against any other DB.",
+    "COM-01..06 and DEL-01..08 are adjudicated individually with implementation vs contract/schema/helper evidence clearly distinguished; unproved mandatory behavior is not marked pass."
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "discussion_trash_group": "WRANGLER_SEND_METRICS=false node --test --test-concurrency=1 test/com-del.test.ts"
+  },
+  "scopeAndExclusions": "Fresh independent read-only review of immutable snapshot /private/tmp/flowboard-stage2-resume-a37x7egs, identified by its supplied 71-file resume-source-manifest.json; audit all reachable COM-01..06 and DEL-01..08 source and shared auth, RBAC, boards, cards, contracts, migrations, Node/Worker runtime, receipts/outbox and test paths, not only changed files. Write review evidence only under docs/reviews/STAGE2-RESUME-DISCUSSION-TRASH/. No implementation or edits to snapshot/source/contracts/tests/handoffs/checklist/prior reviews. Local Node/Worker code paths and dedicated local PostgreSQL only; no cloud/deployed behavior, external network, dependency install, production data, UI/browser acceptance, or production readiness claims. COM-06 requires separate UI evidence and is not backend completion."
+}

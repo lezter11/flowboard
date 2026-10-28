@@ -1,0 +1,16 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CRD-11"
+  ],
+  "mandatoryCriteria": [
+    "Idempotent card mutations: POST /boards/:boardId/cards and POST /cards/:cardId/move enforce mandatory Idempotency-Key",
+    "Replay handling: Replayed identical requests return original receipt without duplicate side-effects",
+    "Field validation error formatting: Invalid fields return 422 VALIDATION_ERROR with structured issues"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "crd-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: Idempotency receipts and structured error formatting."
+}

@@ -1,0 +1,18 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "NTF-02"
+  ],
+  "mandatoryCriteria": [
+    "Individual mark-read: PATCH /api/v1/notifications/:id/read updates read=true for owned, accessible notification",
+    "Ownership enforcement: Attempting to mark another user's notification as read returns 404 NOT_FOUND",
+    "Revoked access denial: Attempting to mark a notification from a revoked project returns 404 NOT_FOUND",
+    "Batch mark-all-read: POST /api/v1/notifications/mark-all-read marks all accessible unread notifications as read",
+    "Unread filter support: GET /api/v1/notifications?unreadOnly=true returns unread notifications only"
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "aud-ntf-tests": "WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts"
+  },
+  "scopeAndExclusions": "In-scope: NTF-02 activity tracking and notifications on PostgreSQL. Out-of-scope: UI components."
+}

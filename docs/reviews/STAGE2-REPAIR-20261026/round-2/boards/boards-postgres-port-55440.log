@@ -1,0 +1,267 @@
+▶ BRD-01 to BRD-07: Board & Column Lifecycle Suite
+  ✖ BRD-01: Workspace owner can create board with atomic default columns (0.984875ms)
+  ✖ BRD-01: Project manager can also create boards (0.022083ms)
+  ✖ BRD-01: Members and viewers receive 403 FORBIDDEN when attempting to create board (0.018125ms)
+  ✖ BRD-01: Ungranted user receives 404 NOT_FOUND when attempting to create board (0.02275ms)
+  ✖ BRD-01: Idempotency enforcement on board creation (0.017958ms)
+  ✖ BRD-02: Listing boards returns active boards for granted project members (0.019792ms)
+  ✖ BRD-02: Updating board name with OCC check (0.0175ms)
+  ✖ BRD-04: Add column verifies OCC, uniqueness, and role (0.016334ms)
+  ✖ BRD-04: Updating column fields & enforcing name uniqueness (0.023875ms)
+  ✖ BRD-04: Maximum 12 columns bound enforced (0.026916ms)
+  ✖ BRD-05: Reordering columns requires complete exact set and OCC (0.013708ms)
+  ✖ BRD-05: Card placement neighbor calculation (first, last, before, after) (0.012208ms)
+  ✖ BRD-06: Column deletion guards: active cards, restorable trash, final column (0.009833ms)
+  ✖ BRD-03: Consistent bounded snapshot with active vs matching counts and people disclosure (0.01225ms)
+  ✖ BRD-07: Paginated cards query with cursor resumption and filters (0.011166ms)
+✖ BRD-01 to BRD-07: Board & Column Lifecycle Suite (3.510625ms)
+ℹ tests 16
+ℹ suites 0
+ℹ pass 0
+ℹ fail 16
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 213.548875
+
+✖ failing tests:
+
+test at test/brd01-brd07.test.ts:114:11
+✖ BRD-01: Workspace owner can create board with atomic default columns (0.984875ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:157:11
+✖ BRD-01: Project manager can also create boards (0.022083ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:173:11
+✖ BRD-01: Members and viewers receive 403 FORBIDDEN when attempting to create board (0.018125ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:203:11
+✖ BRD-01: Ungranted user receives 404 NOT_FOUND when attempting to create board (0.02275ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:216:11
+✖ BRD-01: Idempotency enforcement on board creation (0.017958ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:252:11
+✖ BRD-02: Listing boards returns active boards for granted project members (0.019792ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:278:11
+✖ BRD-02: Updating board name with OCC check (0.0175ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:326:11
+✖ BRD-04: Add column verifies OCC, uniqueness, and role (0.016334ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:388:11
+✖ BRD-04: Updating column fields & enforcing name uniqueness (0.023875ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:426:11
+✖ BRD-04: Maximum 12 columns bound enforced (0.026916ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:486:11
+✖ BRD-05: Reordering columns requires complete exact set and OCC (0.013708ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:559:11
+✖ BRD-05: Card placement neighbor calculation (first, last, before, after) (0.012208ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:615:11
+✖ BRD-06: Column deletion guards: active cards, restorable trash, final column (0.009833ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:719:11
+✖ BRD-03: Consistent bounded snapshot with active vs matching counts and people disclosure (0.01225ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:786:11
+✖ BRD-07: Paginated cards query with cursor resumption and filters (0.011166ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }
+
+test at test/brd01-brd07.test.ts:17:1
+✖ BRD-01 to BRD-07: Board & Column Lifecycle Suite (3.510625ms)
+  Error: connect EPERM 127.0.0.1:55440 - Local (0.0.0.0:0)
+      at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/Documents/Flowboard/apps/api/src/adapters/migrations.ts:117:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/Documents/Flowboard/apps/api/test/brd01-brd07.test.ts:41:5)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55440
+  }

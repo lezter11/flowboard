@@ -1,0 +1,45 @@
+▶ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite
+  ✔ COM-02: Viewers cannot post comments (403 FORBIDDEN) (107.685542ms)
+  ✔ COM-02: Outsiders receive 404 NOT_FOUND on comment post (3.118334ms)
+  ✔ COM-02: Comment post requires mandatory Idempotency-Key header (0.997708ms)
+  ✔ COM-02: Comment body validation (rejects empty or whitespace-only body) (0.999125ms)
+  ✔ COM-02: Member posts valid comment with outbox and activity_log (10.53575ms)
+  ✔ COM-02: Idempotency replay returns identical comment with replayed=true (7.218875ms)
+  ✔ COM-02: Idempotency conflict on same key with different body (3.418584ms)
+  ✔ COM-03: Rejects overlapping mention spans (1.07275ms)
+  ✔ COM-03: Rejects mentions of sibling project users or non-members (5.97425ms)
+  ✔ COM-03: Valid mentions notify teammates but self-mentions do NOT notify (10.050667ms)
+  ✔ COM-01: GET /cards/:cardId/comments returns chronological comments for readers (4.919833ms)
+  ✔ COM-01: Outsiders receive 404 NOT_FOUND on comment listing (2.368375ms)
+  ✔ COM-01: Comment cursor pages are card-scoped and stable across inserts (19.43975ms)
+  ✔ COM-04: Non-author cannot edit another user comment (403 FORBIDDEN) (4.710875ms)
+  ✔ COM-04: Edit comment OCC conflict returns 409 STALE_VERSION (3.959333ms)
+  ✔ COM-04: Author successfully edits comment and increments version (9.497417ms)
+  ✔ COM-05: Regular member cannot delete another member comment (403 FORBIDDEN) (10.198875ms)
+  ✔ COM-05: Workspace owner moderates and deletes comment (19.02075ms)
+  ✔ COM-05: Author deletes their own comment (7.615958ms)
+  ✔ DEL-01: Regular member/viewer cannot delete card (403 FORBIDDEN) (4.233458ms)
+  ✔ DEL-01: Delete card OCC check returns 409 STALE_VERSION (4.915ms)
+  ✔ DEL-01: Manager soft-deletes card with 24-hour restore window and board version increment (10.395459ms)
+  ✔ DEL-08: Trashed card returns 404 NOT_FOUND on direct GET /cards/:cardId (1.696917ms)
+  ✔ DEL-08: Trashed card comments return 404 NOT_FOUND on GET /cards/:cardId/comments (0.983916ms)
+  ✔ COM-06: Posting comment on trashed card is rejected with 400 CARD_IS_TRASHED (1.752333ms)
+  ✔ DEL-02: Non-administrators (members/viewers) receive 403 on trash listing (4.186375ms)
+  ✔ DEL-02: Owner and Manager can list trash with canRestore and blockedReason details (8.211625ms)
+  ✔ DEL-03: Non-admin cannot restore card (403 FORBIDDEN) (3.891667ms)
+  ✔ DEL-03: Manager restores card before deadline with OCC checks (64.53175ms)
+  ✔ DEL-04: Destination missing requires explicit toColumnId (30.645417ms)
+  ✔ DEL-05: Expired restore returns HTTP 410 RESTORE_WINDOW_EXPIRED with details (11.72375ms)
+  ✔ Archived project and board reject card and comment writes atomically (23.843625ms)
+  ✔ Comment delete replay rechecks moderator authority after role demotion (12.617292ms)
+  ✔ Comment post retry respects current parent-card trash state (24.664ms)
+  ✔ DEL-06: Background purge worker, private content redaction, and fenced winner race (22.668416ms)
+✔ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite (467.800792ms)
+ℹ tests 36
+ℹ suites 0
+ℹ pass 36
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 613.326667

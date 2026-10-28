@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "COM-05"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/COM-05/criteria.json",
+  "startedAt": "2026-10-26T06:00:00Z",
+  "completedAt": "2026-10-26T06:30:00Z",
+  "implementer": {
+    "actorId": "flowboard-builder",
+    "sessionId": "2699f652-cbdf-4b2c-af34-2759bd2a0cd2",
+    "model": "antigravity-builder"
+  },
+  "reviewer": {
+    "actorId": "independent-backend-auditor",
+    "sessionId": "0e0cbffe-384e-4ead-9750-d0bec8724fa1",
+    "model": "antigravity-independent-reviewer",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/COM-05/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "docs/reviews/COM-05/criteria.json",
+      "docs/reviews/COM-05/reviewer-session.md",
+      "docs/reviews/COM-05/test.log",
+      "apps/api/src/adapters/comments.ts",
+      "apps/api/src/http/routes/comments.ts",
+      "apps/api/src/adapters/trash.ts",
+      "apps/api/src/http/routes/trash.ts",
+      "apps/api/test/com-del.test.ts",
+      "packages/contracts/src/comments.ts",
+      "packages/contracts/src/trash.ts"
+    ],
+    "files": {
+      "docs/reviews/COM-05/criteria.json": "40e58b7b82b05f279b4c16a51ec44d13723e835beec51980363afcc546359c10",
+      "docs/reviews/COM-05/reviewer-session.md": "4bf23ce96d5167d19e238f743216922a414905e6528f82e7d3ecd58f061349f3",
+      "docs/reviews/COM-05/test.log": "be97d22d7ed0a39dcdf9fd5f301f757d42dbfd77cb4e70fac094d175073ec8c4",
+      "apps/api/src/adapters/comments.ts": "3e7328e6b9c6ab3e4e62219cc8a32e4fe89531bcd5d3d24d9b8f4456b5afe934",
+      "apps/api/src/http/routes/comments.ts": "2333e12913b79a5d7a5857c5224c852bdf6934e8dfc8b7d91a6725024202f886",
+      "apps/api/src/adapters/trash.ts": "1f34633c284723cc25f8ab056ebe2654a72e6d8dfe57ff8c7885822c066a96ac",
+      "apps/api/src/http/routes/trash.ts": "711d72a930f6e0de63530735997a20b90974821923113a37351caa57f3aa3abf",
+      "apps/api/test/com-del.test.ts": "8464e108eafb6e5f8232fff6bca99914c54649465593e32f8e9d41f7f7759006",
+      "packages/contracts/src/comments.ts": "3d0061e48b153cf4fb5efded44e8aca9826b10d20f66490e69e2862aa4b44189",
+      "packages/contracts/src/trash.ts": "92103279204dcb4220361a194a05514999c67455b08711a4151541d6462c2125"
+    },
+    "digest": "c8813e962b3c4fd27bdb98780464c8e11045193dc0350b80b0c7e00e098efc4b"
+  },
+  "criteriaResults": {
+    "Delete own comment: Author can delete their own comment via DELETE /api/v1/comments/:commentId": "pass",
+    "Owner and manager moderation: Workspace owner and project manager can delete comments authored by other members within their project": "pass",
+    "Tombstone preservation: Deletion sets deleted_at = NOW() and marks body as removed; does not delete the audit row entirely": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "c8813e962b3c4fd27bdb98780464c8e11045193dc0350b80b0c7e00e098efc4b",
+      "evidencePath": "docs/reviews/COM-05/test.log"
+    },
+    {
+      "id": "com-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "c8813e962b3c4fd27bdb98780464c8e11045193dc0350b80b0c7e00e098efc4b",
+      "evidencePath": "docs/reviews/COM-05/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.8",
+      "reason": "Author can delete own comment; Workspace Owner and Project Manager can moderate/delete any comment; regular members cannot delete others' comments (403).",
+      "evidencePaths": [
+        "docs/reviews/COM-05/reviewer-session.md",
+        "docs/reviews/COM-05/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.6",
+      "reason": "OCC expectedVersion checked before marking tombstone; returns 409 on stale version.",
+      "evidencePaths": [
+        "docs/reviews/COM-05/reviewer-session.md",
+        "docs/reviews/COM-05/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.6",
+      "reason": "Sets deleted_at = NOW() and increments version; records comment_deleted fact in activity_log.",
+      "evidencePaths": [
+        "docs/reviews/COM-05/reviewer-session.md",
+        "docs/reviews/COM-05/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.7",
+      "reason": "Tests exercise author deletion, manager moderation, regular member 403 denial, and tombstone state.",
+      "evidencePaths": [
+        "docs/reviews/COM-05/reviewer-session.md",
+        "docs/reviews/COM-05/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Unified deletion logic handling both author deletion and administrator moderation paths.",
+      "evidencePaths": [
+        "docs/reviews/COM-05/reviewer-session.md",
+        "docs/reviews/COM-05/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Soft-deletion tombstone avoids table fragmentation and preserves audit continuity.",
+      "evidencePaths": [
+        "docs/reviews/COM-05/reviewer-session.md",
+        "docs/reviews/COM-05/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.605",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}

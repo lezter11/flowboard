@@ -1,0 +1,13 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-07/6b24d2737e465a4d6ff1408f8b7e265d0d7fab72f53ea6677eff48697e26f438-round-1.json",
+  "summary": "CRD-07 Card movement & relative ranking verified. Implemented cross-column and intra-column movement with fractional integer positioning between neighbors, empty column handling, automatic recompaction on space exhaustion, and dual OCC verification on both card version and board structure version. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "POST /api/v1/cards/:cardId/move (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-07/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 12 tests passed. Review score 9.425/10."
+    }
+  ]
+}

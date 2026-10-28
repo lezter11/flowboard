@@ -1,0 +1,42 @@
+{
+  "source": "/private/tmp/flowboard-stage2-resume-a37x7egs",
+  "isolatedPort": 55435,
+  "results": [
+    {
+      "case": "comment_cursor",
+      "expected": "next page advances",
+      "firstId": "cmt_54e74a88-9c52-4e34-ab5e-3be0fc0a3345",
+      "nextId": "cmt_54e74a88-9c52-4e34-ab5e-3be0fc0a3345",
+      "contractPassed": false
+    },
+    {
+      "case": "archived_board_card_patch",
+      "expected": "read-only rejection",
+      "actualStatus": 200,
+      "contractPassed": false
+    },
+    {
+      "case": "delete_comment_on_trashed_card",
+      "expected": "unavailable rejection",
+      "actualStatus": 200,
+      "contractPassed": false
+    },
+    {
+      "case": "revoked_card_receipt_replay",
+      "normalReadStatus": 404,
+      "expected": "private 404",
+      "actualStatus": 201,
+      "replayed": true,
+      "privateContentReturned": true,
+      "contractPassed": false
+    },
+    {
+      "case": "revoked_comment_receipt_replay",
+      "expected": "private 404",
+      "actualStatus": 201,
+      "replayed": true,
+      "privateContentReturned": true,
+      "contractPassed": false
+    }
+  ]
+}

@@ -1,0 +1,131 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "INV-05"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/INV-05/criteria.json",
+  "startedAt": "2026-10-26T05:39:59.312388Z",
+  "completedAt": "2026-10-26T05:39:59.312388Z",
+  "implementer": {
+    "actorId": "backend-builder",
+    "sessionId": "7e44e3cf-29d2-4f7d-ba58-a053cdb570fc",
+    "model": "gpt-6.1-sol-medium"
+  },
+  "reviewer": {
+    "actorId": "independent-auditor-inv",
+    "sessionId": "5664ffe4-311c-4302-85fd-63d6eac1ff11",
+    "model": "gemini-2.5-pro",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/INV-05/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "apps/api/src/adapters/invitations.ts",
+      "apps/api/src/http/routes/invitations.ts",
+      "apps/api/test/inv04-inv08.test.ts",
+      "docs/reviews/INV-05/criteria.json",
+      "docs/reviews/INV-05/reviewer-session.md",
+      "docs/reviews/INV-05/test.log"
+    ],
+    "files": {
+      "apps/api/src/adapters/invitations.ts": "1d3ec5a707b4572aaeffba9b14a428eb09a8c2f0f6f6225966f82dc0eb983851",
+      "apps/api/src/http/routes/invitations.ts": "18717ba6b85e95fa6847733b908dbd3cd27ca915f6cdaaf93bc02b046ce10364",
+      "apps/api/test/inv04-inv08.test.ts": "1c426d4264132a5c4002e9737128c53d1fcda8faf5561bfc1c4cbf9dbd75632a",
+      "docs/reviews/INV-05/criteria.json": "0b5983c8f3d858d77a39e7d17b621e6d7d4f370e1e8ccac11f0d391db2094834",
+      "docs/reviews/INV-05/reviewer-session.md": "adb77bf0e4289cfde5d9a5ec6fd1ec11056620169389c5ea94d359e61410ac75",
+      "docs/reviews/INV-05/test.log": "ed6f81e60e1f89639110819c09eb6581d7cc7668124eefe5c9e0d206558e0339"
+    },
+    "digest": "b85c6c7db2a37b175210a1aaacdcd5e83072ea080bded6ebf8624bb467d6a1ed"
+  },
+  "criteriaResults": {
+    "Invitation listing permissions: Workspace Owner and Project Manager can list invitations for their project": "pass",
+    "Sensitive token omission: Listed invitations strictly conform to invitationSchema and NEVER expose token_hash or raw token": "pass",
+    "Status mapping: Past-due pending invitations are dynamically mapped to status expired": "pass",
+    "Boundary enforcement: Members and viewers cannot list invitations (403 FORBIDDEN); outsiders and sibling project managers receive 404 NOT_FOUND": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "b85c6c7db2a37b175210a1aaacdcd5e83072ea080bded6ebf8624bb467d6a1ed",
+      "evidencePath": "docs/reviews/INV-05/test.log"
+    },
+    {
+      "id": "inv04-inv08-tests",
+      "command": "WRANGLER_SEND_METRICS=false node --test apps/api/test/inv04-inv08.test.ts",
+      "exitCode": 0,
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database",
+      "isolatedSynthetic": true,
+      "targetDigest": "b85c6c7db2a37b175210a1aaacdcd5e83072ea080bded6ebf8624bb467d6a1ed",
+      "evidencePath": "docs/reviews/INV-05/test.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.6",
+      "reason": "Strict privilege checks; members/viewers get 403; outsiders get 404; token_hash is excluded at the database SELECT level.",
+      "evidencePaths": [
+        "docs/reviews/INV-05/reviewer-session.md",
+        "docs/reviews/INV-05/test.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.5",
+      "reason": "Returns standard { data: [...], nextCursor: null } response matching invitationListResponseSchema; dynamic expiration mapping operates correctly.",
+      "evidencePaths": [
+        "docs/reviews/INV-05/reviewer-session.md",
+        "docs/reviews/INV-05/test.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.3",
+      "reason": "Read-only query executing with snapshot isolation against PostgreSQL.",
+      "evidencePaths": [
+        "docs/reviews/INV-05/reviewer-session.md",
+        "docs/reviews/INV-05/test.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.5",
+      "reason": "Dedicated tests verify schema compliance, absence of secret fields, expired date mapping, and negative permission barriers.",
+      "evidencePaths": [
+        "docs/reviews/INV-05/reviewer-session.md",
+        "docs/reviews/INV-05/test.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "9.2",
+      "reason": "Clean, straightforward adapter function with typed return values and contract schema parsing.",
+      "evidencePaths": [
+        "docs/reviews/INV-05/reviewer-session.md",
+        "docs/reviews/INV-05/test.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "9.0",
+      "reason": "Indexed query on project_id ensures efficient retrieval with minimal resource usage.",
+      "evidencePaths": [
+        "docs/reviews/INV-05/reviewer-session.md",
+        "docs/reviews/INV-05/test.log"
+      ]
+    }
+  },
+  "weightedScore": "9.445",
+  "findings": [],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass"
+}
