@@ -71,3 +71,7 @@ When executing any task or parallel tasks, follow the subagent branching workflo
 ## Latest user-directed board access boundary — 2026-10-27
 
 The confirmed Projects revision in FEATURE_SPEC/PRD supersedes older project-wide board visibility: non-Owners need project membership plus separate board access, and a combined card view stays within one project. On 2026-10-27 the user chose no automatic board grants for existing project members, Owner-only board-grant administration, and Manager permission to create boards. The Owner-only grant rule is an exception to broader Manager project administration. Those decisions are recorded in docs/handoffs/proposals/board-access-decisions-2026-10-27.md; they do not establish backend enforcement. Do not treat older project-grant-only tests or handoffs as evidence for this new boundary. Follow docs/handoffs/proposals/project-board-access-v2-2026-10-27.md for the full authorization cutover.
+
+## Subagent model preference — 2026-10-28
+
+User preference: use Haiku 5.5 (`claude-haiku-5-5`) subagents for bounded, mechanical tasks (searches, file surveys, running and summarizing checks, drafting from a spec) to save tokens. The delegating chat must read and verify the output against the actual files or command results before relying on it, and redo anything that is thin or wrong. Independent review-gate auditors (BACKEND_REVIEW_GATE.md) and security or architecture judgments stay on a stronger model, because a weaker reviewer would lower the gate. This replaces the earlier Luna-for-research preference where they conflict.
