@@ -35,7 +35,7 @@ Rewritten 2026-10-28 by the Backend chat against branch `chore/baseline-2026-10-
   1. **Same-origin proxy (smallest change):** leave `NEXT_PUBLIC_API_URL` unset so the browser calls `/api/...` on the web origin, and have the web host forward `/api/*` to the Worker (Cloudflare Pages `_redirects` proxy rule, a Pages Function, or Next `rewrites` on a server runtime; static `NEXT_EXPORT=true` output has no rewrites). The session cookie is then first-party to the web origin. Set `GOOGLE_REDIRECT_URI` to `https://<web-origin>/api/v1/auth/google/callback` (same origin, so the OAuth state cookie also round-trips) and `FRONTEND_URL` to the web origin.
   2. **Custom domain:** `app.example.com` and `api.example.com` share a registrable domain, so they are same-site and Lax cookies flow with `credentials: 'include'`. Add `https://app.example.com` to `CORS_ORIGIN`.
   Not verified: which topology the live deployment uses (Deployment chat owns it). Backend cannot test a deployed topology; `cors-policy.test.ts` pins the Backend side (Lax, no wildcard origins).
-- No `Origin`/`Sec-Fetch-Site` check on cookie-authenticated mutations; `Lax` plus the CORS allowlist is the only CSRF defence. No rate limiting on auth routes.
+- CSRF: `originCheckMiddleware` (2026-10-28) rejects cookie-authenticated POST/PUT/PATCH/DELETE whose `Origin`/`Referer` is neither the origin the user sees (the Pages proxy keeps its own URL), localhost, nor in `CORS_ORIGIN`, or that Fetch Metadata marks cross-site. It returns the existing `403 FORBIDDEN` envelope, so no shared contract changed. Backend-only tests; not exercised through the real Pages Function. No rate limiting on auth routes.
 - `GET /session` still returns no session expiry (dev-login does). `logoutResponseSchema` in contracts expects a JSON body while the route returns `204`.
 - The Google route has no independent review. The six records above need a delta review that includes it.
 
@@ -53,7 +53,7 @@ Status uses what was verified in source today; items marked "not re-checked" com
 | P0-6 | Member directory authority and pagination | Not re-checked |
 | P0-7 | Idempotency replay before authorization | Not re-checked; board/card/comment/trash paths were fixed in earlier repair rounds |
 | P0-8 | Logout contract and expiry | Schema/route mismatch still present (above) |
-| P2 | Origin/CSRF check | Still absent |
+| P2 | Origin/CSRF check | Added (above); awaiting review |
 | New | `GET /boards/:id` uses optional auth and answers 404 for unknown ids but 401 for existing ones, which reveals whether a board id exists | Low; fix is to authenticate first |
 | New | `POST /notifications/mark-all-read` is mounted; `docs/FRONTEND_BEHAVIOR_SPEC.md` says not to add mark-all | Product conflict for the Architect |
 

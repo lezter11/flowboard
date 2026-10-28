@@ -11,6 +11,7 @@ import {
   DEFAULT_BODY_LIMIT_BYTES,
   DEFAULT_DEADLINE_MS,
 } from './middleware/index.ts';
+import { originCheckMiddleware, isTrustedOrigin } from './middleware/origin.ts';
 import { sessionRoutes } from './routes/session.ts';
 import { googleAuthRoutes } from './routes/google-auth.ts';
 import { workspacesRoutes } from './routes/workspaces.ts';
@@ -50,23 +51,7 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
 
   // 0. CORS middleware for browser frontend integration & preflight handling
   app.use('*', cors({
-    origin: (origin, c) => {
-      if (!origin) return origin;
-      if (
-        origin.startsWith('http://localhost:') ||
-        origin.startsWith('http://127.0.0.1:') ||
-        origin.startsWith('https://localhost:')
-      ) {
-        return origin;
-      }
-      const env = c.env as { CORS_ORIGIN?: string } | undefined;
-      const configured = env?.CORS_ORIGIN ?? (typeof process !== 'undefined' ? process.env?.['CORS_ORIGIN'] : undefined) ?? '';
-      const allowedOrigins = configured.split(',').map((s) => s.trim()).filter(Boolean);
-      if (allowedOrigins.includes(origin)) {
-        return origin;
-      }
-      return null;
-    },
+    origin: (origin, c) => (!origin ? origin : isTrustedOrigin(origin, c) ? origin : null),
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowHeaders: [
@@ -107,6 +92,9 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
 
   // 1. Correlation middleware: assigns or validates x-request-id and sets requestId in context
   app.use('*', correlationMiddleware);
+
+  // 1b. CSRF defence for cookie-authenticated state changes (same-site Origin/Referer required)
+  app.use('*', originCheckMiddleware);
 
   // 2. Timing middleware: measures request duration and attaches Server-Timing header
   app.use('*', timingMiddleware);
