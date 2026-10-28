@@ -80,7 +80,7 @@ export default function SignInPage() {
 
               {/* Real Google OAuth Redirect */}
               <a
-                href={`${process.env.NEXT_PUBLIC_API_URL || ''}/api/v1/auth/google`}
+                href="/api/v1/auth/google"
                 className="w-full inline-flex items-center justify-center gap-3 px-5 py-3 rounded-xl bg-ink text-surface font-semibold text-xs sm:text-sm hover:opacity-95 shadow-sm transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus"
               >
                 <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" aria-hidden="true">

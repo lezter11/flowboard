@@ -22,8 +22,6 @@ import {
   type TrashListResponse,
 } from '@flowboard/contracts';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || '';
-
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -41,7 +39,7 @@ function generateIdempotencyKey(): string {
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const url = `${API_BASE}${path}`;
+  const url = path;
   const headers = new Headers(options.headers || {});
   
   if (!headers.has('Content-Type') && options.body && typeof options.body === 'string') {
@@ -51,7 +49,7 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const response = await fetch(url, {
     ...options,
     headers,
-    credentials: 'include',
+    credentials: 'same-origin',
   });
 
   const contentType = response.headers.get('content-type');
