@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { boardQueryOptions } from '@/lib/queries';
 import { useSession } from '@/lib/session';
 
 export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose: () => void }) {
@@ -27,10 +28,10 @@ export function Sidebar({ mobileOpen, onClose }: { mobileOpen: boolean; onClose:
   const { state } = useSession();
   const urlId = searchParams.get('id');
   const currentBoard = pathname === '/board' ? urlId : null;
-  const boardQuery = useQuery({ queryKey: ['board', currentBoard], enabled: false });
+  const boardQuery = useQuery({ ...boardQueryOptions(currentBoard), enabled: !!currentBoard && state.status === 'ready' });
   const activeProjectId = pathname === '/project'
     ? urlId
-    : (boardQuery.data as { board?: { projectId?: string } } | undefined)?.board?.projectId ?? null;
+    : boardQuery.data?.board.projectId ?? null;
   const projects = state.status === 'ready' ? state.session.accessibleProjects : [];
   const activeProject = projects.find((p) => p.id === activeProjectId) ?? null;
   const boardsQuery = useQuery({

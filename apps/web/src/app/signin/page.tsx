@@ -4,12 +4,13 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Kanban, LockKeyhole, ShieldCheck, ArrowRight, Sparkles } from 'lucide-react';
-import { api } from '@/lib/api';
+import { useQueryClient } from '@tanstack/react-query';
 
 const DEV_LOGIN = process.env.NODE_ENV !== 'production';
 
 export default function SignInPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [loadingRole, setLoadingRole] = useState<string | null>(null);
   const [customEmail, setCustomEmail] = useState('');
   const [error, setError] = useState('');
@@ -24,7 +25,7 @@ export default function SignInPage() {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Dev-Secret': 'flowboard-dev-secret',
+          ...(process.env.NEXT_PUBLIC_DEV_LOGIN_SECRET ? { 'X-Dev-Secret': process.env.NEXT_PUBLIC_DEV_LOGIN_SECRET } : {}),
         },
         body: JSON.stringify({
           email: userEmail,
@@ -37,6 +38,8 @@ export default function SignInPage() {
         throw new Error(data?.error?.message || `Sign in failed with status ${res.status}`);
       }
 
+      // The cached 401 from before sign-in must not survive into the app shell.
+      await queryClient.resetQueries({ queryKey: ['session'] });
       router.push('/projects');
     } catch (err: any) {
       setError(err?.message || 'Dev sign in failed.');

@@ -15,6 +15,7 @@ import {
   Sparkles,
   ExternalLink,
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import type { Board, Project } from '@flowboard/contracts';
 
@@ -24,6 +25,7 @@ interface Props {
 
 export function ProjectView({ projectId }: Props) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [loading, setLoading] = useState(true);
   const [project, setProject] = useState<Project | null>(null);
@@ -90,6 +92,7 @@ export function ProjectView({ projectId }: Props) {
       }
       const data = await res.json();
       setBoards((prev) => [...prev, data.data]);
+      void queryClient.invalidateQueries({ queryKey: ['boards', projectId] });
       setNewBoardName('');
       setIsCreatingBoard(false);
     } catch (err: any) {

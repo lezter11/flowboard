@@ -120,7 +120,7 @@ export const api = {
     if (query?.cardLimitPerColumn) params.set('cardLimitPerColumn', String(query.cardLimitPerColumn));
 
     const queryString = params.toString() ? `?${params.toString()}` : '';
-    return request<BoardSnapshotResponse>(`/api/v1/boards/${encodeURIComponent(boardId)}/snapshot${queryString}`);
+    return request<BoardSnapshotResponse>(`/api/v1/boards/${encodeURIComponent(boardId)}${queryString}`);
   },
 
   // Cards
@@ -138,9 +138,12 @@ export const api = {
     return request<CardResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}`);
   },
 
-  async updateCard(cardId: string, input: UpdateCardInput): Promise<MutationResponse> {
+  async updateCard(cardId: string, input: UpdateCardInput, idempotencyKey?: string): Promise<MutationResponse> {
     return request<MutationResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}`, {
       method: 'PATCH',
+      headers: {
+        'Idempotency-Key': idempotencyKey || generateIdempotencyKey(),
+      },
       body: JSON.stringify(input),
     });
   },

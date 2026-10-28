@@ -63,6 +63,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return <div className="flex min-h-screen bg-canvas text-ink">
     {mobileMenuOpen && <button type="button" aria-label="Close navigation" className="fixed inset-0 z-40 bg-black/40 md:hidden" onClick={closeMobileMenu} />}
     <Sidebar mobileOpen={mobileMenuOpen} onClose={closeMobileMenu} />
-    <div inert={mobileMenuOpen} className="flex-1 flex flex-col min-w-0"><Topbar searchQuery={searchQuery} onSearchChange={updateSearch} showSearch={boardRoute} onOpenMenu={() => setMobileMenuOpen(true)} menuOpen={mobileMenuOpen} /><main className="flex-1 flex flex-col min-w-0 overflow-y-auto">{content}</main></div>
+    <div inert={mobileMenuOpen} className="flex-1 flex flex-col min-w-0"><Topbar searchQuery={searchQuery} onSearchChange={updateSearch} showSearch={boardRoute && state.status === 'ready'} onOpenMenu={() => setMobileMenuOpen(true)} menuOpen={mobileMenuOpen} /><main className="flex-1 flex flex-col min-w-0 overflow-y-auto">{content}</main></div>
   </div>;
 }

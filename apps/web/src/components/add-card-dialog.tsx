@@ -70,7 +70,7 @@ export function AddCardDialog({ isOpen, onClose, boardId, columns, people, struc
     <Dialog.Root open={isOpen} onOpenChange={(open) => { if (!open) onClose(); }}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/40" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[min(95vw,36rem)] max-h-[90dvh] overflow-y-auto rounded-2xl border border-line bg-surface p-5 shadow-2xl">
+        <Dialog.Content onOpenAutoFocus={(event) => { event.preventDefault(); titleRef.current?.focus(); }} className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-[min(95vw,36rem)] max-h-[90dvh] overflow-y-auto rounded-2xl border border-line bg-surface p-5 shadow-2xl">
           <div className="flex items-center justify-between border-b border-line pb-3">
             <Dialog.Title className="text-lg font-bold text-ink flex items-center gap-2"><Plus className="w-5 h-5 text-accent" />Add card</Dialog.Title>
             <Dialog.Close asChild><button type="button" aria-label="Close add card dialog" className="rounded-lg p-2 text-muted hover:bg-surface-3 focus-visible:outline-2"><X className="w-5 h-5" /></button></Dialog.Close>

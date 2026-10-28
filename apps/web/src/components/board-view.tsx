@@ -8,11 +8,10 @@ import { Plus, RefreshCw } from 'lucide-react';
 import type { CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
 import { describeError } from '@/lib/errors';
+import { boardQueryOptions } from '@/lib/queries';
 import { KanbanCard } from './kanban-card';
 import { CardDetailDialog } from './card-detail-dialog';
 import { AddCardDialog } from './add-card-dialog';
-
-const CARD_LIMIT = 15;
 
 export function BoardView() {
   const router = useRouter();
@@ -26,12 +25,7 @@ export function BoardView() {
   const [notice, setNotice] = useState('');
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
-  const boardQuery = useQuery({
-    queryKey: ['board', boardId],
-    queryFn: async () => (await api.getBoardSnapshot(boardId!, { cardLimitPerColumn: CARD_LIMIT })).data,
-    enabled: !!boardId,
-    retry: (count, error) => !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 1,
-  });
+  const boardQuery = useQuery(boardQueryOptions(boardId));
   const snapshot = boardQuery.data;
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['board', boardId] });
 

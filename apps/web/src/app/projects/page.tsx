@@ -159,7 +159,9 @@ export default function ProjectsPage() {
               </h3>
               <p className="mt-1 max-w-sm text-xs leading-5 text-muted">
                 {actorName
-                  ? 'Create your first project above to begin organizing team boards and cards.'
+                  ? workspaces.length > 0
+                    ? 'Create your first project above to begin organizing team boards and cards.'
+                    : 'No project has been shared with you yet. Ask a project owner to add you.'
                   : 'Sign in with Google to load your private workspace.'}
               </p>
             </div>
