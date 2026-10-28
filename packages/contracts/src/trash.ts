@@ -26,6 +26,8 @@ export type TrashBlockedReason = z.infer<typeof trashBlockedReasonSchema>;
 export const trashRowSchema = z.object({
   id: z.string().min(1),
   title: z.string().trim().min(1).max(200),
+  // Optional, additive: human key such as WEB-101.
+  key: z.string().min(1).optional(),
   projectId: z.string().min(1),
   boardId: z.string().min(1),
   originalColumnId: z.string().min(1),

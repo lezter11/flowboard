@@ -387,10 +387,12 @@ export async function listProjectTrash(
     actor_id: string | null;
     actor_name: string | null;
     actor_avatar: string | null;
+    card_key: string;
   }>(
     `SELECT 
        c.id,
        c.title,
+       p.key_prefix || '-' || c.card_number::text AS card_key,
        c.project_id,
        c.board_id,
        c.column_id AS original_column_id,
@@ -464,6 +466,7 @@ export async function listProjectTrash(
     return {
       id: row.id,
       title: row.title,
+      key: row.card_key,
       projectId: row.project_id,
       boardId: row.board_id,
       originalColumnId: row.original_column_id,

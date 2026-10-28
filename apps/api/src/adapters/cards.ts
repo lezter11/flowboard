@@ -1262,12 +1262,14 @@ export async function getMyTasks(
     project_name: string;
     board_name: string;
     column_title: string;
+    card_key: string;
   }>(
     `SELECT 
        c.id, c.board_id, c.column_id, c.title, c.priority,
        to_char(c.due_date, 'YYYY-MM-DD') AS due_date, c.position::TEXT,
        c.version, c.created_at, c.updated_at,
-       p.name AS project_name, b.name AS board_name, col.name AS column_title
+       p.name AS project_name, b.name AS board_name, col.name AS column_title,
+       p.key_prefix || '-' || c.card_number::text AS card_key
      FROM cards c
      JOIN card_assignees ca ON ca.card_id = c.id
      JOIN projects p ON c.project_id = p.id
@@ -1291,6 +1293,7 @@ export async function getMyTasks(
       commentCounts.get(r.id) ?? 0,
       imageCounts.get(r.id) ?? 0,
     ),
+    key: r.card_key,
     projectName: r.project_name,
     boardName: r.board_name,
     columnTitle: r.column_title,
