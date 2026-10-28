@@ -89,7 +89,7 @@ export function Rail() {
           <NavLink href={boardHref} icon="board" label="Board" active={pathname === '/board'} onNavigate={close} />
           <NavLink href="/projects" icon="folder" label="Projects" active={pathname === '/projects' || pathname === '/project'} onNavigate={close} />
           <SoonItem icon="inbox" label="Inbox" />
-          <SoonItem icon="activity" label="Activity" />
+          <NavLink href="/activity" icon="activity" label="Activity" active={pathname === '/activity'} onNavigate={close} />
         </div>
         {manage && (
           <div className="nav-group">

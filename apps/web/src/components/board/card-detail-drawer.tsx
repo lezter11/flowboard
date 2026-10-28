@@ -6,7 +6,8 @@ import type { Card, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard
 import { api, ApiError } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { dueInfo, relativeTime } from '@/lib/dates';
-import { neighbours, toneFor } from '@/lib/board-model';
+import { neighbours } from '@/lib/board-model';
+import { describeActivity } from '@/lib/activity';
 import { can, type Role } from '@/lib/roles';
 import { Icon } from '@/components/ui/icon';
 import { Avatar } from '@/components/ui/avatar';
@@ -329,7 +330,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
             </div>
           ) : (
             <div className="tab-panel" id="activityPanel" role="tabpanel" aria-labelledby="activityTab">
-              <p className="hint"><Icon name="info" />Card history is coming soon.</p>
+              <CardActivity cardId={card.id} people={people} />
             </div>
           )}
         </section>
@@ -403,5 +404,29 @@ function Comments({ cardId, people, role, onPosted }: { cardId: string; people: 
         <div className="viewer-notice"><Icon name="lock" /><span>Read-only access. Viewers can read cards, comments and history but cannot post, upload or move cards.</span></div>
       )}
     </>
+  );
+}
+
+function CardActivity({ cardId, people }: { cardId: string; people: Map<string, PersonDisplay> }) {
+  const feed = useQuery({ queryKey: ['card-activity', cardId], queryFn: async () => (await api.listCardActivity(cardId)).data });
+  if (feed.isPending) return <p className="hint">Loading history…</p>;
+  if (feed.isError) return <p role="alert" className="field-error">{describeError(feed.error)}</p>;
+  if (feed.data.length === 0) return <p className="hint"><Icon name="info" />No recorded history for this card yet.</p>;
+  return (
+    <div className="activity-list">
+      {feed.data.map((event) => {
+        const view = describeActivity(event);
+        const name = event.actor?.displayName ?? people.get(event.actorId)?.displayName ?? 'Former member';
+        return (
+          <div key={event.id} className="activity-item">
+            <span className="activity-icon"><Icon name={view.icon} /></span>
+            <div className="activity-main">
+              <div className="activity-text"><strong>{name}</strong> {view.text}</div>
+              <div className="activity-time">{relativeTime(event.createdAt)}</div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }

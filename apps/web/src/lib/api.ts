@@ -203,8 +203,12 @@ export const api = {
   },
 
   // Activity & Notifications
-  async listProjectActivity(projectId: string): Promise<ActivityListResponse> {
-    return request<ActivityListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/activity`);
+  async listProjectActivity(projectId: string, limit = 100): Promise<ActivityListResponse> {
+    return request<ActivityListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/activity?limit=${limit}`);
+  },
+
+  async listCardActivity(cardId: string, limit = 50): Promise<ActivityListResponse> {
+    return request<ActivityListResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/activity?limit=${limit}`);
   },
 
   async listNotifications(): Promise<NotificationListResponse> {
