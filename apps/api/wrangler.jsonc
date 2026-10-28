@@ -14,10 +14,11 @@
   ],
   "vars": {
     "FRONTEND_URL": "https://flowboard-app.pages.dev",
-    "CORS_ORIGIN": "https://flowboard-app.pages.dev"
+    "CORS_ORIGIN": "https://flowboard-app.pages.dev",
+    "GOOGLE_REDIRECT_URI": "https://flowboard-app.pages.dev/api/v1/auth/google/callback"
   },
   "triggers": {
-    "crons": ["* * * * *"]
+    "crons": ["*/5 * * * *"]
   },
   // Top level == production (deployed as flowboard-api). dev/uat redefine every
   // non-inherited key (vars, hyperdrive, triggers) so they never share prod data.
