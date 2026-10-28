@@ -127,6 +127,8 @@ export function BoardView() {
     const origin = { previousCardId: source[at - 1]?.id ?? null, nextCardId: source[at + 1]?.id ?? null };
     moveMutation.mutate({ card, toColumnId, index }, {
       onSuccess: () => {
+        // The trigger may now live in another column; keep keyboard focus on the moved card.
+        window.setTimeout(() => document.querySelector<HTMLElement>(`.card[data-card-id="${card.id}"] .card-open`)?.focus({ preventScroll: true }), 400);
         toast(`${card.title} moved to ${dest.name}`, {
           icon: 'move',
           undo: () => {

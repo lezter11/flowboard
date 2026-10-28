@@ -16,6 +16,10 @@ export function DialogLayer({ open, onClose, labelledBy, describedBy, className,
 }) {
   const layerRef = useRef<HTMLDivElement>(null);
   const returnTo = useRef<HTMLElement | null>(null);
+  // Parents pass a fresh onClose every render; the effect must only depend on `open` or it would
+  // restore focus to the trigger on each re-render.
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
   useEffect(() => {
     if (!open) return;
     returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
@@ -23,7 +27,7 @@ export function DialogLayer({ open, onClose, labelledBy, describedBy, className,
     const first = layer?.querySelector<HTMLElement>('[data-autofocus]') ?? layer?.querySelector<HTMLElement>(FOCUSABLE);
     first?.focus({ preventScroll: true });
     const onKey = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); onClose(); return; }
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); closeRef.current(); return; }
       if (event.key !== 'Tab' || !layer) return;
       const items = Array.from(layer.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => el.getClientRects().length > 0);
       const a = items[0];
@@ -36,9 +40,10 @@ export function DialogLayer({ open, onClose, labelledBy, describedBy, className,
     return () => {
       document.removeEventListener('keydown', onKey, true);
       const target = returnTo.current;
-      requestAnimationFrame(() => target?.isConnected && target.focus({ preventScroll: true }));
+      // Only restore focus once the dialog has really left the page (not on a development double-invoke).
+      requestAnimationFrame(() => { if (layer?.isConnected) return; if (target?.isConnected) target.focus({ preventScroll: true }); });
     };
-  }, [open, onClose]);
+  }, [open]);
   if (!open) return null;
   return (
     <div className="dialog-layer" ref={layerRef} onMouseDown={(event) => { if (event.target === event.currentTarget) onClose(); }}>
