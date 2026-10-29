@@ -10,7 +10,7 @@ import { can, normalizeRole } from '@/lib/roles';
 import { useRememberLocation } from '@/lib/last-location';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
-import { ProjectOverviewSection, useProjectOverview } from '@/components/project/overview';
+import { ProjectOverviewSection } from '@/components/project/overview';
 import { BriefCard } from '@/components/project/brief-card';
 import { NewBoardDialog } from '@/components/ui/new-board-dialog';
 
@@ -40,13 +40,6 @@ export function ProjectView({ projectId }: { projectId: string }) {
     },
   });
   const statsOf = (id: string) => stats.data?.get(id) ?? NO_STATS;
-  const totals = boards.reduce((acc, b) => {
-    const s = statsOf(b.id);
-    return { total: acc.total + s.total, done: acc.done + s.done, open: acc.open + s.open };
-  }, { total: 0, done: 0, open: 0 });
-  const ov = useProjectOverview(projectId).data;
-  const glance = ov ? { total: ov.cards.active, done: ov.cards.byCategory.done, open: ov.cards.byCategory.todo + ov.cards.byCategory.active } : totals;
-  const percent = glance.total ? Math.round((glance.done / glance.total) * 100) : 0;
 
   const [creating, setCreating] = useState(false);
 
@@ -155,28 +148,7 @@ export function ProjectView({ projectId }: { projectId: string }) {
             </section>
           </div>
 
-          <aside className="project-aside" aria-label="Project summary">
-            <section className="aside-card" aria-labelledby="glanceTitle">
-              <div className="aside-head"><div><h2 id="glanceTitle">At a glance</h2><p>{boards.length ? 'Across the boards you can open' : 'No boards in scope yet'}</p></div></div>
-              <div className="glance-body">
-                <div className="donut" role="img" aria-label={`${percent}% of cards completed`} style={{ ['--pct' as string]: String(percent) }}>
-                  <div className="donut-copy"><strong>{percent}%</strong><span>complete</span></div>
-                </div>
-                <div className="glance-legend">
-                  <span className="glance-row"><i className="tone-open" aria-hidden="true" />Open<strong>{glance.open}</strong></span>
-                  <span className="glance-row"><i className="tone-done" aria-hidden="true" />Completed<strong>{glance.done}</strong></span>
-                  <span className="glance-row"><i aria-hidden="true" />Total cards<strong>{glance.total}</strong></span>
-                </div>
-              </div>
-              <div className="glance-foot"><span>{boards.length} {boards.length === 1 ? 'board' : 'boards'}</span><span>{p.isArchived ? 'Archived · read-only' : 'Live counts'}</span></div>
-            </section>
-            <section className="aside-card" aria-label="Access rule">
-              <p className="access-note">
-                <Icon name="lock" />
-                <span><strong>Project access is not board access.</strong> A non-owner needs the project grant and a grant for each board. Hidden boards never appear in names, tabs, counts or work lists.</span>
-              </p>
-            </section>
-          </aside>
+          <p className="access-hint"><Icon name="lock" /><span>Project access is not board access: a non-owner also needs a grant for each board, and hidden boards never show in names, tabs, counts or work lists.</span></p>
         </div>
       </section>
 

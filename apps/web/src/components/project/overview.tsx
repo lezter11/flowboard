@@ -81,6 +81,10 @@ export function ProjectOverviewSection({ projectId, canManage, isMember, boardsE
             <Tile index={5} icon="calendar" label="Due in 7 days" value={data.cards.dueSoon} tone={data.cards.dueSoon ? 'warn' : undefined} />
             <Tile index={6} icon="users" label="Unassigned" value={data.cards.unassignedOpen} />
           </ul>
+          <div className="ov-progress">
+            <span className="ov-progress-bar" role="img" aria-label={`${data.cards.byCategory.done} of ${data.cards.active} active cards done`}><i style={{ width: `${data.cards.active ? Math.round((data.cards.byCategory.done / data.cards.active) * 100) : 0}%` }} /></span>
+            <span className="ov-progress-text"><strong>{data.cards.byCategory.done} of {data.cards.active}</strong> done{data.cards.active ? ` · ${Math.round((data.cards.byCategory.done / data.cards.active) * 100)}%` : ''}</span>
+          </div>
           {isMember && (
             <p className="ov-shortcut"><Link className="btn" href="/my-tasks?due=overdue"><Icon name="alert" />My overdue cards</Link></p>
           )}
