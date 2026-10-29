@@ -23,7 +23,6 @@
 .preview-card:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 .preview-card.is-picked { outline: 2px solid var(--accent); outline-offset: 2px; }
 .preview-card.is-picked .card { box-shadow: var(--shadow-md); transform: translateY(-2px) rotate(-.6deg); }
-.preview-hint { margin-top: 10px; color: var(--ink-soft); font-size: 13px; line-height: 1.45; max-width: 70ch; }
 
 .preview-ghost { position: fixed; left: 0; top: 0; z-index: 60; pointer-events: none; will-change: transform; }
 .preview-ghost[hidden] { display: none; }
@@ -53,13 +52,40 @@
 }
 
 /* Sign-in tap targets: 44 px minimum (the prototype's brand link and the dev-only button were shorter). */
-.signin-brand { display: inline-flex; align-items: center; min-height: 44px; }
 .signin-page .dialog-field .btn { min-height: 44px; }
 
-/* Brand mark on the light sign-in canvas: the prototype's mark is cream on the dark sidebar pill, so recolour it for each theme. */
-.signin-brand { gap: 9px; }
-.signin-page .brand-mark {
-  width: 26px; height: 26px; border-radius: 8px; flex: none; display: grid; place-items: center;
-  border: 1px solid var(--line-strong); background: var(--accent-soft); color: var(--ink);
+/* Logo mark. Dark circle with white bars on light surfaces; the sketch's beige variant (third bar dark) on the dark pill and in the dark theme. */
+.logo-mark { --logo-circle: #1b1720; --logo-ring: transparent; --logo-bar: #fff; --logo-bar-edge: transparent; --logo-pick: #fff; display: block; flex: none; }
+.logo-circle { fill: var(--logo-circle); stroke: var(--logo-ring); stroke-width: 1; }
+.logo-bar { fill: var(--logo-bar); stroke: var(--logo-bar-edge); stroke-width: .5; }
+.logo-bar-pick { fill: var(--logo-pick); }
+.logo-card-a { fill: #5fd3da; } .logo-card-b { fill: #ff6f6f; } .logo-card-c { fill: #9edc8a; }
+.brand .logo-mark, .signin-pill .logo-mark, html[data-theme="dark"] .logo-mark { --logo-circle: #f5f5dc; --logo-bar: #fff; --logo-bar-edge: rgb(74 69 75 / 22%); --logo-pick: #4a454b; }
+.logo-mark.is-animated .logo-card { transform-box: fill-box; transform-origin: center; animation: logo-pop 420ms calc(150ms + var(--i, 0) * 45ms) cubic-bezier(.3, 1.6, .5, 1) both; }
+@keyframes logo-pop { from { transform: scale(.2); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Pastel wordmark needs a dark surface: the same pill the sidebar uses (pastel on the light canvas is only 1.3:1 to 1.8:1). */
+.signin-pill {
+  display: inline-flex; align-items: center; gap: 9px; min-height: 44px; padding: 6px 14px 6px 10px; border-radius: 12px; background: #302638; text-decoration: none;
+  --wordmark-gradient: linear-gradient(95deg, #cdb4db 0%, #ffc8dd 25%, #ffafcc 50%, #bde0fe 75%, #a2d2ff 100%);
 }
-.signin-page .brand-mark svg { width: 15px; height: 15px; }
+.signin-pill-inline { display: inline-block; min-height: 0; padding: 0 .28em .04em; border-radius: .28em; vertical-align: baseline; }
+.showcase-brand.signin-pill { min-height: 36px; padding: 4px 12px; }
+
+/* Sample board panel: the board scrolls inside the panel (vertically only), the caption stays under it. */
+.preview-scroll { overflow-y: auto; overflow-x: hidden; min-height: 0; padding: 2px; scrollbar-width: thin; }
+@media (min-width: 761px) {
+  .signin-showcase { height: 100svh; min-height: 0; }
+  .signin-showcase .showcase-board { display: flex; flex-direction: column; min-height: 0; flex: 1 1 auto; }
+  .preview-scroll { flex: 1 1 auto; }
+}
+@media (max-width: 760px) { .preview-scroll { max-height: 72svh; } }
+.preview-caption { display: flex; align-items: center; gap: 8px; flex: none; margin-top: 12px; color: var(--ink-soft); font-size: 14px; line-height: 1.4; }
+.preview-caption svg { width: 18px; height: 18px; flex: none; }
+.preview-card.is-refused .card { border-color: var(--danger); box-shadow: 0 0 0 2px var(--danger-soft); }
+.preview-card.is-refused { animation: preview-shake 360ms ease; }
+@keyframes preview-shake { 20% { transform: translateX(-5px); } 45% { transform: translateX(5px); } 70% { transform: translateX(-3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .preview-card.is-refused { animation: none; }
+  .logo-mark.is-animated .logo-card { animation: none; }
+}

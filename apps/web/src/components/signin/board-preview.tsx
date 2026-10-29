@@ -33,6 +33,12 @@ const relocate = (order: Order, id: string, to: Over): Order => {
   list.splice(Math.max(0, Math.min(to.index, list.length)), 0, id);
   return next;
 };
+/** A column may never be left empty in this preview: moving its only card to another column is refused. */
+const leavesEmpty = (order: Order, id: string, toColumn: string): boolean => {
+  const from = locate(order, id);
+  return !!from && from.columnId !== toColumn && order[from.columnId]!.length <= 1;
+};
+const REFUSED_MESSAGE = 'Each column keeps at least one card in this preview.';
 const sleep = (ms: number) => new Promise<void>((resolve) => { window.setTimeout(resolve, ms); });
 
 /**
@@ -48,9 +54,13 @@ export function BoardPreview() {
   const [picked, setPicked] = useState<string | null>(null);
   const [announce, setAnnounce] = useState('');
   const [demoOn, setDemoOn] = useState(false);
+  const [refused, setRefused] = useState<string | null>(null);
   const [entered, setEntered] = useState(false);
 
   const boardRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const rawRef = useRef<Over | null>(null);
+  const refusedTimer = useRef<number | undefined>(undefined);
   const ghostRef = useRef<HTMLDivElement>(null);
   const cursorRef = useRef<HTMLDivElement>(null);
   const orderRef = useRef<Order | null>(null);
@@ -98,6 +108,23 @@ export function BoardPreview() {
     return { columnId, index };
   }, []);
 
+  const refuse = useCallback((id: string) => {
+    setRefused(id);
+    setAnnounce(REFUSED_MESSAGE);
+    window.clearTimeout(refusedTimer.current);
+    refusedTimer.current = window.setTimeout(() => setRefused(null), 700);
+  }, []);
+
+  /** Where the pointer is, and whether dropping there is allowed (a refused column is not highlighted). */
+  const track = useCallback((x: number, y: number, id: string) => {
+    const raw = hit(x, y, id);
+    rawRef.current = raw;
+    const current = orderRef.current;
+    const allowed = raw && current && !leavesEmpty(current, id, raw.columnId) ? raw : null;
+    // eslint-disable-next-line @typescript-eslint/no-use-before-define
+    setOverBoth(allowed);
+  }, [hit]);
+
   const setOverBoth = useCallback((next: Over | null) => {
     const prev = overRef.current;
     if (prev?.columnId === next?.columnId && prev?.index === next?.index) return;
@@ -120,32 +147,35 @@ export function BoardPreview() {
     dragRef.current = { id, dx: x - rect.left, dy: y - rect.top };
     pointerRef.current = { x, y };
     setDrag({ id, width: rect.width });
-    setOverBoth(hit(x, y, id));
+    track(x, y, id);
     return true;
-  }, [hit, setOverBoth]);
+  }, [track]);
 
   const moveDrag = useCallback((x: number, y: number, autoscroll = false) => {
     const info = dragRef.current;
     if (!info) return;
     pointerRef.current = { x, y };
     placeGhost();
-    setOverBoth(hit(x, y, info.id));
-    const board = boardRef.current;
-    if (autoscroll && board) {
-      const rect = board.getBoundingClientRect();
-      if (x < rect.left + 36) board.scrollLeft -= 14;
-      else if (x > rect.right - 36) board.scrollLeft += 14;
+    track(x, y, info.id);
+    const scroller = scrollRef.current;
+    if (autoscroll && scroller) {
+      const rect = scroller.getBoundingClientRect();
+      if (y < rect.top + 36) scroller.scrollTop -= 14;
+      else if (y > rect.bottom - 36) scroller.scrollTop += 14;
     }
-  }, [hit, placeGhost, setOverBoth]);
+  }, [track, placeGhost]);
 
   const endDrag = useCallback((dropIt: boolean) => {
     const info = dragRef.current;
     if (!info) return;
     const target = overRef.current;
+    const raw = rawRef.current;
     dragRef.current = null;
+    rawRef.current = null;
     setDrag(null);
     setOverBoth(null);
     const current = orderRef.current;
+    if (dropIt && !target && raw && current && leavesEmpty(current, info.id, raw.columnId)) refuse(info.id);
     if (dropIt && target && current) {
       const from = locate(current, info.id);
       commit(relocate(current, info.id, target));
@@ -154,7 +184,7 @@ export function BoardPreview() {
         setAnnounce(`${data?.cards.get(info.id)?.title ?? 'Card'} moved to ${columnName(after.columnId)}, position ${after.index + 1} of ${orderRef.current![after.columnId]!.length}.`);
       }
     }
-  }, [commit, data, setOverBoth]);
+  }, [commit, data, refuse, setOverBoth]);
 
   useLayoutEffect(() => { if (drag) placeGhost(); }, [drag, placeGhost]);
 
@@ -230,6 +260,7 @@ export function BoardPreview() {
 
     const move = (to: Over) => {
       event.preventDefault();
+      if (leavesEmpty(current, id, to.columnId)) { refuse(id); return; }
       const next = relocate(current, id, to);
       commit(next);
       refocusId.current = id;
@@ -300,11 +331,15 @@ export function BoardPreview() {
       return rect ? { x: rect.left + Math.min(110, rect.width / 2), y: rect.top + 28 } : null;
     };
 
+    const outside = (y: number) => {
+      const rect = scrollRef.current?.getBoundingClientRect();
+      return !rect || y < rect.top + 8 || y > rect.bottom - 40;
+    };
     const dragCard = async (id: string, toColumn: string, toIndex: number) => {
       const start = cardPoint(id);
       const target = columnPoint(toColumn);
       // A column that has wrapped below the fold cannot be shown: end the demo instead of dragging off screen.
-      if (!start || !target || target.y > window.innerHeight - 40 || start.y > window.innerHeight - 40) return false;
+      if (!start || !target || outside(target.y) || outside(start.y)) return false;
       const board = boardRef.current!.getBoundingClientRect();
       const from = { x: board.right - 60, y: board.bottom - 40 };
       showCursor(from.x, from.y, true);
@@ -361,7 +396,7 @@ export function BoardPreview() {
   return (
     <aside className="signin-showcase" aria-label="Sample board preview, not your data" onPointerDownCapture={interact}>
       <div className="showcase-topline">
-        <span className="showcase-brand"><Wordmark inline /></span>
+        <span className="showcase-brand signin-pill"><Wordmark inline /></span>
         <span className="showcase-topline-end">
           {demoOn && <button className="preview-pause" type="button" onClick={interact}>Pause demo</button>}
           <span className="showcase-tag">Sample data</span>
@@ -376,6 +411,7 @@ export function BoardPreview() {
           </div>
         </figcaption>
 
+        <div className="preview-scroll" ref={scrollRef}>
         <div className="board preview-board" data-card-style="focus" ref={boardRef} id="previewBoard" aria-describedby="previewKeys">
           {PREVIEW_COLUMNS.map((column) => {
             const ids = order?.[column.id] ?? [];
@@ -402,7 +438,7 @@ export function BoardPreview() {
                           key={id}
                           layout="position"
                           layoutId={`preview-${id}`}
-                          className={`preview-card${picked === id ? ' is-picked' : ''}${entered || reduced ? '' : ' is-entering'}`}
+                          className={`preview-card${picked === id ? ' is-picked' : ''}${refused === id ? ' is-refused' : ''}${entered || reduced ? '' : ' is-entering'}`}
                           data-card-id={id}
                           tabIndex={0}
                           role="group"
@@ -433,8 +469,12 @@ export function BoardPreview() {
             );
           })}
         </div>
+        </div>
 
-        <p className="preview-hint" id="previewHint">Try it: drag a card to another column.</p>
+        <p className="preview-caption" id="previewHint">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10m0-1.5a1.5 1.5 0 0 1 3 0V11m0-1a1.5 1.5 0 0 1 3 0v5a6 6 0 0 1-6 6h-1.4a6 6 0 0 1-4.7-2.3L4 15.2a1.6 1.6 0 0 1 2.4-2.1L9 15" /></svg>
+          Try it: drag a card to another column.
+        </p>
         <p className="sr-only" id="previewKeys">Keyboard: focus a card and press Space or Enter to pick it up, use the arrow keys to move it, press Space or Enter to drop it, or Escape to cancel.</p>
         <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announce}</div>
       </figure>
