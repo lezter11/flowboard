@@ -14,6 +14,8 @@ import { EMPTY_FILTERS, filtersActive, neighbours, optimisticMove, sortedCards, 
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
+import { NewBoardDialog } from '@/components/ui/new-board-dialog';
+import { EditBoardDialog } from '@/components/ui/edit-board-dialog';
 import { Avatar } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/toasts';
 import { useShell } from '@/components/shell/shell-context';
@@ -38,6 +40,8 @@ export function BoardView() {
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [menu, setMenu] = useState<null | 'assignee' | 'due'>(null);
   const [composerColumn, setComposerColumn] = useState<string | null>(null);
+  const [newBoardOpen, setNewBoardOpen] = useState(false);
+  const [editBoardOpen, setEditBoardOpen] = useState(false);
   const [quickAddBusy, setQuickAddBusy] = useState(false);
   const [quickAddError, setQuickAddError] = useState('');
   const [moveCard, setMoveCard] = useState<CardSummary | null>(null);
@@ -353,6 +357,8 @@ export function BoardView() {
 
   return (
     <>
+      <NewBoardDialog projectId={board.projectId} open={newBoardOpen} onClose={() => setNewBoardOpen(false)} />
+      {role === 'owner' && <EditBoardDialog board={board} open={editBoardOpen} onClose={() => setEditBoardOpen(false)} />}
       <section className="board-head" aria-labelledby="boardTitle">
         <div className="board-title-row">
           <div className="board-heading">
@@ -361,6 +367,11 @@ export function BoardView() {
             </button>
             <h1 id="boardTitle" title={board.name}>{board.name}</h1>
             {board.isArchived && <span id="boardReadOnly">Archived · read-only</span>}
+            {role === 'owner' && !board.isArchived && (
+              <button className="icon-btn edit-board-btn" type="button" aria-label="Edit board name and description" title="Edit board" onClick={() => setEditBoardOpen(true)}>
+                <Icon name="edit" />
+              </button>
+            )}
           </div>
           <div className="board-actions">
             {can(role, 'invite') && (
@@ -380,6 +391,11 @@ export function BoardView() {
             <Link className="btn" href={`/project?id=${encodeURIComponent(board.projectId)}`} title="Browse projects and their boards">
               <Icon name="folder" /><span className="action-label">Projects</span>
             </Link>
+            {can(role, 'manageBoard') && !board.isArchived && (
+              <button className="btn" type="button" aria-label="New board" title="New board in this project" onClick={() => setNewBoardOpen(true)}>
+                <Icon name="plus" /><span className="action-label">New board</span>
+              </button>
+            )}
             {canEdit && (
               <button className="btn primary" type="button" aria-label="Add card" title="Add card" onClick={(event) => { if (filtering) setFilters(EMPTY_FILTERS); if (quickAddFirst) openComposer(quickAddFirst, event.currentTarget); }}>
                 <Icon name="plus" /><span className="action-label">Add card</span>
@@ -391,6 +407,8 @@ export function BoardView() {
             </button>
           </div>
         </div>
+
+        {board.description && <p className="board-description" id="boardDescription">{board.description}</p>}
 
         <div className="toolbar" aria-label="Board tools" ref={toolbarRef}>
           <div className={`search-field${filters.q ? ' has-value' : ''}`}>

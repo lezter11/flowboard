@@ -8,6 +8,7 @@ import { Wordmark } from '@/components/ui/wordmark';
 import { Avatar } from '@/components/ui/avatar';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
+import { useBoardHref } from '@/lib/board-target';
 import { useActiveProject } from '@/lib/active-project';
 import { can, ROLE_META } from '@/lib/roles';
 import { useSession } from '@/lib/session';
@@ -40,12 +41,11 @@ export function Rail() {
   const pathname = usePathname();
   const { state } = useSession();
   const shell = useShell();
-  const { workspace, projects, projectId, role, boards, boardId } = useActiveProject();
+  const { workspace, projects, projectId, role, boardId } = useActiveProject();
   const actor = state.status === 'ready' ? state.session.actor : null;
   const unreadQuery = useQuery({ queryKey: ['notifications'], queryFn: async () => (await api.listNotifications()).data, enabled: state.status === 'ready', staleTime: 30_000 });
   const unread = (unreadQuery.data ?? []).filter((n) => !n.read).length;
-  const firstBoard = boards[0]?.id ?? null;
-  const boardHref = boardId ? `/board?id=${encodeURIComponent(boardId)}` : firstBoard ? `/board?id=${encodeURIComponent(firstBoard)}` : projectId ? `/project?id=${encodeURIComponent(projectId)}` : '/projects';
+  const boardHref = useBoardHref(projectId, boardId);
   const trap = (event: KeyboardEvent<HTMLElement>) => {
     if (!shell.overlay || !shell.navOpen) return;
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); shell.closeNav(); return; }

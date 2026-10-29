@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { api, ApiError } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { projectMark, projectTone, statsFromSnapshot, useProjectBoards, type BoardStats } from '@/lib/portfolio';
@@ -10,14 +10,11 @@ import { can, normalizeRole } from '@/lib/roles';
 import { useRememberLocation } from '@/lib/last-location';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
-import { DialogLayer } from '@/components/ui/dialog-layer';
-import { useToast } from '@/components/ui/toasts';
+import { NewBoardDialog } from '@/components/ui/new-board-dialog';
 
 const NO_STATS: BoardStats = { total: 0, done: 0, open: 0, percent: 0 };
 
 export function ProjectView({ projectId }: { projectId: string }) {
-  const queryClient = useQueryClient();
-  const toast = useToast();
   const { state } = useSession();
   const project = useQuery({
     queryKey: ['project', projectId],
@@ -48,24 +45,6 @@ export function ProjectView({ projectId }: { projectId: string }) {
   const percent = totals.total ? Math.round((totals.done / totals.total) * 100) : 0;
 
   const [creating, setCreating] = useState(false);
-  const [name, setName] = useState('');
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const createBoard = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!name.trim()) { setError('Enter a board name.'); return; }
-    setBusy(true);
-    setError('');
-    try {
-      await api.createBoard(projectId, { name: name.trim() });
-      setCreating(false);
-      setName('');
-      await queryClient.invalidateQueries({ queryKey: ['boards', projectId] });
-      toast('Board created', { icon: 'check' });
-    } catch (err) {
-      setError(describeError(err));
-    } finally { setBusy(false); }
-  };
 
   if (project.isPending) return <div role="status" className="state-note">Loading project…</div>;
   if (project.isError || !project.data) {
@@ -122,7 +101,7 @@ export function ProjectView({ projectId }: { projectId: string }) {
                   <p>{boards.length ? `${boards.length} ${boards.length === 1 ? 'board' : 'boards'} available · Each board keeps its own columns, cards and access.` : 'This project has no boards you can open.'}</p>
                 </div>
                 <div className="page-actions">
-                  {canCreate && <button className="btn primary" type="button" onClick={() => { setError(''); setCreating(true); }}>New board</button>}
+                  {canCreate && <button className="btn primary" type="button" onClick={() => setCreating(true)}>New board</button>}
                 </div>
               </div>
               <div className="project-boards-panel" aria-live="polite">
@@ -149,7 +128,7 @@ export function ProjectView({ projectId }: { projectId: string }) {
                               <span className="ph-board-pill">{s.total} {s.total === 1 ? 'card' : 'cards'}</span>
                               <span className="ph-board-pill">{s.open} open</span>
                             </div>
-                            <p>No description added.</p>
+                            <p>{b.description || 'No description added.'}</p>
                             <div className="ph-board-progress">
                               <span className="ph-board-progress-bar" role="img" aria-label={`${s.done} of ${s.total} cards completed`}><i style={{ width: `${s.percent}%` }} /></span>
                               <span>{s.total ? `${s.percent}% complete` : 'No cards yet'}</span>
@@ -195,26 +174,7 @@ export function ProjectView({ projectId }: { projectId: string }) {
         </div>
       </section>
 
-      <DialogLayer open={creating} onClose={() => setCreating(false)} labelledBy="newBoardTitle" className="wide">
-        <div className="dialog-head">
-          <div className="dialog-head-copy"><h2 id="newBoardTitle">New board</h2><p>Boards keep their own columns, cards and access inside this project.</p></div>
-          <button className="dialog-close" type="button" onClick={() => setCreating(false)} aria-label="Close new board dialog"><Icon name="x" /></button>
-        </div>
-        <form onSubmit={createBoard} noValidate>
-          <div className="dialog-body">
-            <div className="dialog-field">
-              <label htmlFor="newBoardName">Board name</label>
-              <input className="control" id="newBoardName" type="text" maxLength={100} autoComplete="off" placeholder="e.g. Marketing" data-autofocus value={name} onChange={(event) => setName(event.target.value)} />
-            </div>
-            {error && <p className="form-error" role="alert">{error}</p>}
-          </div>
-          <footer className="dialog-foot">
-            <span className="spacer" />
-            <button className="btn" type="button" onClick={() => setCreating(false)}>Cancel</button>
-            <button className="btn primary" type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create board'}</button>
-          </footer>
-        </form>
-      </DialogLayer>
+      <NewBoardDialog projectId={projectId} open={creating} onClose={() => setCreating(false)} />
     </section>
   );
 }

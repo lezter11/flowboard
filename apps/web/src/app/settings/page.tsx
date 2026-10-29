@@ -36,12 +36,19 @@ function SettingsScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   useEffect(() => { setName(project?.name ?? ''); setDescription(project?.description ?? ''); }, [project?.id, project?.name, project?.description]);
-  const dirty = !!project && (name !== project.name || description !== (project.description ?? ''));
+  const isOwner = role === 'owner';
+  const [defaultBoard, setDefaultBoard] = useState('');
+  useEffect(() => { setDefaultBoard(project?.defaultBoardId ?? ''); }, [project?.id, project?.defaultBoardId]);
+  const defaultChanged = isOwner && !!project && defaultBoard !== (project.defaultBoardId ?? '');
+  const dirty = !!project && (name !== project.name || description !== (project.description ?? '') || defaultChanged);
 
   const boards = useProjectBoards(project?.id ?? null);
   const board = boards.data?.find((b) => b.id === params.get('board')) ?? boards.data?.[0];
   const [boardName, setBoardName] = useState('');
-  useEffect(() => { setBoardName(board?.name ?? ''); }, [board?.id, board?.name]);
+  const [boardDescription, setBoardDescription] = useState('');
+  useEffect(() => { setBoardName(board?.name ?? ''); setBoardDescription(board?.description ?? ''); }, [board?.id, board?.name, board?.description]);
+  const boardDirty = !!board && (boardName.trim() !== board.name || boardDescription.trim() !== (board.description ?? ''));
+  const boardEditable = isOwner && !project?.isArchived;
 
   const saveProject = async (event: FormEvent) => {
     event.preventDefault();
@@ -49,18 +56,26 @@ function SettingsScreen() {
     if (!name.trim()) { setError('Enter a project name.'); return; }
     setBusy(true); setError('');
     try {
-      await api.updateProject(project.id, { name: name.trim(), description: description.trim() || null, expectedVersion: project.version });
+      await api.updateProject(project.id, {
+        name: name.trim(), description: description.trim() || null, expectedVersion: project.version,
+        // Owner only: Managers leave the landing board to the Owner (the API refuses it with 403).
+        ...(defaultChanged ? { defaultBoardId: defaultBoard || null } : {}),
+      });
       toast('Project saved', { icon: 'check' });
       refetch();
     } catch (err) { setError(describeError(err)); refetch(); } finally { setBusy(false); }
   };
   const saveBoard = async (event: FormEvent) => {
     event.preventDefault();
-    if (!board || boardName.trim() === board.name) return;
+    if (!board || !boardDirty || !boardEditable) return;
     if (!boardName.trim()) { setError('Enter a board name.'); return; }
     setBusy(true); setError('');
     try {
-      await api.updateBoard(board.id, { name: boardName.trim(), expectedVersion: board.snapshotVersion });
+      await api.updateBoard(board.id, {
+        ...(boardName.trim() !== board.name ? { name: boardName.trim() } : {}),
+        ...(boardDescription.trim() !== (board.description ?? '') ? { description: boardDescription.trim() || null } : {}),
+        expectedVersion: board.snapshotVersion,
+      });
       toast('Board saved', { icon: 'check' });
       await queryClient.invalidateQueries({ queryKey: ['boards', project?.id] });
     } catch (err) { setError(describeError(err)); await queryClient.invalidateQueries({ queryKey: ['boards', project?.id] }); } finally { setBusy(false); }
@@ -105,6 +120,14 @@ function SettingsScreen() {
                   <div className="form-grid">
                     <div className="field span-2"><label className="field-label" htmlFor="projectName">Project name</label><input className="control" id="projectName" type="text" maxLength={100} value={name} disabled={!editable} onChange={(event) => setName(event.target.value)} /><p className="field-help">Shown in project lists and navigation.</p></div>
                     <div className="field span-2"><label className="field-label" htmlFor="projectDescription">Description</label><textarea className="control textarea" id="projectDescription" maxLength={2000} value={description} disabled={!editable} onChange={(event) => setDescription(event.target.value)} /><p className="field-help">Plain text, up to 2000 characters.</p></div>
+                    <div className="field span-2">
+                      <label className="field-label" htmlFor="defaultBoard">Default board</label>
+                      <select className="control" id="defaultBoard" value={defaultBoard} disabled={!isOwner || !!project?.isArchived || boards.isPending} onChange={(event) => setDefaultBoard(event.target.value)}>
+                        <option value="">None (open the board I used last)</option>
+                        {(boards.data ?? []).filter((b) => !b.isArchived).map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                      </select>
+                      <p className="field-help">{isOwner ? 'Where the Board button and sign-in take people first. Only boards a person can open are used for them.' : 'Only the project Owner can choose the default board.'}</p>
+                    </div>
                   </div>
                   {error && <div className="note warn" role="alert"><Icon name="alert" /><span>{error}</span></div>}
                   <div className="note"><Icon name="shield" /><span>{editable ? 'Owners and managers can rename the project.' : 'Only owners and managers can change project settings.'}</span></div>
@@ -133,7 +156,8 @@ function SettingsScreen() {
               <div className="panel-body">
                 <form className="settings-form" onSubmit={saveBoard}>
                   <div className="form-grid">
-                    <div className="field span-2"><label className="field-label" htmlFor="boardName">Board name</label><input className="control" id="boardName" type="text" maxLength={100} value={boardName} disabled={!editable || !board} onChange={(event) => setBoardName(event.target.value)} /></div>
+                    <div className="field span-2"><label className="field-label" htmlFor="boardName">Board name</label><input className="control" id="boardName" type="text" maxLength={100} value={boardName} disabled={!boardEditable || !board} onChange={(event) => setBoardName(event.target.value)} /><p className="field-help">{boardEditable ? 'Only the project Owner can rename a board.' : 'Only the project Owner can change a board name or description.'}</p></div>
+                    <div className="field span-2"><label className="field-label" htmlFor="boardDescription">Description</label><textarea className="control textarea" id="boardDescription" maxLength={2000} value={boardDescription} disabled={!boardEditable || !board} onChange={(event) => setBoardDescription(event.target.value)} /><p className="field-help">Shown under the board title. Plain text, up to 2000 characters.</p></div>
                   </div>
                   <div className="stack-sm">
                     <div className="row" style={{ justifyContent: 'space-between' }}>
@@ -145,7 +169,7 @@ function SettingsScreen() {
                   {error && <div className="note warn" role="alert"><Icon name="alert" /><span>{error}</span></div>}
                   <div className="form-actions">
                     <span className="spacer" />
-                    <button className="btn primary" type="submit" disabled={!editable || !board || boardName.trim() === board?.name || busy}>{busy ? 'Saving…' : 'Save board'}</button>
+                    <button className="btn primary" type="submit" disabled={!boardEditable || !board || !boardDirty || busy}>{busy ? 'Saving…' : 'Save board'}</button>
                   </div>
                 </form>
               </div>
