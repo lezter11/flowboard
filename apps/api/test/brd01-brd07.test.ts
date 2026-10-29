@@ -139,24 +139,65 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
     assert.equal(json.data.snapshotVersion, 1);
     assert.equal(json.data.isArchived, false);
 
-    // Verify 4 default columns in DB
+    // Verify 5 default columns in DB, in order, with Blocked at position 3
     const colsRes = await pool.query<{ name: string; category: string; color: string; position: number; id: string }>(
       `SELECT id, name, category, color, position FROM columns WHERE board_id = $1 ORDER BY position ASC`,
       [createdBoardId],
     );
 
-    assert.equal(colsRes.rows.length, 4);
+    assert.equal(colsRes.rows.length, 5);
     assert.deepEqual(
       colsRes.rows.map((r) => ({ name: r.name, category: r.category, color: r.color, position: r.position })),
       [
         { name: 'Not started', category: 'todo', color: '#64748b', position: 0 },
         { name: 'In progress', category: 'active', color: '#0ea5e9', position: 1 },
         { name: 'Testing', category: 'active', color: '#f59e0b', position: 2 },
-        { name: 'Completed', category: 'done', color: '#10b981', position: 3 },
+        { name: 'Blocked', category: 'active', color: '#ef4444', position: 3 },
+        { name: 'Completed', category: 'done', color: '#10b981', position: 4 },
       ],
     );
 
     defaultColIds = colsRes.rows.map((r) => r.id);
+  });
+
+  await t.test('BRD-01a: a board that already exists keeps its four columns when new defaults ship', async () => {
+    // Existing boards were created with the old four-column default. Creating a new board
+    // must not add, remove or rename columns on them.
+    const legacyBoardId = 'brd_legacy_four_cols';
+    await pool.query(
+      `INSERT INTO boards (id, workspace_id, project_id, name, created_at, updated_at)
+       VALUES ($1, $2, $3, 'Legacy Board', now(), now())`,
+      [legacyBoardId, workspaceId, projectAId],
+    );
+    const legacy = [
+      ['Not started', 'todo', '#64748b', 0],
+      ['In progress', 'active', '#0ea5e9', 1],
+      ['Testing', 'active', '#f59e0b', 2],
+      ['Completed', 'done', '#10b981', 3],
+    ] as const;
+    for (const [name, category, color, position] of legacy) {
+      await pool.query(
+        `INSERT INTO columns (id, workspace_id, project_id, board_id, name, color, category, position, version, created_at, updated_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 1, now(), now())`,
+        [`col_legacy_${position}`, workspaceId, projectAId, legacyBoardId, name, color, category, position],
+      );
+    }
+
+    const createRes = await app.request(`/api/v1/projects/${projectAId}/boards`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: aliceCookie, 'Idempotency-Key': 'idemp_brd01a_new' },
+      body: JSON.stringify({ name: 'Post Change Board' }),
+    });
+    assert.equal(createRes.status, 201);
+
+    const legacyCols = await pool.query<{ name: string; position: number }>(
+      'SELECT name, position FROM columns WHERE board_id = $1 ORDER BY position ASC',
+      [legacyBoardId],
+    );
+    assert.deepEqual(
+      legacyCols.rows,
+      legacy.map(([name, , , position]) => ({ name, position })),
+    );
   });
 
   await t.test('BRD-01: Project manager can also create boards', async () => {
@@ -391,7 +432,7 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
     const addJson = await addRes.json();
     columnSchema.parse(addJson.data);
     assert.equal(addJson.data.name, 'QA Review');
-    assert.equal(addJson.data.position, 4);
+    assert.equal(addJson.data.position, 5);
     assert.equal(addJson.data.activeCardCount, 0);
     customColId = addJson.data.id;
   });
@@ -454,9 +495,9 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
       [workspaceId, projectAId, limitBoardId, bobManagerId, aliceOwnerId],
     );
 
-    // limitBoardId starts with 4 default columns, structure_version = 1
+    // limitBoardId starts with 5 default columns, structure_version = 1; add up to the 12-column bound
     let curVer = 1;
-    for (let i = 5; i <= 12; i++) {
+    for (let i = 6; i <= 12; i++) {
       const res = await app.request(`/api/v1/boards/${limitBoardId}/columns`, {
         method: 'POST',
         headers: {
@@ -512,7 +553,8 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
       [createdBoardId],
     );
     const cols = colsRes.rows;
-    assert.equal(cols.length, 5);
+    // 5 default columns plus the custom 'QA Review' column added above
+    assert.equal(cols.length, 6);
 
     // Incomplete column set rejected with 400
     const incompleteRes = await app.request(`/api/v1/boards/${createdBoardId}/columns/reorder`, {
@@ -569,7 +611,7 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
       [createdBoardId],
     );
     assert.deepEqual(newPosRes.rows.map((r) => r.id), reversedIds);
-    assert.deepEqual(newPosRes.rows.map((r) => r.position), [0, 1, 2, 3, 4]);
+    assert.deepEqual(newPosRes.rows.map((r) => r.position), [0, 1, 2, 3, 4, 5]);
   });
 
   await t.test('BRD-05: Card placement neighbor calculation (first, last, before, after)', async () => {
@@ -699,8 +741,9 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
       `SELECT id, position FROM columns WHERE board_id = $1 ORDER BY position ASC`,
       [createdBoardId],
     );
-    assert.equal(remRes.rows.length, 4);
-    assert.deepEqual(remRes.rows.map((r) => r.position), [0, 1, 2, 3]);
+    // 6 columns before the delete, 5 after
+    assert.equal(remRes.rows.length, 5);
+    assert.deepEqual(remRes.rows.map((r) => r.position), [0, 1, 2, 3, 4]);
 
     // 4. Test Final Column protection: create single-column board
     const singleBrdRes = await pool.query<{ id: string }>(
@@ -776,7 +819,7 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
     assert.equal(snap.board.id, createdBoardId);
     assert.equal(snap.totals.activeCardCount, 4); // 4 active cards, trashed excluded
     assert.equal(snap.totals.matchingCardCount, 4);
-    assert.equal(snap.columns.length, 4);
+    assert.equal(snap.columns.length, 5);
 
     // People disclosure contains Bob and Charlie
     assert.equal(snap.people.length, 2);

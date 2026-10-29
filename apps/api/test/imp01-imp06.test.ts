@@ -812,6 +812,36 @@ test('IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite
   let readyImportId: string;
   let readyDigest: string;
 
+  await t.test('IMP-05a: a Blocked status maps to the default Blocked column on a new board (case-insensitive)', async () => {
+    // A board created through the API gets Blocked from the default set and maps by name.
+    const createRes = await app.request(`/api/v1/projects/${projectId}/boards`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: ownerCookie, 'Idempotency-Key': 'idemp_imp05a_board' },
+      body: JSON.stringify({ name: 'Blocked Mapping Board' }),
+    });
+    assert.equal(createRes.status, 201);
+    const newBoardId = ((await createRes.json()) as any).data.id as string;
+    const newCols = await pool.query<{ id: string; name: string }>(
+      'SELECT id, name FROM columns WHERE board_id = $1 ORDER BY position ASC',
+      [newBoardId],
+    );
+    const newDefault = newCols.rows.find((c) => c.name === 'Not started')!.id;
+    assert.ok(newCols.rows.some((c) => c.name === 'Blocked'), 'new board has a Blocked column');
+
+    const xlsx = createCustomXlsx([{ externalId: 'BLK-001', title: 'Stuck card', priority: 'low', status: 'blocked' }]);
+    const previewRes = await app.request(`/api/v1/boards/${newBoardId}/imports?defaultColumnId=${newDefault}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/octet-stream', Cookie: ownerCookie },
+      body: toBody(xlsx),
+    });
+    assert.equal(previewRes.status, 201);
+    const preview = (await previewRes.json()) as any;
+    // The status matched a column, so the row is valid and the preview can commit.
+    assert.equal(preview.data.counts.invalid, 0);
+    assert.equal(preview.data.counts.new, 1);
+    assert.equal(preview.data.canCommit, true);
+  });
+
   await t.test('IMP-05: Dry run preview, pagination, unmapped status update, and cancel before commit', async () => {
     // 1. Dry run verification: verify NO domain cards exist
     const cardsCountBefore = await pool.query<{ count: string }>('SELECT COUNT(*)::TEXT AS count FROM cards WHERE board_id = $1', [boardId]);

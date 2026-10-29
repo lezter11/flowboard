@@ -125,11 +125,13 @@ export function decodeCardCursor(cursor?: string): CardCursorPayload | null {
 /**
  * BRD-01: Create board with atomic default columns.
  * Workspace owner and project manager can create boards.
- * Atomically inserts exactly 4 default columns in order:
+ * Atomically inserts exactly 5 default columns in order (new boards only; existing boards are
+ * never changed):
  * 1. "Not started" (category: 'todo', color: '#64748b', position: 0)
  * 2. "In progress" (category: 'active', color: '#0ea5e9', position: 1)
  * 3. "Testing" (category: 'active', color: '#f59e0b', position: 2)
- * 4. "Completed" (category: 'done', color: '#10b981', position: 3)
+ * 4. "Blocked" (category: 'active', color: '#ef4444', position: 3)
+ * 5. "Completed" (category: 'done', color: '#10b981', position: 4)
  */
 export async function createBoard(
   client: pg.ClientBase,
@@ -179,12 +181,13 @@ export async function createBoard(
     throw new Error('Failed to insert board.');
   }
 
-  // 4. Atomically insert 4 default columns
+  // 4. Atomically insert 5 default columns
   const defaultCols: Array<{ name: string; category: 'todo' | 'active' | 'done'; color: string; position: number }> = [
     { name: 'Not started', category: 'todo', color: '#64748b', position: 0 },
     { name: 'In progress', category: 'active', color: '#0ea5e9', position: 1 },
     { name: 'Testing', category: 'active', color: '#f59e0b', position: 2 },
-    { name: 'Completed', category: 'done', color: '#10b981', position: 3 },
+    { name: 'Blocked', category: 'active', color: '#ef4444', position: 3 },
+    { name: 'Completed', category: 'done', color: '#10b981', position: 4 },
   ];
 
   for (const col of defaultCols) {

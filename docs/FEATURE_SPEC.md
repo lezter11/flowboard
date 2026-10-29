@@ -52,7 +52,7 @@ Project archive is owner-only, makes its boards read-only, hides it from ordinar
 
 Board header: project/board name, accessible member avatars, title search, filters, New card, Import (owner/manager), settings (owner/manager). Any summary shows defined counts of active/matching cards, not invented business progress percentages.
 
-Columns: stable ID, label, color, category todo/active/done, manual order and total/matching counts. Default labels Not started, In progress, Testing, Completed. Owner/manager adds/renames/reorders; category is separate from label. Duplicate names after trim/case-normalization are rejected so import mapping is unambiguous. Removing final column or a column referenced by active/restorable cards is blocked with explanation; no silent card cascade. Initial maximum 12 columns is a proposed performance bound.
+Columns: stable ID, label, color, category todo/active/done, manual order and total/matching counts. Default labels Not started, In progress, Testing, Blocked, Completed (new boards only; existing boards keep their columns). Owner/manager adds/renames/reorders; category is separate from label. Duplicate names after trim/case-normalization are rejected so import mapping is unambiguous. Removing final column or a column referenced by active/restorable cards is blocked with explanation; no silent card cascade. Initial maximum 12 columns is a proposed performance bound.
 
 Cards: title; priority chip; optional due/overdue cue with text; assignees/overflow; comment and finalized-image counts. A compact card does not load its entire discussion/description. Loading a column's next page must clearly disclose unseen cards; full counts are not page length. Snapshot/cursor bounds are specified in API.md.
 

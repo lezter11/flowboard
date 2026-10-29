@@ -61,7 +61,7 @@ Comment: id,projectId,cardId,authorId,body,mentions:[{userId,start,end}],version
 
 | Method and route | Behavior |
 |---|---|
-| GET/POST /projects/:pid/boards | Read granted project; owner/manager creates {name} with default columns atomically |
+| GET/POST /projects/:pid/boards | Read granted project; owner/manager creates {name} with five default columns atomically (Not started, In progress, Testing, Blocked, Completed; new boards only) |
 | PATCH /boards/:bid | Owner/manager name + expectedVersion |
 | POST /boards/:bid/archive or /reopen | Owner/manager, expectedVersion, read-only archive (S6) |
 | GET /boards/:bid | Consistent bounded snapshot with filter/count contract below |
