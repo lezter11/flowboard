@@ -23,6 +23,8 @@ Example: Shubham owns Website and Operations. Priya is manager of Website and Sa
 | Rename/configure an existing project | Yes | Own granted project | No | No |
 | Create/archive boards; configure columns | Yes | Own granted project | No | No |
 | Rename or describe a board (name, description) | Yes | No | No | No |
+| Edit project brief and links | Yes | Own granted project | No | No |
+| Project overview counts (B-4) | All owned boards | Granted boards only | Granted boards only | Granted boards only |
 | Set the project's default landing board | Yes | No | No | No |
 | Invite member/viewer; resend/revoke their invite | Yes | Own granted project | No | No |
 | Grant/remove manager or change peer manager | Yes | No | No | No |

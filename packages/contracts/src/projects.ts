@@ -2,11 +2,52 @@ import { z } from 'zod';
 import {
   createDataEnvelopeSchema,
   createPaginatedEnvelopeSchema,
+  dateOnlySchema,
   personDisplaySchema,
   projectRoleSchema,
   roleSchema,
   utcIsoTimestampSchema,
 } from './common.ts';
+
+export const PROJECT_BRIEF_MAX = 5000;
+export const PROJECT_LINKS_MAX = 10;
+export const PROJECT_LINK_URL_MAX = 2000;
+
+/**
+ * A project link must be an https URL with no credentials. Plain http, other schemes such as
+ * javascript:, and user:password@ forms are refused. Whitespace is refused so a link cannot
+ * hide a second address.
+ */
+export function isSafeHttpsUrl(value: string): boolean {
+  if (value.length > PROJECT_LINK_URL_MAX || /\s/.test(value)) return false;
+  // A plain https:// prefix with a host right after it. This refuses the 'https:///host' form.
+  if (!/^https:\/\/[^/]/i.test(value)) return false;
+  let url: URL;
+  try {
+    url = new URL(value);
+  } catch {
+    return false;
+  }
+  return url.protocol === 'https:' && url.username === '' && url.password === '' && url.hostname !== '';
+}
+
+export const projectLinkInputSchema = z.object({
+  title: z.string().trim().min(1, 'Link title cannot be empty').max(100, 'Link title cannot exceed 100 characters'),
+  url: z
+    .string()
+    .trim()
+    .max(PROJECT_LINK_URL_MAX, 'Link URL cannot exceed 2000 characters')
+    .refine(isSafeHttpsUrl, { message: 'Links must be https URLs without a username or password' }),
+});
+export type ProjectLinkInput = z.infer<typeof projectLinkInputSchema>;
+
+export const projectLinkSchema = z.object({
+  id: z.string().min(1),
+  title: z.string().min(1).max(100),
+  url: z.string().min(1).max(PROJECT_LINK_URL_MAX),
+  position: z.number().int().nonnegative(),
+});
+export type ProjectLink = z.infer<typeof projectLinkSchema>;
 
 export const createProjectInputSchema = z.object({
   name: z.string().trim().min(1, 'Project name cannot be empty').max(100, 'Project name cannot exceed 100 characters'),
@@ -15,16 +56,26 @@ export const createProjectInputSchema = z.object({
 export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
 
 // defaultBoardId is Owner only; name and description keep the Owner and Manager rule.
+// Owner and Manager edit name, description, brief and links. defaultBoardId is Owner only.
+// links replaces the whole list (at most 10); send [] to remove them all.
 export const updateProjectInputSchema = z
   .object({
     name: z.string().trim().min(1).max(100).optional(),
     description: z.string().max(2000, 'Description cannot exceed 2000 characters').nullable().optional(),
+    brief: z.string().max(PROJECT_BRIEF_MAX, 'Brief cannot exceed 5000 characters').nullable().optional(),
+    links: z.array(projectLinkInputSchema).max(PROJECT_LINKS_MAX, 'A project can have at most 10 links').optional(),
     defaultBoardId: z.string().min(1).max(200).nullable().optional(),
     expectedVersion: z.number().int().nonnegative(),
   })
-  .refine((data) => data.name !== undefined || data.description !== undefined || data.defaultBoardId !== undefined, {
-    message: 'At least one field (name, description or defaultBoardId) must be provided to update',
-  });
+  .refine(
+    (data) =>
+      data.name !== undefined ||
+      data.description !== undefined ||
+      data.brief !== undefined ||
+      data.links !== undefined ||
+      data.defaultBoardId !== undefined,
+    { message: 'At least one field (name, description, brief, links or defaultBoardId) must be provided to update' },
+  );
 export type UpdateProjectInput = z.infer<typeof updateProjectInputSchema>;
 
 export const projectLifecycleInputSchema = z.object({
@@ -62,12 +113,54 @@ export const projectSchema = z.object({
   description: z.string().max(2000).nullable(),
   // Optional, additive. The landing board id only when the caller can read that board; otherwise null.
   defaultBoardId: z.string().min(1).nullable().optional(),
+  // Optional, additive. Returned by the single-project read and the PATCH response only.
+  brief: z.string().max(PROJECT_BRIEF_MAX).nullable().optional(),
+  links: z.array(projectLinkSchema).max(PROJECT_LINKS_MAX).optional(),
   isArchived: z.boolean(),
   version: z.number().int().nonnegative(),
   createdAt: utcIsoTimestampSchema,
   updatedAt: utcIsoTimestampSchema,
 });
 export type Project = z.infer<typeof projectSchema>;
+
+// GET /projects/:pid/overview: real counts over the boards the caller can read. Owner sees all
+// boards; anyone else sees boards they hold a grant for. Archived boards are excluded for everyone.
+export const projectOverviewSchema = z.object({
+  projectId: z.string().min(1),
+  asOfDate: dateOnlySchema,
+  readableBoardCount: z.number().int().nonnegative(),
+  cards: z.object({
+    active: z.number().int().nonnegative(),
+    byCategory: z.object({
+      todo: z.number().int().nonnegative(),
+      active: z.number().int().nonnegative(),
+      done: z.number().int().nonnegative(),
+    }),
+    // Open means the card's column is not in the done category.
+    overdue: z.number().int().nonnegative(),
+    dueSoon: z.number().int().nonnegative(),
+    unassignedOpen: z.number().int().nonnegative(),
+  }),
+  // Open cards per assignee, highest first, at most 50 people.
+  assignees: z.array(z.object({
+    userId: z.string().min(1),
+    displayName: z.string().min(1),
+    avatarUrl: z.string().nullable(),
+    openCount: z.number().int().nonnegative(),
+  })).max(50),
+  // Last 10 card-level activity rows on boards the caller can read.
+  recentActivity: z.array(z.object({
+    id: z.string().min(1),
+    action: z.string().min(1),
+    cardId: z.string().min(1).nullable(),
+    createdAt: utcIsoTimestampSchema,
+    actor: z.object({ id: z.string().min(1), displayName: z.string().min(1) }),
+  })).max(10),
+});
+export type ProjectOverview = z.infer<typeof projectOverviewSchema>;
+
+export const projectOverviewResponseSchema = createDataEnvelopeSchema(projectOverviewSchema);
+export type ProjectOverviewResponse = z.infer<typeof projectOverviewResponseSchema>;
 
 export const projectResponseSchema = createDataEnvelopeSchema(projectSchema);
 export type ProjectResponse = z.infer<typeof projectResponseSchema>;

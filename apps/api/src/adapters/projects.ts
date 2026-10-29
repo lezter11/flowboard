@@ -243,8 +243,20 @@ export async function getAllAccessibleProjects(
   };
 }
 
+/** Project links in display order. Callers must already have passed the project read check. */
+export async function getProjectLinks(
+  client: pg.ClientBase | pg.Pool,
+  projectId: string,
+): Promise<Array<{ id: string; title: string; url: string; position: number }>> {
+  const res = await client.query<{ id: string; title: string; url: string; position: number }>(
+    'SELECT id, title, url, position FROM project_links WHERE project_id = $1 ORDER BY position ASC',
+    [projectId],
+  );
+  return res.rows;
+}
+
 /**
- * PRJ-03: Update project settings (name, description).
+ * PRJ-03: Update project settings (name, description, brief, links, defaultBoardId).
  * - Workspace Owner and Project Manager can update.
  * - Members/Viewers rejected with 403 FORBIDDEN.
  * - Outsiders rejected with 404 NOT_FOUND (sibling privacy).
@@ -318,6 +330,7 @@ export async function updateProjectSettings(
       workspace_id: string;
       name: string;
       description: string | null;
+      brief: string | null;
       archived: boolean;
       version: number;
       created_at: Date;
@@ -326,16 +339,19 @@ export async function updateProjectSettings(
       `UPDATE projects
        SET name = CASE WHEN $1::boolean THEN $2 ELSE name END,
            description = CASE WHEN $3::boolean THEN $4 ELSE description END,
-           default_board_id = CASE WHEN $5::boolean THEN $6::text ELSE default_board_id END,
+           brief = CASE WHEN $5::boolean THEN $6::text ELSE brief END,
+           default_board_id = CASE WHEN $7::boolean THEN $8::text ELSE default_board_id END,
            version = version + 1,
            updated_at = NOW()
-       WHERE id = $7 AND version = $8
-       RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
+       WHERE id = $9 AND version = $10
+       RETURNING id, workspace_id, name, description, brief, archived, version, created_at, updated_at`,
       [
         input.name !== undefined,
         input.name ?? null,
         input.description !== undefined,
         input.description ?? null,
+        input.brief !== undefined,
+        input.brief ?? null,
         input.defaultBoardId !== undefined,
         input.defaultBoardId ?? null,
         projectId,
@@ -348,8 +364,23 @@ export async function updateProjectSettings(
       throw HttpError.conflict('Stale project version.', 'STALE_VERSION');
     }
 
+    // 4. Links are a whole list: replace it when the caller sent one. The count and URL rules were
+    // already checked by the contract schema; the table CHECKs are a second line of defence.
+    if (input.links !== undefined) {
+      await client.query('DELETE FROM project_links WHERE project_id = $1', [projectId]);
+      const nowIso = new Date().toISOString();
+      for (const [position, link] of input.links.entries()) {
+        await client.query(
+          `INSERT INTO project_links (id, workspace_id, project_id, title, url, position, created_at, updated_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $7)`,
+          [`plk_${crypto.randomUUID()}`, updatedRow.workspace_id, projectId, link.title, link.url, position, nowIso],
+        );
+      }
+    }
+
     // The caller is the owner here, so this is the landing board id as they can read it.
     const defaultBoardId = await readReadableDefaultBoardId(client, projectId, actor.id);
+    const links = await getProjectLinks(client, projectId);
 
     if (poolClient) {
       await client.query('COMMIT');
@@ -361,6 +392,8 @@ export async function updateProjectSettings(
       name: updatedRow.name,
       description: updatedRow.description,
       defaultBoardId,
+      brief: updatedRow.brief,
+      links,
       isArchived: Boolean(updatedRow.archived),
       version: updatedRow.version,
       createdAt: new Date(updatedRow.created_at).toISOString(),

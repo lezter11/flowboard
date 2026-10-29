@@ -10,6 +10,7 @@ import {
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
 import { readableDefaultBoardJoin } from '../../adapters/default-board.ts';
+import { getProjectOverview } from '../../adapters/project-overview.ts';
 import { lockBoardAccess, lockProjectBoardReadScope } from '../../adapters/board-grants-foundation.ts';
 import { checkOrReplayReceipt, saveReceipt } from '../../adapters/idempotency.ts';
 import {
@@ -24,6 +25,7 @@ import {
   getAllAccessibleProjects,
   updateProjectSettings,
   getProjectMembers,
+  getProjectLinks,
 } from '../../adapters/projects.ts';
 import { HttpError } from '../errors.ts';
 import { authMiddleware } from '../middleware/auth.ts';
@@ -269,8 +271,9 @@ projectsRoutes.get('/api/v1/projects/:projectId', authMiddleware, async (c) => {
     workspace_owner_id: string;
     member_role: string | null;
     default_board_id: string | null;
+    brief: string | null;
   }>(
-    `SELECT p.id, p.workspace_id, p.name, p.description, p.archived, p.version, p.created_at, p.updated_at,
+    `SELECT p.id, p.workspace_id, p.name, p.description, p.brief, p.archived, p.version, p.created_at, p.updated_at,
             w.owner_id AS workspace_owner_id,
             pm.role AS member_role,
             dbd.id AS default_board_id
@@ -287,12 +290,16 @@ projectsRoutes.get('/api/v1/projects/:projectId', authMiddleware, async (c) => {
     throw HttpError.notFound('Project not found.', 'NOT_FOUND');
   }
 
+  const links = await getProjectLinks(pool, projectId);
+
   const project: Project = {
     id: row.id,
     workspaceId: row.workspace_id,
     name: row.name,
     description: row.description,
     defaultBoardId: row.default_board_id,
+    brief: row.brief,
+    links,
     isArchived: Boolean(row.archived),
     version: row.version,
     createdAt: new Date(row.created_at).toISOString(),
@@ -300,6 +307,16 @@ projectsRoutes.get('/api/v1/projects/:projectId', authMiddleware, async (c) => {
   };
 
   return c.json({ data: project }, 200);
+});
+
+// 4b. GET /api/v1/projects/:projectId/overview: real counts over readable boards (any member)
+projectsRoutes.get('/api/v1/projects/:projectId/overview', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Invalid or missing authentication session.');
+  }
+  const overview = await getProjectOverview(getPool(), c.req.param('projectId'), actor.id);
+  return c.json({ data: overview }, 200);
 });
 
 // 5. PATCH /api/v1/projects/:projectId: Update project settings (Owner & PM)
