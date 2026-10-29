@@ -2,6 +2,8 @@
 
 Status: **proposal, nothing applied.** The API has no rate limiting today, so a single client can call auth, writes, invitations, imports and image uploads as fast as the Worker allows. This document sets the thresholds, says which route can enforce them, and lists the steps that need a human in the Cloudflare dashboard.
 
+**Decision (Architect, 2026-10-29):** Option B (Worker-side rate-limiting binding, section 4) is the plan for now. Backend builds it. Cloudflare WAF rules (sections 1 to 3, 5, 6) stay as the long-term plan and are used only if a custom domain is added later. Nothing is applied to Cloudflare for UAT or production.
+
 Owner: Deployment. Backend may need to add a Worker-side limiter (section 4). Production is not to be touched until the Architect approves.
 
 ## 1. What can be enforced where
