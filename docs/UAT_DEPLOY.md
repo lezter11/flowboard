@@ -382,3 +382,34 @@ Smoke, signed out (curl; Google not followed; no credentials used):
 - `/api/v1/session` without a cookie: 401. `/api/v1/system/status` without secret: 403. Worker `/health/ready`: 200.
 
 Not verified here: the plum circle mark and the dark-by-default sign-in page. Both are client-rendered, so the user checks them on UAT.
+
+## Deploy log addendum: 54dac49 (migration 0013, Worker and Pages)
+
+Deployed by the Deployment chat as task D-6 on the Architect's instruction. UAT only; production untouched; the deploy used a clean worktree at 54dac49, not the shared working tree.
+
+Postgres version: UAT Neon branch `uat` runs PostgreSQL 18.6 (`server_version_num` 180006). That is above the 15+ needed for the column-list `ON DELETE SET NULL (default_board_id)` foreign key.
+
+Rollback anchors (live before this deploy):
+- Worker: `212ea7b0-5751-4463-afe5-29f9b3dc026e`.
+- Pages: `10609693-0176-4328-af69-5896ae13a708`.
+
+Neon backup: branch `uat-backup-2026-10-29-d6` (`br-damp-poetry-a1gfbcvn`), created from `uat` before the migration and ready.
+
+Migration: `0013_board_description_default_board.sql` applied to UAT only, with `ALLOW_REMOTE_DB=true` and the direct host. The runner reported `+ [0013]`. Afterwards `schema_migrations` holds 13 versions (0001 to 0013). The columns `boards.description` and `projects.default_board_id` exist. The constraint `projects_default_board_fk` is `FOREIGN KEY (default_board_id, id) REFERENCES boards(id, project_id) ON DELETE SET NULL (default_board_id)`.
+
+Worker: `flowboard-api-uat` deployed from 54dac49. Version after this deploy: `e3fcad14-258a-45c9-9fc4-fa8f1b99e927`. Bindings and cron `*/15` unchanged.
+
+Pages: `flowboard-app-uat` deployed from 54dac49 via `scripts/stage-pages-functions.mjs` (five files staged, including `src/lib/return-path.ts`). Deployment after this deploy: `609bfd54-d83a-4bb5-af1e-a58afb063d74` (`https://609bfd54.flowboard-app-uat.pages.dev`).
+
+Local checks at 54dac49: `npm run typecheck` and `npm run typecheck:web` passed; static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`) built in a clean worktree.
+
+Smoke, signed out (curl; no credentials, no secrets printed):
+- Worker `/health/ready` 200 and `/health/live` 200.
+- Pages `/` and `/boards/x` redirect to `/signin`; `/projects` and `/board?id=x` redirect to `/signin?next=...`.
+- `/signin` 200 with the CSP header.
+- `/favicon.svg` 200 `image/svg+xml` and `/apple-touch-icon.png` 200 `image/png`, both `cache-control: public, max-age=0, must-revalidate`.
+- Unauthenticated `PATCH /api/v1/boards/x` and `PATCH /api/v1/projects/x` return 401 on both the Pages host and the Worker host.
+
+Not verified here: the board rail, New board, Edit board and default-board setting (signed-in, the user checks on UAT).
+
+Note: after 54dac49 the branch gained `1d52be9` (feat(api): project overview counts, project brief and links, migration 0014). It was not part of this deploy and is not on UAT.
