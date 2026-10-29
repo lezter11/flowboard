@@ -181,3 +181,18 @@ Bindings confirmed on the deployed version (`wrangler versions view`): `FB_RL_AU
 Smoke for `8b41fe6` (unauthenticated, through `https://flowboard-app-uat.pages.dev`): all app shells 200 (including `/signin`, `/board?id=x`, `/invitations/accept?token=x`); `/api/v1/session` 401; `/api/v1/system/status` without secret 403; `/api/v1/session/dev-login` 404; foreign-origin preflight no allow-origin; Worker `/health/ready` 200 (15 requests, none limited); legacy `/projects/x` and `/boards/x` 302 to query routes. Security headers present on `/signin` (CSP enforced, nosniff, frame deny, referrer and permissions policy). Browser console read on `/signin` returned no entries (weak evidence; not a clean CSP result).
 
 Not verified in this deploy: client-IP keying through the Pages proxy (`cf-connecting-ip` forwarding over the service binding) and any signed-in flow.
+
+## Deploy log addendum: e57b4de (rate limiter fails open; diagnostics)
+
+| Date (UTC) | Commit | Worker version | Pages deployment | Migrations on UAT |
+|---|---|---|---|---|
+| 2026-10-29 | `e57b4de` (includes `a401adc`) | `77edff23-da70-48f3-9399-202a9b5c049a` | `9e0ba995-ee35-405e-8eb9-3a7d869645b6` | 0001-0010, already up to date |
+
+Rollback ids: Worker `0635b142-f4f4-4ce4-8cdc-d808a5edd387` (limiter, `8b41fe6`); Worker `52be6f0d-3bfd-4340-8f10-00c43c6d9b09` (`9a9d9fa`, no limiter). Pages `2e487aca-b4be-45f2-b38d-ab9d081be637` (`8b41fe6`); Pages `b6eca4bf-4791-44bd-aad9-aacca399f850` (`9a9d9fa`).
+
+Evidence (unauthenticated, no secret printed):
+- Burst of 42 `GET /api/v1/auth/google` on `flowboard-api-uat.web-app-cloud.workers.dev`: 41 returned 302; one request (18) returned no HTTP status (not retried). Distinct `cf-ray` locations: 11 (WAW 12 requests, ARN 11, LHR 8, MRS 5, ORD 2, and NRT, LAX, BOS 1 each). WAW's 11th and 12th requests and ARN's 11th returned 302. A per-location limit of 10 would have refused them, so the per-location explanation alone does not account for the observed behaviour.
+- `wrangler tail flowboard-api-uat` during a 42-request burst through `https://flowboard-app-uat.pages.dev`: 42 events, all `outcome: ok`, all 302. No `rate_limit_binding_absent`, `rate_limit_client_ip_missing` or `rate_limit_refused` lines. The Worker's request headers carried a real `cf-connecting-ip` through the Pages service-binding hop.
+- Smoke: all app shells 200; `/api/v1/session` 401; `/api/v1/system/status` 403 without secret (on both hosts); dev-login 404; foreign-origin preflight no allow-origin; `/health/ready` 200; legacy redirects 302; CSP, nosniff and frame-deny headers present. Browser console on `/signin` showed only 401 resource errors from the unauthenticated session checks; no CSP violation messages.
+
+Status: the limiter is still not observed to refuse any request on UAT. Fail-open behaviour is in effect as designed in `e57b4de`, but the observed behaviour is more than approximate counting.
