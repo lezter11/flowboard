@@ -442,3 +442,22 @@ Smoke, signed out (curl; no credentials, no secrets printed):
 - Unauthenticated `GET /api/v1/projects/x/overview` and `PATCH /api/v1/projects/x` return 401 on both the Pages host and the Worker host.
 
 Not verified here: the overview page, brief card, pinned links and motion polish (signed-in, the user checks on UAT).
+
+## Deploy log addendum: bb5737e (Overview layout rework, Pages only)
+
+Deployed by the Deployment chat as task D-8 on the Architect's instruction. UAT Pages only; production untouched; no Worker, migration or database change. The deploy used a clean worktree at bb5737e, not the shared working tree. Web-only: `git diff 7e9e71a..bb5737e -- apps/api database packages` is empty, so the Worker (`1fc9af14-4257-45d7-92f3-d29316054393`) and migrations (through 0014) were not touched.
+
+Rollback anchor (the D-7 Pages deployment, live before this deploy): `965b9962-cac7-45ce-9b34-29a98ca7743a`.
+
+Pages deployment after this deploy: `af566b60-4dc0-4e88-922a-27a992a46651` (`https://af566b60.flowboard-app-uat.pages.dev`).
+
+Local checks at bb5737e: `npm run typecheck` and `npm run typecheck:web` passed; static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`) built in a clean worktree, exit 0. The stager (`scripts/stage-pages-functions.mjs`) staged five files, including `src/lib/return-path.ts`.
+
+Smoke, signed out (curl; no credentials, no secrets printed):
+- Worker `/health/ready` 200.
+- Pages `/`, `/projects/x` and `/boards/x` redirect to `/signin`; `/projects` and `/board?id=x` redirect to `/signin?next=...`.
+- `/signin` 200 with the CSP header, `x-content-type-options: nosniff` and `x-frame-options: DENY`.
+- `/favicon.svg` 200 `image/svg+xml` and `/apple-touch-icon.png` 200 `image/png`, both `cache-control: public, max-age=0, must-revalidate`.
+- Unauthenticated `PATCH /api/v1/projects/x` returns 401.
+
+Not verified here: the Overview layout (one grid, tiles in one row, progress bar in place of the glance ring). It is client-rendered, so the user checks it on UAT.
