@@ -313,3 +313,26 @@ Rate-limit purge, two UAT cron cycles after D-1 (read-only, counts only):
 - 13:30:18 UTC `*/15` run: outcome `ok`, no exceptions. Snapshot at 13:31:45 UTC: 0 rows in `rate_limit_windows`.
 - 13:45:11 UTC `*/15` run: outcome `ok`, no exceptions. Snapshot at 13:46:46 UTC: 0 rows.
 - The three ended windows seen earlier (before the first cron run) are gone. The bounded purge in `purgeEndedWindows` is working on UAT. No rows were deleted by hand.
+
+## Deploy log addendum: 5dd9ad7 (logo mark, favicon, sign-in sample)
+
+Deployed by the Deployment chat as task D-3 on the Architect's instruction. UAT only; nothing pushed; production untouched. Web-only: `git diff 8fcefe8..5dd9ad7 -- apps/api database packages` is empty, so the Worker was not redeployed (`212ea7b0-5751-4463-afe5-29f9b3dc026e` still serves). No migration.
+
+Rollback anchor (the D-2 Pages deployment, live before this deploy): Pages `flowboard-app-uat` `b2420c70-e59a-464f-9152-57415e4a2e73`.
+
+Pages deployment after this deploy: `54899ff8-…` (`https://54899ff8.flowboard-app-uat.pages.dev`). The full id is from the deployment list; the rollback id above is the earlier one.
+
+Local checks at 5dd9ad7: `npm run typecheck` exit 0; `npm run typecheck:web` exit 0; static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`) built in a clean worktree, exit 0. The build emits `favicon.svg` and `apple-touch-icon.png`, and `index.html` links both.
+
+Pages staging: `scripts/stage-pages-functions.mjs` staged `functions/` and the five-file import closure, including `src/lib/return-path.ts`.
+
+Smoke, signed out (curl; Google not followed; no credentials used):
+- `/signin`: 200, with the CSP from `_headers`, `nosniff`, `X-Frame-Options: DENY`, Referrer-Policy and Permissions-Policy as in D-1/D-2.
+- Redirects unchanged from D-1: `/` and `/boards/x` and `/nope-zzz` go to `/signin`; `/projects` to `/signin?next=%2Fprojects`; `/board?id=x` to `/signin?next=%2Fboard%3Fid%3Dx`; all `no-store`. `/invitation` 200.
+- Bogus cookie `flowboard_session=bad` on `/projects`: 302 to `/signin?next=%2Fprojects`.
+- `/favicon.svg`: 200, `image/svg+xml`, 501 bytes, `cache-control: public, max-age=0, must-revalidate`.
+- `/apple-touch-icon.png`: 200, `image/png`, 4639 bytes, same cache header.
+- Both icons are same-origin images, which `img-src 'self' data: blob:` allows. The CSP header sent with the icon responses does not block them.
+- `/api/v1/session` without a cookie: 401. `/api/v1/system/status` without secret: 403. Worker `/health/ready`: 200.
+
+Not verified here: the new wordmark, the dark pill and the one-to-two-card sample (visual; client-rendered). The user checks those on UAT.
