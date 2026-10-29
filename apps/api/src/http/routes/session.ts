@@ -3,6 +3,7 @@ import { deleteCookie, setCookie } from 'hono/cookie';
 import { z } from 'zod';
 import { authMiddleware, optionalAuthMiddleware, SESSION_COOKIE_NAME } from '../middleware/auth.ts';
 import { getOwnedWorkspaces, getAccessibleProjects } from '../../adapters/rbac.ts';
+import { readLastLocation, writeLastLocation } from '../../adapters/last-location.ts';
 import {
   createDevUserAndSession,
   getClearSessionCookieOptions,
@@ -13,7 +14,11 @@ import {
 } from '../../adapters/session.ts';
 import { HttpError } from '../errors.ts';
 import { adminSecretMatches } from '../admin-secret.ts';
-import { getSessionResponseSchema, parseOrThrow } from '@flowboard/contracts';
+import {
+  getSessionResponseSchema,
+  parseOrThrow,
+  updateLastLocationInputSchema,
+} from '@flowboard/contracts';
 
 const devLoginRequestSchema = z.object({
   email: z.string().email(),
@@ -37,16 +42,32 @@ sessionRoutes.get('/', authMiddleware, async (c) => {
 
   const ownedWorkspaces = await getOwnedWorkspaces(actor.id);
   const accessibleProjects = await getAccessibleProjects(actor.id);
+  // Re-checked on every read: a revoked, archived or deleted target comes back as null.
+  const lastLocation = await readLastLocation(actor.id);
 
   const response = getSessionResponseSchema.parse({
     data: {
       actor,
       ownedWorkspaces,
       accessibleProjects,
+      lastLocation,
     },
   });
 
   return c.json(response);
+});
+
+// 1b. PUT /api/v1/session/last-location: remember where the user is (no-op when unchanged)
+sessionRoutes.put('/last-location', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Authentication required.');
+  }
+
+  const rawBody = await c.req.json();
+  const input = parseOrThrow(updateLastLocationInputSchema, rawBody);
+  const lastLocation = await writeLastLocation(actor.id, input.projectId, input.boardId ?? null);
+  return c.json({ data: lastLocation }, 200);
 });
 
 // 2. PATCH /api/v1/session/profile (ACC-03)

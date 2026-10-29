@@ -9,6 +9,7 @@ import {
 } from '../../adapters/session.ts';
 import { SESSION_COOKIE_NAME } from '../middleware/auth.ts';
 import { HttpError } from '../errors.ts';
+import { sanitizeNextPath } from '../safe-next.ts';
 
 const OAUTH_STATE_COOKIE = 'flowboard_oauth_state';
 
@@ -27,6 +28,10 @@ interface GoogleUserInfo {
   email_verified: boolean;
   name?: string;
   picture?: string;
+}
+
+function decodeNextCookie(encoded: string): string {
+  return Buffer.from(encoded, 'base64url').toString('utf8');
 }
 
 function resolveRedirectUri(c: import('hono').Context): string {
@@ -62,8 +67,10 @@ function getGoogleConfig(c: import('hono').Context) {
   };
 }
 
-// 1. GET /api/v1/auth/google: Redirect user to Google OAuth consent
-googleAuthRoutes.get('/google', (c) => {
+// 1. GET /api/v1/auth/google (alias /google/start): Redirect user to Google OAuth consent.
+// An optional ?next= (a same-app path, see safe-next.ts) is carried in the state cookie, so it
+// survives the round trip and is validated again at the callback. Invalid values are dropped.
+const startGoogleSignIn = (c: import('hono').Context) => {
   const { clientId } = getGoogleConfig(c);
   if (!clientId) {
     throw HttpError.internal('Google OAuth is not configured on this server. Missing GOOGLE_CLIENT_ID.');
@@ -74,7 +81,11 @@ googleAuthRoutes.get('/google', (c) => {
   const host = c.req.header('host') || new URL(c.req.url).hostname;
   const local = isLocalhost(host);
 
-  setCookie(c, OAUTH_STATE_COOKIE, state, {
+  // Cookie value: "<state>" or "<state>.<base64url(next)>". Same HttpOnly cookie as the state.
+  const next = sanitizeNextPath(c.req.query('next'));
+  const stateCookieValue = next ? `${state}.${Buffer.from(next, 'utf8').toString('base64url')}` : state;
+
+  setCookie(c, OAUTH_STATE_COOKIE, stateCookieValue, {
     path: '/',
     httpOnly: true,
     sameSite: 'Lax',
@@ -92,7 +103,9 @@ googleAuthRoutes.get('/google', (c) => {
   authUrl.searchParams.set('prompt', 'select_account');
 
   return c.redirect(authUrl.toString(), 302);
-});
+};
+googleAuthRoutes.get('/google', startGoogleSignIn);
+googleAuthRoutes.get('/google/start', startGoogleSignIn);
 
 // 2. GET /api/v1/auth/google/callback: Handle Google OAuth code callback
 googleAuthRoutes.get('/google/callback', async (c) => {
@@ -107,7 +120,7 @@ googleAuthRoutes.get('/google/callback', async (c) => {
     throw HttpError.badRequest('Missing authorization code or state parameter.', 'INVALID_CALLBACK');
   }
 
-  const savedState = getCookie(c, OAUTH_STATE_COOKIE);
+  const [savedState, encodedNext] = (getCookie(c, OAUTH_STATE_COOKIE) ?? '').split('.', 2);
   if (!savedState || savedState !== state) {
     throw HttpError.forbidden('Invalid or expired OAuth state session.', 'CSRF_MISMATCH');
   }
@@ -234,7 +247,10 @@ googleAuthRoutes.get('/google/callback', async (c) => {
     const frontendUrl =
       envObj?.FRONTEND_URL ||
       (typeof process !== 'undefined' ? process.env?.['FRONTEND_URL'] : undefined);
-    const redirectTarget = frontendUrl ? `${frontendUrl.replace(/\/$/, '')}/projects` : '/projects';
+    // Validate again here: the cookie is only as trustworthy as the browser that holds it.
+    const safeNext = encodedNext ? sanitizeNextPath(decodeNextCookie(encodedNext)) : null;
+    const landingPath = safeNext ?? '/projects';
+    const redirectTarget = frontendUrl ? `${frontendUrl.replace(/\/$/, '')}${landingPath}` : landingPath;
     return c.redirect(redirectTarget, 302);
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});

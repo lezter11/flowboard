@@ -61,4 +61,9 @@ export const EMBEDDED_MIGRATIONS: EmbeddedMigration[] = [
     name: "0011_rate_limit_windows.sql",
     sql: "-- Additive: fixed-window request counters for the sensitive-route rate limiter (Google sign-in,\n-- invitation create, import preview and commit, image upload and finalize). One row per\n-- (bucket, client key, one-minute window). UNLOGGED: writes skip the WAL. A crash or restart\n-- empties the table, which resets the counters; acceptable for one-minute windows. Rows for ended\n-- windows are removed by the scheduled purge in apps/api (adapters/rate-limit-postgres.ts).\nCREATE UNLOGGED TABLE IF NOT EXISTS rate_limit_windows (\n  bucket TEXT NOT NULL,\n  client_key TEXT NOT NULL,\n  window_start BIGINT NOT NULL,\n  request_count INTEGER NOT NULL DEFAULT 0,\n  PRIMARY KEY (bucket, client_key, window_start)\n);\n\n-- Lets the purge find ended windows by time without scanning the whole table.\nCREATE INDEX IF NOT EXISTS rate_limit_windows_window_start_idx ON rate_limit_windows (window_start);\n",
   },
+  {
+    version: "0012",
+    name: "0012_user_last_location.sql",
+    sql: "-- Additive: remember where each user last was, so the app can return them there.\n-- Both columns are pointers only. Access is re-checked on every read (see\n-- apps/api/src/adapters/last-location.ts); a pointer to a project or board the user\n-- can no longer read is never returned. ON DELETE SET NULL clears a pointer when its\n-- target row is deleted. No backfill: existing users start with NULL.\nALTER TABLE users ADD COLUMN IF NOT EXISTS last_project_id TEXT REFERENCES projects(id) ON DELETE SET NULL;\nALTER TABLE users ADD COLUMN IF NOT EXISTS last_board_id TEXT REFERENCES boards(id) ON DELETE SET NULL;\n",
+  },
 ];

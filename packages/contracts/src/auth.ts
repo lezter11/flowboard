@@ -32,10 +32,32 @@ export const sessionProjectSummarySchema = z.object({
 });
 export type SessionProjectSummary = z.infer<typeof sessionProjectSummarySchema>;
 
+// Where the user last was. Additive and optional: the API returns null when nothing is set
+// or when the stored project or board is no longer readable by this user.
+export const lastLocationSchema = z.object({
+  projectId: z.string().min(1),
+  boardId: z.string().min(1).nullable(),
+});
+export type LastLocation = z.infer<typeof lastLocationSchema>;
+
+export const updateLastLocationInputSchema = z
+  .object({
+    projectId: z.string().min(1).max(200),
+    boardId: z.string().min(1).max(200).nullable().optional(),
+  })
+  .strict();
+export type UpdateLastLocationInput = z.infer<typeof updateLastLocationInputSchema>;
+
+export const lastLocationResponseSchema = z.object({
+  data: lastLocationSchema,
+});
+export type LastLocationResponse = z.infer<typeof lastLocationResponseSchema>;
+
 export const sessionDataSchema = z.object({
   actor: sessionActorSchema,
   ownedWorkspaces: z.array(sessionWorkspaceSummarySchema),
   accessibleProjects: z.array(sessionProjectSummarySchema),
+  lastLocation: lastLocationSchema.nullable().optional(),
 });
 export type SessionData = z.infer<typeof sessionDataSchema>;
 
