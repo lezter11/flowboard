@@ -21,12 +21,14 @@ interface Props {
   onMove: (card: CardSummary, trigger: HTMLElement) => void;
   onDragStart: (card: CardSummary, event: DragEvent<HTMLElement>) => void;
   onDragEnd: () => void;
+  /** Marketing preview on /signin: same markup and CSS, but the title is plain text and the card opens nothing. */
+  preview?: boolean;
 }
 
 const cap = (value: string) => value[0]!.toUpperCase() + value.slice(1);
 
 /** One card; markup and classes follow cardHTML() in design/flowboard-ui/board.js. */
-export function BoardCard({ card, done, view, cardStyle, people, canMove, draggable, dragging, onOpen, onMove, onDragStart, onDragEnd }: Props) {
+export function BoardCard({ card, done, view, cardStyle, people, canMove, draggable, dragging, onOpen, onMove, onDragStart, onDragEnd, preview = false }: Props) {
   const list = view === 'list';
   const glass = !list && cardStyle === 'glass';
   const due = dueInfo(card.dueDate, done);
@@ -94,9 +96,9 @@ export function BoardCard({ card, done, view, cardStyle, people, canMove, dragga
       onDragEnd={draggable ? onDragEnd : undefined}
     >
       <div className="card-head">{header}</div>
-      <div className="card-body" onClick={(event) => { const trigger = event.currentTarget.querySelector<HTMLElement>('.card-open'); if (trigger) onOpen(card, trigger); }}>
+      <div className="card-body" onClick={preview ? undefined : (event) => { const trigger = event.currentTarget.querySelector<HTMLElement>('.card-open'); if (trigger) onOpen(card, trigger); }}>
         <h3 className="card-title" id={`card-title-${card.id}`}>
-          <button className="card-open" type="button" data-tooltip={card.title} onClick={(event) => { event.stopPropagation(); onOpen(card, event.currentTarget); }}>{card.title}</button>
+          {preview ? <span className="card-open">{card.title}</span> : <button className="card-open" type="button" data-tooltip={card.title} onClick={(event) => { event.stopPropagation(); onOpen(card, event.currentTarget); }}>{card.title}</button>}
         </h3>
         {card.descriptionExcerpt ? <p className="card-desc">{card.descriptionExcerpt}</p> : null}
         {glass && (priority || deadline) ? <div className="card-signals">{priority}{deadline}</div> : null}

@@ -1,0 +1,56 @@
+/* /signin board preview. The cards, columns and tokens are the app's own; this file only frames them. */
+.signin-showcase { position: relative; gap: clamp(12px, 2.4vh, 26px); padding-block: clamp(20px, 3.5vh, 48px); }
+.showcase-topline-end { display: inline-flex; align-items: center; gap: 10px; }
+.preview-pause {
+  min-height: 44px; padding: 0 12px; border: 1px solid var(--showcase-tag-border); border-radius: 999px;
+  background: transparent; color: var(--showcase-tag-color); font: inherit; font-size: 14px; cursor: pointer;
+}
+.preview-pause:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--surface) 55%, transparent); color: var(--ink); }
+.preview-private {
+  display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 70%, transparent); border: 1px solid var(--line);
+  color: var(--ink-soft); font-size: 13px; font-weight: 550; white-space: nowrap;
+}
+.preview-private .icon { width: 15px; height: 15px; transform-origin: 50% 80%; animation: preview-lock 900ms 700ms cubic-bezier(.3,1.6,.5,1) both; }
+@keyframes preview-lock { 0% { transform: translateY(-3px) rotate(-14deg); opacity: 0; } 60% { transform: translateY(1px) rotate(4deg); opacity: 1; } 100% { transform: none; opacity: 1; } }
+
+.preview-board { min-height: 0; flex: none; gap: 10px; padding-bottom: 8px; scroll-snap-type: x proximity; -webkit-user-select: none; user-select: none; }
+.preview-board .column { min-width: 256px; max-height: none; min-height: 0; height: clamp(340px, calc(100svh - 360px), 480px); flex: 1 0 256px; scroll-snap-align: start; }
+.preview-board.board:not(.is-list) .card-desc { display: -webkit-box; -webkit-line-clamp: 2; }
+.preview-board .card-body { cursor: grab; }
+.preview-board .card-open { cursor: inherit; pointer-events: none; }
+.preview-card { border-radius: 14px; touch-action: manipulation; }
+.preview-card.is-entering { animation: preview-enter 520ms calc(120ms + var(--i, 0) * 70ms) cubic-bezier(.2,.8,.2,1) both; }
+@keyframes preview-enter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.preview-card:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.preview-card.is-picked { outline: 2px solid var(--accent); outline-offset: 2px; }
+.preview-card.is-picked .card { box-shadow: var(--shadow-md); transform: translateY(-2px) rotate(-.6deg); }
+.preview-hint { margin-top: 10px; color: var(--ink-soft); font-size: 13px; line-height: 1.45; max-width: 70ch; }
+
+.preview-ghost { position: fixed; left: 0; top: 0; z-index: 60; pointer-events: none; will-change: transform; }
+.preview-ghost[hidden] { display: none; }
+.preview-ghost .preview-board { overflow: visible; padding: 0; margin: 0; }
+.preview-ghost .card { box-shadow: var(--shadow-lg, 0 18px 40px rgb(30 20 40 / 28%)); }
+.preview-cursor { position: fixed; left: 0; top: 0; z-index: 70; pointer-events: none; opacity: 0; transition: opacity 240ms ease; filter: drop-shadow(0 2px 3px rgb(0 0 0 / 28%)); }
+.preview-cursor.is-on { opacity: 1; }
+.preview-cursor svg { display: block; transition: transform 120ms ease; transform-origin: 4px 3px; }
+.preview-cursor.is-pressed svg { transform: scale(.86); }
+
+/* Small animated icons on the sample cards: pop in once, then react to hover or focus. */
+.preview-board .meta-chip .icon, .preview-board .due .icon { animation: preview-pop 520ms 600ms cubic-bezier(.3,1.7,.5,1) both; transform-origin: 50% 60%; }
+.preview-board .meta-chip:hover .icon, .preview-card:hover .meta-chip .icon { animation: preview-nudge 520ms ease; }
+.preview-board .due:hover .icon, .preview-card:hover .due .icon { animation: preview-tilt 520ms ease; }
+@keyframes preview-pop { from { transform: scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes preview-nudge { 30% { transform: translateY(-2px) rotate(-10deg); } 65% { transform: translateY(0) rotate(6deg); } }
+@keyframes preview-tilt { 35% { transform: rotate(-12deg) scale(1.12); } 70% { transform: rotate(8deg); } }
+
+@media (max-width: 760px) {
+  .preview-board .column { min-width: 244px; flex-basis: 244px; }
+  .showcase-board-head { flex-wrap: wrap; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .preview-private .icon, .preview-board .meta-chip .icon, .preview-board .due .icon { animation: none; }
+  .preview-board .meta-chip:hover .icon, .preview-board .due:hover .icon, .preview-card:hover .meta-chip .icon, .preview-card:hover .due .icon { animation: none; }
+  .preview-board .card, .preview-card.is-picked .card { transition: none; transform: none; }
+  .preview-cursor { display: none; }
+}

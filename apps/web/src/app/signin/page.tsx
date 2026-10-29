@@ -4,6 +4,7 @@ import { Suspense, useEffect, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { Wordmark } from '@/components/ui/wordmark';
+import { BoardPreview } from '@/components/signin/board-preview';
 
 const MESSAGES: Record<string, string> = {
   'callback-error': 'Google sign-in could not be completed. Try again.',
@@ -23,20 +24,13 @@ function SignInScreen() {
   const [devError, setDevError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  // Theme and palette follow the prototype's signin.html: ?theme=, else the OS preference; palette 1 by default.
+  // Theme: the layout's pre-paint script already applied the saved choice (flowboard-ui-theme === 'dark'), else light.
+  // The OS colour scheme is deliberately ignored, as everywhere else in the app. ?palette= is the prototype's review switch.
   useEffect(() => {
     const root = document.documentElement;
-    const requested = params.get('theme');
     const palette = params.get('palette');
-    let saved: string | null = null;
-    try { saved = window.localStorage.getItem('flowboard-ui-theme'); } catch { /* storage blocked */ }
-    const media = window.matchMedia('(prefers-color-scheme: dark)');
-    const explicit = requested === 'dark' || requested === 'light' ? requested : saved === 'dark' || saved === 'light' ? saved : null;
-    const apply = () => { root.dataset.theme = explicit ?? (media.matches ? 'dark' : 'light'); };
     root.dataset.palette = palette && /^[123]$/.test(palette) ? palette : '1';
-    apply();
-    if (!explicit) media.addEventListener('change', apply);
-    return () => { media.removeEventListener('change', apply); delete root.dataset.palette; };
+    return () => { delete root.dataset.palette; };
   }, [params]);
 
   const devLogin = async (event: FormEvent) => {
@@ -101,62 +95,9 @@ function SignInScreen() {
           </div>
         </section>
 
-        <aside className="signin-showcase" aria-label="Sample Flowboard board">
-          <div className="showcase-topline">
-            <span className="showcase-brand"><Wordmark inline /></span>
-            <span className="showcase-tag">Board preview</span>
-          </div>
-
-          <figure className="showcase-board">
-            <figcaption className="showcase-board-head">
-              <div>
-                <p className="showcase-project">Website redesign</p>
-                <h2>Team board</h2>
-              </div>
-              <span className="showcase-people" aria-label="Three teammates">
-                <span className="showcase-avatar avatar-one" aria-hidden="true">A</span>
-                <span className="showcase-avatar avatar-two" aria-hidden="true">M</span>
-                <span className="showcase-avatar avatar-three" aria-hidden="true">J</span>
-              </span>
-            </figcaption>
-
-            <div className="showcase-columns">
-              <ShowcaseColumn id="columnTodo" dot="todo-dot" title="Not started" count={2} tasks={[
-                { priority: 'low', label: 'Low', text: 'Gather launch requirements', who: 'two', name: 'Morgan', initial: 'M' },
-                { priority: 'medium', label: 'Medium', text: 'Review onboarding notes', who: 'one', name: 'Alex', initial: 'A' },
-              ]} />
-              <ShowcaseColumn id="columnActive" dot="active-dot" title="In progress" count={1} tasks={[
-                { priority: 'high', label: 'High', text: 'Shape the sign-in flow', who: 'three', name: 'Jamie', initial: 'J' },
-              ]} />
-              <ShowcaseColumn id="columnTesting" dot="testing-dot" title="Testing" count={1} tasks={[
-                { priority: 'medium', label: 'Medium', text: 'Check mobile layout', who: 'one', name: 'Alex', initial: 'A' },
-              ]} />
-              <ShowcaseColumn id="columnDone" dot="done-dot" title="Completed" count={1} tasks={[
-                { priority: 'done', label: 'Done', text: 'Set up the project board', who: 'two', name: 'Morgan', initial: 'M' },
-              ]} />
-            </div>
-          </figure>
-        </aside>
+        <BoardPreview />
       </main>
     </div>
-  );
-}
-
-function ShowcaseColumn({ id, dot, title, count, tasks }: {
-  id: string; dot: string; title: string; count: number;
-  tasks: Array<{ priority: string; label: string; text: string; who: string; name: string; initial: string }>;
-}) {
-  return (
-    <section className="showcase-column" aria-labelledby={id}>
-      <h3 id={id}><span className={`status-dot ${dot}`} />{title} <span>{count}</span></h3>
-      {tasks.map((task) => (
-        <article key={task.text} className="showcase-task">
-          <span className={`task-priority priority-${task.priority}`}>{task.label}</span>
-          <p>{task.text}</p>
-          <span className={`task-assignee avatar-${task.who}`} aria-label={`Assigned to ${task.name}`}>{task.initial}</span>
-        </article>
-      ))}
-    </section>
   );
 }
 
