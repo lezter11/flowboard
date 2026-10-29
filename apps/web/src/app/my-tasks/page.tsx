@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useQueries } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { daysUntil, formatShort } from '@/lib/dates';
@@ -37,7 +38,8 @@ export default function MyTasksPage() {
   const [q, setQ] = useState('');
   const [project, setProject] = useState('');
   const [priority, setPriority] = useState('');
-  const [due, setDue] = useState('');
+  const initialDue = useSearchParams().get('due');
+  const [due, setDue] = useState(initialDue && ['overdue', 'today', 'week', 'later', 'none'].includes(initialDue) ? initialDue : '');
 
   const all = projects.flatMap((p, i) => (queries[i]?.data ?? []).map((card) => ({ ...card, projectId: p.id, projectName: card.projectName ?? p.name })));
   const matches = (card: (typeof all)[number]) => {

@@ -10,6 +10,8 @@ import { can, normalizeRole } from '@/lib/roles';
 import { useRememberLocation } from '@/lib/last-location';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
+import { ProjectOverviewSection, useProjectOverview } from '@/components/project/overview';
+import { BriefCard } from '@/components/project/brief-card';
 import { NewBoardDialog } from '@/components/ui/new-board-dialog';
 
 const NO_STATS: BoardStats = { total: 0, done: 0, open: 0, percent: 0 };
@@ -42,7 +44,9 @@ export function ProjectView({ projectId }: { projectId: string }) {
     const s = statsOf(b.id);
     return { total: acc.total + s.total, done: acc.done + s.done, open: acc.open + s.open };
   }, { total: 0, done: 0, open: 0 });
-  const percent = totals.total ? Math.round((totals.done / totals.total) * 100) : 0;
+  const ov = useProjectOverview(projectId).data;
+  const glance = ov ? { total: ov.cards.active, done: ov.cards.byCategory.done, open: ov.cards.byCategory.todo + ov.cards.byCategory.active } : totals;
+  const percent = glance.total ? Math.round((glance.done / glance.total) * 100) : 0;
 
   const [creating, setCreating] = useState(false);
 
@@ -94,6 +98,8 @@ export function ProjectView({ projectId }: { projectId: string }) {
         <h2 className="sr-only" id="overviewTitle" tabIndex={-1}>Project overview</h2>
         <div className="project-layout">
           <div className="project-main">
+            <ProjectOverviewSection projectId={projectId} canManage={can(role, 'manageBoard')} isMember={role === 'member'} boardsExist={boards.length > 0} />
+            <BriefCard project={p} canEdit={can(role, 'manageBoard')} />
             <section className="project-boards-section" aria-labelledby="boardsTitle">
               <div className="project-boards-heading">
                 <div>
@@ -157,9 +163,9 @@ export function ProjectView({ projectId }: { projectId: string }) {
                   <div className="donut-copy"><strong>{percent}%</strong><span>complete</span></div>
                 </div>
                 <div className="glance-legend">
-                  <span className="glance-row"><i className="tone-open" aria-hidden="true" />Open<strong>{totals.open}</strong></span>
-                  <span className="glance-row"><i className="tone-done" aria-hidden="true" />Completed<strong>{totals.done}</strong></span>
-                  <span className="glance-row"><i aria-hidden="true" />Total cards<strong>{totals.total}</strong></span>
+                  <span className="glance-row"><i className="tone-open" aria-hidden="true" />Open<strong>{glance.open}</strong></span>
+                  <span className="glance-row"><i className="tone-done" aria-hidden="true" />Completed<strong>{glance.done}</strong></span>
+                  <span className="glance-row"><i aria-hidden="true" />Total cards<strong>{glance.total}</strong></span>
                 </div>
               </div>
               <div className="glance-foot"><span>{boards.length} {boards.length === 1 ? 'board' : 'boards'}</span><span>{p.isArchived ? 'Archived · read-only' : 'Live counts'}</span></div>

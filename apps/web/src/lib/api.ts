@@ -3,6 +3,7 @@ import {
   type LogoutResponse,
   type WorkspaceListResponse,
   type ProjectResponse,
+  type ProjectOverviewResponse,
   type ProjectListResponse,
   type ProjectPeopleResponse,
   type ProjectDirectoryResponse,
@@ -125,6 +126,10 @@ export const api = {
       headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
       body: JSON.stringify(input),
     });
+  },
+
+  async getProjectOverview(projectId: string): Promise<ProjectOverviewResponse> {
+    return request<ProjectOverviewResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/overview`);
   },
 
   async updateProject(projectId: string, input: UpdateProjectInput, idempotencyKey?: string): Promise<ProjectResponse> {
