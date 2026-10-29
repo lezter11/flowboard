@@ -10,6 +10,10 @@ on:
     branches:
       - main
 
+# Read-only token by default; no job here needs to write to the repository.
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -18,14 +22,17 @@ jobs:
   verify:
     name: Verify (Typecheck, Tests, Build)
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     services:
+      # Same image digest as database/compose.local.yaml so CI and local run one PostgreSQL build.
+      # Credentials are throwaway and reachable only from this job's loopback service container.
       postgres:
-        image: postgres:17-alpine
+        image: postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
         env:
-          POSTGRES_USER: flowboard_ci
-          POSTGRES_PASSWORD: flowboard_ci_password
-          POSTGRES_DB: flowboard_access_test
+          POSTGRES_USER: flowboard_harness
+          POSTGRES_PASSWORD: flowboard_harness_ci_password
+          POSTGRES_DB: flowboard_harness
         ports:
           - 5432:5432
         options: >-
@@ -36,10 +43,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version-file: '.node-version'
           cache: 'npm'
@@ -55,15 +64,36 @@ jobs:
       - name: Contracts Tests
         run: npm test --workspace @flowboard/contracts
 
-      - name: API Test Suite (Ephemeral Postgres)
-        # The gated board-access tests only run against a database named
-        # flowboard_access_test on localhost (see the URL guard in those test files),
-        # so the URL below must point there, not at a differently named database.
+      # The board-access tests use their own fence: a localhost database named
+      # flowboard_access_test. Create it next to flowboard_harness, using the pg
+      # package already installed by npm ci (no psql client needed on the runner).
+      - name: Create board-access test database
         env:
-          DATABASE_URL: postgres://flowboard_ci:flowboard_ci_password@127.0.0.1:5432/flowboard_access_test
-          FLOWBOARD_ACCESS_TEST_DATABASE_URL: postgres://flowboard_ci:flowboard_ci_password@127.0.0.1:5432/flowboard_access_test
+          ADMIN_DATABASE_URL: postgres://flowboard_harness:flowboard_harness_ci_password@127.0.0.1:5432/flowboard_harness
+        run: |
+          node -e "
+            const { Client } = require('pg');
+            (async () => {
+              const client = new Client({ connectionString: process.env.ADMIN_DATABASE_URL });
+              await client.connect();
+              await client.query('CREATE DATABASE flowboard_access_test');
+              await client.end();
+            })().catch((error) => { console.error(error.message); process.exit(1); });
+          "
+
+      - name: API Test Suite (Ephemeral Postgres)
+        # Both URLs use the flowboard_harness user, which the API's local-database fence requires.
+        # ALLOW_REMOTE_DB stays false: the fence must not be bypassed in CI.
+        env:
+          DATABASE_URL: postgres://flowboard_harness:flowboard_harness_ci_password@127.0.0.1:5432/flowboard_harness
+          FLOWBOARD_ACCESS_TEST_DATABASE_URL: postgres://flowboard_harness:flowboard_harness_ci_password@127.0.0.1:5432/flowboard_access_test
           ALLOW_REMOTE_DB: 'false'
         run: npm test --workspace @flowboard/api
 
       - name: Next.js Web Build
         run: npm run build:web
+
+      # Builds the API Worker bundle with a dry-run deploy. Runs without Cloudflare
+      # credentials (checked with an empty environment and HOME); it uploads nothing.
+      - name: API Worker Build (dry run, no credentials)
+        run: npm run build --workspace @flowboard/api
