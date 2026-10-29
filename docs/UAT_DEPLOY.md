@@ -413,3 +413,32 @@ Smoke, signed out (curl; no credentials, no secrets printed):
 Not verified here: the board rail, New board, Edit board and default-board setting (signed-in, the user checks on UAT).
 
 Note: after 54dac49 the branch gained `1d52be9` (feat(api): project overview counts, project brief and links, migration 0014). It was not part of this deploy and is not on UAT.
+
+## Deploy log addendum: 7e9e71a (migration 0014, project brief and links, overview)
+
+Deployed by the Deployment chat as task D-7 on the Architect's instruction. UAT only; production untouched; the deploy used a clean worktree at 7e9e71a, not the shared working tree. Covers B-4 `1d52be9` (migration 0014, `GET /projects/:pid/overview`, `PATCH` brief and links) and S-8 `7e9e71a` (overview page, brief card, motion polish). Backend files are unchanged between `1d52be9` and `7e9e71a`.
+
+Postgres version: PostgreSQL 18.6 on the UAT branch, as recorded in the D-6 addendum.
+
+Rollback anchors (live before this deploy):
+- Worker: `e3fcad14-258a-45c9-9fc4-fa8f1b99e927`.
+- Pages: `609bfd54-d83a-4bb5-af1e-a58afb063d74`.
+
+Neon backup: branch `uat-backup-2026-10-29-d7` (`br-bold-wildflower-a1uixauu`), created from `uat` before the migration and ready.
+
+Migration: `0014_project_brief_links.sql` applied to UAT only, with `ALLOW_REMOTE_DB=true` and the direct host. The runner reported `+ [0014]`. Afterwards `schema_migrations` holds 14 versions (0001 to 0014). `projects.brief` (text) and the `project_links` table exist.
+
+Worker: `flowboard-api-uat` deployed from 7e9e71a. Version after this deploy: `1fc9af14-4257-45d7-92f3-d29316054393`. Bindings and cron `*/15` unchanged.
+
+Pages: `flowboard-app-uat` deployed from 7e9e71a via `scripts/stage-pages-functions.mjs` (five files staged, including `src/lib/return-path.ts`). Deployment after this deploy: `965b9962-cac7-45ce-9b34-29a98ca7743a` (`https://965b9962.flowboard-app-uat.pages.dev`).
+
+Local checks at 7e9e71a: `npm run typecheck` and `npm run typecheck:web` passed; static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`) built in a clean worktree.
+
+Smoke, signed out (curl; no credentials, no secrets printed):
+- Worker `/health/ready` 200.
+- Pages `/`, `/boards/x` redirect to `/signin`; `/projects` and `/board?id=x` redirect to `/signin?next=...`.
+- `/signin` 200 with the CSP header.
+- `/favicon.svg` 200 `image/svg+xml` and `/apple-touch-icon.png` 200 `image/png`, both `cache-control: public, max-age=0, must-revalidate`.
+- Unauthenticated `GET /api/v1/projects/x/overview` and `PATCH /api/v1/projects/x` return 401 on both the Pages host and the Worker host.
+
+Not verified here: the overview page, brief card, pinned links and motion polish (signed-in, the user checks on UAT).
