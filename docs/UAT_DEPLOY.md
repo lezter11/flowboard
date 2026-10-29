@@ -320,7 +320,7 @@ Deployed by the Deployment chat as task D-3 on the Architect's instruction. UAT 
 
 Rollback anchor (the D-2 Pages deployment, live before this deploy): Pages `flowboard-app-uat` `b2420c70-e59a-464f-9152-57415e4a2e73`.
 
-Pages deployment after this deploy: `54899ff8-…` (`https://54899ff8.flowboard-app-uat.pages.dev`). The full id is from the deployment list; the rollback id above is the earlier one.
+Pages deployment after this deploy: `54899ff8-8613-4ffc-a3c6-9d5ea6a8d7f3` (`https://54899ff8.flowboard-app-uat.pages.dev`). The rollback id above is the D-2 deployment.
 
 Local checks at 5dd9ad7: `npm run typecheck` exit 0; `npm run typecheck:web` exit 0; static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`) built in a clean worktree, exit 0. The build emits `favicon.svg` and `apple-touch-icon.png`, and `index.html` links both.
 
