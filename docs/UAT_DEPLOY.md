@@ -277,3 +277,39 @@ Could not verify here:
 - Whether the purge runs on the UAT cron.
 - Whether `/health/ready` skips the limiter: the 15 probes returned 200 and none returned 429, but the rate-limit table was not read for those windows, so it is not proven here.
 - The `000` on request 39 of run 2 has no cause recorded.
+
+## Deploy log addendum: 8fcefe8 (five default columns, five-column sign-in sample)
+
+Deployed by the Deployment chat as task D-2 on the Architect's instruction. UAT only; nothing pushed; production untouched. No migration in this commit.
+
+Rollback anchors (the D-1 versions, which were live before this deploy):
+- Worker `flowboard-api-uat`: `8f5c511c-f27d-4c94-be66-7d0c2edeacf0` (100% before this deploy).
+- Pages `flowboard-app-uat`: `e653f554-2fae-4139-ad59-9eae9571111a`.
+
+Versions after this deploy:
+- Worker: `212ea7b0-5751-4463-afe5-29f9b3dc026e`.
+- Pages: `b2420c70-e59a-464f-9152-57415e4a2e73` (`https://b2420c70.flowboard-app-uat.pages.dev`).
+
+Local checks at 8fcefe8 (disposable Postgres 17.11 on `127.0.0.1:55611`, container stopped afterwards):
+- `npm run typecheck`: exit 0. `npm run typecheck:web`: exit 0.
+- Contracts: 43 pass, 0 fail, 0 skipped.
+- API: 467 pass, 0 fail, 0 cancelled, 0 skipped.
+- Static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`) built in a clean worktree: exit 0.
+
+Pages staging: `scripts/stage-pages-functions.mjs` staged `functions/` and the five-file import closure, including `src/lib/return-path.ts`. No manual copy of `functions/` was used.
+
+Smoke, signed out (curl; Google was not followed; no credentials used):
+- `/signin`: 200, with the CSP from `_headers`, `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
+- The D-1 redirect set is unchanged: `/` and `/boards/x` and an unknown path go to `/signin`; `/projects` goes to `/signin?next=%2Fprojects`; `/board?id=x` goes to `/signin?next=%2Fboard%3Fid%3Dx`; all with `Cache-Control: no-store`.
+- Bogus cookie `flowboard_session=bad` on `/projects`: 302 to `/signin?next=%2Fprojects`.
+- `/invitation`: 200, not redirected.
+- `/api/v1/session` without a cookie: 401. `/api/v1/system/status` without secret: 403.
+- Worker `/health/ready`: 200.
+- No limiter burst: the limiter did not change in this commit.
+
+Not verified here: the five-column sample and brand mark on `/signin` (the sample is rendered client-side, so curl does not show it), and any signed-in behaviour. The user checks those on UAT.
+
+Rate-limit purge, two UAT cron cycles after D-1 (read-only, counts only):
+- 13:30:18 UTC `*/15` run: outcome `ok`, no exceptions. Snapshot at 13:31:45 UTC: 0 rows in `rate_limit_windows`.
+- 13:45:11 UTC `*/15` run: outcome `ok`, no exceptions. Snapshot at 13:46:46 UTC: 0 rows.
+- The three ended windows seen earlier (before the first cron run) are gone. The bounded purge in `purgeEndedWindows` is working on UAT. No rows were deleted by hand.
