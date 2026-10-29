@@ -44,6 +44,6 @@ export function parseOrThrow<T>(schema: z.ZodType<T>, data: unknown): T {
   return result.data;
 }
 
-export function safeParse<T>(schema: z.ZodType<T>, data: unknown): z.SafeParseReturnType<unknown, T> {
+export function safeParse<T>(schema: z.ZodType<T>, data: unknown): z.ZodSafeParseResult<T> {
   return schema.safeParse(data);
 }

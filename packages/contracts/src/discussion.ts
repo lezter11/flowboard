@@ -91,7 +91,7 @@ export const activityItemSchema = z.object({
   projectId: z.string().min(1),
   actorId: z.string().min(1),
   action: z.string().min(1),
-  safeChanges: z.record(z.unknown()),
+  safeChanges: z.record(z.string(), z.unknown()),
   createdAt: utcIsoTimestampSchema,
   actor: personDisplaySchema.optional(),
   // Optional, additive: set on card-scoped feeds only (the actor already passed that card's check).

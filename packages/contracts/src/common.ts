@@ -29,7 +29,7 @@ export const errorDetailSchema = z.object({
   code: z.string(),
   message: z.string(),
   requestId: z.string(),
-  details: z.record(z.unknown()).optional(),
+  details: z.record(z.string(), z.unknown()).optional(),
 });
 export type ErrorDetail = z.infer<typeof errorDetailSchema>;
 

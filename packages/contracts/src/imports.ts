@@ -100,7 +100,7 @@ export const commitImportInputSchema = z.object({
 export type CommitImportInput = z.infer<typeof commitImportInputSchema>;
 
 export const updateImportMappingsInputSchema = z.object({
-  mappings: z.record(z.string().min(1)),
+  mappings: z.record(z.string(), z.string().min(1)),
   expectedVersion: z.number().int().nonnegative(),
 });
 export type UpdateImportMappingsInput = z.infer<typeof updateImportMappingsInputSchema>;
