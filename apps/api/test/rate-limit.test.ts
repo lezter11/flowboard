@@ -229,3 +229,29 @@ test('rate limit: a missing client IP on the Worker is logged without the value'
   }
   assert.deepEqual(logged.map((line) => JSON.parse(line)), [{ level: 'warn', event: 'rate_limit_client_ip_missing' }]);
 });
+
+test('rate limit: a limiter that throws fails open, logs the error class only, and the route still answers', async () => {
+  const logged: string[] = [];
+  const original = console.error;
+  console.error = (line: string) => logged.push(line);
+  try {
+    const app = createApp(async () => {}, {
+      rateLimiter: () => ({
+        limit: async () => {
+          throw new TypeError('secret detail 203.0.113.7');
+        },
+      }),
+    });
+    const res = await app.request('/api/v1/auth/google', { headers: CLIENT, redirect: 'manual' });
+    // The route answers exactly as it does with no limiter at all: the fault did not reach it.
+    const baseline = await createApp(async () => {}, { rateLimiter: () => undefined })
+      .request('/api/v1/auth/google', { headers: CLIENT, redirect: 'manual' });
+    assert.equal(res.status, baseline.status);
+  } finally {
+    console.error = original;
+  }
+  assert.deepEqual(logged.map((line) => JSON.parse(line)), [
+    { level: 'error', event: 'rate_limit_error', binding: 'FB_RL_AUTH', errorClass: 'TypeError' },
+  ]);
+  assert.ok(!logged.join('').includes('203.0.113.7'));
+});

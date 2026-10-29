@@ -13,7 +13,7 @@ Owner: Deployment. Backend may need to add a Worker-side limiter (section 4). Pr
 | A. Cloudflare WAF rate-limiting rules | **No.** Rules attach to a zone (a custom domain on your Cloudflare account). The default hostnames are not zones. | A custom domain on Cloudflare for UAT and for production, then the rules | Yes (Rulesets API, token with zone WAF edit) |
 | B. Worker rate-limiting binding (`ratelimits` in `wrangler.jsonc`) | **Yes.** It runs inside the Worker, so it covers both hostnames. | Backend code change in `apps/api`, plus a `wrangler deploy` | Yes (it is config in the repo) |
 
-Important limitation for Option B: the counter is per Cloudflare location and resets when the isolate is recycled. It stops bursts from one client; it is not an exact global quota.
+Important limitation for Option B: the binding is **approximate**. Counters are kept separately in each Cloudflare location and are eventually consistent, so a client whose requests are served from several locations can exceed the configured number, and the counts never add up to one global limit. Counters also reset when an isolate is recycled. It softens bursts from one location; it is not an exact quota. The limiter is a soft control: if the binding throws, the request is let through (fail open) and `rate_limit_error` is logged.
 
 Important limitation for Option A: the Pages proxy calls the Worker through a service binding, so Worker-to-Worker traffic does not pass the zone edge. Zone rules only see requests that reach the custom domain, which is what we want for client traffic.
 
@@ -50,7 +50,7 @@ Choosing the plan:
 
 Routes not covered by these rules (reads of `GET /api/v1/...`) are not rate limited at the edge. Board reads still need the session and grant checks.
 
-## 4. Option B: Worker-side limiter (Backend work, not started)
+## 4. Option B: Worker-side limiter (built in `apps/api`; approximate, fail-open)
 
 Proposed `apps/api/wrangler.jsonc` addition (binding name and namespace id are placeholders; Backend to confirm the exact schema against the wrangler 4.152.0 config schema before use):
 
@@ -60,9 +60,9 @@ Proposed `apps/api/wrangler.jsonc` addition (binding name and namespace id are p
 ]
 ```
 
-The Worker then calls `env.WRITE_LIMITER.limit({ key: clientIp })` on the write routes and returns `429` with `RATE_LIMITED` when it is false. Period must be 10 or 60 seconds for this binding. Add the stricter invitation/import/upload limiters as separate bindings with their own namespace ids.
+The implemented bindings are `FB_RL_AUTH`, `FB_RL_WRITES`, `FB_RL_INVITE`, `FB_RL_IMPORT` and `FB_RL_UPLOAD` (limits 10, 60, 10, 5 and 10 per 60 s), with namespace ids 1001-1005 in production and 2001-2005 in UAT. The Worker returns `429` with `TOO_MANY_REQUESTS` and `Retry-After: 60` when a binding refuses. Period must be 10 or 60 seconds for this binding. Key: the `cf-connecting-ip` header, which Cloudflare sets. Forwarding headers are never read.
 
-This is the only option that works on the default hostnames today, so it is the fallback if the custom domains are not ready.
+This is the only option that works on the default hostnames today, so it is the fallback if the custom domains are not ready. It is not an exact limit. Exact limits need either a custom-domain WAF rule (section 3; its counting accuracy is not confirmed here and must be checked in Cloudflare's WAF documentation before it is relied on) or Durable Objects, which are not built. Revisit with real traffic or a custom domain.
 
 ## 5. Dashboard steps the user must do (no token needed)
 
