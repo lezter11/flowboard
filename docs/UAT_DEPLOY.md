@@ -153,3 +153,15 @@ Proposal to keep `uat` exempt from the TTL policy in `neon.ts`: the branch polic
 Neon state before this deploy: `uat` expiry already removed (`never`), backup branch `uat-backup-2026-10-28` already exists (`br-lingering-field-a1hfhs5o`, `never`). No new Neon change was needed.
 
 Smoke for `0da9248` (unauthenticated, HTTP status only): Worker `/health/ready` 200; signed-out `/api/v1/session` 401; 200 for `/signin`, `/board?id=`, `/project?id=`, `/projects`, `/activity`, `/inbox`, `/trash`, `/people`, `/my-tasks`, `/settings`, `/import`, `/add-card`, `/all-work`, `/invitation`; `/invitations/accept?token=` 200 (the route is `/invitations/accept`, not `/accept-invitation`, which 404s and is not in the source); foreign-origin preflight no allow-origin; `/api/v1/system/status` without secret 403; legacy `/projects/<id>` and `/boards/<id>` 302 to query routes.
+
+## Deploy log addendum: 9a9d9fa (security headers, rate-limit plan, CI fix)
+
+| Date (UTC) | Commit | Worker version | Pages deployment | Migrations on UAT |
+|---|---|---|---|---|
+| 2026-10-29 | `9a9d9fa` | `52be6f0d-3bfd-4340-8f10-00c43c6d9b09` | `b6eca4bf-4791-44bd-aad9-aacca399f850` | 0001-0010, already up to date |
+
+Contents: `apps/web/public/_headers` (CSP enforced, nosniff, frame deny, referrer and permissions policy, immutable `/_next/static/*`). HEAD also includes `a160ef2` (Backend: zod 3.24.2 to 4.6.7 in `packages/contracts`), so the Worker and the web bundle were both rebuilt from HEAD, not only Pages. Worker and web are on the same contracts version.
+
+CSP trade-off: `script-src` and `style-src` allow `'unsafe-inline'`. Next static export emits about 12 inline RSC scripts per page with page-specific content, so hashes are impractical. Verified locally that a hash-only policy is violated by those scripts. Only the theme script hash would match. Fonts, API and images stay same-origin.
+
+Smoke for `9a9d9fa` (unauthenticated): `/signin` and all app shells 200; `/api/v1/session` 401; `/api/v1/system/status` without secret 403; `/api/v1/session/dev-login` 404; foreign-origin preflight no allow-origin; Worker `/health/ready` 200; legacy `/projects/x` and `/boards/x` 302 to query routes; `_next/static` chunk `immutable`; `/signin` header check shows the CSP and no-store on API. Browser console read on UAT `/signin` returned no entries (weak evidence; the local run showed the console does record CSP messages). Signed-in checks (sign-in, board drag, image view, theme toggle) were not run; they need a signed-in user.
