@@ -6,7 +6,7 @@ import { LogoMark } from './logo-mark';
  * `mark` adds the logo mark for lockups: the sidebar, the sign-in header and the invitation header.
  */
 export function Wordmark({ className, inline = false, mark = false, outline = false }: { className?: string; inline?: boolean; mark?: boolean; outline?: boolean }) {
-  const text = <span className={`${inline ? '' : 'brand-name '}brand-wordmark${outline ? ' wordmark-outline' : ''}${className ? ` ${className}` : ''}`}>Flowboard</span>;
+  const text = <span className={`${inline ? '' : 'brand-name '}brand-wordmark${outline ? ' wordmark-outline' : ''}${className ? ` ${className}` : ''}`}>{outline ? <><span className="wm-flow">Flow</span><span className="wm-board">board</span></> : 'Flowboard'}</span>;
   if (!mark) return text;
   return (
     <>

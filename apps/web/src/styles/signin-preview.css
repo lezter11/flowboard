@@ -58,10 +58,12 @@
 .logo-mark { --logo-circle: #302638; --logo-ring: transparent; --logo-bar: #fff; display: block; flex: none; }
 .logo-circle { fill: var(--logo-circle); stroke: var(--logo-ring); stroke-width: 1.4; }
 .logo-bars { stroke: var(--logo-bar); }
-.brand .logo-mark, html[data-theme="dark"] .logo-mark { --logo-ring: rgb(255 255 255 / 40%); }
+html[data-theme="dark"] .logo-mark { --logo-ring: rgb(255 255 255 / 40%); }
 
 /* Pastel wordmark on a light surface: no dark backing, a hairline violet stroke instead (4.96:1 on the sign-in canvas, 3.7:1 on the pastel panel). Dark theme needs none. */
-html:not([data-theme="dark"]) .wordmark-outline {
+html:not([data-theme="dark"]) .wordmark-outline { background: none; -webkit-text-fill-color: currentColor; color: #302638; }
+html:not([data-theme="dark"]) .wordmark-outline .wm-board { background: linear-gradient(95deg, #a97bc4, #d9779f 50%, #5f9ee0); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+html:not([data-theme="dark"]) .wordmark-outline-old {
   --wordmark-gradient: linear-gradient(95deg, #cdb4db 0%, #ffc8dd 25%, #ffafcc 50%, #bde0fe 75%, #a2d2ff 100%);
   -webkit-text-stroke: .7px #7d6290; paint-order: stroke fill;
 }

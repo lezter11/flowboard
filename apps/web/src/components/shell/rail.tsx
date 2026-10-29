@@ -72,7 +72,7 @@ export function Rail() {
       onKeyDown={trap}
     >
       <div className="rail-heading">
-        <div className="brand"><Wordmark mark /></div>
+        <div className="brand"><Wordmark mark outline /></div>
         <button className="icon-btn" type="button" aria-label="Close navigation" hidden={!shell.overlay} onClick={() => shell.closeNav()}>
           <Icon name="x" />
         </button>
