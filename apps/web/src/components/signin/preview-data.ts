@@ -30,7 +30,6 @@ const SEEDS: Seed[] = [
   { key: 'WEB-104', title: 'Private by invitation', excerpt: 'Only invited people can open a project.', priority: 'high', due: 9, who: 'sample-john', comments: 3, images: 1, column: 'progress' },
   { key: 'WEB-105', title: 'Discuss on the card', excerpt: 'Comments and mentions stay with the work.', priority: 'medium', due: 0, who: 'sample-jane', comments: 8, images: 0, column: 'progress' },
   { key: 'WEB-103', title: 'Clear owners and dates', excerpt: 'Every card shows who owns it.', priority: 'high', due: 3, who: 'sample-john', comments: 1, images: 0, column: 'testing' },
-  { key: 'WEB-108', title: 'Keyboard friendly', excerpt: 'Move cards without a mouse.', priority: 'low', due: 5, who: 'sample-jane', comments: 0, images: 0, column: 'testing' },
   { key: 'WEB-109', title: 'Flag what is stuck', excerpt: 'Blocked work stays visible.', priority: 'high', due: 6, who: 'sample-john', comments: 2, images: 0, column: 'blocked' },
   { key: 'WEB-101', title: 'See every project', excerpt: 'One view of all your boards.', priority: 'medium', due: -2, who: 'sample-jane', comments: 0, images: 0, column: 'completed' },
   { key: 'WEB-102', title: 'Idea to done', excerpt: 'Drag cards as the work moves forward.', priority: 'low', due: -1, who: 'sample-john', comments: 0, images: 0, column: 'completed' },

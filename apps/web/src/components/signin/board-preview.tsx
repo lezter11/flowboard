@@ -33,12 +33,20 @@ const relocate = (order: Order, id: string, to: Over): Order => {
   list.splice(Math.max(0, Math.min(to.index, list.length)), 0, id);
   return next;
 };
-/** A column may never be left empty in this preview: moving its only card to another column is refused. */
-const leavesEmpty = (order: Order, id: string, toColumn: string): boolean => {
+/**
+ * Preview rules: every column holds between one and two cards. Returns the announcement when a move to another
+ * column would break a rule (taking a column's only card, or dropping into a full column), else null.
+ */
+const MAX_CARDS = 2;
+const MIN_MESSAGE = 'Each column keeps at least one card in this preview.';
+const MAX_MESSAGE = 'This column holds up to two cards in this preview.';
+const moveRefusal = (order: Order, id: string, toColumn: string): string | null => {
   const from = locate(order, id);
-  return !!from && from.columnId !== toColumn && order[from.columnId]!.length <= 1;
+  if (!from || from.columnId === toColumn) return null;
+  if (order[from.columnId]!.length <= 1) return MIN_MESSAGE;
+  if (order[toColumn]!.length >= MAX_CARDS) return MAX_MESSAGE;
+  return null;
 };
-const REFUSED_MESSAGE = 'Each column keeps at least one card in this preview.';
 const sleep = (ms: number) => new Promise<void>((resolve) => { window.setTimeout(resolve, ms); });
 
 /**
@@ -108,9 +116,9 @@ export function BoardPreview() {
     return { columnId, index };
   }, []);
 
-  const refuse = useCallback((id: string) => {
+  const refuse = useCallback((id: string, message: string) => {
     setRefused(id);
-    setAnnounce(REFUSED_MESSAGE);
+    setAnnounce(message);
     window.clearTimeout(refusedTimer.current);
     refusedTimer.current = window.setTimeout(() => setRefused(null), 700);
   }, []);
@@ -120,7 +128,7 @@ export function BoardPreview() {
     const raw = hit(x, y, id);
     rawRef.current = raw;
     const current = orderRef.current;
-    const allowed = raw && current && !leavesEmpty(current, id, raw.columnId) ? raw : null;
+    const allowed = raw && current && !moveRefusal(current, id, raw.columnId) ? raw : null;
     // eslint-disable-next-line @typescript-eslint/no-use-before-define
     setOverBoth(allowed);
   }, [hit]);
@@ -175,7 +183,8 @@ export function BoardPreview() {
     setDrag(null);
     setOverBoth(null);
     const current = orderRef.current;
-    if (dropIt && !target && raw && current && leavesEmpty(current, info.id, raw.columnId)) refuse(info.id);
+    const refusal = dropIt && !target && raw && current ? moveRefusal(current, info.id, raw.columnId) : null;
+    if (refusal) refuse(info.id, refusal);
     if (dropIt && target && current) {
       const from = locate(current, info.id);
       commit(relocate(current, info.id, target));
@@ -260,7 +269,8 @@ export function BoardPreview() {
 
     const move = (to: Over) => {
       event.preventDefault();
-      if (leavesEmpty(current, id, to.columnId)) { refuse(id); return; }
+      const refusal = moveRefusal(current, id, to.columnId);
+      if (refusal) { refuse(id, refusal); return; }
       const next = relocate(current, id, to);
       commit(next);
       refocusId.current = id;
@@ -362,9 +372,10 @@ export function BoardPreview() {
     (async () => {
       await sleep(2200);
       for (let cycle = 0; cycle < DEMO_CYCLES && !aborted(); cycle += 1) {
-        if (!(await dragCard('sample-web-107', 'progress', 1))) break;
+        // Every step is legal: the source keeps one card and the target has room for a second.
+        if (!(await dragCard('sample-web-107', 'testing', 1))) break;
         await sleep(900);
-        if (!(await dragCard('sample-web-107', 'blocked', 0))) break;
+        if (!(await dragCard('sample-web-107', 'blocked', 1))) break;
         await sleep(900);
         if (!(await dragCard('sample-web-107', 'backlog', 1))) break;
         await sleep(1400);
@@ -475,7 +486,7 @@ export function BoardPreview() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V10m0-1.5a1.5 1.5 0 0 1 3 0V11m0-1a1.5 1.5 0 0 1 3 0v5a6 6 0 0 1-6 6h-1.4a6 6 0 0 1-4.7-2.3L4 15.2a1.6 1.6 0 0 1 2.4-2.1L9 15" /></svg>
           Try it: drag a card to another column.
         </p>
-        <p className="sr-only" id="previewKeys">Keyboard: focus a card and press Space or Enter to pick it up, use the arrow keys to move it, press Space or Enter to drop it, or Escape to cancel.</p>
+        <p className="sr-only" id="previewKeys">Keyboard: focus a card and press Space or Enter to pick it up, use the arrow keys to move it, press Space or Enter to drop it, or Escape to cancel. In this preview each column holds one or two cards, so a move that would leave a column empty or overfill it is refused.</p>
         <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announce}</div>
       </figure>
 
