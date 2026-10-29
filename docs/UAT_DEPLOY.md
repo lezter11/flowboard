@@ -215,3 +215,64 @@ Proof, unauthenticated, through each host:
 Table (read-only summary, no client keys printed): 4 rows, 1 bucket (`auth`), 2 distinct clients, 3 windows already ended and not yet purged, max count 83 in one window, total 148 counted requests. Refused requests are counted (the count goes above the limit), so each refusal is one database write. The purge runs on the UAT cron (`*/15`); the ended windows were still present at the time of the check, and the next cron run should remove them.
 
 Cost note for the flood runbook: a flood of refusals on the four route families is one UNLOGGED upsert per request.
+
+## Deploy log addendum: 9f241d6 (last location, migration 0012, UI entry routing)
+
+Deployed by the Deployment chat as task D-1, on the Architect's instruction and the user's UAT approval. UAT only; nothing pushed; production untouched.
+
+Rollback anchors recorded before the deploy:
+- Worker `flowboard-api-uat`: `ed08da94-2d48-4b98-99fd-daaf538a0357` (100% before this deploy).
+- Pages `flowboard-app-uat`: `12359b3d-b66b-4989-b63a-fc8dcd264742` (latest before this deploy).
+
+Versions after this deploy:
+- Worker: `8f5c511c-f27d-4c94-be66-7d0c2edeacf0`.
+- Pages: `e653f554-2fae-4139-ad59-9eae9571111a` (`https://e653f554.flowboard-app-uat.pages.dev`).
+
+Local checks at 9f241d6 (clean worktree, disposable Postgres 17.11 on `127.0.0.1:55610`, user `flowboard_harness`, databases `flowboard_harness` and `flowboard_access_test`; container removed afterwards):
+- `npm run typecheck`: exit 0. `npm run typecheck:web`: exit 0.
+- Contracts: 43 pass, 0 fail, 0 skipped.
+- API: 465 pass, 0 fail, 0 cancelled, 0 skipped.
+- Static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`): build exit 0.
+
+Migration (Neon `uat` branch, direct host): before, versions 0001 to 0011 applied. The runner printed `+ [0012] 0012_user_last_location.sql`. After, 0001 to 0012 applied. `users.last_project_id` and `users.last_board_id` are nullable.
+
+Pages staging gap (fixed in the deploy, runbook step 4 still needs it): the first Pages deploy failed at build with `Could not resolve "../src/lib/return-path"`. `functions/_middleware.ts` imports `apps/web/src/lib/return-path.ts`, which the staged folder (`out`, `functions`, `wrangler.jsonc`) did not contain. Nothing was deployed by the failed attempt. The retry copied that one file to `src/lib/` in the staging folder. `functions/` has no other imports from outside itself.
+
+Smoke, signed out (curl; Google was never followed and no credentials were entered):
+
+| Request | Status | Location | Cache-Control |
+|---|---|---|---|
+| `/` | 302 | `/signin` | no-store |
+| `/sign` | 302 | `/signin` | no-store |
+| `/projects` | 302 | `/signin?next=%2Fprojects` | no-store |
+| `/board?id=x` | 302 | `/signin?next=%2Fboard%3Fid%3Dx` | no-store |
+| `/board?id=y` | 302 | `/signin?next=%2Fboard%3Fid%3Dy` | no-store |
+| `/board?id=x&secret=1` | 302 | `/signin?next=%2Fboard%3Fid%3Dx` (extra param dropped) | no-store |
+| `/projects/x` and `/projects/y` | 302 | `/signin` (no `next`) | no-store |
+| `/boards/x` | 302 | `/signin` | no-store |
+| `/nope-zzz` | 302 | `/signin` | no-store |
+| `/projects?next=//evil.test` | 302 | `/signin?next=%2Fprojects` (hostile query ignored) | no-store |
+| `/signin` | 200 | - | `public, max-age=0, must-revalidate` |
+| `/invitation` | 200 (not redirected) | - | `public, max-age=0, must-revalidate` |
+| `/_next/static/chunks/webpack-24dbafc41ba0fb47.js` | 200 | - | `public, max-age=31536000, immutable` |
+
+- Bogus cookie `flowboard_session=bad` on `/projects`: 302 to `/signin?next=%2Fprojects`. Following with `-L` ends at 200 after one redirect, so there is no loop. The API returns 401 for it, and the middleware turns that into the redirect.
+- Headers on `/signin`: the CSP from `_headers` (unchanged), `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy: camera=(), microphone=(), geolocation=()`.
+- `/api/v1/session` with no cookie: 401. `/api/v1/system/status` without secret: 403. `/api/v1/session/dev-login`: 404. Foreign-origin preflight: no `access-control-allow-origin`.
+- `/api/v1/health`: 404 on both Pages and the Worker. There is no such route. The health routes are `/health/live` and `/health/ready` on the Worker host (`flowboard-api-uat.web-app-cloud.workers.dev`): 200 for `/health/live` and 15 of 15 for `/health/ready`.
+- Google start, not followed (`GET /api/v1/auth/google?next=…`): every case returns 302 to `accounts.google.com` with the UAT callback as `redirect_uri`. Hostile `next=//evil.test` and `next=https://evil.test` set `flowboard_oauth_state` with a 48-character value. `next=/board?id=abc` sets one with 67 characters. The cookie is opaque and was not decoded, so the length difference is evidence only, not proof.
+
+Rate limiter (unauthenticated `GET /api/v1/auth/google`, one 42-request burst per run):
+- Run 1 (not pinned to IPv4): requests 1 to 10 returned 302, 11 to 15 returned 429 with `Retry-After` 7 to 1, and the window then rolled. Requests 16 to 25 and 26 returned 302, then 27 onward returned 429. The table shows the cause: one request (26) came from a different client address family (curl used IPv4 for that one) and was counted under its own key, which had count 1. The IPv6 client key counted 27 in that window. This is curl's dual-stack behaviour, not a limiter fault, but it makes run 1 not a clean proof.
+- Run 2 (`curl -4`, started at a window boundary): requests 1 to 10 returned 302, then 11 onward returned 429 with `Retry-After` 46 counting down to 15. Request 39 returned no HTTP status (curl error, `000`); it was not retried. The `TOO_MANY_REQUESTS` envelope was seen in run 1 (`cache-control: no-store`).
+- Recovery: the first request in the next window returned 302 to Google.
+
+Rate-limit table (read-only, counts and timestamps only, no client keys printed): the auth bucket shows three windows still present after the burst, including the two that ended during the test. The purge on the `*/15` UAT cron has not been confirmed. Recheck on a later run.
+
+Cost note: each refused request is one UNLOGGED upsert. Run 2 had 32 refusals (429) from 42 requests, so a flood of refusals adds one write per request to the database.
+
+Could not verify here:
+- Real sign-in and every signed-in screen. These are for the user to check (see the checklist in the chat report).
+- Whether the purge runs on the UAT cron.
+- Whether `/health/ready` skips the limiter: the 15 probes returned 200 and none returned 429, but the rate-limit table was not read for those windows, so it is not proven here.
+- The `000` on request 39 of run 2 has no cause recorded.
