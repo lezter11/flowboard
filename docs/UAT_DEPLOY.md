@@ -359,3 +359,26 @@ Smoke, signed out (curl; Google not followed; no credentials used):
 - `/api/v1/session` without a cookie: 401. `/api/v1/system/status` without secret: 403. Worker `/health/ready`: 200.
 
 Not verified here: the outlined wordmark, the dark logo variant and how they look on light and dark surfaces. Those are visual, so the user checks them on UAT.
+
+## Deploy log addendum: 9c29f75 (plum circle logo mark, sign-in dark by default, apple-touch icon)
+
+Deployed by the Deployment chat as task D-5 on the Architect's instruction. UAT Pages only; production untouched. Web-only: `git diff 5dd9ad7..9c29f75 -- apps/api database packages` is empty, so the Worker (`212ea7b0-5751-4463-afe5-29f9b3dc026e`) was not redeployed. No migration.
+
+Rollback anchor (the D-4 Pages deployment, live before this deploy): `49961a76-a334-4e5d-839f-c9860ff4702d`.
+
+Pages deployment after this deploy: `10609693-0176-4328-af69-5896ae13a708` (`https://10609693.flowboard-app-uat.pages.dev`).
+
+Local checks at 9c29f75: `npm run typecheck` exit 0; `npm run typecheck:web` exit 0; static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`) built in a clean worktree, exit 0. The export contains `favicon.svg` and `apple-touch-icon.png`.
+
+Pages staging: `scripts/stage-pages-functions.mjs` staged `functions/` and the five-file import closure, including `src/lib/return-path.ts`.
+
+Smoke, signed out (curl; Google not followed; no credentials used):
+- `/signin`: 200, with the CSP from `_headers`, `nosniff`, `X-Frame-Options: DENY`, Referrer-Policy and Permissions-Policy as before.
+- Redirects unchanged: `/` and `/boards/x` go to `/signin`; `/projects` to `/signin?next=%2Fprojects`; `/board?id=x` to `/signin?next=%2Fboard%3Fid%3Dx`; all `no-store`. `/invitation` 200.
+- Bogus cookie `flowboard_session=bad` on `/projects`: 302 to `/signin?next=%2Fprojects`.
+- `/favicon.svg`: 200, `image/svg+xml`, `cache-control: public, max-age=0, must-revalidate`.
+- `/apple-touch-icon.png`: 200, `image/png`, same cache header.
+- Both icons are same-origin images, which `img-src 'self' data: blob:` allows.
+- `/api/v1/session` without a cookie: 401. `/api/v1/system/status` without secret: 403. Worker `/health/ready`: 200.
+
+Not verified here: the plum circle mark and the dark-by-default sign-in page. Both are client-rendered, so the user checks them on UAT.
