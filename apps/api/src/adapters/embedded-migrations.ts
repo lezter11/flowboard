@@ -56,4 +56,9 @@ export const EMBEDDED_MIGRATIONS: EmbeddedMigration[] = [
     name: "0010_column_tone.sql",
     sql: "-- Additive: optional named tone for a column (prototype pastel set). NULL means not set; the\n-- client keeps deriving a tone from name/category. Existing rows are unchanged.\nALTER TABLE columns ADD COLUMN tone TEXT\n  CHECK (tone IN ('lavender', 'ice', 'grey', 'green', 'coral', 'rose', 'mint', 'peach', 'butter', 'lilac'));\n"
   },
+  {
+    version: "0011",
+    name: "0011_rate_limit_windows.sql",
+    sql: "-- Additive: fixed-window request counters for the sensitive-route rate limiter (Google sign-in,\n-- invitation create, import preview and commit, image upload and finalize). One row per\n-- (bucket, client key, one-minute window). UNLOGGED: writes skip the WAL. A crash or restart\n-- empties the table, which resets the counters; acceptable for one-minute windows. Rows for ended\n-- windows are removed by the scheduled purge in apps/api (adapters/rate-limit-postgres.ts).\nCREATE UNLOGGED TABLE IF NOT EXISTS rate_limit_windows (\n  bucket TEXT NOT NULL,\n  client_key TEXT NOT NULL,\n  window_start BIGINT NOT NULL,\n  request_count INTEGER NOT NULL DEFAULT 0,\n  PRIMARY KEY (bucket, client_key, window_start)\n);\n\n-- Lets the purge find ended windows by time without scanning the whole table.\nCREATE INDEX IF NOT EXISTS rate_limit_windows_window_start_idx ON rate_limit_windows (window_start);\n",
+  },
 ];

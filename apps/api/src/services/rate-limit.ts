@@ -1,60 +1,73 @@
-// Worker-side rate limiting: the port and the route rules. Business code and the middleware
-// depend only on RateLimiter, never on a Cloudflare type, so the Node runtime and tests can
-// supply their own limiter or none at all.
+// Rate limiting: ports, buckets and route mapping. Business code and middleware depend only on
+// these types, never on Cloudflare or PostgreSQL.
+
+// --- Soft, per-location limiter (Cloudflare binding; approximate, fail open) -----------------
 
 export interface RateLimiter {
   limit(key: string): Promise<{ success: boolean }>;
 }
 
-// Binding names are the wrangler.jsonc `ratelimits[].name` values. Each one is its own counter
-// namespace, so one request can be counted by several bindings (for example a POST to
-// invitations counts toward both FB_RL_WRITES and FB_RL_INVITE).
+// Binding names are the wrangler.jsonc `ratelimits[].name` values.
 export const RATE_LIMIT_BINDINGS = {
-  FB_RL_AUTH: { limit: 10, periodSeconds: 60 },
   FB_RL_WRITES: { limit: 60, periodSeconds: 60 },
-  FB_RL_INVITE: { limit: 10, periodSeconds: 60 },
-  FB_RL_IMPORT: { limit: 5, periodSeconds: 60 },
-  FB_RL_UPLOAD: { limit: 10, periodSeconds: 60 },
 } as const;
 
 export type RateLimitBinding = keyof typeof RATE_LIMIT_BINDINGS;
 
-interface RateLimitRule {
-  binding: RateLimitBinding;
-  matches(method: string, path: string): boolean;
-}
+export const SOFT_WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
 
-const WRITE_METHODS = new Set(['POST', 'PUT', 'PATCH', 'DELETE']);
-
-// Limits follow docs/RATE_LIMITING.md. Reads are not limited, except Google sign-in.
-export const RATE_LIMIT_RULES: readonly RateLimitRule[] = [
-  { binding: 'FB_RL_AUTH', matches: (_m, p) => p.startsWith('/api/v1/auth/google') },
-  { binding: 'FB_RL_WRITES', matches: (m, p) => WRITE_METHODS.has(m) && p.startsWith('/api/v1/') },
-  {
-    binding: 'FB_RL_INVITE',
-    matches: (m, p) => m === 'POST' && /^\/api\/v1\/projects\/[^/]+\/invitations$/.test(p),
-  },
-  {
-    binding: 'FB_RL_IMPORT',
-    matches: (m, p) =>
-      m === 'POST' &&
-      (/^\/api\/v1\/boards\/[^/]+\/(card-)?imports$/.test(p) || /^\/api\/v1\/(card-)?imports\/[^/]+\/commit$/.test(p)),
-  },
-  {
-    binding: 'FB_RL_UPLOAD',
-    matches: (m, p) =>
-      m === 'POST' &&
-      (/^\/api\/v1\/cards\/[^/]+\/image-uploads$/.test(p) || /^\/api\/v1\/image-uploads\/[^/]+\/finalize$/.test(p)),
-  },
-];
-
-export function bindingsFor(method: string, path: string): RateLimitBinding[] {
+export function softBindingsFor(method: string, path: string): RateLimitBinding[] {
   if (path.startsWith('/health/')) return [];
-  return RATE_LIMIT_RULES.filter((rule) => rule.matches(method, path)).map((rule) => rule.binding);
+  return SOFT_WRITE_METHODS.has(method) && path.startsWith('/api/v1/') ? ['FB_RL_WRITES'] : [];
 }
 
-// Cloudflare overwrites this header with the connecting client address at its edge, so a client
-// cannot choose it on the public hostnames. X-Forwarded-For and similar headers are never read.
+// --- Exact, per-window limiter (PostgreSQL; fail closed on the sensitive routes) ------------
+
+// Limits from docs/RATE_LIMITING.md. Each bucket counts per client key in a fixed window.
+export const WINDOW_BUCKETS = {
+  auth: { limit: 10, windowSeconds: 60 },
+  invite: { limit: 10, windowSeconds: 60 },
+  import: { limit: 5, windowSeconds: 60 },
+  upload: { limit: 10, windowSeconds: 60 },
+} as const;
+
+export type WindowBucket = keyof typeof WINDOW_BUCKETS;
+
+export interface WindowCount {
+  // Requests counted in this window, including the current one.
+  count: number;
+  // Seconds until the window ends, at least 1.
+  retryAfterSeconds: number;
+}
+
+export interface WindowCounter {
+  consume(bucket: WindowBucket, clientKey: string, windowSeconds: number): Promise<WindowCount>;
+}
+
+export function windowBucketsFor(method: string, path: string): WindowBucket[] {
+  if (path.startsWith('/health/')) return [];
+  const buckets: WindowBucket[] = [];
+  if (path.startsWith('/api/v1/auth/google')) buckets.push('auth');
+  if (method === 'POST' && /^\/api\/v1\/projects\/[^/]+\/invitations$/.test(path)) buckets.push('invite');
+  if (
+    method === 'POST' &&
+    (/^\/api\/v1\/boards\/[^/]+\/(card-)?imports$/.test(path) || /^\/api\/v1\/(card-)?imports\/[^/]+\/commit$/.test(path))
+  ) {
+    buckets.push('import');
+  }
+  if (
+    method === 'POST' &&
+    (/^\/api\/v1\/cards\/[^/]+\/image-uploads$/.test(path) || /^\/api\/v1\/image-uploads\/[^/]+\/finalize$/.test(path))
+  ) {
+    buckets.push('upload');
+  }
+  return buckets;
+}
+
+// --- Client key -----------------------------------------------------------------------------
+
+// Cloudflare overwrites this header with the connecting client address at its edge. Forwarding
+// headers such as X-Forwarded-For are never read.
 export const CLIENT_IP_HEADER = 'cf-connecting-ip';
 export const UNKNOWN_CLIENT_KEY = 'unknown-client';
 const IP_SHAPE = /^[0-9a-fA-F:.]{2,45}$/;

@@ -12,8 +12,10 @@ import {
   DEFAULT_DEADLINE_MS,
 } from './middleware/index.ts';
 import { originCheckMiddleware, isTrustedOrigin } from './middleware/origin.ts';
-import { rateLimitMiddleware, type RateLimiterResolver } from './middleware/rate-limit.ts';
+import { rateLimitMiddleware, windowRateLimitMiddleware, type RateLimiterResolver, type WindowCounterResolver } from './middleware/rate-limit.ts';
 import { cloudflareRateLimiter } from '../adapters/rate-limit-cloudflare.ts';
+import { postgresWindowCounter } from '../adapters/rate-limit-postgres.ts';
+import { getPool } from '../adapters/postgres.ts';
 import { sessionRoutes } from './routes/session.ts';
 import { googleAuthRoutes } from './routes/google-auth.ts';
 import { workspacesRoutes } from './routes/workspaces.ts';
@@ -44,6 +46,8 @@ export interface CreateAppOptions {
   pool?: pg.Pool;
   // Defaults to the Cloudflare binding lookup; tests inject a fake limiter.
   rateLimiter?: RateLimiterResolver;
+  // Defaults to the request's PostgreSQL pool; tests inject a fake counter.
+  windowCounter?: WindowCounterResolver;
   // Deployed Worker only: absent Cloudflare bindings are logged as deployment faults.
   rateLimitBindingsRequired?: boolean;
 }
@@ -103,7 +107,13 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
   app.use('*', originCheckMiddleware);
 
   // 1c. Per-client-IP rate limits on auth, writes, invitations, imports and uploads (health excluded)
-  app.use('*', rateLimitMiddleware(options?.rateLimiter ?? cloudflareRateLimiter, { bindingsRequired: options?.rateLimitBindingsRequired ?? false }));
+  const rateLimitOptions = { bindingsRequired: options?.rateLimitBindingsRequired ?? false };
+  app.use('*', rateLimitMiddleware(options?.rateLimiter ?? cloudflareRateLimiter, rateLimitOptions));
+  // Exact limits on sign-in, invitations, imports and uploads: counted in PostgreSQL, fail closed.
+  app.use('*', windowRateLimitMiddleware(
+    options?.windowCounter ?? ((c) => postgresWindowCounter(getPool(c))),
+    rateLimitOptions,
+  ));
 
   // 2. Timing middleware: measures request duration and attaches Server-Timing header
   app.use('*', timingMiddleware);

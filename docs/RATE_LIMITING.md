@@ -6,6 +6,14 @@ Status: **proposal, nothing applied.** The API has no rate limiting today, so a 
 
 Owner: Deployment. Backend may need to add a Worker-side limiter (section 4). Production is not to be touched until the Architect approves.
 
+## Production status (2026-10-29)
+
+- **Production control: the PostgreSQL window limiter** (`database/migrations/0011_rate_limit_windows.sql`, `apps/api/src/adapters/rate-limit-postgres.ts`). It limits, per client IP and one-minute window, Google sign-in 10, invitation create 10, import preview and commit 5, and image upload and finalize 10. It is exact: one atomic upsert per limited request, so concurrent requests are counted once each. It fails **closed**: if the count cannot be read, the request gets 503 with `Retry-After: 1`.
+- **Soft extra: the Cloudflare binding** `FB_RL_WRITES` (60 per minute on general writes). It is approximate: counts are kept separately in each Cloudflare location and are eventually consistent, so it can be exceeded from several locations. It fails **open**. Do not rely on it as a limit.
+- Cloudflare's binding was observed not to enforce on UAT: requests were spread over several locations and each stayed under its per-location count.
+- Zone WAF rules (sections 1 to 3) need a custom domain and a paid plan. They remain the long-term option for an edge limit, but are not built.
+- Known limits of the PostgreSQL limiter: counters live in an UNLOGGED table, so a database restart clears them (windows are one minute, so the effect is short). A refused request is still counted, so a flood of refused requests writes to the database. The Worker's shared fallback key (a request with no client address) is counted together and logged as `rate_limit_client_ip_missing`.
+
 ## 1. What can be enforced where
 
 | Option | Works on `*.pages.dev` / `*.workers.dev`? | Needs | Scriptable with API token? |
@@ -60,7 +68,7 @@ Proposed `apps/api/wrangler.jsonc` addition (binding name and namespace id are p
 ]
 ```
 
-The implemented bindings are `FB_RL_AUTH`, `FB_RL_WRITES`, `FB_RL_INVITE`, `FB_RL_IMPORT` and `FB_RL_UPLOAD` (limits 10, 60, 10, 5 and 10 per 60 s), with namespace ids 1001-1005 in production and 2001-2005 in UAT. The Worker returns `429` with `TOO_MANY_REQUESTS` and `Retry-After: 60` when a binding refuses. Period must be 10 or 60 seconds for this binding. Key: the `cf-connecting-ip` header, which Cloudflare sets. Forwarding headers are never read.
+The only Cloudflare binding now is `FB_RL_WRITES` (60 per 60 s, soft), with namespace id 1002 in production and 2002 in UAT. The sensitive routes moved to the PostgreSQL limiter (see Production status). The Worker returns `429` with `TOO_MANY_REQUESTS` and `Retry-After: 60` when the binding refuses. A thrown binding fails open. Period must be 10 or 60 seconds for this binding. Key: the `cf-connecting-ip` header, which Cloudflare sets. Forwarding headers are never read.
 
 This is the only option that works on the default hostnames today, so it is the fallback if the custom domains are not ready. It is not an exact limit. Exact limits need either a custom-domain WAF rule (section 3; its counting accuracy is not confirmed here and must be checked in Cloudflare's WAF documentation before it is relied on) or Durable Objects, which are not built. Revisit with real traffic or a custom domain.
 

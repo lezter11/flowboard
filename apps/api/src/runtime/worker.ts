@@ -2,6 +2,7 @@ import { createPool, queryDatabase } from '../adapters/postgres.ts';
 import { createApp } from '../http/app.ts';
 import { purgeExpiredTrash } from '../services/trash-purge.ts';
 import { processOutboxLease } from '../adapters/notifications.ts';
+import { purgeEndedWindows } from '../adapters/rate-limit-postgres.ts';
 
 export type WorkerBindings = {
   HYPERDRIVE: { connectionString: string };
@@ -42,6 +43,7 @@ export default {
     try {
       await purgeExpiredTrash(pool);
       await processOutboxLease(pool);
+      await purgeEndedWindows(pool);
     } finally {
       await pool.end();
     }
