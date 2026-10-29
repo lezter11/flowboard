@@ -16,6 +16,7 @@ import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { NewBoardDialog } from '@/components/ui/new-board-dialog';
 import { EditBoardDialog } from '@/components/ui/edit-board-dialog';
+import { ActionMenu } from '@/components/ui/action-menu';
 import { Avatar } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/toasts';
 import { useShell } from '@/components/shell/shell-context';
@@ -374,11 +375,6 @@ export function BoardView() {
             )}
           </div>
           <div className="board-actions">
-            {can(role, 'invite') && (
-              <button className="icon-btn share-control" type="button" aria-label="Share board (coming soon)" title="Sharing is coming soon" aria-disabled="true" onClick={(event) => event.preventDefault()}>
-                <Icon name="user-plus" />
-              </button>
-            )}
             <div className="view-switch" role="group" aria-label="Card view" data-view={view}>
               <button type="button" aria-label="List view" aria-pressed={view === 'list'} aria-controls="board" onClick={() => setParam('view', 'list')}>
                 <Icon name="list" /><span className="view-label">List</span>
@@ -388,23 +384,21 @@ export function BoardView() {
               </button>
             </div>
             <span className="sr-only" aria-live="polite">{view === 'list' ? 'List' : 'Board'} view</span>
-            <Link className="btn" href={`/project?id=${encodeURIComponent(board.projectId)}`} title="Browse projects and their boards">
-              <Icon name="folder" /><span className="action-label">Projects</span>
-            </Link>
-            {can(role, 'manageBoard') && !board.isArchived && (
-              <button className="btn" type="button" aria-label="New board" title="New board in this project" onClick={() => setNewBoardOpen(true)}>
-                <Icon name="plus" /><span className="action-label">New board</span>
-              </button>
-            )}
             {canEdit && (
               <button className="btn primary" type="button" aria-label="Add card" title="Add card" onClick={(event) => { if (filtering) setFilters(EMPTY_FILTERS); if (quickAddFirst) openComposer(quickAddFirst, event.currentTarget); }}>
                 <Icon name="plus" /><span className="action-label">Add card</span>
               </button>
             )}
-            <button className="icon-btn" id="fullscreenBtn" ref={shell.fullscreenRef} type="button" aria-pressed={shell.fullscreen} aria-label={shell.fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} title={shell.fullscreen ? 'Exit fullscreen' : 'Enter fullscreen'} onClick={() => void shell.toggleFullscreen()}>
-              <Icon name="maximize" className="fullscreen-enter" />
-              <Icon name="minimize" className="fullscreen-exit" />
-            </button>
+            <ActionMenu
+              label="Board actions"
+              triggerRef={shell.fullscreenRef}
+              items={[
+                ...(can(role, 'manageBoard') && !board.isArchived ? [{ kind: 'button' as const, label: 'New board', icon: 'plus', onSelect: () => setNewBoardOpen(true) }] : []),
+                { kind: 'link' as const, label: 'Project overview', icon: 'folder', href: `/project?id=${encodeURIComponent(board.projectId)}` },
+                ...(can(role, 'invite') ? [{ kind: 'button' as const, label: 'Invite people', icon: 'user-plus', onSelect: () => undefined, disabled: true, hint: 'Coming soon' }] : []),
+                { kind: 'button' as const, label: shell.fullscreen ? 'Exit fullscreen' : 'Fullscreen', icon: shell.fullscreen ? 'minimize' : 'maximize', onSelect: () => shell.toggleFullscreen() },
+              ]}
+            />
           </div>
         </div>
 
