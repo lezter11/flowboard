@@ -42,26 +42,27 @@ function Skeleton() {
   return (
     <div aria-busy="true" aria-label="Loading overview">
       <ul className="ov-tiles">{Array.from({ length: 7 }, (_, i) => <li key={i} className="ov-tile skeleton" aria-hidden="true"><span className="skeleton-line" /></li>)}</ul>
-      <div className="ov-columns"><div className="ov-panel skeleton" /><div className="ov-panel skeleton" /></div>
     </div>
   );
 }
 
-export function ProjectOverviewSection({ projectId, canManage, isMember, boardsExist }: { projectId: string; canManage: boolean; isMember: boolean; boardsExist: boolean }) {
+export function ProjectOverviewSection({ projectId, canManage, isMember, boardsExist, part }: { projectId: string; canManage: boolean; isMember: boolean; boardsExist: boolean; part: 'summary' | 'details' }) {
   const overview = useProjectOverview(projectId);
   const [allPeople, setAllPeople] = useState(false);
   const data: ProjectOverview | undefined = overview.data;
+  if (part === 'details' && !(data && data.readableBoardCount > 0)) return null;
+  const summary = part === 'summary';
   return (
-    <section className="ov" aria-labelledby="ovTitle">
-      <div className="ov-head">
+    <section className={summary ? 'ov' : 'ov ov-details'} aria-labelledby={summary ? 'ovTitle' : undefined}>
+      {summary && <div className="ov-head">
         <h2 id="ovTitle">Overview</h2>
         {data && <span className="ov-asof">Open boards only · as of {new Date(`${data.asOfDate}T00:00:00`).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })}</span>}
-      </div>
-      {overview.isPending && <Skeleton />}
-      {overview.isError && (
+      </div>}
+      {summary && overview.isPending && <Skeleton />}
+      {summary && overview.isError && (
         <div className="note warn" role="alert"><Icon name="alert" /><span>{describeError(overview.error)} <button className="btn sm" type="button" onClick={() => void overview.refetch()}>Try again</button></span></div>
       )}
-      {data && data.readableBoardCount === 0 && (
+      {summary && data && data.readableBoardCount === 0 && (
         <div className="ph-board-empty ov-empty">
           <span className="ph-board-empty-icon" aria-hidden="true"><Icon name="lock" /></span>
           <div>
@@ -72,6 +73,7 @@ export function ProjectOverviewSection({ projectId, canManage, isMember, boardsE
       )}
       {data && data.readableBoardCount > 0 && (
         <>
+          {summary && <>
           <ul className="ov-tiles" aria-label="Card counts">
             <Tile index={0} icon="board" label="Active cards" value={data.cards.active} />
             <Tile index={1} icon="list" label="To do" value={data.cards.byCategory.todo} />
@@ -88,7 +90,8 @@ export function ProjectOverviewSection({ projectId, canManage, isMember, boardsE
           {isMember && (
             <p className="ov-shortcut"><Link className="btn" href="/my-tasks?due=overdue"><Icon name="alert" />My overdue cards</Link></p>
           )}
-          <div className="ov-columns">
+          </>}
+          {!summary && <div className="ov-columns">
             <section className="ov-panel" aria-labelledby="ovPeople">
               <h3 id="ovPeople">Open cards per person</h3>
               {data.assignees.length === 0 ? <p className="ov-none">No open cards are assigned.</p> : (
@@ -122,7 +125,7 @@ export function ProjectOverviewSection({ projectId, canManage, isMember, boardsE
                 </ul>
               )}
             </section>
-          </div>
+          </div>}
         </>
       )}
     </section>

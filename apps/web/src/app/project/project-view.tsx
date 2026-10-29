@@ -91,7 +91,7 @@ export function ProjectView({ projectId }: { projectId: string }) {
         <h2 className="sr-only" id="overviewTitle" tabIndex={-1}>Project overview</h2>
         <div className="project-layout">
           <div className="project-main">
-            <ProjectOverviewSection projectId={projectId} canManage={can(role, 'manageBoard')} isMember={role === 'member'} boardsExist={boards.length > 0} />
+            <ProjectOverviewSection projectId={projectId} canManage={can(role, 'manageBoard')} isMember={role === 'member'} boardsExist={boards.length > 0} part="summary" />
             <BriefCard project={p} canEdit={can(role, 'manageBoard')} />
             <section className="project-boards-section" aria-labelledby="boardsTitle">
               <div className="project-boards-heading">
@@ -146,6 +146,7 @@ export function ProjectView({ projectId }: { projectId: string }) {
                 <span>{p.isArchived ? 'Archived projects are read-only until the Owner reopens them.' : can(role, 'manageBoard') ? 'Owner access covers every board. Everyone else needs a grant per board.' : 'Only boards you can open appear here. Project membership alone does not reveal a board.'}</span>
               </div>
             </section>
+            <ProjectOverviewSection projectId={projectId} canManage={can(role, 'manageBoard')} isMember={role === 'member'} boardsExist={boards.length > 0} part="details" />
           </div>
 
           <p className="access-hint"><Icon name="lock" /><span>Project access is not board access: a non-owner also needs a grant for each board, and hidden boards never show in names, tabs, counts or work lists.</span></p>
