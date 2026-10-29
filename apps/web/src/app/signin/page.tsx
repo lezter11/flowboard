@@ -67,7 +67,7 @@ function SignInScreen() {
       <main className="signin-shell" id="signinMain">
         <section className="signin-panel" aria-labelledby="signinTitle">
           <a className="signin-brand" href="/projects" aria-label="Flowboard">
-            <Wordmark inline />
+            <Wordmark inline mark />
           </a>
 
           <div className="signin-content">

@@ -6,19 +6,17 @@
   background: transparent; color: var(--showcase-tag-color); font: inherit; font-size: 14px; cursor: pointer;
 }
 .preview-pause:is(:hover, :focus-visible) { background: color-mix(in srgb, var(--surface) 55%, transparent); color: var(--ink); }
-.preview-private {
-  display: inline-flex; align-items: center; gap: 7px; padding: 6px 11px; border-radius: 999px;
-  background: color-mix(in srgb, var(--surface) 70%, transparent); border: 1px solid var(--line);
-  color: var(--ink-soft); font-size: 13px; font-weight: 550; white-space: nowrap;
+.preview-board {
+  /* Columns share the panel: as many as fit at 176 px or more, wrapping to more rows, never a sideways scroll. */
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(176px, 1fr)); gap: 10px; align-items: start;
+  min-height: 0; flex: none; overflow: visible; padding: 0; margin: 0; -webkit-user-select: none; user-select: none;
 }
-.preview-private .icon { width: 15px; height: 15px; transform-origin: 50% 80%; animation: preview-lock 900ms 700ms cubic-bezier(.3,1.6,.5,1) both; }
-@keyframes preview-lock { 0% { transform: translateY(-3px) rotate(-14deg); opacity: 0; } 60% { transform: translateY(1px) rotate(4deg); opacity: 1; } 100% { transform: none; opacity: 1; } }
-
-.preview-board { min-height: 0; flex: none; gap: 10px; padding-bottom: 8px; scroll-snap-type: x proximity; -webkit-user-select: none; user-select: none; }
-.preview-board .column { min-width: 256px; max-height: none; min-height: 0; height: clamp(340px, calc(100svh - 360px), 480px); flex: 1 0 256px; scroll-snap-align: start; }
-.preview-board.board:not(.is-list) .card-desc { display: -webkit-box; -webkit-line-clamp: 2; }
+.preview-board .column { min-width: 0; max-width: none; width: auto; height: auto; max-height: none; min-height: 0; }
+.preview-board .column-body { overflow: visible; }
+.preview-board.board:not(.is-list) .card-desc { display: -webkit-box; -webkit-line-clamp: 1; }
 .preview-board .card-body { cursor: grab; }
 .preview-board .card-open { cursor: inherit; pointer-events: none; }
+.preview-board .column-empty { pointer-events: none; }
 .preview-card { border-radius: 14px; touch-action: manipulation; }
 .preview-card.is-entering { animation: preview-enter 520ms calc(120ms + var(--i, 0) * 70ms) cubic-bezier(.2,.8,.2,1) both; }
 @keyframes preview-enter { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
@@ -45,11 +43,10 @@
 @keyframes preview-tilt { 35% { transform: rotate(-12deg) scale(1.12); } 70% { transform: rotate(8deg); } }
 
 @media (max-width: 760px) {
-  .preview-board .column { min-width: 244px; flex-basis: 244px; }
   .showcase-board-head { flex-wrap: wrap; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .preview-private .icon, .preview-board .meta-chip .icon, .preview-board .due .icon { animation: none; }
+  .preview-board .meta-chip .icon, .preview-board .due .icon { animation: none; }
   .preview-board .meta-chip:hover .icon, .preview-board .due:hover .icon, .preview-card:hover .meta-chip .icon, .preview-card:hover .due .icon { animation: none; }
   .preview-board .card, .preview-card.is-picked .card { transition: none; transform: none; }
   .preview-cursor { display: none; }
@@ -58,3 +55,11 @@
 /* Sign-in tap targets: 44 px minimum (the prototype's brand link and the dev-only button were shorter). */
 .signin-brand { display: inline-flex; align-items: center; min-height: 44px; }
 .signin-page .dialog-field .btn { min-height: 44px; }
+
+/* Brand mark on the light sign-in canvas: the prototype's mark is cream on the dark sidebar pill, so recolour it for each theme. */
+.signin-brand { gap: 9px; }
+.signin-page .brand-mark {
+  width: 26px; height: 26px; border-radius: 8px; flex: none; display: grid; place-items: center;
+  border: 1px solid var(--line-strong); background: var(--accent-soft); color: var(--ink);
+}
+.signin-page .brand-mark svg { width: 15px; height: 15px; }

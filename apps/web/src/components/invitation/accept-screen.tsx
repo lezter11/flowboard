@@ -80,7 +80,7 @@ function AcceptScreen() {
   return (
     <div className="invite-shell">
       <header className="invite-top">
-        <Link className="brand" href="/projects" aria-label="Flowboard"><Wordmark /></Link>
+        <Link className="brand" href="/projects" aria-label="Flowboard"><Wordmark mark /></Link>
         <span className="spacer" />
         <Link className="btn ghost sm" href="/signin"><Icon name="arrow-left" />Back to sign in</Link>
       </header>

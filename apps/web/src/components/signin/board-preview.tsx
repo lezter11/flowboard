@@ -16,7 +16,7 @@ const SPRING = { type: 'spring', stiffness: 520, damping: 42, mass: 0.7 } as con
 const MOUSE_SLOP = 5;
 const TOUCH_HOLD_MS = 320;
 const TOUCH_SLOP = 10;
-const DEMO_CYCLES = 2;
+const DEMO_CYCLES = 1;
 const noop = () => {};
 
 const columnName = (id: string) => PREVIEW_COLUMNS.find((column) => column.id === id)?.name ?? id;
@@ -83,9 +83,12 @@ export function BoardPreview() {
     const columns = Array.from(board.querySelectorAll<HTMLElement>('.column'));
     let best: HTMLElement | null = null;
     let bestGap = Infinity;
+    // Columns can wrap onto several rows, so the nearest column is judged in both directions.
     for (const column of columns) {
       const rect = column.getBoundingClientRect();
-      const gap = x < rect.left ? rect.left - x : x > rect.right ? x - rect.right : 0;
+      const dx = x < rect.left ? rect.left - x : x > rect.right ? x - rect.right : 0;
+      const dy = y < rect.top ? rect.top - y : y > rect.bottom ? y - rect.bottom : 0;
+      const gap = Math.hypot(dx, dy);
       if (gap < bestGap) { best = column; bestGap = gap; }
     }
     if (!best || bestGap > 80) return null;
@@ -300,7 +303,8 @@ export function BoardPreview() {
     const dragCard = async (id: string, toColumn: string, toIndex: number) => {
       const start = cardPoint(id);
       const target = columnPoint(toColumn);
-      if (!start || !target) return false;
+      // A column that has wrapped below the fold cannot be shown: end the demo instead of dragging off screen.
+      if (!start || !target || target.y > window.innerHeight - 40 || start.y > window.innerHeight - 40) return false;
       const board = boardRef.current!.getBoundingClientRect();
       const from = { x: board.right - 60, y: board.bottom - 40 };
       showCursor(from.x, from.y, true);
@@ -324,9 +328,11 @@ export function BoardPreview() {
       await sleep(2200);
       for (let cycle = 0; cycle < DEMO_CYCLES && !aborted(); cycle += 1) {
         if (!(await dragCard('sample-web-107', 'progress', 1))) break;
-        await sleep(1100);
+        await sleep(900);
+        if (!(await dragCard('sample-web-107', 'blocked', 0))) break;
+        await sleep(900);
         if (!(await dragCard('sample-web-107', 'backlog', 1))) break;
-        await sleep(1600);
+        await sleep(1400);
       }
       if (!cancelled) {
         showCursor(0, 0, false);
@@ -368,10 +374,9 @@ export function BoardPreview() {
             <p className="showcase-project">Launch plan</p>
             <h2>Team board</h2>
           </div>
-          <span className="preview-private"><Icon name="lock" />Private to 5 invited people</span>
         </figcaption>
 
-        <div className="board preview-board" data-card-style="focus" ref={boardRef} id="previewBoard" aria-describedby="previewHint">
+        <div className="board preview-board" data-card-style="focus" ref={boardRef} id="previewBoard" aria-describedby="previewKeys">
           {PREVIEW_COLUMNS.map((column) => {
             const ids = order?.[column.id] ?? [];
             const others = ids.filter((id) => id !== drag?.id);
@@ -415,6 +420,13 @@ export function BoardPreview() {
                       );
                     })}
                     {lineAtEnd && line}
+                    {order && ids.length === 0 && !isTarget && (
+                      <div className="column-empty">
+                        <Icon name="board" />
+                        <strong>No cards yet</strong>
+                        <span>Add the first card to this column.</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </section>
@@ -422,7 +434,8 @@ export function BoardPreview() {
           })}
         </div>
 
-        <p className="preview-hint" id="previewHint">Try it: drag a card to another column. With a keyboard, focus a card, press Space, move it with the arrow keys, then press Space to drop or Escape to cancel.</p>
+        <p className="preview-hint" id="previewHint">Try it: drag a card to another column.</p>
+        <p className="sr-only" id="previewKeys">Keyboard: focus a card and press Space or Enter to pick it up, use the arrow keys to move it, press Space or Enter to drop it, or Escape to cancel.</p>
         <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">{announce}</div>
       </figure>
 
