@@ -54,15 +54,11 @@
 /* Sign-in tap targets: 44 px minimum (the prototype's brand link and the dev-only button were shorter). */
 .signin-page .dialog-field .btn { min-height: 44px; }
 
-/* Logo mark: the user's dark variant everywhere (black circle, white bars, coloured cards). A thin light ring keeps the circle visible on dark surfaces. */
-.logo-mark { --logo-circle: #0d0b10; --logo-ring: transparent; --logo-bar: #fff; --logo-pick: #fff; display: block; flex: none; }
+/* Logo mark: the prototype's plum (#302638) with white bars, on a circle. A thin light ring keeps it visible on dark surfaces. */
+.logo-mark { --logo-circle: #302638; --logo-ring: transparent; --logo-bar: #fff; display: block; flex: none; }
 .logo-circle { fill: var(--logo-circle); stroke: var(--logo-ring); stroke-width: 1.4; }
-.logo-bar { fill: var(--logo-bar); }
-.logo-bar-pick { fill: var(--logo-pick); }
-.logo-card-a { fill: #5fd3da; } .logo-card-b { fill: #ff6f6f; } .logo-card-c { fill: #9edc8a; }
-.brand .logo-mark, html[data-theme="dark"] .logo-mark { --logo-ring: rgb(255 255 255 / 55%); }
-.logo-mark.is-animated .logo-card { transform-box: fill-box; transform-origin: center; animation: logo-pop 420ms calc(150ms + var(--i, 0) * 45ms) cubic-bezier(.3, 1.6, .5, 1) both; }
-@keyframes logo-pop { from { transform: scale(.2); opacity: 0; } to { transform: none; opacity: 1; } }
+.logo-bars { stroke: var(--logo-bar); }
+.brand .logo-mark, html[data-theme="dark"] .logo-mark { --logo-ring: rgb(255 255 255 / 40%); }
 
 /* Pastel wordmark on a light surface: no dark backing, a hairline violet stroke instead (4.96:1 on the sign-in canvas, 3.7:1 on the pastel panel). Dark theme needs none. */
 html:not([data-theme="dark"]) .wordmark-outline {
@@ -88,5 +84,4 @@ html:not([data-theme="dark"]) .brand-on-light .logo-mark { --logo-ring: transpar
 @keyframes preview-shake { 20% { transform: translateX(-5px); } 45% { transform: translateX(5px); } 70% { transform: translateX(-3px); } }
 @media (prefers-reduced-motion: reduce) {
   .preview-card.is-refused { animation: none; }
-  .logo-mark.is-animated .logo-card { animation: none; }
 }

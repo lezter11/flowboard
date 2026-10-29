@@ -1,5 +1,6 @@
 'use client';
 
+import { THEME_KEY, resolveTheme } from '@/lib/theme';
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { usePathname } from 'next/navigation';
 
@@ -19,7 +20,6 @@ interface ShellValue {
 }
 
 const ShellContext = createContext<ShellValue | null>(null);
-const THEME_KEY = 'flowboard-ui-theme';
 
 export function useShell(): ShellValue {
   const value = useContext(ShellContext);
@@ -46,11 +46,6 @@ export function ShellProvider({ children }: { children: ReactNode }) {
   const navVisible = overlay ? navOpen : !navCollapsed;
 
   useEffect(() => {
-    try {
-      const saved = window.localStorage.getItem(THEME_KEY);
-      const next = saved === 'dark' ? 'dark' : 'light';
-      setTheme(next);
-    } catch { /* storage can be blocked; light is the default */ }
     const media = window.matchMedia('(max-width: 980px)');
     const sync = () => { setNarrow(media.matches); setNavOpen(false); };
     sync();
@@ -58,8 +53,20 @@ export function ShellProvider({ children }: { children: ReactNode }) {
     return () => media.removeEventListener('change', sync);
   }, []);
 
+  // The pre-paint script already set data-theme; state follows it (and the route, when no choice is stored)
+  // before anything is written back, so a dark first paint is never flipped to light.
+  const themeReady = useRef(false);
   useEffect(() => {
-    document.documentElement.dataset.theme = theme;
+    let saved: string | null = null;
+    try { saved = window.localStorage.getItem(THEME_KEY); } catch { /* storage can be blocked */ }
+    const next = resolveTheme(pathname, saved);
+    themeReady.current = true;
+    setTheme(next);
+    document.documentElement.dataset.theme = next;
+  }, [pathname]);
+
+  useEffect(() => {
+    if (themeReady.current) document.documentElement.dataset.theme = theme;
   }, [theme]);
 
   useEffect(() => {

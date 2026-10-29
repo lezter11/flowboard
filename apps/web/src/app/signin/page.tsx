@@ -27,7 +27,7 @@ function SignInScreen() {
   const [devError, setDevError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  // Theme: the layout's pre-paint script already applied the saved choice (flowboard-ui-theme === 'dark'), else light.
+  // Theme: the layout's pre-paint script already applied the saved choice, else dark (lib/theme.ts).
   // The OS colour scheme is deliberately ignored, as everywhere else in the app. ?palette= is the prototype's review switch.
   useEffect(() => {
     const root = document.documentElement;
@@ -67,7 +67,7 @@ function SignInScreen() {
       <main className="signin-shell" id="signinMain">
         <section className="signin-panel" aria-labelledby="signinTitle">
           <a className="signin-brand" href="/projects" aria-label="Flowboard">
-            <Wordmark inline mark animate outline />
+            <Wordmark inline mark outline />
           </a>
 
           <div className="signin-content">

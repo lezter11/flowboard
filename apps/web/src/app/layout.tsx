@@ -1,3 +1,4 @@
+import { THEME_BOOT_SCRIPT } from '@/lib/theme';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Providers } from '@/components/providers';
@@ -27,7 +28,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: "try{if(localStorage.getItem('flowboard-ui-theme')==='dark')document.documentElement.dataset.theme='dark'}catch(e){}",
+            __html: THEME_BOOT_SCRIPT,
           }}
         />
       </head>
