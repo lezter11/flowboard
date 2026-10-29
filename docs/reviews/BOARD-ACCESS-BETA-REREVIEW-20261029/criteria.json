@@ -1,0 +1,46 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "RBAC-01",
+    "RBAC-02",
+    "RBAC-03",
+    "RBAC-04",
+    "RBAC-05",
+    "BRD-01"
+  ],
+  "risk": "high",
+  "target": "Beta re-review of the board-access cutover on target commit 6e15bd0: lock-order deadlock fixes, replay-after-revocation, session hashing (A5/R3-10), Google name preservation (A6/R3-11), optional parity fields privacy (A12), and migrations 0009-0010 (A13).",
+  "authority": "Workspace Owner has implicit access. Every other actor needs active project membership plus an explicit board grant. Only the Owner administers board grants. A Manager may create a board without an automatic grant.",
+  "mandatoryCriteria": [
+    "Every mounted board-derived read filters by current board access before pagination, counts, title/body delivery, or receipt replay, including board snapshots, cards, search, My Tasks, activity, inbox, images, imports and trash.",
+    "Every mounted board-derived write reauthorizes current board access in the same transaction and serializes with grant removal, including cards, comments, images, imports, columns, archive/reopen, trash and notification read state.",
+    "No route silently falls back to project-only access if the board-grants migration is missing. Malformed or legacy records fail closed for non-Owners.",
+    "Revoked and never-granted actors receive non-enumerating private not-found responses and cannot recover board IDs, names, titles, counts, links, assets or saved receipt data.",
+    "Mounted-handler tests on isolated PostgreSQL cover Owner, Manager, Member, Viewer, no grant, revoked grant, sibling project, replay and relevant races; Node and Worker paths are reviewed.",
+    "Real identity: Google callback validates state, rejects unverified or missing email_verified, never issues a session on failure, and no route issues email-only sessions in a deployed (Worker/production) runtime. dev-login is unreachable when deployed.",
+    "No credential or secret has a public default outside NODE_ENV=test; /system/status, /system/migrate and existing-account dev-login are closed (403/404) without a configured secret of 32+ characters; comparison is timing-safe.",
+    "Session cookies are HttpOnly, SameSite=Lax, Secure off localhost; credentialed CORS is allowed only for localhost and the explicit CORS_ORIGIN list (no wildcard hosting-domain suffixes).",
+    "embedded-migrations.ts matches database/migrations/*.sql exactly, so the Worker and Node runtimes apply identical schema including board grants (0007, 0008) and additive schemas (0009, 0010).",
+    "Parallel writes on one board (card create, move, and every other path that locks the board row) never deadlock into 500; deadlock/serialization failures surface as retryable errors; no lock-order inversion between project, board and grant rows is introduced.",
+    "Cookie-authenticated POST/PUT/PATCH/DELETE from a cross-site Origin/Referer are rejected, the origin the user sees (including behind the Pages proxy) and trusted origins still work, and no shared contract or status code changed.",
+    "Current source, migrations, route files, shared helpers, contracts and tests are included in an exact manifest and a fresh independent review passes all BACKEND_REVIEW_GATE.md rules.",
+    "Session tokens are stored only as a SHA-256 hash in the database; the cookie holds the raw bearer token; token lookups hash the incoming cookie; session revocation works by raw token or hash (A5/R3-10).",
+    "Google OAuth sign-in preserves a user's customized display name on conflict and only updates avatar_url when a non-empty image is provided (A6/R3-11).",
+    "New parity and optional fields (card key, excerpt, overdue/due-soon counters, createdBy, column tone, trash/my-tasks keys, activity card links) never leak metadata or titles to callers who lack access to the underlying board or project (A12).",
+    "Migrations 0009 and 0010 are additive, idempotent, correctly backfill keys, and execute safely without data loss or table locks on existing populated tables (A13)."
+  ],
+  "requiredChecks": [
+    "npm run check",
+    "isolated PostgreSQL mounted-handler board-access tests",
+    "fresh independent source-manifest review"
+  ],
+  "requiredTests": {
+    "complete-suite": "npm run check"
+  },
+  "exclusions": [
+    "Hosted deployment, real Google, and live-user data are not authorized. Real-provider behavior is out of scope and must be listed as a known limitation, not scored as proven.",
+    "Dependency advisory status is unverified without online network registry lookup.",
+    "H12 infrastructure files (CI workflow .github/workflows/ci.yml, docs/MONITORING.md, and localConnectionString removal in wrangler.jsonc) were authored in the parent session and are noted as reviewed by author, not independent (coverage gap)."
+  ],
+  "roundHistory": "Round 1 (docs/reviews/BOARD-ACCESS-DELTA-20261028, 8.175 fail), Round 2 (docs/reviews/BOARD-ACCESS-DELTA-20261028-R2, 8.175 fail, Haiku), and Round 3 (docs/reviews/BOARD-ACCESS-DELTA-20261028-R3, 8.175 fail, Haiku). Target 6e15bd0 is an independent comprehensive re-review under BACKEND_REVIEW_GATE.md."
+}
