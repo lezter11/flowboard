@@ -39,6 +39,27 @@ export function BoardView() {
   const cardStyle: CardStyle = params.get('cards') === 'glass' ? 'glass' : 'focus';
 
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  // "/" focuses the card search (same as the rail's Search cards); the rail sends ?search=1 when it opens a board first.
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      const el = event.target as HTMLElement | null;
+      if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey || el?.closest('input, textarea, select, [contenteditable="true"], dialog, [role="dialog"]')) return;
+      event.preventDefault();
+      document.getElementById('searchInput')?.focus();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+  const wantsSearch = params.get('search') === '1';
+  useEffect(() => {
+    if (!wantsSearch) return;
+    const timer = window.setTimeout(() => {
+      document.getElementById('searchInput')?.focus();
+      const next = new URLSearchParams(window.location.search); next.delete('search');
+      window.history.replaceState(null, '', `${pathname}?${next.toString()}`);
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, [wantsSearch, pathname]);
   const [menu, setMenu] = useState<null | 'assignee' | 'due'>(null);
   const [composerColumn, setComposerColumn] = useState<string | null>(null);
   const [newBoardOpen, setNewBoardOpen] = useState(false);

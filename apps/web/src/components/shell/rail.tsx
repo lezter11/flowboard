@@ -1,39 +1,52 @@
 'use client';
 
-import type { KeyboardEvent, ReactNode } from 'react';
+import { useMemo, type KeyboardEvent, type ReactNode } from 'react';
+import { m } from 'motion/react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { Icon } from '@/components/ui/icon';
 import { Wordmark } from '@/components/ui/wordmark';
 import { Avatar } from '@/components/ui/avatar';
-import { useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useBoardHref } from '@/lib/board-target';
 import { useActiveProject } from '@/lib/active-project';
 import { can, ROLE_META } from '@/lib/roles';
 import { useSession } from '@/lib/session';
 import { useShell } from './shell-context';
+import { useRailGroups, useRailMini } from '@/lib/rail-state';
 
-function NavLink({ href, icon, label, active, badge, quiet, onNavigate }: {
-  href: string; icon: string; label: string; active?: boolean; badge?: ReactNode; quiet?: boolean; onNavigate: () => void;
+const TONES = ['thistle', 'icy', 'petal', 'sky', 'pink', 'green'] as const;
+type Tone = (typeof TONES)[number];
+
+/** One rail item: coloured icon tile, label, optional live count, and the shared sliding pill behind the current page. */
+function NavLink({ href, icon, label, tone, active, badge, onNavigate }: {
+  href: string; icon: string; label: string; tone: Tone; active?: boolean; badge?: number; onNavigate: () => void;
 }) {
+  const shown = badge ? (badge > 99 ? '99+' : String(badge)) : null;
   return (
-    <Link className="nav-item" href={href} onClick={onNavigate} aria-current={active ? 'page' : undefined}>
-      <Icon name={icon} />
-      <span>{label}</span>
-      {badge ? <span className={`nav-badge${quiet ? ' quiet' : ''}`}>{badge}</span> : null}
+    <Link className="nav-item" data-tone={tone} data-tip={label} href={href} onClick={onNavigate} aria-current={active ? 'page' : undefined} aria-label={shown ? `${label}, ${badge} ${label === 'Inbox' ? 'unread' : 'open'}` : undefined}>
+      {active && <m.span className="nav-pill" layoutId="rail-pill" transition={{ type: 'spring', stiffness: 520, damping: 42, mass: 0.7 }} aria-hidden="true" />}
+      <span className="nav-tile" aria-hidden="true"><Icon name={icon} /></span>
+      <span className="nav-text">{label}</span>
+      {shown ? <span className="nav-badge" aria-hidden="true">{shown}</span> : null}
     </Link>
   );
 }
 
-/** Not wired to the API yet: same look as a nav item, clearly labelled and inert. */
-function SoonItem({ icon, label }: { icon: string; label: string }) {
+/** A collapsible group: header button with chevron and item count, items on a thin tree line. */
+function NavGroup({ id, label, closed, onToggle, children, count }: { id: string; label: string; closed: boolean; onToggle: (id: string) => void; children: ReactNode; count: number }) {
   return (
-    <span className="nav-item is-soon" aria-disabled="true" title="Coming soon">
-      <Icon name={icon} />
-      <span>{label}</span>
-      <span className="nav-badge quiet">Soon</span>
-    </span>
+    <div className={`nav-group${closed ? ' is-closed' : ''}`}>
+      <button className="nav-group-head" type="button" aria-expanded={!closed} aria-controls={`navgroup-${id}`} onClick={() => onToggle(id)}>
+        <span className="nav-label">{label}</span>
+        <span className="nav-group-count" aria-hidden="true">{count}</span>
+        <Icon name="chevron-down" className="nav-chevron" />
+      </button>
+      <div className="nav-tree-wrap" id={`navgroup-${id}`} inert={closed}>
+        <div className="nav-tree">{children}</div>
+      </div>
+    </div>
   );
 }
 
@@ -46,6 +59,27 @@ export function Rail() {
   const unreadQuery = useQuery({ queryKey: ['notifications'], queryFn: async () => (await api.listNotifications()).data, enabled: state.status === 'ready', staleTime: 30_000 });
   const unread = (unreadQuery.data ?? []).filter((n) => !n.read).length;
   const boardHref = useBoardHref(projectId, boardId);
+  const router = useRouter();
+  const [mini, toggleMini] = useRailMini();
+  const [closedGroups, toggleGroup] = useRailGroups();
+  const compact = mini && !shell.overlay;
+  const live = state.status === 'ready';
+  const openProjects = useMemo(() => (live ? state.session.accessibleProjects : []).filter((p) => !p.isArchived), [live, state]);
+  const taskQueries = useQueries({ queries: openProjects.map((p) => ({ queryKey: ['my-tasks', p.id], queryFn: async () => (await api.listMyTasks(p.id)).data, enabled: live, staleTime: 60_000 })) });
+  const taskCount = taskQueries.every((q) => q.isSuccess) ? taskQueries.reduce((sum, q) => sum + (q.data?.length ?? 0), 0) : 0;
+  const openSearch = () => {
+    close();
+    if (pathname === '/board') { const input = document.getElementById('searchInput'); input?.focus(); return; }
+    router.push(`${boardHref}${boardHref.includes('?') ? '&' : '?'}search=1`);
+  };
+  const arrows = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    const items = Array.from(event.currentTarget.querySelectorAll<HTMLElement>('a.nav-item, .nav-group-head, .nav-search')).filter((el) => !el.closest('[inert]'));
+    const at = items.indexOf(document.activeElement as HTMLElement);
+    if (at < 0) return;
+    event.preventDefault();
+    items[(at + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length]?.focus();
+  };
   const trap = (event: KeyboardEvent<HTMLElement>) => {
     if (!shell.overlay || !shell.navOpen) return;
     if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); shell.closeNav(); return; }
@@ -76,9 +110,12 @@ export function Rail() {
         <button className="icon-btn" type="button" aria-label="Close navigation" hidden={!shell.overlay} onClick={() => shell.closeNav()}>
           <Icon name="x" />
         </button>
+        <button className="rail-collapse" type="button" aria-label={mini ? 'Expand sidebar' : 'Collapse sidebar to icons'} aria-pressed={mini} data-tip={mini ? 'Expand sidebar' : 'Collapse sidebar'} hidden={shell.overlay} onClick={toggleMini}>
+          <Icon name="chevron-right" />
+        </button>
       </div>
 
-      <Link className="workspace-switch" href="/projects" onClick={close} aria-label={`Open ${workspaceName} projects`}>
+      <Link className="workspace-switch" href="/projects" onClick={close} aria-label={`Open ${workspaceName} projects`} data-tip={workspaceName}>
         <span className="workspace-avatar" aria-hidden="true">{workspaceName.slice(0, 2).toUpperCase()}</span>
         <span className="workspace-copy">
           <strong>{workspaceName}</strong>
@@ -87,23 +124,29 @@ export function Rail() {
         <Icon name="chevron-down" />
       </Link>
 
-      <nav className="rail-nav" aria-label="Primary">
-        <div className="nav-group">
-          <p className="nav-label">Workspace</p>
-          <NavLink href={boardHref} icon="board" label="Board" active={pathname === '/board'} onNavigate={close} />
-          <NavLink href="/projects" icon="folder" label="Projects" active={pathname === '/projects' || pathname === '/project'} onNavigate={close} />
-          <NavLink href="/my-tasks" icon="list" label="My tasks" active={pathname === '/my-tasks'} onNavigate={close} />
-          <NavLink href="/inbox" icon="inbox" label="Inbox" active={pathname === '/inbox'} badge={unread || undefined} onNavigate={close} />
-          <NavLink href="/activity" icon="activity" label="Activity" active={pathname === '/activity'} onNavigate={close} />
-        </div>
+      {boardHref.startsWith('/board') && (
+        <button className="nav-search" type="button" onClick={openSearch} aria-label="Search cards" aria-keyshortcuts="/" data-tip="Search cards ( / )">
+          <Icon name="search" />
+          <span className="nav-text">Search cards</span>
+          <kbd aria-hidden="true">/</kbd>
+        </button>
+      )}
+
+      <nav className="rail-nav" aria-label="Primary" onKeyDown={arrows}>
+        <NavGroup id="workspace" label="Workspace" count={5} closed={!!closedGroups.workspace && !compact} onToggle={toggleGroup}>
+          <NavLink href={boardHref} icon="board" label="Board" tone="thistle" active={pathname === '/board'} onNavigate={close} />
+          <NavLink href="/projects" icon="folder" label="Projects" tone="icy" active={pathname === '/projects' || pathname === '/project'} onNavigate={close} />
+          <NavLink href="/my-tasks" icon="list" label="My tasks" tone="petal" active={pathname === '/my-tasks'} badge={taskCount} onNavigate={close} />
+          <NavLink href="/inbox" icon="inbox" label="Inbox" tone="sky" active={pathname === '/inbox'} badge={unread} onNavigate={close} />
+          <NavLink href="/activity" icon="activity" label="Activity" tone="green" active={pathname === '/activity'} onNavigate={close} />
+        </NavGroup>
         {manage && (
-          <div className="nav-group">
-            <p className="nav-label">Manage</p>
-            <NavLink href="/trash" icon="trash" label="Trash" active={pathname === '/trash'} onNavigate={close} />
-            <NavLink href="/people" icon="users" label="People" active={pathname === '/people'} onNavigate={close} />
-            <NavLink href="/import" icon="upload" label="Import" active={pathname === '/import'} onNavigate={close} />
-            <NavLink href="/settings" icon="settings" label="Settings" active={pathname === '/settings'} onNavigate={close} />
-          </div>
+          <NavGroup id="manage" label="Manage" count={4} closed={!!closedGroups.manage && !compact} onToggle={toggleGroup}>
+            <NavLink href="/trash" icon="trash" label="Trash" tone="pink" active={pathname === '/trash'} onNavigate={close} />
+            <NavLink href="/people" icon="users" label="People" tone="icy" active={pathname === '/people'} onNavigate={close} />
+            <NavLink href="/import" icon="upload" label="Import" tone="green" active={pathname === '/import'} onNavigate={close} />
+            <NavLink href="/settings" icon="settings" label="Settings" tone="thistle" active={pathname === '/settings'} onNavigate={close} />
+          </NavGroup>
         )}
         <div className="rail-note">
           <Icon name="lock" className="icon-sm" />
@@ -112,7 +155,7 @@ export function Rail() {
       </nav>
 
       {actor && (
-        <div className="rail-user">
+        <div className="rail-user" data-tip={actor.displayName}>
           <Avatar id={actor.id} name={actor.displayName} />
           <span className="rail-user-copy">
             <strong>{actor.displayName}</strong>

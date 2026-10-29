@@ -1,4 +1,5 @@
 import { THEME_BOOT_SCRIPT } from '@/lib/theme';
+import { RAIL_BOOT_SCRIPT } from '@/lib/rail-boot';
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Providers } from '@/components/providers';
@@ -28,7 +29,7 @@ export default function RootLayout({
       <head>
         <script
           dangerouslySetInnerHTML={{
-            __html: THEME_BOOT_SCRIPT,
+            __html: `${THEME_BOOT_SCRIPT};${RAIL_BOOT_SCRIPT}`,
           }}
         />
       </head>
