@@ -196,3 +196,22 @@ Evidence (unauthenticated, no secret printed):
 - Smoke: all app shells 200; `/api/v1/session` 401; `/api/v1/system/status` 403 without secret (on both hosts); dev-login 404; foreign-origin preflight no allow-origin; `/health/ready` 200; legacy redirects 302; CSP, nosniff and frame-deny headers present. Browser console on `/signin` showed only 401 resource errors from the unauthenticated session checks; no CSP violation messages.
 
 Status: the limiter is still not observed to refuse any request on UAT. Fail-open behaviour is in effect as designed in `e57b4de`, but the observed behaviour is more than approximate counting.
+
+## Deploy log addendum: 0d2b527 (PostgreSQL rate limiter, migration 0011)
+
+| Date (UTC) | Commit | Worker version | Pages deployment | Migrations on UAT |
+|---|---|---|---|---|
+| 2026-10-29 | `0d2b527` | `ed08da94-2d48-4b98-99fd-daaf538a0357` | `12359b3d-b66b-4989-b63a-fc8dcd264742` | 0001-0011; runner applied `+ [0011] 0011_rate_limit_windows.sql` (UNLOGGED table, additive) |
+
+Rollback ids: Worker `77edff23-da70-48f3-9399-202a9b5c049a` (`e57b4de`); Pages `9e0ba995-ee35-405e-8eb9-3a7d869645b6` (`e57b4de`). Rolling the Worker back to `77edff23` leaves table `rate_limit_windows` in place, harmless to older code.
+
+Proof, unauthenticated, through each host:
+- `flowboard-api-uat.web-app-cloud.workers.dev`, burst of 42 `GET /api/v1/auth/google`: 10 × 302, then 429 from request 11 with `Retry-After` and the `TOO_MANY_REQUESTS` envelope. Locations (cf-ray suffix): SIN 29, HKG 10, MRS 2, BOS 1. The refusals span several locations, so the limit is now exact across them.
+- `flowboard-app-uat.pages.dev`, burst of 42 in a fresh window: 10 × 302 then 429 from request 10, `Retry-After` 48–56 s (database clock). All edge locations BOM.
+- Recovery: a new window opened and requests returned 302 again (checked on the Worker host after the Pages burst, and on Pages at the start of the second burst).
+- `/health/ready`: 15 requests returned 200 and did not count against the auth bucket (9 further 302s were then allowed in the same window, as expected for one earlier 302).
+- Smoke: all shells 200; `/api/v1/session` 401; `/api/v1/system/status` 403 without secret on both hosts; dev-login 404; preflight evil 0; `/health/ready` 200; legacy `/projects/x` 302; CSP, nosniff, frame-deny, referrer and permissions headers present. Browser console on `/signin`: no entries.
+
+Table (read-only summary, no client keys printed): 4 rows, 1 bucket (`auth`), 2 distinct clients, 3 windows already ended and not yet purged, max count 83 in one window, total 148 counted requests. Refused requests are counted (the count goes above the limit), so each refusal is one database write. The purge runs on the UAT cron (`*/15`); the ended windows were still present at the time of the check, and the next cron run should remove them.
+
+Cost note for the flood runbook: a flood of refusals on the four route families is one UNLOGGED upsert per request.
