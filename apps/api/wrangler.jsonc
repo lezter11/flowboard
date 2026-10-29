@@ -11,6 +11,15 @@
       "id": "18f56141ecef4b7cb07ecd42c90b155f"
     }
   ],
+  // Per-client-IP counters (see src/services/rate-limit.ts). Namespace ids are account-wide and
+  // must not collide with another Worker's; UAT uses its own range below.
+  "ratelimits": [
+  { "name": "FB_RL_AUTH", "namespace_id": "1001", "simple": { "limit": 10, "period": 60 } },
+  { "name": "FB_RL_WRITES", "namespace_id": "1002", "simple": { "limit": 60, "period": 60 } },
+  { "name": "FB_RL_INVITE", "namespace_id": "1003", "simple": { "limit": 10, "period": 60 } },
+  { "name": "FB_RL_IMPORT", "namespace_id": "1004", "simple": { "limit": 5, "period": 60 } },
+  { "name": "FB_RL_UPLOAD", "namespace_id": "1005", "simple": { "limit": 10, "period": 60 } }
+  ],
   "vars": {
     "FRONTEND_URL": "https://flowboard-app.pages.dev",
     "CORS_ORIGIN": "https://flowboard-app.pages.dev",
@@ -25,6 +34,13 @@
     "uat": {
       "name": "flowboard-api-uat",
       "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "7a1e3a69f51e41b1a8c46e0be263b814" }],
+      "ratelimits": [
+  { "name": "FB_RL_AUTH", "namespace_id": "2001", "simple": { "limit": 10, "period": 60 } },
+  { "name": "FB_RL_WRITES", "namespace_id": "2002", "simple": { "limit": 60, "period": 60 } },
+  { "name": "FB_RL_INVITE", "namespace_id": "2003", "simple": { "limit": 10, "period": 60 } },
+  { "name": "FB_RL_IMPORT", "namespace_id": "2004", "simple": { "limit": 5, "period": 60 } },
+  { "name": "FB_RL_UPLOAD", "namespace_id": "2005", "simple": { "limit": 10, "period": 60 } }
+      ],
       "vars": {
         "FRONTEND_URL": "https://flowboard-app-uat.pages.dev",
         "CORS_ORIGIN": "https://flowboard-app-uat.pages.dev",

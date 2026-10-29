@@ -12,6 +12,8 @@ import {
   DEFAULT_DEADLINE_MS,
 } from './middleware/index.ts';
 import { originCheckMiddleware, isTrustedOrigin } from './middleware/origin.ts';
+import { rateLimitMiddleware, type RateLimiterResolver } from './middleware/rate-limit.ts';
+import { cloudflareRateLimiter } from '../adapters/rate-limit-cloudflare.ts';
 import { sessionRoutes } from './routes/session.ts';
 import { googleAuthRoutes } from './routes/google-auth.ts';
 import { workspacesRoutes } from './routes/workspaces.ts';
@@ -40,6 +42,8 @@ export interface CreateAppOptions {
   bodyLimitBytes?: number;
   deadlineMs?: number;
   pool?: pg.Pool;
+  // Defaults to the Cloudflare binding lookup; tests inject a fake limiter.
+  rateLimiter?: RateLimiterResolver;
 }
 
 export function createApp(probeDatabase: () => Promise<void> = async () => {}, options?: CreateAppOptions) {
@@ -95,6 +99,9 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
 
   // 1b. CSRF defence for cookie-authenticated state changes (same-site Origin/Referer required)
   app.use('*', originCheckMiddleware);
+
+  // 1c. Per-client-IP rate limits on auth, writes, invitations, imports and uploads (health excluded)
+  app.use('*', rateLimitMiddleware(options?.rateLimiter ?? cloudflareRateLimiter));
 
   // 2. Timing middleware: measures request duration and attaches Server-Timing header
   app.use('*', timingMiddleware);
