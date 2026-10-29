@@ -149,3 +149,20 @@
 @media (max-width: 720px) { .col-editor-row, .col-editor-row.is-new { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .col-editor-row > .column-dot { display: none; } .col-editor-row > input { grid-column: 1 / -1; } .col-editor-actions { grid-column: 1 / -1; justify-content: flex-start; } }
 .dialog.cols-dialog { width: min(800px, 100%); }
 .col-editor-actions .btn.sm { min-height: 32px; }
+
+/* S-11 item 1: invite dialog. */
+.dialog.invite-dialog { width: min(640px, 100%); }
+.invite-dialog-body { display: grid; gap: 16px; }
+.invite-form { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) auto; gap: 10px; align-items: start; }
+.invite-form .btn { margin-top: 24px; }
+.invite-access-note { display: flex; gap: 9px; align-items: flex-start; margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface-2); font-size: 13px; line-height: 1.5; color: var(--ink-soft); }
+.invite-access-note .icon { color: var(--accent); flex: none; margin-top: 2px; }
+.invite-fresh { display: grid; gap: 8px; padding: 12px; border: 1px solid var(--accent-line); border-radius: 12px; background: var(--accent-soft); font-size: 13px; }
+.invite-fresh p { margin: 0; } .invite-fresh small { color: var(--muted); }
+.invite-link-row { display: flex; gap: 8px; } .invite-link-row .control { flex: 1; min-width: 0; font-size: 12px; }
+.invite-list-wrap h3 { margin: 0 0 8px; font-size: 14px; display: flex; gap: 8px; align-items: center; }
+.invite-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.invite-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.invite-row-main { flex: 1; min-width: 0; display: grid; } .invite-row-main strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13.5px; } .invite-row-main small { color: var(--muted); }
+.invite-past { margin-top: 10px; } .invite-past summary { cursor: pointer; font-size: 13px; color: var(--muted); margin-bottom: 8px; }
+@media (max-width: 640px) { .invite-form { grid-template-columns: minmax(0, 1fr); } .invite-form .btn { margin-top: 0; } }

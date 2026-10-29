@@ -51,7 +51,15 @@ function AcceptScreen() {
     setHasToken(!!tokenRef.current);
   }, [params]);
 
+  // Not session.signOut(): that hard-navigates to /signin and the one-time link, held only in memory, would be lost.
+  const switchAccount = async () => {
+    try { await api.logout(); } catch { /* the session query below shows the real state */ }
+    await queryClient.resetQueries({ queryKey: ['session'] });
+    setOutcome({ kind: 'idle' });
+  };
   const signedIn = state.status === 'ready';
+  // Signed-out visitors go through Google sign-in and come back here: the API validates this same-app return path and hands it back after the callback.
+  const signInHref = tokenRef.current ? `/api/v1/auth/google/start?next=${encodeURIComponent(`/invitation?token=${tokenRef.current}`)}` : '/signin';
   const accept = async () => {
     const token = tokenRef.current;
     if (!token) return;
@@ -63,7 +71,8 @@ function AcceptScreen() {
       setOutcome({ kind: 'accepted', projectId: res.data.projectId, role: res.data.role });
     } catch (error) {
       const next = outcomeFor(error);
-      if (next.kind !== 'error') tokenRef.current = null;
+      // A wrong-account answer keeps the link usable: the person can switch accounts and accept without opening the email again.
+      if (next.kind !== 'error' && next.kind !== 'mismatch') tokenRef.current = null;
       setOutcome(next);
     }
   };
@@ -94,9 +103,10 @@ function AcceptScreen() {
                 <p>{view.copy}</p>
               </div>
               <div className="invite-body">
-                {outcome.kind === 'accepted' && <div className="auth-note success invite-state-note"><Icon name="info" /><span><strong>Invitation accepted</strong> Access is project-scoped. If the Owner changes your role later, this page will not update your grant.</span></div>}
+                {outcome.kind === 'accepted' && <div className="auth-note success invite-state-note"><Icon name="info" /><span><strong>Invitation accepted</strong> Access is project-scoped, and project access is not board access: you will see no boards until the Owner gives you access to them. If the Owner changes your role later, this page will not update your grant.</span></div>}
                 {outcome.kind === 'expired' && <div className="auth-note warn invite-state-note"><Icon name="clock" /><span><strong>Expired on the server clock</strong> The browser cannot extend or refresh the deadline.</span></div>}
                 {outcome.kind === 'mismatch' && <div className="auth-note warn invite-state-note"><Icon name="clock" /><span><strong>Email mismatch</strong> Signing in with the right account will re-check the invitation.</span></div>}
+                {outcome.kind === 'mismatch' && signedIn && <div className="invite-actions"><button className="btn" type="button" onClick={() => void switchAccount()}><Icon name="arrow-left" /> Sign out and switch account</button></div>}
                 {(outcome.kind === 'invalid' || hasToken === false) && <div className="auth-note danger invite-state-note"><Icon name="x-circle" /><span><strong>No invitation preview</strong> For privacy, an invalid token does not reveal whether a project exists or who was invited.</span></div>}
                 {outcome.kind === 'error' && <div className="auth-note danger invite-state-note" role="alert"><Icon name="x-circle" /><span><strong>Could not accept</strong> {outcome.message}</span></div>}
 
@@ -106,10 +116,10 @@ function AcceptScreen() {
                     <div className="invite-actions">
                       {signedIn
                         ? <button className="btn primary" type="button" data-accept disabled={outcome.kind === 'accepting' || !hasToken} onClick={() => void accept()}><Icon name="check-circle" /> {outcome.kind === 'accepting' ? 'Accepting…' : 'Accept invitation'}</button>
-                        : <Link className="btn primary" href="/signin"><Icon name="key" /> Sign in to accept</Link>}
+                        : <a className="btn primary" href={signInHref}><Icon name="key" /> Sign in to accept</a>}
                       <Link className="btn" href="/projects">Not now</Link>
                     </div>
-                    {!signedIn && <div className="invite-account"><Icon name="key" /><span>Not signed in. Sign in with the invited email, then open this invitation link again.</span></div>}
+                    {!signedIn && <div className="invite-account"><Icon name="key" /><span>Not signed in. Sign in with the invited email and you will return to this invitation to accept it.</span></div>}
                   </>
                 )}
                 {outcome.kind === 'accepted' && (

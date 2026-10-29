@@ -10,6 +10,7 @@ import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { Avatar } from '@/components/ui/avatar';
+import { InviteDialog } from '@/components/ui/invite-dialog';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { useToast } from '@/components/ui/toasts';
 
@@ -24,6 +25,7 @@ export default function PeoplePage() {
   const toast = useToast();
   const queryClient = useQueryClient();
   const [manageOpen, setManageOpen] = useState(false);
+  const [inviteOpen, setInviteOpen] = useState(false);
   const [accessOpen, setAccessOpen] = useState(false);
   const [accessBoardId, setAccessBoardId] = useState('');
   const [accessError, setAccessError] = useState('');
@@ -80,7 +82,8 @@ export default function PeoplePage() {
         <div className="people-actions">
           {project && <Link className="btn" href={`/project?id=${encodeURIComponent(project.id)}`}><Icon name="folder" />Project overview</Link>}
           {isOwnerOfProject && boardList.length > 0 && <button className="btn" type="button" onClick={() => { setAccessError(''); setAccessOpen(true); }}><Icon name="lock" />Board access</button>}
-          <button className="btn primary" type="button" onClick={() => { setManageError(''); setManageOpen(true); }}><Icon name="users" />Manage members</button>
+          {project && !project.isArchived && <button className="btn primary" type="button" onClick={() => setInviteOpen(true)}><Icon name="user-plus" />Invite people</button>}
+          <button className="btn" type="button" onClick={() => { setManageError(''); setManageOpen(true); }}><Icon name="users" />Manage members</button>
         </div>
       </header>
       <div id="peopleContent">
@@ -125,8 +128,9 @@ export default function PeoplePage() {
             ))}
           </div>
         </section>
-        <p className="people-foot"><Icon name="info" />Roles come from project membership. Inviting people by email is coming soon.</p>
+        <p className="people-foot"><Icon name="info" />Roles come from project membership. Invite people by email; they see no boards until the Owner gives them board access.</p>
       </div>
+      {project && <InviteDialog projectId={project.id} projectName={project.name} actorRole={normalizeRole(project.role)} open={inviteOpen} onClose={() => setInviteOpen(false)} />}
       <DialogLayer open={accessOpen} onClose={() => setAccessOpen(false)} labelledBy="boardAccessTitle" describedBy="boardAccessHelp" className="wide">
         <div className="dialog-head"><div><h2 id="boardAccessTitle">Board access</h2><p>{project?.name}</p></div><button className="dialog-close" type="button" data-autofocus onClick={() => setAccessOpen(false)} aria-label="Close"><Icon name="x" /></button></div>
         <div className="dialog-body people-manage-body">
@@ -158,7 +162,7 @@ export default function PeoplePage() {
       <DialogLayer open={manageOpen} onClose={() => setManageOpen(false)} labelledBy="peopleManageTitle" describedBy="peopleManageHelp" className="wide">
         <div className="dialog-head"><div><h2 id="peopleManageTitle">Manage people</h2><p>{project?.name}</p></div><button className="dialog-close" type="button" data-autofocus onClick={() => setManageOpen(false)} aria-label="Close"><Icon name="x" /></button></div>
         <div className="dialog-body people-manage-body">
-          <p id="peopleManageHelp" className="people-manage-help">Change a member&apos;s project role or remove them. Project roles and board access are separate; removing someone also removes their board access. Inviting new people by email is coming soon.</p>
+          <p id="peopleManageHelp" className="people-manage-help">Change a member&apos;s project role or remove them. Project roles and board access are separate; removing someone also removes their board access. Use Invite people to add someone new.</p>
           <fieldset className="people-manage-fieldset"><legend>People</legend>
             <div className="people-manage-list">
               {list.map((m) => {

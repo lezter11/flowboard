@@ -9,6 +9,9 @@ import {
   type ProjectDirectoryResponse,
   type BoardListResponse,
   type CreateColumnInput,
+  type CreateInvitationInput,
+  type InvitationResponse,
+  type InvitationListResponse,
   type UpdateColumnInput,
   type ReorderColumnsInput,
   type DeleteColumnInput,
@@ -167,6 +170,19 @@ export const api = {
 
   async getProject(projectId: string): Promise<ProjectResponse> {
     return request<ProjectResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}`);
+  },
+
+  async createInvitation(projectId: string, input: CreateInvitationInput, idempotencyKey?: string): Promise<InvitationResponse> {
+    return request<InvitationResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/invitations`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify(input) });
+  },
+  async listInvitations(projectId: string): Promise<InvitationListResponse> {
+    return request<InvitationListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/invitations`);
+  },
+  async resendInvitation(projectId: string, invitationId: string, idempotencyKey?: string): Promise<InvitationResponse> {
+    return request<InvitationResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/invitations/${encodeURIComponent(invitationId)}/resend`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: '{}' });
+  },
+  async revokeInvitation(projectId: string, invitationId: string, idempotencyKey?: string): Promise<unknown> {
+    return request<unknown>(`/api/v1/projects/${encodeURIComponent(projectId)}/invitations/${encodeURIComponent(invitationId)}/revoke`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: '{}' });
   },
 
   async acceptInvitation(token: string, idempotencyKey?: string): Promise<AcceptInvitationResponse> {
