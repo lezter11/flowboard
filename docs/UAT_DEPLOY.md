@@ -336,3 +336,26 @@ Smoke, signed out (curl; Google not followed; no credentials used):
 - `/api/v1/session` without a cookie: 401. `/api/v1/system/status` without secret: 403. Worker `/health/ready`: 200.
 
 Not verified here: the new wordmark, the dark pill and the one-to-two-card sample (visual; client-rendered). The user checks those on UAT.
+
+## Deploy log addendum: d9b7605 (outlined wordmark, dark logo, favicon and apple-touch icon)
+
+Deployed by the Deployment chat as task D-4 on the Architect's instruction. UAT Pages only; nothing pushed; production untouched. Web-only: `git diff 5dd9ad7..d9b7605 -- apps/api database packages` is empty, so the Worker (`212ea7b0-5751-4463-afe5-29f9b3dc026e`) was not redeployed. No migration.
+
+Rollback anchor (the D-3 Pages deployment, live before this deploy): `54899ff8-8613-4ffc-a3c6-9d5ea6a8d7f3`.
+
+Pages deployment after this deploy: `49961a76-a334-4e5d-839f-c9860ff4702d` (`https://49961a76.flowboard-app-uat.pages.dev`).
+
+Local checks at d9b7605: `npm run typecheck` exit 0; `npm run typecheck:web` exit 0; static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`) built in a clean worktree, exit 0. The build emits `favicon.svg` and `apple-touch-icon.png`, and `index.html` links both.
+
+Pages staging: `scripts/stage-pages-functions.mjs` staged `functions/` and the five-file import closure, including `src/lib/return-path.ts`.
+
+Smoke, signed out (curl; Google not followed; no credentials used):
+- `/signin`: 200, with the CSP from `_headers`, `nosniff`, `X-Frame-Options: DENY`, Referrer-Policy and Permissions-Policy as before.
+- Redirects unchanged: `/`, `/boards/x` and `/nope-zzz` go to `/signin`; `/projects` to `/signin?next=%2Fprojects`; `/board?id=x` to `/signin?next=%2Fboard%3Fid%3Dx`; all `no-store`. `/invitation` 200.
+- Bogus cookie `flowboard_session=bad` on `/projects`: 302 to `/signin?next=%2Fprojects`.
+- `/favicon.svg`: 200, `image/svg+xml`, 370 bytes, `cache-control: public, max-age=0, must-revalidate`.
+- `/apple-touch-icon.png`: 200, `image/png`, 4269 bytes, same cache header.
+- Both icons are same-origin images, which `img-src 'self' data: blob:` allows.
+- `/api/v1/session` without a cookie: 401. `/api/v1/system/status` without secret: 403. Worker `/health/ready`: 200.
+
+Not verified here: the outlined wordmark, the dark logo variant and how they look on light and dark surfaces. Those are visual, so the user checks them on UAT.
