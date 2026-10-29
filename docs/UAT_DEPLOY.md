@@ -165,3 +165,19 @@ Contents: `apps/web/public/_headers` (CSP enforced, nosniff, frame deny, referre
 CSP trade-off: `script-src` and `style-src` allow `'unsafe-inline'`. Next static export emits about 12 inline RSC scripts per page with page-specific content, so hashes are impractical. Verified locally that a hash-only policy is violated by those scripts. Only the theme script hash would match. Fonts, API and images stay same-origin.
 
 Smoke for `9a9d9fa` (unauthenticated): `/signin` and all app shells 200; `/api/v1/session` 401; `/api/v1/system/status` without secret 403; `/api/v1/session/dev-login` 404; foreign-origin preflight no allow-origin; Worker `/health/ready` 200; legacy `/projects/x` and `/boards/x` 302 to query routes; `_next/static` chunk `immutable`; `/signin` header check shows the CSP and no-store on API. Browser console read on UAT `/signin` returned no entries (weak evidence; the local run showed the console does record CSP messages). Signed-in checks (sign-in, board drag, image view, theme toggle) were not run; they need a signed-in user.
+
+## Deploy log addendum: 8b41fe6 (Worker-side rate limiter, UAT)
+
+| Date (UTC) | Commit | Worker version | Pages deployment | Migrations on UAT |
+|---|---|---|---|---|
+| 2026-10-29 | `8b41fe6` (includes `cc7963a`) | `0635b142-f4f4-4ce4-8cdc-d808a5edd387` | `2e487aca-b4be-45f2-b38d-ab9d081be637` | 0001-0010, already up to date |
+
+Rollback ids: Worker `52be6f0d-3bfd-4340-8f10-00c43c6d9b09` (deployed at `9a9d9fa`, no limiter); Pages `b6eca4bf-4791-44bd-aad9-aacca399f850` (deployed at `9a9d9fa`). Worker rollback is `npx wrangler rollback 52be6f0d-3bfd-4340-8f10-00c43c6d9b09 --name flowboard-api-uat`.
+
+Bindings confirmed on the deployed version (`wrangler versions view`): `FB_RL_AUTH` 10/60s, `FB_RL_WRITES` 60/60s, `FB_RL_INVITE` 10/60s, `FB_RL_IMPORT` 5/60s, `FB_RL_UPLOAD` 10/60s, namespace ids 2001-2005 (UAT range; production uses 1001-1005).
+
+**Limiter not observed to enforce on UAT.** Unauthenticated tests from one client IP: 42 `GET /api/v1/auth/google` in a burst through `flowboard-api-uat.web-app-cloud.workers.dev` returned 302 every time (no 429, no `Retry-After`); 65 `POST /api/v1/workspaces` returned 401 every time (writes limit 60/min not hit). The bundle contains the rules and `limit({ key })` calls. The cause is not yet known (see Architect report). Until it is fixed, treat the rate limit as **not in effect** on UAT.
+
+Smoke for `8b41fe6` (unauthenticated, through `https://flowboard-app-uat.pages.dev`): all app shells 200 (including `/signin`, `/board?id=x`, `/invitations/accept?token=x`); `/api/v1/session` 401; `/api/v1/system/status` without secret 403; `/api/v1/session/dev-login` 404; foreign-origin preflight no allow-origin; Worker `/health/ready` 200 (15 requests, none limited); legacy `/projects/x` and `/boards/x` 302 to query routes. Security headers present on `/signin` (CSP enforced, nosniff, frame deny, referrer and permissions policy). Browser console read on `/signin` returned no entries (weak evidence; not a clean CSP result).
+
+Not verified in this deploy: client-IP keying through the Pages proxy (`cf-connecting-ip` forwarding over the service binding) and any signed-in flow.
