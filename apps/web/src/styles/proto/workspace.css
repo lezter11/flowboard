@@ -136,3 +136,16 @@
 @media (prefers-reduced-motion: no-preference) { .action-menu-list { animation: menu-in 140ms ease-out; } }
 @keyframes menu-in { from { opacity: 0; transform: translateY(-4px); } }
 @media (max-width: 768px) { .board-app .board-actions .action-label, .board-app .board-actions .view-label { display: none; } .board-app .board-actions #addCardBtn { width: 44px; padding: 7px; } }
+
+/* S-11 item 2: column editor dialog. */
+.col-editor { display: grid; gap: 16px; }
+.col-editor-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.col-editor-row { display: grid; grid-template-columns: 12px minmax(120px, 1fr) 120px 130px auto; align-items: center; gap: 8px; }
+.col-editor-row.is-new { grid-template-columns: minmax(120px, 1fr) 120px 130px auto; }
+.col-editor-actions { display: inline-flex; align-items: center; gap: 4px; justify-content: flex-end; min-width: 150px; }
+.col-editor-confirm { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; padding: 8px 10px; border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line)); border-radius: 10px; background: var(--danger-soft); font-size: 13px; }
+.col-editor-confirm > span { flex: 1 1 260px; }
+.col-editor-add h3 { margin: 0 0 8px; font-size: 14px; }
+@media (max-width: 720px) { .col-editor-row, .col-editor-row.is-new { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); } .col-editor-row > .column-dot { display: none; } .col-editor-row > input { grid-column: 1 / -1; } .col-editor-actions { grid-column: 1 / -1; justify-content: flex-start; } }
+.dialog.cols-dialog { width: min(800px, 100%); }
+.col-editor-actions .btn.sm { min-height: 32px; }

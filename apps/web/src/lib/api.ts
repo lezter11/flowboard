@@ -8,6 +8,10 @@ import {
   type ProjectPeopleResponse,
   type ProjectDirectoryResponse,
   type BoardListResponse,
+  type CreateColumnInput,
+  type UpdateColumnInput,
+  type ReorderColumnsInput,
+  type DeleteColumnInput,
   type BoardResponse,
   type CreateProjectInput,
   type CreateBoardInput,
@@ -138,6 +142,19 @@ export const api = {
       headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
       body: JSON.stringify(input),
     });
+  },
+
+  async createColumn(boardId: string, input: CreateColumnInput, idempotencyKey?: string): Promise<unknown> {
+    return request(`/api/v1/boards/${encodeURIComponent(boardId)}/columns`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify(input) });
+  },
+  async updateColumn(boardId: string, columnId: string, input: UpdateColumnInput, idempotencyKey?: string): Promise<unknown> {
+    return request(`/api/v1/boards/${encodeURIComponent(boardId)}/columns/${encodeURIComponent(columnId)}`, { method: 'PATCH', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify(input) });
+  },
+  async reorderColumns(boardId: string, input: ReorderColumnsInput, idempotencyKey?: string): Promise<unknown> {
+    return request(`/api/v1/boards/${encodeURIComponent(boardId)}/columns/reorder`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify(input) });
+  },
+  async deleteColumn(boardId: string, columnId: string, input: DeleteColumnInput, idempotencyKey?: string): Promise<unknown> {
+    return request(`/api/v1/boards/${encodeURIComponent(boardId)}/columns/${encodeURIComponent(columnId)}`, { method: 'DELETE', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify(input) });
   },
 
   async updateBoard(boardId: string, input: UpdateBoardInput, idempotencyKey?: string): Promise<BoardResponse> {

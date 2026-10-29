@@ -16,6 +16,7 @@ import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { NewBoardDialog } from '@/components/ui/new-board-dialog';
 import { EditBoardDialog } from '@/components/ui/edit-board-dialog';
+import { ColumnsDialog } from './columns-dialog';
 import { ActionMenu } from '@/components/ui/action-menu';
 import { Avatar } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/toasts';
@@ -64,6 +65,7 @@ export function BoardView() {
   const [composerColumn, setComposerColumn] = useState<string | null>(null);
   const [newBoardOpen, setNewBoardOpen] = useState(false);
   const [editBoardOpen, setEditBoardOpen] = useState(false);
+  const [columnsOpen, setColumnsOpen] = useState(false);
   const [quickAddBusy, setQuickAddBusy] = useState(false);
   const [quickAddError, setQuickAddError] = useState('');
   const [moveCard, setMoveCard] = useState<CardSummary | null>(null);
@@ -380,6 +382,7 @@ export function BoardView() {
   return (
     <>
       <NewBoardDialog projectId={board.projectId} open={newBoardOpen} onClose={() => setNewBoardOpen(false)} />
+      {can(role, 'manageBoard') && <ColumnsDialog boardId={board.id} open={columnsOpen} onClose={() => setColumnsOpen(false)} />}
       {role === 'owner' && <EditBoardDialog board={board} open={editBoardOpen} onClose={() => setEditBoardOpen(false)} />}
       <section className="board-head" aria-labelledby="boardTitle">
         <div className="board-title-row">
@@ -415,6 +418,7 @@ export function BoardView() {
               triggerRef={shell.fullscreenRef}
               items={[
                 ...(can(role, 'manageBoard') && !board.isArchived ? [{ kind: 'button' as const, label: 'New board', icon: 'plus', onSelect: () => setNewBoardOpen(true) }] : []),
+                ...(can(role, 'manageBoard') && !board.isArchived ? [{ kind: 'button' as const, label: 'Edit columns', icon: 'columns', onSelect: () => setColumnsOpen(true) }] : []),
                 { kind: 'link' as const, label: 'Project overview', icon: 'folder', href: `/project?id=${encodeURIComponent(board.projectId)}` },
                 ...(can(role, 'invite') ? [{ kind: 'button' as const, label: 'Invite people', icon: 'user-plus', onSelect: () => undefined, disabled: true, hint: 'Coming soon' }] : []),
                 { kind: 'button' as const, label: shell.fullscreen ? 'Exit fullscreen' : 'Fullscreen', icon: shell.fullscreen ? 'minimize' : 'maximize', onSelect: () => shell.toggleFullscreen() },

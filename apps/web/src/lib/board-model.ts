@@ -12,9 +12,16 @@ const STORED_TONES: Record<string, Tone> = {
   rose: 'rose', mint: 'mint', peach: 'peach', butter: 'butter', lilac: 'iris',
 };
 
-export function toneFor(column: Pick<ColumnSummary, 'name' | 'category'> & { tone?: string | null }): Tone {
-  // A stored tone (API optional field) wins; otherwise derive it from the name, then the category.
-  const stored = column.tone ? STORED_TONES[column.tone] : undefined;
+/** Tone names the column editor offers. They are stored in the column's `color` field (any string up to 30 characters). */
+export const COLUMN_TONES: Array<{ value: string; label: string; tone: Tone }> = [
+  { value: 'lavender', label: 'Lavender', tone: 'backlog' }, { value: 'ice', label: 'Ice blue', tone: 'progress' }, { value: 'grey', label: 'Grey', tone: 'testing' },
+  { value: 'green', label: 'Green', tone: 'completed' }, { value: 'coral', label: 'Coral', tone: 'blocked' }, { value: 'rose', label: 'Rose', tone: 'rose' },
+  { value: 'mint', label: 'Mint', tone: 'mint' }, { value: 'peach', label: 'Peach', tone: 'peach' }, { value: 'butter', label: 'Butter', tone: 'butter' }, { value: 'lilac', label: 'Lilac', tone: 'iris' },
+];
+
+export function toneFor(column: Pick<ColumnSummary, 'name' | 'category'> & { tone?: string | null; color?: string | null }): Tone {
+  // A stored tone or a tone name saved in `color` wins (older columns hold a hex value, which is ignored); otherwise derive it from the name, then the category.
+  const stored = STORED_TONES[column.tone ?? column.color ?? ''];
   if (stored) return stored;
   const name = column.name.toLowerCase();
   if (/block/.test(name)) return 'blocked';
