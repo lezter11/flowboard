@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Suspense } from 'react';
 import { Providers } from '@/components/providers';
+import { SessionGate } from '@/components/shell/session-gate';
 import { AppShell } from '@/components/shell/app-shell';
 import { IconSprite } from '@/components/ui/icon';
 import '@fontsource/ibm-plex-sans/400.css';
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body>
         <IconSprite />
         <Providers>
+          <SessionGate />
           <Suspense fallback={<div role="status" className="state-note">Loading Flowboard…</div>}>
             <AppShell>{children}</AppShell>
           </Suspense>

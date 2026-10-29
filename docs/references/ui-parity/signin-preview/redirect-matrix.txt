@@ -1,0 +1,60 @@
+## signed out
+/                                  302  Location: /signin                            Cache-Control: no-store
+/signin                            200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/projects                          302  Location: /signin                            Cache-Control: no-store
+/sign                              302  Location: /signin                            Cache-Control: no-store
+/boards/<boardId>                  302  Location: /signin                            Cache-Control: no-store
+/projects/<projectId>              302  Location: /signin                            Cache-Control: no-store
+/board?id=<boardId>                302  Location: /signin                            Cache-Control: no-store
+/no-such-page                      302  Location: /signin                            Cache-Control: no-store
+/invitations/accept?token=x        200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/_next/static/none.js              404  Location: -                                  Cache-Control: no-store
+/favicon.ico                       404  Location: -                                  Cache-Control: no-store
+## stale cookie
+/                                  302  Location: /signin                            Cache-Control: no-store
+/signin                            200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/projects                          302  Location: /signin                            Cache-Control: no-store
+/sign                              302  Location: /signin                            Cache-Control: no-store
+/boards/<boardId>                  302  Location: /signin                            Cache-Control: no-store
+/projects/<projectId>              302  Location: /signin                            Cache-Control: no-store
+/board?id=<boardId>                302  Location: /signin                            Cache-Control: no-store
+/no-such-page                      302  Location: /signin                            Cache-Control: no-store
+/invitations/accept?token=x        200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/_next/static/none.js              404  Location: -                                  Cache-Control: no-store
+/favicon.ico                       404  Location: -                                  Cache-Control: no-store
+## signed in, 0 projects
+/                                  302  Location: /projects                          Cache-Control: no-store
+/signin                            302  Location: /projects                          Cache-Control: no-store
+/projects                          200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/sign                              302  Location: /projects                          Cache-Control: no-store
+/boards/<boardId>                  302  Location: http://localhost:8788/board?id=<boardId> Cache-Control: -
+/projects/<projectId>              302  Location: http://localhost:8788/project?id=<projectId> Cache-Control: -
+/board?id=<boardId>                200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/no-such-page                      302  Location: /projects                          Cache-Control: no-store
+/invitations/accept?token=x        200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/_next/static/none.js              404  Location: -                                  Cache-Control: no-store
+/favicon.ico                       404  Location: -                                  Cache-Control: no-store
+## signed in, 1 project/1 board
+/                                  302  Location: /board?id=<boardId>                Cache-Control: no-store
+/signin                            302  Location: /board?id=<boardId>                Cache-Control: no-store
+/projects                          200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/sign                              302  Location: /board?id=<boardId>                Cache-Control: no-store
+/boards/<boardId>                  302  Location: http://localhost:8788/board?id=<boardId> Cache-Control: -
+/projects/<projectId>              302  Location: http://localhost:8788/project?id=<projectId> Cache-Control: -
+/board?id=<boardId>                200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/no-such-page                      302  Location: /board?id=<boardId>                Cache-Control: no-store
+/invitations/accept?token=x        200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/_next/static/none.js              404  Location: -                                  Cache-Control: no-store
+/favicon.ico                       404  Location: -                                  Cache-Control: no-store
+## signed in, 2 projects
+/                                  302  Location: /projects                          Cache-Control: no-store
+/signin                            302  Location: /projects                          Cache-Control: no-store
+/projects                          200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/sign                              302  Location: /projects                          Cache-Control: no-store
+/boards/<boardId>                  302  Location: http://localhost:8788/board?id=<boardId> Cache-Control: -
+/projects/<projectId>              302  Location: http://localhost:8788/project?id=<projectId> Cache-Control: -
+/board?id=<boardId>                200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/no-such-page                      302  Location: /projects                          Cache-Control: no-store
+/invitations/accept?token=x        200  Location: -                                  Cache-Control: public, max-age=0, must-revalidate
+/_next/static/none.js              404  Location: -                                  Cache-Control: no-store
+/favicon.ico                       404  Location: -                                  Cache-Control: no-store
