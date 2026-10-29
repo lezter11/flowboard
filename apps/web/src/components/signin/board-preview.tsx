@@ -407,7 +407,7 @@ export function BoardPreview() {
   return (
     <aside className="signin-showcase" aria-label="Sample board preview, not your data" onPointerDownCapture={interact}>
       <div className="showcase-topline">
-        <span className="showcase-brand signin-pill"><Wordmark inline /></span>
+        <span className="showcase-brand"><Wordmark inline outline /></span>
         <span className="showcase-topline-end">
           {demoOn && <button className="preview-pause" type="button" onClick={interact}>Pause demo</button>}
           <span className="showcase-tag">Sample data</span>

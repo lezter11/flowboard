@@ -66,13 +66,13 @@ function SignInScreen() {
       <a className="skip-link" href="#signinMain">Skip to sign in</a>
       <main className="signin-shell" id="signinMain">
         <section className="signin-panel" aria-labelledby="signinTitle">
-          <a className="signin-brand signin-pill" href="/projects" aria-label="Flowboard">
-            <Wordmark inline mark animate />
+          <a className="signin-brand" href="/projects" aria-label="Flowboard">
+            <Wordmark inline mark animate outline />
           </a>
 
           <div className="signin-content">
             <p className="signin-kicker">Welcome back</p>
-            <h1 id="signinTitle">Sign in with <span className="signin-pill signin-pill-inline"><Wordmark inline /></span></h1>
+            <h1 id="signinTitle">Sign in with <Wordmark inline outline /></h1>
 
             <a className="signin-google" id="googleSignIn" href={googleHref} aria-describedby="signinNote">
               <svg className="google-mark" viewBox="0 0 48 48" aria-hidden="true">
