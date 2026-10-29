@@ -25,7 +25,7 @@ jobs:
         env:
           POSTGRES_USER: flowboard_ci
           POSTGRES_PASSWORD: flowboard_ci_password
-          POSTGRES_DB: flowboard_ci_test
+          POSTGRES_DB: flowboard_access_test
         ports:
           - 5432:5432
         options: >-
@@ -56,8 +56,12 @@ jobs:
         run: npm test --workspace @flowboard/contracts
 
       - name: API Test Suite (Ephemeral Postgres)
+        # The gated board-access tests only run against a database named
+        # flowboard_access_test on localhost (see the URL guard in those test files),
+        # so the URL below must point there, not at a differently named database.
         env:
-          DATABASE_URL: postgres://flowboard_ci:flowboard_ci_password@127.0.0.1:5432/flowboard_ci_test
+          DATABASE_URL: postgres://flowboard_ci:flowboard_ci_password@127.0.0.1:5432/flowboard_access_test
+          FLOWBOARD_ACCESS_TEST_DATABASE_URL: postgres://flowboard_ci:flowboard_ci_password@127.0.0.1:5432/flowboard_access_test
           ALLOW_REMOTE_DB: 'false'
         run: npm test --workspace @flowboard/api
 
