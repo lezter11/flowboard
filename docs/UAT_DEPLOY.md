@@ -481,3 +481,23 @@ Smoke, signed out (curl; no credentials, no secrets printed):
 - Unauthenticated `PATCH /api/v1/projects/x` returns 401.
 
 Not verified here: the Overview section order (brief and boards above people and activity). It is client-rendered, so the user checks it on UAT.
+
+## Deploy log addendum: 01d594e (rail logo lockup, board toolbar menu, column editor, invitation flow UI, Pages only)
+
+Deployed by the Deployment chat as task D-10 on the Architect's instruction. UAT Pages only; production untouched; no Worker, migration or database change. The deploy used a clean worktree at 01d594e, not the shared working tree. Verified with `git diff --name-only 200729a..01d594e -- apps/api database packages`, which is empty, so the Worker (`1fc9af14-4257-45d7-92f3-d29316054393`) and migrations (through 0014) were not touched.
+
+Rollback anchor (the D-9 Pages deployment, live before this deploy): `60c2722b-f08d-4447-80d5-94c446867fb3`.
+
+Pages deployment after this deploy: `359bc74a-d208-4a3a-9de8-b001f4d7fc0b` (`https://359bc74a.flowboard-app-uat.pages.dev`).
+
+Local checks at 01d594e: `npm run typecheck` and `npm run typecheck:web` passed; static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`) built in a clean worktree, exit 0. The stager (`scripts/stage-pages-functions.mjs`) staged five files, including `src/lib/return-path.ts`.
+
+Smoke, signed out (curl; no credentials, no secrets printed):
+- Worker `/health/ready` 200.
+- Pages `/`, `/projects/x` and `/boards/x` redirect to `/signin`; `/projects` and `/board?id=x` redirect to `/signin?next=...`.
+- `/invitation?token=x` returns 200 signed out. The test token does not appear in the response body or headers. The response has the CSP, `nosniff`, `X-Frame-Options: DENY` and `cache-control: public, max-age=0, must-revalidate`. Pages request logs were not read in this pass, so "no token in logs" is not verified here.
+- `/signin` 200 with the CSP header.
+- `/favicon.svg` 200 `image/svg+xml` and `/apple-touch-icon.png` 200 `image/png`, both `cache-control: public, max-age=0, must-revalidate`.
+- Unauthenticated `PATCH /api/v1/projects/x` returns 401.
+
+Not verified here: the rail logo lockup, board toolbar overflow menu, column editor and invitation dialog. They are client-rendered and signed-in, so the user checks them on UAT.
