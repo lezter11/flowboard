@@ -24,6 +24,8 @@ export const sessionProjectSummarySchema = z.object({
   workspaceId: z.string().min(1),
   name: z.string().trim().min(1).max(100),
   description: z.string().max(2000).nullable(),
+  // Optional, additive: set only when the caller can read that board, else null.
+  defaultBoardId: z.string().min(1).nullable().optional(),
   role: roleSchema,
   isArchived: z.boolean(),
   version: z.number().int().nonnegative(),

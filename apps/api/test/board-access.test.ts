@@ -1308,7 +1308,7 @@ test('board access comprehensive integration on isolated PostgreSQL', {
         const nextOwner = await createDevUserAndSession('next-owner-project-list-race@test.invalid', 'Next Owner', pool);
         const workspaceProjectsRace = await pauseBeforeQuery(
           '/workspaces/w1/projects', owner.session.id,
-          sql => sql.includes('FROM projects') && sql.includes('WHERE workspace_id = $1') && sql.includes('LIMIT $4'),
+          sql => sql.includes('FROM projects p') && sql.includes('WHERE p.workspace_id = $1') && sql.includes('LIMIT $5'),
         );
         const workspaceVersion = (await pool.query<{ version: number }>(
           `SELECT version FROM workspaces WHERE id = 'w1'`,

@@ -34,7 +34,8 @@ Grant check and mutation serialize under a common lock order: owner/workspace or
 | PATCH /workspaces/:wid | Owner updates name/timezone with expectedVersion |
 | POST /workspaces/:wid/transfer-owner | Current owner, target eligible account, expectedVersion; atomic last-owner protection (S6) |
 | GET/POST /workspaces/:wid/projects | List only owned/granted projects; create owner-only {name,description?} |
-| GET/PATCH /projects/:pid | Owner/grant read; owner/manager edit name/description+expectedVersion |
+| GET/PATCH /projects/:pid | Owner/grant read; owner/manager edit name/description+expectedVersion; owner only for `defaultBoardId` (B-3) |
+| PATCH /projects/:pid `defaultBoardId` | Owner only: a board id in this project (404 if not, 422 `BOARD_ARCHIVED` if archived), or null to clear; body needs expectedVersion. Managers get 403 even in the same request as a name change. Read back only when the caller can read that board (owner, or active board grant, and not archived); otherwise null |
 | POST /projects/:pid/archive or /reopen | Owner-only, expectedVersion; archive read-only, deadlines continue (S6) |
 | GET /projects/:pid/people | Active eligible people, query/purpose=display,assignee,mention, cursor; purpose changes eligibility, not authorization |
 | GET /projects/:pid/members | Owner/manager administration view, paginated status/role/version; no global directory |
@@ -61,8 +62,8 @@ Comment: id,projectId,cardId,authorId,body,mentions:[{userId,start,end}],version
 
 | Method and route | Behavior |
 |---|---|
-| GET/POST /projects/:pid/boards | Read granted project; owner/manager creates {name} with five default columns atomically (Not started, In progress, Testing, Blocked, Completed; new boards only) |
-| PATCH /boards/:bid | Owner/manager name + expectedVersion |
+| GET/POST /projects/:pid/boards | Read granted project; owner/manager creates {name, description?} with five default columns atomically (Not started, In progress, Testing, Blocked, Completed; new boards only). description is optional plain text, max 2000, null when omitted |
+| PATCH /boards/:bid | Owner only (B-3): {name?, description?, expectedVersion}, at least one of name/description; null clears description. Manager with a board grant gets 403; grantless user 404; member/viewer 403 |
 | POST /boards/:bid/archive or /reopen | Owner/manager, expectedVersion, read-only archive (S6) |
 | GET /boards/:bid | Consistent bounded snapshot with filter/count contract below |
 | GET /boards/:bid/cards | columnId, title query, priority, assigneeId, due, cursor, limit; canonical active order |

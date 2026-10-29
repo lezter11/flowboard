@@ -21,7 +21,9 @@ Example: Shubham owns Website and Operations. Priya is manager of Website and Sa
 | List/read projects | All owned workspace projects | Granted projects only | Granted projects only | Granted projects only |
 | Create a project; archive/reopen project | Yes | No | No | No |
 | Rename/configure an existing project | Yes | Own granted project | No | No |
-| Create/configure/archive boards and columns | Yes | Own granted project | No | No |
+| Create/archive boards; configure columns | Yes | Own granted project | No | No |
+| Rename or describe a board (name, description) | Yes | No | No | No |
+| Set the project's default landing board | Yes | No | No | No |
 | Invite member/viewer; resend/revoke their invite | Yes | Own granted project | No | No |
 | Grant/remove manager or change peer manager | Yes | No | No | No |
 | Change/remove member/viewer grants | Yes | Own granted project | No | No |
@@ -50,7 +52,7 @@ Project archive is owner-only, makes its boards read-only, hides it from ordinar
 
 ## 4. Board and workflow
 
-Board header: project/board name, accessible member avatars, title search, filters, New card, Import (owner/manager), settings (owner/manager). Any summary shows defined counts of active/matching cards, not invented business progress percentages.
+Board header: project/board name, accessible member avatars, title search, filters, New card, Import (owner/manager), board name and description edit (owner only; B-3). Any summary shows defined counts of active/matching cards, not invented business progress percentages.
 
 Columns: stable ID, label, color, category todo/active/done, manual order and total/matching counts. Default labels Not started, In progress, Testing, Blocked, Completed (new boards only; existing boards keep their columns). Owner/manager adds/renames/reorders; category is separate from label. Duplicate names after trim/case-normalization are rejected so import mapping is unambiguous. Removing final column or a column referenced by active/restorable cards is blocked with explanation; no silent card cascade. Initial maximum 12 columns is a proposed performance bound.
 

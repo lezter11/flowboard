@@ -82,7 +82,7 @@ boardsRoutes.post('/api/v1/projects/:projectId/boards', authMiddleware, async (c
       );
     }
 
-    const board = await createBoard(client, projectId, body.name, actor.id);
+    const board = await createBoard(client, projectId, body.name, actor.id, body.description ?? null);
     const responsePayload = { data: board };
 
     const saved = await saveReceipt(
@@ -156,7 +156,7 @@ boardsRoutes.get('/api/v1/boards/:boardId', optionalAuthMiddleware, async (c) =>
   return c.json({ data: snapshot }, 200);
 });
 
-// 4. PATCH /api/v1/boards/:boardId: Update board name with OCC
+// 4. PATCH /api/v1/boards/:boardId: Update board name and/or description with OCC (project owner only)
 boardsRoutes.patch('/api/v1/boards/:boardId', authMiddleware, async (c) => {
   const actor = getActorOrThrow(c);
   const boardId = c.req.param('boardId');
@@ -208,7 +208,13 @@ boardsRoutes.patch('/api/v1/boards/:boardId', authMiddleware, async (c) => {
       );
     }
 
-    const updatedBoard = await updateBoard(client, boardId, body.name, body.expectedVersion, actor.id);
+    const updatedBoard = await updateBoard(
+      client,
+      boardId,
+      { name: body.name, description: body.description },
+      body.expectedVersion,
+      actor.id,
+    );
     const responsePayload = { data: updatedBoard };
 
     const saved = await saveReceipt(

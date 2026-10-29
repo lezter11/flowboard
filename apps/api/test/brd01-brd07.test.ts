@@ -328,12 +328,13 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
   });
 
   await t.test('BRD-02: Updating board name with OCC check', async () => {
+    // Board rename is owner only (B-3). Alice is the workspace owner, so the OCC checks run as her.
     // Stale version returns 409 STALE_VERSION
     const staleRes = await app.request(`/api/v1/boards/${createdBoardId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'Cookie': bobCookie,
+        'Cookie': aliceCookie,
         'Idempotency-Key': 'idemp_brd02_patch_stale',
       },
       body: JSON.stringify({ name: 'Renamed Alpha', expectedVersion: 999 }),
@@ -342,12 +343,12 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
     const staleJson = await staleRes.json();
     assert.equal(staleJson.error.code, 'STALE_VERSION');
 
-    // Valid update by manager
+    // Valid update by the owner
     const validRes = await app.request(`/api/v1/boards/${createdBoardId}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
-        'Cookie': bobCookie,
+        'Cookie': aliceCookie,
         'Idempotency-Key': 'idemp_brd02_patch_valid',
       },
       body: JSON.stringify({ name: 'Renamed Alpha Board', expectedVersion: 1 }),
@@ -356,6 +357,19 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
     const validJson = await validRes.json();
     assert.equal(validJson.data.name, 'Renamed Alpha Board');
     assert.equal(validJson.data.snapshotVersion, 2);
+
+    // A manager (Bob) may not rename the board: 403, and the name is unchanged
+    const managerRes = await app.request(`/api/v1/boards/${createdBoardId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Cookie': bobCookie,
+        'Idempotency-Key': 'idemp_brd02_patch_mgr',
+      },
+      body: JSON.stringify({ name: 'Manager Rename', expectedVersion: 2 }),
+    });
+    assert.equal(managerRes.status, 403);
+    assert.equal((await managerRes.json()).error.code, 'FORBIDDEN');
 
     // Member forbidden
     const memRes = await app.request(`/api/v1/boards/${createdBoardId}`, {

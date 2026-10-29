@@ -1,4 +1,5 @@
 import type pg from 'pg';
+import { readableDefaultBoardJoin } from './default-board.ts';
 import { getPool } from './postgres.ts';
 import { HttpError } from '../http/errors.ts';
 import type {
@@ -128,6 +129,7 @@ export async function getAccessibleProjects(
     created_at: Date;
     updated_at: Date;
     role: Role;
+    default_board_id: string | null;
   }>(
     `SELECT 
        p.id,
@@ -138,6 +140,7 @@ export async function getAccessibleProjects(
        p.version,
        p.created_at,
        p.updated_at,
+       dbd.id AS default_board_id,
        CASE 
          WHEN w.owner_id = $1 THEN 'owner'
          ELSE pm.role
@@ -146,6 +149,7 @@ export async function getAccessibleProjects(
      JOIN workspaces w ON p.workspace_id = w.id
      LEFT JOIN project_memberships pm 
        ON pm.project_id = p.id AND pm.user_id = $1 AND pm.status = 'active'
+     ${readableDefaultBoardJoin('$1')}
      WHERE w.owner_id = $1 OR (pm.user_id = $1 AND pm.status = 'active')
      ORDER BY p.name ASC`,
     [userId],
@@ -156,6 +160,7 @@ export async function getAccessibleProjects(
     workspaceId: row.workspace_id,
     name: row.name,
     description: row.description ?? null,
+    defaultBoardId: row.default_board_id,
     role: row.role,
     isArchived: Boolean(row.archived),
     version: row.version,

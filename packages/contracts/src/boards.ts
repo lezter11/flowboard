@@ -22,13 +22,21 @@ export type ColumnCategory = z.infer<typeof columnCategorySchema>;
 
 export const createBoardInputSchema = z.object({
   name: z.string().trim().min(1, 'Board name cannot be empty').max(100, 'Board name cannot exceed 100 characters'),
+  // Optional. Same rule as project descriptions: plain text, up to 2000 characters.
+  description: z.string().max(2000, 'Description cannot exceed 2000 characters').optional(),
 });
 export type CreateBoardInput = z.infer<typeof createBoardInputSchema>;
 
-export const updateBoardInputSchema = z.object({
-  name: z.string().trim().min(1, 'Board name cannot be empty').max(100, 'Board name cannot exceed 100 characters'),
-  expectedVersion: z.number().int().nonnegative(),
-});
+// Owner only; see docs/API.md. At least one of name or description; null clears the description.
+export const updateBoardInputSchema = z
+  .object({
+    name: z.string().trim().min(1, 'Board name cannot be empty').max(100, 'Board name cannot exceed 100 characters').optional(),
+    description: z.string().max(2000, 'Description cannot exceed 2000 characters').nullable().optional(),
+    expectedVersion: z.number().int().nonnegative(),
+  })
+  .refine((data) => data.name !== undefined || data.description !== undefined, {
+    message: 'At least one field (name or description) must be provided to update',
+  });
 export type UpdateBoardInput = z.infer<typeof updateBoardInputSchema>;
 
 export const boardLifecycleInputSchema = z.object({
@@ -41,6 +49,8 @@ export const boardSchema = z.object({
   workspaceId: z.string().min(1),
   projectId: z.string().min(1),
   name: z.string().trim().min(1).max(100),
+  // Optional, additive: the API always returns it (null when unset).
+  description: z.string().max(2000).nullable().optional(),
   isArchived: z.boolean(),
   structureVersion: z.number().int().nonnegative(),
   snapshotVersion: z.number().int().nonnegative(),

@@ -138,6 +138,7 @@ export async function createBoard(
   projectId: string,
   name: string,
   actorId: string,
+  description: string | null = null,
 ): Promise<Board> {
   // 1. Verify owner or manager role via grant lock
   await acquireWriteGrantLock(client, projectId, actorId, 'manager');
@@ -161,6 +162,7 @@ export async function createBoard(
     workspace_id: string;
     project_id: string;
     name: string;
+    description: string | null;
     structure_version: number;
     snapshot_version: number;
     archived: boolean;
@@ -168,12 +170,12 @@ export async function createBoard(
     updated_at: Date;
   }>(
     `INSERT INTO boards (
-       id, workspace_id, project_id, name,
+       id, workspace_id, project_id, name, description,
        structure_version, snapshot_version, archived,
        created_at, updated_at
-     ) VALUES ($1, $2, $3, $4, 1, 1, FALSE, $5, $5)
-     RETURNING id, workspace_id, project_id, name, structure_version, snapshot_version, archived, created_at, updated_at`,
-    [boardId, workspaceId, projectId, name.trim(), nowIso],
+     ) VALUES ($1, $2, $3, $4, $5, 1, 1, FALSE, $6, $6)
+     RETURNING id, workspace_id, project_id, name, description, structure_version, snapshot_version, archived, created_at, updated_at`,
+    [boardId, workspaceId, projectId, name.trim(), description, nowIso],
   );
 
   const bRow = boardRes.rows[0];
@@ -207,6 +209,7 @@ export async function createBoard(
     workspaceId: bRow.workspace_id,
     projectId: bRow.project_id,
     name: bRow.name,
+    description: bRow.description,
     isArchived: Boolean(bRow.archived),
     structureVersion: bRow.structure_version,
     snapshotVersion: bRow.snapshot_version,
@@ -238,6 +241,7 @@ export async function listProjectBoards(
     workspace_id: string;
     project_id: string;
     name: string;
+    description: string | null;
     structure_version: number;
     snapshot_version: number;
     archived: boolean;
@@ -247,7 +251,7 @@ export async function listProjectBoards(
 
   if (role !== 'owner') {
     res = await pool.query(
-      `SELECT b.id, b.workspace_id, b.project_id, b.name, b.structure_version, b.snapshot_version, b.archived, b.created_at, b.updated_at
+      `SELECT b.id, b.workspace_id, b.project_id, b.name, b.description, b.structure_version, b.snapshot_version, b.archived, b.created_at, b.updated_at
        FROM boards b
        JOIN board_grants bg ON bg.board_id = b.id AND bg.project_id = b.project_id AND bg.user_id = $2
        WHERE b.project_id = $1 AND b.archived = FALSE
@@ -257,7 +261,7 @@ export async function listProjectBoards(
     );
   } else {
     res = await pool.query(
-      `SELECT id, workspace_id, project_id, name, structure_version, snapshot_version, archived, created_at, updated_at
+      `SELECT id, workspace_id, project_id, name, description, structure_version, snapshot_version, archived, created_at, updated_at
        FROM boards
        WHERE project_id = $1 AND archived = FALSE
        ORDER BY created_at ASC, id ASC`,
@@ -270,6 +274,7 @@ export async function listProjectBoards(
     workspaceId: row.workspace_id,
     projectId: row.project_id,
     name: row.name,
+    description: row.description,
     isArchived: Boolean(row.archived),
     structureVersion: row.structure_version,
     snapshotVersion: row.snapshot_version,
@@ -284,13 +289,15 @@ export async function listProjectBoards(
 }
 
 /**
- * BRD-02: Update board name with OCC.
- * Verifies owner or manager role. Verifies expectedVersion === snapshot_version.
+ * BRD-02: Update board name and/or description with OCC.
+ * Owner only: a Project Manager with a board grant gets 403; a user with no board grant gets 404
+ * (the board boundary is checked first, so a grantless user cannot learn the board exists).
+ * Verifies expectedVersion === snapshot_version. At least one field must be present.
  */
 export async function updateBoard(
   client: pg.ClientBase,
   boardId: string,
-  name: string,
+  input: { name?: string | undefined; description?: string | null | undefined },
   expectedVersion: number,
   actorId: string,
 ): Promise<Board> {
@@ -318,20 +325,27 @@ export async function updateBoard(
 
   const boardRow = bRes.rows[0];
 
-  // 2. Check manager/owner authorization
-  await acquireWriteGrantLock(client, boardRow.project_id, actorId, 'manager', boardId);
+  // 2. Board visibility and manager-or-higher role, then the owner-only rule for name and description.
+  const grant = await acquireWriteGrantLock(client, boardRow.project_id, actorId, 'manager', boardId);
+  if (!grant.isOwner) {
+    throw HttpError.forbidden(
+      'Only the project owner can change a board name or description.',
+      'FORBIDDEN',
+    );
+  }
 
   // 3. Concurrency check (OCC on snapshot_version)
   if (boardRow.snapshot_version !== expectedVersion) {
     throw HttpError.conflict('Stale board snapshot version.', 'STALE_VERSION');
   }
 
-  // 4. Update board
+  // 4. Update board. Each field changes only when the caller sent it; null clears the description.
   const updateRes = await client.query<{
     id: string;
     workspace_id: string;
     project_id: string;
     name: string;
+    description: string | null;
     structure_version: number;
     snapshot_version: number;
     archived: boolean;
@@ -339,10 +353,19 @@ export async function updateBoard(
     updated_at: Date;
   }>(
     `UPDATE boards
-     SET name = $1, snapshot_version = snapshot_version + 1, updated_at = NOW()
-     WHERE id = $2
-     RETURNING id, workspace_id, project_id, name, structure_version, snapshot_version, archived, created_at, updated_at`,
-    [name.trim(), boardId],
+     SET name = CASE WHEN $1::boolean THEN $2 ELSE name END,
+         description = CASE WHEN $3::boolean THEN $4 ELSE description END,
+         snapshot_version = snapshot_version + 1,
+         updated_at = NOW()
+     WHERE id = $5
+     RETURNING id, workspace_id, project_id, name, description, structure_version, snapshot_version, archived, created_at, updated_at`,
+    [
+      input.name !== undefined,
+      input.name?.trim() ?? null,
+      input.description !== undefined,
+      input.description ?? null,
+      boardId,
+    ],
   );
 
   const row = updateRes.rows[0];
@@ -355,6 +378,7 @@ export async function updateBoard(
     workspaceId: row.workspace_id,
     projectId: row.project_id,
     name: row.name,
+    description: row.description,
     isArchived: Boolean(row.archived),
     structureVersion: row.structure_version,
     snapshotVersion: row.snapshot_version,
@@ -1021,8 +1045,9 @@ export async function getBoardSnapshot(
       created_at: Date;
       updated_at: Date;
       timezone: string;
+      description: string | null;
     }>(
-      `SELECT b.id, b.workspace_id, b.project_id, b.name,
+      `SELECT b.id, b.workspace_id, b.project_id, b.name, b.description,
               b.structure_version, b.snapshot_version, b.archived,
               b.created_at, b.updated_at, w.timezone
        FROM boards b
@@ -1321,6 +1346,7 @@ export async function getBoardSnapshot(
         workspaceId: bRow.workspace_id,
         projectId: bRow.project_id,
         name: bRow.name,
+        description: bRow.description,
         isArchived: Boolean(bRow.archived),
         structureVersion: bRow.structure_version,
         snapshotVersion: bRow.snapshot_version,

@@ -9,6 +9,7 @@ import {
   type Project,
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
+import { readableDefaultBoardJoin } from '../../adapters/default-board.ts';
 import { lockBoardAccess, lockProjectBoardReadScope } from '../../adapters/board-grants-foundation.ts';
 import { checkOrReplayReceipt, saveReceipt } from '../../adapters/idempotency.ts';
 import {
@@ -267,13 +268,16 @@ projectsRoutes.get('/api/v1/projects/:projectId', authMiddleware, async (c) => {
     updated_at: Date;
     workspace_owner_id: string;
     member_role: string | null;
+    default_board_id: string | null;
   }>(
     `SELECT p.id, p.workspace_id, p.name, p.description, p.archived, p.version, p.created_at, p.updated_at,
             w.owner_id AS workspace_owner_id,
-            pm.role AS member_role
+            pm.role AS member_role,
+            dbd.id AS default_board_id
      FROM projects p
      JOIN workspaces w ON w.id = p.workspace_id
      LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $2 AND pm.status = 'active'
+     ${readableDefaultBoardJoin('$2')}
      WHERE p.id = $1`,
     [projectId, actor.id],
   );
@@ -288,6 +292,7 @@ projectsRoutes.get('/api/v1/projects/:projectId', authMiddleware, async (c) => {
     workspaceId: row.workspace_id,
     name: row.name,
     description: row.description,
+    defaultBoardId: row.default_board_id,
     isArchived: Boolean(row.archived),
     version: row.version,
     createdAt: new Date(row.created_at).toISOString(),

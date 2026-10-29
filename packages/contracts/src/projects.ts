@@ -14,14 +14,16 @@ export const createProjectInputSchema = z.object({
 });
 export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
 
+// defaultBoardId is Owner only; name and description keep the Owner and Manager rule.
 export const updateProjectInputSchema = z
   .object({
     name: z.string().trim().min(1).max(100).optional(),
     description: z.string().max(2000, 'Description cannot exceed 2000 characters').nullable().optional(),
+    defaultBoardId: z.string().min(1).max(200).nullable().optional(),
     expectedVersion: z.number().int().nonnegative(),
   })
-  .refine((data) => data.name !== undefined || data.description !== undefined, {
-    message: 'At least one field (name or description) must be provided to update',
+  .refine((data) => data.name !== undefined || data.description !== undefined || data.defaultBoardId !== undefined, {
+    message: 'At least one field (name, description or defaultBoardId) must be provided to update',
   });
 export type UpdateProjectInput = z.infer<typeof updateProjectInputSchema>;
 
@@ -58,6 +60,8 @@ export const projectSchema = z.object({
   workspaceId: z.string().min(1),
   name: z.string().trim().min(1).max(100),
   description: z.string().max(2000).nullable(),
+  // Optional, additive. The landing board id only when the caller can read that board; otherwise null.
+  defaultBoardId: z.string().min(1).nullable().optional(),
   isArchived: z.boolean(),
   version: z.number().int().nonnegative(),
   createdAt: utcIsoTimestampSchema,

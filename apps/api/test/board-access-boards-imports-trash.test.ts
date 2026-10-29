@@ -118,7 +118,10 @@ test('mounted board, import and trash routes require current board access', {
     assert.equal((await request('POST', '/boards/b/reopen', manager.session.id, undefined, reopenKey)).status, 200);
     const key = crypto.randomUUID();
     const currentVersion = Number((await pool.query(`SELECT snapshot_version FROM boards WHERE id = 'b'`)).rows[0].snapshot_version);
+    // Board rename is owner only: a granted manager gets 403; the owner gets 200.
     assert.equal((await request('PATCH', '/boards/b', manager.session.id,
+      { ...patchBody, expectedVersion: currentVersion }, crypto.randomUUID())).status, 403);
+    assert.equal((await request('PATCH', '/boards/b', owner.session.id,
       { ...patchBody, expectedVersion: currentVersion }, key)).status, 200);
     await pool.query(`DELETE FROM board_grants WHERE board_id = 'b' AND user_id = $1`, [manager.user.id]);
     assert.equal((await request('PATCH', '/boards/b', manager.session.id,

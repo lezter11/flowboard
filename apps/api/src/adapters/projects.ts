@@ -11,6 +11,7 @@ import type {
 } from '@flowboard/contracts';
 import { getPool } from './postgres.ts';
 import { acquireWriteGrantLock } from './rbac.ts';
+import { readableDefaultBoardJoin, readReadableDefaultBoardId } from './default-board.ts';
 
 function isPool(target: pg.Pool | pg.ClientBase): target is pg.Pool {
   return typeof (target as pg.Pool).connect === 'function' && typeof (target as pg.Pool).totalCount === 'number';
@@ -96,17 +97,23 @@ export async function getWorkspaceProjects(
   let params: unknown[];
 
   if (isOwner) {
-    query = `SELECT id, workspace_id, name, description, archived, version, created_at, updated_at
-             FROM projects
-             WHERE workspace_id = $1
-               AND ($2::text IS NULL OR (name > $2 OR (name = $2 AND id > $3)))
-             ORDER BY name ASC, id ASC
-             LIMIT $4`;
-    params = [workspaceId, cursorPayload?.name ?? null, cursorPayload?.id ?? null, limit + 1];
-  } else {
-    query = `SELECT p.id, p.workspace_id, p.name, p.description, p.archived, p.version, p.created_at, p.updated_at
+    query = `SELECT p.id, p.workspace_id, p.name, p.description, p.archived, p.version, p.created_at, p.updated_at,
+                    dbd.id AS default_board_id
              FROM projects p
+             JOIN workspaces w ON w.id = p.workspace_id
+             ${readableDefaultBoardJoin('$2')}
+             WHERE p.workspace_id = $1
+               AND ($3::text IS NULL OR (p.name > $3 OR (p.name = $3 AND p.id > $4)))
+             ORDER BY p.name ASC, p.id ASC
+             LIMIT $5`;
+    params = [workspaceId, actor.id, cursorPayload?.name ?? null, cursorPayload?.id ?? null, limit + 1];
+  } else {
+    query = `SELECT p.id, p.workspace_id, p.name, p.description, p.archived, p.version, p.created_at, p.updated_at,
+                    dbd.id AS default_board_id
+             FROM projects p
+             JOIN workspaces w ON w.id = p.workspace_id
              JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $2 AND pm.status = 'active'
+             ${readableDefaultBoardJoin('$2')}
              WHERE p.workspace_id = $1
                AND ($3::text IS NULL OR (p.name > $3 OR (p.name = $3 AND p.id > $4)))
              ORDER BY p.name ASC, p.id ASC
@@ -123,6 +130,7 @@ export async function getWorkspaceProjects(
     version: number;
     created_at: Date;
     updated_at: Date;
+    default_board_id: string | null;
   }>(query, params);
 
   const hasMore = res.rows.length > limit;
@@ -133,6 +141,7 @@ export async function getWorkspaceProjects(
     workspaceId: row.workspace_id,
     name: row.name,
     description: row.description,
+    defaultBoardId: row.default_board_id,
     isArchived: Boolean(row.archived),
     version: row.version,
     createdAt: new Date(row.created_at).toISOString(),
@@ -179,6 +188,7 @@ export async function getAllAccessibleProjects(
       p.version,
       p.created_at,
       p.updated_at,
+      dbd.id AS default_board_id,
       CASE 
         WHEN w.owner_id = $1 THEN 'owner'
         ELSE pm.role
@@ -187,6 +197,7 @@ export async function getAllAccessibleProjects(
     JOIN workspaces w ON p.workspace_id = w.id
     LEFT JOIN project_memberships pm 
       ON pm.project_id = p.id AND pm.user_id = $1 AND pm.status = 'active'
+    ${readableDefaultBoardJoin('$1')}
     WHERE (w.owner_id = $1 OR (pm.user_id = $1 AND pm.status = 'active'))
       AND ($2::text IS NULL OR (p.name > $2 OR (p.name = $2 AND p.id > $3)))
     ORDER BY p.name ASC, p.id ASC
@@ -203,6 +214,7 @@ export async function getAllAccessibleProjects(
     created_at: Date;
     updated_at: Date;
     role: Role;
+    default_board_id: string | null;
   }>(query, [actor.id, cursorPayload?.name ?? null, cursorPayload?.id ?? null, limit + 1]);
 
   const hasMore = res.rows.length > limit;
@@ -213,6 +225,7 @@ export async function getAllAccessibleProjects(
     workspaceId: row.workspace_id,
     name: row.name,
     description: row.description,
+    defaultBoardId: row.default_board_id,
     isArchived: Boolean(row.archived),
     version: row.version,
     createdAt: new Date(row.created_at).toISOString(),
@@ -263,7 +276,12 @@ export async function updateProjectSettings(
     // 1. Acquire write grant lock: checks workspace owner or acquires FOR SHARE lock on project_memberships.
     // Throws 404 NOT_FOUND if project not found, actor not in project, or actor is removed.
     // Throws 403 FORBIDDEN if actor is viewer or lacks manager role.
-    await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
+    const grant = await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
+
+    // The landing board is Owner only. A manager may still change name and description.
+    if (input.defaultBoardId !== undefined && !grant.isOwner) {
+      throw HttpError.forbidden('Only the project owner can change the default board.', 'FORBIDDEN');
+    }
 
     // 2. Fetch current project version to check OCC
     const prjRes = await client.query<{ version: number }>(
@@ -277,6 +295,21 @@ export async function updateProjectSettings(
 
     if (prjRes.rows[0]!.version !== input.expectedVersion) {
       throw HttpError.conflict('Stale project version.', 'STALE_VERSION');
+    }
+
+    // 2b. A landing board must belong to this project and be active. FOR SHARE makes a concurrent
+    // board archive wait until this transaction ends, so the check cannot race it.
+    if (input.defaultBoardId) {
+      const boardRes = await client.query<{ archived: boolean }>(
+        `SELECT archived FROM boards WHERE id = $1 AND project_id = $2 FOR SHARE`,
+        [input.defaultBoardId, projectId],
+      );
+      if (!boardRes.rows[0]) {
+        throw HttpError.notFound('Board not found.', 'NOT_FOUND');
+      }
+      if (boardRes.rows[0].archived) {
+        throw HttpError.unprocessable('BOARD_ARCHIVED', 'The default board must be an active board.');
+      }
     }
 
     // 3. Execute OCC update within the active write transaction
@@ -293,15 +326,18 @@ export async function updateProjectSettings(
       `UPDATE projects
        SET name = CASE WHEN $1::boolean THEN $2 ELSE name END,
            description = CASE WHEN $3::boolean THEN $4 ELSE description END,
+           default_board_id = CASE WHEN $5::boolean THEN $6::text ELSE default_board_id END,
            version = version + 1,
            updated_at = NOW()
-       WHERE id = $5 AND version = $6
+       WHERE id = $7 AND version = $8
        RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
       [
         input.name !== undefined,
         input.name ?? null,
         input.description !== undefined,
         input.description ?? null,
+        input.defaultBoardId !== undefined,
+        input.defaultBoardId ?? null,
         projectId,
         input.expectedVersion,
       ],
@@ -312,6 +348,9 @@ export async function updateProjectSettings(
       throw HttpError.conflict('Stale project version.', 'STALE_VERSION');
     }
 
+    // The caller is the owner here, so this is the landing board id as they can read it.
+    const defaultBoardId = await readReadableDefaultBoardId(client, projectId, actor.id);
+
     if (poolClient) {
       await client.query('COMMIT');
     }
@@ -321,6 +360,7 @@ export async function updateProjectSettings(
       workspaceId: updatedRow.workspace_id,
       name: updatedRow.name,
       description: updatedRow.description,
+      defaultBoardId,
       isArchived: Boolean(updatedRow.archived),
       version: updatedRow.version,
       createdAt: new Date(updatedRow.created_at).toISOString(),
