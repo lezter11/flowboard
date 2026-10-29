@@ -87,13 +87,6 @@ export const api = {
     return request<GetSessionResponse>('/api/v1/session');
   },
 
-  async devLogin(role: string = 'owner', projectId?: string): Promise<GetSessionResponse> {
-    return request<GetSessionResponse>('/api/v1/session/dev-login', {
-      method: 'POST',
-      body: JSON.stringify({ role, projectId }),
-    });
-  },
-
   async logout(): Promise<LogoutResponse> {
     return request<LogoutResponse>('/api/v1/session/logout', {
       method: 'POST',
