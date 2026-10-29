@@ -44,6 +44,8 @@ export interface CreateAppOptions {
   pool?: pg.Pool;
   // Defaults to the Cloudflare binding lookup; tests inject a fake limiter.
   rateLimiter?: RateLimiterResolver;
+  // Deployed Worker only: absent Cloudflare bindings are logged as deployment faults.
+  rateLimitBindingsRequired?: boolean;
 }
 
 export function createApp(probeDatabase: () => Promise<void> = async () => {}, options?: CreateAppOptions) {
@@ -101,7 +103,7 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
   app.use('*', originCheckMiddleware);
 
   // 1c. Per-client-IP rate limits on auth, writes, invitations, imports and uploads (health excluded)
-  app.use('*', rateLimitMiddleware(options?.rateLimiter ?? cloudflareRateLimiter));
+  app.use('*', rateLimitMiddleware(options?.rateLimiter ?? cloudflareRateLimiter, { bindingsRequired: options?.rateLimitBindingsRequired ?? false }));
 
   // 2. Timing middleware: measures request duration and attaches Server-Timing header
   app.use('*', timingMiddleware);

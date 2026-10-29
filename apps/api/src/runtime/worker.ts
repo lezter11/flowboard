@@ -27,7 +27,7 @@ export default {
     }
 
     const pool = createPool(connectionString, 1);
-    const app = createApp(() => queryDatabase(pool), { pool, deadlineMs: 25_000 });
+    const app = createApp(() => queryDatabase(pool), { pool, deadlineMs: 25_000, rateLimitBindingsRequired: true });
     try {
       return await app.fetch(request, env);
     } finally {

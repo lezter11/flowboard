@@ -2,6 +2,7 @@ import { Hono } from 'hono';
 import { runMigrations } from '../../adapters/migrations.ts';
 import { getPool } from '../../adapters/postgres.ts';
 import { adminSecretMatches } from '../admin-secret.ts';
+import { rateLimitBindingStatus } from '../../adapters/rate-limit-cloudflare.ts';
 
 export const systemRoutes = new Hono<{ Variables: { requestId: string } }>();
 
@@ -14,7 +15,8 @@ systemRoutes.get('/status', async (c) => {
 
   const pool = getPool(c);
   const rows = await pool.query('SELECT version, name, applied_at FROM schema_migrations ORDER BY version ASC');
-  return c.json({ data: { migrations: rows.rows } });
+  // Booleans only: which Cloudflare rate-limit bindings this runtime can see.
+  return c.json({ data: { migrations: rows.rows, rateLimitBindings: rateLimitBindingStatus(c.env) } });
 });
 
 systemRoutes.post('/migrate', async (c) => {

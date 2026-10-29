@@ -141,3 +141,91 @@ test('rate limit: the default resolver uses the Cloudflare binding from the Work
   const allowed = await app.request('/api/v1/auth/google', { headers: CLIENT, redirect: 'manual' }, allowedEnv);
   assert.notEqual(allowed.status, 429);
 });
+
+test('rate limit: on the Worker an absent binding is logged loudly and the request still passes', async () => {
+  const logged: string[] = [];
+  const original = console.error;
+  console.error = (line: string) => logged.push(line);
+  try {
+    const app = createApp(async () => {}, { rateLimiter: () => undefined, rateLimitBindingsRequired: true });
+    const res = await app.request('/api/v1/auth/google', { headers: CLIENT, redirect: 'manual' });
+    assert.notEqual(res.status, 429);
+  } finally {
+    console.error = original;
+  }
+  assert.deepEqual(logged.map((line) => JSON.parse(line)), [
+    { level: 'error', event: 'rate_limit_binding_absent', binding: 'FB_RL_AUTH' },
+  ]);
+});
+
+test('rate limit: the Node runtime skips absent bindings without logging', async () => {
+  const logged: string[] = [];
+  const original = console.error;
+  console.error = (line: string) => logged.push(line);
+  try {
+    const app = createApp(async () => {}, { rateLimiter: () => undefined });
+    await app.request('/api/v1/auth/google', { headers: CLIENT, redirect: 'manual' });
+  } finally {
+    console.error = original;
+  }
+  assert.deepEqual(logged, []);
+});
+
+test('rate limit: a refusal is logged by binding name only, never with the client IP', async () => {
+  const logged: string[] = [];
+  const original = console.warn;
+  console.warn = (line: string) => logged.push(line);
+  try {
+    const { resolve } = fakeLimiter(() => false);
+    const app = createApp(async () => {}, { rateLimiter: resolve });
+    const res = await app.request('/api/v1/auth/google', { headers: CLIENT, redirect: 'manual' });
+    assert.equal(res.status, 429);
+  } finally {
+    console.warn = original;
+  }
+  assert.equal(logged.length, 1);
+  assert.deepEqual(JSON.parse(logged[0]!), { level: 'warn', event: 'rate_limit_refused', binding: 'FB_RL_AUTH' });
+  assert.ok(!logged[0]!.includes('203.0.113.7'));
+});
+
+test('rate limit: binding status reports booleans for the bindings the runtime can see', async () => {
+  const { rateLimitBindingStatus } = await import('../src/adapters/rate-limit-cloudflare.ts');
+  const status = rateLimitBindingStatus({ FB_RL_AUTH: { limit: async () => ({ success: true }) }, FB_RL_WRITES: 'not a binding' });
+  assert.deepEqual(status, {
+    FB_RL_AUTH: true,
+    FB_RL_WRITES: false,
+    FB_RL_INVITE: false,
+    FB_RL_IMPORT: false,
+    FB_RL_UPLOAD: false,
+  });
+});
+
+test('rate limit: the admin status route reports binding presence and needs the admin secret', async () => {
+  const secret = 'a'.repeat(32);
+  const fakePool = { query: async () => ({ rows: [] }) } as unknown as import('pg').Pool;
+  const app = createApp(async () => {}, { pool: fakePool });
+  const env = { DEV_LOGIN_SECRET: secret, FB_RL_AUTH: { limit: async () => ({ success: true }) } };
+
+  const denied = await app.request('/api/v1/system/status', {}, env);
+  assert.equal(denied.status, 403);
+
+  const allowed = await app.request('/api/v1/system/status', { headers: { 'x-dev-secret': secret } }, env);
+  assert.equal(allowed.status, 200);
+  const body = (await allowed.json()) as { data: { rateLimitBindings: Record<string, boolean> } };
+  assert.equal(body.data.rateLimitBindings['FB_RL_AUTH'], true);
+  assert.equal(body.data.rateLimitBindings['FB_RL_UPLOAD'], false);
+});
+
+test('rate limit: a missing client IP on the Worker is logged without the value', async () => {
+  const logged: string[] = [];
+  const original = console.warn;
+  console.warn = (line: string) => logged.push(line);
+  try {
+    const { resolve } = fakeLimiter();
+    const app = createApp(async () => {}, { rateLimiter: resolve, rateLimitBindingsRequired: true });
+    await app.request('/api/v1/auth/google', { redirect: 'manual' });
+  } finally {
+    console.warn = original;
+  }
+  assert.deepEqual(logged.map((line) => JSON.parse(line)), [{ level: 'warn', event: 'rate_limit_client_ip_missing' }]);
+});
