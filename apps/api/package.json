@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev:node": "node --watch src/runtime/node.ts",
-    "dev:worker": "WRANGLER_SEND_METRICS=false wrangler dev --local --ip 127.0.0.1",
+    "dev:worker": "node scripts/dev-worker.mjs",
     "build": "tsc -p tsconfig.build.json && WRANGLER_SEND_METRICS=false wrangler deploy --dry-run --outdir dist/worker",
     "test": "NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/*.test.ts",
     "db:migrate": "node --experimental-strip-types src/runtime/migrate.ts"
