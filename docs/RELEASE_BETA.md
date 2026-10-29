@@ -72,7 +72,7 @@ Prepare first (no production effect): build the web app and the staging dir, ver
 ```sh
 cd apps/web
 env -u NEXT_PUBLIC_API_URL NEXT_EXPORT=true npx next build
-export ST=$(mktemp -d) && cp -R out functions "$ST"/ && cp wrangler.prod.jsonc "$ST"/wrangler.jsonc
+export ST=$(mktemp -d) && cp -R out "$ST"/ && node ../../scripts/stage-pages-functions.mjs . "$ST" && cp wrangler.prod.jsonc "$ST"/wrangler.jsonc
 cd ../api && npx wrangler deploy --dry-run --outdir /tmp/flowboard-api-dry
 ```
 

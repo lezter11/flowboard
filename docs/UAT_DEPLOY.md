@@ -57,11 +57,12 @@ env -u NEXT_PUBLIC_API_URL NEXT_EXPORT=true npx next build
 
 ## 4. Deploy the UAT Pages project
 
-Pages ignores `--config`, so stage the files with the UAT config:
+Pages ignores `--config`, so stage the files with the UAT config. The stager (`scripts/stage-pages-functions.mjs`) copies `functions/` and every local module those functions import, at the same relative paths, and exits non-zero with the list of problems if any import cannot be resolved or points outside `apps/web`. It stages nothing when it fails. The stager must be part of the deployed commit, which the worktree in step 0 provides.
 
 ```sh
 export STAGE=$(mktemp -d)
-cp -RL "$WT/apps/web/out" "$WT/apps/web/functions" "$STAGE/"
+cp -RL "$WT/apps/web/out" "$STAGE/"
+node "$WT/scripts/stage-pages-functions.mjs" "$WT/apps/web" "$STAGE"
 cp "$WT/apps/web/wrangler.uat.jsonc" "$STAGE/wrangler.jsonc"
 cd "$STAGE"
 "$REPO/node_modules/.bin/wrangler" pages deploy out --project-name flowboard-app-uat --branch main
