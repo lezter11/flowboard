@@ -1,10 +1,14 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/BOARD-ACCESS-REPAIR-20261028/8b2be92f3eb2a151acd6992c8ee153a013d18de58a3128164a3e7df7fa1bd49a-round-8.json",
+  "reviewPath": "docs/reviews/BOARD-ACCESS-BETA-REREVIEW-20261029/189135f54103310ab443323d1dd17be25f741ef1bec27988453d4347da669081-round-1.json",
   "summary": "RBAC-01 Owner/Manager/Member/Viewer Matrix: implemented role resolution deriving workspace ownership and automatic project ownership inheritance, active project_memberships resolution (manager/member/viewer), role hierarchy enforcement (owner > manager > member > viewer), and strict sibling project privacy (returning 404 NOT_FOUND instead of 403 on ungranted sibling projects). All integration tests passed; audited and certified by independent reviewer with score 9.715/10.0.",
   "api_contract": "docs/API.md v0.3 and docs/FEATURE_SPEC.md (Section 2: People, projects and permissions)",
   "limitations": [
-    "Application-level middleware enforces project isolation; PostgreSQL RLS remains an optional defense-in-depth layer."
+    "Application-level middleware enforces project isolation; PostgreSQL RLS remains an optional defense-in-depth layer.",
+    "Independent review (record BOARD-ACCESS-BETA-REREVIEW-20261029, target 6e15bd0, weighted 8.985, verdict pass) was run by gemini-2.5-pro, below the gate's preferred depth for auth and concurrency work.",
+    "H12 files (.github/workflows/ci.yml, docs/MONITORING.md, the wrangler.jsonc edit) are not independently reviewed.",
+    "Accepted findings R3-07, R3-08, R3-09 and R3-12 stay open per docs/decisions/2026-10-28-beta-risk-acceptance.md.",
+    "The 450-test pass is reported by the reviewer on a disposable Postgres; the Architect did not re-run that suite."
   ],
   "evidence": [
     {
