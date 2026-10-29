@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { useRememberLocation } from '@/lib/last-location';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BoardSnapshotData, CardSummary, PersonDisplay } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
@@ -47,6 +48,7 @@ export function BoardView() {
 
   const boardQuery = useQuery(boardQueryOptions(boardId));
   const snapshot = boardQuery.data;
+  useRememberLocation(snapshot?.board.projectId, snapshot?.board.id ?? null);
   const boardKey = useMemo(() => ['board', boardId] as const, [boardId]);
   const refresh = useCallback(() => void queryClient.invalidateQueries({ queryKey: boardKey }), [queryClient, boardKey]);
 

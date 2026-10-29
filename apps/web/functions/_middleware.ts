@@ -9,6 +9,8 @@
 // Redirects are Cache-Control: no-store. The client gate in components/shell/session-gate.tsx
 // covers in-app navigation, where no page request reaches this file.
 
+import { APP_ROUTES, locationPath, signinPathFor } from '../src/lib/return-path';
+
 interface ApiFetcher {
   fetch(request: Request): Promise<Response>;
 }
@@ -18,13 +20,9 @@ interface Env {
   API_ORIGIN?: string;
 }
 
-const SESSION_COOKIE = 'flowboard_session';
+/** The API accepts both names (apps/api/src/http/middleware/auth.ts). */
+const SESSION_COOKIES = ['flowboard_session=', 'session='];
 
-/** Pages that need a session. Everything else that is not /signin or a pass-through is treated as unknown. */
-const APP_ROUTES = new Set([
-  '/projects', '/project', '/board', '/activity', '/trash', '/people', '/inbox',
-  '/my-tasks', '/settings', '/import', '/add-card', '/all-work',
-]);
 /** Legacy path-style links; the functions in projects/[id].ts and boards/[id].ts redirect them. */
 const LEGACY = /^\/(projects|boards)\/[^/]+$/;
 /** Pages that handle a signed-out visitor themselves (an invitation link must keep its token). */
@@ -54,9 +52,12 @@ async function callApi(env: Env, request: Request, path: string, cookie: string)
 }
 
 interface SessionProject { id: string; isArchived?: boolean }
+interface LastLocation { projectId: string; boardId: string | null }
 
-/** Where a valid session lands: the only project/board it can open, else the projects hub. */
-async function landingPath(env: Env, request: Request, cookie: string, projects: SessionProject[]): Promise<string> {
+/** Where a valid session lands: its remembered location, else the only project/board it can open, else the projects hub. */
+async function landingPath(env: Env, request: Request, cookie: string, projects: SessionProject[], last: LastLocation | null): Promise<string> {
+  const remembered = locationPath(last);
+  if (remembered) return remembered;
   const open = projects.filter((p) => !p.isArchived);
   if (open.length !== 1) return '/projects';
   const projectId = open[0]!.id;
@@ -85,14 +86,16 @@ export const onRequest = async (context: { request: Request; env: Env; next: () 
   const isApp = APP_ROUTES.has(path) || LEGACY.test(path);
 
   const cookie = request.headers.get('cookie') ?? '';
-  const hasCookie = cookie.split(';').some((part) => part.trim().startsWith(`${SESSION_COOKIE}=`));
+  const hasCookie = cookie.split(';').some((part) => SESSION_COOKIES.some((name) => part.trim().startsWith(name)));
 
   let projects: SessionProject[] | null = null;
+  let lastLoc: LastLocation | null = null;
   if (hasCookie) {
     const res = await callApi(env, request, '/api/v1/session', cookie);
     if (res?.ok) {
-      const body = (await res.json().catch(() => null)) as { data?: { accessibleProjects?: SessionProject[] } } | null;
+      const body = (await res.json().catch(() => null)) as { data?: { accessibleProjects?: SessionProject[]; lastLocation?: LastLocation | null } } | null;
       projects = body?.data?.accessibleProjects ?? [];
+      lastLoc = body?.data?.lastLocation ?? null;
     } else if (!res || res.status !== 401) {
       // The API is down or erroring. Do not guess: let the page load and show its own error state.
       return context.next();
@@ -102,9 +105,10 @@ export const onRequest = async (context: { request: Request; env: Env; next: () 
   if (!projects) {
     // Signed out (no cookie, or the API said 401).
     if (isSignin) return context.next();
-    return redirect('/signin');
+    // An app route keeps its path (and one id) as ?next=; legacy and unknown paths do not.
+    return redirect(signinPathFor(path, url.search));
   }
 
   if (isApp) return context.next();
-  return redirect(await landingPath(env, request, cookie, projects));
+  return redirect(await landingPath(env, request, cookie, projects, lastLoc));
 };

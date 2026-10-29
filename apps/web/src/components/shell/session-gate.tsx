@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
+import { signinPathFor } from '@/lib/return-path';
 import { landingFor } from '@/lib/landing';
 import { useSession } from '@/lib/session';
 
@@ -19,7 +20,7 @@ export function SessionGate() {
 
   useEffect(() => {
     if (state.status === 'signedOut' && !OPEN_ROUTES.includes(pathname)) {
-      router.replace('/signin');
+      router.replace(signinPathFor(pathname, window.location.search));
     } else if (state.status === 'ready' && pathname === '/signin') {
       let cancelled = false;
       void landingFor(state.session).then((path) => { if (!cancelled) router.replace(path); });

@@ -87,6 +87,14 @@ export const api = {
     return request<GetSessionResponse>('/api/v1/session');
   },
 
+  /** Remembers where the user was. PUT last-location needs no Idempotency-Key; callers ignore failures. */
+  async putLastLocation(projectId: string, boardId: string | null): Promise<void> {
+    await request<unknown>('/api/v1/session/last-location', {
+      method: 'PUT',
+      body: JSON.stringify({ projectId, boardId }),
+    });
+  },
+
   async logout(): Promise<LogoutResponse> {
     return request<LogoutResponse>('/api/v1/session/logout', {
       method: 'POST',

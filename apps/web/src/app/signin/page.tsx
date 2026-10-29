@@ -19,6 +19,9 @@ function SignInScreen() {
   const router = useRouter();
   const params = useSearchParams();
   const queryClient = useQueryClient();
+  // ?next= is only handed to the API, which validates it and does the redirecting after sign-in.
+  const next = params.get('next');
+  const googleHref = next ? `/api/v1/auth/google/start?next=${encodeURIComponent(next)}` : '/api/v1/auth/google/start';
   const alertText = MESSAGES[params.get('state') ?? ''] ?? '';
   const [devEmail, setDevEmail] = useState('');
   const [devError, setDevError] = useState('');
@@ -71,7 +74,7 @@ function SignInScreen() {
             <p className="signin-kicker">Welcome back</p>
             <h1 id="signinTitle">Sign in with <Wordmark inline /></h1>
 
-            <a className="signin-google" id="googleSignIn" href="/api/v1/auth/google" aria-describedby="signinNote">
+            <a className="signin-google" id="googleSignIn" href={googleHref} aria-describedby="signinNote">
               <svg className="google-mark" viewBox="0 0 48 48" aria-hidden="true">
                 <path fill="#4285F4" d="M43.611 20.083H42V20H24v8h11.303a12 12 0 0 1-4.193 6.257v5.146h6.785c3.973-3.662 6.267-9.053 6.267-15.403 0-1.354-.131-2.657-.551-3.917Z" />
                 <path fill="#34A853" d="M24 44c5.67 0 10.423-1.882 13.895-5.097l-6.785-5.146c-1.882 1.265-4.289 2.018-7.11 2.018-5.47 0-10.11-3.693-11.766-8.658H5.24v5.307A20.98 20.98 0 0 0 24 44Z" />

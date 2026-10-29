@@ -1,0 +1,35 @@
+# S-2 matrix: every row ran against the real API (B-1, commit 6357972) behind wrangler pages dev; no stub rows.
+
+## legacy cookie name "session=" (1 project/1 board user)
+/                                            302 /board?id=brd_83333245-9754-4cb2-a707-0170fcdf408f
+/signin                                      302 /board?id=brd_83333245-9754-4cb2-a707-0170fcdf408f
+/projects                                    200 -
+/board?id=<boardOne>                         200 -
+/no-such-page                                302 /board?id=brd_83333245-9754-4cb2-a707-0170fcdf408f
+## lastLocation = board (2 projects)
+/                                            302 /board?id=<boardThree>
+/signin                                      302 /board?id=<boardThree>
+/sign                                        302 /board?id=<boardThree>
+/no-such-page                                302 /board?id=<boardThree>
+/projects                                    200 -
+## lastLocation = project, no board (2 projects)
+/                                            302 /project?id=<projectFour>
+/signin                                      302 /project?id=<projectFour>
+## lastLocation null (2 projects) and (1 project/1 board)
+/                                            302 /projects | 302 /board?id=<boardOne>
+/signin                                      302 /projects | 302 /board?id=<boardOne>
+## signed out: ?next= only for app routes, only the id
+/projects                                                    302 /signin?next=%2Fprojects
+/board?id=<boardOne>                                         302 /signin?next=%2Fboard%3Fid%3D<boardOne>
+/board?id=brd_does_not_exist                                 302 /signin?next=%2Fboard%3Fid%3Dbrd_does_not_exist
+/project?id=<projectOne>                                     302 /signin?next=%2Fproject%3Fid%3D<projectOne>
+/board?id=brd_x&evil=1&redirect=http://evil.test             302 /signin?next=%2Fboard%3Fid%3Dbrd_x
+/board?id=http://evil.test                                   302 /signin?next=%2Fboard
+/board                                                       302 /signin?next=%2Fboard
+/add-card?board=brd_abc                                      302 /signin?next=%2Fadd-card%3Fboard%3Dbrd_abc
+/settings?x=1                                                302 /signin?next=%2Fsettings
+/boards/<boardOne>                                           302 /signin
+/projects/<projectOne>                                       302 /signin
+/no-such-page                                                302 /signin
+/sign                                                        302 /signin
+/                                                            302 /signin

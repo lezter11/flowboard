@@ -7,6 +7,7 @@ import { api, ApiError } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { projectMark, projectTone, statsFromSnapshot, useProjectBoards, type BoardStats } from '@/lib/portfolio';
 import { can, normalizeRole } from '@/lib/roles';
+import { useRememberLocation } from '@/lib/last-location';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { DialogLayer } from '@/components/ui/dialog-layer';
@@ -23,6 +24,7 @@ export function ProjectView({ projectId }: { projectId: string }) {
     queryFn: async () => (await api.getProject(projectId)).data,
     retry: (count, error) => !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 1,
   });
+  useRememberLocation(project.data?.id, null);
   const boardsQuery = useProjectBoards(projectId);
   const boards = (boardsQuery.data ?? []).filter((b) => !b.isArchived);
   const sessionProject = state.status === 'ready' ? state.session.accessibleProjects.find((p) => p.id === projectId) : undefined;
