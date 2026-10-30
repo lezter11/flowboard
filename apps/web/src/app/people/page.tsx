@@ -8,6 +8,7 @@ import { api } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { useSession } from '@/lib/session';
+import { usePollKeys } from '@/components/polling';
 import { Icon } from '@/components/ui/icon';
 import { Avatar } from '@/components/ui/avatar';
 import { InviteDialog } from '@/components/ui/invite-dialog';
@@ -57,6 +58,7 @@ export default function PeoplePage() {
     queryFn: async () => (await api.listProjectMembers(project!.id)).data,
     enabled: !!project,
   });
+  usePollKeys([['members', project?.id]], !!project);
   const list = (directory.data ?? []).filter((m) => m.status === 'active');
   const nameOf = (m: (typeof list)[number]) => m.displayName ?? m.name;
   const needle = q.trim().toLowerCase();

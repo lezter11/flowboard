@@ -4,7 +4,9 @@ import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useSta
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Card, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
-import { describeError } from '@/lib/errors';
+import { describeError, isStale } from '@/lib/errors';
+import { reconcileDraft } from '@/lib/draft-sync';
+import { usePollKeys } from '@/components/polling';
 import { dueInfo, relativeTime } from '@/lib/dates';
 import { neighbours } from '@/lib/board-model';
 import { describeActivity } from '@/lib/activity';
@@ -45,6 +47,7 @@ export function CardDetailDrawer(props: Props) {
     queryFn: async () => (await api.getCard(cardId)).data,
     retry: (count, error) => !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 1,
   });
+  usePollKeys([['card', cardId], ['comments', cardId], ['card-images', cardId], ['card-activity', cardId]]);
   const panelRef = useRef<HTMLElement>(null);
   const [open, setOpen] = useState(false);
   const dirtyRef = useRef(false);
@@ -76,6 +79,20 @@ export function CardDetailDrawer(props: Props) {
   };
 
   const card = cardQuery.data;
+  // Trashed or no longer visible while open: say so and close, instead of leaving a stale or blank drawer.
+  const goneStatus = cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status) ? cardQuery.error.status : 0;
+  const trashed = !!card && (card.state !== 'active' || card.deletedAt !== null);
+  const toast = useToast();
+  const leftRef = useRef(false);
+  useEffect(() => {
+    if (leftRef.current || !card || !(goneStatus || trashed)) return;
+    leftRef.current = true;
+    toast(trashed ? 'This card was moved to the trash.' : 'This card was removed or you no longer have access to it.', { icon: 'alert' });
+    dirtyRef.current = false;
+    onChanged();
+    finishClose();
+  }, [card, goneStatus, trashed, toast, onChanged, finishClose]);
+
   return (
     <>
       <div className={`scrim${open ? ' is-open' : ''}`} id="drawerScrim" onClick={requestClose} />
@@ -92,7 +109,7 @@ export function CardDetailDrawer(props: Props) {
       >
         {card ? (
           <DrawerBody
-            key={`${card.id}:${card.version}`}
+            key={card.id}
             card={card}
             columns={columns}
             people={people}
@@ -174,8 +191,20 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
 }) {
   const toast = useToast();
   const queryClient = useQueryClient();
-  const base = toDraft(card);
+  const [base, setBase] = useState<Draft>(() => toDraft(card));
   const [draft, setDraft] = useState<Draft>(base);
+  const [seenVersion, setSeenVersion] = useState(card.version);
+  const [conflict, setConflict] = useState(false);
+  // The card changed on the server (a poll, a colleague's save). Untouched fields follow it; fields being edited keep the user's text.
+  if (seenVersion !== card.version) {
+    const next = toDraft(card);
+    const merged = reconcileDraft(base, next, draft);
+    const stillDirty = (Object.keys(next) as Array<keyof Draft>).some((k) => String(merged.draft[k]) !== String(next[k]));
+    setSeenVersion(card.version);
+    setBase(next);
+    setDraft(merged.draft);
+    setConflict((c) => (merged.conflict || c) && stillDirty);
+  }
   const [error, setError] = useState('');
   const [tab, setTab] = useState<'comments' | 'activity'>('comments');
   const editable = can(role, 'edit');
@@ -211,8 +240,8 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
         await api.moveCard(card.id, { toColumnId: draft.columnId, previousCardId, nextCardId, expectedVersion: version, expectedBoardVersion: structureVersion });
       }
     },
-    onSuccess: () => { setError(''); toast('Changes saved', { icon: 'check' }); dirtyRef.current = false; onSaved(); },
-    onError: (err) => { setError(describeError(err)); onSaved(); },
+    onSuccess: () => { setError(''); setConflict(false); setDraft((d) => ({ ...d, title: d.title.trim() })); toast('Changes saved', { icon: 'check' }); dirtyRef.current = false; onSaved(); },
+    onError: (err) => { setError(isStale(err) ? 'Someone else changed this card. Their changes are loaded; review your edits and save again.' : describeError(err)); onSaved(); },
   });
 
   const submit = (event?: FormEvent) => {
@@ -336,6 +365,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
             </div>
           )}
         </section>
+        {conflict && <p role="status" className="field-note conflict-note">Updated by someone else - review before saving.</p>}
         {error && <p role="alert" className="field-error">{error}</p>}
       </div>
 

@@ -22,6 +22,7 @@ import { ColumnsDialog } from './columns-dialog';
 import { ActionMenu } from '@/components/ui/action-menu';
 import { Avatar } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/toasts';
+import { PollStatus, usePolling, usePollHold, usePollKeys } from '@/components/polling';
 import { useShell } from '@/components/shell/shell-context';
 import { CardDetailDrawer } from '@/components/board/card-detail-drawer';
 import { BoardColumn, type DropTarget } from './board-column';
@@ -77,12 +78,14 @@ export function BoardView() {
   const returnFocus = useRef<HTMLElement | null>(null);
   const toolbarRef = useRef<HTMLDivElement>(null);
 
+  const { pokeSoon } = usePolling();
   const boardQuery = useQuery(boardQueryOptions(boardId));
   const snapshot = boardQuery.data;
   useRememberLocation(snapshot?.board.projectId, snapshot?.board.id ?? null);
   const boardKey = useMemo(() => ['board', boardId] as const, [boardId]);
-  const refresh = useCallback(() => void queryClient.invalidateQueries({ queryKey: boardKey }), [queryClient, boardKey]);
+  const refresh = useCallback(() => { void queryClient.invalidateQueries({ queryKey: boardKey }); pokeSoon(1000); }, [queryClient, boardKey, pokeSoon]);
 
+  usePollKeys([boardKey], !!boardId);
   const people = useMemo(() => new Map<string, PersonDisplay>((snapshot?.people ?? []).map((p) => [p.id, p])), [snapshot]);
   const columns = useMemo(() => [...(snapshot?.columns ?? [])].sort((a, b) => a.position - b.position), [snapshot]);
   const project = state.status === 'ready' ? state.session.accessibleProjects.find((p) => p.id === snapshot?.board.projectId) : undefined;
@@ -151,6 +154,9 @@ export function BoardView() {
     },
     onSettled: refresh,
   });
+
+  // Do not swap the board under a drag or an optimistic move; the poll result is applied after the drop.
+  usePollHold(dragId !== null || moveMutation.isPending);
 
   const performMove = useCallback((card: CardSummary, toColumnId: string, index: number) => {
     const from = columns.find((c) => c.id === card.columnId);
@@ -359,7 +365,9 @@ export function BoardView() {
     return <section className="state-note"><h1>No board selected</h1><Link className="btn" href="/projects">Back to projects</Link></section>;
   }
   if (boardQuery.isPending) return <div role="status" className="state-note">Loading board…</div>;
-  if (boardQuery.isError || !snapshot) {
+  const lostAccess = boardQuery.error instanceof ApiError && [401, 403, 404].includes(boardQuery.error.status);
+  // A failed background poll keeps the board on screen (the status banner explains it); only a lost board or a first-load failure replaces it.
+  if (!snapshot || (boardQuery.isError && lostAccess)) {
     const status = boardQuery.error instanceof ApiError ? boardQuery.error.status : 0;
     return (
       <section role="alert" className="board-unavailable" style={{ display: 'block' }}>
@@ -439,6 +447,7 @@ export function BoardView() {
           </div>
         </div>
 
+        <PollStatus />
         {board.description && <p className="board-description" id="boardDescription">{board.description}</p>}
 
         <div className="toolbar" aria-label="Board tools" ref={toolbarRef}>

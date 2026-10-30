@@ -14,6 +14,7 @@ import { useBoardHref } from '@/lib/board-target';
 import { useActiveProject } from '@/lib/active-project';
 import { can, ROLE_META } from '@/lib/roles';
 import { useSession } from '@/lib/session';
+import { usePollKeys } from '@/components/polling';
 import { useShell } from './shell-context';
 import { useRailGroups, useRailMini } from '@/lib/rail-state';
 
@@ -58,6 +59,7 @@ export function Rail() {
   const { workspace, projects, projectId, role, boardId } = useActiveProject();
   const actor = state.status === 'ready' ? state.session.actor : null;
   const unreadQuery = useQuery({ queryKey: ['notifications'], queryFn: async () => (await api.listNotifications()).data, enabled: state.status === 'ready', staleTime: 30_000 });
+  usePollKeys([['notifications']], state.status === 'ready');
   const unread = (unreadQuery.data ?? []).filter((n) => !n.read).length;
   const boardHref = useBoardHref(projectId, boardId);
   const router = useRouter();
