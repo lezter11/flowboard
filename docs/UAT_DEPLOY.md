@@ -910,7 +910,7 @@ Deployed by the Deployment chat on the Architect's instruction. UAT only; produc
 
 ### Not verified here
 
-- Scheduled tick: a background `wrangler tail --env uat` was started for up to about 16 minutes to catch one `*/15` tick. Its output is in the scratchpad (`d16-tail.log`). Result below when checked.
+- Scheduled tick: verified. The 18:00 UTC `*/15` tick ran on version `ee49f08f`: `outcome` ok, `exceptions` empty, wall time about 6.5 s. The 17:45 UTC tick was not captured (the first tail did not start), so it is not verified.
 - Signed-in flows and the invitation flow: the user runs these. No test invitation was sent by the Deployment chat.
 - Mail delivery: depends on the sender and the key being valid at Brevo; not tested here.
 - Migration state: the Architect's report above, not re-read from the database here.
