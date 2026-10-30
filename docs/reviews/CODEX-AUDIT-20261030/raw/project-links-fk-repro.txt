@@ -1,0 +1,17 @@
+BEGIN
+ table_present 
+---------------
+ project_links
+(1 row)
+
+INSERT 0 1
+INSERT 0 2
+INSERT 0 1
+INSERT 0 1
+ workspace_id |   project_id    
+--------------+-----------------
+ audit_ws_a   | audit_project_b
+(1 row)
+
+ROLLBACK
+project_link_fk_repro_exit_code=0
