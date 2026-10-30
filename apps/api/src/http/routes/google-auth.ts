@@ -154,8 +154,9 @@ googleAuthRoutes.get('/google/callback', async (c) => {
   });
 
   if (!tokenResponse.ok) {
-    const errText = await tokenResponse.text();
-    console.error('Failed to exchange Google OAuth code:', errText);
+    // Log the status only. The provider body is never read or logged (B-7, FB-AUD-08).
+    await tokenResponse.body?.cancel();
+    console.error(JSON.stringify({ event: 'google_token_exchange_failed', status: tokenResponse.status }));
     throw HttpError.badRequest('Failed to authenticate with Google identity provider.', 'TOKEN_EXCHANGE_FAILED');
   }
 

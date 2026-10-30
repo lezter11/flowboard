@@ -4,7 +4,7 @@ import type pg from 'pg';
 import {
   correlationMiddleware,
   timingMiddleware,
-  bodyLimitMiddleware,
+  routeBodyLimitMiddleware,
   deadlineMiddleware,
   errorHandler,
   notFoundHandler,
@@ -127,8 +127,9 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
   // 2. Timing middleware: measures request duration and attaches Server-Timing header
   app.use('*', timingMiddleware);
 
-  // 3. Body limit middleware: rejects bodies > 1 MiB (configurable) with 413 PAYLOAD_TOO_LARGE
-  app.use('*', bodyLimitMiddleware(options?.bodyLimitBytes ?? DEFAULT_BODY_LIMIT_BYTES));
+  // 3. Body limit middleware: 1 MiB by default; 5 MiB XLSX imports and 10 MiB image content only for
+  // a signed-in request on those routes (B-7). Refused with 413 PAYLOAD_TOO_LARGE.
+  app.use('*', routeBodyLimitMiddleware(options?.bodyLimitBytes ?? DEFAULT_BODY_LIMIT_BYTES));
 
   // 4. Deadline middleware: aborts requests exceeding deadline (default 5000ms) with 504 DEADLINE_EXCEEDED
   app.use('*', deadlineMiddleware(options?.deadlineMs ?? DEFAULT_DEADLINE_MS));
