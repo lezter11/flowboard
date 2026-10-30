@@ -527,3 +527,101 @@ Smoke, signed out (curl; no credentials, no secrets printed):
 - Unauthenticated `PATCH /api/v1/projects/x` returns 401.
 
 Not verified here: the role badge and activity sentences, and the new activity rows for columns, boards, invitations, members and brief. They need a signed-in check on UAT.
+
+## D-12: Codex audit follow-ups (read-only and prep; no deploy, no Cloudflare resource created, nothing pushed)
+
+Scope from the Architect (`docs/reviews/CODEX-AUDIT-20261030/needs-owner.md`). Head at start: `5ff0ead`. Nothing was deployed. No production change, no secret value printed, no Cloudflare resource created, `wrangler.jsonc` not edited.
+
+### 1. S3: runtime database role (UAT)
+
+The UAT Worker reaches Neon through Hyperdrive `flowboard-hyperdrive-uat` (`7a1e3a69f51e41b1a8c46e0be263b814`). Its non-secret origin config names host `ep-shy-fire-a1we7145.ap-southeast-1.aws.neon.tech`, database `neondb` and user `neondb_owner`. So the Worker's runtime role is the same role the migrations run as. The password was not read or printed; the probe used the same role through the Neon connection-string command, on the direct host.
+
+Probe result (sanitized):
+
+| Check | Result |
+| --- | --- |
+| `current_user` | `neondb_owner` |
+| `rolsuper` | false |
+| `rolcreatedb` | true |
+| `rolcreaterole` | true |
+| `CREATE TABLE` in `public`, inside a transaction that was rolled back | **allowed** |
+| owner of schema `public` | `neondb_owner` |
+| owner of table `boards` | `neondb_owner` |
+
+Verdict: **fails** the S3 requirement. The runtime role can create, alter and drop application tables, and owns them. The probe table was rolled back; a check afterwards found no `zz_probe_d12` table.
+
+Needed before production (Deployment proposes, Architect and Backend approve): a separate migration role that owns the schema, and a runtime role with `SELECT, INSERT, UPDATE, DELETE` (and sequence use) only, no `CREATE`, no ownership, no `rolcreaterole`/`rolcreatedb`. Change the Hyperdrive origin user only after both roles exist and the migrations and smoke tests pass on UAT. No Hyperdrive or role change was made here.
+
+### 2. FB-AUD-04: npm audit and upgrade candidates
+
+Baseline `npm audit` at `5ff0ead` (npm 11.12.1):
+- `--omit=dev`: 2 findings. `next` (moderate, range `9.3.4-canary.0 - 16.3.0-preview.10`) and `postcss` (high, `<=8.5.22`).
+- All dependencies: 5 findings. Adds `wrangler` (moderate, `4.36.0 - 4.152.0`), `miniflare` (moderate, `4.20250906.1 - 5.20261019.2-beta`) and `undici` (high, `7.0.0 - 7.30.0`).
+
+Worktrees used for testing (none merged, nothing on `main`). Each test used a fresh `npm ci`, with the disposable Postgres 17.11 image (digest-pinned, same as CI) on `127.0.0.1:55612`, removed after the run.
+
+| Group | Audit after | Typecheck (+web) | Contracts | API tests | Web build | API Worker build | Wrangler dry-run deploy |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Baseline `5ff0ead` | 5 | pass | 54/54 | 533/533 | pass | pass | not run |
+| Candidate 1: `wrangler` 4.152.0 to 4.156.0 | 2 (`next`, `postcss`) | pass | 54/54 | 533/533 | pass | pass | pass (upload 1705 KiB, 294 KiB gzip) |
+| Candidate 2: candidate 1 plus `next` 15.5.28 to 16.4.3 | **0** | pass | 54/54 | 533/533 | pass, no warnings in the log | pass | pass |
+
+Findings:
+- `wrangler` 4.156.0 clears the `wrangler`, `miniflare` and `undici` findings. It is a minor bump within 4.x. The `miniflare` version pulled in is `5.20261023.3-beta`, which is a beta; check that before relying on it.
+- The `postcss` advisory cannot be fixed by an override in this setup. An npm `overrides` entry for `postcss` (flat and nested under `next`) did not change the lock, and `next` 15.5.28 bundles its own `postcss` 8.4.31. The only fix is to move `next`.
+- `next` 16.4.3 is a major upgrade (15 to 16). It clears `next` and `postcss`. Nothing broke in the checks above. Not tested: browser behaviour of the app on Next 16 (no end-to-end run), the Pages `_middleware` build under Next 16, and whether the static export output changed. The web package has no `test` script (`npm run test --workspace @flowboard/web` exits 1 at baseline too).
+
+Recommendation (for the Architect to decide; not applied to `main`): take candidate 2 as one group (`next` 16.4.3 plus `wrangler` 4.156.0) on its own branch, with a browser pass over sign-in, board, overview and invitation before merge. The patch is saved at `/private/tmp/claude-501/-Users-shubham-Documents-Flowboard/31121644-8367-4698-960e-be8a5dd77b07/scratchpad/d12-cand2-full.patch` (lockfile included).
+
+Cleanup: the candidate worktree at `/var/folders/jr/scqd6q3j7nggl004yfg9_vsh0000gn/T/tmp.0yXWscKNEe/cand1` still exists, because it has uncommitted candidate edits and a plain `git worktree remove` refuses to delete it. Remove it with `git worktree remove --force` after checking the patch above.
+
+### 3. R2 prep for image storage (no bucket created, `wrangler.jsonc` not edited)
+
+Backend code: `apps/api/src/adapters/storage.ts` has `R2StorageDriver` over a binding named `IMAGES`, and `apps/api/src/runtime/worker.ts` returns `503 CONFIG_ERROR` when the binding is absent. So the Worker can deploy before the bucket exists.
+
+Steps (for the Architect to approve; the user runs or approves each Cloudflare resource creation):
+1. Create the UAT bucket: `npx wrangler r2 bucket create flowboard-images-uat`.
+2. Confirm it is private in the dashboard (R2 > bucket > Settings): the `r2.dev` public URL is disabled, and no custom domain is attached.
+3. Create the production bucket the same way, `flowboard-images-prod`, and check the same settings. Do this only after the production approval for the image release.
+4. Add the binding to `apps/api/wrangler.jsonc`. Non-inherited per environment, so the UAT and production blocks each need their own entry:
+   - top level (production): `"r2_buckets": [{ "binding": "IMAGES", "bucket_name": "flowboard-images-prod" }]`
+   - `env.uat`: `"r2_buckets": [{ "binding": "IMAGES", "bucket_name": "flowboard-images-uat" }]`
+   The schema was checked in `node_modules/wrangler/config-schema.json` (`r2_buckets`, items with `binding` and `bucket_name`). Wrangler 4.156.0 is the candidate version above.
+5. No Worker secret or API token is needed; the binding is a Worker binding.
+6. Deploy order: buckets, then config, then `wrangler deploy --env uat`. Then the synthetic upload, cross-isolate read, revoke and cleanup checks from the Codex list (item 2).
+
+Cost and free tier (Cloudflare R2 pricing page, last updated 26 Oct 2026, fetched 30 Oct 2026; figures from the docs, not from this account's billing):
+- Standard storage $0.015 per GB-month; Class A operations $4.50 per million; Class B operations $0.36 per million; egress free.
+- Free each month: 10 GB-month storage, 1 million Class A and 10 million Class B operations.
+- Deletes are free. Failed requests that fail authentication are not billed.
+- Estimate: 1,000 images of 1 MB is about 1 GB, inside the free storage tier. UAT with synthetic data is expected to stay inside the free tier. Not verified: this account's plan and billing, and any lifecycle rule for abandoned uploads (the Architect should confirm the cleanup design, which Backend owns).
+
+### 4. Secret scan (gitleaks, redacted)
+
+Tool: gitleaks 8.30.1, installed with `brew install gitleaks` (Homebrew, the approved route on this Mac). Commands: `gitleaks git` (full history) and `gitleaks dir` (working tree), both with `--redact`. The JSON reports are in the scratchpad (`gl-history.json`, `gl-tree.json`); values are redacted there, and no values are copied here.
+
+Counts:
+- Full history: 249 findings in 97 files, all rule `generic-api-key`.
+- Working tree: 253 findings in 99 files. 97 are tracked and 2 are untracked build output under `apps/web/.next/` (`cache/.previewinfo` and `prerender-manifest.json`).
+- Where they sit: 248 of 249 history findings and 252 of 253 working-tree findings are in test fixtures (for example `apps/api/test/*.test.ts`), review manifests and reports under `docs/reviews/`, `design/flowboard-ui/reviews/`, or build cache.
+- The one finding outside those locations is `docs/research/product-research.md`, which is a UUID in an `Idempotency-Key` example, not a credential.
+- Provider-specific patterns (private keys, AWS, GitHub, Google, Slack, Stripe live, Resend, Cloudflare token prefixes) matched no tracked file.
+
+Limits: the generic-rule findings were not validated one by one, so this is "no provider-specific secrets found and generic hits are fixture or reference values by location", not a full manual review. A reviewed allowlist would reduce the noise; none was added in this pass.
+
+### 5. CI check
+
+- Run `41040078686` on head `5ff0ead` (`CI`): **success**. Job `Verify (Typecheck, Tests, Build)` ran on `ubuntu-24.04`, which is what `ubuntu-latest` resolves to.
+- Recent runs on the branch: `639975f` success; `b655d93` success; `ecc5bcd` cancelled (superseded by a newer push, from the `concurrency` group); `01d594e` cancelled (same reason).
+- Node warning: `actions/checkout` and `actions/setup-node`, both pinned to `v4.4.0`, target Node 20, which GitHub now runs on Node 24. Upgrade the pins to versions that target Node 24 (check the tags first).
+- Other warnings from the run: `DEP0040` (punycode, from Node or setup-node internals) and `DEP0169` (`url.parse()`, from Node). Neither fails the job.
+- A real code warning in the API tests: `pg` reports "Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9". A test calls `client.query` while another query on the same client is still running. Fix the test so each query awaits the previous one.
+- `.node-version` is `24.15.0`, so the job already uses Node 24 for the project itself.
+
+### Summary for the Architect
+
+- S3 fails: the UAT runtime role is the owner role and can create, alter and drop tables.
+- FB-AUD-04: candidate 2 (`next` 16.4.3 plus `wrangler` 4.156.0) clears audit with the tests green; not merged; needs a browser pass before merge.
+- R2: steps and config prepared; no bucket created, `wrangler.jsonc` not edited; approval needed.
+- Secret scan: no provider-specific secrets; generic hits are fixture or reference values by location.
+- CI: green at head; Node 20 action pins and a `pg` test-code warning to fix.
