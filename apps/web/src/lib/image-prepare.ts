@@ -92,6 +92,19 @@ export function readDimensions(b: Uint8Array): { width: number; height: number }
   return null;
 }
 
+/** True for a WebP whose VP8X header sets the animation flag (bit 1 of the flags byte). createImageBitmap would keep only the first frame. */
+export function isAnimatedWebp(b: Uint8Array): boolean {
+  const tag = (o: number) => String.fromCharCode(b[o] ?? 0, b[o + 1] ?? 0, b[o + 2] ?? 0, b[o + 3] ?? 0);
+  return b.length >= 21 && tag(0) === 'RIFF' && tag(8) === 'WEBP' && tag(12) === 'VP8X' && (b[20]! & 0x02) !== 0;
+}
+
+/** The alpha check only needs a sample, so it never reads more than this many pixels per side. */
+export const ALPHA_SAMPLE_SIDE = 256;
+export function alphaSampleSize(width: number, height: number): { width: number; height: number } {
+  const k = Math.min(1, ALPHA_SAMPLE_SIDE / Math.max(width, height, 1));
+  return { width: Math.max(1, Math.round(width * k)), height: Math.max(1, Math.round(height * k)) };
+}
+
 export interface Bitmap { width: number; height: number; close?: () => void }
 export interface ImageEnv {
   /** Decodes with EXIF orientation applied (createImageBitmap with imageOrientation 'from-image'). */
@@ -134,6 +147,12 @@ export async function prepareImage(file: File, env: ImageEnv): Promise<Prepared>
   const head = new Uint8Array(await file.slice(0, 1024 * 1024).arrayBuffer());
   const known = readDimensions(head);
   if (known && known.width * known.height > SERVER_MAX_PIXELS) throw new PrepareError('too-many-pixels', `This image is ${(known.width * known.height / 1e6).toFixed(0)} megapixels. The limit is 20.`);
+
+  // Re-encoding would flatten an animation to one frame: keep the original, or refuse when it cannot be uploaded as is.
+  if (file.type === 'image/webp' && isAnimatedWebp(head)) {
+    if (file.size > SERVER_MAX_BYTES) throw new PrepareError('still-too-large', 'This animated image is over 10 MB. Animated images are uploaded as they are, so try a smaller one.');
+    return await keep(`${mb(file.size)}, animated; uploading the original`, 'unchanged', known);
+  }
 
   let bitmap: Bitmap | null = null;
   try {
@@ -178,11 +197,14 @@ export async function prepareImage(file: File, env: ImageEnv): Promise<Prepared>
 export const browserEnv: ImageEnv = {
   decode: (file) => createImageBitmap(file, { imageOrientation: 'from-image' }),
   async hasAlpha(bitmap, width, height) {
-    const canvas = makeCanvas(width, height);
+    // Sample a downscaled copy (at most 256 px a side): a transparent edge or hole still shows up, and the buffer stays at ~256 KB.
+    const size = alphaSampleSize(width, height);
+    const canvas = makeCanvas(size.width, size.height);
     const ctx = canvas.getContext('2d', { willReadFrequently: true }) as CanvasRenderingContext2D | null;
     if (!ctx) return false;
-    ctx.drawImage(bitmap as ImageBitmap, 0, 0, width, height);
-    const data = ctx.getImageData(0, 0, width, height).data;
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(bitmap as ImageBitmap, 0, 0, size.width, size.height);
+    const data = ctx.getImageData(0, 0, size.width, size.height).data;
     for (let i = 3; i < data.length; i += 4) if (data[i]! < 255) return true;
     return false;
   },

@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {
-  chooseResult, decide, extensionFor, prepareImage, PrepareError, readDimensions, renameFor, SERVER_MAX_BYTES,
+  alphaSampleSize, chooseResult, decide, isAnimatedWebp, extensionFor, prepareImage, PrepareError, readDimensions, renameFor, SERVER_MAX_BYTES,
   type Bitmap, type ImageEnv,
 } from '../src/lib/image-prepare.ts';
 
@@ -155,4 +155,29 @@ test('retries with lower quality when the first result is over 10 MiB', async ()
   env.encode = async (_b, _w, _h, type) => new Blob([new Uint8Array(++n === 1 ? 11 * MB : 5 * MB)], { type });
   const out = await prepareImage(fakeFile('a.png', 'image/png', 30 * MB), env);
   assert.equal(out.byteLength, 5 * MB);
+});
+
+// ---- alpha sampling and animated WebP ----
+test('alpha sample never exceeds 256 px a side and keeps the aspect ratio', () => {
+  assert.deepEqual(alphaSampleSize(2560, 2560), { width: 256, height: 256 });
+  assert.deepEqual(alphaSampleSize(2560, 1280), { width: 256, height: 128 });
+  assert.deepEqual(alphaSampleSize(100, 50), { width: 100, height: 50 });
+  assert.deepEqual(alphaSampleSize(5000, 1), { width: 256, height: 1 });
+});
+const webpHeader = (flags: number) => { const b = new Uint8Array(30); b.set([0x52, 0x49, 0x46, 0x46, 0, 0, 0, 0, 0x57, 0x45, 0x42, 0x50, 0x56, 0x50, 0x38, 0x58, 10, 0, 0, 0, flags]); return b; };
+test('detects the VP8X animation flag', () => {
+  assert.equal(isAnimatedWebp(webpHeader(0x02)), true);
+  assert.equal(isAnimatedWebp(webpHeader(0x10 | 0x02)), true);
+  assert.equal(isAnimatedWebp(webpHeader(0x10)), false);
+  assert.equal(isAnimatedWebp(new Uint8Array(40)), false);
+});
+test('an animated WebP is uploaded as it is and never decoded or encoded', async () => {
+  const { env, calls } = envFor({ width: 3000, height: 2000, sizes: { 'image/webp': 100 * KB } });
+  const out = await prepareImage(fakeFile('anim.webp', 'image/webp', 2 * MB, webpHeader(0x02)), env);
+  assert.equal(out.outcome, 'unchanged'); assert.equal(out.byteLength, 2 * MB); assert.match(out.note, /animated/);
+  assert.deepEqual(calls, []);
+});
+test('an animated WebP over 10 MiB is refused with a clear message', async () => {
+  const { env } = envFor({ width: 10, height: 10 });
+  await assert.rejects(prepareImage(fakeFile('anim.webp', 'image/webp', 12 * MB, webpHeader(0x02)), env), (e: unknown) => e instanceof PrepareError && e.reason === 'still-too-large' && /animated/.test(e.message));
 });
