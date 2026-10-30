@@ -81,4 +81,9 @@ export const EMBEDDED_MIGRATIONS: EmbeddedMigration[] = [
     name: "0015_project_links_workspace_fk.sql",
     sql: "-- Additive: a project link must belong to the same workspace as its project (FB-AUD-07).\n-- Before this, the foreign keys on project_links.workspace_id and project_links.project_id were\n-- independent, so one row could name workspace A with a project from workspace B. The composite\n-- key below reuses the unique (id, workspace_id) key that projects already has (migration 0003).\n-- No backfill: a row that already pairs a link with another workspace's project would stop the\n-- constraint from being added. Such a row cannot come from the API, and an operator must fix it first.\n-- Idempotent: the constraint is added inside a DO block that ignores \"already exists\", so a second\n-- run changes nothing.\nDO $$\nBEGIN\n  ALTER TABLE project_links ADD CONSTRAINT project_links_project_workspace_fk\n    FOREIGN KEY (project_id, workspace_id) REFERENCES projects (id, workspace_id) ON DELETE RESTRICT;\nEXCEPTION\n  -- duplicate_object: the named foreign key already exists on a re-run.\n  WHEN duplicate_object OR duplicate_table THEN NULL;\nEND\n$$;\n",
   },
+  {
+    version: "0016",
+    name: "0016_staged_upload_cleanup.sql",
+    sql: "-- Additive: marks a staged upload whose staging object has been queued for deletion (B-11), so the\n-- orphan sweep settles each row once instead of revisiting it on every run. No backfill: existing\n-- rows start as not cleaned, and the first sweep settles them.\n-- Idempotent: IF NOT EXISTS everywhere, so a second run changes nothing.\nALTER TABLE card_image_uploads ADD COLUMN IF NOT EXISTS staging_cleaned BOOLEAN NOT NULL DEFAULT FALSE;\n\nCREATE INDEX IF NOT EXISTS card_image_uploads_orphan_idx\n  ON card_image_uploads (expires_at)\n  WHERE staging_cleaned = FALSE;\n",
+  },
 ];

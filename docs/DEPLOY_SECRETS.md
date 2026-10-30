@@ -41,3 +41,7 @@ The dev environment was dropped (decision in docs/decisions/2026-10-28-uat-first
 | Hyperdrive | `flowboard-hyperdrive-uat` -> Neon `uat` branch | `flowboard-hyperdrive` -> `production` |
 | Pages project | `flowboard-app-uat` | `flowboard-app` |
 | Pages service binding `API` | `flowboard-api-uat` | `flowboard-api` |
+
+## Accepted risk: invitation link in the query string (B-10, accepted by the Architect)
+
+The accept link is `${APP_ORIGIN}/invitation?token=...`. The web screen reads `?token=`, so the single-use token can appear in proxy, CDN or access logs for the Pages and Worker hosts. Accepted because the token is single use and expires (seven days). Do not add query logging of this path, and do not log the full request URL in new code.

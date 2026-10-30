@@ -902,7 +902,8 @@ test('RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)', async (t) => {
     assert.equal(mentionRes.status, 200);
     const mentionJson = (await mentionRes.json()) as { data: PersonDisplay[] };
     const mentionIds = mentionJson.data.map((p) => p.id);
-    assert.ok(mentionIds.includes(viewerUserId));
+    // B-11: mention needs a card or board to scope it. With neither, nobody is listed (no project-wide leak).
+    assert.deepEqual(mentionIds, []);
 
     // 3. Search query filters results
     const searchRes = await app.request(`/api/v1/projects/${prjMainId}/people?purpose=display&query=Charlie`, {

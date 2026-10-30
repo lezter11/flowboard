@@ -1,6 +1,7 @@
 import { createPool, queryDatabase } from '../adapters/postgres.ts';
 import { createApp } from '../http/app.ts';
-import { purgeExpiredTrash } from '../services/trash-purge.ts';
+import { processPendingStorageDeletions, purgeExpiredTrash } from '../services/trash-purge.ts';
+import { cleanupOrphanUploads } from '../adapters/images.ts';
 import { processOutboxLease } from '../adapters/notifications.ts';
 import { mailerFromEnv, type MailEnv } from '../services/mailer.ts';
 import { purgeEndedWindows } from '../adapters/rate-limit-postgres.ts';
@@ -13,6 +14,30 @@ export type WorkerBindings = MailEnv & {
   // Private R2 bucket for image bytes (no public access). Absent means image routes return 503 CONFIG_ERROR.
   IMAGES?: R2BucketBinding;
 };
+
+export interface ScheduledJob {
+  name: string;
+  run: () => Promise<unknown>;
+}
+
+/**
+ * Runs each scheduled job in turn. A job that throws does not stop the others. The first error is
+ * rethrown at the end, so the run is still reported as failed. Only job names are logged.
+ */
+export async function runIsolated(jobs: ScheduledJob[]): Promise<void> {
+  const failures: Array<{ name: string; error: unknown }> = [];
+  for (const job of jobs) {
+    try {
+      await job.run();
+    } catch (error) {
+      failures.push({ name: job.name, error });
+    }
+  }
+  if (failures.length > 0) {
+    console.error(JSON.stringify({ event: 'scheduled_job_failed', jobs: failures.map((f) => f.name) }));
+    throw failures[0]!.error;
+  }
+}
 
 function imageStorage(env: WorkerBindings): R2StorageDriver | null {
   return env.IMAGES ? new R2StorageDriver(env.IMAGES) : null;
@@ -53,17 +78,16 @@ export default {
     const connectionString = env.HYPERDRIVE?.connectionString ?? env.DATABASE_URL;
     if (!connectionString) return;
     const pool = createPool(connectionString, 1);
+    const storage = imageStorage(env);
     try {
-      // A failed trash purge (for example no image bucket bound) must not stop the outbox and
-      // rate-window cleanup, so the purge error is rethrown only after those have run.
-      const purgeError = await runWithStorageDriver(imageStorage(env), () => purgeExpiredTrash(pool)).then(
-        () => null,
-        (err: unknown) => err,
-      );
-      // Invitation mail is sent only when the mail configuration is complete (see mailerFromEnv).
-      await processOutboxLease(pool, { mailer: mailerFromEnv(env) });
-      await purgeEndedWindows(pool);
-      if (purgeError) throw purgeError;
+      await runIsolated([
+        { name: 'trash-purge', run: () => runWithStorageDriver(storage, () => purgeExpiredTrash(pool)) },
+        { name: 'orphan-uploads', run: () => runWithStorageDriver(storage, () => cleanupOrphanUploads(pool)) },
+        { name: 'pending-storage', run: () => runWithStorageDriver(storage, () => processPendingStorageDeletions(pool)) },
+        // Invitation mail is sent only when the mail configuration is complete (see mailerFromEnv).
+        { name: 'outbox', run: () => processOutboxLease(pool, { mailer: mailerFromEnv(env) }) },
+        { name: 'rate-windows', run: () => purgeEndedWindows(pool) },
+      ]);
     } finally {
       await pool.end();
     }

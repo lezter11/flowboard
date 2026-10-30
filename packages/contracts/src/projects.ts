@@ -191,9 +191,12 @@ export type ProjectDirectoryResponse = z.infer<typeof projectDirectoryResponseSc
 export const projectPeoplePurposeSchema = z.enum(['display', 'assignee', 'mention']);
 export type ProjectPeoplePurpose = z.infer<typeof projectPeoplePurposeSchema>;
 
+// purpose=mention (B-11): pass cardId (preferred) or boardId. The caller must read that board; the
+// answer is the owner plus active members holding a board grant. With neither, mention returns [].
 export const projectPeopleQuerySchema = z.object({
   purpose: projectPeoplePurposeSchema.default('display').optional(),
   boardId: z.string().min(1).max(200).optional(),
+  cardId: z.string().min(1).max(200).optional(),
   query: z.string().trim().max(100).optional(),
   cursor: z.string().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(100).default(50).optional(),

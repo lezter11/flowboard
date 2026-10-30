@@ -439,8 +439,29 @@ projectsRoutes.get('/api/v1/projects/:projectId/people', authMiddleware, async (
   try {
     await client.query('BEGIN');
     await lockProjectBoardReadScope(client, projectId, actor.id);
-    if (parsedQuery.boardId) {
-      const access = await lockBoardAccess(client, parsedQuery.boardId, actor.id);
+
+    // Mentions are limited to people who can read the card's board (B-11). A card the caller cannot
+    // read gets the same 404 as a card that does not exist, so card ids are not probed.
+    let boardId = parsedQuery.boardId;
+    if (parsedQuery.purpose === 'mention') {
+      if (parsedQuery.cardId) {
+        const cardRes = await client.query<{ board_id: string }>(
+          `SELECT board_id FROM cards WHERE id = $1 AND project_id = $2 AND state = 'active'`,
+          [parsedQuery.cardId, projectId],
+        );
+        const card = cardRes.rows[0];
+        if (!card) throw HttpError.notFound('Card not found.', 'NOT_FOUND');
+        const access = await lockBoardAccess(client, card.board_id, actor.id).catch(() => null);
+        if (!access || access.projectId !== projectId) throw HttpError.notFound('Card not found.', 'NOT_FOUND');
+        boardId = card.board_id;
+      } else if (!boardId) {
+        await client.query('COMMIT');
+        return c.json({ data: [], nextCursor: null }, 200);
+      }
+    }
+
+    if (boardId) {
+      const access = await lockBoardAccess(client, boardId, actor.id);
       if (access.projectId !== projectId) throw HttpError.notFound('Board not found.', 'NOT_FOUND');
     }
     const result = await getProjectPeople(
@@ -450,7 +471,7 @@ projectsRoutes.get('/api/v1/projects/:projectId/people', authMiddleware, async (
     parsedQuery.query,
     parsedQuery.cursor,
     parsedQuery.limit ?? 50,
-    parsedQuery.boardId,
+    boardId,
     actor.id,
   );
     await client.query('COMMIT');

@@ -158,9 +158,15 @@ export async function createImageUpload(
     throw HttpError.conflict('Cannot attach images to a trashed or inactive card.', 'CARD_TRASHED');
   }
 
-  // Enforce attachment limit cap (<= 10 finalized images per card)
+  // Enforce the attachment cap (B-11): finalized images plus staged uploads that have not expired.
+  // The card row lock serialises concurrent stages for this card, so the count below is current
+  // when the second request reads it. Callers run this inside the stage transaction.
+  await clientOrPool.query('SELECT id FROM cards WHERE id = $1 FOR UPDATE', [card.id]);
   const countRes = await clientOrPool.query<{ count: string }>(
-    'SELECT COUNT(*)::text AS count FROM card_images WHERE card_id = $1',
+    `SELECT ((SELECT COUNT(*) FROM card_images WHERE card_id = $1)
+           + (SELECT COUNT(*) FROM card_image_uploads
+              WHERE card_id = $1 AND expires_at > NOW()
+                AND state IN ('awaiting_content', 'content_received', 'validating')))::text AS count`,
     [card.id],
   );
   const currentCount = parseInt(countRes.rows[0]?.count ?? '0', 10);
@@ -870,32 +876,65 @@ export async function deleteStorageAfterCommit(client: pg.ClientBase, storageKey
 /**
  * Cleans up expired or cancelled upload staging records and unreferenced storage objects.
  */
+/**
+ * Sweeps staged uploads that will never be finalized (B-11): expired, cancelled or failed, or still
+ * awaiting content past expiry. Each row is settled once (staging_cleaned). Its staging key is
+ * queued in pending_storage_deletions in the same transaction, then deleted after commit. A failed
+ * delete stays queued for processPendingStorageDeletions to retry. A missing bucket throws before
+ * any bytes are touched, and the queued keys wait for the next run.
+ */
 export async function cleanupOrphanUploads(
-  clientOrPool: pg.Pool | pg.ClientBase,
+  pool: pg.Pool,
+  limit = 100,
 ): Promise<{ cleanedCount: number }> {
-  const expiredRes = await clientOrPool.query<CardImageUploadRow>(
-    `SELECT * FROM card_image_uploads
-     WHERE state IN ('expired', 'cancelled', 'failed')
-        OR (state IN ('awaiting_content', 'content_received', 'validating') AND expires_at < NOW())`,
-  );
-
-  const storage = getStorageDriver();
-  let cleanedCount = 0;
-
-  for (const upload of expiredRes.rows) {
-    const stagingKey = `staging/${upload.id}/${upload.filename}`;
-    await storage.delete(stagingKey).catch(() => {});
-
-    if (upload.state !== 'expired' && upload.state !== 'cancelled' && upload.state !== 'failed') {
-      await clientOrPool.query(
+  const client = await pool.connect();
+  let settled: Array<{ id: string; filename: string }> = [];
+  try {
+    await client.query('BEGIN');
+    const rows = await client.query<{ id: string; filename: string }>(
+      `SELECT id, filename FROM card_image_uploads
+       WHERE staging_cleaned = FALSE
+         AND (state IN ('expired', 'cancelled', 'failed') OR expires_at < NOW())
+       ORDER BY expires_at ASC, id ASC
+       LIMIT $1
+       FOR UPDATE SKIP LOCKED`,
+      [limit],
+    );
+    settled = rows.rows;
+    for (const upload of settled) {
+      await client.query(
+        `INSERT INTO pending_storage_deletions (storage_key) VALUES ($1)
+         ON CONFLICT (storage_key) DO NOTHING`,
+        [`staging/${upload.id}/${upload.filename}`],
+      );
+      // Version moves only when the state actually changes (a non-terminal row becomes expired).
+      await client.query(
         `UPDATE card_image_uploads
-         SET state = 'expired', version = version + 1, updated_at = NOW()
+         SET version = version + CASE WHEN state IN ('expired', 'cancelled', 'failed') THEN 0 ELSE 1 END,
+             state = CASE WHEN state IN ('expired', 'cancelled', 'failed') THEN state ELSE 'expired' END,
+             staging_cleaned = TRUE,
+             updated_at = NOW()
          WHERE id = $1`,
         [upload.id],
       );
     }
-    cleanedCount++;
+    await client.query('COMMIT');
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
   }
 
-  return { cleanedCount };
+  const storage = getStorageDriver();
+  for (const upload of settled) {
+    const key = `staging/${upload.id}/${upload.filename}`;
+    try {
+      await storage.delete(key);
+      await pool.query('DELETE FROM pending_storage_deletions WHERE storage_key = $1', [key]);
+    } catch {
+      // Stays in pending_storage_deletions; processPendingStorageDeletions retries it.
+    }
+  }
+  return { cleanedCount: settled.length };
 }

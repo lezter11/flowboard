@@ -866,6 +866,13 @@ test('ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Su
   await t.test('ATT-06: Quota enforcement (max 10) and orphan upload cleanup', async () => {
     // 1. Add images until reaching 10 attachments
     // Currently 2 images remain on the card (photo.jpg and banner.webp). We need 8 more.
+    // Earlier subtests leave staged uploads that are still live on this card. They count toward the
+    // cap (B-11), so cancel them first to start the fill from the finalized count.
+    await pool.query(
+      `UPDATE card_image_uploads SET state = 'cancelled', updated_at = NOW()
+       WHERE card_id = $1 AND state IN ('awaiting_content', 'content_received', 'validating')`,
+      [cardId],
+    );
     for (let i = 1; i <= 8; i++) {
       const buf = createMinimalPng(10, 10);
       const stg = await app.request(`/api/v1/cards/${cardId}/image-uploads`, {
