@@ -62,7 +62,7 @@ CardSummary: id,boardId,columnId,title,priority,dueDate,assigneeIds,position,ver
 
 Title trimmed 1–200; description ≤20,000; comment trimmed 1–10,000; column name trimmed 1–80 and unique after case normalization; priority none/low/medium/high/urgent; up to 20 distinct eligible assignees/mentions; real Gregorian due date or null. Assignees active owner/manager/member; mentions active eligible project readers. Field limits apply to API and importer through shared validators.
 
-Comment: id,projectId,cardId,authorId,body,mentions:[{userId,start,end}],version,createdAt,updatedAt,deletedAt|null. Mention offsets are UTF-16 code units with no overlap/surrogate split; validate selected token boundaries and project eligibility. Literal at-name text does not notify. Edits do not re-notify in v1. Tombstones hide removed body/mentions.
+Comment: id,projectId,cardId,authorId,body,mentions:[{userId,start,end}],version,createdAt,updatedAt,deletedAt|null. Mention offsets are UTF-16 code units with no overlap/surrogate split; validate selected token boundaries and project eligibility. Literal at-name text does not notify. Edits do not re-notify in v1. Tombstones hide removed body/mentions. B-9: a mention of a user who cannot read the card's board (not a member, removed, another project, no board grant, or not existing) is refused with 422 VALIDATION_ERROR and the same message; the id is not echoed, so the response does not reveal who exists. Notifications are re-checked on every read: a recipient who loses membership, the board grant, or sight of an active card no longer sees the notification, its title or its snippet, and cannot mark it read.
 
 ## Boards and columns (S2)
 

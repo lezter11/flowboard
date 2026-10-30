@@ -10,7 +10,7 @@ import {
   editCommentInputSchema,
   parseOrThrow,
 } from '@flowboard/contracts';
-import { HttpError } from '../http/errors.ts';
+import { HttpError, validationError } from '../http/errors.ts';
 import { getPool } from './postgres.ts';
 import {
   resolveProjectRole,
@@ -255,10 +255,10 @@ async function validateMentions(
 
   for (const m of mentions) {
     if (!eligibleIds.has(m.userId)) {
-      throw HttpError.badRequest(
-        'VALIDATION_ERROR',
-        `Mentioned user ${m.userId} cannot access this board.`,
-      );
+      // Same answer for a missing user and a user who cannot read this board, and the id is not echoed.
+      throw validationError('A mentioned user cannot be mentioned on this card.', {
+        issues: [{ path: 'mentions', message: 'Mentioned user cannot access this board' }],
+      });
     }
   }
 }

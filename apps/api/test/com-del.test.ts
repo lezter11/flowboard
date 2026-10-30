@@ -375,7 +375,7 @@ test('COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite', as
         mentions: [{ userId: frankId, start: 4, end: 10 }],
       }),
     });
-    assert.equal(res.status, 400); // 400 or 422
+    assert.equal(res.status, 422);
     const body = await res.json();
     assert.equal(body.error.code, 'VALIDATION_ERROR');
   });
