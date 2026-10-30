@@ -160,13 +160,68 @@ interface DBImport {
  * Creates an import session, parses Excel workbook, checks permissions, duplicates and conflicts,
  * and builds preview records.
  */
+/**
+ * Cheap, lock-free check that the actor may import to this board, run before the
+ * workbook is parsed. It mirrors the order of acquireWriteGrantLock (missing board,
+ * removed member, missing grant, viewer, non-manager) so a caller who would be refused
+ * anyway never costs a ZIP inflation. It takes no row locks: the locked check below
+ * still runs after parsing and is the revocation guard.
+ */
+async function assertImportAccessBeforeParse(
+  client: pg.ClientBase,
+  boardId: string,
+  actorId: string,
+): Promise<void> {
+  const boardRes = await client.query<{ project_id: string; workspace_id: string; owner_id: string }>(
+    `SELECT b.project_id, b.workspace_id, w.owner_id
+     FROM boards b
+     JOIN workspaces w ON w.id = b.workspace_id
+     WHERE b.id = $1`,
+    [boardId],
+  );
+  const board = boardRes.rows[0];
+  if (!board) {
+    throw HttpError.notFound('Board not found.', 'NOT_FOUND');
+  }
+  if (board.owner_id === actorId) {
+    return;
+  }
+
+  const memberRes = await client.query<{ role: string; status: string }>(
+    `SELECT role, status FROM project_memberships WHERE project_id = $1 AND user_id = $2`,
+    [board.project_id, actorId],
+  );
+  const member = memberRes.rows[0];
+  if (!member || member.status === 'removed') {
+    throw HttpError.notFound('Project not found or access revoked.', 'NOT_FOUND');
+  }
+
+  const grantRes = await client.query<{ board_id: string }>(
+    `SELECT board_id FROM board_grants
+     WHERE board_id = $1 AND project_id = $2 AND workspace_id = $3 AND user_id = $4`,
+    [boardId, board.project_id, board.workspace_id, actorId],
+  );
+  if (!grantRes.rows[0]) {
+    throw HttpError.notFound('Board not found.', 'NOT_FOUND');
+  }
+
+  if (member.role === 'viewer') {
+    throw HttpError.forbidden('Viewers cannot perform write operations.', 'FORBIDDEN');
+  }
+  if (member.role !== 'manager') {
+    throw HttpError.forbidden(`Requires manager role for this operation. Current role: ${member.role}.`, 'FORBIDDEN');
+  }
+}
+
 export async function createCardImport(
   client: pg.PoolClient | pg.ClientBase,
   params: CreateCardImportParams,
 ): Promise<ImportStatus> {
   const { boardId, fileBuffer, defaultColumnId, actorId } = params;
-  // Parse before acquiring the revocation guard so a large workbook cannot
-  // hold the membership and board-grant locks while its ZIP is inspected.
+  // Refuse unauthorised callers before any ZIP work, then parse before acquiring the
+  // revocation guard so a large workbook cannot hold the membership and board-grant
+  // locks while its ZIP is inspected.
+  await assertImportAccessBeforeParse(client, boardId, actorId);
   const parseResult = parseExcelWorkbook(fileBuffer);
 
   // 1. Verify board existence and project context

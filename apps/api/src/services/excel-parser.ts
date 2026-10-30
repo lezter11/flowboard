@@ -86,6 +86,12 @@ function unzipXlsx(buffer: Buffer): Map<string, Buffer> {
   const files = new Map<string, Buffer>();
   let totalExpandedBytes = 0;
   let offset = cdOffset;
+  const expandedTooLarge = () =>
+    new HttpError(
+      413,
+      'PAYLOAD_TOO_LARGE',
+      `Expanded workbook XML content exceeds maximum allowed size of ${MAX_EXPANDED_BYTES} bytes (20 MiB).`,
+    );
 
   for (let i = 0; i < totalEntries; i++) {
     if (offset + 46 > buffer.length || buffer.readUInt32LE(offset) !== 0x02014b50) {
@@ -157,15 +163,29 @@ function unzipXlsx(buffer: Buffer): Map<string, Buffer> {
       );
     }
 
+    // The bytes this entry may still expand to. The declared size comes from the
+    // central directory and can lie, so it is only a fast reject. The real limit is
+    // the decompressor's maxOutputLength below, which stops inflation at the cap.
+    const remainingBudget = MAX_EXPANDED_BYTES - totalExpandedBytes;
+    if (uncompressedSize > remainingBudget) {
+      throw expandedTooLarge();
+    }
+
     const compressedData = buffer.subarray(dataStart, dataEnd);
     let uncompressedData: Buffer;
 
     if (method === 0) {
+      if (compressedData.length > remainingBudget) {
+        throw expandedTooLarge();
+      }
       uncompressedData = Buffer.from(compressedData);
     } else if (method === 8) {
       try {
-        uncompressedData = zlib.inflateRawSync(compressedData);
-      } catch {
+        uncompressedData = zlib.inflateRawSync(compressedData, { maxOutputLength: remainingBudget });
+      } catch (err) {
+        if (err instanceof RangeError && (err as NodeJS.ErrnoException).code === 'ERR_BUFFER_TOO_LARGE') {
+          throw expandedTooLarge();
+        }
         throw HttpError.unprocessable(
           'DECOMPRESSION_FAILED',
           'Failed to decompress workbook XML content.',
@@ -179,14 +199,6 @@ function unzipXlsx(buffer: Buffer): Map<string, Buffer> {
     }
 
     totalExpandedBytes += uncompressedData.length;
-    if (totalExpandedBytes > MAX_EXPANDED_BYTES) {
-      throw new HttpError(
-        413,
-        'PAYLOAD_TOO_LARGE',
-        `Expanded workbook XML content exceeds maximum allowed size of ${MAX_EXPANDED_BYTES} bytes (20 MiB).`,
-      );
-    }
-
     files.set(fileName, uncompressedData);
   }
 
