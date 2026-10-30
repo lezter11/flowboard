@@ -1,0 +1,425 @@
+import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import test from 'node:test';
+import type pg from 'pg';
+import { createApp } from '../src/http/app.ts';
+import { runMigrations } from '../src/adapters/migrations.ts';
+import { createPool, setGlobalPool } from '../src/adapters/postgres.ts';
+import { processOutboxLease } from '../src/adapters/notifications.ts';
+import { createDevUserAndSession } from '../src/adapters/session.ts';
+import { localDatabaseUrl } from '../src/runtime/local-config.ts';
+import { BrevoMailer, BREVO_SEND_URL, mailerFromEnv, validAppOrigin, type MailMessage } from '../src/services/mailer.ts';
+import { buildInvitationEmail, escapeHtml, plainLine } from '../src/services/invitation-email.ts';
+
+// B-10: invitation email through the outbox. Every test uses a fake fetch or a recording mailer.
+// Nothing here calls Brevo.
+
+const pool: pg.Pool = createPool(localDatabaseUrl(process.env['DATABASE_URL']), 4);
+setGlobalPool(pool);
+const app = createApp(async () => {}, { pool });
+const ORIGIN = 'https://flowboard.example';
+
+async function fixture(projectName = 'Launch <b>"Team"</b> & co') {
+  await runMigrations(pool);
+  const s = crypto.randomBytes(4).toString('hex');
+  const owner = await createDevUserAndSession(`owner.${s}@flowboard.example`, 'Olive Owner', pool);
+  const ws = `ws_${s}`;
+  const project = `p_${s}`;
+  await pool.query(`INSERT INTO workspaces (id,name,timezone,owner_id,created_at,updated_at) VALUES ($1,'WS','UTC',$2,now(),now())`, [ws, owner.user.id]);
+  await pool.query(`INSERT INTO projects (id,workspace_id,name,created_at,updated_at) VALUES ($1,$2,$3,now(),now())`, [project, ws, projectName]);
+  return { s, project, owner, cookie: `flowboard_session=${owner.session.id}` };
+}
+
+function invite(fx: Awaited<ReturnType<typeof fixture>>, email: string, key = crypto.randomUUID()) {
+  return app.request(`http://localhost/api/v1/projects/${fx.project}/invitations`, {
+    method: 'POST',
+    headers: { cookie: fx.cookie, origin: 'http://localhost', 'idempotency-key': `b10-${key}`, 'content-type': 'application/json' },
+    body: JSON.stringify({ email, role: 'member' }),
+  });
+}
+
+/** A fake Brevo endpoint. Each call records what was sent; `reply` chooses the response. */
+function fakeBrevo(reply: (n: number) => Response | Error = () => Response.json({ messageId: '<m-1@brevo>' }, { status: 201 })) {
+  const calls: Array<{ url: string; init: RequestInit }> = [];
+  const fetchImpl = (async (url: string, init: RequestInit) => {
+    calls.push({ url: String(url), init });
+    const r = reply(calls.length);
+    if (r instanceof Error) throw r;
+    return r;
+  }) as unknown as typeof fetch;
+  return { calls, fetchImpl };
+}
+
+const brevoFor = (fetchImpl: typeof fetch) =>
+  new BrevoMailer('test-key-not-real', { fromEmail: 'mail@flowboard.example', fromName: 'Flowboard', appOrigin: ORIGIN }, fetchImpl);
+
+async function outboxRow(invitationId: string) {
+  const res = await pool.query<{ id: string; status: string; retry_count: number; payload: any }>(
+    `SELECT id, status, retry_count, payload FROM outbox WHERE event_type = 'invitation.created' AND payload->>'invitationId' = $1 ORDER BY created_at DESC`,
+    [invitationId],
+  );
+  return res.rows;
+}
+
+test('B-10 email: the disabled mailer does nothing and the pending row keeps its link', async (t) => {
+  await t.test('no key, no sender or a bad origin means no mailer', () => {
+    assert.equal(mailerFromEnv({}), null);
+    assert.equal(mailerFromEnv({ BREVO_API_KEY: 'k', MAIL_FROM_EMAIL: 'mail@flowboard.example' }), null, 'origin missing');
+    assert.equal(mailerFromEnv({ BREVO_API_KEY: 'k', MAIL_FROM_EMAIL: 'not-an-address', APP_ORIGIN: ORIGIN }), null);
+    assert.ok(mailerFromEnv({ BREVO_API_KEY: 'k', MAIL_FROM_EMAIL: 'mail@flowboard.example', APP_ORIGIN: ORIGIN }));
+  });
+
+  await t.test('an invitation with mail disabled stays pending and untouched, and the API still answers', async () => {
+    const fx = await fixture();
+    const email = `disabled.${fx.s}@example.com`;
+    const res = await invite(fx, email);
+    assert.equal(res.status, 201, await res.clone().text());
+    const body = (await res.json()) as any;
+    assert.ok(body.data.token, 'the one-time link is still returned to the inviter');
+    const [row] = await outboxRow(body.data.id);
+    assert.equal(row!.status, 'pending');
+    assert.equal(row!.payload.token, body.data.token, 'the link is kept for a later send');
+    await processOutboxLease(pool, { batchSize: 50 });
+    const after = await outboxRow(body.data.id);
+    assert.equal(after[0]!.status, 'pending', 'no mailer: the drain leaves the row alone');
+    assert.equal(after[0]!.retry_count, 0, 'and does not count a failure');
+  });
+});
+
+test('B-10 email: create sends the accept link to the invitee, then drops the token', async (t) => {
+  const fx = await fixture();
+  const email = `invitee.${fx.s}@example.com`;
+  const res = await invite(fx, email);
+  const body = (await res.json()) as any;
+  const token = body.data.token as string;
+
+  const fake = fakeBrevo();
+  await t.test('the drain sends one email with the accept link on the configured origin', async () => {
+    await processOutboxLease(pool, { batchSize: 50, mailer: brevoFor(fake.fetchImpl) });
+    const mine = fake.calls.filter((c) => JSON.parse(String(c.init.body)).to[0].email === email);
+    assert.equal(mine.length, 1);
+    assert.equal(mine[0]!.url, BREVO_SEND_URL);
+    assert.equal((mine[0]!.init.headers as Record<string, string>)['api-key'], 'test-key-not-real');
+    const payload = JSON.parse(String(mine[0]!.init.body));
+    assert.deepEqual(payload.sender, { email: 'mail@flowboard.example', name: 'Flowboard' });
+    assert.deepEqual(payload.to, [{ email }]);
+    assert.ok(payload.textContent.includes(`${ORIGIN}/invitation?token=${token}`), 'text carries the link');
+    assert.ok(payload.htmlContent.includes(`${ORIGIN}/invitation?token=${token}`), 'html carries the link');
+    assert.ok(payload.subject.includes('Launch'), 'subject names the project');
+  });
+
+  await t.test('after the send the row is delivered, holds no token, and records only the provider id', async () => {
+    const [row] = await outboxRow(body.data.id);
+    assert.equal(row!.status, 'delivered');
+    assert.equal(row!.payload.token, undefined);
+    assert.equal(row!.payload.providerMessageId, '<m-1@brevo>');
+    assert.ok(!JSON.stringify(row!.payload).includes(token), 'the token is gone from the row');
+  });
+
+  await t.test('an idempotent replay of the create writes no second row and sends nothing more', async () => {
+    const sendsBefore = fake.calls.length;
+    const key = crypto.randomUUID();
+    const first = await invite(fx, `replay.${fx.s}@example.com`, key);
+    assert.equal(first.status, 201);
+    const replay = await invite(fx, `replay.${fx.s}@example.com`, key);
+    assert.ok([200, 201].includes(replay.status));
+    const body2 = (await replay.json()) as any;
+    assert.equal(body2.replayed, true);
+    const rows = await outboxRow(((await first.json()) as any).data.id);
+    assert.equal(rows.length, 1, 'one outbox row');
+    await processOutboxLease(pool, { batchSize: 50, mailer: brevoFor(fake.fetchImpl) });
+    const replaySends = fake.calls.slice(sendsBefore).filter((c) => JSON.parse(String(c.init.body)).to[0].email === `replay.${fx.s}@example.com`);
+    assert.equal(replaySends.length, 1, 'the replayed create does not send a second email');
+  });
+});
+
+test('B-10 email: resend supersedes the earlier pending email, so only the newest link works', async () => {
+  const fx = await fixture();
+  const email = `resend.${fx.s}@example.com`;
+  const created = (await (await invite(fx, email)).json()) as any;
+  const oldToken = created.data.token as string;
+  const invitationId = created.data.id as string;
+
+  const resend = await app.request(`http://localhost/api/v1/projects/${fx.project}/invitations/${invitationId}/resend`, {
+    method: 'POST',
+    headers: { cookie: fx.cookie, origin: 'http://localhost', 'idempotency-key': `b10-resend-${crypto.randomUUID()}` },
+  });
+  assert.equal(resend.status, 200, await resend.clone().text());
+  const newToken = ((await resend.json()) as any).data.token as string;
+  assert.notEqual(newToken, oldToken);
+
+  const rows = await outboxRow(invitationId);
+  const superseded = rows.find((r) => r.payload.token === undefined && r.status === 'failed');
+  assert.ok(superseded, 'the earlier pending row is settled without sending');
+  assert.ok(!JSON.stringify(rows).includes(oldToken), 'the old token is gone everywhere in the outbox');
+
+  const fake = fakeBrevo();
+  await processOutboxLease(pool, { batchSize: 50, mailer: brevoFor(fake.fetchImpl) });
+  const mine = fake.calls.map((c) => String(c.init.body)).filter((b) => b.includes(email));
+  assert.equal(mine.length, 1, 'one email for the invitation, not two');
+  assert.ok(mine[0]!.includes(newToken));
+  assert.ok(!mine[0]!.includes(oldToken));
+});
+
+test('B-10 email: Brevo 5xx, 429 and network errors retry; other 4xx is permanent and drops the token', async (t) => {
+  const cases: Array<[string, () => Response | Error, 'pending' | 'failed']> = [
+    ['5xx retries', () => new Response('server error', { status: 503 }), 'pending'],
+    ['429 retries', () => new Response('slow down', { status: 429 }), 'pending'],
+    ['network error retries', () => new Error('socket reset'), 'pending'],
+    ['400 is permanent', () => new Response('bad request body', { status: 400 }), 'failed'],
+    ['401 is permanent', () => new Response('unauthorised', { status: 401 }), 'failed'],
+  ];
+  for (const [label, reply, expected] of cases) {
+    await t.test(label, async () => {
+      const fx = await fixture();
+      const email = `class.${fx.s}@example.com`;
+      const created = (await (await invite(fx, email)).json()) as any;
+      const token = created.data.token as string;
+      const fake = fakeBrevo(reply);
+      await processOutboxLease(pool, { batchSize: 50, mailer: brevoFor(fake.fetchImpl) });
+      const [row] = await outboxRow(created.data.id);
+      assert.equal(row!.status, expected);
+      if (expected === 'pending') {
+        assert.equal(row!.retry_count, 1, 'the retry is counted');
+        assert.equal(row!.payload.token, token, 'the link is kept for the retry');
+      } else {
+        assert.equal(row!.payload.token, undefined, 'the token is dropped once the send is refused');
+      }
+      assert.ok(!JSON.stringify(row!.payload).includes(token) || expected === 'pending');
+    });
+  }
+});
+
+test('B-10 email: the HTML is escaped, the subject is one line, and names cannot inject markup or headers', () => {
+  const content = buildInvitationEmail({
+    projectName: 'Launch <script>alert(1)</script> & "co"\r\nBcc: victim@example.net',
+    inviterName: '<img src=x onerror=alert(1)>',
+    role: 'manager',
+    expiresAt: '2026-11-06T10:00:00.000Z',
+    acceptUrl: `${ORIGIN}/invitation?token=abc`,
+  });
+  assert.ok(!content.subject.includes('\r') && !content.subject.includes('\n'), 'no CR or LF in the subject');
+  assert.ok(!content.html.includes('<script>'), 'no raw script in the HTML');
+  assert.ok(!content.html.includes('<img src=x'), 'no raw image tag in the HTML');
+  assert.ok(content.html.includes('&lt;img src=x onerror=alert(1)&gt;'), 'the inviter name is escaped');
+  assert.ok(content.html.includes('&amp;'), 'ampersands are escaped');
+  assert.ok(content.html.includes('href="https://flowboard.example/invitation?token=abc"'), 'the link is quoted and escaped');
+  assert.ok(content.text.includes('Manager'), 'role label');
+  assert.ok(content.text.includes('2026-11-06'), 'expiry date only');
+  assert.equal(escapeHtml('&<>"\''), '&amp;&lt;&gt;&quot;&#39;');
+  assert.equal(plainLine('a\r\nb\tc', 50), 'a b c');
+  assert.ok(plainLine('x'.repeat(500), 100).length === 100, 'bounded');
+});
+
+test('B-10 email: the app origin comes from configuration only and must be https or a local dev host', () => {
+  assert.equal(validAppOrigin('https://flowboard.example'), 'https://flowboard.example');
+  assert.equal(validAppOrigin('https://flowboard.example/'), 'https://flowboard.example');
+  assert.equal(validAppOrigin('http://localhost:3000'), 'http://localhost:3000');
+  for (const bad of ['http://flowboard.example', 'https://flowboard.example/app', 'https://u:p@flowboard.example', 'https://flowboard.example?x=1', 'javascript:alert(1)', '']) {
+    assert.equal(validAppOrigin(bad), null, bad);
+  }
+});
+
+test('B-10 email: no token, key or provider body reaches a log on any send path', async () => {
+  const fx = await fixture();
+  const created = (await (await invite(fx, `logs.${fx.s}@example.com`)).json()) as any;
+  const token = created.data.token as string;
+  const captured: string[] = [];
+  const saved = { log: console.log, warn: console.warn, error: console.error, info: console.info };
+  const capture = (...args: unknown[]) => { captured.push(args.map((a) => String(a)).join(' ')); };
+  console.log = capture; console.warn = capture; console.error = capture; console.info = capture;
+  try {
+    const { fetchImpl } = fakeBrevo(() => new Response(`provider echoed ${token}`, { status: 400 }));
+    await processOutboxLease(pool, { batchSize: 50, mailer: brevoFor(fetchImpl) });
+    const { fetchImpl: failing } = fakeBrevo(() => new Response('boom', { status: 500 }));
+    await processOutboxLease(pool, { batchSize: 50, mailer: brevoFor(failing) });
+  } finally {
+    console.log = saved.log; console.warn = saved.warn; console.error = saved.error; console.info = saved.info;
+  }
+  assert.ok(!captured.some((line) => line.includes(token)), 'the token never appears in a log line');
+  assert.ok(!captured.some((line) => line.includes('test-key-not-real')), 'the key never appears in a log line');
+});
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { buildInvitationEmail, EMAIL_COLORS, EXPIRY_CHIP, escapeHtml, expiryDate, initialsOf, ROLE_ABILITIES, ROLE_CHIP, emailImageUrls } from '../src/services/invitation-email.ts';
+
+// B-12: the invitation email in the Flowboard theme. Structure, escaping, colour contrast and subject.
+
+const ORIGIN = 'https://flowboard-app-uat.pages.dev';
+const URL_ = `${ORIGIN}/invitation?token=SAMPLE`;
+const base = {
+  appOrigin: ORIGIN,
+  projectName: 'Spring Launch',
+  inviterName: 'Asha Rao',
+  role: 'manager',
+  expiresAt: '2026-11-06T10:00:00.000Z',
+  acceptUrl: URL_,
+};
+
+// The tag sequence of the rendered HTML, as a fingerprint. A change to the layout changes this line.
+const STRUCTURE =
+  'html head meta meta meta meta title /title /head body div /div table tr td table tr td img /td /tr tr td img /td /tr tr td table tr td /td td strong /strong /td /tr /table /td /tr tr td h1 /h1 table tr td p /p p /p table tr td span /span /td td span /span /td /tr /table /td /tr /table /td /tr tr td p /p table tr td /td td /td td /td td /td td /td /tr /table /td /tr tr td table tr td a /a /td /tr /table /td /tr tr td p /p table tr td /td /tr /table /td /tr tr td div /div /td /tr tr td table tr td img /td td /td /tr /table /td /tr /table /td /tr /table /body /html';
+
+/** Relative luminance and WCAG contrast, to check the palette. */
+function luminance(hex: string): number {
+  const h = hex.replace('#', '');
+  const [r, g, b] = [0, 2, 4].map((i) => {
+    const v = parseInt(h.slice(i, i + 2), 16) / 255;
+    return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+  });
+  return 0.2126 * r! + 0.7152 * g! + 0.0722 * b!;
+}
+function contrast(a: string, b: string): number {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x) as [number, number];
+  return (hi + 0.05) / (lo + 0.05);
+}
+
+test('B-12 email structure: table layout, 600px cap, preheader, logo, and the fingerprint', () => {
+  const { html } = buildInvitationEmail(base);
+  const tags = [...html.matchAll(/<(\/?[a-zA-Z0-9]+)/g)].map((m) => m[1]).join(' ');
+  assert.equal(tags, STRUCTURE, 'the layout changed: review it, then update the fingerprint');
+  assert.ok(html.includes('max-width:600px'), '600px maximum width');
+  assert.ok(html.includes('role="presentation"'), 'layout tables are presentation tables');
+  assert.ok(html.includes('name="color-scheme" content="light dark"'), 'colour-scheme meta');
+  assert.ok(html.includes('name="supported-color-schemes" content="light dark"'), 'supported schemes meta');
+  assert.ok(html.includes('display:none;max-height:0'), 'hidden preheader');
+  assert.ok(html.includes('Asha Rao invited you to Spring Launch as Manager'), 'preheader text');
+  assert.ok(html.includes(`src="${ORIGIN}/email/flowboard-lockup-dark.png"`), 'gradient lockup image on the app origin');
+  assert.ok(html.includes('alt="Flowboard"'), 'lockup has alt text');
+  assert.equal(emailImageUrls(ORIGIN).mark, `${ORIGIN}/apple-touch-icon.png`);
+});
+
+test('B-12 email: inline styles only, no script, no web font, no external stylesheet', () => {
+  const { html } = buildInvitationEmail(base);
+  assert.ok(!/<style/i.test(html), 'no style element');
+  assert.ok(!/<script/i.test(html), 'no script');
+  assert.ok(!/<link\b/i.test(html), 'no external stylesheet or font link');
+  assert.ok(!/@import|url\(/i.test(html), 'no CSS imports or url() fonts');
+  assert.ok(!/font-face/i.test(html), 'no web font rules');
+  assert.ok(html.includes('font-family:-apple-system'), 'system font stack');
+});
+
+test('B-12 email: one primary button to the accept link, and a plain fallback link under it', () => {
+  const { html, text } = buildInvitationEmail(base);
+  const links = [...html.matchAll(/<a href="([^"]+)"/g)].map((m) => m[1]);
+  assert.deepEqual([...new Set(links)], [URL_], 'every link goes to the accept URL');
+  assert.ok(html.includes('>Accept invitation</a>'), 'primary button text');
+  assert.ok(html.includes(`>${URL_}</td>`), 'the full URL shows in the copy box');
+  assert.ok(html.includes('>Manager</span>'), 'role chip');
+  assert.ok(html.includes('Expires 2026-11-06 (UTC)'), 'expiry chip');
+  assert.ok(text.includes(URL_), 'plain text carries the link');
+});
+
+test('B-12 email footer: states why the person received it', () => {
+  const { html, text } = buildInvitationEmail(base);
+  const footer = 'You received this because Asha Rao invited you to a Flowboard project. If you do not expect this, ignore it.';
+  assert.ok(html.includes(footer));
+  assert.ok(text.includes(footer));
+});
+
+test('B-12 escaping: names with markup become text, and no raw < from a name reaches the HTML', () => {
+  const hostile = buildInvitationEmail({
+    ...base,
+    projectName: 'Launch <img src=x onerror=alert(1)> "&\'',
+    inviterName: '<script>alert(2)</script>',
+  });
+  assert.ok(!hostile.html.includes('<script>alert(2)'), 'no raw script from the inviter name');
+  assert.ok(!hostile.html.includes('<img src=x'), 'no raw image from the project name');
+  assert.ok(hostile.html.includes('&lt;script&gt;alert(2)&lt;/script&gt;'), 'inviter escaped');
+  assert.ok(hostile.html.includes('&lt;img src=x onerror=alert(1)&gt;'), 'project escaped');
+  assert.ok(hostile.html.includes('&quot;&amp;&#39;'), 'quotes and ampersands escaped');
+  // Every '<' left in the HTML belongs to the template: each tag opens with a known name.
+  const tagNames = new Set(['html', 'head', 'meta', 'title', 'body', 'div', 'table', 'tr', 'td', 'img', 'h1', 'p', 'strong', 'span', 'a']);
+  for (const m of hostile.html.matchAll(/<\/?([a-zA-Z0-9]+)/g)) {
+    assert.ok(tagNames.has(m[1]!.toLowerCase()), `unexpected tag ${m[1]}`);
+  }
+});
+
+test('B-12 subject: names only, one line, bounded, no header injection', () => {
+  const crlf = buildInvitationEmail({
+    ...base,
+    projectName: 'Project\r\nBcc: victim@example.net',
+    inviterName: 'Eve\nSubject: spoof',
+  });
+  assert.ok(!/[\r\n]/.test(crlf.subject), 'subject has no CR or LF');
+  assert.ok(crlf.subject.length <= 160, 'subject is bounded');
+  assert.ok(crlf.subject.endsWith('on Flowboard'));
+  const long = buildInvitationEmail({ ...base, projectName: 'P'.repeat(400) });
+  assert.ok(long.subject.length <= 160);
+  assert.equal(buildInvitationEmail(base).subject, 'Asha Rao invited you to Spring Launch on Flowboard');
+});
+
+test('B-12 colours: every text and button pair meets WCAG AA (4.5:1)', () => {
+  const c = EMAIL_COLORS;
+  const pairs: Array<[string, string, string]> = [
+    ['ink on card', c.ink, c.card],
+    ['muted on card', c.muted, c.card],
+    ['muted on canvas', c.muted, c.canvas],
+    ['white on accent button', '#FFFFFF', c.accent],
+    ['plum wordmark on card', c.plum, c.card],
+    ['white on plum band text', '#FFFFFF', c.plum],
+    ['initials white on avatar', '#FFFFFF', c.accent],
+    ['ability text on tint', c.ink, c.tint],
+    ['monospace link on code box', c.ink, c.code],
+    ['footer on canvas', c.muted, c.canvas],
+    ['role chip: manager', ROLE_CHIP.manager!.ink, ROLE_CHIP.manager!.bg],
+    ['role chip: member', ROLE_CHIP.member!.ink, ROLE_CHIP.member!.bg],
+    ['role chip: viewer', ROLE_CHIP.viewer!.ink, ROLE_CHIP.viewer!.bg],
+    ['expiry chip', EXPIRY_CHIP.ink, EXPIRY_CHIP.bg],
+    ['accent link on card', c.accent, c.card],
+  ];
+  for (const [label, fg, bg] of pairs) {
+    assert.ok(contrast(fg, bg) >= 4.5, `${label}: ${contrast(fg, bg).toFixed(2)}`);
+  }
+});
+
+test('B-12 escapeHtml: the five characters', () => {
+  assert.equal(escapeHtml(`&<>"'`), '&amp;&lt;&gt;&quot;&#39;');
+});
+
+test('B-13 design: the header is the dark plum band with the gradient lockup, and the hero is hosted', () => {
+  const { html } = buildInvitationEmail(base);
+  assert.ok(html.includes(`bgcolor="${EMAIL_COLORS.plum}"`), 'plum header band with a bgcolor fallback');
+  assert.ok(html.includes('width="200" height="48"'), 'lockup has width and height');
+  assert.ok(html.includes(`src="${ORIGIN}/email/invite-board-hero.png"`), 'hero hosted on the app origin');
+  assert.ok(html.includes('alt="Illustration of a three-column Flowboard board'), 'hero has descriptive alt text');
+  assert.ok(html.includes('width="552" height="184"'), 'hero has width and height');
+});
+
+test('B-13 design: an initials avatar is a table cell, not an image', () => {
+  const { html } = buildInvitationEmail(base);
+  assert.ok(html.includes(`bgcolor="${EMAIL_COLORS.accent}"`));
+  assert.ok(html.includes('>AR</td>'), 'initials from the inviter name');
+  assert.equal(initialsOf('asha rao'), 'AR');
+  assert.equal(initialsOf('Zoë'), 'Z');
+  assert.equal(initialsOf('<img>'), 'I', 'markup contributes letters only');
+  assert.equal(initialsOf('  '), 'F', 'fallback when there are no letters');
+});
+
+test('B-13 design: the abilities follow the role, and the role chip is coloured per role', () => {
+  for (const role of ['manager', 'member', 'viewer']) {
+    const { html, text } = buildInvitationEmail({ ...base, role });
+    for (const item of ROLE_ABILITIES[role]!) {
+      assert.ok(html.includes(`>${item}</td>`), `${role}: ${item}`);
+      assert.ok(text.includes(item));
+    }
+    assert.ok(html.includes(`background-color:${ROLE_CHIP[role]!.bg};color:${ROLE_CHIP[role]!.ink}`), `${role} chip`);
+  }
+  const viewer = buildInvitationEmail({ ...base, role: 'viewer' }).html;
+  assert.ok(!viewer.includes('Manage boards'), 'a viewer is not told it can manage boards');
+});
+
+test('B-13 design: the expiry chip carries a date only; copy-link box holds the full URL', () => {
+  assert.equal(expiryDate('2026-11-06T10:00:00.000Z'), '2026-11-06');
+  assert.equal(expiryDate('nonsense <b>'), '');
+  const { html } = buildInvitationEmail(base);
+  assert.ok(html.includes('Expires 2026-11-06 (UTC)'));
+  assert.ok(html.includes(`font-family:ui-monospace`), 'monospace link box');
+  assert.ok(html.includes(`>${URL_}</td>`), 'the full URL in the copy box');
+});
+
+test('B-13 design: the primary button is a table cell with fill and padding, so Outlook draws it', () => {
+  const { html } = buildInvitationEmail(base);
+  assert.ok(/<td align="center" bgcolor="#302638" style="padding:16px 40px;/.test(html), 'button cell carries the fill and padding');
+  assert.ok(html.includes('>Accept invitation</a>'));
+});

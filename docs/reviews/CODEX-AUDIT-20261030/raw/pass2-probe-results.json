@@ -1,0 +1,140 @@
+{
+  "commit": "36dfb3a4172ca5cc910c6c6503b4efd641031e35",
+  "xlsx_inflate": {
+    "exit_code": 0,
+    "compressed_bytes": 20516,
+    "claimed_expanded_bytes": 20971521,
+    "max_expanded_bytes": 20971520,
+    "outcome": "PAYLOAD_TOO_LARGE",
+    "external_memory_delta_bytes": 40
+  },
+  "r2_storage": {
+    "exit_code": 0,
+    "shared_bucket_read": true,
+    "content_type": "image/png",
+    "no_binding_fails_closed": true,
+    "hosted_r2_tested": false
+  },
+  "viewer_assignment": {
+    "exit_code": 0,
+    "status": 422,
+    "viewer_assigned": false
+  },
+  "body_cap_default": {
+    "exit_code": 0,
+    "request_bytes": 1048577,
+    "status": 413,
+    "code": "PAYLOAD_TOO_LARGE",
+    "route_specific_boundaries_tested_in_suite": true
+  },
+  "invitation_accept_race": {
+    "exit_code": 0,
+    "statuses": [
+      200,
+      400
+    ],
+    "second_code": "INVALID_INVITATION",
+    "invitation_status": "accepted",
+    "active_memberships": 1
+  },
+  "image_finalize_vs_card_trash": {
+    "exit_code": 0,
+    "statuses": [
+      200,
+      200
+    ],
+    "card_state": "trashed",
+    "finalized_images": 1,
+    "storage_objects": 1,
+    "scope": "card trash, not explicit image removal"
+  },
+  "double_import": {
+    "exit_code": 0,
+    "commit_results": [
+      "committed",
+      "committed"
+    ],
+    "created_cards": 1
+  },
+  "outbox_privacy": {
+    "exit_code": 0,
+    "delivered": true,
+    "token_retained": false,
+    "recipient_retained": true,
+    "template_body_marker_retained": true,
+    "logs_contain_token_recipient_body_marker": false
+  },
+  "pages_function_mock": {
+    "exit_code": 0,
+    "proxy_status": 302,
+    "location_preserved": true,
+    "set_cookie_count": 1,
+    "cache_control": "no-store",
+    "missing_binding_status": 500,
+    "entry_redirect_no_store": true,
+    "asset_api_bypass": true
+  },
+  "authorization_matrix": {
+    "exit_code": 0,
+    "route_count": 93,
+    "identity_count": 10,
+    "cell_count": 930,
+    "counts_by_status": {
+      "200": 147,
+      "204": 10,
+      "302": 20,
+      "400": 353,
+      "401": 83,
+      "403": 35,
+      "404": 228,
+      "422": 54
+    },
+    "non_401_403_404_no_substantive_data": 467,
+    "non_401_403_404_with_data": 117
+  },
+  "full_suite": {
+    "exit_code": 0,
+    "api_tests": 644,
+    "api_pass": 644,
+    "contracts_tests": 100,
+    "contracts_pass": 100,
+    "skipped": 0
+  },
+  "focused_tests": {
+    "exit_code": 0,
+    "total": 91,
+    "passed": 91,
+    "skipped": 0,
+    "by_file": {
+      "b7-body-caps.test.ts": 11,
+      "b7-xlsx-budget.test.ts": 13,
+      "b7-assignee-roles.test.ts": 4,
+      "b7-invite-scope-limits.test.ts": 8,
+      "b7-migration-0015.test.ts": 3,
+      "safe-next.test.ts": 4,
+      "origin-check.test.ts": 2,
+      "b9-profile-name.test.ts": 11,
+      "b9-mention-access.test.ts": 18,
+      "b10-invitation-email.test.ts": 17
+    }
+  },
+  "npm_audit": {
+    "production_exit_code": 1,
+    "production": {
+      "moderate": 1,
+      "high": 1,
+      "total": 2
+    },
+    "all_exit_code": 1,
+    "all": {
+      "moderate": 3,
+      "high": 2,
+      "total": 5
+    }
+  },
+  "uat": {
+    "final_batch_requests": 12,
+    "conservative_total_requests": 45,
+    "authenticated": false
+  }
+}

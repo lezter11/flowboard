@@ -1,0 +1,12 @@
+64:test('B-10 email: the disabled mailer does nothing and the pending row keeps its link', async (t) => {
+65:  await t.test('no key, no sender or a bad origin means no mailer', () => {
+72:  await t.test('an invitation with mail disabled stays pending and untouched, and the API still answers', async () => {
+89:test('B-10 email: create sends the accept link to the invitee, then drops the token', async (t) => {
+97:  await t.test('the drain sends one email with the accept link on the configured origin', async () => {
+111:  await t.test('after the send the row is delivered, holds no token, and records only the provider id', async () => {
+119:  await t.test('an idempotent replay of the create writes no second row and sends nothing more', async () => {
+136:test('B-10 email: resend supersedes the earlier pending email, so only the newest link works', async () => {
+164:test('B-10 email: Brevo 5xx, 429 and network errors retry; other 4xx is permanent and drops the token', async (t) => {
+193:test('B-10 email: the HTML is escaped, the subject is one line, and names cannot inject markup or headers', () => {
+214:test('B-10 email: the app origin comes from configuration only and must be https or a local dev host', () => {
+223:test('B-10 email: no token, key or provider body reaches a log on any send path', async () => {

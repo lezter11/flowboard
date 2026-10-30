@@ -1,0 +1,761 @@
+
+===== database/migrations/0001_initial.sql =====
+-- Flowboard PostgreSQL Schema Migration 0001
+-- PostgreSQL 17 compatible DDL
+
+-- 1. workspaces
+CREATE TABLE workspaces (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  timezone TEXT NOT NULL,
+  owner_id TEXT NOT NULL,
+  version INTEGER NOT NULL DEFAULT 1,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+-- 2. users
+CREATE TABLE users (
+  id TEXT PRIMARY KEY,
+  email TEXT NOT NULL UNIQUE,
+  display_name TEXT NOT NULL,
+  avatar_url TEXT,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+-- 3. projects
+CREATE TABLE projects (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  name TEXT NOT NULL,
+  description TEXT,
+  archived BOOLEAN NOT NULL DEFAULT FALSE,
+  version INTEGER NOT NULL DEFAULT 1,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+-- 4. project_memberships
+CREATE TABLE project_memberships (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  role TEXT NOT NULL CHECK (role IN ('manager', 'member', 'viewer')),
+  status TEXT NOT NULL CHECK (status IN ('active', 'removed')),
+  version INTEGER NOT NULL DEFAULT 1,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(project_id, user_id)
+);
+
+-- 5. project_invitations
+CREATE TABLE project_invitations (
+  id TEXT PRIMARY KEY,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  email TEXT NOT NULL,
+  role TEXT NOT NULL CHECK (role IN ('manager', 'member', 'viewer')),
+  token_hash TEXT NOT NULL,
+  invited_by TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  status TEXT NOT NULL CHECK (status IN ('pending', 'accepted', 'revoked', 'expired')),
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+-- 6. boards
+CREATE TABLE boards (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  name TEXT NOT NULL,
+  structure_version INTEGER NOT NULL DEFAULT 1,
+  snapshot_version INTEGER NOT NULL DEFAULT 1,
+  archived BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+-- 7. columns
+CREATE TABLE columns (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE RESTRICT,
+  name TEXT NOT NULL,
+  color TEXT NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('todo', 'active', 'done')),
+  position INTEGER NOT NULL,
+  version INTEGER NOT NULL DEFAULT 1,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(board_id, name)
+);
+
+-- 8. cards
+CREATE TABLE cards (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE RESTRICT,
+  column_id TEXT NOT NULL REFERENCES columns(id) ON DELETE RESTRICT,
+  title TEXT NOT NULL,
+  description TEXT,
+  priority TEXT NOT NULL CHECK (priority IN ('none', 'low', 'medium', 'high', 'urgent')),
+  due_date DATE,
+  position BIGINT NOT NULL,
+  version INTEGER NOT NULL DEFAULT 1,
+  state TEXT NOT NULL CHECK (state IN ('active', 'trashed', 'purged')),
+  deleted_at TIMESTAMPTZ,
+  deleted_by TEXT REFERENCES users(id) ON DELETE RESTRICT,
+  restore_until TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+-- 9. card_assignees
+CREATE TABLE card_assignees (
+  card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  created_at TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY(card_id, user_id)
+);
+
+-- 10. comments
+CREATE TABLE comments (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+  author_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  body TEXT NOT NULL,
+  version INTEGER NOT NULL DEFAULT 1,
+  deleted_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+-- 11. comment_mentions
+CREATE TABLE comment_mentions (
+  id TEXT PRIMARY KEY,
+  comment_id TEXT NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  start_offset INTEGER NOT NULL,
+  end_offset INTEGER NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+-- 12. activity_log
+CREATE TABLE activity_log (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  card_id TEXT REFERENCES cards(id) ON DELETE SET NULL,
+  actor_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  action TEXT NOT NULL,
+  safe_changes JSONB,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+-- 13. notifications
+CREATE TABLE notifications (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  type TEXT NOT NULL,
+  title TEXT NOT NULL,
+  body TEXT NOT NULL,
+  link TEXT NOT NULL,
+  read BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+-- 14. card_images
+CREATE TABLE card_images (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+  uploader_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  filename TEXT NOT NULL,
+  byte_length INTEGER NOT NULL,
+  content_type TEXT NOT NULL,
+  storage_key TEXT NOT NULL,
+  sha256 TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+-- 15. card_image_uploads
+CREATE TABLE card_image_uploads (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,
+  uploader_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  filename TEXT NOT NULL,
+  byte_length INTEGER NOT NULL,
+  content_type TEXT NOT NULL,
+  sha256 TEXT NOT NULL,
+  state TEXT NOT NULL CHECK (state IN ('awaiting_content', 'content_received', 'validating', 'finalized', 'failed', 'cancelled', 'expired')),
+  expires_at TIMESTAMPTZ NOT NULL,
+  finalized_image_id TEXT REFERENCES card_images(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+-- 16. card_imports
+CREATE TABLE card_imports (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE RESTRICT,
+  default_column_id TEXT NOT NULL REFERENCES columns(id) ON DELETE RESTRICT,
+  uploader_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  version INTEGER NOT NULL DEFAULT 1,
+  state TEXT NOT NULL CHECK (state IN ('uploaded', 'validating', 'invalid', 'ready', 'committing', 'committed', 'failed', 'cancelled', 'expired')),
+  preview_digest TEXT,
+  expires_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL
+);
+
+-- 17. card_import_rows
+CREATE TABLE card_import_rows (
+  id TEXT PRIMARY KEY,
+  import_id TEXT NOT NULL REFERENCES card_imports(id) ON DELETE CASCADE,
+  row_number INTEGER NOT NULL,
+  external_id TEXT NOT NULL,
+  title TEXT NOT NULL,
+  status TEXT,
+  priority TEXT,
+  due_date DATE,
+  assignee_emails TEXT[],
+  outcome TEXT NOT NULL CHECK (outcome IN ('new', 'already_imported', 'invalid', 'conflict', 'created', 'skipped')),
+  errors JSONB,
+  card_id TEXT REFERENCES cards(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+-- 18. card_import_duplicates
+CREATE TABLE card_import_duplicates (
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE RESTRICT,
+  external_id TEXT NOT NULL,
+  card_id TEXT REFERENCES cards(id) ON DELETE SET NULL,
+  row_hash TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  PRIMARY KEY(board_id, external_id)
+);
+
+-- 19. idempotency_receipts
+CREATE TABLE idempotency_receipts (
+  id TEXT PRIMARY KEY,
+  actor_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  scope_type TEXT NOT NULL CHECK (scope_type IN ('workspace', 'project', 'actor')),
+  scope_id TEXT NOT NULL,
+  idempotency_key TEXT NOT NULL,
+  method_path_hash TEXT NOT NULL,
+  body_hash TEXT NOT NULL,
+  status_code INTEGER NOT NULL,
+  response_body JSONB NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(actor_id, scope_id, idempotency_key)
+);
+
+-- 20. outbox
+CREATE TABLE outbox (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  event_type TEXT NOT NULL,
+  payload JSONB NOT NULL,
+  status TEXT NOT NULL CHECK (status IN ('pending', 'processing', 'delivered', 'failed')),
+  retry_count INTEGER NOT NULL DEFAULT 0,
+  next_retry_at TIMESTAMPTZ NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+-- 21. schema_migrations
+CREATE TABLE IF NOT EXISTS schema_migrations (
+  version TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  applied_at TIMESTAMPTZ NOT NULL
+);
+
+-- Performance and Foreign Key Indexes
+CREATE INDEX idx_projects_workspace ON projects(workspace_id);
+CREATE INDEX idx_project_memberships_user ON project_memberships(user_id);
+CREATE INDEX idx_project_memberships_project ON project_memberships(project_id);
+CREATE INDEX idx_project_invitations_project ON project_invitations(project_id);
+CREATE INDEX idx_project_invitations_token ON project_invitations(token_hash);
+CREATE INDEX idx_boards_project ON boards(project_id);
+CREATE INDEX idx_columns_board_position ON columns(board_id, position);
+CREATE INDEX idx_cards_column_position ON cards(column_id, position);
+CREATE INDEX idx_cards_board ON cards(board_id);
+CREATE INDEX idx_cards_project ON cards(project_id);
+CREATE INDEX idx_cards_state ON cards(state);
+CREATE INDEX idx_card_assignees_user ON card_assignees(user_id);
+CREATE INDEX idx_comments_card ON comments(card_id);
+CREATE INDEX idx_comment_mentions_comment ON comment_mentions(comment_id);
+CREATE INDEX idx_comment_mentions_user ON comment_mentions(user_id);
+CREATE INDEX idx_activity_log_card ON activity_log(card_id);
+CREATE INDEX idx_activity_log_project ON activity_log(project_id, created_at DESC);
+CREATE INDEX idx_notifications_user_unread ON notifications(user_id, read) WHERE read = FALSE;
+CREATE INDEX idx_card_images_card ON card_images(card_id);
+CREATE INDEX idx_card_image_uploads_card ON card_image_uploads(card_id);
+CREATE INDEX idx_card_imports_board ON card_imports(board_id);
+CREATE INDEX idx_card_import_rows_import ON card_import_rows(import_id);
+CREATE INDEX idx_idempotency_receipts_lookup ON idempotency_receipts(actor_id, scope_id, idempotency_key);
+CREATE INDEX idx_idempotency_receipts_expires ON idempotency_receipts(expires_at);
+CREATE INDEX idx_outbox_pending ON outbox(status, next_retry_at) WHERE status IN ('pending', 'processing');
+
+===== database/migrations/0002_sessions.sql =====
+-- Migration: 0002_sessions.sql
+-- Description: Database-backed sessions for authentication and cookie tracking
+
+CREATE TABLE IF NOT EXISTS sessions (
+    id TEXT PRIMARY KEY,
+    user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
+CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+
+===== database/migrations/0003_constraints.sql =====
+-- Flowboard PostgreSQL Schema Migration 0003
+-- Strengthen ancestry, owner foreign keys, and relational hierarchy constraints.
+
+-- 1. Workspace owner foreign key constraint
+-- Ensures a workspace cannot reference a non-existent owner, and deleting an active owner is blocked.
+ALTER TABLE workspaces
+  ADD CONSTRAINT fk_workspaces_owner
+  FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE RESTRICT;
+
+-- 2. Projects composite unique constraint
+-- Enables child entities with (project_id, workspace_id) to enforce strict matching parentage.
+ALTER TABLE projects
+  ADD CONSTRAINT uq_projects_id_workspace
+  UNIQUE (id, workspace_id);
+
+-- 3. Project memberships ancestry constraint
+ALTER TABLE project_memberships
+  ADD CONSTRAINT fk_project_memberships_project_workspace
+  FOREIGN KEY (project_id, workspace_id) REFERENCES projects(id, workspace_id) ON DELETE RESTRICT;
+
+-- 4. Project invitations ancestry constraint
+ALTER TABLE project_invitations
+  ADD CONSTRAINT fk_project_invitations_project_workspace
+  FOREIGN KEY (project_id, workspace_id) REFERENCES projects(id, workspace_id) ON DELETE RESTRICT;
+
+-- 5. Boards ancestry constraint and composite unique constraint for child entities
+ALTER TABLE boards
+  ADD CONSTRAINT fk_boards_project_workspace
+  FOREIGN KEY (project_id, workspace_id) REFERENCES projects(id, workspace_id) ON DELETE RESTRICT;
+
+ALTER TABLE boards
+  ADD CONSTRAINT uq_boards_id_project_workspace
+  UNIQUE (id, project_id, workspace_id);
+
+-- 6. Columns ancestry constraint and composite unique constraint for child entities
+ALTER TABLE columns
+  ADD CONSTRAINT fk_columns_board_project_workspace
+  FOREIGN KEY (board_id, project_id, workspace_id) REFERENCES boards(id, project_id, workspace_id) ON DELETE RESTRICT;
+
+ALTER TABLE columns
+  ADD CONSTRAINT uq_columns_id_board
+  UNIQUE (id, board_id);
+
+-- 7. Cards ancestry constraints linking board/project/workspace and column/board
+ALTER TABLE cards
+  ADD CONSTRAINT fk_cards_board_project_workspace
+  FOREIGN KEY (board_id, project_id, workspace_id) REFERENCES boards(id, project_id, workspace_id) ON DELETE RESTRICT;
+
+ALTER TABLE cards
+  ADD CONSTRAINT fk_cards_column_board
+  FOREIGN KEY (column_id, board_id) REFERENCES columns(id, board_id) ON DELETE RESTRICT;
+
+ALTER TABLE cards
+  ADD CONSTRAINT uq_cards_id_project_workspace
+  UNIQUE (id, project_id, workspace_id);
+
+-- 8. Card assignees ancestry constraint
+ALTER TABLE card_assignees
+  ADD CONSTRAINT fk_card_assignees_card_project_workspace
+  FOREIGN KEY (card_id, project_id, workspace_id) REFERENCES cards(id, project_id, workspace_id) ON DELETE CASCADE;
+
+-- 9. Comments ancestry constraint
+ALTER TABLE comments
+  ADD CONSTRAINT fk_comments_card_project_workspace
+  FOREIGN KEY (card_id, project_id, workspace_id) REFERENCES cards(id, project_id, workspace_id) ON DELETE CASCADE;
+
+-- 10. Card images ancestry constraint
+ALTER TABLE card_images
+  ADD CONSTRAINT fk_card_images_card_project_workspace
+  FOREIGN KEY (card_id, project_id, workspace_id) REFERENCES cards(id, project_id, workspace_id) ON DELETE CASCADE;
+
+-- 11. Card image uploads ancestry constraint
+ALTER TABLE card_image_uploads
+  ADD CONSTRAINT fk_card_image_uploads_card_project_workspace
+  FOREIGN KEY (card_id, project_id, workspace_id) REFERENCES cards(id, project_id, workspace_id) ON DELETE CASCADE;
+
+-- 12. Card imports ancestry constraints
+ALTER TABLE card_imports
+  ADD CONSTRAINT fk_card_imports_board_project_workspace
+  FOREIGN KEY (board_id, project_id, workspace_id) REFERENCES boards(id, project_id, workspace_id) ON DELETE RESTRICT;
+
+ALTER TABLE card_imports
+  ADD CONSTRAINT fk_card_imports_column_board
+  FOREIGN KEY (default_column_id, board_id) REFERENCES columns(id, board_id) ON DELETE RESTRICT;
+
+-- 13. Card import duplicates ancestry constraint
+ALTER TABLE card_import_duplicates
+  ADD CONSTRAINT fk_card_import_duplicates_board_project_workspace
+  FOREIGN KEY (board_id, project_id, workspace_id) REFERENCES boards(id, project_id, workspace_id) ON DELETE RESTRICT;
+
+-- 14. Activity log ancestry constraint
+ALTER TABLE activity_log
+  ADD CONSTRAINT fk_activity_log_project_workspace
+  FOREIGN KEY (project_id, workspace_id) REFERENCES projects(id, workspace_id) ON DELETE RESTRICT;
+
+-- 15. Notifications ancestry constraint
+ALTER TABLE notifications
+  ADD CONSTRAINT fk_notifications_project_workspace
+  FOREIGN KEY (project_id, workspace_id) REFERENCES projects(id, workspace_id) ON DELETE RESTRICT;
+
+-- 16. Outbox ancestry constraint
+ALTER TABLE outbox
+  ADD CONSTRAINT fk_outbox_project_workspace
+  FOREIGN KEY (project_id, workspace_id) REFERENCES projects(id, workspace_id) ON DELETE RESTRICT;
+
+===== database/migrations/0004_minimal_idempotency_receipts.sql =====
+-- Receipts are retry metadata, not durable copies of private resource bodies.
+-- Retain only identifiers/version markers needed for a client refetch.
+UPDATE idempotency_receipts
+SET response_body = CASE
+  WHEN jsonb_typeof(response_body -> 'data') = 'object' THEN
+    jsonb_build_object(
+      'data',
+      COALESCE(
+        (
+          SELECT jsonb_object_agg(entry.key, entry.value)
+          FROM jsonb_each(response_body -> 'data') AS entry
+          WHERE entry.key IN ('id', 'version', 'structureVersion', 'snapshotVersion', 'operationId', 'success', 'role', 'projectId', 'workspaceId', 'state', 'status')
+        ),
+        '{}'::jsonb
+      )
+    )
+  WHEN jsonb_typeof(response_body -> 'data') = 'array' THEN
+    jsonb_build_object(
+      'data',
+      COALESCE(
+        (
+          SELECT jsonb_agg(
+            CASE WHEN jsonb_typeof(item.value) = 'object' THEN
+              COALESCE(
+                (
+                  SELECT jsonb_object_agg(entry.key, entry.value)
+                  FROM jsonb_each(item.value) AS entry
+                  WHERE entry.key IN ('id', 'version', 'structureVersion', 'snapshotVersion', 'operationId', 'success', 'role', 'projectId', 'workspaceId', 'state', 'status')
+                ),
+                '{}'::jsonb
+              )
+            ELSE '{}'::jsonb END
+          )
+          FROM jsonb_array_elements(response_body -> 'data') AS item(value)
+        ),
+        '[]'::jsonb
+      )
+    )
+  ELSE '{}'::jsonb
+END;
+
+===== database/migrations/0005_card_images.sql =====
+-- Migration 0005: Card images and upload staging extensions
+-- Adds dimensions and version tracking to card_images and card_image_uploads
+
+ALTER TABLE card_images
+  ADD COLUMN IF NOT EXISTS width INTEGER,
+  ADD COLUMN IF NOT EXISTS height INTEGER,
+  ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 1;
+
+ALTER TABLE card_image_uploads
+  ADD COLUMN IF NOT EXISTS version INTEGER NOT NULL DEFAULT 1,
+  ADD COLUMN IF NOT EXISTS received_bytes INTEGER,
+  ADD COLUMN IF NOT EXISTS error JSONB;
+
+-- Performance indexes for project scoping and upload cleanup
+CREATE INDEX IF NOT EXISTS idx_card_images_project ON card_images(project_id);
+CREATE INDEX IF NOT EXISTS idx_card_image_uploads_project ON card_image_uploads(project_id);
+CREATE INDEX IF NOT EXISTS idx_card_image_uploads_cleanup ON card_image_uploads(state, expires_at);
+
+===== database/migrations/0006_retryable_storage_cleanup.sql =====
+-- Keep object keys available for retry after the owning image rows are purged.
+CREATE TABLE pending_storage_deletions (
+  storage_key TEXT PRIMARY KEY,
+  attempts INTEGER NOT NULL DEFAULT 0 CHECK (attempts >= 0),
+  next_retry_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  lease_token TEXT,
+  lease_until TIMESTAMPTZ,
+  last_error TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_pending_storage_deletions_retry
+  ON pending_storage_deletions(next_retry_at, storage_key);
+
+-- Structured card identity avoids unsafe substring matching on notification links.
+ALTER TABLE notifications
+  ADD COLUMN card_id TEXT REFERENCES cards(id) ON DELETE SET NULL;
+
+UPDATE notifications
+SET card_id = substring(link FROM '[?&]cardId=([^&]+)')
+WHERE type = 'mention'
+  AND link ~ '[?&]cardId=[^&]+';
+
+CREATE INDEX idx_notifications_card ON notifications(card_id) WHERE card_id IS NOT NULL;
+
+===== database/migrations/0007_board_grants.sql =====
+-- Local foundation only: this migration does not switch existing API authorization.
+-- Do not deploy until every board-derived route is converted and independently reviewed.
+-- Composite foreign keys enforce board/project/workspace ancestry and require a
+-- project membership row. They do NOT enforce an active status, Owner-only
+-- grant administration, implicit Owner access, audit, or policy on existing
+-- routes. Those invariants require a transaction-aware, mounted application.
+-- The membership-status trigger clears stale grants in the same transaction;
+-- it does not yet emit per-grant audit events. All writers must follow the
+-- documented membership -> grant -> board lock order. Existing routes do not.
+ALTER TABLE boards ADD COLUMN access_revision BIGINT NOT NULL DEFAULT 1;
+
+CREATE TABLE board_grants (
+  board_id TEXT NOT NULL,
+  project_id TEXT NOT NULL,
+  workspace_id TEXT NOT NULL,
+  user_id TEXT NOT NULL,
+  granted_by TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  PRIMARY KEY (board_id, user_id),
+  FOREIGN KEY (board_id, project_id, workspace_id)
+    REFERENCES boards(id, project_id, workspace_id) ON DELETE RESTRICT,
+  FOREIGN KEY (project_id, user_id)
+    REFERENCES project_memberships(project_id, user_id) ON DELETE RESTRICT
+);
+CREATE INDEX idx_board_grants_project_user ON board_grants(project_id, user_id);
+
+-- A removed membership can later be reactivated, so clear old grants atomically.
+-- Membership update takes its row lock before this trigger takes board grant locks.
+CREATE FUNCTION clear_board_grants_on_project_removal() RETURNS TRIGGER AS $$
+DECLARE affected_board TEXT;
+BEGIN
+  IF OLD.status IS DISTINCT FROM NEW.status THEN
+    -- Order both grant and board locks by stable board ID. Every grant writer
+    -- must first lock this membership row, so a concurrent grant for the same
+    -- member cannot be inserted or revoked while this trigger is running.
+    FOR affected_board IN
+      SELECT board_id FROM board_grants
+      WHERE project_id = NEW.project_id AND user_id = NEW.user_id
+      ORDER BY board_id FOR UPDATE
+    LOOP
+      UPDATE boards SET access_revision = access_revision + 1 WHERE id = affected_board;
+      DELETE FROM board_grants WHERE board_id = affected_board AND user_id = NEW.user_id;
+    END LOOP;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER project_membership_clear_board_grants
+  AFTER UPDATE OF status ON project_memberships
+  FOR EACH ROW EXECUTE FUNCTION clear_board_grants_on_project_removal();
+
+===== database/migrations/0008_board_activity_scope.sql =====
+-- EXPERIMENTAL: never auto-applied; all activity writers and reads must be
+-- cut over atomically. Unclassified legacy records stay Owner-only.
+ALTER TABLE activity_log ADD COLUMN board_id TEXT;
+ALTER TABLE activity_log ADD COLUMN visibility_scope TEXT NOT NULL DEFAULT 'unknown'
+  CHECK (visibility_scope IN ('unknown', 'project', 'board'));
+
+-- Existing card-linked events have verified card ancestry. Cardless legacy
+-- events are deliberately left unknown rather than trusting arbitrary JSON.
+UPDATE activity_log a SET board_id = c.board_id, visibility_scope = 'board'
+FROM cards c
+WHERE a.card_id = c.id AND a.project_id = c.project_id AND a.workspace_id = c.workspace_id;
+
+ALTER TABLE activity_log ADD CONSTRAINT activity_scope_board_fk
+  FOREIGN KEY (board_id, project_id, workspace_id)
+  REFERENCES boards(id, project_id, workspace_id) ON DELETE RESTRICT;
+ALTER TABLE activity_log ADD CONSTRAINT activity_scope_shape
+  CHECK ((visibility_scope = 'board' AND board_id IS NOT NULL)
+      OR (visibility_scope IN ('unknown', 'project') AND board_id IS NULL));
+
+-- Prevent marking a board/card event as a project event. The scope remains
+-- attached to historical events when the card reference is nulled on deletion.
+CREATE FUNCTION validate_activity_scope_draft() RETURNS TRIGGER AS $$
+BEGIN
+  IF TG_OP = 'UPDATE' AND (NEW.board_id IS DISTINCT FROM OLD.board_id OR NEW.visibility_scope IS DISTINCT FROM OLD.visibility_scope) THEN
+    RAISE EXCEPTION 'activity scope is immutable';
+  END IF;
+  IF NEW.card_id IS NOT NULL AND NEW.visibility_scope <> 'unknown' AND NOT EXISTS (
+    SELECT 1 FROM cards c WHERE c.id = NEW.card_id AND c.board_id = NEW.board_id
+      AND c.project_id = NEW.project_id AND c.workspace_id = NEW.workspace_id
+  ) THEN
+    RAISE EXCEPTION 'activity card scope does not match';
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+CREATE TRIGGER validate_activity_scope_draft_trigger
+  BEFORE INSERT OR UPDATE ON activity_log FOR EACH ROW EXECUTE FUNCTION validate_activity_scope_draft();
+
+CREATE INDEX idx_activity_scope_draft_page ON activity_log(project_id, created_at DESC, id DESC);
+
+===== database/migrations/0009_card_keys_and_key_prefix.sql =====
+-- Additive: human-readable card keys (e.g. WEB-101) and project key prefixes.
+-- Keys use one global sequence as the column default: nextval() takes no row lock, so card
+-- creation does not add a lock upgrade, and a number is never reused. Numbers are not
+-- contiguous per project. Existing cards are numbered by creation order (created_at, id).
+
+CREATE SEQUENCE card_key_seq;
+
+ALTER TABLE projects ADD COLUMN key_prefix TEXT;
+UPDATE projects
+SET key_prefix = COALESCE(NULLIF(UPPER(LEFT(REGEXP_REPLACE(name, '[^A-Za-z0-9]', '', 'g'), 3)), ''), 'PRJ');
+ALTER TABLE projects ALTER COLUMN key_prefix SET NOT NULL;
+ALTER TABLE projects ALTER COLUMN key_prefix SET DEFAULT 'PRJ';
+
+ALTER TABLE cards ADD COLUMN card_number BIGINT;
+UPDATE cards c
+SET card_number = numbered.rn
+FROM (SELECT id, ROW_NUMBER() OVER (ORDER BY created_at, id) AS rn FROM cards) numbered
+WHERE c.id = numbered.id;
+SELECT setval('card_key_seq', COALESCE((SELECT MAX(card_number) FROM cards), 0) + 1, false);
+ALTER TABLE cards ALTER COLUMN card_number SET DEFAULT nextval('card_key_seq');
+ALTER TABLE cards ALTER COLUMN card_number SET NOT NULL;
+CREATE UNIQUE INDEX cards_card_number_key ON cards (card_number);
+
+===== database/migrations/0010_column_tone.sql =====
+-- Additive: optional named tone for a column (prototype pastel set). NULL means not set; the
+-- client keeps deriving a tone from name/category. Existing rows are unchanged.
+ALTER TABLE columns ADD COLUMN tone TEXT
+  CHECK (tone IN ('lavender', 'ice', 'grey', 'green', 'coral', 'rose', 'mint', 'peach', 'butter', 'lilac'));
+
+===== database/migrations/0011_rate_limit_windows.sql =====
+-- Additive: fixed-window request counters for the sensitive-route rate limiter (Google sign-in,
+-- invitation create, import preview and commit, image upload and finalize). One row per
+-- (bucket, client key, one-minute window). UNLOGGED: writes skip the WAL. A crash or restart
+-- empties the table, which resets the counters; acceptable for one-minute windows. Rows for ended
+-- windows are removed by the scheduled purge in apps/api (adapters/rate-limit-postgres.ts).
+CREATE UNLOGGED TABLE IF NOT EXISTS rate_limit_windows (
+  bucket TEXT NOT NULL,
+  client_key TEXT NOT NULL,
+  window_start BIGINT NOT NULL,
+  request_count INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (bucket, client_key, window_start)
+);
+
+-- Lets the purge find ended windows by time without scanning the whole table.
+CREATE INDEX IF NOT EXISTS rate_limit_windows_window_start_idx ON rate_limit_windows (window_start);
+
+===== database/migrations/0012_user_last_location.sql =====
+-- Additive: remember where each user last was, so the app can return them there.
+-- Both columns are pointers only. Access is re-checked on every read (see
+-- apps/api/src/adapters/last-location.ts); a pointer to a project or board the user
+-- can no longer read is never returned. ON DELETE SET NULL clears a pointer when its
+-- target row is deleted. No backfill: existing users start with NULL.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_project_id TEXT REFERENCES projects(id) ON DELETE SET NULL;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS last_board_id TEXT REFERENCES boards(id) ON DELETE SET NULL;
+
+===== database/migrations/0013_board_description_default_board.sql =====
+-- Additive: a plain-text description on each board, and a per-project default landing board.
+-- No backfill: existing boards have a NULL description, existing projects a NULL default board.
+-- Idempotent: columns use IF NOT EXISTS; constraints are added inside a DO block that ignores
+-- "already exists", so a second run changes nothing.
+
+ALTER TABLE boards ADD COLUMN IF NOT EXISTS description TEXT;
+
+-- The composite foreign key below needs a unique target on (id, project_id). boards.id is already
+-- unique, so this constraint adds no new rows and only lets the foreign key name both columns.
+DO $$
+BEGIN
+  ALTER TABLE boards ADD CONSTRAINT boards_id_project_id_key UNIQUE (id, project_id);
+EXCEPTION
+  -- duplicate_table: a UNIQUE constraint's backing index already exists on a re-run.
+  WHEN duplicate_object OR duplicate_table THEN NULL;
+END
+$$;
+
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS default_board_id TEXT;
+
+-- The pair (default_board_id, id) must match a real board whose project_id is this project's id.
+-- So a project can only point at one of its own boards, enforced by PostgreSQL rather than by
+-- application code alone. ON DELETE SET NULL (default_board_id) clears only the pointer if the
+-- board row is deleted; it never touches the project's id.
+DO $$
+BEGIN
+  ALTER TABLE projects ADD CONSTRAINT projects_default_board_fk
+    FOREIGN KEY (default_board_id, id) REFERENCES boards (id, project_id)
+    ON DELETE SET NULL (default_board_id);
+EXCEPTION
+  -- duplicate_object: the named foreign key already exists on a re-run.
+  WHEN duplicate_object OR duplicate_table THEN NULL;
+END
+$$;
+
+===== database/migrations/0014_project_brief_links.sql =====
+-- Additive: a plain-text brief on each project, and up to 10 https links per project.
+-- No backfill: existing projects have a NULL brief and no links.
+-- Idempotent: IF NOT EXISTS everywhere, so a second run changes nothing.
+-- The API enforces the length, count and https rules (packages/contracts). The CHECKs below are a
+-- second line of defence so a bad row cannot be written by another path.
+
+ALTER TABLE projects ADD COLUMN IF NOT EXISTS brief TEXT;
+
+CREATE TABLE IF NOT EXISTS project_links (
+  id TEXT PRIMARY KEY,
+  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+  title TEXT NOT NULL CHECK (char_length(title) BETWEEN 1 AND 100),
+  url TEXT NOT NULL CHECK (url ~* '^https://' AND char_length(url) <= 2000),
+  position INTEGER NOT NULL CHECK (position >= 0),
+  created_at TIMESTAMPTZ NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL,
+  UNIQUE (project_id, position)
+);
+
+===== database/migrations/0015_project_links_workspace_fk.sql =====
+-- Additive: a project link must belong to the same workspace as its project (FB-AUD-07).
+-- Before this, the foreign keys on project_links.workspace_id and project_links.project_id were
+-- independent, so one row could name workspace A with a project from workspace B. The composite
+-- key below reuses the unique (id, workspace_id) key that projects already has (migration 0003).
+-- No backfill: a row that already pairs a link with another workspace's project would stop the
+-- constraint from being added. Such a row cannot come from the API, and an operator must fix it first.
+-- Idempotent: the constraint is added inside a DO block that ignores "already exists", so a second
+-- run changes nothing.
+DO $$
+BEGIN
+  ALTER TABLE project_links ADD CONSTRAINT project_links_project_workspace_fk
+    FOREIGN KEY (project_id, workspace_id) REFERENCES projects (id, workspace_id) ON DELETE RESTRICT;
+EXCEPTION
+  -- duplicate_object: the named foreign key already exists on a re-run.
+  WHEN duplicate_object OR duplicate_table THEN NULL;
+END
+$$;
+
+===== database/migrations/0016_staged_upload_cleanup.sql =====
+-- Additive: marks a staged upload whose staging object has been queued for deletion (B-11), so the
+-- orphan sweep settles each row once instead of revisiting it on every run. No backfill: existing
+-- rows start as not cleaned, and the first sweep settles them.
+-- Idempotent: IF NOT EXISTS everywhere, so a second run changes nothing.
+ALTER TABLE card_image_uploads ADD COLUMN IF NOT EXISTS staging_cleaned BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE INDEX IF NOT EXISTS card_image_uploads_orphan_idx
+  ON card_image_uploads (expires_at)
+  WHERE staging_cleaned = FALSE;

@@ -1,0 +1,65 @@
+# Command log index
+
+Each listed `.log` contains the exact command, captured output, and exit code. Database commands also record the disposable endpoint and image. Matching `.out` files contain stdout/stderr.
+
+- `00-freeze.log` / `00-freeze.out` — command(s): not captured in wrapper; exit code(s): see raw output
+- `capture-test.log` / `capture-test.out` — command(s): COMMAND: bash -c printf\ \"capture\ works\\\\n\"; exit code(s): 0
+- `comment-outbox-payload.log` / `comment-outbox-payload.out` — command(s): COMMAND: rg -n -A24 -B8 INSERT\ INTO\ outbox\|comment.created\|payload apps/api/src/adapters/comments.ts; exit code(s): 0
+- `db-cleanup-verify-final.log` / `db-cleanup-verify-final.out` — command(s): COMMAND: docker ps -a --filter name=codex-flowboard-audit-20261030-c --format \{\{.Names\}\}; exit code(s): 1
+- `db-cleanup-verify.log` / `db-cleanup-verify.out` — command(s): COMMAND: docker ps -a --filter name=codex-flowboard-audit-20261030-c --format \{\{.Names\}\}; exit code(s): 0
+- `db-cleanup.log` / `db-cleanup.out` — command(s): COMMAND: docker rm -f codex-flowboard-audit-20261030-c; exit code(s): 0
+- `db-invitation-test.log` / `db-invitation-test.out` — command(s): COMMAND: env ALLOW_REMOTE_DB=true DATABASE_URL=postgres://flowaudit@127.0.0.1:55634/flowaudit0010 NODE_ENV=test node --test --test-concurrency=1 apps/api/test/b10-invitation-email.test.ts; exit code(s): 0
+- `db-notification-plans-retry.log` / `db-notification-plans-retry.out` — command(s): COMMAND: node docs/reviews/CODEX-AUDIT-20261030-C/raw/notification-plan.mjs; exit code(s): 0
+- `db-notification-plans.log` / `db-notification-plans.out` — command(s): COMMAND: node docs/reviews/CODEX-AUDIT-20261030-C/raw/notification-plan.mjs; exit code(s): 1
+- `db-orphan-lifecycle-retry.log` / `db-orphan-lifecycle-retry.out` — command(s): COMMAND: node docs/reviews/CODEX-AUDIT-20261030-C/raw/orphan-audit.mjs; exit code(s): 0
+- `db-orphan-lifecycle.log` / `db-orphan-lifecycle.out` — command(s): COMMAND: node docs/reviews/CODEX-AUDIT-20261030-C/raw/orphan-audit.mjs; exit code(s): 1
+- `db-runtime-role-ddl.log` / `db-runtime-role-ddl.out` — command(s): COMMAND: node docs/reviews/CODEX-AUDIT-20261030-C/raw/role-privilege-probe.mjs; exit code(s): 0
+- `db-seed-query-plans.log` / `db-seed-query-plans.out` — command(s): COMMAND: node docs/reviews/CODEX-AUDIT-20261030-C/raw/seed-and-plans.mjs; exit code(s): 1
+- `db-server-version.log` / `db-server-version.out` — command(s): COMMAND: node docs/reviews/CODEX-AUDIT-20261030-C/raw/role-privilege-probe.mjs; exit code(s): 0
+- `deletion-endpoints.log` / `deletion-endpoints.out` — command(s): COMMAND: bash -c rg\ -n\ \"\\.delete\\\(\|DELETE\ FROM\|status\ =\ .removed.\|archived\ =\ TRUE\|archived\ =\ FALSE\"\ apps/api/src/http/routes/\{projects\,boards\,cards\,workspaces\}.ts\ apps/api/src/adapters/\{members\,projects\,boards\,trash\}.ts; exit code(s): 0
+- `docker-version-confirmed.log` / `docker-version-confirmed.out` — command(s): COMMAND: docker version --format \{\{.Client.Version\}\}/\{\{.Server.Version\}\}; exit code(s): 0
+- `docker-version-final.log` / `docker-version-final.out` — command(s): COMMAND: docker version --format \{\{.Client.Version\}\}/\{\{.Server.Version\}\}; exit code(s): 1
+- `email-commit-diff.log` / `email-commit-diff.out` — command(s): COMMAND: git show --no-ext-diff --format=fuller --stat 1eda522 -- apps/api/src/services/invitation-email.ts apps/api/src/adapters/invitation-delivery.ts apps/api/src/services/mailer.ts; exit code(s): 0
+- `email-commit-final.log` / `email-commit-final.out` — command(s): COMMAND: git show --no-ext-diff --format=fuller --stat 8cc31e2 -- apps/api/src/services/invitation-email.ts apps/api/src/adapters/invitation-delivery.ts apps/api/src/services/mailer.ts; exit code(s): 0
+- `final-freeze.log` / `final-freeze.out` — command(s): COMMAND: sh -c git\ rev-parse\ HEAD\;\ git\ status\ --short; exit code(s): 0
+- `git-version.log` / `git-version.out` — command(s): COMMAND: git --version; exit code(s): 0
+- `hard-delete-source.log` / `hard-delete-source.out` — command(s): COMMAND: rg -n DELETE\ FROM\ \(project_memberships\|boards\|projects\|cards\|users\|card_images\|card_image_uploads\|comments\|comment_mentions\|outbox\|notifications\|activity_log\)\|UPDATE\ project_memberships\ SET\ status\|archive apps/api/src; exit code(s): 0
+- `historical-person-display.log` / `historical-person-display.out` — command(s): COMMAND: sed -n 600\,665p apps/api/src/adapters/rbac.ts; exit code(s): 0
+- `inspect-notification-plan.log` / `inspect-notification-plan.out` — command(s): COMMAND: sed -n 1\,12p docs/reviews/CODEX-AUDIT-20261030-C/raw/notification-plan.mjs; exit code(s): 0
+- `inspect-plan-query.log` / `inspect-plan-query.out` — command(s): COMMAND: rg -n -A2 -B1 const\ notif docs/reviews/CODEX-AUDIT-20261030-C/raw/seed-and-plans.mjs; exit code(s): 0
+- `invitation-delivery-source.log` / `invitation-delivery-source.out` — command(s): COMMAND: sed -n 1\,300p apps/api/src/adapters/invitation-delivery.ts; exit code(s): 0
+- `invitation-tests.log` / `invitation-tests.out` — command(s): COMMAND: bash -c sed\ -n\ \"1\,280p\"\ apps/api/test/b10-invitation-email.test.ts\;\ sed\ -n\ \"1\,220p\"\ apps/api/test/b12-invitation-email-design.test.ts; exit code(s): 0
+- `mail-related-tests.log` / `mail-related-tests.out` — command(s): COMMAND: rg --files apps/api/test; exit code(s): 0
+- `mail-test-names.log` / `mail-test-names.out` — command(s): COMMAND: rg -n \^test\\\(\|\^\ \ await\ t\\.test\\\( apps/api/test/b10-invitation-email.test.ts; exit code(s): 0
+- `mail-test-search.log` / `mail-test-search.out` — command(s): COMMAND: find apps/api/test -maxdepth 1 -type f -iname \*mail\* -o -iname \*invitation\* -o -iname \*outbox\* -print; exit code(s): 0
+- `mailer-source.log` / `mailer-source.out` — command(s): COMMAND: cat apps/api/src/services/mailer.ts; exit code(s): 0
+- `member-removal-signature.log` / `member-removal-signature.out` — command(s): COMMAND: sed -n 180\,290p apps/api/src/adapters/members.ts; exit code(s): 0
+- `member-removal-tail.log` / `member-removal-tail.out` — command(s): COMMAND: sed -n 285\,345p apps/api/src/adapters/members.ts; exit code(s): 0
+- `npm-version.log` / `npm-version.out` — command(s): COMMAND: npm --version; exit code(s): 0
+- `orphan-source.log` / `orphan-source.out` — command(s): COMMAND: bash -c sed\ -n\ \"1\,280p\"\ apps/api/src/services/trash-purge.ts\;\ sed\ -n\ \"860\,1020p\"\ apps/api/src/adapters/images.ts\;\ rg\ -n\ \"removeProjectMember\|project_memberships\|DELETE\ FROM\"\ apps/api/src/adapters/members.ts\ apps/api/src/adapters/projects.ts\ apps/api/src/adapters/boards.ts\ apps/api/src/adapters/trash.ts\ apps/api/src/http/routes/projects.ts\ apps/api/src/http/routes/boards.ts; exit code(s): 0
+- `query-notification-visibility.log` / `query-notification-visibility.out` — command(s): COMMAND: sed -n 1\,105p apps/api/src/adapters/notifications.ts; exit code(s): 0
+- `query-nplus1.log` / `query-nplus1.out` — command(s): COMMAND: bash -c rg\ -n\ \"getHistoricalPersonDisplay\|Promise\\.all\\\(\"\ apps/api/src/adapters/activity.ts\ apps/api/src/adapters/\*.ts\;\ sed\ -n\ \"220\,275p\"\ apps/api/src/adapters/activity.ts\;\ sed\ -n\ \"390\,438p\"\ apps/api/src/adapters/activity.ts\;\ sed\ -n\ \"548\,608p\"\ apps/api/src/adapters/activity.ts; exit code(s): 0
+- `query-source.log` / `query-source.out` — command(s): COMMAND: bash -c printf\ \"=====\ project\ overview\ =====\\\\n\"\;\ cat\ apps/api/src/adapters/project-overview.ts\;\ printf\ \"\\\\n=====\ boards\ snapshot/list\ query\ blocks\ =====\\\\n\"\;\ sed\ -n\ \"1110\,1270p\"\ apps/api/src/adapters/boards.ts\;\ sed\ -n\ \"1475\,1610p\"\ apps/api/src/adapters/boards.ts\;\ printf\ \"\\\\n=====\ project/activity/notification\ indexes\ =====\\\\n\"\;\ sed\ -n\ \"320\,385p\"\ apps/api/src/adapters/activity.ts\;\ sed\ -n\ \"510\,560p\"\ apps/api/src/adapters/activity.ts\;\ sed\ -n\ \"70\,145p\"\ apps/api/src/adapters/notifications.ts; exit code(s): 0
+- `source-line-map.log` / `source-line-map.out` — command(s): COMMAND: rg -n getHistoricalPersonDisplay\|Promise\\.all\|CREATE\ TABLE\|REFERENCES\|CREATE\ INDEX\|CONSTRAINT.\*CHECK apps/api/src/adapters/activity.ts apps/api/src/adapters/rbac.ts database/migrations/0011_rate_limit_windows.sql database/migrations/0012_user_last_location.sql database/migrations/0013_board_description_default_board.sql database/migrations/0014_project_brief_links.sql database/migrations/0015_project_links_workspace_fk.sql database/migrations/0016_staged_upload_cleanup.sql; exit code(s): 0
+- `tool-versions.log` / `tool-versions.out` — command(s): COMMAND: node --version; exit code(s): 0
+- `trash-delete-signature.log` / `trash-delete-signature.out` — command(s): COMMAND: sed -n 185\,260p apps/api/src/adapters/trash.ts; exit code(s): 0
+- `worker-test-list.log` / `worker-test-list.out` — command(s): COMMAND: rg -n runIsolated\|scheduled\|overlap\|failure\|outbox apps/api/test/worker.test.ts; exit code(s): 0
+- `audit-source.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `check-port-55634.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `code-map.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `db-connect.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `db-constraint-inspection.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `db-migrations-0001-0016.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `db-migrations-seeded.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `docker-images-elevated.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `docker-images.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `docker-run.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `docker-version-elevated.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `docker-version.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `local-db-config.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `migration-inspect.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `migrations-list.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `node-version.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `psql-version.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `read-capture-log.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.
+- `verify-wrapper.out` — raw output without a wrapper `.log`; associated attempts are described in `exit-summary.md`.

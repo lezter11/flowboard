@@ -1,0 +1,76 @@
+ * - Card must be active (rejects trashed/purged cards).
+ * - OCC check: expectedVersion matches card.version and expectedBoardVersion matches board.structure_version.
+ * - Sets state = 'trashed', deleted_at = NOW(), deleted_by = actorId, restore_until = NOW() + INTERVAL '24 hours'.
+ * - Increments board structure_version and snapshot_version.
+ * - Writes activity_log fact.
+ * - Returns updated card.
+ */
+export async function deleteCard(
+  client: pg.ClientBase,
+  cardId: string,
+  input: SoftDeleteCardInput,
+  actorId: string,
+): Promise<Card> {
+  const validated = parseOrThrow(softDeleteCardInputSchema, input);
+  await lockCardBoard(client, cardId, actorId);
+
+  // 1. Fetch card and board details with row lock
+  const cardRes = await client.query<{
+    id: string;
+    workspace_id: string;
+    project_id: string;
+    board_id: string;
+    column_id: string;
+    title: string;
+    position: number | string;
+    version: number;
+    state: CardState;
+    board_structure_version: number;
+    board_snapshot_version: number;
+  }>(
+    `SELECT c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.title, c.position, c.version, c.state,
+            b.structure_version AS board_structure_version, b.snapshot_version AS board_snapshot_version
+     FROM cards c
+     JOIN boards b ON c.board_id = b.id
+     WHERE c.id = $1
+     FOR UPDATE`,
+    [cardId],
+  );
+
+  if (cardRes.rows.length === 0 || !cardRes.rows[0]) {
+    throw HttpError.notFound('Card not found.', 'NOT_FOUND');
+  }
+
+  const card = cardRes.rows[0];
+
+  if (card.state === 'trashed') {
+    throw HttpError.conflict('CARD_ALREADY_TRASHED', 'Card is already trashed.');
+  }
+  if (card.state === 'purged') {
+    throw HttpError.notFound('Card not found.', 'NOT_FOUND');
+  }
+
+  // 2. Authorization check: Owner or Manager only (DEL-01: members/viewers receive 403)
+  await acquireWriteGrantLock(client, card.project_id, actorId, 'manager', card.board_id);
+  await acquireWritableProjectContextLock(client, card.project_id, card.board_id);
+
+  // 3. OCC checks
+  if (card.version !== validated.expectedVersion) {
+    throw HttpError.conflict('STALE_VERSION', 'Card version does not match expected version.');
+  }
+  if (card.board_structure_version !== validated.expectedBoardVersion) {
+    throw HttpError.conflict('STALE_VERSION', 'Board structure version does not match expected board version.');
+  }
+
+  // Determine surrounding anchors before soft deleting for re-anchoring on restore
+  const neighborRes = await client.query<{ id: string; position: number }>(
+    `SELECT id, position
+     FROM cards
+     WHERE column_id = $1 AND state = 'active' AND id != $2
+     ORDER BY cards.position ASC, cards.id ASC`,
+    [card.column_id, cardId],
+  );
+  const cardPos = Number(card.position);
+  const prevNeighbors = neighborRes.rows.filter((r) => Number(r.position) < cardPos);
+  const nextNeighbors = neighborRes.rows.filter((r) => Number(r.position) > cardPos);
+  const previousCardId = prevNeighbors.length > 0 ? prevNeighbors[prevNeighbors.length - 1]!.id : null;

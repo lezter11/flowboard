@@ -1,0 +1,624 @@
+SEEDED {"boards":"20","cards":"5000","activity":"5000","notifications":"5000","comments":"5000","images":"500"}
+PLAN {
+  "name": "board-load-list-cards",
+  "planningMs": 0.472,
+  "executionMs": 2.407,
+  "nodes": [
+    {
+      "node": "Limit",
+      "table": null,
+      "index": null,
+      "rows": 51,
+      "loops": 1,
+      "ms": 2.273
+    },
+    {
+      "node": "Sort",
+      "table": null,
+      "index": null,
+      "rows": 51,
+      "loops": 1,
+      "ms": 2.271
+    },
+    {
+      "node": "Hash Join",
+      "table": null,
+      "index": null,
+      "rows": 250,
+      "loops": 1,
+      "ms": 2.217
+    },
+    {
+      "node": "Hash Join",
+      "table": null,
+      "index": null,
+      "rows": 250,
+      "loops": 1,
+      "ms": 1.967
+    },
+    {
+      "node": "Hash Join",
+      "table": null,
+      "index": null,
+      "rows": 250,
+      "loops": 1,
+      "ms": 1.928
+    },
+    {
+      "node": "Aggregate",
+      "table": null,
+      "index": null,
+      "rows": 2500,
+      "loops": 1,
+      "ms": 0.557
+    },
+    {
+      "node": "Index Only Scan",
+      "table": "card_assignees",
+      "index": "card_assignees_pkey",
+      "rows": 2500,
+      "loops": 1,
+      "ms": 0.18
+    },
+    {
+      "node": "Hash",
+      "table": null,
+      "index": null,
+      "rows": 250,
+      "loops": 1,
+      "ms": 1.254
+    },
+    {
+      "node": "Hash Join",
+      "table": null,
+      "index": null,
+      "rows": 250,
+      "loops": 1,
+      "ms": 1.223
+    },
+    {
+      "node": "Aggregate",
+      "table": null,
+      "index": null,
+      "rows": 5000,
+      "loops": 1,
+      "ms": 0.922
+    },
+    {
+      "node": "Seq Scan",
+      "table": "comments",
+      "index": null,
+      "rows": 5000,
+      "loops": 1,
+      "ms": 0.226
+    },
+    {
+      "node": "Hash",
+      "table": null,
+      "index": null,
+      "rows": 250,
+      "loops": 1,
+      "ms": 0.099
+    },
+    {
+      "node": "Bitmap Heap Scan",
+      "table": "cards",
+      "index": null,
+      "rows": 250,
+      "loops": 1,
+      "ms": 0.068
+    },
+    {
+      "node": "Bitmap Index Scan",
+      "table": null,
+      "index": "idx_cards_board",
+      "rows": 250,
+      "loops": 1,
+      "ms": 0.011
+    },
+    {
+      "node": "Hash",
+      "table": null,
+      "index": null,
+      "rows": 60,
+      "loops": 1,
+      "ms": 0.01
+    },
+    {
+      "node": "Seq Scan",
+      "table": "columns",
+      "index": null,
+      "rows": 60,
+      "loops": 1,
+      "ms": 0.005
+    },
+    {
+      "node": "Hash",
+      "table": null,
+      "index": null,
+      "rows": 500,
+      "loops": 1,
+      "ms": 0.148
+    },
+    {
+      "node": "Subquery Scan",
+      "table": null,
+      "index": null,
+      "rows": 500,
+      "loops": 1,
+      "ms": 0.117
+    },
+    {
+      "node": "Aggregate",
+      "table": null,
+      "index": null,
+      "rows": 500,
+      "loops": 1,
+      "ms": 0.096
+    },
+    {
+      "node": "Seq Scan",
+      "table": "card_images",
+      "index": null,
+      "rows": 500,
+      "loops": 1,
+      "ms": 0.024
+    }
+  ]
+}
+PLAN {
+  "name": "project-overview-board-count",
+  "planningMs": 0.161,
+  "executionMs": 0.028,
+  "nodes": [
+    {
+      "node": "Aggregate",
+      "table": null,
+      "index": null,
+      "rows": 1,
+      "loops": 1,
+      "ms": 0.017
+    },
+    {
+      "node": "Nested Loop",
+      "table": null,
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.015
+    },
+    {
+      "node": "Seq Scan",
+      "table": "workspaces",
+      "index": null,
+      "rows": 1,
+      "loops": 1,
+      "ms": 0.002
+    },
+    {
+      "node": "Seq Scan",
+      "table": "boards",
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.004
+    },
+    {
+      "node": "Seq Scan",
+      "table": "board_grants",
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.002
+    }
+  ]
+}
+PLAN {
+  "name": "project-overview-card-counts",
+  "planningMs": 0.157,
+  "executionMs": 1.654,
+  "nodes": [
+    {
+      "node": "Aggregate",
+      "table": null,
+      "index": null,
+      "rows": 3,
+      "loops": 1,
+      "ms": 1.632
+    },
+    {
+      "node": "Hash Join",
+      "table": null,
+      "index": null,
+      "rows": 5000,
+      "loops": 1,
+      "ms": 1.153
+    },
+    {
+      "node": "Hash Join",
+      "table": null,
+      "index": null,
+      "rows": 5000,
+      "loops": 1,
+      "ms": 0.767
+    },
+    {
+      "node": "Seq Scan",
+      "table": "cards",
+      "index": null,
+      "rows": 5000,
+      "loops": 1,
+      "ms": 0.384
+    },
+    {
+      "node": "Hash",
+      "table": null,
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.014
+    },
+    {
+      "node": "Nested Loop",
+      "table": null,
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.011
+    },
+    {
+      "node": "Seq Scan",
+      "table": "workspaces",
+      "index": null,
+      "rows": 1,
+      "loops": 1,
+      "ms": 0.001
+    },
+    {
+      "node": "Seq Scan",
+      "table": "boards",
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.002
+    },
+    {
+      "node": "Seq Scan",
+      "table": "board_grants",
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.002
+    },
+    {
+      "node": "Hash",
+      "table": null,
+      "index": null,
+      "rows": 60,
+      "loops": 1,
+      "ms": 0.009
+    },
+    {
+      "node": "Seq Scan",
+      "table": "columns",
+      "index": null,
+      "rows": 60,
+      "loops": 1,
+      "ms": 0.004
+    }
+  ]
+}
+PLAN {
+  "name": "project-overview-assignee-counts",
+  "planningMs": 0.546,
+  "executionMs": 1.549,
+  "nodes": [
+    {
+      "node": "Limit",
+      "table": null,
+      "index": null,
+      "rows": 1,
+      "loops": 1,
+      "ms": 1.515
+    },
+    {
+      "node": "Sort",
+      "table": null,
+      "index": null,
+      "rows": 1,
+      "loops": 1,
+      "ms": 1.514
+    },
+    {
+      "node": "Aggregate",
+      "table": null,
+      "index": null,
+      "rows": 1,
+      "loops": 1,
+      "ms": 1.51
+    },
+    {
+      "node": "Hash Join",
+      "table": null,
+      "index": null,
+      "rows": 1667,
+      "loops": 1,
+      "ms": 1.412
+    },
+    {
+      "node": "Hash Join",
+      "table": null,
+      "index": null,
+      "rows": 1667,
+      "loops": 1,
+      "ms": 1.279
+    },
+    {
+      "node": "Hash Join",
+      "table": null,
+      "index": null,
+      "rows": 1667,
+      "loops": 1,
+      "ms": 1.146
+    },
+    {
+      "node": "Hash Join",
+      "table": null,
+      "index": null,
+      "rows": 3334,
+      "loops": 1,
+      "ms": 0.686
+    },
+    {
+      "node": "Seq Scan",
+      "table": "cards",
+      "index": null,
+      "rows": 5000,
+      "loops": 1,
+      "ms": 0.363
+    },
+    {
+      "node": "Hash",
+      "table": null,
+      "index": null,
+      "rows": 40,
+      "loops": 1,
+      "ms": 0.007
+    },
+    {
+      "node": "Seq Scan",
+      "table": "columns",
+      "index": null,
+      "rows": 40,
+      "loops": 1,
+      "ms": 0.004
+    },
+    {
+      "node": "Hash",
+      "table": null,
+      "index": null,
+      "rows": 2500,
+      "loops": 1,
+      "ms": 0.232
+    },
+    {
+      "node": "Seq Scan",
+      "table": "card_assignees",
+      "index": null,
+      "rows": 2500,
+      "loops": 1,
+      "ms": 0.091
+    },
+    {
+      "node": "Hash",
+      "table": null,
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.013
+    },
+    {
+      "node": "Nested Loop",
+      "table": null,
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.01
+    },
+    {
+      "node": "Seq Scan",
+      "table": "workspaces",
+      "index": null,
+      "rows": 1,
+      "loops": 1,
+      "ms": 0.001
+    },
+    {
+      "node": "Seq Scan",
+      "table": "boards",
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.002
+    },
+    {
+      "node": "Seq Scan",
+      "table": "board_grants",
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.002
+    },
+    {
+      "node": "Hash",
+      "table": null,
+      "index": null,
+      "rows": 2,
+      "loops": 1,
+      "ms": 0.004
+    },
+    {
+      "node": "Seq Scan",
+      "table": "users",
+      "index": null,
+      "rows": 2,
+      "loops": 1,
+      "ms": 0.002
+    }
+  ]
+}
+PLAN {
+  "name": "project-overview-recent-activity",
+  "planningMs": 0.141,
+  "executionMs": 0.043,
+  "nodes": [
+    {
+      "node": "Limit",
+      "table": null,
+      "index": null,
+      "rows": 10,
+      "loops": 1,
+      "ms": 0.027
+    },
+    {
+      "node": "Nested Loop",
+      "table": null,
+      "index": null,
+      "rows": 10,
+      "loops": 1,
+      "ms": 0.026
+    },
+    {
+      "node": "Index Scan",
+      "table": "activity_log",
+      "index": "idx_activity_scope_draft_page",
+      "rows": 10,
+      "loops": 1,
+      "ms": 0.021
+    },
+    {
+      "node": "Nested Loop",
+      "table": null,
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.011
+    },
+    {
+      "node": "Seq Scan",
+      "table": "workspaces",
+      "index": null,
+      "rows": 1,
+      "loops": 1,
+      "ms": 0.001
+    },
+    {
+      "node": "Seq Scan",
+      "table": "boards",
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.002
+    },
+    {
+      "node": "Seq Scan",
+      "table": "board_grants",
+      "index": null,
+      "rows": 20,
+      "loops": 1,
+      "ms": 0.002
+    },
+    {
+      "node": "Memoize",
+      "table": null,
+      "index": null,
+      "rows": 1,
+      "loops": 10,
+      "ms": 0
+    },
+    {
+      "node": "Index Scan",
+      "table": "users",
+      "index": "users_pkey",
+      "rows": 1,
+      "loops": 1,
+      "ms": 0.002
+    }
+  ]
+}
+PLAN {
+  "name": "project-activity-feed",
+  "planningMs": 0.094,
+  "executionMs": 0.045,
+  "nodes": [
+    {
+      "node": "Limit",
+      "table": null,
+      "index": null,
+      "rows": 51,
+      "loops": 1,
+      "ms": 0.034
+    },
+    {
+      "node": "Nested Loop",
+      "table": null,
+      "index": null,
+      "rows": 51,
+      "loops": 1,
+      "ms": 0.032
+    },
+    {
+      "node": "Index Scan",
+      "table": "activity_log",
+      "index": "idx_activity_scope_draft_page",
+      "rows": 51,
+      "loops": 1,
+      "ms": 0.009
+    },
+    {
+      "node": "Memoize",
+      "table": null,
+      "index": null,
+      "rows": 1,
+      "loops": 51,
+      "ms": 0
+    },
+    {
+      "node": "Index Scan",
+      "table": "board_grants",
+      "index": "board_grants_pkey",
+      "rows": 1,
+      "loops": 20,
+      "ms": 0.001
+    }
+  ]
+}
+/Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+
+error: syntax error at end of input
+    at /Users/shubham/Documents/Flowboard/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async explain (file:///Users/shubham/Documents/Flowboard/docs/reviews/CODEX-AUDIT-20261030-C/raw/seed-and-plans.mjs:4:52)
+    at async file:///Users/shubham/Documents/Flowboard/docs/reviews/CODEX-AUDIT-20261030-C/raw/seed-and-plans.mjs:30:2 {
+  length: 92,
+  severity: 'ERROR',
+  code: '42601',
+  detail: undefined,
+  hint: undefined,
+  position: '945',
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: undefined,
+  table: undefined,
+  column: undefined,
+  dataType: undefined,
+  constraint: undefined,
+  file: 'scan.l',
+  line: '1236',
+  routine: 'scanner_yyerror'
+}
+
+Node.js v24.15.0

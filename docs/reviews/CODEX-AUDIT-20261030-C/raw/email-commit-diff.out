@@ -1,0 +1,24 @@
+commit 1eda522259ed1048e7c5f3e8359996079a2c5bfc
+Author:     damaged-goods-admin <admin@damagedgoods.in>
+AuthorDate: Fri Oct 30 18:53:06 2026 +0530
+Commit:     damaged-goods-admin <admin@damagedgoods.in>
+CommitDate: Fri Oct 30 18:53:06 2026 +0530
+
+    feat(api): invitation email in the Flowboard theme (B-12)
+    
+    The invitation email now uses the Flowboard look: a light header with the plum app icon
+    (hosted on the app origin) and a plum wordmark, a white card on the warm canvas, a role
+    badge, one accept button, a visible fallback link, the expiry line and a footer that says
+    why the person received it. Table layout, 600px cap, inline styles, a hidden preheader,
+    alt text and no external CSS or fonts. Every colour pair meets WCAG AA.
+    
+    Tests cover the structure fingerprint, inline-style rules, the link set, escaping of names
+    containing markup, a one-line bounded subject, and contrast. A preview and 600px and 375px
+    light renders are in docs/references/email. No dark-mode renders: headless Chrome cannot
+    reproduce client dark mode.
+    
+    Co-Authored-By: Claude Haiku 5.5 <noreply@anthropic.com>
+
+ apps/api/src/adapters/invitation-delivery.ts |  1 +
+ apps/api/src/services/invitation-email.ts    | 88 +++++++++++++++++++++++++---
+ 2 files changed, 80 insertions(+), 9 deletions(-)

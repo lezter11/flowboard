@@ -1,0 +1,1251 @@
+===== worker =====
+import { createPool, queryDatabase } from '../adapters/postgres.ts';
+import { createApp } from '../http/app.ts';
+import { processPendingStorageDeletions, purgeExpiredTrash } from '../services/trash-purge.ts';
+import { cleanupOrphanUploads } from '../adapters/images.ts';
+import { processOutboxLease } from '../adapters/notifications.ts';
+import { mailerFromEnv, type MailEnv } from '../services/mailer.ts';
+import { purgeEndedWindows } from '../adapters/rate-limit-postgres.ts';
+import { R2StorageDriver, runWithStorageDriver, type R2BucketBinding } from '../adapters/storage.ts';
+
+export type WorkerBindings = MailEnv & {
+  HYPERDRIVE: { connectionString: string };
+  DATABASE_URL?: string;
+  CURSOR_SECRET?: string;
+  // Private R2 bucket for image bytes (no public access). Absent means image routes return 503 CONFIG_ERROR.
+  IMAGES?: R2BucketBinding;
+};
+
+export interface ScheduledJob {
+  name: string;
+  run: () => Promise<unknown>;
+}
+
+/**
+ * Runs each scheduled job in turn. A job that throws does not stop the others. The first error is
+ * rethrown at the end, so the run is still reported as failed. Only job names are logged.
+ */
+export async function runIsolated(jobs: ScheduledJob[]): Promise<void> {
+  const failures: Array<{ name: string; error: unknown }> = [];
+  for (const job of jobs) {
+    try {
+      await job.run();
+    } catch (error) {
+      failures.push({ name: job.name, error });
+    }
+  }
+  if (failures.length > 0) {
+    console.error(JSON.stringify({ event: 'scheduled_job_failed', jobs: failures.map((f) => f.name) }));
+    throw failures[0]!.error;
+  }
+}
+
+function imageStorage(env: WorkerBindings): R2StorageDriver | null {
+  return env.IMAGES ? new R2StorageDriver(env.IMAGES) : null;
+}
+
+export default {
+  async fetch(request: Request, env: WorkerBindings): Promise<Response> {
+    // A request-scoped pool owns at most one pg connection; never shared across
+    // Worker requests. Real Hyperdrive pooling is a later hosted verification.
+    const connectionString = env.HYPERDRIVE?.connectionString ?? env.DATABASE_URL;
+    if (!connectionString) {
+      return new Response(
+        JSON.stringify({
+          error: {
+            code: 'CONFIG_ERROR',
+            message: 'Missing HYPERDRIVE or DATABASE_URL binding in Worker environment.',
+          },
+        }),
+        { status: 500, headers: { 'Content-Type': 'application/json' } },
+      );
+    }
+
+    const pool = createPool(connectionString, 1);
+    const app = createApp(() => queryDatabase(pool), {
+      pool,
+      deadlineMs: 25_000,
+      rateLimitBindingsRequired: true,
+      storage: imageStorage(env),
+    });
+    try {
+      return await app.fetch(request, env);
+    } finally {
+      await pool.end();
+    }
+  },
+
+  async scheduled(_event: unknown, env: WorkerBindings): Promise<void> {
+    const connectionString = env.HYPERDRIVE?.connectionString ?? env.DATABASE_URL;
+    if (!connectionString) return;
+    const pool = createPool(connectionString, 1);
+    const storage = imageStorage(env);
+    try {
+      await runIsolated([
+        { name: 'trash-purge', run: () => runWithStorageDriver(storage, () => purgeExpiredTrash(pool)) },
+        { name: 'orphan-uploads', run: () => runWithStorageDriver(storage, () => cleanupOrphanUploads(pool)) },
+        { name: 'pending-storage', run: () => runWithStorageDriver(storage, () => processPendingStorageDeletions(pool)) },
+        // Invitation mail is sent only when the mail configuration is complete (see mailerFromEnv).
+        { name: 'outbox', run: () => processOutboxLease(pool, { mailer: mailerFromEnv(env) }) },
+        { name: 'rate-windows', run: () => purgeEndedWindows(pool) },
+      ]);
+    } finally {
+      await pool.end();
+    }
+  },
+};
+
+===== invitations service files =====
+apps/api/src/adapters/invitations.ts
+apps/api/src/adapters/invitation-delivery.ts
+apps/api/src/http/routes/invitations.ts
+apps/api/src/services/invitation-email.ts
+
+===== invitation email =====
+/**
+ * Invitation email content (B-10). Every user-supplied value is either bounded and stripped of
+ * control characters (names in the subject and the plain text) or HTML-escaped (the HTML body).
+ * The accept link uses the shape the web accept screen reads: `/invitation?token=...`.
+ */
+
+const ROLE_LABELS: Record<string, string> = {
+  manager: 'Manager',
+  member: 'Member',
+  viewer: 'Viewer',
+};
+
+export interface InvitationEmailInput {
+  projectName: string;
+  inviterName: string;
+  role: string;
+  expiresAt: string;
+  acceptUrl: string;
+}
+
+export interface InvitationEmailContent {
+  subject: string;
+  text: string;
+  html: string;
+}
+
+/** Removes control characters, including CR and LF, and bounds the length. */
+export function plainLine(value: string, max: number): string {
+  return value.replace(/[\p{Cc}\p{Zl}\p{Zp}]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+}
+
+/** HTML-escapes text for an element body or a double-quoted attribute. */
+export function escapeHtml(value: string): string {
+  return value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
+}
+
+/** The accept link: origin from configuration, token URL-encoded. */
+export function acceptInvitationUrl(appOrigin: string, token: string): string {
+  return `${appOrigin}/invitation?token=${encodeURIComponent(token)}`;
+}
+
+/** Brand tokens (apps/web/src/styles). Every text and fill pair is checked for WCAG AA in the tests. */
+export const EMAIL_COLORS = {
+  canvas: '#F8F5FA',
+  card: '#FFFFFF',
+  tint: '#F1EBF5',
+  ink: '#2D2532',
+  muted: '#5F5468',
+  plum: '#302638',
+  accent: '#684B7C',
+  line: '#E3D9E9',
+  code: '#F8F5FA',
+} as const;
+
+/** Role chip colours: background and text. Each text colour clears 4.5:1 on its own chip. */
+export const ROLE_CHIP: Record<string, { bg: string; ink: string }> = {
+  manager: { bg: '#E9DDF2', ink: '#4B2F63' },
+  member: { bg: '#D7F3E2', ink: '#1E5A36' },
+  viewer: { bg: '#DCEEFD', ink: '#1D4A73' },
+};
+export const EXPIRY_CHIP = { bg: '#FBEFD9', ink: '#6B4A12' } as const;
+
+/** What the role can do: three short, warm items per role. */
+export const ROLE_ABILITIES: Record<string, [string, string, string]> = {
+  manager: ['Manage boards', 'Manage people', 'Create and move cards'],
+  member: ['Create and move cards', 'Comment on cards', 'Upload images'],
+  viewer: ['View cards', 'Read comments', 'View images'],
+};
+
+const FONT_STACK = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const MONO_STACK = "ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace";
+
+/** Hosted images on the app origin. They are public static files and carry alt text. */
+export function emailImageUrls(appOrigin: string) {
+  return {
+    lockup: `${appOrigin}/email/flowboard-lockup-dark.png`,
+    hero: `${appOrigin}/email/invite-board-hero.png`,
+    mark: `${appOrigin}/apple-touch-icon.png`,
+  };
+}
+
+/** Two initials from the inviter's name: the first letter of the first two words. Letters only. */
+export function initialsOf(name: string): string {
+  const words = name.split(/\s+/).filter(Boolean);
+  const letters = words
+    .map((w) => w.match(/\p{L}/u)?.[0] ?? '')
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('');
+  return (letters || 'F').toUpperCase();
+}
+
+/** Day-only UTC date for the chip. The input is shortened to YYYY-MM-DD and any other text is dropped. */
+export function expiryDate(value: string): string {
+  const match = /\d{4}-\d{2}-\d{2}/.exec(value);
+  return match ? match[0] : '';
+}
+
+export function buildInvitationEmail(input: InvitationEmailInput & { appOrigin?: string }): InvitationEmailContent {
+  const project = plainLine(input.projectName, 100) || 'a project';
+  const inviter = plainLine(input.inviterName, 100) || 'A Flowboard member';
+  const roleKey = ROLE_CHIP[input.role] ? input.role : 'member';
+  const role = ROLE_LABELS[roleKey] ?? 'Member';
+  const expires = expiryDate(input.expiresAt) || plainLine(input.expiresAt, 40).slice(0, 10);
+  const url = input.acceptUrl;
+  const subject = plainLine(`${inviter} invited you to ${project} on Flowboard`, 160);
+  const preheader = `${inviter} invited you to ${project} as ${role}.`;
+  const footerLine = `You received this because ${inviter} invited you to a Flowboard project. If you do not expect this, ignore it.`;
+  const abilities = ROLE_ABILITIES[roleKey]!;
+  const chip = ROLE_CHIP[roleKey]!;
+
+  const text = [
+    `${inviter} invited you to join ${project} on Flowboard as ${role}.`,
+    '',
+    `Accept the invitation: ${url}`,
+    '',
+    `You can: ${abilities.join('; ')}.`,
+    `This invitation expires on ${expires} (UTC).`,
+    '',
+    footerLine,
+  ].join('\n');
+
+  const c = EMAIL_COLORS;
+  const e = escapeHtml;
+  const img = input.appOrigin ? emailImageUrls(input.appOrigin) : null;
+  const ability = (label: string) =>
+    `<td width="33%" valign="top" bgcolor="${c.tint}" style="width:33%;padding:12px 10px;background-color:${c.tint};border-radius:12px;font-family:${FONT_STACK};font-size:14px;line-height:1.4;color:${c.ink};">${e(label)}</td>`;
+  const abilityCells = abilities
+    .map((label, i) => (i === 0 ? ability(label) : `<td width="8" style="width:8px;font-size:1px;line-height:1px;">&nbsp;</td>${ability(label)}`))
+    .join('');
+  const divider = `<tr><td style="padding:0 32px;"><div style="height:1px;line-height:1px;font-size:1px;background-color:${c.line};">&nbsp;</div></td></tr>`;
+
+  const html = [
+    '<!doctype html>',
+    '<html lang="en">',
+    '<head>',
+    '<meta charset="utf-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1">',
+    '<meta name="color-scheme" content="light dark">',
+    '<meta name="supported-color-schemes" content="light dark">',
+    `<title>${e(subject)}</title>`,
+    '</head>',
+    `<body style="margin:0;padding:0;background-color:${c.canvas};font-family:${FONT_STACK};" bgcolor="${c.canvas}">`,
+    `<div style="display:none;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">${e(preheader)}</div>`,
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${c.canvas}" style="background-color:${c.canvas};">`,
+    '<tr><td align="center" style="padding:24px 12px;">',
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;border-radius:16px;overflow:hidden;" bgcolor="${c.card}">`,
+    // Header band: dark plum with the gradient lockup.
+    `<tr><td align="left" bgcolor="${c.plum}" style="padding:22px 28px;background-color:${c.plum};">`,
+    img
+      ? `<img src="${e(img.lockup)}" width="200" height="48" alt="Flowboard" style="display:block;border:0;outline:none;text-decoration:none;width:200px;height:48px;">`
+      : `<span style="font-family:${FONT_STACK};font-size:22px;font-weight:700;color:#e6d7f0;">Flowboard</span>`,
+    '</td></tr>',
+    // Hero: the kanban illustration on a pale tint.
+    `<tr><td align="center" bgcolor="${c.tint}" style="padding:24px 24px 20px 24px;background-color:${c.tint};">`,
+    img
+      ? `<img src="${e(img.hero)}" width="552" height="184" alt="Illustration of a three-column Flowboard board: To do, Doing and Done, with pastel cards." style="display:block;border:0;width:552px;height:184px;max-width:100%;">`
+      : '',
+    '</td></tr>',
+    // Inviter with an initials avatar (a table cell, not an image).
+    `<tr><td style="padding:28px 32px 0 32px;background-color:${c.card};" bgcolor="${c.card}">`,
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>',
+    `<td valign="middle" width="44" bgcolor="${c.accent}" align="center" style="width:44px;height:44px;border-radius:22px;background-color:${c.accent};font-family:${FONT_STACK};font-size:15px;font-weight:700;color:#FFFFFF;">${e(initialsOf(inviter))}</td>`,
+    `<td valign="middle" style="padding-left:12px;font-family:${FONT_STACK};font-size:16px;line-height:1.4;color:${c.ink};"><strong>${e(inviter)}</strong> invited you to join Flowboard</td>`,
+    '</tr></table>',
+    '</td></tr>',
+    // Heading and project summary card.
+    `<tr><td style="padding:24px 32px 8px 32px;background-color:${c.card};" bgcolor="${c.card}">`,
+    `<h1 style="margin:0 0 16px 0;font-family:${FONT_STACK};font-size:26px;line-height:1.25;font-weight:700;color:${c.ink};">You are invited to ${e(project)}</h1>`,
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${c.line};border-radius:16px;" bgcolor="${c.canvas}">`,
+    `<tr><td style="padding:18px 20px 16px 20px;background-color:${c.canvas};">`,
+    `<p style="margin:0 0 4px 0;font-family:${FONT_STACK};font-size:12px;line-height:1.4;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${c.muted};">Project</p>`,
+    `<p style="margin:0 0 14px 0;font-family:${FONT_STACK};font-size:22px;line-height:1.3;font-weight:700;color:${c.ink};">${e(project)}</p>`,
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>',
+    `<td style="padding-right:8px;"><span style="display:inline-block;padding:5px 12px;border-radius:999px;background-color:${chip.bg};color:${chip.ink};font-family:${FONT_STACK};font-size:13px;font-weight:700;">${e(role)}</span></td>`,
+    `<td><span style="display:inline-block;padding:5px 12px;border-radius:999px;background-color:${EXPIRY_CHIP.bg};color:${EXPIRY_CHIP.ink};font-family:${FONT_STACK};font-size:13px;font-weight:700;">Expires ${e(expires)} (UTC)</span></td>`,
+    '</tr></table>',
+    '</td></tr></table>',
+    '</td></tr>',
+    // Abilities for the role.
+    `<tr><td style="padding:24px 32px 8px 32px;background-color:${c.card};" bgcolor="${c.card}">`,
+    `<p style="margin:0 0 12px 0;font-family:${FONT_STACK};font-size:16px;font-weight:700;color:${c.ink};">What you will be able to do</p>`,
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>',
+    abilityCells,
+    '</tr></table>',
+    '</td></tr>',
+    // Primary button: a table cell with the fill and padding, so Outlook draws it too.
+    `<tr><td align="center" style="padding:28px 32px 12px 32px;background-color:${c.card};" bgcolor="${c.card}">`,
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>',
+    `<td align="center" bgcolor="${c.plum}" style="padding:16px 40px;border-radius:14px;background-color:${c.plum};">`,
+    `<a href="${e(url)}" target="_blank" style="display:inline-block;font-family:${FONT_STACK};font-size:17px;line-height:20px;font-weight:700;color:#FFFFFF;text-decoration:none;">Accept invitation</a>`,
+    '</td></tr></table>',
+    '</td></tr>',
+    // Secondary: the full link in a monospace box.
+    `<tr><td style="padding:12px 32px 8px 32px;background-color:${c.card};" bgcolor="${c.card}">`,
+    `<p style="margin:0 0 8px 0;font-family:${FONT_STACK};font-size:14px;line-height:1.5;color:${c.muted};">Or copy this link</p>`,
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`,
+    `<td bgcolor="${c.code}" style="padding:12px 14px;border:1px solid ${c.line};border-radius:10px;background-color:${c.code};font-family:${MONO_STACK};font-size:13px;line-height:1.5;color:${c.ink};word-break:break-all;">${e(url)}</td>`,
+    '</tr></table>',
+    '</td></tr>',
+    divider,
+    // Footer: the small mark, the reason, and nothing else.
+    `<tr><td style="padding:20px 32px 28px 32px;background-color:${c.card};" bgcolor="${c.card}">`,
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>',
+    img ? `<td valign="top" style="padding-right:10px;"><img src="${e(img.mark)}" width="24" height="24" alt="" style="display:block;border:0;width:24px;height:24px;"></td>` : '',
+    `<td valign="top" style="font-family:${FONT_STACK};font-size:12px;line-height:1.5;color:${c.muted};">${e(footerLine)}</td>`,
+    '</tr></table>',
+    '</td></tr>',
+    '</table>',
+    '</td></tr>',
+    '</table>',
+    '</body>',
+    '</html>',
+  ].join('\n');
+
+  return { subject, text, html };
+}
+
+===== invitation delivery =====
+import type pg from 'pg';
+import type { Context } from 'hono';
+import { createPool } from './postgres.ts';
+import { buildInvitationEmail, acceptInvitationUrl } from '../services/invitation-email.ts';
+import { mailerFromEnv, type MailEnv, type Mailer } from '../services/mailer.ts';
+
+/**
+ * Invitation email delivery from the outbox (B-10). The raw token is kept in the outbox payload
+ * only until the row settles: once a send succeeds, or fails permanently, the token is removed from
+ * the payload in the same statement that sets the status. Logs and errors carry reason codes only.
+ */
+
+export interface InvitationOutboxRow {
+  id: string;
+  payload: unknown;
+}
+
+export type DeliveryOutcome = { kind: 'delivered' } | { kind: 'failed' } | { kind: 'retry'; reason: string };
+
+function parsePayload(payload: unknown): Record<string, unknown> {
+  if (typeof payload === 'string') return JSON.parse(payload) as Record<string, unknown>;
+  return (payload ?? {}) as Record<string, unknown>;
+}
+
+function text(value: unknown): string {
+  return typeof value === 'string' ? value : '';
+}
+
+/** Sends one invitation row and records the outcome. The caller holds the row lock. */
+export async function deliverInvitationRow(
+  client: pg.ClientBase,
+  row: InvitationOutboxRow,
+  mailer: Mailer,
+): Promise<DeliveryOutcome> {
+  const payload = parsePayload(row.payload);
+  const token = text(payload['token']);
+  const to = text(payload['email']);
+
+  // A row without a link (written before B-10, or after supersession) cannot be sent usefully.
+  if (!token || !to) {
+    await settle(client, row.id, 'failed', undefined);
+    return { kind: 'failed' };
+  }
+
+  const content = buildInvitationEmail({
+    appOrigin: mailer.appOrigin,
+    projectName: text(payload['projectName']),
+    inviterName: text(payload['inviterName']),
+    role: text(payload['role']),
+    expiresAt: text(payload['expiresAt']),
+    acceptUrl: acceptInvitationUrl(mailer.appOrigin, token),
+  });
+  const outcome = await mailer.send({ to, ...content });
+
+  if (outcome.status === 'sent') {
+    await settle(client, row.id, 'delivered', outcome.providerMessageId);
+    return { kind: 'delivered' };
+  }
+  if (outcome.status === 'permanent') {
+    await settle(client, row.id, 'failed', undefined);
+    return { kind: 'failed' };
+  }
+  return { kind: 'retry', reason: outcome.reason };
+}
+
+/** Sets the final status, drops the token and records only the provider message id. */
+async function settle(client: pg.ClientBase, id: string, status: 'delivered' | 'failed', providerMessageId: string | undefined): Promise<void> {
+  await client.query(
+    `UPDATE outbox
+     SET status = $2,
+         payload = (payload - 'token') || jsonb_build_object('providerMessageId', $3::text)
+     WHERE id = $1`,
+    [id, status, providerMessageId ?? null],
+  );
+}
+
+/**
+ * Sends one pending invitation row straight after its commit. A row locked by the scheduled drain
+ * is skipped. A retryable failure is left pending for the drain to retry.
+ */
+export async function deliverInvitationNow(pool: pg.Pool, outboxId: string, mailer: Mailer): Promise<void> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const res = await client.query<InvitationOutboxRow>(
+      `SELECT id, payload FROM outbox
+       WHERE id = $1 AND event_type = 'invitation.created' AND status = 'pending'
+       FOR UPDATE SKIP LOCKED`,
+      [outboxId],
+    );
+    const row = res.rows[0];
+    if (row) await deliverInvitationRow(client, row, mailer);
+    await client.query('COMMIT');
+  } catch {
+    await client.query('ROLLBACK').catch(() => {});
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Starts the immediate send on the Worker's waitUntil, after the response is decided. Fail-soft:
+ * with no mail configuration, no connection string, or no waitUntil (tests, Node), nothing starts
+ * and the scheduled drain sends the email later.
+ */
+export function sendInvitationEmailSoon(c: Context, outboxId: string): void {
+  const env = c.env as (MailEnv & { HYPERDRIVE?: { connectionString?: string }; DATABASE_URL?: string }) | undefined;
+  const mailer = mailerFromEnv(env);
+  const connectionString = env?.HYPERDRIVE?.connectionString ?? env?.DATABASE_URL;
+  if (!mailer || !connectionString) return;
+  let ctx: { waitUntil(promise: Promise<unknown>): void };
+  try {
+    ctx = c.executionCtx;
+  } catch {
+    return;
+  }
+  // A private pool: the request's pool is closed when the response ends.
+  const pool = createPool(connectionString, 1);
+  ctx.waitUntil(
+    deliverInvitationNow(pool, outboxId, mailer)
+      .catch(() => {})
+      .finally(() => pool.end()),
+  );
+}
+
+===== overview =====
+import type pg from 'pg';
+import type { ProjectOverview } from '@flowboard/contracts';
+import { HttpError } from '../http/errors.ts';
+import { getWorkspaceToday } from './boards.ts';
+
+/**
+ * GET /projects/:pid/overview: real counts for a project's dashboard.
+ *
+ * Who may read: the workspace owner, or any active project member (manager, member or viewer).
+ * Which boards count: only boards the caller can read. The workspace owner reads every board in
+ * the project. Anyone else reads a board only with an explicit board grant. The rule is written
+ * once, in the `readable` CTE below, and every aggregate joins to it. Archived boards are left out
+ * for everyone, matching the board list.
+ *
+ * Privacy: an unreadable board contributes nothing, not even to a total, so its name, id and card
+ * counts never reach the response. Nothing is estimated: each number is a COUNT over real rows.
+ *
+ * Definitions (same as the board snapshot):
+ *   - open: the card's column is not in the 'done' category;
+ *   - overdue: open, with a due date before the workspace's today;
+ *   - due soon: open, due from today to seven days later, inclusive;
+ *   - unassigned open: open with no assignee.
+ *
+ * Recent activity: board-scoped rows on readable boards, plus project-scope rows (member, invitation,
+ * brief and links events) for the owner and managers only (B-6). Members and viewers never see
+ * project rows. Unscoped legacy rows are never shown. Token and invitee email are never logged, so
+ * they cannot appear here.
+ *
+ * All reads run in one REPEATABLE READ, READ ONLY transaction, so the numbers describe one moment.
+ */
+
+const READABLE_BOARDS = `
+  readable AS (
+    SELECT b.id
+    FROM boards b
+    JOIN workspaces w ON w.id = b.workspace_id
+    WHERE b.project_id = $1
+      AND b.archived = FALSE
+      AND (
+        w.owner_id = $2
+        OR EXISTS (
+          SELECT 1 FROM board_grants g
+          WHERE g.board_id = b.id AND g.project_id = b.project_id AND g.user_id = $2
+        )
+      )
+  )`;
+
+export async function getProjectOverview(
+  pool: pg.Pool,
+  projectId: string,
+  actorId: string,
+): Promise<ProjectOverview> {
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN ISOLATION LEVEL REPEATABLE READ READ ONLY');
+
+    // 1. Project access: the workspace owner or an active member. Anyone else gets 404.
+    const ctx = await client.query<{ owner_id: string; timezone: string; role: string | null }>(
+      `SELECT w.owner_id, w.timezone, pm.role
+       FROM projects p
+       JOIN workspaces w ON w.id = p.workspace_id
+       LEFT JOIN project_memberships pm
+         ON pm.project_id = p.id AND pm.user_id = $2 AND pm.status = 'active'
+       WHERE p.id = $1`,
+      [projectId, actorId],
+    );
+    const row = ctx.rows[0];
+    if (!row || (row.owner_id !== actorId && !row.role)) {
+      throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+    }
+    const today = getWorkspaceToday(row.timezone);
+
+    // 2. How many boards the caller can read. This is the caller's own view, not a leak.
+    const boardCount = await client.query<{ n: string }>(
+      `WITH ${READABLE_BOARDS} SELECT COUNT(*)::text AS n FROM readable`,
+      [projectId, actorId],
+    );
+
+    // 3. Card counts per column category, plus overdue, due soon and unassigned, in one pass.
+    const cardRows = await client.query<{
+      category: 'todo' | 'active' | 'done';
+      active: string;
+      overdue: string;
+      due_soon: string;
+      unassigned_open: string;
+    }>(
+      `WITH ${READABLE_BOARDS}
+       SELECT col.category,
+              COUNT(*)::text AS active,
+              COUNT(*) FILTER (WHERE c.due_date < $3::date AND col.category <> 'done')::text AS overdue,
+              COUNT(*) FILTER (
+                WHERE c.due_date >= $3::date AND c.due_date <= ($3::date + 7) AND col.category <> 'done'
+              )::text AS due_soon,
+              COUNT(*) FILTER (
+                WHERE col.category <> 'done'
+                  AND NOT EXISTS (SELECT 1 FROM card_assignees ca WHERE ca.card_id = c.id)
+              )::text AS unassigned_open
+       FROM cards c
+       JOIN readable r ON r.id = c.board_id
+       JOIN columns col ON col.id = c.column_id
+       WHERE c.project_id = $1 AND c.state = 'active'
+       GROUP BY col.category`,
+      [projectId, actorId, today],
+    );
+
+    const byCategory = { todo: 0, active: 0, done: 0 };
+    let active = 0;
+    let overdue = 0;
+    let dueSoon = 0;
+    let unassignedOpen = 0;
+    for (const r of cardRows.rows) {
+      byCategory[r.category] = Number(r.active);
+      active += Number(r.active);
+      overdue += Number(r.overdue);
+      dueSoon += Number(r.due_soon);
+      unassignedOpen += Number(r.unassigned_open);
+    }
+
+    // 4. Open cards per assignee, on readable boards only. Bounded to 50 people.
+    const assigneeRows = await client.query<{
+      user_id: string;
+      display_name: string;
+      avatar_url: string | null;
+      open_count: string;
+    }>(
+      `WITH ${READABLE_BOARDS}
+       SELECT u.id AS user_id, u.display_name, u.avatar_url, COUNT(*)::text AS open_count
+       FROM card_assignees ca
+       JOIN cards c ON c.id = ca.card_id AND c.state = 'active' AND c.project_id = $1
+       JOIN readable r ON r.id = c.board_id
+       JOIN columns col ON col.id = c.column_id AND col.category <> 'done'
+       JOIN users u ON u.id = ca.user_id
+       GROUP BY u.id, u.display_name, u.avatar_url
+       ORDER BY COUNT(*) DESC, u.id ASC
+       LIMIT 50`,
+      [projectId, actorId],
+    );
+
+    // 5. The last 10 activity rows: board rows on readable boards, plus project-scope rows (member,
+    // invitation, brief and links events) for the owner and managers only. Members and viewers never
+    // get project rows. One query; the project-row branch is a flag computed from the access check.
+    const canSeeProjectRows = row.owner_id === actorId || row.role === 'manager';
+    const activityRows = await client.query<{
+      id: string;
+      action: string;
+      card_id: string | null;
+      created_at: Date;
+      actor_id: string;
+      actor_name: string;
+    }>(
+      `WITH ${READABLE_BOARDS}
+       SELECT a.id, a.action, a.card_id, a.created_at, a.actor_id, u.display_name AS actor_name
+       FROM activity_log a
+       JOIN users u ON u.id = a.actor_id
+       WHERE a.project_id = $1
+         AND (
+           (a.visibility_scope = 'board' AND a.board_id IN (SELECT id FROM readable))
+           OR (a.visibility_scope = 'project' AND $3::boolean)
+         )
+       ORDER BY a.created_at DESC, a.id DESC
+       LIMIT 10`,
+      [projectId, actorId, canSeeProjectRows],
+    );
+
+    await client.query('COMMIT');
+
+    return {
+      projectId,
+      asOfDate: today,
+      readableBoardCount: Number(boardCount.rows[0]?.n ?? 0),
+      cards: {
+        active,
+        byCategory,
+        overdue,
+        dueSoon,
+        unassignedOpen,
+      },
+      assignees: assigneeRows.rows.map((r) => ({
+        userId: r.user_id,
+        displayName: r.display_name,
+        avatarUrl: r.avatar_url,
+        openCount: Number(r.open_count),
+      })),
+      recentActivity: activityRows.rows.map((r) => ({
+        id: r.id,
+        action: r.action,
+        cardId: r.card_id,
+        createdAt: new Date(r.created_at).toISOString(),
+        actor: { id: r.actor_id, displayName: r.actor_name },
+      })),
+    };
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+===== storage =====
+import { AsyncLocalStorage } from 'node:async_hooks';
+import { HttpError } from '../http/errors.ts';
+
+/**
+ * Storage Driver Interface and Implementations
+ *
+ * Provides a portable object storage interface. Production uses R2StorageDriver over the
+ * private `IMAGES` bucket binding. MemoryStorageDriver is for tests only: its bytes live in one
+ * process, so a second Worker isolate could never read them.
+ * Files are addressed by key; metadata and ownership reside in PostgreSQL.
+ *
+ * Fail closed: when no driver is configured, every storage call throws 503 CONFIG_ERROR. There
+ * is no silent fallback to memory.
+ */
+
+export interface StoredObject {
+  data: Uint8Array;
+  contentType: string;
+}
+
+export interface StorageDriver {
+  put(key: string, data: Uint8Array, contentType: string): Promise<void>;
+  get(key: string): Promise<StoredObject | null>;
+  delete(key: string): Promise<void>;
+}
+
+/** The part of the Cloudflare R2 bucket binding this driver uses. Structural, so tests can fake it. */
+export interface R2BucketBinding {
+  put(key: string, value: Uint8Array, options?: { httpMetadata?: { contentType?: string } }): Promise<unknown>;
+  get(key: string): Promise<{
+    arrayBuffer(): Promise<ArrayBuffer>;
+    httpMetadata?: { contentType?: string | undefined } | undefined;
+  } | null>;
+  delete(key: string): Promise<void>;
+}
+
+/**
+ * Durable private object storage on Cloudflare R2. The bucket must be private with no public
+ * access; bytes are only served through the API after an authorization check.
+ */
+export class R2StorageDriver implements StorageDriver {
+  private readonly bucket: R2BucketBinding;
+
+  constructor(bucket: R2BucketBinding) {
+    this.bucket = bucket;
+  }
+
+  async put(key: string, data: Uint8Array, contentType: string): Promise<void> {
+    await this.bucket.put(key, data, { httpMetadata: { contentType } });
+  }
+
+  async get(key: string): Promise<StoredObject | null> {
+    const object = await this.bucket.get(key);
+    if (!object) return null;
+    return {
+      data: new Uint8Array(await object.arrayBuffer()),
+      contentType: object.httpMetadata?.contentType ?? 'application/octet-stream',
+    };
+  }
+
+  async delete(key: string): Promise<void> {
+    // R2 treats a missing key as success, so cleanup is safe to repeat.
+    await this.bucket.delete(key);
+  }
+}
+
+/** Test-only: the bytes live in one process and are lost on restart. */
+export class MemoryStorageDriver implements StorageDriver {
+  private readonly store = new Map<string, StoredObject>();
+
+  async put(key: string, data: Uint8Array, contentType: string): Promise<void> {
+    // Clone buffer to prevent external mutation
+    const copy = new Uint8Array(data.byteLength);
+    copy.set(data);
+    this.store.set(key, { data: copy, contentType });
+  }
+
+  async get(key: string): Promise<StoredObject | null> {
+    const item = this.store.get(key);
+    if (!item) return null;
+    const copy = new Uint8Array(item.data.byteLength);
+    copy.set(item.data);
+    return { data: copy, contentType: item.contentType };
+  }
+
+  async delete(key: string): Promise<void> {
+    this.store.delete(key);
+  }
+
+  clear(): void {
+    this.store.clear();
+  }
+
+  size(): number {
+    return this.store.size;
+  }
+}
+
+// A request or scheduled run may bind its own driver (the Worker binds its IMAGES bucket, or
+// null when the binding is absent). Without a binding, the process default applies (tests).
+interface StorageScope {
+  driver: StorageDriver | null;
+}
+const storageScope = new AsyncLocalStorage<StorageScope>();
+let defaultStorageDriver: StorageDriver | null = null;
+
+export function runWithStorageDriver<T>(driver: StorageDriver | null, fn: () => T): T {
+  return storageScope.run({ driver }, fn);
+}
+
+export function getStorageDriver(): StorageDriver {
+  const scope = storageScope.getStore();
+  const driver = scope ? scope.driver : defaultStorageDriver;
+  if (!driver) {
+    throw new HttpError(503, 'CONFIG_ERROR', 'Image storage is not configured for this deployment.');
+  }
+  return driver;
+}
+
+export function setStorageDriver(driver: StorageDriver | null): void {
+  defaultStorageDriver = driver;
+}
+
+===== query entrypoints =====
+  data: ActivityItem[];
+  nextCursor: string | null;
+}
+
+/**
+ * AUD-01, AUD-02: Chronological event timeline for card (creation, field changes, assignments, movements, comments, attachments)
+ * with cursor pagination.
+ * Verifies project reader authorization (returns 404 for outsiders and sibling project members).
+ */
+export async function listCardActivity(
+  poolOrClient: pg.Pool | pg.ClientBase,
+  cardId: string,
+  actorId: string,
+  options?: ListCardActivityOptions,
+): Promise<ListActivityResponse> {
+  return inActivityTransaction(poolOrClient ?? getPool(), async (pool) => {
+
+  // 1. Fetch card details to identify project and state
+  const cardRes = await pool.query<{
+    id: string;
+    project_id: string;
+    workspace_id: string;
+    board_id: string;
+    state: string;
+    title: string;
+    card_key: string;
+  }>(
+    `SELECT c.id, c.project_id, c.workspace_id, c.board_id, c.state, c.title,
+       p.key_prefix || '-' || c.card_number::text AS card_key
+     FROM cards c
+     JOIN projects p ON p.id = c.project_id
+     WHERE c.id = $1`,
+    [cardId],
+  );
+
+  if (cardRes.rows.length === 0 || !cardRes.rows[0]) {
+    throw HttpError.notFound('Card not found.', 'NOT_FOUND');
+  }
+
+  const card = cardRes.rows[0];
+
+  // Trashed or purged cards are hidden from normal card readers (DEL-08, COM-06)
+  if (card.state === 'trashed' || card.state === 'purged') {
+    throw HttpError.notFound('Card not found.', 'NOT_FOUND');
+  }
+
+  // 2. Verify actor has project access (outsiders get 404)
+  let isOwner = false;
+  try {
+    const access = await lockBoardAccess(pool, card.board_id, actorId);
+    isOwner = access.role === 'owner';
+    if (access.projectId !== card.project_id || access.workspaceId !== card.workspace_id) throw HttpError.notFound('Card not found.', 'NOT_FOUND');
+  } catch (error) {
+    if (error instanceof HttpError && error.status === 404) throw HttpError.notFound('Card not found.', 'NOT_FOUND');
+    throw error;
+  }
+
+  const currentCard = await pool.query<{ state: string }>(
+    `SELECT state FROM cards WHERE id=$1 AND project_id=$2 AND workspace_id=$3 AND board_id=$4 FOR SHARE`,
+    [cardId, card.project_id, card.workspace_id, card.board_id]);
+  if (currentCard.rows[0]?.state !== 'active') throw HttpError.notFound('Card not found.', 'NOT_FOUND');
+
+  const revision = await pool.query<{ access_revision: string }>('SELECT access_revision FROM boards WHERE id=$1', [card.board_id]);
+  const scopeDigest = digest({ cardId, actorId, boardId: card.board_id, revision: revision.rows[0]?.access_revision });
+
+  const limit = Math.min(Math.max(options?.limit ?? 50, 1), 100);
+  const cursor = options?.cursor ? decodeActivityCursor(options.cursor, 'card', cardId, actorId, scopeDigest) : undefined;
+
+  // 3. Query activity_log ordered chronologically (created_at ASC, id ASC)
+  const activityRes = await pool.query<{
+    id: string;
+    workspace_id: string;
+    project_id: string;
+    card_id: string | null;
+    actor_id: string;
+    action: string;
+    safe_changes: Record<string, unknown> | null;
+    created_at: Date;
+    cursor_time: string;
+  }>(
+    `SELECT id, workspace_id, project_id, card_id, actor_id, action, safe_changes, created_at,
+       to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time
+     FROM activity_log
+     WHERE card_id = $1 AND project_id=$5 AND workspace_id=$6
+       AND ((visibility_scope='board' AND board_id=$7) OR ($8::boolean AND visibility_scope='unknown'))
+       AND ($2::timestamptz IS NULL OR (created_at, id) > ($2::timestamptz, $3::text))
+     ORDER BY created_at ASC, id ASC
+     LIMIT $4`,
+    [cardId, cursor?.createdAt ?? null, cursor?.id ?? null, limit + 1, card.project_id, card.workspace_id, card.board_id, isOwner],
+  );
+
+  const rawRows = activityRes.rows;
+  const hasMore = rawRows.length > limit;
+  const pageRows = hasMore ? rawRows.slice(0, limit) : rawRows;
+  const lastRow = pageRows[pageRows.length - 1];
+  const nextCursor =
+    hasMore && lastRow
+      ? encodeActivityCursor({
+          v: 2,
+          scope: 'card',
+          scopeId: cardId,
+          actorId,
+          scopeDigest,
+          createdAt: lastRow.cursor_time,
+          id: lastRow.id,
+        })
+      : null;
+
+  // 4. Batch-load actor PersonDisplay identities
+  const actorIds = Array.from(new Set(pageRows.map((r) => r.actor_id)));
+  const actorsMap = new Map<string, PersonDisplay>();
+
+  await Promise.all(
+    actorIds.map(async (actId) => {
+      const display = await getHistoricalPersonDisplay(pool, card.project_id, actId);
+      if (display) {
+export async function listProjectActivity(
+  poolOrClient: pg.Pool | pg.ClientBase,
+  projectId: string,
+  actorId: string,
+  options?: ListProjectActivityOptions,
+): Promise<ListActivityResponse> {
+  return inActivityTransaction(poolOrClient ?? getPool(), async (pool) => {
+
+  // 1. Verify project exists
+  const prjRes = await pool.query<{ id: string; workspace_id: string }>(
+    'SELECT id, workspace_id FROM projects WHERE id = $1',
+    [projectId],
+  );
+  if (prjRes.rows.length === 0) {
+    throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+  }
+
+  // 2. Role check
+  const access = await lockProjectActivityAccess(pool, projectId, actorId);
+  const scopeDigest = digest({ access: access.digest, filters: {
+    cardId: options?.cardId ?? null, actorId: options?.actorId ?? null,
+    action: options?.action ?? null, fromDate: options?.fromDate ?? null, toDate: options?.toDate ?? null,
+  } });
+
+  const limit = Math.min(Math.max(options?.limit ?? 50, 1), 100);
+  const cursor = options?.cursor ? decodeActivityCursor(options.cursor, 'project', projectId, actorId, scopeDigest) : undefined;
+
+  // 3. Build dynamic query with filters
+  const params: unknown[] = [projectId];
+  let paramIdx = 2;
+
+  // Project-scope rows (member, invitation, brief and links events) reach here only for the owner or
+  // a manager: lockProjectActivityAccess already refused members and viewers. Unknown legacy rows
+  // stay owner-only. Board rows need a grant unless the caller is the owner.
+  let whereClause = `WHERE a.project_id = $1 AND ($2::boolean OR a.visibility_scope='project' OR
+    (a.visibility_scope='board' AND EXISTS (
+      SELECT 1 FROM board_grants g JOIN boards b ON b.id=g.board_id
+        AND b.project_id=g.project_id AND b.workspace_id=g.workspace_id
+      WHERE g.board_id=a.board_id AND g.project_id=a.project_id AND g.workspace_id=a.workspace_id AND g.user_id=$3)))`;
+  params.push(access.owner, actorId);
+  paramIdx = 4;
+
+  if (options?.cardId) {
+    whereClause += ` AND a.card_id = $${paramIdx++}`;
+    params.push(options.cardId);
+  }
+
+  if (options?.actorId) {
+    whereClause += ` AND a.actor_id = $${paramIdx++}`;
+    params.push(options.actorId);
+  }
+
+  if (options?.action) {
+    whereClause += ` AND a.action = $${paramIdx++}`;
+    params.push(options.action);
+  }
+
+  if (options?.fromDate) {
+    whereClause += ` AND a.created_at >= $${paramIdx++}::timestamptz`;
+    params.push(options.fromDate);
+  }
+
+  if (options?.toDate) {
+    whereClause += ` AND a.created_at <= $${paramIdx++}::timestamptz`;
+    params.push(options.toDate);
+  }
+
+  if (cursor) {
+    whereClause += ` AND (a.created_at, a.id) < ($${paramIdx++}::timestamptz, $${paramIdx++}::text)`;
+    params.push(cursor.createdAt, cursor.id);
+  }
+
+  params.push(limit + 1);
+  const limitParamIdx = paramIdx;
+
+  const activityRes = await pool.query<{
+    id: string;
+    workspace_id: string;
+    project_id: string;
+    card_id: string | null;
+    actor_id: string;
+    action: string;
+    safe_changes: Record<string, unknown> | null;
+    created_at: Date;
+    cursor_time: string;
+  }>(
+    `SELECT a.id, a.workspace_id, a.project_id, a.card_id, a.actor_id, a.action, a.safe_changes, a.created_at,
+       to_char(a.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time
+     FROM activity_log a
+     ${whereClause}
+     ORDER BY a.created_at DESC, a.id DESC
+     LIMIT $${limitParamIdx}`,
+    params,
+  );
+
+  const rawRows = activityRes.rows;
+  const hasMore = rawRows.length > limit;
+  const pageRows = hasMore ? rawRows.slice(0, limit) : rawRows;
+  const lastRow = pageRows[pageRows.length - 1];
+  const nextCursor =
+    hasMore && lastRow
+      ? encodeActivityCursor({
+          v: 2,
+          scope: 'project',
+          scopeId: projectId,
+          actorId,
+          scopeDigest,
+          createdAt: lastRow.cursor_time,
+          id: lastRow.id,
+        })
+      : null;
+
+  // Batch-load actor PersonDisplay identities
+  const actorIds = Array.from(new Set(pageRows.map((r) => r.actor_id)));
+  const actorsMap = new Map<string, PersonDisplay>();
+
+  await Promise.all(
+    actorIds.map(async (actId) => {
+      const display = await getHistoricalPersonDisplay(pool, projectId, actId);
+      if (display) {
+        actorsMap.set(actId, display);
+  nextCursor: string | null;
+}
+
+/**
+ * NTF-01: Durable in-app mention inbox. Queries notifications table for current actor with pagination.
+ * Filters out ungranted or removed projects so private summaries/titles are never leaked.
+ */
+export async function listNotifications(
+  poolOrClient: pg.Pool | pg.ClientBase,
+  actorId: string,
+  options?: ListNotificationsOptions,
+): Promise<ListNotificationsResponse> {
+  return inNotificationTransaction(poolOrClient ?? getPool(), async (client) => {
+    const limit = Math.min(Math.max(options?.limit ?? 50, 1), 100);
+    const unreadOnly = options?.unreadOnly === true;
+    const scopeDigest = await notificationScopeDigest(client, actorId);
+    const cursor = options?.cursor
+      ? decodeNotificationCursor(options.cursor, actorId, scopeDigest, unreadOnly) : undefined;
+    const result = await client.query<NotificationRow & { cursor_time: string }>(
+      `SELECT n.id,n.user_id,n.type,n.title,n.body,n.link,n.read,n.created_at,
+         to_char(n.created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time
+       FROM notifications n
+       WHERE ${visibleNotification}
+         AND ($2::boolean=FALSE OR n.read=FALSE)
+         AND ($3::timestamptz IS NULL OR (n.created_at,n.id)<($3::timestamptz,$4::text))
+       ORDER BY n.created_at DESC,n.id DESC LIMIT $5`,
+      [actorId, unreadOnly, cursor?.createdAt ?? null, cursor?.id ?? null, limit + 1],
+    );
+    const rows = result.rows.slice(0, limit);
+    const last = rows.at(-1);
+    return {
+      data: rows.map(toNotification),
+      nextCursor: result.rows.length > limit && last ? encodeNotificationCursor({
+        v: 2, userId: actorId, scopeDigest, unreadOnly,
+        createdAt: last.cursor_time, id: last.id,
+      }) : null,
+    };
+  });
+}
+
+type NotificationRow = {
+  id: string; user_id: string; type: string; title: string; body: string;
+  link: string; read: boolean; created_at: Date;
+};
+function toNotification(row: NotificationRow): Notification {
+  return { id: row.id, userId: row.user_id, type: row.type as NotificationType,
+    title: row.title, body: row.body, link: row.link, read: Boolean(row.read),
+    createdAt: new Date(row.created_at).toISOString() };
+}
+
+/** A read marker is committed only while the current board grant is held. */
+export async function markNotificationRead(
+  poolOrClient: pg.Pool | pg.ClientBase,
+  notificationId: string,
+  actorId: string,
+): Promise<Notification> {
+  delivered: number;
+  failed: number;
+  retried: number;
+}
+
+/**
+ * NTF-03: Outbox consumer / retry. Leases pending jobs with SKIP LOCKED,
+ * delivers mention notifications idempotently, applies exponential backoff on errors,
+ * and quarantines jobs after maxRetries.
+ */
+export async function processOutboxLease(
+  pool: pg.Pool,
+  options?: ProcessOutboxOptions,
+): Promise<ProcessOutboxResult> {
+  const batchSize = Math.min(Math.max(options?.batchSize ?? 10, 1), 50);
+  const maxRetries = options?.maxRetries ?? 5;
+  const mailer = options?.mailer ?? null;
+
+  const client = await pool.connect();
+  let processed = 0;
+  let delivered = 0;
+  let failed = 0;
+  let retried = 0;
+
+  try {
+    await client.query('BEGIN');
+
+    // 1. Acquire leased jobs using FOR UPDATE SKIP LOCKED
+    const leaseRes = await client.query<{
+      id: string;
+      workspace_id: string;
+      project_id: string;
+      event_type: string;
+      payload: any;
+      status: string;
+      retry_count: number;
+      next_retry_at: Date;
+    }>(
+      `SELECT id, workspace_id, project_id, event_type, payload, status, retry_count, next_retry_at
+       FROM outbox
+       WHERE status IN ('pending', 'processing')
+         AND next_retry_at <= NOW()
+         AND (event_type <> 'invitation.created' OR $2::boolean)
+       ORDER BY next_retry_at ASC, id ASC
+       LIMIT $1
+       FOR UPDATE SKIP LOCKED`,
+      [batchSize, mailer !== null],
+    );
+
+    const rows = leaseRes.rows;
+    for (const row of rows) {
+      processed++;
+      try {
+        if (row.event_type === 'comment.created') {
+          const payload = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+          if (!payload || !payload.cardId || payload.forceFailure) {
+            throw new Error('Invalid comment.created outbox payload: cardId is required');
+          }
+          const { commentId, cardId, authorId, mentions } = payload;
+
+          if (Array.isArray(mentions) && cardId) {
+            // Find card & board context
+            const cardRes = await client.query<{ title: string; board_id: string }>(
+              `SELECT c.title, c.board_id
+               FROM cards c
+               JOIN boards b ON b.id = c.board_id AND b.project_id = c.project_id AND b.workspace_id = c.workspace_id
+               JOIN comments cm ON cm.id = $2 AND cm.card_id = c.id
+                 AND cm.project_id = c.project_id AND cm.workspace_id = c.workspace_id
+                 AND cm.deleted_at IS NULL
+               WHERE c.id = $1 AND c.state = 'active'
+                 AND c.project_id = $3 AND c.workspace_id = $4
+               FOR SHARE OF c, cm`,
+              [cardId, commentId, row.project_id, row.workspace_id],
+            );
+
+            if (cardRes.rows.length > 0) {
+              const card = cardRes.rows[0]!;
+              const notifLink = `/projects/${row.project_id}/boards/${card.board_id}?cardId=${cardId}`;
+              const notifTitle = `Mention in ${card.title}`;
+              const notifBody = `You were mentioned in a comment on card ${card.title}`;
+
+              for (const targetUserId of mentions) {
+                // Self-mention check: do not notify author
+                if (targetUserId === authorId) continue;
+
+                // Validate target user has active grant in project
+                const targetRole = await resolveProjectRole(row.project_id, targetUserId, client);
+                if (!targetRole) continue;
+
+                // Validate target user has active board access (Owner implicit; non-owner needs active board_grant)
+                const wsOwnerRes = await client.query<{ owner_id: string }>(
+                  'SELECT owner_id FROM workspaces WHERE id = $1',
+                  [row.workspace_id],
+                );
+                const isOwner = wsOwnerRes.rows[0]?.owner_id === targetUserId;
+                if (!isOwner) {
+                  // The board_grants table is mandatory. If migration 0007 is
+                  // missing, this query fails and the transaction rolls back.
+                  const grantRes = await client.query<{ board_id: string }>(
+                    `SELECT bg.board_id FROM board_grants bg
+                     JOIN project_memberships pm ON pm.project_id = bg.project_id AND pm.user_id = bg.user_id AND pm.status = 'active'
+                     WHERE bg.board_id = $1 AND bg.user_id = $2`,
+                    [card.board_id, targetUserId],
+                  );
+                  if (grantRes.rows.length === 0) {
+                    continue;
+                  }
+                }
+
+                // Idempotent delivery check
+                const existingRes = await client.query<{ id: string }>(
+                  `SELECT id FROM notifications
+                   WHERE project_id = $1 AND user_id = $2 AND type = 'mention' AND link = $3`,
+                  [row.project_id, targetUserId, notifLink],
+                );
+
+                if (existingRes.rows.length === 0) {
+                  const notifId = 'ntf_' + crypto.randomUUID();
+                  await client.query(
+                    `INSERT INTO notifications (
+                       id, workspace_id, project_id, user_id, type, title, body, link, read, created_at, card_id
+                     ) VALUES ($1, $2, $3, $4, 'mention', $5, $6, $7, FALSE, NOW(), $8)`,
+                    [notifId, row.workspace_id, row.project_id, targetUserId, notifTitle, notifBody, notifLink, cardId],
+                  );
+                }
+              }
+            }
+          }
+        } else if (row.event_type === 'invitation.created') {
+          if (!mailer) continue;
+          // deliverInvitationRow records the final status and drops the token itself.
+          const outcome = await deliverInvitationRow(client, row, mailer);
+          if (outcome.kind === 'retry') {
+            throw new Error(`Email delivery failed: ${outcome.reason}`);
+          }
+          if (outcome.kind === 'delivered') delivered++;
+          else failed++;
+          continue;
+        }
+
+        // Successfully delivered
+        await client.query(
+          `UPDATE outbox SET status = 'delivered' WHERE id = $1`,
+          [row.id],
+        );
+        delivered++;
+      } catch (err) {
+        const nextRetry = row.retry_count + 1;
+        if (nextRetry >= maxRetries) {
+          // Dead-letter quarantine
+          await client.query(
+            `UPDATE outbox SET status = 'failed', retry_count = $1 WHERE id = $2`,
+            [nextRetry, row.id],
+          );
+          failed++;
+        } else {
+          // Exponential backoff
+          const backoffSec = Math.pow(2, nextRetry);
+          await client.query(
+            `UPDATE outbox
+             SET status = 'pending',
+                 retry_count = $1,
+                 next_retry_at = NOW() + ($2 || ' seconds')::interval
+             WHERE id = $3`,
+            [nextRetry, backoffSec, row.id],
+          );
+          retried++;
+        }
+      }
+    }
+
+    await client.query('COMMIT');
+    return { processed, delivered, failed, retried };
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}

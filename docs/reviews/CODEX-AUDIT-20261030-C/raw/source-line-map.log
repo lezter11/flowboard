@@ -1,0 +1,20 @@
+COMMAND: rg -n getHistoricalPersonDisplay\|Promise\\.all\|CREATE\ TABLE\|REFERENCES\|CREATE\ INDEX\|CONSTRAINT.\*CHECK apps/api/src/adapters/activity.ts apps/api/src/adapters/rbac.ts database/migrations/0011_rate_limit_windows.sql database/migrations/0012_user_last_location.sql database/migrations/0013_board_description_default_board.sql database/migrations/0014_project_brief_links.sql database/migrations/0015_project_links_workspace_fk.sql database/migrations/0016_staged_upload_cleanup.sql
+OUTPUT:
+database/migrations/0016_staged_upload_cleanup.sql:7:CREATE INDEX IF NOT EXISTS card_image_uploads_orphan_idx
+database/migrations/0013_board_description_default_board.sql:28:    FOREIGN KEY (default_board_id, id) REFERENCES boards (id, project_id)
+database/migrations/0015_project_links_workspace_fk.sql:12:    FOREIGN KEY (project_id, workspace_id) REFERENCES projects (id, workspace_id) ON DELETE RESTRICT;
+apps/api/src/adapters/rbac.ts:608:export async function getHistoricalPersonDisplay(
+database/migrations/0014_project_brief_links.sql:9:CREATE TABLE IF NOT EXISTS project_links (
+database/migrations/0014_project_brief_links.sql:11:  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,
+database/migrations/0014_project_brief_links.sql:12:  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,
+apps/api/src/adapters/activity.ts:4:import { getHistoricalPersonDisplay } from './rbac.ts';
+apps/api/src/adapters/activity.ts:212:  await Promise.all(
+apps/api/src/adapters/activity.ts:214:      const display = await getHistoricalPersonDisplay(pool, card.project_id, actId);
+apps/api/src/adapters/activity.ts:386:  await Promise.all(
+apps/api/src/adapters/activity.ts:388:      const display = await getHistoricalPersonDisplay(pool, projectId, actId);
+apps/api/src/adapters/activity.ts:568:  await Promise.all(
+database/migrations/0011_rate_limit_windows.sql:15:CREATE INDEX IF NOT EXISTS rate_limit_windows_window_start_idx ON rate_limit_windows (window_start);
+database/migrations/0012_user_last_location.sql:6:ALTER TABLE users ADD COLUMN IF NOT EXISTS last_project_id TEXT REFERENCES projects(id) ON DELETE SET NULL;
+database/migrations/0012_user_last_location.sql:7:ALTER TABLE users ADD COLUMN IF NOT EXISTS last_board_id TEXT REFERENCES boards(id) ON DELETE SET NULL;
+EXIT CODE: 0
+

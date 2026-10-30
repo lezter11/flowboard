@@ -1,0 +1,157 @@
+COMMAND: rg -n DELETE\ FROM\ \(project_memberships\|boards\|projects\|cards\|users\|card_images\|card_image_uploads\|comments\|comment_mentions\|outbox\|notifications\|activity_log\)\|UPDATE\ project_memberships\ SET\ status\|archive apps/api/src
+OUTPUT:
+apps/api/src/services/trash-purge.ts:232:      await client.query(`DELETE FROM card_images WHERE card_id = $1`, [card.id]);
+apps/api/src/services/trash-purge.ts:233:      await client.query(`DELETE FROM card_image_uploads WHERE card_id = $1`, [card.id]);
+apps/api/src/http/routes/cards.ts:53:  const boardRes = await pool.query<{ id: string; project_id: string; archived: boolean }>(
+apps/api/src/http/routes/cards.ts:54:    'SELECT id, project_id, archived FROM boards WHERE id = $1',
+apps/api/src/adapters/embedded-migrations.ts:12:    sql: "-- Flowboard PostgreSQL Schema Migration 0001\n-- PostgreSQL 17 compatible DDL\n\n-- 1. workspaces\nCREATE TABLE workspaces (\n  id TEXT PRIMARY KEY,\n  name TEXT NOT NULL,\n  timezone TEXT NOT NULL,\n  owner_id TEXT NOT NULL,\n  version INTEGER NOT NULL DEFAULT 1,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL\n);\n\n-- 2. users\nCREATE TABLE users (\n  id TEXT PRIMARY KEY,\n  email TEXT NOT NULL UNIQUE,\n  display_name TEXT NOT NULL,\n  avatar_url TEXT,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL\n);\n\n-- 3. projects\nCREATE TABLE projects (\n  id TEXT PRIMARY KEY,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  name TEXT NOT NULL,\n  description TEXT,\n  archived BOOLEAN NOT NULL DEFAULT FALSE,\n  version INTEGER NOT NULL DEFAULT 1,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL\n);\n\n-- 4. project_memberships\nCREATE TABLE project_memberships (\n  id TEXT PRIMARY KEY,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n  role TEXT NOT NULL CHECK (role IN ('manager', 'member', 'viewer')),\n  status TEXT NOT NULL CHECK (status IN ('active', 'removed')),\n  version INTEGER NOT NULL DEFAULT 1,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL,\n  UNIQUE(project_id, user_id)\n);\n\n-- 5. project_invitations\nCREATE TABLE project_invitations (\n  id TEXT PRIMARY KEY,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  email TEXT NOT NULL,\n  role TEXT NOT NULL CHECK (role IN ('manager', 'member', 'viewer')),\n  token_hash TEXT NOT NULL,\n  invited_by TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n  status TEXT NOT NULL CHECK (status IN ('pending', 'accepted', 'revoked', 'expired')),\n  expires_at TIMESTAMPTZ NOT NULL,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL\n);\n\n-- 6. boards\nCREATE TABLE boards (\n  id TEXT PRIMARY KEY,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  name TEXT NOT NULL,\n  structure_version INTEGER NOT NULL DEFAULT 1,\n  snapshot_version INTEGER NOT NULL DEFAULT 1,\n  archived BOOLEAN NOT NULL DEFAULT FALSE,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL\n);\n\n-- 7. columns\nCREATE TABLE columns (\n  id TEXT PRIMARY KEY,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE RESTRICT,\n  name TEXT NOT NULL,\n  color TEXT NOT NULL,\n  category TEXT NOT NULL CHECK (category IN ('todo', 'active', 'done')),\n  position INTEGER NOT NULL,\n  version INTEGER NOT NULL DEFAULT 1,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL,\n  UNIQUE(board_id, name)\n);\n\n-- 8. cards\nCREATE TABLE cards (\n  id TEXT PRIMARY KEY,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE RESTRICT,\n  column_id TEXT NOT NULL REFERENCES columns(id) ON DELETE RESTRICT,\n  title TEXT NOT NULL,\n  description TEXT,\n  priority TEXT NOT NULL CHECK (priority IN ('none', 'low', 'medium', 'high', 'urgent')),\n  due_date DATE,\n  position BIGINT NOT NULL,\n  version INTEGER NOT NULL DEFAULT 1,\n  state TEXT NOT NULL CHECK (state IN ('active', 'trashed', 'purged')),\n  deleted_at TIMESTAMPTZ,\n  deleted_by TEXT REFERENCES users(id) ON DELETE RESTRICT,\n  restore_until TIMESTAMPTZ,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL\n);\n\n-- 9. card_assignees\nCREATE TABLE card_assignees (\n  card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,\n  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  created_at TIMESTAMPTZ NOT NULL,\n  PRIMARY KEY(card_id, user_id)\n);\n\n-- 10. comments\nCREATE TABLE comments (\n  id TEXT PRIMARY KEY,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,\n  author_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n  body TEXT NOT NULL,\n  version INTEGER NOT NULL DEFAULT 1,\n  deleted_at TIMESTAMPTZ,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL\n);\n\n-- 11. comment_mentions\nCREATE TABLE comment_mentions (\n  id TEXT PRIMARY KEY,\n  comment_id TEXT NOT NULL REFERENCES comments(id) ON DELETE CASCADE,\n  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n  start_offset INTEGER NOT NULL,\n  end_offset INTEGER NOT NULL,\n  created_at TIMESTAMPTZ NOT NULL\n);\n\n-- 12. activity_log\nCREATE TABLE activity_log (\n  id TEXT PRIMARY KEY,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  card_id TEXT REFERENCES cards(id) ON DELETE SET NULL,\n  actor_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n  action TEXT NOT NULL,\n  safe_changes JSONB,\n  created_at TIMESTAMPTZ NOT NULL\n);\n\n-- 13. notifications\nCREATE TABLE notifications (\n  id TEXT PRIMARY KEY,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n  type TEXT NOT NULL,\n  title TEXT NOT NULL,\n  body TEXT NOT NULL,\n  link TEXT NOT NULL,\n  read BOOLEAN NOT NULL DEFAULT FALSE,\n  created_at TIMESTAMPTZ NOT NULL\n);\n\n-- 14. card_images\nCREATE TABLE card_images (\n  id TEXT PRIMARY KEY,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,\n  uploader_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n  filename TEXT NOT NULL,\n  byte_length INTEGER NOT NULL,\n  content_type TEXT NOT NULL,\n  storage_key TEXT NOT NULL,\n  sha256 TEXT NOT NULL,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL\n);\n\n-- 15. card_image_uploads\nCREATE TABLE card_image_uploads (\n  id TEXT PRIMARY KEY,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  card_id TEXT NOT NULL REFERENCES cards(id) ON DELETE CASCADE,\n  uploader_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n  filename TEXT NOT NULL,\n  byte_length INTEGER NOT NULL,\n  content_type TEXT NOT NULL,\n  sha256 TEXT NOT NULL,\n  state TEXT NOT NULL CHECK (state IN ('awaiting_content', 'content_received', 'validating', 'finalized', 'failed', 'cancelled', 'expired')),\n  expires_at TIMESTAMPTZ NOT NULL,\n  finalized_image_id TEXT REFERENCES card_images(id) ON DELETE SET NULL,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL\n);\n\n-- 16. card_imports\nCREATE TABLE card_imports (\n  id TEXT PRIMARY KEY,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE RESTRICT,\n  default_column_id TEXT NOT NULL REFERENCES columns(id) ON DELETE RESTRICT,\n  uploader_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n  version INTEGER NOT NULL DEFAULT 1,\n  state TEXT NOT NULL CHECK (state IN ('uploaded', 'validating', 'invalid', 'ready', 'committing', 'committed', 'failed', 'cancelled', 'expired')),\n  preview_digest TEXT,\n  expires_at TIMESTAMPTZ,\n  created_at TIMESTAMPTZ NOT NULL,\n  updated_at TIMESTAMPTZ NOT NULL\n);\n\n-- 17. card_import_rows\nCREATE TABLE card_import_rows (\n  id TEXT PRIMARY KEY,\n  import_id TEXT NOT NULL REFERENCES card_imports(id) ON DELETE CASCADE,\n  row_number INTEGER NOT NULL,\n  external_id TEXT NOT NULL,\n  title TEXT NOT NULL,\n  status TEXT,\n  priority TEXT,\n  due_date DATE,\n  assignee_emails TEXT[],\n  outcome TEXT NOT NULL CHECK (outcome IN ('new', 'already_imported', 'invalid', 'conflict', 'created', 'skipped')),\n  errors JSONB,\n  card_id TEXT REFERENCES cards(id) ON DELETE SET NULL,\n  created_at TIMESTAMPTZ NOT NULL\n);\n\n-- 18. card_import_duplicates\nCREATE TABLE card_import_duplicates (\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  board_id TEXT NOT NULL REFERENCES boards(id) ON DELETE RESTRICT,\n  external_id TEXT NOT NULL,\n  card_id TEXT REFERENCES cards(id) ON DELETE SET NULL,\n  row_hash TEXT NOT NULL,\n  created_at TIMESTAMPTZ NOT NULL,\n  PRIMARY KEY(board_id, external_id)\n);\n\n-- 19. idempotency_receipts\nCREATE TABLE idempotency_receipts (\n  id TEXT PRIMARY KEY,\n  actor_id TEXT NOT NULL REFERENCES users(id) ON DELETE RESTRICT,\n  scope_type TEXT NOT NULL CHECK (scope_type IN ('workspace', 'project', 'actor')),\n  scope_id TEXT NOT NULL,\n  idempotency_key TEXT NOT NULL,\n  method_path_hash TEXT NOT NULL,\n  body_hash TEXT NOT NULL,\n  status_code INTEGER NOT NULL,\n  response_body JSONB NOT NULL,\n  expires_at TIMESTAMPTZ NOT NULL,\n  created_at TIMESTAMPTZ NOT NULL,\n  UNIQUE(actor_id, scope_id, idempotency_key)\n);\n\n-- 20. outbox\nCREATE TABLE outbox (\n  id TEXT PRIMARY KEY,\n  workspace_id TEXT NOT NULL REFERENCES workspaces(id) ON DELETE RESTRICT,\n  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE RESTRICT,\n  event_type TEXT NOT NULL,\n  payload JSONB NOT NULL,\n  status TEXT NOT NULL CHECK (status IN ('pending', 'processing', 'delivered', 'failed')),\n  retry_count INTEGER NOT NULL DEFAULT 0,\n  next_retry_at TIMESTAMPTZ NOT NULL,\n  created_at TIMESTAMPTZ NOT NULL\n);\n\n-- 21. schema_migrations\nCREATE TABLE IF NOT EXISTS schema_migrations (\n  version TEXT PRIMARY KEY,\n  name TEXT NOT NULL,\n  applied_at TIMESTAMPTZ NOT NULL\n);\n\n-- Performance and Foreign Key Indexes\nCREATE INDEX idx_projects_workspace ON projects(workspace_id);\nCREATE INDEX idx_project_memberships_user ON project_memberships(user_id);\nCREATE INDEX idx_project_memberships_project ON project_memberships(project_id);\nCREATE INDEX idx_project_invitations_project ON project_invitations(project_id);\nCREATE INDEX idx_project_invitations_token ON project_invitations(token_hash);\nCREATE INDEX idx_boards_project ON boards(project_id);\nCREATE INDEX idx_columns_board_position ON columns(board_id, position);\nCREATE INDEX idx_cards_column_position ON cards(column_id, position);\nCREATE INDEX idx_cards_board ON cards(board_id);\nCREATE INDEX idx_cards_project ON cards(project_id);\nCREATE INDEX idx_cards_state ON cards(state);\nCREATE INDEX idx_card_assignees_user ON card_assignees(user_id);\nCREATE INDEX idx_comments_card ON comments(card_id);\nCREATE INDEX idx_comment_mentions_comment ON comment_mentions(comment_id);\nCREATE INDEX idx_comment_mentions_user ON comment_mentions(user_id);\nCREATE INDEX idx_activity_log_card ON activity_log(card_id);\nCREATE INDEX idx_activity_log_project ON activity_log(project_id, created_at DESC);\nCREATE INDEX idx_notifications_user_unread ON notifications(user_id, read) WHERE read = FALSE;\nCREATE INDEX idx_card_images_card ON card_images(card_id);\nCREATE INDEX idx_card_image_uploads_card ON card_image_uploads(card_id);\nCREATE INDEX idx_card_imports_board ON card_imports(board_id);\nCREATE INDEX idx_card_import_rows_import ON card_import_rows(import_id);\nCREATE INDEX idx_idempotency_receipts_lookup ON idempotency_receipts(actor_id, scope_id, idempotency_key);\nCREATE INDEX idx_idempotency_receipts_expires ON idempotency_receipts(expires_at);\nCREATE INDEX idx_outbox_pending ON outbox(status, next_retry_at) WHERE status IN ('pending', 'processing');\n",
+apps/api/src/services/excel-parser.ts:49: * Minimal unzipper for XLSX archives enforcing strict bounds against ZIP bombs.
+apps/api/src/http/routes/session.ts:46:  // Re-checked on every read: a revoked, archived or deleted target comes back as null.
+apps/api/src/http/routes/board-grants.ts:99:  const project = await client.query<{archived: boolean}>('SELECT archived FROM projects WHERE id = $1 FOR SHARE', [project_id]);
+apps/api/src/http/routes/board-grants.ts:101:  if (project.rows[0].archived) throw HttpError.conflict('READ_ONLY_CONTEXT', 'Cannot write in an archived project.');
+apps/api/src/http/routes/boards.ts:670:// 11. POST /api/v1/boards/:boardId/archive (BRD-08: Owner or Manager)
+apps/api/src/http/routes/boards.ts:671:boardsRoutes.post('/api/v1/boards/:boardId/archive', authMiddleware, async (c) => {
+apps/api/src/http/routes/boards.ts:691:    const bCheck = await client.query<{ id: string; project_id: string; archived: boolean; snapshot_version: number; structure_version: number }>(
+apps/api/src/http/routes/boards.ts:692:      `SELECT id, project_id, archived, snapshot_version, structure_version FROM boards WHERE id = $1 FOR UPDATE`,
+apps/api/src/http/routes/boards.ts:700:    const methodPath = `/api/v1/boards/${boardId}/archive`;
+apps/api/src/http/routes/boards.ts:724:      archived: boolean;
+apps/api/src/http/routes/boards.ts:731:       SET archived = TRUE, structure_version = structure_version + 1, snapshot_version = snapshot_version + 1, updated_at = NOW()
+apps/api/src/http/routes/boards.ts:733:       RETURNING id, workspace_id, project_id, name, archived, structure_version, snapshot_version, created_at, updated_at`,
+apps/api/src/http/routes/boards.ts:744:      action: 'board_archived',
+apps/api/src/http/routes/boards.ts:808:    const bCheck = await client.query<{ id: string; project_id: string; archived: boolean; snapshot_version: number; structure_version: number }>(
+apps/api/src/http/routes/boards.ts:809:      `SELECT id, project_id, archived, snapshot_version, structure_version FROM boards WHERE id = $1 FOR UPDATE`,
+apps/api/src/http/routes/boards.ts:841:      archived: boolean;
+apps/api/src/http/routes/boards.ts:848:       SET archived = FALSE, structure_version = structure_version + 1, snapshot_version = snapshot_version + 1, updated_at = NOW()
+apps/api/src/http/routes/boards.ts:850:       RETURNING id, workspace_id, project_id, name, archived, structure_version, snapshot_version, created_at, updated_at`,
+apps/api/src/http/routes/projects.ts:45:  action: 'archive' | 'reopen' = 'archive',
+apps/api/src/http/routes/projects.ts:160:      archived: boolean;
+apps/api/src/http/routes/projects.ts:165:      `INSERT INTO projects (id, workspace_id, name, description, archived, version, created_at, updated_at, key_prefix)
+apps/api/src/http/routes/projects.ts:167:       RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
+apps/api/src/http/routes/projects.ts:181:      isArchived: Boolean(row.archived),
+apps/api/src/http/routes/projects.ts:267:    archived: boolean;
+apps/api/src/http/routes/projects.ts:276:    `SELECT p.id, p.workspace_id, p.name, p.description, p.brief, p.archived, p.version, p.created_at, p.updated_at,
+apps/api/src/http/routes/projects.ts:303:    isArchived: Boolean(row.archived),
+apps/api/src/http/routes/projects.ts:510:// 9. POST /api/v1/projects/:projectId/archive (PRJ-04: Owner only)
+apps/api/src/http/routes/projects.ts:511:projectsRoutes.post('/api/v1/projects/:projectId/archive', authMiddleware, async (c) => {
+apps/api/src/http/routes/projects.ts:532:    const methodPath = `/api/v1/projects/${projectId}/archive`;
+apps/api/src/http/routes/projects.ts:533:    await lockProjectOwner(client, projectId, actor.id, 'archive');
+apps/api/src/http/routes/projects.ts:550:        throw HttpError.forbidden('Only workspace owner can archive projects.', 'FORBIDDEN');
+apps/api/src/http/routes/projects.ts:564:      throw HttpError.forbidden('Only workspace owner can archive projects.', 'FORBIDDEN');
+apps/api/src/http/routes/projects.ts:572:      archived: boolean;
+apps/api/src/http/routes/projects.ts:578:       SET archived = TRUE, version = version + 1, updated_at = NOW()
+apps/api/src/http/routes/projects.ts:580:       RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
+apps/api/src/http/routes/projects.ts:687:      archived: boolean;
+apps/api/src/http/routes/projects.ts:693:       SET archived = FALSE, version = version + 1, updated_at = NOW()
+apps/api/src/http/routes/projects.ts:695:       RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
+apps/api/src/adapters/rbac.ts:127:    archived: boolean;
+apps/api/src/adapters/rbac.ts:139:       p.archived,
+apps/api/src/adapters/rbac.ts:165:    isArchived: Boolean(row.archived),
+apps/api/src/adapters/rbac.ts:380: * Locks the project and optional board context and rejects writes to archived
+apps/api/src/adapters/rbac.ts:381: * data. The row locks make a future archive transition wait for this mutation
+apps/api/src/adapters/rbac.ts:382: * (or make this mutation observe the committed archive state first).
+apps/api/src/adapters/rbac.ts:395:      project_archived: boolean;
+apps/api/src/adapters/rbac.ts:396:      board_archived: boolean;
+apps/api/src/adapters/rbac.ts:398:      `SELECT p.archived AS project_archived, b.archived AS board_archived
+apps/api/src/adapters/rbac.ts:409:    if (contextRes.rows[0].project_archived) {
+apps/api/src/adapters/rbac.ts:410:      throw HttpError.conflict('READ_ONLY_CONTEXT', 'Cannot write in an archived project.', {
+apps/api/src/adapters/rbac.ts:411:        reason: 'project_archived',
+apps/api/src/adapters/rbac.ts:415:    if (contextRes.rows[0].board_archived) {
+apps/api/src/adapters/rbac.ts:416:      throw HttpError.conflict('READ_ONLY_CONTEXT', 'Cannot write on an archived board.', {
+apps/api/src/adapters/rbac.ts:417:        reason: 'board_archived',
+apps/api/src/adapters/rbac.ts:424:  const projectRes = await client.query<{ archived: boolean }>(
+apps/api/src/adapters/rbac.ts:425:    'SELECT archived FROM projects WHERE id = $1 FOR SHARE',
+apps/api/src/adapters/rbac.ts:431:  if (projectRes.rows[0].archived) {
+apps/api/src/adapters/rbac.ts:432:    throw HttpError.conflict('READ_ONLY_CONTEXT', 'Cannot write in an archived project.', {
+apps/api/src/adapters/rbac.ts:433:      reason: 'project_archived',
+apps/api/src/adapters/rbac.ts:468:       WHERE b.id = $1 AND b.project_id = $2 AND b.archived = FALSE`,
+apps/api/src/adapters/rbac.ts:728:     WHERE b.project_id = $1 AND b.archived = FALSE
+apps/api/src/adapters/default-board.ts:9: *   - the board still belongs to this project and is not archived;
+apps/api/src/adapters/default-board.ts:21:           AND dbd.archived = FALSE
+apps/api/src/adapters/last-location.ts:4:// project or board that was revoked, archived or deleted reads as "no location" and its
+apps/api/src/adapters/last-location.ts:18: * covers every unarchived project and board in the workspace. Other users need an active
+apps/api/src/adapters/last-location.ts:34:     WHERE p.id = $1 AND p.archived = FALSE`,
+apps/api/src/adapters/last-location.ts:45:     WHERE b.id = $1 AND b.project_id = $2 AND b.archived = FALSE
+apps/api/src/adapters/images.ts:823:    await client.query('DELETE FROM card_images WHERE id = $1', [imageId]);
+apps/api/src/adapters/cards.ts:285:    archived: boolean;
+apps/api/src/adapters/cards.ts:287:    `SELECT id, workspace_id, project_id, structure_version, snapshot_version, archived
+apps/api/src/adapters/cards.ts:1033:  const projRes = await poolOrClient.query<{ id: string; archived: boolean; timezone: string }>(
+apps/api/src/adapters/cards.ts:1034:    `SELECT p.id, p.archived, w.timezone
+apps/api/src/adapters/cards.ts:1041:  if (projRes.rows.length === 0 || projRes.rows[0]!.archived) {
+apps/api/src/adapters/project-overview.ts:38:      AND b.archived = FALSE
+apps/api/src/adapters/trash.ts:384:    project_archived: boolean;
+apps/api/src/adapters/trash.ts:385:    board_archived: boolean;
+apps/api/src/adapters/trash.ts:404:       p.archived AS project_archived,
+apps/api/src/adapters/trash.ts:405:       b.archived AS board_archived,
+apps/api/src/adapters/trash.ts:443:    } else if (row.project_archived) {
+apps/api/src/adapters/trash.ts:445:      blockedReason = 'project_archived';
+apps/api/src/adapters/trash.ts:446:    } else if (row.board_archived) {
+apps/api/src/adapters/trash.ts:448:      blockedReason = 'board_archived';
+apps/api/src/adapters/trash.ts:526:    project_archived: boolean;
+apps/api/src/adapters/trash.ts:527:    board_archived: boolean;
+apps/api/src/adapters/trash.ts:533:            b.archived AS board_archived,
+apps/api/src/adapters/trash.ts:534:            p.archived AS project_archived
+apps/api/src/adapters/trash.ts:560:  if (card.project_archived) {
+apps/api/src/adapters/trash.ts:561:    throw HttpError.conflict('READ_ONLY_CONTEXT', 'Cannot restore card in an archived project.', {
+apps/api/src/adapters/trash.ts:562:      reason: 'project_archived',
+apps/api/src/adapters/trash.ts:566:  if (card.board_archived) {
+apps/api/src/adapters/trash.ts:567:    throw HttpError.conflict('READ_ONLY_CONTEXT', 'Cannot restore card on an archived board.', {
+apps/api/src/adapters/trash.ts:568:      reason: 'board_archived',
+apps/api/src/adapters/imports.ts:234:    archived: boolean;
+apps/api/src/adapters/imports.ts:236:    `SELECT id, workspace_id, project_id, structure_version, snapshot_version, archived
+apps/api/src/adapters/imports.ts:250:  if (board.archived) {
+apps/api/src/adapters/imports.ts:251:    throw HttpError.conflict('BOARD_ARCHIVED', 'Board is archived.');
+apps/api/src/adapters/imports.ts:925:    archived: boolean;
+apps/api/src/adapters/imports.ts:927:    `SELECT id, workspace_id, project_id, structure_version, snapshot_version, archived
+apps/api/src/adapters/imports.ts:939:  if (board.archived) {
+apps/api/src/adapters/imports.ts:940:    throw HttpError.conflict('BOARD_ARCHIVED', 'Board is archived.');
+apps/api/src/adapters/invitations.ts:66:  // 1. Resolve project existence, workspace ownership, and archive status
+apps/api/src/adapters/invitations.ts:70:    archived: boolean;
+apps/api/src/adapters/invitations.ts:73:    `SELECT p.id, p.workspace_id, p.archived, w.owner_id
+apps/api/src/adapters/invitations.ts:86:  if (project.archived) {
+apps/api/src/adapters/invitations.ts:87:    throw HttpError.conflict('Project is archived and read-only.', 'READ_ONLY_CONTEXT');
+apps/api/src/adapters/invitations.ts:451:  // 1. Resolve project existence, workspace ownership, and archive status
+apps/api/src/adapters/invitations.ts:455:    archived: boolean;
+apps/api/src/adapters/invitations.ts:458:    `SELECT p.id, p.workspace_id, p.archived, w.owner_id
+apps/api/src/adapters/invitations.ts:471:  if (project.archived) {
+apps/api/src/adapters/invitations.ts:472:    throw HttpError.conflict('Project is archived and read-only.', 'READ_ONLY_CONTEXT');
+apps/api/src/adapters/invitations.ts:677:  // 1. Resolve project existence, workspace ownership, and archive status
+apps/api/src/adapters/invitations.ts:681:    archived: boolean;
+apps/api/src/adapters/invitations.ts:684:    `SELECT p.id, p.workspace_id, p.archived, w.owner_id
+apps/api/src/adapters/invitations.ts:697:  if (project.archived) {
+apps/api/src/adapters/invitations.ts:698:    throw HttpError.conflict('Project is archived and read-only.', 'READ_ONLY_CONTEXT');
+apps/api/src/adapters/projects.ts:101:    query = `SELECT p.id, p.workspace_id, p.name, p.description, p.archived, p.version, p.created_at, p.updated_at,
+apps/api/src/adapters/projects.ts:112:    query = `SELECT p.id, p.workspace_id, p.name, p.description, p.archived, p.version, p.created_at, p.updated_at,
+apps/api/src/adapters/projects.ts:130:    archived: boolean;
+apps/api/src/adapters/projects.ts:146:    isArchived: Boolean(row.archived),
+apps/api/src/adapters/projects.ts:188:      p.archived,
+apps/api/src/adapters/projects.ts:213:    archived: boolean;
+apps/api/src/adapters/projects.ts:230:    isArchived: Boolean(row.archived),
+apps/api/src/adapters/projects.ts:314:    // board archive wait until this transaction ends, so the check cannot race it.
+apps/api/src/adapters/projects.ts:316:      const boardRes = await client.query<{ archived: boolean }>(
+apps/api/src/adapters/projects.ts:317:        `SELECT archived FROM boards WHERE id = $1 AND project_id = $2 FOR SHARE`,
+apps/api/src/adapters/projects.ts:323:      if (boardRes.rows[0].archived) {
+apps/api/src/adapters/projects.ts:335:      archived: boolean;
+apps/api/src/adapters/projects.ts:348:       RETURNING id, workspace_id, name, description, brief, archived, version, created_at, updated_at`,
+apps/api/src/adapters/projects.ts:433:      isArchived: Boolean(updatedRow.archived),
+apps/api/src/adapters/comments.ts:547:  await client.query(`DELETE FROM comment_mentions WHERE comment_id = $1`, [commentId]);
+apps/api/src/adapters/comments.ts:678:  await client.query(`DELETE FROM comment_mentions WHERE comment_id = $1`, [commentId]);
+apps/api/src/adapters/boards.ts:169:    archived: boolean;
+apps/api/src/adapters/boards.ts:175:       structure_version, snapshot_version, archived,
+apps/api/src/adapters/boards.ts:178:     RETURNING id, workspace_id, project_id, name, description, structure_version, snapshot_version, archived, created_at, updated_at`,
+apps/api/src/adapters/boards.ts:225:    isArchived: Boolean(bRow.archived),
+apps/api/src/adapters/boards.ts:259:    archived: boolean;
+apps/api/src/adapters/boards.ts:266:      `SELECT b.id, b.workspace_id, b.project_id, b.name, b.description, b.structure_version, b.snapshot_version, b.archived, b.created_at, b.updated_at
+apps/api/src/adapters/boards.ts:269:       WHERE b.project_id = $1 AND b.archived = FALSE
+apps/api/src/adapters/boards.ts:276:      `SELECT id, workspace_id, project_id, name, description, structure_version, snapshot_version, archived, created_at, updated_at
+apps/api/src/adapters/boards.ts:278:       WHERE project_id = $1 AND archived = FALSE
+apps/api/src/adapters/boards.ts:290:    isArchived: Boolean(row.archived),
+apps/api/src/adapters/boards.ts:325:    archived: boolean;
+apps/api/src/adapters/boards.ts:327:    `SELECT id, workspace_id, project_id, name, structure_version, snapshot_version, archived
+apps/api/src/adapters/boards.ts:363:    archived: boolean;
+apps/api/src/adapters/boards.ts:373:     RETURNING id, workspace_id, project_id, name, description, structure_version, snapshot_version, archived, created_at, updated_at`,
+apps/api/src/adapters/boards.ts:418:    isArchived: Boolean(row.archived),
+apps/api/src/adapters/boards.ts:1131:      archived: boolean;
+apps/api/src/adapters/boards.ts:1138:              b.structure_version, b.snapshot_version, b.archived,
+apps/api/src/adapters/boards.ts:1437:        isArchived: Boolean(bRow.archived),
+EXIT CODE: 0
+

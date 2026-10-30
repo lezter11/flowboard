@@ -1,0 +1,22 @@
+COMMAND: node docs/reviews/CODEX-AUDIT-20261030-C/raw/orphan-audit.mjs
+DB CONTEXT: 127.0.0.1:55634; postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+OUTPUT:
+MEMBER_REMOVAL {"status":"removed","remainingGrant":"0","revokedInvite":{"status":"revoked","email":"member@example.test"}}
+REMOVED_MEMBER_NOTIFICATION_COUNT 0
+DIRECT_DELETE_REMAINDERS {"imageRows":"0","pendingKeyRows":"0","commentRows":"0","mentionRows":"0","notification":{"card_id":null,"title":"Mention in Direct Delete Private Title","body":"Private body","link":"/projects/prj_ops/boards/brd_ops?cardId=card_direct"},"activityTitleRemains":"Direct Delete Private Title","outboxIdsRemain":{"card_id":"card_direct","author_id":"u_member","status":"pending"}}
+BOARD_HARD_DELETE BLOCKED 23503 columns_board_id_fkey
+PROJECT_HARD_DELETE BLOCKED 23503 project_memberships_project_id_fkey
+USER_DELETE BLOCKED 23503 project_memberships_user_id_fkey
+APP_SOFT_DELETE_AND_PURGE {"purge":{"claimedCount":1,"purgedCardIds":["card_purge"]},"card":{"id":"card_purge","state":"purged","title":"[Purged card]","description":null},"remaining":{"comment_rows":"1","comment_body":"","mention_rows":"1","notification_title":"Notification","notification_body":"[Card content purged]","notification_link":"#","notification_card":"card_purge","activity_safe_changes":{"cardId":"card_purge","purged":true},"image_rows":"0","upload_rows":"0","pending_keys":"2","image_attempts":1,"outbox_payload":{"cardId":"card_purge","authorId":"u_member","mentions":["u_manager"],"commentId":"com_purge"},"outbox_status":"pending"}}
+OUTBOX_AFTER_PURGE {"processed":2,"delivered":2,"failed":0,"retried":0} {
+  status: 'delivered',
+  payload: {
+    cardId: 'card_purge',
+    authorId: 'u_member',
+    mentions: [ 'u_manager' ],
+    commentId: 'com_purge'
+  }
+}
+STORAGE_RETRY {"deletedCount":2,"deferredCount":0} ["private/purge/retry.png","staging/upl_purge/part.bin"] 0
+EXIT CODE: 0
+

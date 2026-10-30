@@ -1,0 +1,29 @@
+COMMAND: git show --no-ext-diff --format=fuller --stat 8cc31e2 -- apps/api/src/services/invitation-email.ts apps/api/src/adapters/invitation-delivery.ts apps/api/src/services/mailer.ts
+OUTPUT:
+commit 8cc31e26065b3351b68296a48163778744bd2f6c
+Author:     damaged-goods-admin <admin@damagedgoods.in>
+AuthorDate: Fri Oct 30 19:03:24 2026 +0530
+Commit:     damaged-goods-admin <admin@damagedgoods.in>
+CommitDate: Fri Oct 30 19:03:24 2026 +0530
+
+    feat(api): invitation email with a gradient lockup, hero and role-led layout (B-13)
+    
+    The header is the dark plum band with the app's pastel gradient wordmark as a hosted
+    PNG (apps/web/public/email/flowboard-lockup-dark.png, 36 KB, 625x150, transparent). A
+    hosted kanban illustration (invite-board-hero.png, 33 KB, 1200x400) sits under it.
+    
+    The body has an initials avatar cell for the inviter, a project card with a role chip
+    coloured per role and an expiry chip, three role-specific abilities, a bulletproof plum
+    button (fill and padding on the table cell), a copy-link box in monospace, dividers,
+    and a footer with the small app mark.
+    
+    Images carry width, height and alt text. Colours are explicit and dark-mode safe. Every
+    text and fill pair meets WCAG AA. The preview and 600px, 375px and dark-page renders
+    are in docs/references/email. Renders are headless Chrome, not client dark mode.
+    
+    Co-Authored-By: Claude Haiku 5.5 <noreply@anthropic.com>
+
+ apps/api/src/services/invitation-email.ts | 143 +++++++++++++++++++++++-------
+ 1 file changed, 111 insertions(+), 32 deletions(-)
+EXIT CODE: 0
+

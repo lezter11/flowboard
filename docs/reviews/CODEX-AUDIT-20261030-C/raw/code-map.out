@@ -1,0 +1,124 @@
+rg: apps/api/src/services/invitation-delivery.ts: No such file or directory (os error 2)
+apps/api/src/adapters/images.ts:19:import { recordActivity } from './activity.ts';
+apps/api/src/adapters/images.ts:117:export async function createImageUpload(
+apps/api/src/adapters/images.ts:213:export async function receiveImageContent(
+apps/api/src/adapters/images.ts:325: * Enforces transaction atomicity, card locking, board version bump, and activity log.
+apps/api/src/adapters/images.ts:327:export async function finalizeImageUpload(
+apps/api/src/adapters/images.ts:513:    // Append to activity log
+apps/api/src/adapters/images.ts:546:export async function getImageUpload(
+apps/api/src/adapters/images.ts:579:export async function cancelImageUpload(
+apps/api/src/adapters/images.ts:639:export async function listCardImages(
+apps/api/src/adapters/images.ts:692:export async function getImageContent(
+apps/api/src/adapters/images.ts:756: * board snapshot bump, and activity log recording.
+apps/api/src/adapters/images.ts:763:export async function deleteCardImage(
+apps/api/src/adapters/images.ts:839:    // Record activity log
+apps/api/src/adapters/images.ts:867:export async function deleteStorageAfterCommit(client: pg.ClientBase, storageKey: string): Promise<void> {
+apps/api/src/adapters/images.ts:886:export async function cleanupOrphanUploads(
+apps/api/src/adapters/boards.ts:22:import { recordActivity } from './activity.ts';
+apps/api/src/adapters/boards.ts:137:export async function createBoard(
+apps/api/src/adapters/boards.ts:237:export async function listProjectBoards(
+apps/api/src/adapters/boards.ts:309:export async function updateBoard(
+apps/api/src/adapters/boards.ts:430:export async function addColumn(
+apps/api/src/adapters/boards.ts:558:export async function updateColumn(
+apps/api/src/adapters/boards.ts:709:export async function reorderColumns(
+apps/api/src/adapters/boards.ts:810:export async function deleteColumn(
+apps/api/src/adapters/boards.ts:934:export async function getPlacement(
+apps/api/src/adapters/boards.ts:1110:export async function getBoardSnapshot(
+apps/api/src/adapters/boards.ts:1475:export async function listBoardCards(
+apps/api/src/http/routes/boards.ts:17:import { recordActivity } from '../../adapters/activity.ts';
+apps/api/src/runtime/worker.ts:5:import { processOutboxLease } from '../adapters/notifications.ts';
+apps/api/src/runtime/worker.ts:24: * Runs each scheduled job in turn. A job that throws does not stop the others. The first error is
+apps/api/src/runtime/worker.ts:27:export async function runIsolated(jobs: ScheduledJob[]): Promise<void> {
+apps/api/src/runtime/worker.ts:37:    console.error(JSON.stringify({ event: 'scheduled_job_failed', jobs: failures.map((f) => f.name) }));
+apps/api/src/runtime/worker.ts:47:  async fetch(request: Request, env: WorkerBindings): Promise<Response> {
+apps/api/src/runtime/worker.ts:71:      return await app.fetch(request, env);
+apps/api/src/runtime/worker.ts:77:  async scheduled(_event: unknown, env: WorkerBindings): Promise<void> {
+apps/api/src/runtime/worker.ts:88:        { name: 'outbox', run: () => processOutboxLease(pool, { mailer: mailerFromEnv(env) }) },
+apps/api/src/adapters/projects.ts:14:import { recordActivity } from './activity.ts';
+apps/api/src/adapters/projects.ts:60:export async function getWorkspaceProjects(
+apps/api/src/adapters/projects.ts:168:export async function getAllAccessibleProjects(
+apps/api/src/adapters/projects.ts:248:export async function getProjectLinks(
+apps/api/src/adapters/projects.ts:267:export async function updateProjectSettings(
+apps/api/src/adapters/projects.ts:457:export async function getProjectMembers(
+apps/api/src/adapters/projects.ts:580:export async function getProjectPeople(
+apps/api/src/adapters/trash.ts:24:import { recordActivity } from './activity.ts';
+apps/api/src/adapters/trash.ts:74:export async function fetchCardWithCounts(
+apps/api/src/adapters/trash.ts:155:export async function getCardById(
+apps/api/src/adapters/trash.ts:189: * - Writes activity_log fact.
+apps/api/src/adapters/trash.ts:192:export async function deleteCard(
+apps/api/src/adapters/trash.ts:289:  // 6. Record activity_log fact (minimal metadata; does not leak card title)
+apps/api/src/adapters/trash.ts:320:export async function listProjectTrash(
+apps/api/src/adapters/trash.ts:500: * - Writes activity_log fact.
+apps/api/src/adapters/trash.ts:503:export async function restoreCard(
+apps/api/src/adapters/trash.ts:641:  // Retrieve trash metadata from activity_log if available
+apps/api/src/adapters/trash.ts:644:     FROM activity_log
+apps/api/src/adapters/trash.ts:729:  // 9. Record activity_log fact
+apps/api/src/adapters/activity.ts:48:      throw new Error('invalid activity cursor');
+apps/api/src/adapters/activity.ts:86:  if (membership.rows[0]?.role !== 'manager') throw HttpError.forbidden('Only project managers and workspace owners can view project-wide activity.', 'FORBIDDEN');
+apps/api/src/adapters/activity.ts:109:export async function listCardActivity(
+apps/api/src/adapters/activity.ts:168:  // 3. Query activity_log ordered chronologically (created_at ASC, id ASC)
+apps/api/src/adapters/activity.ts:169:  const activityRes = await pool.query<{
+apps/api/src/adapters/activity.ts:182:     FROM activity_log
+apps/api/src/adapters/activity.ts:191:  const rawRows = activityRes.rows;
+apps/api/src/adapters/activity.ts:268: * AUD-04: Manager sees project activity/access changes; member/viewer sees card activity only in granted project.
+apps/api/src/adapters/activity.ts:270:export async function listProjectActivity(
+apps/api/src/adapters/activity.ts:345:  const activityRes = await pool.query<{
+apps/api/src/adapters/activity.ts:358:     FROM activity_log a
+apps/api/src/adapters/activity.ts:365:  const rawRows = activityRes.rows;
+apps/api/src/adapters/activity.ts:439: * AUD-03: Owner cross-project activity. Owner filters owned workspace activity by project/card/actor/action/date.
+apps/api/src/adapters/activity.ts:442:export async function listWorkspaceActivity(
+apps/api/src/adapters/activity.ts:470:      throw HttpError.forbidden('Only workspace owners can view workspace activity.', 'FORBIDDEN');
+apps/api/src/adapters/activity.ts:527:  const activityRes = await pool.query<{
+apps/api/src/adapters/activity.ts:540:     FROM activity_log
+apps/api/src/adapters/activity.ts:547:  const rawRows = activityRes.rows;
+apps/api/src/adapters/activity.ts:607: * while strictly preserving the immutable activity row, actor, action, and timestamp facts.
+apps/api/src/adapters/activity.ts:609:export async function redactCardActivity(
+apps/api/src/adapters/activity.ts:614:    `UPDATE activity_log
+apps/api/src/adapters/activity.ts:635: * Canonical activity_log writer. Automatically populates board_id and visibility_scope
+apps/api/src/adapters/activity.ts:636: * when the database schema supports them, strictly complying with the activity_scope_shape
+apps/api/src/adapters/activity.ts:637: * constraint and validate_activity_scope_draft_trigger.
+apps/api/src/adapters/activity.ts:639:export async function recordActivity(
+apps/api/src/adapters/activity.ts:646:  // Check if visibility_scope column exists on activity_log
+apps/api/src/adapters/activity.ts:650:       WHERE attrelid = to_regclass('activity_log') 
+apps/api/src/adapters/activity.ts:684:        `INSERT INTO activity_log (
+apps/api/src/adapters/activity.ts:702:        `INSERT INTO activity_log (
+apps/api/src/adapters/activity.ts:722:        `INSERT INTO activity_log (
+apps/api/src/adapters/activity.ts:738:        `INSERT INTO activity_log (
+apps/api/src/http/routes/invitations.ts:12:import { sendInvitationEmailSoon } from '../../adapters/invitation-delivery.ts';
+apps/api/src/http/routes/invitations.ts:16:  resendInvitation,
+apps/api/src/http/routes/invitations.ts:82:    const { invitation, rawToken, outboxId } = await createInvitation(
+apps/api/src/http/routes/invitations.ts:92:    sendInvitationEmailSoon(c, outboxId);
+apps/api/src/http/routes/invitations.ts:322:      const { invitation, rawToken, outboxId } = await resendInvitation(
+apps/api/src/http/routes/invitations.ts:331:      sendInvitationEmailSoon(c, outboxId);
+apps/api/src/adapters/notifications.ts:42:      throw new Error('invalid notification cursor');
+apps/api/src/adapters/notifications.ts:79:async function notificationScopeDigest(db: pg.ClientBase | pg.Pool, actorId: string): Promise<string> {
+apps/api/src/adapters/notifications.ts:104: * NTF-01: Durable in-app mention inbox. Queries notifications table for current actor with pagination.
+apps/api/src/adapters/notifications.ts:107:export async function listNotifications(
+apps/api/src/adapters/notifications.ts:115:    const scopeDigest = await notificationScopeDigest(client, actorId);
+apps/api/src/adapters/notifications.ts:121:       FROM notifications n
+apps/api/src/adapters/notifications.ts:151:export async function markNotificationRead(
+apps/api/src/adapters/notifications.ts:153:  notificationId: string,
+apps/api/src/adapters/notifications.ts:161:       FROM notifications n JOIN projects p ON p.id=n.project_id AND p.workspace_id=n.workspace_id
+apps/api/src/adapters/notifications.ts:164:       WHERE n.id=$1 AND n.user_id=$2`, [notificationId, actorId]);
+apps/api/src/adapters/notifications.ts:184:      `UPDATE notifications n SET read=TRUE
+apps/api/src/adapters/notifications.ts:187:      [actorId, notificationId]);
+apps/api/src/adapters/notifications.ts:195:export async function markAllNotificationsRead(
+apps/api/src/adapters/notifications.ts:202:        SELECT 1 FROM notifications n JOIN projects p ON p.id=n.project_id
+apps/api/src/adapters/notifications.ts:206:      `SELECT DISTINCT c.board_id FROM notifications n JOIN cards c ON c.id=n.card_id
+apps/api/src/adapters/notifications.ts:217:      `UPDATE notifications n SET read=TRUE WHERE ${visibleNotification} AND n.read=FALSE`,
+apps/api/src/adapters/notifications.ts:242: * delivers mention notifications idempotently, applies exponential backoff on errors,
+apps/api/src/adapters/notifications.ts:245:export async function processOutboxLease(
+apps/api/src/adapters/notifications.ts:274:       FROM outbox
+apps/api/src/adapters/notifications.ts:291:            throw new Error('Invalid comment.created outbox payload: cardId is required');
+apps/api/src/adapters/notifications.ts:346:                  `SELECT id FROM notifications
+apps/api/src/adapters/notifications.ts:354:                    `INSERT INTO notifications (
+apps/api/src/adapters/notifications.ts:377:          `UPDATE outbox SET status = 'delivered' WHERE id = $1`,
+apps/api/src/adapters/notifications.ts:386:            `UPDATE outbox SET status = 'failed', retry_count = $1 WHERE id = $2`,
+apps/api/src/adapters/notifications.ts:394:            `UPDATE outbox
+apps/api/src/http/routes/projects.ts:13:import { getProjectOverview } from '../../adapters/project-overview.ts';
+apps/api/src/http/routes/projects.ts:312:// 4b. GET /api/v1/projects/:projectId/overview: real counts over readable boards (any member)
+apps/api/src/http/routes/projects.ts:313:projectsRoutes.get('/api/v1/projects/:projectId/overview', authMiddleware, async (c) => {
+apps/api/src/http/routes/projects.ts:318:  const overview = await getProjectOverview(getPool(), c.req.param('projectId'), actor.id);
+apps/api/src/http/routes/projects.ts:319:  return c.json({ data: overview }, 200);
+apps/api/src/http/routes/cards.ts:346:    // 2. Find last card_moved activity fact
+apps/api/src/http/routes/cards.ts:349:       FROM activity_log

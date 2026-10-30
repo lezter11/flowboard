@@ -1,0 +1,191 @@
+COMMAND: bash -c rg\ -n\ \"getHistoricalPersonDisplay\|Promise\\.all\\\(\"\ apps/api/src/adapters/activity.ts\ apps/api/src/adapters/\*.ts\;\ sed\ -n\ \"220\,275p\"\ apps/api/src/adapters/activity.ts\;\ sed\ -n\ \"390\,438p\"\ apps/api/src/adapters/activity.ts\;\ sed\ -n\ \"548\,608p\"\ apps/api/src/adapters/activity.ts
+OUTPUT:
+apps/api/src/adapters/comments.ts:20:  getHistoricalPersonDisplay,
+apps/api/src/adapters/comments.ts:191:  await Promise.all(
+apps/api/src/adapters/comments.ts:193:      const display = await getHistoricalPersonDisplay(pool, card.project_id, authorId);
+apps/api/src/adapters/comments.ts:427:  const authorDisplay = await getHistoricalPersonDisplay(client, card.project_id, actorId);
+apps/api/src/adapters/comments.ts:579:  const authorDisplay = await getHistoricalPersonDisplay(client, comment.project_id, actorId);
+apps/api/src/adapters/activity.ts:4:import { getHistoricalPersonDisplay } from './rbac.ts';
+apps/api/src/adapters/activity.ts:212:  await Promise.all(
+apps/api/src/adapters/activity.ts:214:      const display = await getHistoricalPersonDisplay(pool, card.project_id, actId);
+apps/api/src/adapters/activity.ts:386:  await Promise.all(
+apps/api/src/adapters/activity.ts:388:      const display = await getHistoricalPersonDisplay(pool, projectId, actId);
+apps/api/src/adapters/activity.ts:568:  await Promise.all(
+apps/api/src/adapters/rbac.ts:608:export async function getHistoricalPersonDisplay(
+apps/api/src/adapters/cards.ts:18:import { resolveProjectRole, acquireWriteGrantLock, acquireWritableProjectContextLock, getHistoricalPersonDisplay } from './rbac.ts';
+apps/api/src/adapters/cards.ts:481:    const p = await getHistoricalPersonDisplay(poolOrClient, cardRow.project_id, uid);
+apps/api/src/adapters/trash.ts:22:  getHistoricalPersonDisplay,
+apps/api/src/adapters/activity.ts:4:import { getHistoricalPersonDisplay } from './rbac.ts';
+apps/api/src/adapters/activity.ts:212:  await Promise.all(
+apps/api/src/adapters/activity.ts:214:      const display = await getHistoricalPersonDisplay(pool, card.project_id, actId);
+apps/api/src/adapters/activity.ts:386:  await Promise.all(
+apps/api/src/adapters/activity.ts:388:      const display = await getHistoricalPersonDisplay(pool, projectId, actId);
+apps/api/src/adapters/activity.ts:568:  await Promise.all(
+          [actId],
+        );
+        if (userRes.rows.length > 0) {
+          const u = userRes.rows[0]!;
+          actorsMap.set(actId, {
+            id: u.id,
+            displayName: u.display_name,
+            avatarUrl: u.avatar_url,
+            activeInProject: false,
+            scopedRole: 'viewer',
+            assignable: false,
+            mentionable: false,
+          });
+        }
+      }
+    }),
+  );
+
+  const data: ActivityItem[] = pageRows.map((row) => ({
+    id: row.id,
+    cardId: row.card_id,
+    projectId: row.project_id,
+    actorId: row.actor_id,
+    action: row.action,
+    safeChanges: (row.safe_changes as Record<string, unknown>) ?? {},
+    createdAt: new Date(row.created_at).toISOString(),
+    actor: actorsMap.get(row.actor_id),
+    // Card title and key are shown only because this feed is already scoped to one card the actor passed.
+    boardId: card.board_id,
+    cardKey: card.card_key,
+    cardTitle: card.title,
+  }));
+
+  return { data, nextCursor };
+  });
+}
+
+export interface ListProjectActivityOptions {
+  limit?: number | undefined;
+  cursor?: string | undefined;
+  cardId?: string | undefined;
+  actorId?: string | undefined;
+  action?: string | undefined;
+  fromDate?: string | undefined;
+  toDate?: string | undefined;
+}
+
+/**
+ * AUD-04: Manager sees project activity/access changes; member/viewer sees card activity only in granted project.
+ */
+export async function listProjectActivity(
+  poolOrClient: pg.Pool | pg.ClientBase,
+  projectId: string,
+  actorId: string,
+  options?: ListProjectActivityOptions,
+): Promise<ListActivityResponse> {
+        actorsMap.set(actId, display);
+      } else {
+        const userRes = await pool.query<{ id: string; display_name: string; avatar_url: string | null }>(
+          'SELECT id, display_name, avatar_url FROM users WHERE id = $1',
+          [actId],
+        );
+        if (userRes.rows.length > 0) {
+          const u = userRes.rows[0]!;
+          actorsMap.set(actId, {
+            id: u.id,
+            displayName: u.display_name,
+            avatarUrl: u.avatar_url,
+            activeInProject: false,
+            scopedRole: 'viewer',
+            assignable: false,
+            mentionable: false,
+          });
+        }
+      }
+    }),
+  );
+
+  const data: ActivityItem[] = pageRows.map((row) => ({
+    id: row.id,
+    cardId: row.card_id,
+    projectId: row.project_id,
+    actorId: row.actor_id,
+    action: row.action,
+    safeChanges: (row.safe_changes as Record<string, unknown>) ?? {},
+    createdAt: new Date(row.created_at).toISOString(),
+    actor: actorsMap.get(row.actor_id),
+  }));
+
+  return { data, nextCursor };
+  });
+}
+
+export interface ListWorkspaceActivityOptions {
+  limit?: number | undefined;
+  cursor?: string | undefined;
+  projectId?: string | undefined;
+  cardId?: string | undefined;
+  actorId?: string | undefined;
+  action?: string | undefined;
+  fromDate?: string | undefined;
+  toDate?: string | undefined;
+}
+
+/**
+  const hasMore = rawRows.length > limit;
+  const pageRows = hasMore ? rawRows.slice(0, limit) : rawRows;
+  const lastRow = pageRows[pageRows.length - 1];
+  const nextCursor =
+    hasMore && lastRow
+      ? encodeActivityCursor({
+          v: 2,
+          scope: 'workspace',
+          scopeId: workspaceId,
+          actorId,
+          scopeDigest,
+          createdAt: lastRow.cursor_time,
+          id: lastRow.id,
+        })
+      : null;
+
+  // Batch-load actor PersonDisplay identities
+  const actorIds = Array.from(new Set(pageRows.map((r) => r.actor_id)));
+  const actorsMap = new Map<string, PersonDisplay>();
+
+  await Promise.all(
+    actorIds.map(async (actId) => {
+      const userRes = await pool.query<{ id: string; display_name: string; avatar_url: string | null }>(
+        'SELECT id, display_name, avatar_url FROM users WHERE id = $1',
+        [actId],
+      );
+      if (userRes.rows.length > 0) {
+        const u = userRes.rows[0]!;
+        const isOwner = ws.owner_id === actId;
+        actorsMap.set(actId, {
+          id: u.id,
+          displayName: u.display_name,
+          avatarUrl: u.avatar_url,
+          activeInProject: true,
+          scopedRole: isOwner ? 'owner' : 'member',
+          assignable: true,
+          mentionable: true,
+        });
+      }
+    }),
+  );
+
+  const data: ActivityItem[] = pageRows.map((row) => ({
+    id: row.id,
+    cardId: row.card_id,
+    projectId: row.project_id,
+    actorId: row.actor_id,
+    action: row.action,
+    safeChanges: (row.safe_changes as Record<string, unknown>) ?? {},
+    createdAt: new Date(row.created_at).toISOString(),
+    actor: actorsMap.get(row.actor_id),
+  }));
+
+  return { data, nextCursor };
+  });
+}
+
+/**
+ * AUD-06: Append-only history and redaction. Redacts safe_changes for deleted/purged card content
+ * while strictly preserving the immutable activity row, actor, action, and timestamp facts.
+ */
+EXIT CODE: 0
+

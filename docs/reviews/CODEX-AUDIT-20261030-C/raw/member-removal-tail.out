@@ -1,0 +1,61 @@
+    if (updateRes.rows.length === 0) {
+      if (!isWorkspaceOwner) {
+        throw HttpError.forbidden('Project managers cannot modify other managers.', 'FORBIDDEN');
+      }
+      throw HttpError.notFound('Member not found.', 'NOT_FOUND');
+    }
+
+    // Look up target user's email and atomically revoke pending invitations for that email in this project
+    const userRes = await client.query<{ email: string }>(
+      'SELECT email FROM users WHERE id = $1',
+      [targetUserId],
+    );
+    const targetEmail = userRes.rows[0]?.email;
+    const revokedInvitations = targetEmail
+      ? await client.query<{ id: string; role: ProjectRole }>(
+        `UPDATE project_invitations
+         SET status = 'revoked', updated_at = NOW()
+         WHERE project_id = $1 AND LOWER(email) = LOWER($2) AND status = 'pending'
+         RETURNING id, role`,
+        [projectId, targetEmail],
+      )
+      : { rows: [] as { id: string; role: ProjectRole }[] };
+
+    const updated = updateRes.rows[0]!;
+    await recordActivity(client, {
+      workspaceId: targetMember.workspace_id,
+      projectId,
+      visibilityScope: 'project',
+      actorId: actor.id,
+      action: 'member_removed',
+      safeChanges: { userId: targetUserId, role: targetMember.role },
+    });
+    // Invitations revoked as a side effect of removal are logged too, with no email.
+    for (const inv of revokedInvitations.rows) {
+      await recordActivity(client, {
+        workspaceId: targetMember.workspace_id,
+        projectId,
+        visibilityScope: 'project',
+        actorId: actor.id,
+        action: 'invitation_revoked',
+        safeChanges: { invitationId: inv.id, role: inv.role, reason: 'member_removed' },
+      });
+    }
+
+    if (poolClient) {
+      await client.query('COMMIT');
+    }
+
+    return {
+      success: true,
+      membership: {
+        id: updated.id,
+        projectId: updated.project_id,
+        userId: updated.user_id,
+        role: updated.role,
+        status: updated.status,
+        version: updated.version,
+        createdAt: new Date(updated.created_at).toISOString(),
+        updatedAt: new Date(updated.updated_at).toISOString(),
+      },
+    };

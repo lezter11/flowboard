@@ -1,0 +1,12 @@
+apps/api/src/adapters/projects.ts:371:      await client.query('DELETE FROM project_links WHERE project_id = $1', [projectId]);
+apps/api/src/adapters/boards.ts:269:       WHERE b.project_id = $1 AND b.archived = FALSE
+apps/api/src/adapters/boards.ts:278:       WHERE project_id = $1 AND archived = FALSE
+apps/api/src/adapters/boards.ts:886:  await client.query(`DELETE FROM columns WHERE id = $1 AND board_id = $2`, [columnId, boardId]);
+apps/api/src/adapters/members.ts:258:    // 4. Update row to status = 'removed'
+apps/api/src/adapters/members.ts:262:         SET status = 'removed', version = version + 1, updated_at = NOW()
+apps/api/src/adapters/members.ts:266:         SET status = 'removed', version = version + 1, updated_at = NOW()
+apps/api/src/http/routes/projects.ts:578:       SET archived = TRUE, version = version + 1, updated_at = NOW()
+apps/api/src/http/routes/projects.ts:693:       SET archived = FALSE, version = version + 1, updated_at = NOW()
+apps/api/src/http/routes/boards.ts:505:boardsRoutes.delete('/api/v1/boards/:boardId/columns/:columnId', authMiddleware, async (c) => {
+apps/api/src/http/routes/boards.ts:731:       SET archived = TRUE, structure_version = structure_version + 1, snapshot_version = snapshot_version + 1, updated_at = NOW()
+apps/api/src/http/routes/boards.ts:848:       SET archived = FALSE, structure_version = structure_version + 1, snapshot_version = snapshot_version + 1, updated_at = NOW()

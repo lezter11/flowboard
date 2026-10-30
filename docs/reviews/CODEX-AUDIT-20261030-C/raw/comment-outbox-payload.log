@@ -1,0 +1,47 @@
+COMMAND: rg -n -A24 -B8 INSERT\ INTO\ outbox\|comment.created\|payload apps/api/src/adapters/comments.ts
+OUTPUT:
+385-
+386-  // 8. Atomic activity_log commit
+387-  await recordActivity(client, {
+388-    workspaceId: card.workspace_id,
+389-    projectId: card.project_id,
+390-    boardId: card.board_id,
+391-    cardId: card.id,
+392-    actorId,
+393:    action: 'comment_created',
+394-    safeChanges: { commentId, mentionsCount: mentions.length },
+395-    createdAt: nowIso,
+396-  });
+397-
+398-  // 9. Atomic outbox event commit
+399-  const outboxId = 'out_' + crypto.randomUUID();
+400-  await client.query(
+401:    `INSERT INTO outbox (
+402:       id, workspace_id, project_id, event_type, payload, status, retry_count, next_retry_at, created_at
+403:     ) VALUES ($1, $2, $3, 'comment.created', $4, 'pending', 0, $5, $5)`,
+404-    [
+405-      outboxId,
+406-      card.workspace_id,
+407-      card.project_id,
+408-      JSON.stringify({
+409-        commentId,
+410-        cardId: card.id,
+411-        authorId: actorId,
+412-        mentions: uniqueMentionees,
+413-      }),
+414-      nowIso,
+415-    ],
+416-  );
+417-
+418-  // 10. Increment board snapshot_version
+419-  await client.query(
+420-    `UPDATE boards
+421-     SET snapshot_version = snapshot_version + 1, updated_at = $1
+422-     WHERE id = $2`,
+423-    [nowIso, card.board_id],
+424-  );
+425-
+426-  // 11. Build author display
+427-  const authorDisplay = await getHistoricalPersonDisplay(client, card.project_id, actorId);
+EXIT CODE: 0
+

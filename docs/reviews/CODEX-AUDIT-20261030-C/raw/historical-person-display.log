@@ -1,0 +1,70 @@
+COMMAND: sed -n 600\,665p apps/api/src/adapters/rbac.ts
+OUTPUT:
+  projectId: string,
+  query?: string,
+  boardId?: string,
+): Promise<PersonDisplay[]> {
+  const { data } = await getProjectPeople(clientOrPool, projectId, 'mention', query, undefined, 100, boardId);
+  return data;
+}
+
+export async function getHistoricalPersonDisplay(
+  clientOrPool: pg.Pool | pg.ClientBase,
+  projectId: string,
+  userId: string,
+): Promise<PersonDisplay | null> {
+  const pool = clientOrPool ?? getPool();
+
+  const prjRes = await pool.query<{ owner_id: string }>(
+    `SELECT w.owner_id
+     FROM projects p
+     JOIN workspaces w ON p.workspace_id = w.id
+     WHERE p.id = $1`,
+    [projectId],
+  );
+
+  if (prjRes.rows.length > 0 && prjRes.rows[0]?.owner_id === userId) {
+    const userRes = await pool.query<{ id: string; display_name: string; avatar_url: string | null }>(
+      'SELECT id, display_name, avatar_url FROM users WHERE id = $1',
+      [userId],
+    );
+    if (userRes.rows.length === 0) return null;
+    const u = userRes.rows[0]!;
+    return {
+      id: u.id,
+      displayName: u.display_name,
+      avatarUrl: u.avatar_url,
+      activeInProject: true,
+      scopedRole: 'owner',
+      assignable: true,
+      mentionable: true,
+    };
+  }
+
+  const memRes = await pool.query<{
+    id: string;
+    display_name: string;
+    avatar_url: string | null;
+    role: ProjectRole;
+    status: 'active' | 'removed';
+  }>(
+    `SELECT u.id, u.display_name, u.avatar_url, pm.role, pm.status
+     FROM project_memberships pm
+     JOIN users u ON pm.user_id = u.id
+     WHERE pm.project_id = $1 AND pm.user_id = $2`,
+    [projectId, userId],
+  );
+
+  if (memRes.rows.length === 0) {
+    return null;
+  }
+
+  const row = memRes.rows[0]!;
+  const isActive = row.status === 'active';
+  const role = row.role;
+  const isWritable = role === 'manager' || role === 'member';
+
+  return {
+    id: row.id,
+EXIT CODE: 0
+

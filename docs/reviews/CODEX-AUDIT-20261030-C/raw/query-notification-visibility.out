@@ -1,0 +1,105 @@
+import type pg from 'pg';
+import type { Notification, NotificationType } from '@flowboard/contracts';
+import { getPool } from './postgres.ts';
+import { resolveProjectRole } from './rbac.ts';
+import { HttpError } from '../http/errors.ts';
+import type { Mailer } from '../services/mailer.ts';
+import { deliverInvitationRow } from './invitation-delivery.ts';
+import { createHash } from 'node:crypto';
+import { lockBoardAccess } from './board-grants-foundation.ts';
+
+export interface NotificationCursor {
+  v: 2;
+  userId: string;
+  scopeDigest: string;
+  unreadOnly: boolean;
+  createdAt: string;
+  id: string;
+}
+
+export function encodeNotificationCursor(cursor: NotificationCursor): string {
+  return btoa(JSON.stringify(cursor))
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/g, '');
+}
+
+export function decodeNotificationCursor(value: string, expectedUserId: string, scopeDigest: string, unreadOnly: boolean): NotificationCursor {
+  try {
+    const base64 =
+      value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (value.length % 4)) % 4);
+    const parsed = JSON.parse(atob(base64)) as Partial<NotificationCursor>;
+    if (
+      parsed.v !== 2 ||
+      parsed.userId !== expectedUserId ||
+      parsed.scopeDigest !== scopeDigest ||
+      parsed.unreadOnly !== unreadOnly ||
+      typeof parsed.createdAt !== 'string' ||
+      Number.isNaN(Date.parse(parsed.createdAt)) ||
+      typeof parsed.id !== 'string' ||
+      parsed.id.length === 0
+    ) {
+      throw new Error('invalid notification cursor');
+    }
+    return parsed as NotificationCursor;
+  } catch {
+    throw HttpError.conflict('STALE_CURSOR', 'Notification cursor is invalid or belongs to another user.');
+  }
+}
+
+async function inNotificationTransaction<T>(db: pg.Pool | pg.ClientBase, run: (client: pg.ClientBase) => Promise<T>): Promise<T> {
+  if (typeof (db as pg.Pool).totalCount !== 'number') return run(db as pg.ClientBase);
+  const client = await (db as pg.Pool).connect();
+  try {
+    await client.query('BEGIN');
+    const result = await run(client);
+    await client.query('COMMIT');
+    return result;
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally {
+    (client as pg.PoolClient).release();
+  }
+}
+
+const visibleNotification = `n.user_id=$1 AND EXISTS (
+  SELECT 1 FROM projects p JOIN workspaces w ON w.id=p.workspace_id
+  WHERE p.id=n.project_id AND p.workspace_id=n.workspace_id AND
+    (w.owner_id=$1 OR (
+      EXISTS (SELECT 1 FROM project_memberships pm WHERE pm.project_id=p.id AND pm.user_id=$1 AND pm.status='active')
+      AND EXISTS (SELECT 1 FROM cards c JOIN boards b ON b.id=c.board_id
+        AND b.project_id=c.project_id AND b.workspace_id=c.workspace_id
+        JOIN board_grants g ON g.board_id=b.id AND g.project_id=b.project_id
+        AND g.workspace_id=b.workspace_id AND g.user_id=$1
+        WHERE c.id=n.card_id AND c.project_id=n.project_id AND c.workspace_id=n.workspace_id AND c.state='active')
+    ))
+)`;
+
+async function notificationScopeDigest(db: pg.ClientBase | pg.Pool, actorId: string): Promise<string> {
+  const scope = await db.query<{ project_id: string; board_id: string | null; access_revision: string | null }>(
+    `SELECT p.id AS project_id,b.id AS board_id,b.access_revision
+     FROM projects p JOIN workspaces w ON w.id=p.workspace_id
+     LEFT JOIN boards b ON b.project_id=p.id AND b.workspace_id=p.workspace_id
+     WHERE w.owner_id=$1 OR (EXISTS (
+       SELECT 1 FROM project_memberships pm WHERE pm.project_id=p.id AND pm.user_id=$1 AND pm.status='active')
+       AND b.id IS NOT NULL AND EXISTS (
+         SELECT 1 FROM board_grants g WHERE g.board_id=b.id AND g.project_id=p.id AND g.workspace_id=p.workspace_id AND g.user_id=$1))
+     ORDER BY p.id,b.id`, [actorId]);
+  return createHash('sha256').update(JSON.stringify({ actorId, scope: scope.rows })).digest('hex');
+}
+
+export interface ListNotificationsOptions {
+  limit?: number | undefined;
+  cursor?: string | undefined;
+  unreadOnly?: boolean | undefined;
+}
+
+export interface ListNotificationsResponse {
+  data: Notification[];
+  nextCursor: string | null;
+}
+
+/**
+ * NTF-01: Durable in-app mention inbox. Queries notifications table for current actor with pagination.
+ * Filters out ungranted or removed projects so private summaries/titles are never leaked.

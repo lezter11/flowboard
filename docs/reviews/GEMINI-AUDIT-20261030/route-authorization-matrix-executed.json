@@ -1,0 +1,4491 @@
+{
+  "commit": "371cc9f31dd605ddead4eda743c2d26e12c07fca",
+  "roles": [
+    "unauthenticated",
+    "stranger",
+    "other_project_member",
+    "same_project_no_board_grant",
+    "viewer",
+    "member",
+    "manager",
+    "owner",
+    "revoked_member",
+    "foreign_or_guessed_id"
+  ],
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/api/v1/activity/health",
+      "source": "apps/api/src/http/routes/activity.ts",
+      "sourceLine": 20,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "stranger": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "other_project_member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "foreign_or_guessed_id": {
+          "status": 200,
+          "body": "ok_data"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/google",
+      "source": "apps/api/src/http/routes/google-auth.ts",
+      "sourceLine": 106,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "stranger": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "other_project_member": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "same_project_no_board_grant": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "viewer": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "member": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "manager": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "owner": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "revoked_member": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "foreign_or_guessed_id": {
+          "status": 302,
+          "body": "status_302"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/google/callback",
+      "source": "apps/api/src/http/routes/google-auth.ts",
+      "sourceLine": 110,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 400,
+          "body": "INVALID_CALLBACK: Missing authorization code or state parameter."
+        },
+        "stranger": {
+          "status": 400,
+          "body": "INVALID_CALLBACK: Missing authorization code or state parameter."
+        },
+        "other_project_member": {
+          "status": 400,
+          "body": "INVALID_CALLBACK: Missing authorization code or state parameter."
+        },
+        "same_project_no_board_grant": {
+          "status": 400,
+          "body": "INVALID_CALLBACK: Missing authorization code or state parameter."
+        },
+        "viewer": {
+          "status": 400,
+          "body": "INVALID_CALLBACK: Missing authorization code or state parameter."
+        },
+        "member": {
+          "status": 400,
+          "body": "INVALID_CALLBACK: Missing authorization code or state parameter."
+        },
+        "manager": {
+          "status": 400,
+          "body": "INVALID_CALLBACK: Missing authorization code or state parameter."
+        },
+        "owner": {
+          "status": 400,
+          "body": "INVALID_CALLBACK: Missing authorization code or state parameter."
+        },
+        "revoked_member": {
+          "status": 400,
+          "body": "INVALID_CALLBACK: Missing authorization code or state parameter."
+        },
+        "foreign_or_guessed_id": {
+          "status": 400,
+          "body": "INVALID_CALLBACK: Missing authorization code or state parameter."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/google/start",
+      "source": "apps/api/src/http/routes/google-auth.ts",
+      "sourceLine": 107,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "stranger": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "other_project_member": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "same_project_no_board_grant": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "viewer": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "member": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "manager": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "owner": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "revoked_member": {
+          "status": 302,
+          "body": "status_302"
+        },
+        "foreign_or_guessed_id": {
+          "status": 302,
+          "body": "status_302"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/:boardId",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 140,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/boards/:boardId",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 160,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/:boardId/access",
+      "source": "apps/api/src/http/routes/board-grants.ts",
+      "sourceLine": 48,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/boards/:boardId/archive",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 670,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/:boardId/card-import-template",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 76,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "member": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "manager": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "owner": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/boards/:boardId/card-imports",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 141,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "other_project_member": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "same_project_no_board_grant": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "viewer": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "member": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "manager": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "owner": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "revoked_member": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "foreign_or_guessed_id": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/:boardId/cards",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 644,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/boards/:boardId/cards",
+      "source": "apps/api/src/http/routes/cards.ts",
+      "sourceLine": 37,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/boards/:boardId/columns",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 251,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/boards/:boardId/columns/:columnId",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 504,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 400,
+          "body": "VALIDATION_ERROR: Missing or invalid expectedBoardVersion parameter."
+        },
+        "other_project_member": {
+          "status": 400,
+          "body": "VALIDATION_ERROR: Missing or invalid expectedBoardVersion parameter."
+        },
+        "same_project_no_board_grant": {
+          "status": 400,
+          "body": "VALIDATION_ERROR: Missing or invalid expectedBoardVersion parameter."
+        },
+        "viewer": {
+          "status": 400,
+          "body": "VALIDATION_ERROR: Missing or invalid expectedBoardVersion parameter."
+        },
+        "member": {
+          "status": 400,
+          "body": "VALIDATION_ERROR: Missing or invalid expectedBoardVersion parameter."
+        },
+        "manager": {
+          "status": 400,
+          "body": "VALIDATION_ERROR: Missing or invalid expectedBoardVersion parameter."
+        },
+        "owner": {
+          "status": 400,
+          "body": "VALIDATION_ERROR: Missing or invalid expectedBoardVersion parameter."
+        },
+        "revoked_member": {
+          "status": 400,
+          "body": "VALIDATION_ERROR: Missing or invalid expectedBoardVersion parameter."
+        },
+        "foreign_or_guessed_id": {
+          "status": 400,
+          "body": "VALIDATION_ERROR: Missing or invalid expectedBoardVersion parameter."
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/boards/:boardId/columns/:columnId",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 335,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/:boardId/columns/:columnId/placement",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 611,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: movingCardId: Invalid input: expected string, received undefined; at: Invalid option: expected one of \"first\"|\"la"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: movingCardId: Invalid input: expected string, received undefined; at: Invalid option: expected one of \"first\"|\"la"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: movingCardId: Invalid input: expected string, received undefined; at: Invalid option: expected one of \"first\"|\"la"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: movingCardId: Invalid input: expected string, received undefined; at: Invalid option: expected one of \"first\"|\"la"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: movingCardId: Invalid input: expected string, received undefined; at: Invalid option: expected one of \"first\"|\"la"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: movingCardId: Invalid input: expected string, received undefined; at: Invalid option: expected one of \"first\"|\"la"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: movingCardId: Invalid input: expected string, received undefined; at: Invalid option: expected one of \"first\"|\"la"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: movingCardId: Invalid input: expected string, received undefined; at: Invalid option: expected one of \"first\"|\"la"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: movingCardId: Invalid input: expected string, received undefined; at: Invalid option: expected one of \"first\"|\"la"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/boards/:boardId/columns/reorder",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 420,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/:boardId/import-template",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 77,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "member": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "manager": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "owner": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/boards/:boardId/imports",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 139,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "other_project_member": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "same_project_no_board_grant": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "viewer": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "member": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "manager": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "owner": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "revoked_member": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        },
+        "foreign_or_guessed_id": {
+          "status": 400,
+          "body": "MISSING_DEFAULT_COLUMN: Default column ID is required."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/boards/:boardId/reopen",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 787,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/card-imports/:importId",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 317,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Import session not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/card-imports/:importId",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 171,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Import session not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/card-imports/:importId/commit",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 291,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/card-imports/:importId/mappings",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 200,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/card-imports/:importId/report",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 350,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "owner": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Import session not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/:cardId",
+      "source": "apps/api/src/http/routes/cards.ts",
+      "sourceLine": 111,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/cards/:cardId",
+      "source": "apps/api/src/http/routes/cards.ts",
+      "sourceLine": 134,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 409,
+          "body": "STALE_VERSION: Stale card version."
+        },
+        "owner": {
+          "status": 409,
+          "body": "STALE_VERSION: Stale card version."
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/:cardId/activity",
+      "source": "apps/api/src/http/routes/activity.ts",
+      "sourceLine": 23,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/:cardId/comments",
+      "source": "apps/api/src/http/routes/comments.ts",
+      "sourceLine": 31,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cards/:cardId/comments",
+      "source": "apps/api/src/http/routes/comments.ts",
+      "sourceLine": 66,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 201,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 201,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 201,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cards/:cardId/delete",
+      "source": "apps/api/src/http/routes/trash.ts",
+      "sourceLine": 23,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cards/:cardId/image-uploads",
+      "source": "apps/api/src/http/routes/images.ts",
+      "sourceLine": 69,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: sha256: Invalid input: expected string, received undefined"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: sha256: Invalid input: expected string, received undefined"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: sha256: Invalid input: expected string, received undefined"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: sha256: Invalid input: expected string, received undefined"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: sha256: Invalid input: expected string, received undefined"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: sha256: Invalid input: expected string, received undefined"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: sha256: Invalid input: expected string, received undefined"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: sha256: Invalid input: expected string, received undefined"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: sha256: Invalid input: expected string, received undefined"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/:cardId/images",
+      "source": "apps/api/src/http/routes/images.ts",
+      "sourceLine": 291,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Card not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cards/:cardId/move",
+      "source": "apps/api/src/http/routes/cards.ts",
+      "sourceLine": 209,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: toColumnId: Invalid input: expected string, received undefined; previousCardId: Invalid input: expected string, r"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: toColumnId: Invalid input: expected string, received undefined; previousCardId: Invalid input: expected string, r"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: toColumnId: Invalid input: expected string, received undefined; previousCardId: Invalid input: expected string, r"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: toColumnId: Invalid input: expected string, received undefined; previousCardId: Invalid input: expected string, r"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: toColumnId: Invalid input: expected string, received undefined; previousCardId: Invalid input: expected string, r"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: toColumnId: Invalid input: expected string, received undefined; previousCardId: Invalid input: expected string, r"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: toColumnId: Invalid input: expected string, received undefined; previousCardId: Invalid input: expected string, r"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: toColumnId: Invalid input: expected string, received undefined; previousCardId: Invalid input: expected string, r"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: toColumnId: Invalid input: expected string, received undefined; previousCardId: Invalid input: expected string, r"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cards/:cardId/move-undo",
+      "source": "apps/api/src/http/routes/cards.ts",
+      "sourceLine": 284,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/cards/:cardId/restore",
+      "source": "apps/api/src/http/routes/trash.ts",
+      "sourceLine": 155,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined"
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/comments/:commentId",
+      "source": "apps/api/src/http/routes/comments.ts",
+      "sourceLine": 283,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: expectedVersion: Invalid input: expected number, received undefined"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/comments/:commentId",
+      "source": "apps/api/src/http/routes/comments.ts",
+      "sourceLine": 170,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Only the author can edit this comment."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 403,
+          "body": "FORBIDDEN: Only the author can edit this comment."
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Comment not found."
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/image-uploads/:uploadId",
+      "source": "apps/api/src/http/routes/images.ts",
+      "sourceLine": 262,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Only the original uploader or a project manager can cancel an upload."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Upload staging record not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/image-uploads/:uploadId",
+      "source": "apps/api/src/http/routes/images.ts",
+      "sourceLine": 248,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Upload staging record not found."
+        }
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/image-uploads/:uploadId/content",
+      "source": "apps/api/src/http/routes/images.ts",
+      "sourceLine": 147,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Only the original uploader or a project manager can provide upload content."
+        },
+        "manager": {
+          "status": 400,
+          "body": "SIZE_MISMATCH: Payload byte length (3) does not match staged byteLength (100)."
+        },
+        "owner": {
+          "status": 400,
+          "body": "SIZE_MISMATCH: Payload byte length (3) does not match staged byteLength (100)."
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Upload staging record not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/image-uploads/:uploadId/finalize",
+      "source": "apps/api/src/http/routes/images.ts",
+      "sourceLine": 179,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Only the original uploader or a project manager can finalize an upload."
+        },
+        "manager": {
+          "status": 400,
+          "body": "CONTENT_MISSING: Staged image content missing from storage."
+        },
+        "owner": {
+          "status": 400,
+          "body": "CONTENT_MISSING: Staged image content missing from storage."
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Upload staging record not found."
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/images/:imageId",
+      "source": "apps/api/src/http/routes/images.ts",
+      "sourceLine": 372,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 400,
+          "body": "MALFORMED_REQUEST: Malformed JSON payload in request body."
+        },
+        "other_project_member": {
+          "status": 400,
+          "body": "MALFORMED_REQUEST: Malformed JSON payload in request body."
+        },
+        "same_project_no_board_grant": {
+          "status": 400,
+          "body": "MALFORMED_REQUEST: Malformed JSON payload in request body."
+        },
+        "viewer": {
+          "status": 400,
+          "body": "MALFORMED_REQUEST: Malformed JSON payload in request body."
+        },
+        "member": {
+          "status": 400,
+          "body": "MALFORMED_REQUEST: Malformed JSON payload in request body."
+        },
+        "manager": {
+          "status": 400,
+          "body": "MALFORMED_REQUEST: Malformed JSON payload in request body."
+        },
+        "owner": {
+          "status": 400,
+          "body": "MALFORMED_REQUEST: Malformed JSON payload in request body."
+        },
+        "revoked_member": {
+          "status": 400,
+          "body": "MALFORMED_REQUEST: Malformed JSON payload in request body."
+        },
+        "foreign_or_guessed_id": {
+          "status": 400,
+          "body": "MALFORMED_REQUEST: Malformed JSON payload in request body."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/images/:imageId/content",
+      "source": "apps/api/src/http/routes/images.ts",
+      "sourceLine": 328,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "member": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "manager": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "owner": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/images/:imageId/thumbnail",
+      "source": "apps/api/src/http/routes/images.ts",
+      "sourceLine": 350,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "member": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "manager": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "owner": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Image not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/import/template",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 74,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "other_project_member": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "member": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "manager": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "owner": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "revoked_member": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "foreign_or_guessed_id": {
+          "status": 200,
+          "body": "status_200"
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/imports/:importId",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 315,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Import session not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/imports/:importId",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 169,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Import session not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/imports/:importId/commit",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 289,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: previewDigest: Invalid input: expected string, received undefined; defaultColumnId: Invalid input: expected strin"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/imports/:importId/mappings",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 198,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "other_project_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "same_project_no_board_grant": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "viewer": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "manager": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "owner": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "revoked_member": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        },
+        "foreign_or_guessed_id": {
+          "status": 422,
+          "body": "VALIDATION_ERROR: Validation failed: mappings: Invalid input: expected record, received undefined; expectedVersion: Invalid input: expected number, re"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/imports/:importId/report",
+      "source": "apps/api/src/http/routes/imports.ts",
+      "sourceLine": 348,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Board not found."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "owner": {
+          "status": 200,
+          "body": "status_200"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Import session not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/invitations/accept",
+      "source": "apps/api/src/http/routes/invitations.ts",
+      "sourceLine": 117,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 400,
+          "body": "INVALID_INVITATION: Invitation not found or no longer pending."
+        },
+        "other_project_member": {
+          "status": 400,
+          "body": "INVALID_INVITATION: Invitation not found or no longer pending."
+        },
+        "same_project_no_board_grant": {
+          "status": 400,
+          "body": "INVALID_INVITATION: Invitation not found or no longer pending."
+        },
+        "viewer": {
+          "status": 400,
+          "body": "INVALID_INVITATION: Invitation not found or no longer pending."
+        },
+        "member": {
+          "status": 400,
+          "body": "INVALID_INVITATION: Invitation not found or no longer pending."
+        },
+        "manager": {
+          "status": 400,
+          "body": "INVALID_INVITATION: Invitation not found or no longer pending."
+        },
+        "owner": {
+          "status": 400,
+          "body": "INVALID_INVITATION: Invitation not found or no longer pending."
+        },
+        "revoked_member": {
+          "status": 400,
+          "body": "INVALID_INVITATION: Invitation not found or no longer pending."
+        },
+        "foreign_or_guessed_id": {
+          "status": 400,
+          "body": "INVALID_INVITATION: Invitation not found or no longer pending."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/me/tasks",
+      "source": "apps/api/src/http/routes/cards.ts",
+      "sourceLine": 443,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "source": "apps/api/src/http/routes/notifications.ts",
+      "sourceLine": 23,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "other_project_member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "foreign_or_guessed_id": {
+          "status": 200,
+          "body": "ok_data"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/notifications/:id/read",
+      "source": "apps/api/src/http/routes/notifications.ts",
+      "sourceLine": 43,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Notification not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Notification not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Notification not found."
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Notification not found."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Notification not found."
+        },
+        "owner": {
+          "status": 404,
+          "body": "NOT_FOUND: Notification not found."
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Notification not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Notification not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications/health",
+      "source": "apps/api/src/http/routes/notifications.ts",
+      "sourceLine": 20,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "stranger": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "other_project_member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "foreign_or_guessed_id": {
+          "status": 200,
+          "body": "ok_data"
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/notifications/mark-all-read",
+      "source": "apps/api/src/http/routes/notifications.ts",
+      "sourceLine": 59,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "other_project_member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "foreign_or_guessed_id": {
+          "status": 200,
+          "body": "ok_data"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects",
+      "source": "apps/api/src/http/routes/projects.ts",
+      "sourceLine": 76,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "other_project_member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "foreign_or_guessed_id": {
+          "status": 200,
+          "body": "ok_data"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/:projectId",
+      "source": "apps/api/src/http/routes/projects.ts",
+      "sourceLine": 252,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/:projectId",
+      "source": "apps/api/src/http/routes/projects.ts",
+      "sourceLine": 322,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 409,
+          "body": "STALE_VERSION: Stale project version."
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/:projectId/access-summary",
+      "source": "apps/api/src/http/routes/projects.ts",
+      "sourceLine": 464,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/:projectId/activity",
+      "source": "apps/api/src/http/routes/activity.ts",
+      "sourceLine": 43,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 403,
+          "body": "FORBIDDEN: Only project managers and workspace owners can view project-wide activity."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Only project managers and workspace owners can view project-wide activity."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Only project managers and workspace owners can view project-wide activity."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/:projectId/archive",
+      "source": "apps/api/src/http/routes/projects.ts",
+      "sourceLine": 489,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 403,
+          "body": "FORBIDDEN: Only workspace owner can archive projects."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Only workspace owner can archive projects."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Only workspace owner can archive projects."
+        },
+        "manager": {
+          "status": 403,
+          "body": "FORBIDDEN: Only workspace owner can archive projects."
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/:projectId/boards",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 119,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/:projectId/boards",
+      "source": "apps/api/src/http/routes/boards.ts",
+      "sourceLine": 45,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 201,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 201,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/:projectId/cards/search",
+      "source": "apps/api/src/http/routes/cards.ts",
+      "sourceLine": 416,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/:projectId/invitations",
+      "source": "apps/api/src/http/routes/invitations.ts",
+      "sourceLine": 223,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/:projectId/invitations",
+      "source": "apps/api/src/http/routes/invitations.ts",
+      "sourceLine": 25,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 201,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 400,
+          "body": "INVITATION_ALREADY_EXISTS: An active invitation already exists for this email. Resend the existing invitation instead of creating a duplicate."
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/:projectId/invitations/:invitationId/resend",
+      "source": "apps/api/src/http/routes/invitations.ts",
+      "sourceLine": 256,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/:projectId/invitations/:invitationId/revoke",
+      "source": "apps/api/src/http/routes/invitations.ts",
+      "sourceLine": 356,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Viewers cannot perform write operations."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Requires manager role for this operation. Current role: member."
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 400,
+          "body": "INVALID_INVITATION: Cannot revoke an invitation that has already been revoked."
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/:projectId/leave",
+      "source": "apps/api/src/http/routes/invitations.ts",
+      "sourceLine": 446,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or not an active member."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or not an active member."
+        },
+        "same_project_no_board_grant": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "viewer": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "member": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "manager": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "owner": {
+          "status": 403,
+          "body": "FORBIDDEN: Workspace owners cannot leave their project. Transfer workspace ownership instead."
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or not an active member."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or unauthorized."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/:projectId/members",
+      "source": "apps/api/src/http/routes/projects.ts",
+      "sourceLine": 403,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "viewer": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/projects/:projectId/members/:userId",
+      "source": "apps/api/src/http/routes/members.ts",
+      "sourceLine": 138,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "viewer": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/projects/:projectId/members/:userId",
+      "source": "apps/api/src/http/routes/members.ts",
+      "sourceLine": 50,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "viewer": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/:projectId/overview",
+      "source": "apps/api/src/http/routes/projects.ts",
+      "sourceLine": 312,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "viewer": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/:projectId/people",
+      "source": "apps/api/src/http/routes/projects.ts",
+      "sourceLine": 425,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "viewer": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/projects/:projectId/reopen",
+      "source": "apps/api/src/http/routes/projects.ts",
+      "sourceLine": 604,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "viewer": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/:projectId/trash",
+      "source": "apps/api/src/http/routes/trash.ts",
+      "sourceLine": 116,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "viewer": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found or access revoked."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/session/",
+      "source": "apps/api/src/http/routes/session.ts",
+      "sourceLine": 36,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "viewer": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "owner": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/session/dev-login",
+      "source": "apps/api/src/http/routes/session.ts",
+      "sourceLine": 114,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "viewer": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "owner": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Route not found."
+        }
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/session/last-location",
+      "source": "apps/api/src/http/routes/session.ts",
+      "sourceLine": 60,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "other_project_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "same_project_no_board_grant": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "viewer": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "manager": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "owner": {
+          "status": 200,
+          "body": "ok_data"
+        },
+        "revoked_member": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        },
+        "foreign_or_guessed_id": {
+          "status": 404,
+          "body": "NOT_FOUND: Project not found."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/session/logout",
+      "source": "apps/api/src/http/routes/session.ts",
+      "sourceLine": 95,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 204,
+          "body": "status_204"
+        },
+        "stranger": {
+          "status": 204,
+          "body": "status_204"
+        },
+        "other_project_member": {
+          "status": 204,
+          "body": "status_204"
+        },
+        "same_project_no_board_grant": {
+          "status": 204,
+          "body": "status_204"
+        },
+        "viewer": {
+          "status": 204,
+          "body": "status_204"
+        },
+        "member": {
+          "status": 204,
+          "body": "status_204"
+        },
+        "manager": {
+          "status": 204,
+          "body": "status_204"
+        },
+        "owner": {
+          "status": 204,
+          "body": "status_204"
+        },
+        "revoked_member": {
+          "status": 204,
+          "body": "status_204"
+        },
+        "foreign_or_guessed_id": {
+          "status": 204,
+          "body": "status_204"
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/session/profile",
+      "source": "apps/api/src/http/routes/session.ts",
+      "sourceLine": 73,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "other_project_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "same_project_no_board_grant": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "viewer": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "manager": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "owner": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "revoked_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "foreign_or_guessed_id": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/system/migrate",
+      "source": "apps/api/src/http/routes/system.ts",
+      "sourceLine": 20,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 403,
+          "body": "FORBIDDEN: Invalid or missing administrative secret."
+        },
+        "stranger": {
+          "status": 403,
+          "body": "FORBIDDEN: Invalid or missing administrative secret."
+        },
+        "other_project_member": {
+          "status": 403,
+          "body": "FORBIDDEN: Invalid or missing administrative secret."
+        },
+        "same_project_no_board_grant": {
+          "status": 403,
+          "body": "FORBIDDEN: Invalid or missing administrative secret."
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Invalid or missing administrative secret."
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Invalid or missing administrative secret."
+        },
+        "manager": {
+          "status": 403,
+          "body": "FORBIDDEN: Invalid or missing administrative secret."
+        },
+        "owner": {
+          "status": 403,
+          "body": "FORBIDDEN: Invalid or missing administrative secret."
+        },
+        "revoked_member": {
+          "status": 403,
+          "body": "FORBIDDEN: Invalid or missing administrative secret."
+        },
+        "foreign_or_guessed_id": {
+          "status": 403,
+          "body": "FORBIDDEN: Invalid or missing administrative secret."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/system/status",
+      "source": "apps/api/src/http/routes/system.ts",
+      "sourceLine": 7,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 403,
+          "body": "FORBIDDEN: Forbidden"
+        },
+        "stranger": {
+          "status": 403,
+          "body": "FORBIDDEN: Forbidden"
+        },
+        "other_project_member": {
+          "status": 403,
+          "body": "FORBIDDEN: Forbidden"
+        },
+        "same_project_no_board_grant": {
+          "status": 403,
+          "body": "FORBIDDEN: Forbidden"
+        },
+        "viewer": {
+          "status": 403,
+          "body": "FORBIDDEN: Forbidden"
+        },
+        "member": {
+          "status": 403,
+          "body": "FORBIDDEN: Forbidden"
+        },
+        "manager": {
+          "status": 403,
+          "body": "FORBIDDEN: Forbidden"
+        },
+        "owner": {
+          "status": 403,
+          "body": "FORBIDDEN: Forbidden"
+        },
+        "revoked_member": {
+          "status": 403,
+          "body": "FORBIDDEN: Forbidden"
+        },
+        "foreign_or_guessed_id": {
+          "status": 403,
+          "body": "FORBIDDEN: Forbidden"
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/workspaces",
+      "source": "apps/api/src/http/routes/workspaces.ts",
+      "sourceLine": 123,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "other_project_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "same_project_no_board_grant": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "viewer": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "manager": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "owner": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "revoked_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "foreign_or_guessed_id": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/workspaces",
+      "source": "apps/api/src/http/routes/workspaces.ts",
+      "sourceLine": 18,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "other_project_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "same_project_no_board_grant": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "viewer": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "manager": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "owner": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "revoked_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "foreign_or_guessed_id": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        }
+      }
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/workspaces/:workspaceId",
+      "source": "apps/api/src/http/routes/workspaces.ts",
+      "sourceLine": 162,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "other_project_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "same_project_no_board_grant": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "viewer": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "manager": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "owner": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "revoked_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "foreign_or_guessed_id": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/workspaces/:workspaceId/activity",
+      "source": "apps/api/src/http/routes/activity.ts",
+      "sourceLine": 76,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "other_project_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "same_project_no_board_grant": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "viewer": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "manager": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "owner": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "revoked_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "foreign_or_guessed_id": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/workspaces/:workspaceId/my-tasks",
+      "source": "apps/api/src/http/routes/cards.ts",
+      "sourceLine": 472,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "other_project_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "same_project_no_board_grant": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "viewer": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "manager": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "owner": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "revoked_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "foreign_or_guessed_id": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        }
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/workspaces/:workspaceId/projects",
+      "source": "apps/api/src/http/routes/projects.ts",
+      "sourceLine": 216,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "other_project_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "same_project_no_board_grant": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "viewer": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "manager": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "owner": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "revoked_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "foreign_or_guessed_id": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/workspaces/:workspaceId/projects",
+      "source": "apps/api/src/http/routes/projects.ts",
+      "sourceLine": 92,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "other_project_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "same_project_no_board_grant": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "viewer": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "manager": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "owner": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "revoked_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "foreign_or_guessed_id": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        }
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/workspaces/:workspaceId/transfer-ownership",
+      "source": "apps/api/src/http/routes/workspaces.ts",
+      "sourceLine": 258,
+      "roleCases": {
+        "unauthenticated": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "stranger": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "other_project_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "same_project_no_board_grant": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "viewer": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "manager": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "owner": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "revoked_member": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        },
+        "foreign_or_guessed_id": {
+          "status": 401,
+          "body": "UNAUTHORIZED: Invalid or missing authentication session."
+        }
+      }
+    }
+  ],
+  "executionSummary": {
+    "totalCells": 930,
+    "code401": 164,
+    "code403": 73,
+    "code404": 281,
+    "code2xx": 184,
+    "code3xx": 20,
+    "codeOther": 208,
+    "timestamp": "2026-10-30T13:11:38.781Z"
+  }
+}

@@ -1,0 +1,33 @@
+COMMAND: env ALLOW_REMOTE_DB=true DATABASE_URL=postgres://flowaudit@127.0.0.1:55634/flowaudit0010 NODE_ENV=test node --test --test-concurrency=1 apps/api/test/b10-invitation-email.test.ts
+DB CONTEXT: 127.0.0.1:55634; postgres:17-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+OUTPUT:
+▶ B-10 email: the disabled mailer does nothing and the pending row keeps its link
+  ✔ no key, no sender or a bad origin means no mailer (0.478917ms)
+  ✔ an invitation with mail disabled stays pending and untouched, and the API still answers (61.420833ms)
+✔ B-10 email: the disabled mailer does nothing and the pending row keeps its link (62.228333ms)
+▶ B-10 email: create sends the accept link to the invitee, then drops the token
+  ✔ the drain sends one email with the accept link on the configured origin (3.015667ms)
+  ✔ after the send the row is delivered, holds no token, and records only the provider id (0.414541ms)
+  ✔ an idempotent replay of the create writes no second row and sends nothing more (11.763541ms)
+✔ B-10 email: create sends the accept link to the invitee, then drops the token (27.115458ms)
+✔ B-10 email: resend supersedes the earlier pending email, so only the newest link works (18.485625ms)
+▶ B-10 email: Brevo 5xx, 429 and network errors retry; other 4xx is permanent and drops the token
+  ✔ 5xx retries (11.731208ms)
+  ✔ 429 retries (11.28975ms)
+  ✔ network error retries (11.195375ms)
+  ✔ 400 is permanent (11.789416ms)
+  ✔ 401 is permanent (11.5825ms)
+✔ B-10 email: Brevo 5xx, 429 and network errors retry; other 4xx is permanent and drops the token (57.932709ms)
+✔ B-10 email: the HTML is escaped, the subject is one line, and names cannot inject markup or headers (0.165084ms)
+✔ B-10 email: the app origin comes from configuration only and must be https or a local dev host (0.070875ms)
+✔ B-10 email: no token, key or provider body reaches a log on any send path (11.673416ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10383.855083
+EXIT CODE: 0
+
