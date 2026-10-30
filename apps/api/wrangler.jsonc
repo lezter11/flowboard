@@ -36,7 +36,12 @@
       "vars": {
         "FRONTEND_URL": "https://flowboard-app-uat.pages.dev",
         "CORS_ORIGIN": "https://flowboard-app-uat.pages.dev",
-        "GOOGLE_REDIRECT_URI": "https://flowboard-app-uat.pages.dev/api/v1/auth/google/callback"
+        "GOOGLE_REDIRECT_URI": "https://flowboard-app-uat.pages.dev/api/v1/auth/google/callback",
+        // Mail sender for the UAT beta. Brevo rewrites the domain to @brevosend.com (accepted for the
+        // internal beta). Non-secret; the API key is the BREVO_API_KEY secret, never in this file.
+        "APP_ORIGIN": "https://flowboard-app-uat.pages.dev",
+        "MAIL_FROM_NAME": "Flowboard",
+        "MAIL_FROM_EMAIL": "shubhamsinghlez@gmail.com"
       },
       "triggers": { "crons": ["*/15 * * * *"] },
       // Private image bucket for UAT only (no public access, no r2.dev, no custom domain).
