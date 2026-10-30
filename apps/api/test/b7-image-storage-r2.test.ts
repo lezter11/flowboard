@@ -251,11 +251,13 @@ test('B-14 images: storage keys carry no user filename, and filenames with separ
   const call = (request: Request) => worker.fetch(request, { DATABASE_URL: process.env['DATABASE_URL']!, IMAGES: fakeR2(bucket.objects).binding } as never);
   const base = 'http://localhost/api/v1';
   const name = 'holiday photo 2026.png';
+  // A fresh client address per run: the stage route is rate limited per client, and other suites share the table.
+  const ip = `10.${crypto.randomInt(1, 255)}.${crypto.randomInt(1, 255)}.${crypto.randomInt(1, 255)}`;
 
   for (const bad of ['sub/dir.png', 'sub\\dir.png', 'bad\u0001name.png', '../escape.png']) {
     const refused = await call(new Request(`${base}/cards/${fx.card}/image-uploads`, {
       method: 'POST',
-      headers: headers(fx.cookie, true),
+      headers: { ...headers(fx.cookie, true), 'cf-connecting-ip': ip },
       body: JSON.stringify({ filename: bad, byteLength: PNG.byteLength, contentType: 'image/png', sha256: crypto.createHash('sha256').update(PNG).digest('hex') }),
     }));
     assert.equal(refused.status, 422, `refused: ${JSON.stringify(bad)}`);
@@ -264,7 +266,7 @@ test('B-14 images: storage keys carry no user filename, and filenames with separ
 
   const stage = await call(new Request(`${base}/cards/${fx.card}/image-uploads`, {
     method: 'POST',
-    headers: headers(fx.cookie, true),
+    headers: { ...headers(fx.cookie, true), 'cf-connecting-ip': ip },
     body: JSON.stringify({ filename: name, byteLength: PNG.byteLength, contentType: 'image/png', sha256: crypto.createHash('sha256').update(PNG).digest('hex') }),
   }));
   assert.equal(stage.status, 201, await stage.clone().text());
@@ -273,13 +275,13 @@ test('B-14 images: storage keys carry no user filename, and filenames with separ
 
   const content = await call(new Request(`${base}/image-uploads/${uploadId}/content`, {
     method: 'PUT',
-    headers: { ...headers(fx.cookie), 'content-type': 'image/png' },
+    headers: { ...headers(fx.cookie), 'content-type': 'image/png', 'cf-connecting-ip': ip },
     body: PNG,
   }));
   assert.equal(content.status, 200, await content.clone().text());
   assert.ok(bucket.objects.has(stagingKey), 'the staged object uses the random upload key');
 
-  const finalize = await call(new Request(`${base}/image-uploads/${uploadId}/finalize`, { method: 'POST', headers: headers(fx.cookie) }));
+  const finalize = await call(new Request(`${base}/image-uploads/${uploadId}/finalize`, { method: 'POST', headers: { ...headers(fx.cookie), 'cf-connecting-ip': ip } }));
   assert.equal(finalize.status, 200, await finalize.clone().text());
   const imageId = ((await finalize.json()) as any).data.id as string;
   const finalKey = `images/${fx.project}/${fx.card}/${imageId}`;

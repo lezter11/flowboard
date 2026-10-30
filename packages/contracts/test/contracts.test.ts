@@ -451,7 +451,7 @@ describe('Contracts Schema Validation Tests', () => {
         sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
       };
       for (const filename of ['sub/dir.png', 'sub\\dir.png', '../escape.png', 'bad\u0000name.png', 'tab\tname.png', 'del\u007fname.png', 'line\nbreak.png']) {
-        assert.throws(() => createImageUploadInputSchema.parse({ ...base, filename }), undefined, JSON.stringify(filename));
+        assert.throws(() => createImageUploadInputSchema.parse({ ...base, filename }), (err: unknown) => err instanceof Error, `refused: ${JSON.stringify(filename)}`);
       }
       assert.equal(createImageUploadInputSchema.parse({ ...base, filename: '  holiday photo (2026).png  ' }).filename, 'holiday photo (2026).png');
       assert.equal(createImageUploadInputSchema.parse({ ...base, filename: 'résumé ✓.png' }).filename, 'résumé ✓.png');
