@@ -869,3 +869,54 @@ Answer: **A. The bytes are in the real remote bucket. Only the bucket stats are 
 - Not verified: the cause of the stats lag, and whether the stats catch up within the hour.
 
 **Follow-up (B-8 delete, real R2, 30 Oct 2026):** after the user removed the image, the same key (rebuilt from the finalized upload row and matching the key recorded above) returns `The specified key does not exist.` on `wrangler r2 object get … --remote`, and the earlier read of this key returned the object. Postgres: `card_images` has 0 rows for this card; `pending_storage_deletions` has 0 rows, with no retries or stuck leases. `card_image_uploads` still holds the finalized upload row (`state` `finalized`), which the delete path leaves in place by design: only `card_images` is removed and the key is queued, and the queue row is removed after the object delete succeeds. The user's image is removed as intended.
+
+## D-16: UAT deploy of 4bb656b (migration 0017, B-14, S-17/S-18, B-12/B-13 email, mail vars)
+
+Deployed by the Deployment chat on the Architect's instruction. UAT only; production, production secrets, production buckets and production databases untouched; nothing pushed.
+
+### Database (Neon uat, reported by the Architect, not re-read here)
+
+- Backup branch `uat-backup-2026-10-30-d16` (`br-restless-fire-a10cf3sz`) created from `uat` by the Architect with neonctl at 2026-10-30T17:30:01Z. State `ready`, no expiry. The Deployment chat did not create this branch. The D-14 backup branch is still the earlier restore point.
+- Before 0017 (17:30:25Z): `schema_migrations` 0001 to 0016. Counts: `outbox` 2, `rate_limit_windows` 0, `card_image_uploads` 1, `card_images` 0, `project_links` 0, `board_grants` 0.
+- Migration `0017_audit_round_b14.sql` applied on the direct host with `ALLOW_REMOTE_DB=true` (runner printed `+ [0017] 0017_audit_round_b14.sql`, 0.87 s).
+- After 0017 (17:30:43Z): `schema_migrations` 0001 to 0017, same counts as before.
+- The Deployment chat had no database connection string in its shell, so the migration state above is the Architect's report and was not re-read from the database here.
+
+### Rollback targets (recorded before the deploy)
+
+- Worker `flowboard-api-uat`: `0635b142-f4f4-4ce4-8cdc-d808a5edd387` (100% before this deploy).
+- Pages `flowboard-app-uat`: `7b2cc29a-5405-46aa-a79f-67c1b76fd83d` (live before this deploy).
+
+### Worker
+
+- Deployed from a clean worktree at `4bb656b` with `npx wrangler deploy --env uat`. No `--var` flags were needed: `APP_ORIGIN`, `MAIL_FROM_NAME` and `MAIL_FROM_EMAIL` come from `env.uat` `vars` (commit `eb0d07b`).
+- Version: `ee49f08f-e02f-465c-8283-479eff464941` (100%).
+- Dry run listed `env.HYPERDRIVE`, `env.IMAGES (flowboard-images-uat)`, `env.FB_RL_WRITES`, `FRONTEND_URL`, `CORS_ORIGIN`, `GOOGLE_REDIRECT_URI`, `APP_ORIGIN`, `MAIL_FROM_NAME`, `MAIL_FROM_EMAIL`.
+- Cron `*/15 * * * *` on the deployed Worker.
+- Secret names on `--env uat` (names only): `BREVO_API_KEY`, `CURSOR_SECRET`, `DEV_LOGIN_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+
+### Pages
+
+- Built from the same worktree: `NEXT_EXPORT=true npm run build` (no `NEXT_PUBLIC_API_URL`), staged with `scripts/stage-pages-functions.mjs` (5 files: `functions/_middleware.ts`, `functions/api/[[path]].ts`, `functions/boards/[id].ts`, `functions/projects/[id].ts`, `src/lib/return-path.ts`).
+- Deployed to branch `main` (production alias of this Pages project): deployment `e2c8f17d-...`, URL `https://e2c8f17d.flowboard-app-uat.pages.dev`.
+
+### Signed-out smoke tests (curl; no credentials; no secrets printed)
+
+- `https://flowboard-app-uat.pages.dev/email/flowboard-lockup-dark.png`: 200, `image/png`.
+- `https://flowboard-app-uat.pages.dev/email/invite-board-hero.png`: 200, `image/png`.
+- Worker `/health/ready` 200 and `/health/live` 200.
+- `GET /api/v1/session` 401, with `cache-control: no-store`.
+- `/signin` 200 with `content-security-policy` present.
+
+### Not verified here
+
+- Scheduled tick: a background `wrangler tail --env uat` was started for up to about 16 minutes to catch one `*/15` tick. Its output is in the scratchpad (`d16-tail.log`). Result below when checked.
+- Signed-in flows and the invitation flow: the user runs these. No test invitation was sent by the Deployment chat.
+- Mail delivery: depends on the sender and the key being valid at Brevo; not tested here.
+- Migration state: the Architect's report above, not re-read from the database here.
+
+### Status
+
+- Deployed to UAT: migration 0017 (reported by the Architect), Worker `ee49f08f`, Pages `e2c8f17d`, mail vars from `eb0d07b`.
+- Not deployed: production (Worker, Pages, database, secrets, bucket, binding).
+- Note for the cutover: `DEV_LOGIN_SECRET` is set on UAT. Check whether production needs it (see the D-17 runbook).
