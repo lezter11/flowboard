@@ -3,7 +3,7 @@
 import { Suspense, useEffect, useMemo, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
@@ -13,6 +13,8 @@ import { Icon } from '@/components/ui/icon';
 import { Avatar } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/toasts';
 import { useShell } from '@/components/shell/shell-context';
+import { DialogLayer } from '@/components/ui/dialog-layer';
+import { ColumnsDialog } from '@/components/board/columns-dialog';
 
 type Tab = 'project' | 'board' | 'account' | 'appearance';
 const TABS: Array<[Tab, string]> = [['project', 'Project'], ['board', 'Board and columns'], ['account', 'Account'], ['appearance', 'Appearance']];
@@ -49,6 +51,23 @@ function SettingsScreen() {
   useEffect(() => { setBoardName(board?.name ?? ''); setBoardDescription(board?.description ?? ''); }, [board?.id, board?.name, board?.description]);
   const boardDirty = !!board && (boardName.trim() !== board.name || boardDescription.trim() !== (board.description ?? ''));
   const boardEditable = isOwner && !project?.isArchived;
+
+  const [archiveOpen, setArchiveOpen] = useState(false);
+  const [lifecycleBusy, setLifecycleBusy] = useState(false);
+  const [lifecycleError, setLifecycleError] = useState('');
+  const [columnsOpen, setColumnsOpen] = useState(false);
+  // The columns dialog reads the board from the query cache, so make sure it is there.
+  useQuery({ queryKey: ['board', board?.id], queryFn: async () => (await api.getBoardSnapshot(board!.id, { cardLimitPerColumn: 1 })).data, enabled: !!board && tab === 'board' });
+  const changeLifecycle = async () => {
+    if (!project) return;
+    setLifecycleBusy(true); setLifecycleError('');
+    try {
+      if (project.isArchived) await api.reopenProject(project.id, project.version); else await api.archiveProject(project.id, project.version);
+      toast(project.isArchived ? 'Project reopened' : 'Project archived. Its boards are now read-only.', { icon: 'check' });
+      setArchiveOpen(false);
+      await Promise.all([refetch(), queryClient.invalidateQueries({ queryKey: ['project', project.id] }), queryClient.invalidateQueries({ queryKey: ['boards', project.id] })]);
+    } catch (err) { setLifecycleError(describeError(err)); refetch(); } finally { setLifecycleBusy(false); }
+  };
 
   const saveProject = async (event: FormEvent) => {
     event.preventDefault();
@@ -141,7 +160,11 @@ function SettingsScreen() {
                 <div className="stack-sm">
                   <h3 className="settings-section-title">Project status</h3>
                   <p className="settings-section-sub">Archived projects are read-only. Only the Owner can reopen them.</p>
-                  <div className="row"><button className="btn" type="button" disabled title="Archiving is coming soon">Archive project <span className="nav-badge quiet" style={{ marginLeft: 6 }}>Soon</span></button></div>
+                  {project?.isArchived && <div className="note" role="status"><Icon name="archive" /><span><strong>This project is archived.</strong> Cards, boards and people cannot be changed until the Owner reopens it. Due dates keep counting.</span></div>}
+                  <div className="row">
+                    <button className="btn" type="button" disabled={!isOwner || !project || lifecycleBusy} onClick={() => { setLifecycleError(''); setArchiveOpen(true); }} title={isOwner ? undefined : 'Only the project Owner can archive or reopen a project'}><Icon name="archive" />{project?.isArchived ? 'Reopen project' : 'Archive project'}</button>
+                    {!isOwner && <span className="field-help">Only the project Owner can archive or reopen a project.</span>}
+                  </div>
                 </div>
               </div>
             </section>
@@ -162,9 +185,9 @@ function SettingsScreen() {
                   <div className="stack-sm">
                     <div className="row" style={{ justifyContent: 'space-between' }}>
                       <div><h3 className="settings-section-title">Columns</h3><p className="settings-section-sub">Arrange and name the stages of this board.</p></div>
-                      <button className="btn sm" type="button" disabled title="Column editing is coming soon"><Icon name="plus" />Add column <span className="nav-badge quiet" style={{ marginLeft: 6 }}>Soon</span></button>
+                      <button className="btn sm" type="button" disabled={!board || !editable} onClick={() => setColumnsOpen(true)} title={editable ? undefined : 'Only owners and managers can edit columns'}><Icon name="columns" />Edit columns</button>
                     </div>
-                    <p className="field-help">Adding, renaming, recolouring and reordering columns are coming soon.</p>
+                    <p className="field-help">{editable ? 'Add, rename, recolour, reorder and delete columns in the column editor.' : 'Only owners and managers can edit columns.'}</p>
                   </div>
                   {error && <div className="note warn" role="alert"><Icon name="alert" /><span>{error}</span></div>}
                   <div className="form-actions">
@@ -193,7 +216,7 @@ function SettingsScreen() {
                   </div>
                 )}
                 <div className="form-grid">
-                  <div className="field"><label className="field-label" htmlFor="accountDisplayName">Display name</label><input className="control" id="accountDisplayName" type="text" value={actor?.displayName ?? ''} disabled readOnly /><p className="field-help">Profile editing is coming soon.</p></div>
+                  <div className="field"><label className="field-label" htmlFor="accountDisplayName">Display name</label><input className="control" id="accountDisplayName" type="text" value={actor?.displayName ?? ''} disabled readOnly /><p className="field-help">Profile editing is not available yet.</p></div>
                   <div className="field"><label className="field-label" htmlFor="accountEmailField">Email</label><input className="control" id="accountEmailField" type="email" value={actor?.email ?? ''} disabled readOnly /><p className="field-help">Your email comes from your Google account.</p></div>
                 </div>
                 <div className="divider" />
@@ -231,6 +254,15 @@ function SettingsScreen() {
           )}
         </div>
       </div>
+      {board && editable && <ColumnsDialog boardId={board.id} open={columnsOpen} onClose={() => setColumnsOpen(false)} />}
+      <DialogLayer open={archiveOpen} onClose={() => { if (!lifecycleBusy) setArchiveOpen(false); }} labelledBy="archiveTitle" describedBy="archiveCopy" role="alertdialog">
+        <div className="dialog-head"><div className="dialog-head-copy"><h2 id="archiveTitle">{project?.isArchived ? 'Reopen this project?' : 'Archive this project?'}</h2></div></div>
+        <div className="dialog-body">
+          <p id="archiveCopy" className="confirm-copy">{project?.isArchived ? `Reopening ${project?.name} lets people create, edit, move and comment on cards again.` : `${project?.name} becomes read-only. Everyone can still read its boards, cards, comments and images, but nobody can add or change anything, invite people or change settings until you reopen it. Due dates keep counting. Nothing is deleted.`}</p>
+          {lifecycleError && <p className="form-error" role="alert">{lifecycleError}</p>}
+        </div>
+        <footer className="dialog-foot"><span className="spacer" /><button className="btn" type="button" data-autofocus onClick={() => setArchiveOpen(false)} disabled={lifecycleBusy}>Cancel</button><button className={`btn ${project?.isArchived ? 'primary' : 'danger'}`} type="button" onClick={() => void changeLifecycle()} disabled={lifecycleBusy}>{lifecycleBusy ? 'Working…' : project?.isArchived ? 'Reopen project' : 'Archive project'}</button></footer>
+      </DialogLayer>
     </>
   );
 }

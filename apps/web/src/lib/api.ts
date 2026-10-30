@@ -40,6 +40,10 @@ import {
   type NotificationListResponse,
   type TrashListResponse,
   type RestoreCardInput,
+  type CreateImageUploadInput,
+  type ImageUploadResponse,
+  type FinalizedImageResponse,
+  type FinalizedImageListResponse,
 } from '@flowboard/contracts';
 
 export class ApiError extends Error {
@@ -89,7 +93,65 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   return data as T;
 }
 
+/** Raw-bytes PUT with upload progress and cancel. fetch cannot report upload progress, so this one call uses XMLHttpRequest. */
+function putBytes(path: string, blob: Blob, opts: { onProgress?: (fraction: number) => void; signal?: AbortSignal }): Promise<ImageUploadResponse> {
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', path);
+    xhr.withCredentials = true;
+    xhr.setRequestHeader('Content-Type', 'application/octet-stream');
+    xhr.upload.onprogress = (event) => { if (event.lengthComputable) opts.onProgress?.(event.loaded / event.total); };
+    xhr.onload = () => {
+      let data: { error?: { code?: string; message?: string; details?: unknown } } | null = null;
+      try { data = JSON.parse(xhr.responseText); } catch { /* not JSON */ }
+      if (xhr.status >= 200 && xhr.status < 300) { resolve(data as unknown as ImageUploadResponse); return; }
+      reject(new ApiError(xhr.status, data?.error?.code || 'HTTP_ERROR', data?.error?.message || `HTTP request failed with status ${xhr.status}`, data?.error?.details));
+    };
+    xhr.onerror = () => reject(new ApiError(0, 'NETWORK_ERROR', 'Network error. Check your connection and try again.'));
+    xhr.onabort = () => reject(new DOMException('Upload cancelled', 'AbortError'));
+    if (opts.signal) { if (opts.signal.aborted) { reject(new DOMException('Upload cancelled', 'AbortError')); return; } opts.signal.addEventListener('abort', () => xhr.abort(), { once: true }); }
+    xhr.send(blob);
+  });
+}
+
 export const api = {
+  // Card images (private; bytes only ever travel through these authenticated calls)
+  async createImageUpload(cardId: string, input: CreateImageUploadInput, idempotencyKey?: string): Promise<ImageUploadResponse> {
+    return request<ImageUploadResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/image-uploads`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify(input) });
+  },
+  putImageContent(uploadId: string, blob: Blob, opts: { onProgress?: (fraction: number) => void; signal?: AbortSignal } = {}): Promise<ImageUploadResponse> {
+    return putBytes(`/api/v1/image-uploads/${encodeURIComponent(uploadId)}/content`, blob, opts);
+  },
+  async finalizeImageUpload(uploadId: string, idempotencyKey?: string): Promise<FinalizedImageResponse> {
+    return request<FinalizedImageResponse>(`/api/v1/image-uploads/${encodeURIComponent(uploadId)}/finalize`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: '{}' });
+  },
+  async cancelImageUpload(uploadId: string): Promise<ImageUploadResponse> {
+    return request<ImageUploadResponse>(`/api/v1/image-uploads/${encodeURIComponent(uploadId)}`, { method: 'DELETE' });
+  },
+  async listCardImages(cardId: string): Promise<FinalizedImageListResponse> {
+    return request<FinalizedImageListResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/images`);
+  },
+  /** Image bytes as a Blob. The caller turns it into an object URL and revokes it; no image URL is ever put on the page. */
+  async fetchImageBlob(imageId: string, kind: 'content' | 'thumbnail' = 'content'): Promise<Blob> {
+    const response = await fetch(`/api/v1/images/${encodeURIComponent(imageId)}/${kind}`, { credentials: 'same-origin' });
+    if (!response.ok) {
+      let body: { error?: { code?: string; message?: string } } | null = null;
+      try { body = await response.json(); } catch { /* not JSON */ }
+      throw new ApiError(response.status, body?.error?.code || 'HTTP_ERROR', body?.error?.message || `HTTP request failed with status ${response.status}`);
+    }
+    return response.blob();
+  },
+  async deleteImage(imageId: string, expectedVersion: number, idempotencyKey?: string): Promise<void> {
+    await request<unknown>(`/api/v1/images/${encodeURIComponent(imageId)}`, { method: 'DELETE', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify({ expectedVersion }) });
+  },
+  async archiveProject(projectId: string, expectedVersion: number, idempotencyKey?: string): Promise<void> {
+    await request<unknown>(`/api/v1/projects/${encodeURIComponent(projectId)}/archive`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify({ expectedVersion }) });
+  },
+  async reopenProject(projectId: string, expectedVersion: number, idempotencyKey?: string): Promise<void> {
+    await request<unknown>(`/api/v1/projects/${encodeURIComponent(projectId)}/reopen`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify({ expectedVersion }) });
+  },
+
+
   // Session & Auth
   async getSession(): Promise<GetSessionResponse> {
     return request<GetSessionResponse>('/api/v1/session');

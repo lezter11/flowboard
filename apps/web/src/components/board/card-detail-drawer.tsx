@@ -10,6 +10,7 @@ import { neighbours } from '@/lib/board-model';
 import { describeActivity } from '@/lib/activity';
 import { can, type Role } from '@/lib/roles';
 import { Icon } from '@/components/ui/icon';
+import { CardImages } from './card-images';
 import { Avatar } from '@/components/ui/avatar';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { useToast } from '@/components/ui/toasts';
@@ -317,10 +318,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
           <p className="hint"><Icon name="info" /><span>Plain text. Due dates are calendar dates, not times.</span></p>
         </section>
 
-        <section className="detail-section" aria-labelledby="imagesHeading">
-          <div className="section-head"><h2 id="imagesHeading">Images</h2><span className="count">{card.imageCount}</span></div>
-          <p className="hint"><Icon name="lock" />Private image upload and viewing are coming soon.</p>
-        </section>
+        <CardImages cardId={card.id} role={role} count={card.imageCount} />
 
         <section className="detail-section" aria-label="Discussion and activity">
           <div className="tabs" role="tablist" aria-label="Card discussion">
@@ -398,7 +396,7 @@ function Comments({ cardId, people, role, onPosted }: { cardId: string; people: 
           <textarea id="commentInput" placeholder="Write a comment…" maxLength={10000} value={body} onChange={(event) => setBody(event.target.value)} />
           {error && <p role="alert" className="field-error">{error}</p>}
           <div className="composer-actions">
-            <button className="composer-tool" type="button" disabled title="Mentions are coming soon"><Icon name="at" />Mention</button>
+            <button className="composer-tool" type="button" disabled title="Mentions are not available yet"><Icon name="at" />Mention</button>
             <span className="spacer" />
             <button className="btn primary sm" type="button" disabled={!body.trim() || post.isPending} onClick={() => post.mutate()}>{post.isPending ? 'Posting…' : 'Post comment'}</button>
           </div>

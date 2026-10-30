@@ -86,8 +86,9 @@ export function BoardView() {
   const columns = useMemo(() => [...(snapshot?.columns ?? [])].sort((a, b) => a.position - b.position), [snapshot]);
   const project = state.status === 'ready' ? state.session.accessibleProjects.find((p) => p.id === snapshot?.board.projectId) : undefined;
   const role = normalizeRole(project?.role);
-  const canEdit = can(role, 'edit') && !snapshot?.board.isArchived;
-  const canMove = can(role, 'move') && !snapshot?.board.isArchived;
+  const projectArchived = !!project?.isArchived;
+  const canEdit = can(role, 'edit') && !snapshot?.board.isArchived && !projectArchived;
+  const canMove = can(role, 'move') && !snapshot?.board.isArchived && !projectArchived;
   const filtering = filtersActive(filters);
 
   useEffect(() => {
@@ -363,7 +364,8 @@ export function BoardView() {
     );
   }
 
-  const board = snapshot.board;
+  // An archived project freezes every board in it, exactly like an archived board.
+  const board = projectArchived ? { ...snapshot.board, isArchived: true } : snapshot.board;
   const allCards = columns.flatMap((c) => c.cards);
   const total = snapshot.totals.activeCardCount;
   const notDone = allCards.filter((c) => columns.find((col) => col.id === c.columnId)?.category !== 'done');
@@ -394,7 +396,7 @@ export function BoardView() {
               <Icon name="menu" />
             </button>
             <h1 id="boardTitle" title={board.name}>{board.name}</h1>
-            {board.isArchived && <span id="boardReadOnly">Archived · read-only</span>}
+            {board.isArchived && <span id="boardReadOnly">{projectArchived ? 'Project archived · read-only' : 'Archived · read-only'}</span>}
             {role === 'owner' && !board.isArchived && (
               <button className="icon-btn edit-board-btn" type="button" aria-label="Edit board name and description" title="Edit board" onClick={() => setEditBoardOpen(true)}>
                 <Icon name="edit" />
@@ -573,7 +575,7 @@ export function BoardView() {
           summary={allCards.find((c) => c.id === cardId) ?? null}
           columns={columns}
           people={people}
-          role={role}
+          role={projectArchived ? 'viewer' : role}
           boardName={board.name}
           structureVersion={board.structureVersion}
           onClose={closeCard}

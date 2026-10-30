@@ -64,8 +64,8 @@ function AddCardScreen() {
   if (!boardId) return <section className="state-note"><h1>Choose a board first</h1><p>Open a board and use Add card.</p><Link className="btn" href="/projects">Browse projects</Link></section>;
   if (board.isPending) return <div role="status" className="state-note">Loading board…</div>;
   if (board.isError || !snapshot) return <section role="alert" className="state-note"><h1>Board unavailable</h1><p>{describeError(board.error)}</p><Link className="btn" href="/projects">Back to projects</Link></section>;
-  if (!can(role, 'edit') || snapshot.board.isArchived) {
-    return <section className="state-note"><h1>You cannot create cards here</h1><p>Viewers and archived boards are read-only.</p><Link className="btn" href={backHref}>Back to board</Link></section>;
+  if (!can(role, 'edit') || snapshot.board.isArchived || project?.isArchived) {
+    return <section className="state-note"><h1>You cannot create cards here</h1><p>Viewers, archived boards and archived projects are read-only.</p><Link className="btn" href={backHref}>Back to board</Link></section>;
   }
 
   return (
@@ -111,7 +111,7 @@ function AddCardScreen() {
               <Link className="btn" href={backHref}>Back to board</Link>
               <button className="btn ghost" type="button" onClick={() => router.refresh()} hidden>New card</button>
             </div>
-            <div className="note" style={{ margin: 14 }}><Icon name="image" /><span>Image upload and the first comment are available in the card drawer (images are coming soon).</span></div>
+            <div className="note" style={{ margin: 14 }}><Icon name="image" /><span>Add images and the first comment in the card drawer.</span></div>
           </div>
         </section>
       ) : (

@@ -22,8 +22,10 @@ export function DialogLayer({ open, onClose, labelledBy, describedBy, className,
   closeRef.current = onClose;
   useEffect(() => {
     if (!open) return;
-    returnTo.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     const layer = layerRef.current;
+    // Remember what had focus before the dialog opened. A development double-invoke runs this again with focus already inside the dialog; keep the first answer.
+    const active = document.activeElement;
+    if (!(active instanceof HTMLElement) || !layer?.contains(active)) returnTo.current = active instanceof HTMLElement ? active : null;
     const first = layer?.querySelector<HTMLElement>('[data-autofocus]') ?? layer?.querySelector<HTMLElement>(FOCUSABLE);
     first?.focus({ preventScroll: true });
     const onKey = (event: KeyboardEvent) => {
