@@ -33,6 +33,7 @@ import { activityRoutes } from './routes/activity.ts';
 import { notificationsRoutes } from './routes/notifications.ts';
 import { systemRoutes } from './routes/system.ts';
 import { setGlobalPool, poolStorage, createPool } from '../adapters/postgres.ts';
+import { runWithStorageDriver, type StorageDriver } from '../adapters/storage.ts';
 
 declare module 'hono' {
   interface ContextVariableMap {
@@ -50,6 +51,9 @@ export interface CreateAppOptions {
   windowCounter?: WindowCounterResolver;
   // Deployed Worker only: absent Cloudflare bindings are logged as deployment faults.
   rateLimitBindingsRequired?: boolean;
+  // Image bytes for this app. Pass null when no bucket is bound: image routes then return 503 CONFIG_ERROR.
+  // Omit to use the process default (tests set MemoryStorageDriver).
+  storage?: StorageDriver | null;
 }
 
 export function createApp(probeDatabase: () => Promise<void> = async () => {}, options?: CreateAppOptions) {
@@ -98,6 +102,11 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
       }
       await next();
     });
+  }
+
+  if (options?.storage !== undefined) {
+    const scopedStorage = options.storage;
+    app.use('*', (_c, next) => runWithStorageDriver(scopedStorage, () => next()));
   }
 
   // 1. Correlation middleware: assigns or validates x-request-id and sets requestId in context

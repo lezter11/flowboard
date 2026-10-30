@@ -17,6 +17,8 @@ process.env['CURSOR_SECRET'] ??= 'flowboard_test_cursor_key_do_not_use_in_produc
 test('board access comprehensive integration on isolated PostgreSQL', {
   skip: !testUrl && 'Set FLOWBOARD_ACCESS_TEST_DATABASE_URL to a disposable local database.',
 }, async (t) => {
+  // Image routes fail closed without a bound driver; this suite serves images from an in-process one.
+  setStorageDriver(new MemoryStorageDriver());
   const url = new URL(testUrl!);
   if (!['localhost', '127.0.0.1', '[::1]'].includes(url.hostname) || url.pathname !== '/flowboard_access_test') {
     throw new Error('Use only the disposable local board-access database.');

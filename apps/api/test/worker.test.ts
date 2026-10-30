@@ -206,8 +206,10 @@ test('local workerd: scheduled callback runs purge and outbox jobs against the i
     // exercise failure paths. Give the scheduled-worker check a clean synthetic
     // database so it verifies the callback itself, not another suite's fixtures.
     await setupPool.query('TRUNCATE workspaces CASCADE');
+    // A deployed Worker always has the IMAGES bucket bound; an empty fake stands in for it here.
+    const emptyBucket = { put: async () => undefined, get: async () => null, delete: async () => undefined };
     await worker.scheduled(
       { scheduledTime: Date.now() },
-      { HYPERDRIVE: { connectionString: localDatabaseUrl(process.env['DATABASE_URL']) } },
+      { HYPERDRIVE: { connectionString: localDatabaseUrl(process.env['DATABASE_URL']) }, IMAGES: emptyBucket },
     );
   });

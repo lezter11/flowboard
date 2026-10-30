@@ -18,6 +18,8 @@ import type {
 } from '@flowboard/contracts';
 
 test('COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite', async (t) => {
+  // Storage fails closed without a bound driver; this suite exercises purge against an in-process one.
+  setStorageDriver(new MemoryStorageDriver());
   const pool = getPool();
   const app = createApp();
 

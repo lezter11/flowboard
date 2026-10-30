@@ -18,11 +18,19 @@ import {
   deleteCardImage,
 } from '../../adapters/images.ts';
 import { HttpError } from '../errors.ts';
+import { getStorageDriver } from '../../adapters/storage.ts';
 import { authMiddleware } from '../middleware/auth.ts';
 import { acquireWriteGrantLock } from '../../adapters/rbac.ts';
 import { lockBoardAccess } from '../../adapters/board-grants-foundation.ts';
 
 export const imagesRoutes = new Hono();
+
+// Fail closed before any database work: on a deployment with no private image bucket every image
+// route answers 503 CONFIG_ERROR, so a staged row is never written for bytes that cannot be stored.
+const requireImageStorage = async (_c: unknown, next: () => Promise<void>) => {
+  getStorageDriver();
+  await next();
+};
 
 // Storage may take time. Reauthorize after it returns, then keep the access
 // locks until the response bytes have been assembled.
@@ -67,7 +75,7 @@ function requireIdempotencyKey(keyHeader: string | undefined): string {
 }
 
 // 1. POST /api/v1/cards/:cardId/image-uploads: Stage image upload (ATT-01)
-imagesRoutes.post('/api/v1/cards/:cardId/image-uploads', authMiddleware, async (c) => {
+imagesRoutes.post('/api/v1/cards/:cardId/image-uploads', authMiddleware, requireImageStorage, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
@@ -145,7 +153,7 @@ imagesRoutes.post('/api/v1/cards/:cardId/image-uploads', authMiddleware, async (
 });
 
 // 2. PUT /api/v1/image-uploads/:uploadId/content: Upload raw binary bytes (ATT-01, ATT-02)
-imagesRoutes.put('/api/v1/image-uploads/:uploadId/content', authMiddleware, async (c) => {
+imagesRoutes.put('/api/v1/image-uploads/:uploadId/content', authMiddleware, requireImageStorage, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
@@ -177,7 +185,7 @@ imagesRoutes.put('/api/v1/image-uploads/:uploadId/content', authMiddleware, asyn
 });
 
 // 3. POST /api/v1/image-uploads/:uploadId/finalize: Finalize attachment to card (ATT-02)
-imagesRoutes.post('/api/v1/image-uploads/:uploadId/finalize', authMiddleware, async (c) => {
+imagesRoutes.post('/api/v1/image-uploads/:uploadId/finalize', authMiddleware, requireImageStorage, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
@@ -246,7 +254,7 @@ imagesRoutes.post('/api/v1/image-uploads/:uploadId/finalize', authMiddleware, as
 });
 
 // 4. GET /api/v1/image-uploads/:uploadId: Progress & status inspect (ATT-01)
-imagesRoutes.get('/api/v1/image-uploads/:uploadId', authMiddleware, async (c) => {
+imagesRoutes.get('/api/v1/image-uploads/:uploadId', authMiddleware, requireImageStorage, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
@@ -260,7 +268,7 @@ imagesRoutes.get('/api/v1/image-uploads/:uploadId', authMiddleware, async (c) =>
 });
 
 // 5. DELETE /api/v1/image-uploads/:uploadId: Cancel pending upload (ATT-01)
-imagesRoutes.delete('/api/v1/image-uploads/:uploadId', authMiddleware, async (c) => {
+imagesRoutes.delete('/api/v1/image-uploads/:uploadId', authMiddleware, requireImageStorage, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
@@ -289,7 +297,7 @@ imagesRoutes.delete('/api/v1/image-uploads/:uploadId', authMiddleware, async (c)
 });
 
 // 6. GET /api/v1/cards/:cardId/images: List finalized images (ATT-03)
-imagesRoutes.get('/api/v1/cards/:cardId/images', authMiddleware, async (c) => {
+imagesRoutes.get('/api/v1/cards/:cardId/images', authMiddleware, requireImageStorage, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
@@ -326,7 +334,7 @@ imagesRoutes.get('/api/v1/cards/:cardId/images', authMiddleware, async (c) => {
 });
 
 // 7. GET /api/v1/images/:imageId/content: Authenticated proxy content download (ATT-04)
-imagesRoutes.get('/api/v1/images/:imageId/content', authMiddleware, async (c) => {
+imagesRoutes.get('/api/v1/images/:imageId/content', authMiddleware, requireImageStorage, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
@@ -348,7 +356,7 @@ imagesRoutes.get('/api/v1/images/:imageId/content', authMiddleware, async (c) =>
 });
 
 // 8. GET /api/v1/images/:imageId/thumbnail: Authenticated proxy thumbnail (ATT-04)
-imagesRoutes.get('/api/v1/images/:imageId/thumbnail', authMiddleware, async (c) => {
+imagesRoutes.get('/api/v1/images/:imageId/thumbnail', authMiddleware, requireImageStorage, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
@@ -370,7 +378,7 @@ imagesRoutes.get('/api/v1/images/:imageId/thumbnail', authMiddleware, async (c) 
 });
 
 // 9. DELETE /api/v1/images/:imageId: Remove attached image (ATT-05)
-imagesRoutes.delete('/api/v1/images/:imageId', authMiddleware, async (c) => {
+imagesRoutes.delete('/api/v1/images/:imageId', authMiddleware, requireImageStorage, async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
