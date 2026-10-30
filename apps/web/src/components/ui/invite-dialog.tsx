@@ -6,6 +6,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Invitation } from '@flowboard/contracts';
 import { api } from '@/lib/api';
 import { describeError } from '@/lib/errors';
+import { checkInvitationEmail, emailFieldAria } from '@/lib/invite-email';
 import type { Role } from '@/lib/roles';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { Icon } from '@/components/ui/icon';
@@ -24,6 +25,7 @@ const expiresIn = (iso: string) => {
   const hours = Math.round(ms / 3_600_000);
   return hours < 24 ? `in ${Math.max(hours, 1)}h` : `in ${Math.round(hours / 24)} days`;
 };
+const checked = (raw: string) => { const r = checkInvitationEmail(raw); return r.ok ? r.value : raw.trim().toLowerCase(); };
 const linkFor = (token: string) => `${window.location.origin}/invitation?token=${encodeURIComponent(token)}`;
 
 /**
@@ -37,18 +39,19 @@ export function InviteDialog({ projectId, projectName, actorRole, open, onClose 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<InviteRole>('member');
   const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [fresh, setFresh] = useState<{ id: string; email: string; role: InviteRole; token: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const attempt = useRef<string | null>(null);
   const roles: InviteRole[] = actorRole === 'owner' ? ['manager', 'member', 'viewer'] : ['member', 'viewer'];
 
-  useEffect(() => { if (open) { setEmail(''); setRole('member'); setError(''); setFresh(null); setCopied(false); attempt.current = null; } }, [open, projectId]);
+  useEffect(() => { if (open) { setEmail(''); setRole('member'); setError(''); setEmailError(''); setFresh(null); setCopied(false); attempt.current = null; } }, [open, projectId]);
 
   const list = useQuery({ queryKey: ['invitations', projectId], queryFn: async () => (await api.listInvitations(projectId)).data, enabled: open });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['invitations', projectId] });
 
   const create = useMutation({
-    mutationFn: () => { attempt.current ??= `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`; return api.createInvitation(projectId, { email: email.trim().toLowerCase(), role }, attempt.current); },
+    mutationFn: () => { attempt.current ??= `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`; return api.createInvitation(projectId, { email: checked(email), role }, attempt.current); },
     onSuccess: (res) => { attempt.current = null; setError(''); setCopied(false); setFresh(res.data.token ? { id: res.data.id, email: res.data.email, role: res.data.role as InviteRole, token: res.data.token } : null); setEmail(''); toast('Invitation sent', { icon: 'check' }); void refresh(); },
     onError: (err) => { attempt.current = null; setError(describeError(err)); void refresh(); },
   });
@@ -66,9 +69,9 @@ export function InviteDialog({ projectId, projectName, actorRole, open, onClose 
   const submit = (event: FormEvent) => {
     event.preventDefault();
     if (create.isPending) return;
-    const value = email.trim();
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) { setError('Enter a full email address, such as name@company.com.'); return; }
-    setError('');
+    const result = checkInvitationEmail(email);
+    if (!result.ok) { setEmailError(result.message); setError(''); document.getElementById('inviteEmail')?.focus(); return; }
+    setEmailError(''); setError('');
     create.mutate();
   };
   const copy = async (token: string) => {
@@ -89,7 +92,8 @@ export function InviteDialog({ projectId, projectName, actorRole, open, onClose 
         <form onSubmit={submit} noValidate className="invite-form">
           <div className="dialog-field">
             <label htmlFor="inviteEmail">Email address</label>
-            <input className="control" id="inviteEmail" type="email" autoComplete="off" inputMode="email" data-autofocus maxLength={254} placeholder="name@company.com" value={email} onChange={(e) => { setError(''); setEmail(e.target.value); }} />
+            <input className="control" id="inviteEmail" type="email" autoComplete="off" inputMode="email" data-autofocus placeholder="name@company.com" value={email} {...emailFieldAria(emailError, 'inviteEmailError')} onChange={(e) => { setError(''); if (emailError) setEmailError(''); setEmail(e.target.value); }} onBlur={() => { if (email.trim()) { const r = checkInvitationEmail(email); setEmailError(r.ok ? '' : r.message); } }} />
+            {emailError && <p id="inviteEmailError" className="field-error" role="alert">{emailError}</p>}
           </div>
           <div className="dialog-field">
             <label htmlFor="inviteRole">Project role</label>

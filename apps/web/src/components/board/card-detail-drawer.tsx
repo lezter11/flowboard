@@ -186,6 +186,8 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
   const done = draftColumn?.category === 'done';
   const due = dueInfo(draft.dueDate || null, done);
   const assignable = [...people.values()].filter((p) => p.activeInProject && p.assignable !== false);
+  // Cards saved before viewers were refused may still list one (or someone since removed). The server rejects them on save, so say so up front.
+  const ineligible = draft.assigneeIds.filter((id) => !assignable.some((p) => p.id === id));
 
   const save = useMutation({
     mutationFn: async () => {
@@ -215,6 +217,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
     event?.preventDefault();
     if (!draft.title.trim() || draft.title.trim().length > 200) { setError('Enter a title with 1 to 200 characters.'); return; }
     if (draft.description.length > 20000) { setError('Description must be 20,000 characters or fewer.'); return; }
+    if (ineligible.length > 0) { setError('Remove the assignees marked “can’t be assigned” first. Only owners, managers and members can be assigned.'); return; }
     setError('');
     save.mutate();
   };
@@ -268,9 +271,9 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
                 {draft.assigneeIds.map((id) => {
                   const name = people.get(id)?.displayName ?? 'Unknown member';
                   return (
-                    <span key={id} className="assignee-chip">
+                    <span key={id} className="assignee-chip" title={ineligible.includes(id) ? 'This person can no longer be assigned to cards' : undefined}>
                       <Avatar id={id} name={name} />
-                      {name}
+                      {name}{ineligible.includes(id) && <span className="role-mini"> · can’t be assigned</span>}
                       {editable && <button className="remove-assignee" type="button" aria-label={`Unassign ${name}`} onClick={() => set('assigneeIds', draft.assigneeIds.filter((a) => a !== id))}><Icon name="x" /></button>}
                     </span>
                   );
