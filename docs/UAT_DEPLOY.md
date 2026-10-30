@@ -840,3 +840,30 @@ Do not paste session cookies, tokens or any image bytes into chat.
 
 - Deployed to UAT: migrations 0015 and 0016, Worker `0302aa54-dab8-4cc1-93ef-1dae21d5b8cf`, Pages `7b2cc29a-5405-46aa-a79f-67c1b76fd83d`, the IMAGES binding, the lifecycle backstop, and the two non-secret mail vars.
 - Not deployed: production, production bucket, production binding, mail sender and key.
+
+## D-15: image counted in the UAT card but bucket info shows 0 objects (investigation)
+
+Question: the user uploaded one image to a card on UAT (the card shows `Images 1/10`, and it survives refresh), but `wrangler r2 bucket info flowboard-images-uat` reported `object_count` 0 and `bucket_size` 0 B. Are the bytes in R2, or not?
+
+Answer: **A. The bytes are in the real remote bucket. Only the bucket stats are stale.**
+
+### Evidence (no image bytes, key, or user content printed; the scratch copy was removed)
+
+1. **Postgres (UAT, read-only query):** one `card_images` row, `byte_length` 113138, `content_type` `image/webp`, `created_at` 2026-10-30 12:46:51 UTC. Its `card_image_uploads` row is `state` `finalized`, `byte_length` 113138, `received_bytes` 113138, created 12:46:41 UTC, updated 12:46:51 UTC. `pending_storage_deletions` has 0 rows, so nothing is queued for deletion. The storage key has the shape `images/prj_<id>/crd_<id>/img_<id>/<filename>`, which the R2 driver writes.
+2. **Remote read, same bucket:** `npx wrangler r2 object get flowboard-images-uat/<key> --remote --file <scratch>` succeeded and wrote 113138 bytes. The downloaded file's size equals the database `byte_length`, and its SHA-256 equals the database `sha256`. The scratch file was deleted after the check.
+3. **Local emulator is not the source:** the same get without `--remote` returns `The specified key does not exist.`, so the object is in the remote bucket, not a local emulator.
+4. **Worker binding:** version `0302aa54-dab8-4cc1-93ef-1dae21d5b8cf` is 100% of traffic (`wrangler deployments status`) and lists `env.IMAGES (flowboard-images-uat)` as an R2 Bucket.
+5. **Code path:** `apps/api/src/runtime/worker.ts` builds `R2StorageDriver` from `env.IMAGES` for every image request. `getStorageDriver()` (`apps/api/src/adapters/storage.ts`) throws `CONFIG_ERROR` when no driver is set, so there is no silent in-memory fallback in the deployed Worker. The `MemoryStorageDriver` is set only by tests (`apps/api/src/http/app.ts`, `setStorageDriver`).
+6. **Bucket stats, rechecked:** `object_count` 0 and `bucket_size` 0 B at 13:02 UTC and again at 13:03 UTC on 30 Oct 2026, about 15 minutes after the upload. The stats did not reflect an object that the remote read returns. The lag could be longer than that; the cause is not established here.
+
+### What this means
+
+- No release blocker for storage: the image is stored in the right bucket, under the right key, with the right size and digest.
+- Do not use `wrangler r2 bucket info` as a count check for UAT. Verify by key with `wrangler r2 object get <key> --remote` (no `--remote` reads the local emulator, which is empty and will say "does not exist").
+- Wrangler 4.152.0 has no object-list command, so a count of objects needs another route: a per-key check, or an S3-compatible listing with an R2 API token, which is not set up here.
+
+### Notes
+
+- The object key contains the user's file name, which was printed once in this session's tool output (the wrangler download line). No image bytes were printed. The Architect can decide whether that matters; no action was taken on the user's data.
+- The user's image was not deleted or changed.
+- Not verified: the cause of the stats lag, and whether the stats catch up within the hour.
