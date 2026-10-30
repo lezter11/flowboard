@@ -541,3 +541,13 @@ ul.image-grid, ul.upload-list { list-style: none; margin: 8px 0 0; padding: 0; }
 .lightbox-nav:hover { background: rgba(18, 18, 14, 0.8); } .lightbox-nav:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
 .lightbox-nav.prev { left: 10px; } .lightbox-nav.next { right: 10px; }
 .lightbox-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+/* Mentions (S-16) */
+.composer-field { position: relative; }
+.mention-list { position: absolute; left: 0; right: 0; bottom: calc(100% + 4px); z-index: 20; margin: 0; padding: 4px; list-style: none; max-height: 220px; overflow-y: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; box-shadow: var(--shadow-md); }
+.mention-option { display: flex; align-items: center; gap: 8px; min-height: 36px; padding: 4px 8px; border-radius: 8px; cursor: pointer; font-size: 13px; }
+.mention-option small { margin-left: auto; color: var(--muted); font-size: 11.5px; text-transform: capitalize; }
+.mention-option.is-active { background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent-line); }
+.mention-none { padding: 8px; color: var(--muted); font-size: 12.5px; }
+mark.mention { background: var(--accent-soft); color: var(--accent); border-radius: 4px; padding: 0 3px; font-weight: 600; }
+@media (pointer: coarse) { .mention-option { min-height: 44px; } }

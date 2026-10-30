@@ -8,6 +8,7 @@ import { useActiveProject } from '@/lib/active-project';
 import { ROLE_META } from '@/lib/roles';
 import { useSession } from '@/lib/session';
 import { useShell } from './shell-context';
+import { UserMenu } from './user-menu';
 
 const ROLE_ICON = { owner: 'shield', manager: 'shield', member: 'user-check', viewer: 'eye' } as const;
 
@@ -67,9 +68,9 @@ export function Topbar() {
         <Icon name="moon" className="theme-icon-dark" />
       </button>
       {actor && (
-        <Link className="icon-btn topbar-user" href="/settings" aria-label={`Account settings for ${actor.displayName}`}>
+        <UserMenu placement="top" className="icon-btn topbar-user" label={`Account menu for ${actor.displayName}`}>
           <Avatar id={actor.id} name={actor.displayName} className="topbar-avatar" />
-        </Link>
+        </UserMenu>
       )}
     </header>
   );

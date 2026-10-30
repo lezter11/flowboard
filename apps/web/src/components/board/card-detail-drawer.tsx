@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
+import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Card, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
@@ -11,6 +11,7 @@ import { describeActivity } from '@/lib/activity';
 import { can, type Role } from '@/lib/roles';
 import { Icon } from '@/components/ui/icon';
 import { CardImages } from './card-images';
+import { activeTrigger, applyMention, finalizeMentions, segments, shiftMentions, type Mention, type Trigger } from '@/lib/mentions';
 import { Avatar } from '@/components/ui/avatar';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { useToast } from '@/components/ui/toasts';
@@ -327,7 +328,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
           </div>
           {tab === 'comments' ? (
             <div className="tab-panel" id="commentsPanel" role="tabpanel" aria-labelledby="commentsTab">
-              <Comments cardId={card.id} people={people} role={role} onPosted={() => { void queryClient.invalidateQueries({ queryKey: ['comments', card.id] }); onSaved(); }} />
+              <Comments cardId={card.id} projectId={card.projectId} people={people} role={role} onPosted={() => { void queryClient.invalidateQueries({ queryKey: ['comments', card.id] }); onSaved(); }} />
             </div>
           ) : (
             <div className="tab-panel" id="activityPanel" role="tabpanel" aria-labelledby="activityTab">
@@ -355,18 +356,84 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
   );
 }
 
-function Comments({ cardId, people, role, onPosted }: { cardId: string; people: Map<string, PersonDisplay>; role: Role; onPosted: () => void }) {
+function Comments({ cardId, projectId, people, role, onPosted }: { cardId: string; projectId: string; people: Map<string, PersonDisplay>; role: Role; onPosted: () => void }) {
   const [body, setBody] = useState('');
+  const [mentions, setMentions] = useState<Mention[]>([]);
   const [error, setError] = useState('');
+  const [picker, setPicker] = useState<{ trigger: Trigger; caret: number } | null>(null);
+  const [active, setActive] = useState(0);
+  const input = useRef<HTMLTextAreaElement>(null);
+  const pendingCaret = useRef<number | null>(null);
   const key = useRef<string>(crypto.randomUUID());
+  const listId = useId();
   const list = useQuery({ queryKey: ['comments', cardId], queryFn: async () => (await api.listCardComments(cardId)).data });
   const post = useMutation({
-    mutationFn: () => api.postCardComment(cardId, { body: body.trim(), mentions: [] }, key.current),
-    onSuccess: () => { setBody(''); setError(''); key.current = crypto.randomUUID(); onPosted(); },
-    onError: (err) => setError(describeError(err)),
+    mutationFn: () => { const final = finalizeMentions(body, mentions); return api.postCardComment(cardId, { body: final.body, mentions: final.mentions }, key.current); },
+    onSuccess: () => { setBody(''); setMentions([]); setPicker(null); setError(''); key.current = crypto.randomUUID(); onPosted(); },
+    onError: (err) => {
+      // 422 with mentions attached is almost always someone who lost access to the board since the list loaded.
+      setError(err instanceof ApiError && err.status === 422 && mentions.length > 0
+        ? 'One of the people you mentioned cannot be notified, probably because they no longer have access to this board. Remove that mention and try again.'
+        : describeError(err));
+      key.current = crypto.randomUUID();
+    },
   });
+  // Put the caret where the inserted text ends only after React has committed that text, so fast typing cannot outrun it.
+  useLayoutEffect(() => {
+    if (pendingCaret.current === null) return;
+    const at = pendingCaret.current; pendingCaret.current = null;
+    input.current?.focus(); input.current?.setSelectionRange(at, at);
+  }, [body]);
   const comments = (list.data ?? []).filter((c) => !c.deletedAt);
   const canComment = can(role, 'edit');
+  // The board snapshot only lists people the card already references, so mention candidates come from the project people endpoint
+  // (purpose=mention). It does not check board grants: the server refuses anyone who cannot read this card (422) and the composer explains that.
+  const mentionPeople = useQuery({ queryKey: ['project-people', projectId, 'mention'], queryFn: async () => (await api.listProjectPeople(projectId, 'mention')).data, enabled: canComment, staleTime: 60_000 });
+  const candidates = useMemo(() => (mentionPeople.data ?? []).filter((p) => p.activeInProject && p.mentionable !== false), [mentionPeople.data]);
+  const matches = useMemo(() => {
+    if (!picker) return [];
+    const q = picker.trigger.query.toLowerCase();
+    return candidates.filter((p) => p.displayName.toLowerCase().includes(q)).slice(0, 8);
+  }, [candidates, picker]);
+
+  const refreshPicker = (text: string, caret: number) => {
+    const trigger = activeTrigger(text, caret);
+    setPicker(trigger ? { trigger, caret } : null);
+    setActive(0);
+  };
+  const onChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const next = event.target.value;
+    setMentions((m) => shiftMentions(body, next, m));
+    setBody(next); setError('');
+    refreshPicker(next, event.target.selectionStart);
+  };
+  const choose = (person: PersonDisplay) => {
+    if (!picker) return;
+    const r = applyMention(body, picker.trigger, picker.caret, person);
+    setMentions((m) => [...shiftMentions(body, r.text, m), r.mention]);
+    pendingCaret.current = r.caret;
+    setBody(r.text); setPicker(null);
+  };
+  const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (!picker || matches.length === 0) { if (picker && event.key === 'Escape') { event.preventDefault(); setPicker(null); } return; }
+    if (event.key === 'ArrowDown') { event.preventDefault(); setActive((i) => (i + 1) % matches.length); }
+    else if (event.key === 'ArrowUp') { event.preventDefault(); setActive((i) => (i - 1 + matches.length) % matches.length); }
+    else if (event.key === 'Enter' || event.key === 'Tab') { event.preventDefault(); choose(matches[active]!); }
+    else if (event.key === 'Escape') { event.preventDefault(); setPicker(null); }
+  };
+  const startMention = () => {
+    const el = input.current; if (!el) return;
+    const caret = el.selectionStart;
+    const needsSpace = caret > 0 && !/\s/.test(body[caret - 1]!);
+    const next = `${body.slice(0, caret)}${needsSpace ? ' ' : ''}@${body.slice(el.selectionEnd)}`;
+    const at = caret + (needsSpace ? 1 : 0) + 1;
+    setMentions((m) => shiftMentions(body, next, m));
+    pendingCaret.current = at;
+    setBody(next);
+    refreshPicker(next, at);
+  };
+  const sendable = finalizeMentions(body, mentions);
+  const shown = new Set(sendable.mentions.map((m) => m.userId));
   return (
     <>
       <div className="comment-list">
@@ -384,7 +451,7 @@ function Comments({ cardId, people, role, onPosted }: { cardId: string; people: 
                   <span className="comment-author">{name}</span>
                   <span className="comment-time">{relativeTime(comment.createdAt)}{comment.version > 1 ? ' · edited' : ''}</span>
                 </div>
-                <div className="comment-body">{comment.body}</div>
+                <div className="comment-body">{segments(comment.body, comment.mentions).map((part, i) => part.userId ? <mark key={i} className="mention" title="Mentioned">{part.text}</mark> : <span key={i}>{part.text}</span>)}</div>
               </div>
             </div>
           );
@@ -393,10 +460,31 @@ function Comments({ cardId, people, role, onPosted }: { cardId: string; people: 
       {canComment ? (
         <div className="composer">
           <label className="sr-only" htmlFor="commentInput">Write a comment</label>
-          <textarea id="commentInput" placeholder="Write a comment…" maxLength={10000} value={body} onChange={(event) => setBody(event.target.value)} />
+          <div className="composer-field">
+            <textarea
+              id="commentInput" ref={input} placeholder="Write a comment… type @ to mention someone" maxLength={10000} value={body}
+              role="combobox" aria-autocomplete="list" aria-expanded={!!picker && matches.length > 0} aria-controls={picker ? listId : undefined}
+              aria-activedescendant={picker && matches.length > 0 ? `${listId}-${active}` : undefined}
+              onChange={onChange} onKeyDown={onKeyDown}
+              onKeyUp={(event) => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) refreshPicker(body, event.currentTarget.selectionStart); }}
+              onClick={(event) => refreshPicker(body, event.currentTarget.selectionStart)}
+              onBlur={() => setPicker(null)}
+            />
+            {picker && (
+              <ul className="mention-list" id={listId} role="listbox" aria-label="People you can mention" onMouseDown={(event) => event.preventDefault()}>
+                {matches.length === 0 && <li className="mention-none" role="presentation">{candidates.length === 0 ? 'No one else can be mentioned on this board.' : 'No one matches.'}</li>}
+                {matches.map((person, i) => (
+                  <li key={person.id} id={`${listId}-${i}`} role="option" aria-selected={i === active} className={`mention-option${i === active ? ' is-active' : ''}`} onClick={() => choose(person)} onMouseEnter={() => setActive(i)}>
+                    <Avatar id={person.id} name={person.displayName} /><span>{person.displayName}</span>{person.scopedRole && <small>{person.scopedRole}</small>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+          {shown.size > 0 && <p className="hint" id="mentionNote"><Icon name="at" />{shown.size === 1 ? '1 person will be notified' : `${shown.size} people will be notified`}.</p>}
           {error && <p role="alert" className="field-error">{error}</p>}
           <div className="composer-actions">
-            <button className="composer-tool" type="button" disabled title="Mentions are not available yet"><Icon name="at" />Mention</button>
+            <button className="composer-tool" type="button" onClick={startMention} aria-label="Mention someone"><Icon name="at" />Mention</button>
             <span className="spacer" />
             <button className="btn primary sm" type="button" disabled={!body.trim() || post.isPending} onClick={() => post.mutate()}>{post.isPending ? 'Posting…' : 'Post comment'}</button>
           </div>

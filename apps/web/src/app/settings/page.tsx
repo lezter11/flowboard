@@ -52,6 +52,25 @@ function SettingsScreen() {
   const boardDirty = !!board && (boardName.trim() !== board.name || boardDescription.trim() !== (board.description ?? ''));
   const boardEditable = isOwner && !project?.isArchived;
 
+  const [displayName, setDisplayName] = useState('');
+  const [nameBusy, setNameBusy] = useState(false);
+  const [nameError, setNameError] = useState('');
+  useEffect(() => { setDisplayName(actor?.displayName ?? ''); }, [actor?.displayName]);
+  const nameDirty = !!actor && displayName.trim() !== actor.displayName;
+  const saveName = async (event: FormEvent) => {
+    event.preventDefault();
+    const value = displayName.trim();
+    if (!value) { setNameError('Enter a display name.'); return; }
+    if (/\p{Cc}/u.test(displayName)) { setNameError('A display name cannot contain line breaks or control characters.'); return; }
+    if (value.length > 80) { setNameError('A display name can be at most 80 characters.'); return; }
+    setNameBusy(true); setNameError('');
+    try {
+      await api.updateProfile({ displayName: value });
+      // The name appears in the rail, people lists, comments and activity: refresh all cached data, not just the session.
+      await queryClient.invalidateQueries();
+      toast('Name updated', { icon: 'check' });
+    } catch (err) { setNameError(describeError(err)); } finally { setNameBusy(false); }
+  };
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [lifecycleBusy, setLifecycleBusy] = useState(false);
   const [lifecycleError, setLifecycleError] = useState('');
@@ -216,7 +235,14 @@ function SettingsScreen() {
                   </div>
                 )}
                 <div className="form-grid">
-                  <div className="field"><label className="field-label" htmlFor="accountDisplayName">Display name</label><input className="control" id="accountDisplayName" type="text" value={actor?.displayName ?? ''} disabled readOnly /><p className="field-help">Profile editing is not available yet.</p></div>
+                  <form className="field" onSubmit={saveName} noValidate>
+                    <label className="field-label" htmlFor="accountDisplayName">Display name</label>
+                    <div className="row" style={{ gap: 8 }}>
+                      <input className="control" id="accountDisplayName" type="text" autoComplete="name" value={displayName} maxLength={80} aria-invalid={!!nameError} aria-describedby={nameError ? 'accountNameError' : 'accountNameHelp'} onChange={(event) => { setDisplayName(event.target.value); setNameError(''); }} />
+                      <button className="btn primary" type="submit" disabled={nameBusy || !nameDirty}>{nameBusy ? 'Saving…' : 'Save name'}</button>
+                    </div>
+                    {nameError ? <p className="field-error" id="accountNameError" role="alert">{nameError}</p> : <p className="field-help" id="accountNameHelp">Shown to your team on cards, comments and activity. 1 to 80 characters.</p>}
+                  </form>
                   <div className="field"><label className="field-label" htmlFor="accountEmailField">Email</label><input className="control" id="accountEmailField" type="email" value={actor?.email ?? ''} disabled readOnly /><p className="field-help">Your email comes from your Google account.</p></div>
                 </div>
                 <div className="divider" />

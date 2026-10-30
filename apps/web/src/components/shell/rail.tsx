@@ -7,6 +7,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { Icon } from '@/components/ui/icon';
 import { Wordmark } from '@/components/ui/wordmark';
 import { Avatar } from '@/components/ui/avatar';
+import { UserMenu } from './user-menu';
 import { useQueries, useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { useBoardHref } from '@/lib/board-target';
@@ -155,13 +156,15 @@ export function Rail() {
       </nav>
 
       {actor && (
-        <div className="rail-user" data-tip={actor.displayName}>
-          <Avatar id={actor.id} name={actor.displayName} />
-          <span className="rail-user-copy">
-            <strong>{actor.displayName}</strong>
-            <span>{ROLE_META[role].label}</span>
-          </span>
-          <Icon name="chevron-down" className="icon-sm" />
+        <div className="rail-user-wrap" data-tip={actor.displayName}>
+          <UserMenu placement="rail" className="rail-user" label={`Account menu for ${actor.displayName}`}>
+            <Avatar id={actor.id} name={actor.displayName} />
+            <span className="rail-user-copy">
+              <strong>{actor.displayName}</strong>
+              <span>{ROLE_META[role].label}</span>
+            </span>
+            <Icon name="chevron-up" className="icon-sm" />
+          </UserMenu>
         </div>
       )}
     </aside>

@@ -36,7 +36,8 @@ export function ColumnsDialog({ boardId, open, onClose }: { boardId: string; ope
   const [, bump] = useState(0);
 
   // The dialog re-renders when the board query changes; this keeps the cached snapshot read fresh.
-  useEffect(() => queryClient.getQueryCache().subscribe(() => bump((n) => n + 1)), [queryClient]);
+  // Deferred and only while open: the cache notifies during other components' renders, and a direct setState there triggers React's warning.
+  useEffect(() => (open ? queryClient.getQueryCache().subscribe(() => queueMicrotask(() => bump((n) => n + 1))) : undefined), [queryClient, open]);
   useEffect(() => { if (open) { setDrafts({}); setError(''); setConfirming(null); setNewName(''); setNewCategory('todo'); setNewColor(AUTO); } }, [open]);
 
   const draftOf = (id: string): Draft => {

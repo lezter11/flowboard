@@ -23,6 +23,7 @@ import {
   type CommitImportInput,
   type UpdateProjectMemberInput,
   type UpdateProjectInput,
+  type UpdateProfileInput,
   type UpdateBoardInput,
   type BoardSnapshotResponse,
   type BoardSnapshotQuery,
@@ -115,6 +116,10 @@ function putBytes(path: string, blob: Blob, opts: { onProgress?: (fraction: numb
 }
 
 export const api = {
+  /** Own display name only. Setting a value is idempotent, so no Idempotency-Key. */
+  async updateProfile(input: UpdateProfileInput): Promise<void> {
+    await request<unknown>('/api/v1/session/profile', { method: 'PATCH', body: JSON.stringify(input) });
+  },
   // Card images (private; bytes only ever travel through these authenticated calls)
   async createImageUpload(cardId: string, input: CreateImageUploadInput, idempotencyKey?: string): Promise<ImageUploadResponse> {
     return request<ImageUploadResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/image-uploads`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify(input) });
@@ -304,8 +309,8 @@ export const api = {
     return request<ProjectDirectoryResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/members?limit=100`);
   },
 
-  async listProjectPeople(projectId: string): Promise<ProjectPeopleResponse> {
-    return request<ProjectPeopleResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/people`);
+  async listProjectPeople(projectId: string, purpose?: 'display' | 'assignee' | 'mention'): Promise<ProjectPeopleResponse> {
+    return request<ProjectPeopleResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/people${purpose ? `?purpose=${purpose}` : ''}`);
   },
 
   // Boards
