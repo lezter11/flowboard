@@ -9,6 +9,8 @@ import { ROLE_META } from '@/lib/roles';
 import { useSession } from '@/lib/session';
 import { useShell } from './shell-context';
 
+const ROLE_ICON = { owner: 'shield', manager: 'shield', member: 'user-check', viewer: 'eye' } as const;
+
 export function Topbar() {
   const pathname = usePathname();
   const { state } = useSession();
@@ -56,12 +58,10 @@ export function Topbar() {
           {team.map((person) => <Avatar key={person.id} id={person.id} name={person.displayName} />)}
         </div>
       )}
-      <label className="role-control" title="Your role in this project">
-        <span>Role</span>
-        <select id="roleSelect" aria-label="Your role" value={role} disabled onChange={() => undefined}>
-          <option value={role}>{ROLE_META[role].label}</option>
-        </select>
-      </label>
+      <span className="role-badge" data-role={role} role="group" tabIndex={0} aria-label={`Your role in this project: ${ROLE_META[role].label}. ${ROLE_META[role].description}.`} data-tip={`Your role in this project: ${ROLE_META[role].description}`}>
+        <Icon name={ROLE_ICON[role]} />
+        <span>{ROLE_META[role].label}</span>
+      </span>
       <button className="icon-btn" id="themeToggle" type="button" aria-label={shell.theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-pressed={shell.theme === 'dark'} onClick={shell.toggleTheme}>
         <Icon name="sun" className="theme-icon-light" />
         <Icon name="moon" className="theme-icon-dark" />
