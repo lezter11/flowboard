@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { LazyMotion, MotionConfig } from 'motion/react';
 import { SessionProvider } from '@/lib/session';
+import { PollingProvider } from '@/components/polling';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -24,7 +25,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       {/* LazyMotion keeps the Motion core small; reducedMotion="user" turns transform animation off for people who ask. */}
       <LazyMotion features={() => import('@/lib/motion-features').then((module) => module.default)} strict>
         <MotionConfig reducedMotion="user">
-          <SessionProvider>{children}</SessionProvider>
+          <SessionProvider><PollingProvider>{children}</PollingProvider></SessionProvider>
         </MotionConfig>
       </LazyMotion>
     </QueryClientProvider>
