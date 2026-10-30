@@ -757,3 +757,86 @@ The rule is a backstop only: it deletes `staging/` objects after 1 day regardles
 - Config from section D-13 (binding `IMAGES` for `env.uat`) unchanged.
 - Nothing deployed. Production bucket and production binding not created.
 - Not verified: billing plan and alerts (dashboard), the signed-in upload path, the cleanup behaviour on UAT (no cron call exists).
+
+## D-14: UAT deploy of 36dfb3a (migrations 0015 and 0016, IMAGES R2 binding, mail vars, Pages)
+
+Deployed by the Deployment chat on the Architect's instruction, with the user's approval for UAT. UAT only; production untouched; nothing pushed (the Architect pushes).
+
+### Rollback targets (recorded before the deploy)
+
+- Worker: `3efbf146-ef74-4ea1-8a9b-61663d073ebe` (100% of traffic before this deploy, from D-11).
+- Pages: `6ed70912-0911-4c17-b2d9-6d58b9536703` (live before this deploy, from D-11). The D-11 addendum called `359bc74a` the rollback, which was the Pages deployment before D-11.
+
+### Neon backup and migrations
+
+- Backup branch `uat-backup-2026-10-30-d14` (`br-delicate-paper-a1s53vzg`), created from `uat` before any migration, state `ready`.
+- Migration state before: 14 versions, last `0014`. PostgreSQL 18.6.
+- Applied with the runner at the deploy commit, direct host, `ALLOW_REMOTE_DB=true`: `+ [0015] 0015_project_links_workspace_fk.sql` and `+ [0016] 0016_staged_upload_cleanup.sql`.
+- Migration state after: 16 versions, last `0016`. `card_image_uploads.staging_cleaned` present. `project_links` has the composite foreign key `project_links_project_workspace_fk`.
+
+### R2 bucket and lifecycle backstop
+
+- Bucket `flowboard-images-uat` (created 30 Oct 2026, APAC). Private: r2.dev disabled, no custom domain (D-13).
+- Lifecycle rule `staging-expire` on prefix `staging/`, expire objects after 1 day, added with `npx wrangler r2 bucket lifecycle add flowboard-images-uat staging-expire staging/ --expire-days 1`. The existing rule "Default Multipart Abort Rule" (abort incomplete multipart uploads after 7 days) is also listed and was not changed.
+- Bucket state after the deploy: `object_count` 0, `bucket_size` 0 B (`npx wrangler r2 bucket info flowboard-images-uat`).
+
+### Worker
+
+- `flowboard-api-uat` deployed from 36dfb3a with `wrangler deploy --env uat --var APP_ORIGIN:https://flowboard-app-uat.pages.dev --var MAIL_FROM_NAME:Flowboard`.
+- Version after this deploy: `0302aa54-dab8-4cc1-93ef-1dae21d5b8cf`.
+- Dry-run before the deploy listed `env.IMAGES (flowboard-images-uat)` as an R2 Bucket, and the two mail vars.
+- Not set, as the Architect asked: `MAIL_FROM_EMAIL` and `BREVO_API_KEY`. Mail stays disabled until they are set. A disabled mailer leaves outbox rows pending.
+- **Persistence note:** `--var` values are part of that deploy. A later plain `wrangler deploy --env uat` (no `--var`) would drop `APP_ORIGIN` and `MAIL_FROM_NAME`, because `env.uat` in `wrangler.jsonc` does not define them. Either pass the two `--var` flags on every UAT deploy, or add them to `env.uat` `vars` in `apps/api/wrangler.jsonc` (a config change; Backend or the Architect to commit).
+- Cron: `*/15 * * * *` present on `flowboard-api-uat` (Workers API schedules read: `created_on` 2026-10-28, unchanged). The scheduled handler calls `cleanupOrphanUploads` (`apps/api/src/runtime/worker.ts`, B-11).
+
+### Pages
+
+- `flowboard-app-uat` deployed from 36dfb3a via `scripts/stage-pages-functions.mjs` (five files staged, including `src/lib/return-path.ts`).
+- Deployment after this deploy: `7b2cc29a-5405-46aa-a79f-67c1b76fd83d` (`https://7b2cc29a.flowboard-app-uat.pages.dev`).
+
+### Local checks at 36dfb3a
+
+- `npm run typecheck` and `npm run typecheck:web` passed.
+- Static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`) built in a clean worktree, exit 0.
+- CI run `41057010428` on `36dfb3a`: success, job `Verify (Typecheck, Tests, Build)`.
+
+### Signed-out smoke tests (curl; no credentials; no secrets printed)
+
+- Worker `/health/ready` 200 and `/health/live` 200.
+- Pages `/`, `/projects/x` and `/boards/x` redirect to `/signin`. `/projects` and `/board?id=x` redirect to `/signin?next=...`.
+- `GET /api/v1/session` 401. `GET /api/v1/system/status` without the secret 403.
+- Foreign-origin write with a cookie present (`Origin: https://evil.example`, `Sec-Fetch-Site: cross-site`, bogus `flowboard_session`): `PATCH /api/v1/projects/x` 403 and `POST /api/v1/cards/x/image-uploads` 403, on both the Pages host and the Worker host.
+- Same foreign-origin writes without a cookie return 401, not 403 (authentication is checked first when there is no cookie). The earlier 404 for `POST /api/v1/projects` and `/api/v1/boards` was a wrong route name in this check, not a finding.
+- Image routes, anonymous: `GET /api/v1/images/:id/content` 401, `GET /api/v1/cards/:id/images` 401, `GET /api/v1/image-uploads/:id` 401, on both hosts.
+- `PATCH /api/v1/projects/x` 401 and `GET /api/v1/projects/x/overview` 401 (unauthenticated).
+- `/signin` 200 with CSP, `permissions-policy`, `referrer-policy: strict-origin-when-cross-origin`, `x-content-type-options: nosniff`, `x-frame-options: DENY`.
+- `/favicon.svg` 200 `image/svg+xml`, `/apple-touch-icon.png` 200 `image/png`.
+
+### Not verified here
+
+- Signed-in flows, including the image upload, the R2 object count after upload and removal, the sign-out menu and the invitation flow. The user checks these (script below).
+- Whether the mailer sends (disabled until the sender and key are set).
+
+### Manual test script (for the user, on https://7b2cc29a.flowboard-app-uat.pages.dev)
+
+1. Sign in with a test Google account. Check the top-bar role badge.
+2. Open a project and a board. Create a card.
+3. Count R2 objects before: `npx wrangler r2 bucket info flowboard-images-uat` and note `object_count` (expected 0 now).
+4. Upload one small synthetic image (PNG or JPEG under 10 MiB) to the card. Finalize it.
+5. Count R2 objects again: `object_count` should be 1 (`bucket_size` shows the size).
+6. Remove the image from the card. Recount: `object_count` should return to 0 after the delete commits (the B-8 behaviour). If the count stays at 1, note the time and tell the Deployment chat.
+7. Sign out with the new account menu, then reload a project URL: it should redirect to `/signin`.
+8. Invitation flow: create an invitation to a synthetic address, confirm it appears in the pending list, then revoke it. Mail is disabled, so no email should arrive; the outbox row stays pending, which is expected.
+
+Do not paste session cookies, tokens or any image bytes into chat.
+
+### Mail: what the user must set (not done here)
+
+- Sender: the verified sender address in Brevo, held in the Worker variable `MAIL_FROM_EMAIL` (a plain var, not a secret). It must be set together with `MAIL_FROM_NAME=Flowboard` and `APP_ORIGIN` (already set). Set it with a plain deploy flag or in `env.uat` `vars` (see the persistence note above).
+- Key: run in the user's own terminal, never in chat: `npx wrangler secret put BREVO_API_KEY --env uat`. Paste the key at the prompt only.
+- Until both are set the mailer is disabled and outbox rows stay pending. That is expected.
+
+### Status
+
+- Deployed to UAT: migrations 0015 and 0016, Worker `0302aa54-dab8-4cc1-93ef-1dae21d5b8cf`, Pages `7b2cc29a-5405-46aa-a79f-67c1b76fd83d`, the IMAGES binding, the lifecycle backstop, and the two non-secret mail vars.
+- Not deployed: production, production bucket, production binding, mail sender and key.
