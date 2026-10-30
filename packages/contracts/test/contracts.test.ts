@@ -444,6 +444,19 @@ describe('Contracts Schema Validation Tests', () => {
       assert.deepStrictEqual(createImageUploadInputSchema.parse(valid), valid);
     });
 
+    it('B-14: refuses a filename with a slash, a backslash or a control character, and keeps ordinary names', () => {
+      const base = {
+        byteLength: 1024,
+        contentType: 'image/png' as const,
+        sha256: 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855',
+      };
+      for (const filename of ['sub/dir.png', 'sub\\dir.png', '../escape.png', 'bad\u0000name.png', 'tab\tname.png', 'del\u007fname.png', 'line\nbreak.png']) {
+        assert.throws(() => createImageUploadInputSchema.parse({ ...base, filename }), undefined, JSON.stringify(filename));
+      }
+      assert.equal(createImageUploadInputSchema.parse({ ...base, filename: '  holiday photo (2026).png  ' }).filename, 'holiday photo (2026).png');
+      assert.equal(createImageUploadInputSchema.parse({ ...base, filename: 'résumé ✓.png' }).filename, 'résumé ✓.png');
+    });
+
     it('rejects image exceeding 10 MiB limit or unsupported content type', () => {
       assert.throws(() =>
         createImageUploadInputSchema.parse({

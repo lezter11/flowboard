@@ -168,7 +168,7 @@ test('B-7 images: upload, finalize, read and delete through the Worker, across s
   }));
   assert.equal(stage.status, 201, await stage.clone().text());
   const uploadId = ((await stage.json()) as any).data.id as string;
-  const stagingKey = `staging/${uploadId}/synthetic.png`;
+  const stagingKey = `staging/${uploadId}`;
 
   const content = await call(new Request(`${base}/image-uploads/${uploadId}/content`, {
     method: 'PUT',
@@ -185,7 +185,7 @@ test('B-7 images: upload, finalize, read and delete through the Worker, across s
   }));
   assert.equal(finalize.status, 200, await finalize.clone().text());
   const imageId = ((await finalize.json()) as any).data.id as string;
-  const finalKey = `images/${fx.project}/${fx.card}/${imageId}/synthetic.png`;
+  const finalKey = `images/${fx.project}/${fx.card}/${imageId}`;
   assert.ok(bucket.objects.has(finalKey), 'permanent bytes are in the bucket');
   assert.equal(bucket.objects.has(stagingKey), false, 'cleanup removed the staged object after finalize');
 
@@ -241,4 +241,59 @@ test('B-7 images: cancelling a staged upload removes its staged object', async (
 test('B-7 images: the default driver is not used when a scope binds none', () => {
   // The scope is per run: a null binding must not fall back to a process default.
   assert.throws(() => getStorageDriver(), (err: any) => err.code === 'CONFIG_ERROR');
+});
+
+// B-14 (FB-AUD-09). The user's filename never reaches a storage key: keys are random and the
+// original name stays on the database row only.
+test('B-14 images: storage keys carry no user filename, and filenames with separators or control characters are refused', async () => {
+  const fx = await setup(pool);
+  const bucket = fakeR2();
+  const call = (request: Request) => worker.fetch(request, { DATABASE_URL: process.env['DATABASE_URL']!, IMAGES: fakeR2(bucket.objects).binding } as never);
+  const base = 'http://localhost/api/v1';
+  const name = 'holiday photo 2026.png';
+
+  for (const bad of ['sub/dir.png', 'sub\\dir.png', 'bad\u0001name.png', '../escape.png']) {
+    const refused = await call(new Request(`${base}/cards/${fx.card}/image-uploads`, {
+      method: 'POST',
+      headers: headers(fx.cookie, true),
+      body: JSON.stringify({ filename: bad, byteLength: PNG.byteLength, contentType: 'image/png', sha256: crypto.createHash('sha256').update(PNG).digest('hex') }),
+    }));
+    assert.equal(refused.status, 422, `refused: ${JSON.stringify(bad)}`);
+  }
+  assert.equal(bucket.objects.size, 0, 'a refused filename writes nothing to storage');
+
+  const stage = await call(new Request(`${base}/cards/${fx.card}/image-uploads`, {
+    method: 'POST',
+    headers: headers(fx.cookie, true),
+    body: JSON.stringify({ filename: name, byteLength: PNG.byteLength, contentType: 'image/png', sha256: crypto.createHash('sha256').update(PNG).digest('hex') }),
+  }));
+  assert.equal(stage.status, 201, await stage.clone().text());
+  const uploadId = ((await stage.json()) as any).data.id as string;
+  const stagingKey = `staging/${uploadId}`;
+
+  const content = await call(new Request(`${base}/image-uploads/${uploadId}/content`, {
+    method: 'PUT',
+    headers: { ...headers(fx.cookie), 'content-type': 'image/png' },
+    body: PNG,
+  }));
+  assert.equal(content.status, 200, await content.clone().text());
+  assert.ok(bucket.objects.has(stagingKey), 'the staged object uses the random upload key');
+
+  const finalize = await call(new Request(`${base}/image-uploads/${uploadId}/finalize`, { method: 'POST', headers: headers(fx.cookie) }));
+  assert.equal(finalize.status, 200, await finalize.clone().text());
+  const imageId = ((await finalize.json()) as any).data.id as string;
+  const finalKey = `images/${fx.project}/${fx.card}/${imageId}`;
+  assert.ok(bucket.objects.has(finalKey), 'the permanent object uses the random image key');
+
+  for (const key of bucket.objects.keys()) {
+    assert.equal(key.includes('holiday'), false, `no filename in ${key}`);
+  }
+
+  const row = await pool.query<{ filename: string; storage_key: string }>('SELECT filename, storage_key FROM card_images WHERE id = $1', [imageId]);
+  assert.equal(row.rows[0]!.filename, name, 'the original name stays on the row');
+  assert.equal(row.rows[0]!.storage_key, finalKey);
+
+  const read = await call(new Request(`${base}/images/${imageId}/content`, { headers: { cookie: fx.cookie } }));
+  assert.equal(read.status, 200);
+  assert.deepEqual(Buffer.from(await read.arrayBuffer()), PNG);
 });

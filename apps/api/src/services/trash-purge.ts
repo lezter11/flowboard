@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { getPool } from '../adapters/postgres.ts';
 import { getStorageDriver } from '../adapters/storage.ts';
 import { recordActivity } from '../adapters/activity.ts';
+import { stagingKeyOf } from '../adapters/images.ts';
 
 export interface PurgeResult {
   claimedCount: number;
@@ -217,15 +218,15 @@ export async function purgeExpiredTrash(
         );
       }
 
-      const uploads = await client.query<{ id: string; filename: string }>(
-        `SELECT id, filename FROM card_image_uploads WHERE card_id = $1`,
+      const uploads = await client.query<{ id: string; filename: string; staging_storage_key: string | null }>(
+        `SELECT id, filename, staging_storage_key FROM card_image_uploads WHERE card_id = $1`,
         [card.id],
       );
       for (const upload of uploads.rows) {
         await client.query(
           `INSERT INTO pending_storage_deletions (storage_key)
            VALUES ($1) ON CONFLICT (storage_key) DO NOTHING`,
-          [`staging/${upload.id}/${upload.filename}`],
+          [stagingKeyOf(upload)],
         );
       }
 

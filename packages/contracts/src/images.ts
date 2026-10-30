@@ -18,7 +18,8 @@ export const createImageUploadInputSchema = z.object({
     .string()
     .trim()
     .min(1, 'Filename cannot be empty')
-    .max(255, 'Filename cannot exceed 255 characters'),
+    .max(255, 'Filename cannot exceed 255 characters')
+    .refine((name) => !/[\\/\p{Cc}]/u.test(name), 'Filename cannot contain slashes, backslashes or control characters'),
   byteLength: z
     .number()
     .int()

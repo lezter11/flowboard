@@ -20,6 +20,15 @@ import { recordActivity } from './activity.ts';
 
 export const MAX_CARD_IMAGES = 10;
 
+/**
+ * The storage key of an upload's staged bytes (B-14, FB-AUD-09). New uploads store a random key
+ * with no user filename in it. A row with no stored key (written by an instance that ran before
+ * migration 0017) keeps the key its bytes were written under, so cleanup can still delete them.
+ */
+export function stagingKeyOf(upload: { id: string; filename: string; staging_storage_key: string | null }): string {
+  return upload.staging_storage_key ?? `staging/${upload.id}/${upload.filename}`;
+}
+
 async function requireImageBoardAccess(
   db: pg.ClientBase | pg.Pool, cardId: string, actorId: string,
 ): Promise<{ boardId: string; projectId: string; role: string }> {
@@ -48,6 +57,7 @@ interface CardImageUploadRow {
   byte_length: number;
   content_type: string;
   sha256: string;
+  staging_storage_key: string | null;
   state: string;
   expires_at: Date;
   finalized_image_id: string | null;
@@ -181,12 +191,12 @@ export async function createImageUpload(
   const insertRes = await clientOrPool.query<CardImageUploadRow>(
     `INSERT INTO card_image_uploads (
        id, workspace_id, project_id, card_id, uploader_id,
-       filename, byte_length, content_type, sha256,
+       filename, byte_length, content_type, sha256, staging_storage_key,
        state, expires_at, version, received_bytes, error,
        created_at, updated_at
      ) VALUES (
        $1, $2, $3, $4, $5,
-       $6, $7, $8, $9,
+       $6, $7, $8, $9, $10,
        'awaiting_content', NOW() + INTERVAL '1 hour', 1, NULL, NULL,
        NOW(), NOW()
      ) RETURNING *`,
@@ -200,6 +210,7 @@ export async function createImageUpload(
       input.byteLength,
       input.contentType,
       input.sha256,
+      `staging/${uploadId}`,
     ],
   );
 
@@ -299,7 +310,7 @@ export async function receiveImageContent(
 
   // Store staged object in storage driver
   const storage = getStorageDriver();
-  const stagingKey = `staging/${upload.id}/${upload.filename}`;
+  const stagingKey = stagingKeyOf(upload);
   await storage.put(stagingKey, rawBytes, upload.content_type);
 
   await requireImageBoardAccess(clientOrPool, upload.card_id, actorId);
@@ -448,7 +459,7 @@ export async function finalizeImageUpload(
 
     // Retrieve staged bytes from storage driver
     const storage = getStorageDriver();
-    const stagingKey = `staging/${upload.id}/${upload.filename}`;
+    const stagingKey = stagingKeyOf(upload);
     const stored = await storage.get(stagingKey);
     if (!stored) {
       throw HttpError.badRequest('Staged image content missing from storage.', 'CONTENT_MISSING');
@@ -458,7 +469,7 @@ export async function finalizeImageUpload(
     const validation = validateImageBinary(stored.data, upload.content_type as any, upload.sha256);
 
     const imageId = 'img_' + crypto.randomUUID();
-    const finalStorageKey = `images/${upload.project_id}/${upload.card_id}/${imageId}/${upload.filename}`;
+    const finalStorageKey = `images/${upload.project_id}/${upload.card_id}/${imageId}`;
 
     // Store permanently in storage driver
     await storage.put(finalStorageKey, stored.data, upload.content_type);
@@ -619,7 +630,7 @@ export async function cancelImageUpload(
 
   // Delete staged bytes if present
   const storage = getStorageDriver();
-  const stagingKey = `staging/${upload.id}/${upload.filename}`;
+  const stagingKey = stagingKeyOf(upload);
   await storage.delete(stagingKey).catch(() => {});
 
   const updateRes = await clientOrPool.query<CardImageUploadRow>(
@@ -888,11 +899,11 @@ export async function cleanupOrphanUploads(
   limit = 100,
 ): Promise<{ cleanedCount: number }> {
   const client = await pool.connect();
-  let settled: Array<{ id: string; filename: string }> = [];
+  let settled: Array<{ id: string; filename: string; staging_storage_key: string | null }> = [];
   try {
     await client.query('BEGIN');
-    const rows = await client.query<{ id: string; filename: string }>(
-      `SELECT id, filename FROM card_image_uploads
+    const rows = await client.query<{ id: string; filename: string; staging_storage_key: string | null }>(
+      `SELECT id, filename, staging_storage_key FROM card_image_uploads
        WHERE staging_cleaned = FALSE
          AND (state IN ('expired', 'cancelled', 'failed') OR expires_at < NOW())
        ORDER BY expires_at ASC, id ASC
@@ -905,7 +916,7 @@ export async function cleanupOrphanUploads(
       await client.query(
         `INSERT INTO pending_storage_deletions (storage_key) VALUES ($1)
          ON CONFLICT (storage_key) DO NOTHING`,
-        [`staging/${upload.id}/${upload.filename}`],
+        [stagingKeyOf(upload)],
       );
       // Version moves only when the state actually changes (a non-terminal row becomes expired).
       await client.query(
@@ -928,7 +939,7 @@ export async function cleanupOrphanUploads(
 
   const storage = getStorageDriver();
   for (const upload of settled) {
-    const key = `staging/${upload.id}/${upload.filename}`;
+    const key = stagingKeyOf(upload);
     try {
       await storage.delete(key);
       await pool.query('DELETE FROM pending_storage_deletions WHERE storage_key = $1', [key]);
