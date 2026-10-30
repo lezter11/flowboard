@@ -43,6 +43,7 @@ export async function deliverInvitationRow(
   }
 
   const content = buildInvitationEmail({
+    appOrigin: mailer.appOrigin,
     projectName: text(payload['projectName']),
     inviterName: text(payload['inviterName']),
     role: text(payload['role']),
