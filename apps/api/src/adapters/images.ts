@@ -749,12 +749,17 @@ export async function getImageContent(
  * Enforces uploader or owner/manager authority, card active check, OCC version check,
  * board snapshot bump, and activity log recording.
  */
+/**
+ * Removes the image row inside the caller's transaction. The bytes are NOT deleted here: the key is
+ * written to pending_storage_deletions in the same transaction. A rolled-back delete therefore
+ * leaves both the row and the bytes. Call deleteStorageAfterCommit once the transaction commits.
+ */
 export async function deleteCardImage(
   clientOrPool: pg.Pool | pg.ClientBase,
   actorId: string,
   imageId: string,
   expectedVersion: number,
-): Promise<{ success: true; imageId: string }> {
+): Promise<{ result: { success: true; imageId: string }; storageKey: string }> {
   const isPool = clientOrPool instanceof pg.Pool;
   const client = isPool ? await (clientOrPool as pg.Pool).connect() : clientOrPool as pg.ClientBase;
 
@@ -808,12 +813,14 @@ export async function deleteCardImage(
       );
     }
 
-    // Delete database record
+    // Delete database record, and record the bytes for deletion in the same transaction
     await client.query('DELETE FROM card_images WHERE id = $1', [imageId]);
-
-    // Delete storage object
-    const storage = getStorageDriver();
-    await storage.delete(image.storage_key).catch(() => {});
+    await client.query(
+      `INSERT INTO pending_storage_deletions (storage_key) VALUES ($1)
+       ON CONFLICT (storage_key) DO NOTHING`,
+      [image.storage_key],
+    );
+    const deletedStorageKey = image.storage_key;
 
     // Bump board version
     if (card) {
@@ -835,7 +842,7 @@ export async function deleteCardImage(
     });
 
     if (isPool) await client.query('COMMIT');
-    return { success: true, imageId };
+    return { result: { success: true, imageId }, storageKey: deletedStorageKey };
   } catch (err) {
     if (isPool) await client.query('ROLLBACK').catch(() => {});
     throw err;
@@ -844,6 +851,20 @@ export async function deleteCardImage(
       client.release();
     }
   }
+}
+
+/**
+ * Deletes the bytes of a committed image deletion. A failure is not an error for the caller: the
+ * image is already gone, and the pending_storage_deletions row stays for the purge job to retry.
+ * On success the row is removed.
+ */
+export async function deleteStorageAfterCommit(client: pg.ClientBase, storageKey: string): Promise<void> {
+  try {
+    await getStorageDriver().delete(storageKey);
+  } catch {
+    return;
+  }
+  await client.query('DELETE FROM pending_storage_deletions WHERE storage_key = $1', [storageKey]).catch(() => {});
 }
 
 /**

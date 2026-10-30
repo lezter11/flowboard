@@ -16,6 +16,7 @@ import {
   listCardImages,
   getImageContent,
   deleteCardImage,
+  deleteStorageAfterCommit,
 } from '../../adapters/images.ts';
 import { HttpError } from '../errors.ts';
 import { getStorageDriver } from '../../adapters/storage.ts';
@@ -427,11 +428,13 @@ imagesRoutes.delete('/api/v1/images/:imageId', authMiddleware, requireImageStora
       );
     }
 
-    const result = await deleteCardImage(client, actor.id, imageId, input.expectedVersion);
+    const { result, storageKey } = await deleteCardImage(client, actor.id, imageId, input.expectedVersion);
     const responsePayload = { data: result };
     await saveReceipt(client, actor.id, 'project', projectId,
       idempotencyKey, methodPath, rawBody, 200, responsePayload);
     await client.query('COMMIT');
+    // Bytes go only after the commit (B-8). A failed storage delete is retried by the purge job.
+    await deleteStorageAfterCommit(client, storageKey);
 
     return c.json(responsePayload, 200);
   } catch (err) {
