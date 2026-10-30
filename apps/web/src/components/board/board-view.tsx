@@ -1,6 +1,7 @@
 'use client';
 
 import { pickFocusTarget } from '@/lib/inert-lock';
+import { projectAccess } from '@/lib/project-access';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -22,7 +23,7 @@ import { ColumnsDialog } from './columns-dialog';
 import { ActionMenu } from '@/components/ui/action-menu';
 import { Avatar } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/toasts';
-import { PollStatus, usePolling, usePollHold, usePollKeys } from '@/components/polling';
+import { PollAge, usePolling, usePollHold, usePollKeys } from '@/components/polling';
 import { useShell } from '@/components/shell/shell-context';
 import { CardDetailDrawer } from '@/components/board/card-detail-drawer';
 import { BoardColumn, type DropTarget } from './board-column';
@@ -367,6 +368,16 @@ export function BoardView() {
   if (boardQuery.isPending) return <div role="status" className="state-note">Loading board…</div>;
   const lostAccess = boardQuery.error instanceof ApiError && [401, 403, 404].includes(boardQuery.error.status);
   // A failed background poll keeps the board on screen (the status banner explains it); only a lost board or a first-load failure replaces it.
+  // The session is polled: removed from the project while looking at its board.
+  if (snapshot && state.status === 'ready' && projectAccess(state.session.accessibleProjects, snapshot.board.projectId).kind === 'removed') {
+    return (
+      <section role="alert" className="board-unavailable" style={{ display: 'block' }}>
+        <h1>You no longer have access</h1>
+        <p>You were removed from this project, so its boards are not available to you anymore.</p>
+        <Link className="btn" href="/projects">Back to projects</Link>
+      </section>
+    );
+  }
   if (!snapshot || (boardQuery.isError && lostAccess)) {
     const status = boardQuery.error instanceof ApiError ? boardQuery.error.status : 0;
     return (
@@ -411,6 +422,7 @@ export function BoardView() {
               <Icon name="menu" />
             </button>
             <h1 id="boardTitle" tabIndex={-1} title={board.name}>{board.name}</h1>
+            <PollAge />
             {board.isArchived && <span id="boardReadOnly">{projectArchived ? 'Project archived · read-only' : 'Archived · read-only'}</span>}
             {role === 'owner' && !board.isArchived && (
               <button className="icon-btn edit-board-btn" type="button" aria-label="Edit board name and description" title="Edit board" onClick={() => setEditBoardOpen(true)}>
@@ -447,7 +459,6 @@ export function BoardView() {
           </div>
         </div>
 
-        <PollStatus />
         {board.description && <p className="board-description" id="boardDescription">{board.description}</p>}
 
         <div className="toolbar" aria-label="Board tools" ref={toolbarRef}>

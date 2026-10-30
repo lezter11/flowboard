@@ -33,6 +33,8 @@ export default function PeoplePage() {
   const boards = useProjectBoards(project?.id ?? null);
   const boardList = (boards.data ?? []).filter((b) => !b.isArchived);
   const accessBoard = boardList.find((b) => b.id === accessBoardId) ?? boardList[0];
+  usePollKeys([['board-access', accessBoard?.id]], accessOpen && !!accessBoard);
+  usePollKeys([['boards', project?.id], ['project', project?.id]], !!project);
   const access = useQuery({ queryKey: ['board-access', accessBoard?.id], queryFn: async () => (await api.getBoardAccess(accessBoard!.id)).data, enabled: accessOpen && !!accessBoard });
   const setGrant = useMutation({
     mutationFn: (v: { userId: string; allow: boolean }) => api.setBoardGrant(accessBoard!.id, v.userId, v.allow, access.data!.accessRevision),

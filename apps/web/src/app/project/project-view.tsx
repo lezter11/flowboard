@@ -9,6 +9,8 @@ import { projectMark, projectTone, statsFromSnapshot, useProjectBoards, type Boa
 import { can, normalizeRole } from '@/lib/roles';
 import { useRememberLocation } from '@/lib/last-location';
 import { useSession } from '@/lib/session';
+import { projectAccess } from '@/lib/project-access';
+import { usePollKeys } from '@/components/polling';
 import { Icon } from '@/components/ui/icon';
 import { ProjectOverviewSection } from '@/components/project/overview';
 import { BriefCard } from '@/components/project/brief-card';
@@ -23,6 +25,7 @@ export function ProjectView({ projectId }: { projectId: string }) {
     queryFn: async () => (await api.getProject(projectId)).data,
     retry: (count, error) => !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 1,
   });
+  usePollKeys([['project', projectId], ['boards', projectId]]);
   useRememberLocation(project.data?.id, null);
   const boardsQuery = useProjectBoards(projectId);
   const boards = (boardsQuery.data ?? []).filter((b) => !b.isArchived);
@@ -43,6 +46,15 @@ export function ProjectView({ projectId }: { projectId: string }) {
 
   const [creating, setCreating] = useState(false);
 
+  if (state.status === 'ready' && projectAccess(state.session.accessibleProjects, projectId).kind === 'removed') {
+    return (
+      <section role="alert" className="board-unavailable" style={{ display: 'block' }}>
+        <h1>You no longer have access</h1>
+        <p>You were removed from this project, or it is not available to your account.</p>
+        <Link className="btn" href="/projects">Back to projects</Link>
+      </section>
+    );
+  }
   if (project.isPending) return <div role="status" className="state-note">Loading project…</div>;
   if (project.isError || !project.data) {
     const status = project.error instanceof ApiError ? project.error.status : 0;

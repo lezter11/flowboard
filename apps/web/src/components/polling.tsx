@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useQueryClient, type QueryKey } from '@tanstack/react-query';
 import { ApiError } from '@/lib/api';
-import { createPoller, describeAge, type PollerState, type TickResult } from '@/lib/poller';
+import { createPoller, describeAge, isTrouble, type PollerState, type TickResult } from '@/lib/poller';
 import { useSession } from '@/lib/session';
 
 /**
@@ -26,7 +26,8 @@ export function PollingProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const { state: session } = useSession();
   const signedIn = session.status === 'ready';
-  const keys = useRef(new Map<string, { key: QueryKey; count: number }>());
+  // The session is always live: role changes, removal and project archive reach open screens through it.
+  const keys = useRef(new Map<string, { key: QueryKey; count: number }>([[JSON.stringify(['session']), { key: ['session'], count: 1 }]]));
   const holds = useRef(0);
   const [pollState, setPollState] = useState<PollerState>({ lastSuccessAt: null, failures: 0, stopped: false });
   const [online, setOnline] = useState(true);
@@ -107,15 +108,28 @@ export function usePollHold(active: boolean) {
   useEffect(() => (active ? hold() : undefined), [active, hold]);
 }
 
-/** Quiet "Updated 12s ago" text plus an error banner when polls keep failing. The live region only speaks on trouble and recovery. */
-export function PollStatus() {
-  const { state, online } = usePolling();
+/** Quiet "Updated 12s ago" next to the board header. Hidden from screen readers: it changes every few seconds. */
+export function PollAge() {
+  const { state } = useNow();
+  const age = describeAge(state.lastSuccessAt, state.now);
+  return age ? <span className="poll-status" aria-hidden="true">{age}</span> : null;
+}
+
+function useNow() {
+  const { state } = usePolling();
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const timer = window.setInterval(() => setNow(Date.now()), 5000);
     return () => window.clearInterval(timer);
   }, []);
-  const trouble = !online || state.failures >= 2;
+  return { state: { ...state, now } };
+}
+
+/** App-wide banner when polls keep failing or the browser is offline. The live region only speaks on trouble and recovery. */
+export function PollBanner() {
+  const { online } = usePolling();
+  const { state } = useNow();
+  const trouble = isTrouble(state.failures, online);
   const wasTrouble = useRef(false);
   const [announce, setAnnounce] = useState('');
   useEffect(() => {
@@ -123,14 +137,12 @@ export function PollStatus() {
     else if (!trouble && wasTrouble.current) setAnnounce('Live updates resumed.');
     wasTrouble.current = trouble;
   }, [trouble, online]);
-  const age = describeAge(state.lastSuccessAt, now);
   return (
     <>
-      {age && !trouble && <span className="poll-status" aria-hidden="true">{age}</span>}
       {trouble && (
         <p className="poll-banner" role="note">
           {online ? 'Can’t refresh right now. What you see may be out of date; we’ll keep trying.' : 'You’re offline. What you see may be out of date.'}
-          {state.lastSuccessAt !== null && <> {describeAge(state.lastSuccessAt, now)}.</>}
+          {state.lastSuccessAt !== null && <> {describeAge(state.lastSuccessAt, state.now)}.</>}
         </p>
       )}
       <span className="sr-only" aria-live="polite">{announce}</span>

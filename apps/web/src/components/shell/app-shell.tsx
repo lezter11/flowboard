@@ -8,6 +8,7 @@ import { Rail } from './rail';
 import { Topbar } from './topbar';
 import { ShellProvider, useShell } from './shell-context';
 import { ToastProvider } from '@/components/ui/toasts';
+import { PollBanner } from '@/components/polling';
 import { HoverTip } from '@/components/ui/hover-tip';
 
 const BARE_ROUTES = ['/signin', '/invitation', '/invitations/accept', '/all-work'];
@@ -47,6 +48,7 @@ function Frame({ children }: { children: ReactNode }) {
         <div className="rail-scrim" id="railScrim" hidden={!(shell.overlay && shell.navOpen)} onClick={() => shell.closeNav()} />
         <div className="workspace" inert={shell.overlay && shell.navOpen}>
           <Topbar />
+          <PollBanner />
           <main className={`page${pathname === '/projects' || pathname === '/project' ? ' portfolio-page' : ''}${pathname === '/project' ? ' project-workspace' : ''}${pathname === '/activity' ? ' activity-page' : ''}${pathname === '/trash' ? ' recovery-page' : ''}${pathname === '/people' ? ' people-page' : ''}${pathname === '/inbox' ? ' inbox-page' : ''}${pathname === '/my-tasks' ? ' my-work' : ''}${pathname === '/settings' ? ' settings-page' : ''}`} id="main" tabIndex={-1}>{content}</main>
         </div>
       </div>

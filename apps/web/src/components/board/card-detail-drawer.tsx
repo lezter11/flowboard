@@ -241,7 +241,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
       }
     },
     onSuccess: () => { setError(''); setConflict(false); setDraft((d) => ({ ...d, title: d.title.trim() })); toast('Changes saved', { icon: 'check' }); dirtyRef.current = false; onSaved(); },
-    onError: (err) => { setError(isStale(err) ? 'Someone else changed this card. Their changes are loaded; review your edits and save again.' : describeError(err)); onSaved(); },
+    onError: (err) => { setError(err instanceof ApiError && err.status === 404 ? 'This card was removed, so your changes could not be saved.' : isStale(err) ? 'Someone else changed this card. Their changes are loaded; review your edits and save again.' : describeError(err)); onSaved(); },
   });
 
   const submit = (event?: FormEvent) => {
@@ -404,7 +404,7 @@ function Comments({ cardId, projectId, people, role, onPosted }: { cardId: strin
       // 422 with mentions attached is almost always someone who lost access to the board since the list loaded.
       setError(err instanceof ApiError && err.status === 422 && mentions.length > 0
         ? 'One of the people you mentioned cannot be notified, probably because they no longer have access to this board. Remove that mention and try again.'
-        : describeError(err));
+        : err instanceof ApiError && err.status === 404 ? 'This card was removed, so the comment could not be posted.' : describeError(err));
       key.current = crypto.randomUUID();
     },
   });

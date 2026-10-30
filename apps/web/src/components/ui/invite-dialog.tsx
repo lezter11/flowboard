@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Invitation } from '@flowboard/contracts';
 import { api } from '@/lib/api';
+import { usePollKeys } from '@/components/polling';
 import { describeError } from '@/lib/errors';
 import { checkInvitationEmail, emailFieldAria } from '@/lib/invite-email';
 import type { Role } from '@/lib/roles';
@@ -47,6 +48,7 @@ export function InviteDialog({ projectId, projectName, actorRole, open, onClose 
 
   useEffect(() => { if (open) { setEmail(''); setRole('member'); setError(''); setEmailError(''); setFresh(null); setCopied(false); attempt.current = null; } }, [open, projectId]);
 
+  usePollKeys([['invitations', projectId]], open);
   const list = useQuery({ queryKey: ['invitations', projectId], queryFn: async () => (await api.listInvitations(projectId)).data, enabled: open });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['invitations', projectId] });
 

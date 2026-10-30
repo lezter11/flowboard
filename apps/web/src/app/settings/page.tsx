@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { describeError } from '@/lib/errors';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { useProjectBoards } from '@/lib/portfolio';
 import { useSession } from '@/lib/session';
+import { usePollKeys } from '@/components/polling';
 import { Icon } from '@/components/ui/icon';
 import { Avatar } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/toasts';
@@ -37,7 +38,16 @@ function SettingsScreen() {
   const [description, setDescription] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  useEffect(() => { setName(project?.name ?? ''); setDescription(project?.description ?? ''); }, [project?.id, project?.name, project?.description]);
+  // The session is polled, so a colleague's rename arrives here: follow it only for fields the user has not edited.
+  const seenRef = useRef<{ id?: string; name: string; description: string }>({ name: '', description: '' });
+  useEffect(() => {
+    const prev = seenRef.current;
+    const same = prev.id === project?.id;
+    setName((n) => (!same || n === prev.name ? project?.name ?? '' : n));
+    setDescription((d) => (!same || d === prev.description ? project?.description ?? '' : d));
+    seenRef.current = { id: project?.id, name: project?.name ?? '', description: project?.description ?? '' };
+  }, [project?.id, project?.name, project?.description]);
+  usePollKeys([['boards', project?.id], ['project', project?.id]], !!project);
   const isOwner = role === 'owner';
   const [defaultBoard, setDefaultBoard] = useState('');
   useEffect(() => { setDefaultBoard(project?.defaultBoardId ?? ''); }, [project?.id, project?.defaultBoardId]);

@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { boardQueryOptions } from '@/lib/queries';
 import { normalizeRole, type Role } from '@/lib/roles';
 import { useSession } from '@/lib/session';
+import { usePollKeys } from '@/components/polling';
 
 /** Resolves the project the current route belongs to (board -> its project, /project?id=, else the first one). */
 export function useActiveProject() {
@@ -26,6 +27,7 @@ export function useActiveProject() {
     queryFn: async () => (await api.listProjectBoards(projectId!)).data,
     enabled: !!projectId && state.status === 'ready',
   });
+  usePollKeys([['boards', projectId]], !!projectId && state.status === 'ready');
   // Outside a project (e.g. the project list) show the strongest role the actor holds.
   const ownsWorkspace = state.status === 'ready' && state.session.ownedWorkspaces.length > 0;
   const strongest = (['owner', 'manager', 'member', 'viewer'] as const).find((r) => ownsWorkspace && r === 'owner' || projects.some((p) => p.role === r));

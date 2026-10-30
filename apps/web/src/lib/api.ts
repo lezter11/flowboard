@@ -47,6 +47,8 @@ import {
   type FinalizedImageListResponse,
 } from '@flowboard/contracts';
 
+import { isNetworkFailure, NETWORK_MESSAGE } from '@/lib/error-codes';
+
 export class ApiError extends Error {
   constructor(
     public readonly status: number,
@@ -71,11 +73,14 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
     headers.set('Content-Type', 'application/json');
   }
 
-  const response = await fetch(url, {
-    ...options,
-    headers,
-    credentials: 'same-origin',
-  });
+  let response: Response;
+  try {
+    response = await fetch(url, { ...options, headers, credentials: 'same-origin' });
+  } catch (error) {
+    // "Failed to fetch" / "Load failed" are not sentences for people: one friendly line, status 0 so callers can tell it from a server answer.
+    if (isNetworkFailure(error)) throw new ApiError(0, 'NETWORK_ERROR', NETWORK_MESSAGE);
+    throw error;
+  }
 
   const contentType = response.headers.get('content-type');
   const isJson = contentType && contentType.includes('application/json');
@@ -108,7 +113,7 @@ function putBytes(path: string, blob: Blob, opts: { onProgress?: (fraction: numb
       if (xhr.status >= 200 && xhr.status < 300) { resolve(data as unknown as ImageUploadResponse); return; }
       reject(new ApiError(xhr.status, data?.error?.code || 'HTTP_ERROR', data?.error?.message || `HTTP request failed with status ${xhr.status}`, data?.error?.details));
     };
-    xhr.onerror = () => reject(new ApiError(0, 'NETWORK_ERROR', 'Network error. Check your connection and try again.'));
+    xhr.onerror = () => reject(new ApiError(0, 'NETWORK_ERROR', NETWORK_MESSAGE));
     xhr.onabort = () => reject(new DOMException('Upload cancelled', 'AbortError'));
     if (opts.signal) { if (opts.signal.aborted) { reject(new DOMException('Upload cancelled', 'AbortError')); return; } opts.signal.addEventListener('abort', () => xhr.abort(), { once: true }); }
     xhr.send(blob);
@@ -138,7 +143,7 @@ export const api = {
   },
   /** Image bytes as a Blob. The caller turns it into an object URL and revokes it; no image URL is ever put on the page. */
   async fetchImageBlob(imageId: string, kind: 'content' | 'thumbnail' = 'content'): Promise<Blob> {
-    const response = await fetch(`/api/v1/images/${encodeURIComponent(imageId)}/${kind}`, { credentials: 'same-origin' });
+    const response = await fetch(`/api/v1/images/${encodeURIComponent(imageId)}/${kind}`, { credentials: 'same-origin' }).catch((error: unknown) => { throw isNetworkFailure(error) ? new ApiError(0, 'NETWORK_ERROR', NETWORK_MESSAGE) : error; });
     if (!response.ok) {
       let body: { error?: { code?: string; message?: string } } | null = null;
       try { body = await response.json(); } catch { /* not JSON */ }

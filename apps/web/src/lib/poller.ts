@@ -96,6 +96,9 @@ export function createPoller(options: PollerOptions) {
   };
 }
 
+/** Show the "can't refresh" banner: offline, or two polls in a row failed. */
+export function isTrouble(failures: number, online: boolean): boolean { return !online || failures >= 2; }
+
 /** "Updated just now" / "Updated 12s ago" / "Updated 3 min ago". */
 export function describeAge(lastSuccessAt: number | null, nowMs: number): string {
   if (lastSuccessAt === null) return '';
