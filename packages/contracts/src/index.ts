@@ -8,6 +8,7 @@ export * from './invitations.ts';
 export * from './cards.ts';
 export * from './boards.ts';
 export * from './discussion.ts';
+export * from './activity-actions.ts';
 export * from './images.ts';
 export * from './trash.ts';
 export * from './imports.ts';

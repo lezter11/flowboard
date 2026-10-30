@@ -19,6 +19,7 @@ import {
 } from '@flowboard/contracts';
 import { acquireWriteGrantLock, resolveProjectRole } from './rbac.ts';
 import { lockBoardAccess } from './board-grants-foundation.ts';
+import { recordActivity } from './activity.ts';
 import { getPool } from './postgres.ts';
 
 async function requireBoardRead(client: pg.Pool | pg.ClientBase, boardId: string, projectId: string, actorId: string): Promise<Role> {
@@ -204,6 +205,17 @@ export async function createBoard(
     );
   }
 
+  // Board-scoped: only people who can read the new board see this row.
+  await recordActivity(client, {
+    workspaceId,
+    projectId,
+    boardId,
+    visibilityScope: 'board',
+    actorId,
+    action: 'board_created',
+    safeChanges: { name: bRow.name },
+  });
+
   return {
     id: bRow.id,
     workspaceId: bRow.workspace_id,
@@ -373,6 +385,30 @@ export async function updateBoard(
     throw new Error('Failed to update board.');
   }
 
+  // One row per field the caller sent. Description text is never copied into the log.
+  if (input.name !== undefined) {
+    await recordActivity(client, {
+      workspaceId: row.workspace_id,
+      projectId: row.project_id,
+      boardId,
+      visibilityScope: 'board',
+      actorId,
+      action: 'board_renamed',
+      safeChanges: { name: row.name },
+    });
+  }
+  if (input.description !== undefined) {
+    await recordActivity(client, {
+      workspaceId: row.workspace_id,
+      projectId: row.project_id,
+      boardId,
+      visibilityScope: 'board',
+      actorId,
+      action: 'board_described',
+      safeChanges: { cleared: input.description === null },
+    });
+  }
+
   return {
     id: row.id,
     workspaceId: row.workspace_id,
@@ -490,6 +526,16 @@ export async function addColumn(
      WHERE id = $1`,
     [boardId],
   );
+
+  await recordActivity(client, {
+    workspaceId: boardRow.workspace_id,
+    projectId: boardRow.project_id,
+    boardId,
+    visibilityScope: 'board',
+    actorId,
+    action: 'column_added',
+    safeChanges: { columnId: colRow.id, name: trimmedName, category: input.category },
+  });
 
   return {
     id: colRow.id,
@@ -617,6 +663,24 @@ export async function updateColumn(
     [boardId],
   );
 
+  // One row per field the caller changed (rename, recolour, recategorise).
+  const columnEvent = { workspaceId: boardRow.workspace_id, projectId: boardRow.project_id, boardId, actorId };
+  if (input.name !== undefined) {
+    await recordActivity(client, {
+      ...columnEvent, visibilityScope: 'board', action: 'column_renamed', safeChanges: { columnId, name: newName },
+    });
+  }
+  if (input.color !== undefined) {
+    await recordActivity(client, {
+      ...columnEvent, visibilityScope: 'board', action: 'column_recoloured', safeChanges: { columnId, color: newColor },
+    });
+  }
+  if (input.category !== undefined) {
+    await recordActivity(client, {
+      ...columnEvent, visibilityScope: 'board', action: 'column_recategorised', safeChanges: { columnId, category: newCategory },
+    });
+  }
+
   // 8. Query active card count for column
   const cardCountRes = await client.query<{ count: string }>(
     `SELECT COUNT(*)::text AS count FROM cards WHERE column_id = $1 AND state = 'active'`,
@@ -719,6 +783,17 @@ export async function reorderColumns(
   );
 
   const updatedBoard = bUpdate.rows[0]!;
+
+  await recordActivity(client, {
+    workspaceId: boardRow.workspace_id,
+    projectId: boardRow.project_id,
+    boardId,
+    visibilityScope: 'board',
+    actorId,
+    action: 'columns_reordered',
+    safeChanges: { columnIds },
+  });
+
   return {
     id: boardId,
     structureVersion: updatedBoard.structure_version,
@@ -770,14 +845,15 @@ export async function deleteColumn(
   }
 
   // 4. Lock column
-  const colRes = await client.query<{ id: string }>(
-    `SELECT id FROM columns WHERE id = $1 AND board_id = $2 FOR UPDATE`,
+  const colRes = await client.query<{ id: string; name: string }>(
+    `SELECT id, name FROM columns WHERE id = $1 AND board_id = $2 FOR UPDATE`,
     [columnId, boardId],
   );
 
   if (colRes.rows.length === 0 || !colRes.rows[0]) {
     throw HttpError.notFound('Column not found.', 'NOT_FOUND');
   }
+  const deletedColumnName = colRes.rows[0].name;
 
   // 5. Final column check
   const totalColsRes = await client.query<{ count: string }>(
@@ -833,6 +909,17 @@ export async function deleteColumn(
   );
 
   const updatedBoard = bUpdate.rows[0]!;
+
+  await recordActivity(client, {
+    workspaceId: boardRow.workspace_id,
+    projectId: boardRow.project_id,
+    boardId,
+    visibilityScope: 'board',
+    actorId,
+    action: 'column_deleted',
+    safeChanges: { columnId, name: deletedColumnName },
+  });
+
   return {
     id: columnId,
     structureVersion: updatedBoard.structure_version,

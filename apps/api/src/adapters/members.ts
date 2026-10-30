@@ -8,6 +8,7 @@ import type {
 } from '@flowboard/contracts';
 import { getPool } from './postgres.ts';
 import { acquireWriteGrantLock } from './rbac.ts';
+import { recordActivity } from './activity.ts';
 
 function isPool(target: pg.Pool | pg.ClientBase): target is pg.Pool {
   return typeof (target as pg.Pool).connect === 'function' && typeof (target as pg.Pool).totalCount === 'number';
@@ -133,11 +134,34 @@ export async function updateProjectMember(
       throw HttpError.conflict('Member was concurrently updated. Refresh and try again.', 'STALE_VERSION');
     }
 
+    // Project-scope events: only owner and managers read them in the Activity page. Recorded only
+    // when the role or status actually changed, in the same transaction as the update.
+    const updated = updateRes.rows[0]!;
+    if (updated.role !== targetMember.role) {
+      await recordActivity(client, {
+        workspaceId: targetMember.workspace_id,
+        projectId,
+        visibilityScope: 'project',
+        actorId: actor.id,
+        action: 'member_role_changed',
+        safeChanges: { userId: targetUserId, fromRole: targetMember.role, toRole: updated.role },
+      });
+    }
+    if (updated.status !== targetMember.status) {
+      await recordActivity(client, {
+        workspaceId: targetMember.workspace_id,
+        projectId,
+        visibilityScope: 'project',
+        actorId: actor.id,
+        action: updated.status === 'removed' ? 'member_removed' : 'member_reinstated',
+        safeChanges: { userId: targetUserId, role: updated.role },
+      });
+    }
+
     if (poolClient) {
       await client.query('COMMIT');
     }
 
-    const updated = updateRes.rows[0]!;
     return {
       id: updated.id,
       projectId: updated.project_id,
@@ -271,20 +295,41 @@ export async function removeProjectMember(
       [targetUserId],
     );
     const targetEmail = userRes.rows[0]?.email;
-    if (targetEmail) {
-      await client.query(
+    const revokedInvitations = targetEmail
+      ? await client.query<{ id: string; role: ProjectRole }>(
         `UPDATE project_invitations
          SET status = 'revoked', updated_at = NOW()
-         WHERE project_id = $1 AND LOWER(email) = LOWER($2) AND status = 'pending'`,
+         WHERE project_id = $1 AND LOWER(email) = LOWER($2) AND status = 'pending'
+         RETURNING id, role`,
         [projectId, targetEmail],
-      );
+      )
+      : { rows: [] as { id: string; role: ProjectRole }[] };
+
+    const updated = updateRes.rows[0]!;
+    await recordActivity(client, {
+      workspaceId: targetMember.workspace_id,
+      projectId,
+      visibilityScope: 'project',
+      actorId: actor.id,
+      action: 'member_removed',
+      safeChanges: { userId: targetUserId, role: targetMember.role },
+    });
+    // Invitations revoked as a side effect of removal are logged too, with no email.
+    for (const inv of revokedInvitations.rows) {
+      await recordActivity(client, {
+        workspaceId: targetMember.workspace_id,
+        projectId,
+        visibilityScope: 'project',
+        actorId: actor.id,
+        action: 'invitation_revoked',
+        safeChanges: { invitationId: inv.id, role: inv.role, reason: 'member_removed' },
+      });
     }
 
     if (poolClient) {
       await client.query('COMMIT');
     }
 
-    const updated = updateRes.rows[0]!;
     return {
       success: true,
       membership: {

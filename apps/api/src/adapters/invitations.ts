@@ -3,6 +3,7 @@ import type pg from 'pg';
 import type { Invitation, InvitationStatus, ProjectRole } from '@flowboard/contracts';
 import { HttpError } from '../http/errors.ts';
 import { saveReceipt } from './idempotency.ts';
+import { recordActivity } from './activity.ts';
 
 export interface CreateInvitationResult {
   invitation: Invitation;
@@ -197,6 +198,17 @@ export async function createInvitation(
     token: rawToken,
   };
 
+  // Project-scope event. The token and the invitee email are never written to the log: only the
+  // invitation id and the role.
+  await recordActivity(client, {
+    workspaceId,
+    projectId,
+    visibilityScope: 'project',
+    actorId: actor.id,
+    action: 'invitation_sent',
+    safeChanges: { invitationId: invRow.id, role: invRow.role },
+  });
+
   // 6. Save idempotency receipt
   const methodPath = `/api/v1/projects/${projectId}/invitations`;
   const responsePayload = {
@@ -364,6 +376,15 @@ export async function acceptInvitation(
     [memberId, invitation.project_id, invitation.workspace_id, actor.id, invitation.role],
   );
 
+  await recordActivity(client, {
+    workspaceId: invitation.workspace_id,
+    projectId: invitation.project_id,
+    visibilityScope: 'project',
+    actorId: actor.id,
+    action: 'invitation_accepted',
+    safeChanges: { invitationId: invitation.id, role: invitation.role },
+  });
+
   const finalMemberId = membershipRes.rows[0]?.id ?? memberId;
 
   return {
@@ -515,6 +536,15 @@ export async function resendInvitation(
   if (!updatedRow) {
     throw new Error('Failed to update invitation record');
   }
+
+  await recordActivity(client, {
+    workspaceId: updatedRow.workspace_id,
+    projectId: updatedRow.project_id,
+    visibilityScope: 'project',
+    actorId: actor.id,
+    action: 'invitation_resent',
+    safeChanges: { invitationId: updatedRow.id, role: updatedRow.role },
+  });
 
   // 6. Insert outbox record for asynchronous email delivery
   const outboxId = 'out_' + crypto.randomUUID();
@@ -688,6 +718,15 @@ export async function revokeInvitation(
      WHERE id = $1`,
     [invitationId],
   );
+
+  await recordActivity(client, {
+    workspaceId: project.workspace_id,
+    projectId,
+    visibilityScope: 'project',
+    actorId: actor.id,
+    action: 'invitation_revoked',
+    safeChanges: { invitationId, role: invitationRow.role },
+  });
 
   // 5. Save idempotency receipt
   const methodPath = `/api/v1/projects/${projectId}/invitations/${invitationId}/revoke`;
@@ -883,6 +922,15 @@ export async function leaveProject(
     [membership.id],
   );
 
+  await recordActivity(client, {
+    workspaceId: project.workspace_id,
+    projectId,
+    visibilityScope: 'project',
+    actorId: actor.id,
+    action: 'member_left',
+    safeChanges: { userId: actor.id, role: membership.role },
+  });
+
   // 3b. Look up user's email and atomically revoke pending invitations for that email in this project
   const userRes = await client.query<{ email: string }>(
     'SELECT email FROM users WHERE id = $1',
@@ -890,12 +938,23 @@ export async function leaveProject(
   );
   const actorEmail = userRes.rows[0]?.email;
   if (actorEmail) {
-    await client.query(
+    const revoked = await client.query<{ id: string; role: string }>(
       `UPDATE project_invitations
        SET status = 'revoked', updated_at = NOW()
-       WHERE project_id = $1 AND LOWER(email) = LOWER($2) AND status = 'pending'`,
+       WHERE project_id = $1 AND LOWER(email) = LOWER($2) AND status = 'pending'
+       RETURNING id, role`,
       [projectId, actorEmail],
     );
+    for (const inv of revoked.rows) {
+      await recordActivity(client, {
+        workspaceId: project.workspace_id,
+        projectId,
+        visibilityScope: 'project',
+        actorId: actor.id,
+        action: 'invitation_revoked',
+        safeChanges: { invitationId: inv.id, role: inv.role, reason: 'member_left' },
+      });
+    }
   }
 
   // 4. Save idempotency receipt

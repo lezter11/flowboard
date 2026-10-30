@@ -14,6 +14,7 @@ import {
 import { getPool } from '../../adapters/postgres.ts';
 import { checkOrReplayReceipt, checkOrReplayProjectWriteReceipt, saveReceipt } from '../../adapters/idempotency.ts';
 import { acquireWriteGrantLock } from '../../adapters/rbac.ts';
+import { recordActivity } from '../../adapters/activity.ts';
 import { lockBoardAccess, lockProjectBoardReadScope } from '../../adapters/board-grants-foundation.ts';
 import {
   createBoard,
@@ -717,6 +718,7 @@ boardsRoutes.post('/api/v1/boards/:boardId/archive', authMiddleware, async (c) =
 
     const updateRes = await client.query<{
       id: string;
+      workspace_id: string;
       project_id: string;
       name: string;
       archived: boolean;
@@ -728,11 +730,20 @@ boardsRoutes.post('/api/v1/boards/:boardId/archive', authMiddleware, async (c) =
       `UPDATE boards
        SET archived = TRUE, structure_version = structure_version + 1, snapshot_version = snapshot_version + 1, updated_at = NOW()
        WHERE id = $1
-       RETURNING id, project_id, name, archived, structure_version, snapshot_version, created_at, updated_at`,
+       RETURNING id, workspace_id, project_id, name, archived, structure_version, snapshot_version, created_at, updated_at`,
       [boardId],
     );
 
     const updated = updateRes.rows[0]!;
+    await recordActivity(client, {
+      workspaceId: updated.workspace_id,
+      projectId: updated.project_id,
+      boardId,
+      visibilityScope: 'board',
+      actorId: actor.id,
+      action: 'board_archived',
+      safeChanges: { name: updated.name },
+    });
     const board = {
       id: updated.id,
       projectId: updated.project_id,
@@ -824,6 +835,7 @@ boardsRoutes.post('/api/v1/boards/:boardId/reopen', authMiddleware, async (c) =>
 
     const updateRes = await client.query<{
       id: string;
+      workspace_id: string;
       project_id: string;
       name: string;
       archived: boolean;
@@ -835,11 +847,20 @@ boardsRoutes.post('/api/v1/boards/:boardId/reopen', authMiddleware, async (c) =>
       `UPDATE boards
        SET archived = FALSE, structure_version = structure_version + 1, snapshot_version = snapshot_version + 1, updated_at = NOW()
        WHERE id = $1
-       RETURNING id, project_id, name, archived, structure_version, snapshot_version, created_at, updated_at`,
+       RETURNING id, workspace_id, project_id, name, archived, structure_version, snapshot_version, created_at, updated_at`,
       [boardId],
     );
 
     const updated = updateRes.rows[0]!;
+    await recordActivity(client, {
+      workspaceId: updated.workspace_id,
+      projectId: updated.project_id,
+      boardId,
+      visibilityScope: 'board',
+      actorId: actor.id,
+      action: 'board_reopened',
+      safeChanges: { name: updated.name },
+    });
     const board = {
       id: updated.id,
       projectId: updated.project_id,

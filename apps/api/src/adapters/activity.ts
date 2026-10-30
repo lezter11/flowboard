@@ -298,7 +298,10 @@ export async function listProjectActivity(
   const params: unknown[] = [projectId];
   let paramIdx = 2;
 
-  let whereClause = `WHERE a.project_id = $1 AND ($2::boolean OR
+  // Project-scope rows (member, invitation, brief and links events) reach here only for the owner or
+  // a manager: lockProjectActivityAccess already refused members and viewers. Unknown legacy rows
+  // stay owner-only. Board rows need a grant unless the caller is the owner.
+  let whereClause = `WHERE a.project_id = $1 AND ($2::boolean OR a.visibility_scope='project' OR
     (a.visibility_scope='board' AND EXISTS (
       SELECT 1 FROM board_grants g JOIN boards b ON b.id=g.board_id
         AND b.project_id=g.project_id AND b.workspace_id=g.workspace_id

@@ -105,6 +105,39 @@ Both null neighbors mean empty destination. First uses next=first, previous=null
 | GET /notifications | Actor-only, reauthorize project, redact/hide lost-access references |
 | POST /notifications/:id/read | Actor-only idempotent read marker |
 
+### Activity action names (B-5)
+
+Every write below records one activity_log row in the same transaction as the write. A failed write records nothing, and an idempotent replay records nothing new. The `action` value is listed in `ACTIVITY_ACTIONS` (packages/contracts). The UI maps each name to text.
+
+| Action | Written by | Scope | Who reads it in GET /projects/:pid/activity | Suggested text | safeChanges |
+|---|---|---|---|---|---|
+| board_created | POST /projects/:pid/boards | board (new board) | Owner, or a grant holder on that board | created a board | name |
+| board_renamed | PATCH /boards/:bid (name) | board | Owner, or grant holder | renamed a board | name |
+| board_described | PATCH /boards/:bid (description) | board | Owner, or grant holder | changed a board description | cleared (bool); text never logged |
+| board_archived | POST /boards/:bid/archive | board | Owner, or grant holder | archived a board | name |
+| board_reopened | POST /boards/:bid/reopen | board | Owner, or grant holder | reopened a board | name |
+| default_board_changed | PATCH /projects/:pid (defaultBoardId) | board on the new board; project when cleared | Owner, or grant holder; project-scope rows: owner/manager | changed the default board | defaultBoardId |
+| column_added | POST /boards/:bid/columns | board | Owner, or grant holder | added a column | columnId, name, category |
+| column_renamed | PATCH /boards/:bid/columns/:cid (name) | board | Owner, or grant holder | renamed a column | columnId, name |
+| column_recoloured | PATCH column (color) | board | Owner, or grant holder | recoloured a column | columnId, color |
+| column_recategorised | PATCH column (category) | board | Owner, or grant holder | changed a column's category | columnId, category |
+| columns_reordered | POST /boards/:bid/columns/reorder | board | Owner, or grant holder | reordered columns | columnIds |
+| column_deleted | DELETE /boards/:bid/columns/:cid | board | Owner, or grant holder | deleted a column | columnId, name |
+| project_brief_updated | PATCH /projects/:pid (brief) | project | Owner, manager | edited the project brief | cleared (bool); text never logged |
+| project_links_updated | PATCH /projects/:pid (links) | project | Owner, manager | edited project links | count |
+| invitation_sent | POST /projects/:pid/invitations | project | Owner, manager | sent an invitation | invitationId, role (no email, no token) |
+| invitation_resent | POST invitation resend | project | Owner, manager | resent an invitation | invitationId, role |
+| invitation_revoked | POST invitation revoke; also revoked as a side effect of member removal or leave | project | Owner, manager | revoked an invitation | invitationId, role, reason (absent on a direct revoke; member_removed or member_left otherwise) |
+| invitation_accepted | POST /invitations/accept | project | Owner, manager | accepted an invitation | invitationId, role |
+| member_role_changed | PATCH /projects/:pid/members/:uid (role changed) | project | Owner, manager | changed a member's role | userId, fromRole, toRole |
+| member_removed | PATCH (status removed) or DELETE member | project | Owner, manager | removed a member | userId, role |
+| member_reinstated | PATCH (status back to active) | project | Owner, manager | reinstated a member | userId, role |
+| member_left | POST /projects/:pid/leave | project | Owner, manager | left the project | userId, role |
+
+Scope rules. Board rows are visible to the owner and to members who hold a grant on that board. Project rows are visible only to the owner and managers. Project rows never appear in the project overview (GET /projects/:pid/overview), which shows board rows only. No row ever carries an invitation token, a token hash, or an invitee email address.
+
+Decision for the Architect (B-5): managers read project-scope rows in the Activity page, as FEATURE_SPEC requires (AUD-04). Before this change the Activity query gave managers only board rows. The overview does not show project rows to owners or managers either. Change that only if the Architect asks for it.
+
 No user audit-edit API. Sensitive body copies/tokens are excluded or redacted under FEATURE_SPEC retention. Outbox/invitation dispatcher uses versioned events, leases/fencing, bounded retries/jitter and failed-work replay with operator authorization. Job completion/notification insertion in one DB can be atomic; external email cannot be recalled or declared exactly once.
 
 ## Private images and trash (S4)

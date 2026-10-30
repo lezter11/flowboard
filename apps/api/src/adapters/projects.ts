@@ -11,6 +11,7 @@ import type {
 } from '@flowboard/contracts';
 import { getPool } from './postgres.ts';
 import { acquireWriteGrantLock } from './rbac.ts';
+import { recordActivity } from './activity.ts';
 import { readableDefaultBoardJoin, readReadableDefaultBoardId } from './default-board.ts';
 
 function isPool(target: pg.Pool | pg.ClientBase): target is pg.Pool {
@@ -376,6 +377,41 @@ export async function updateProjectSettings(
           [`plk_${crypto.randomUUID()}`, updatedRow.workspace_id, projectId, link.title, link.url, position, nowIso],
         );
       }
+    }
+
+    // Activity: one row per setting the caller changed, in the same transaction as the write.
+    // Brief and links are project-wide, so they use project scope (owner and manager only).
+    // The landing board change is board-scoped on the new board, so only its readers see it.
+    if (input.brief !== undefined) {
+      await recordActivity(client, {
+        workspaceId: updatedRow.workspace_id,
+        projectId,
+        visibilityScope: 'project',
+        actorId: actor.id,
+        action: 'project_brief_updated',
+        safeChanges: { cleared: input.brief === null },
+      });
+    }
+    if (input.links !== undefined) {
+      await recordActivity(client, {
+        workspaceId: updatedRow.workspace_id,
+        projectId,
+        visibilityScope: 'project',
+        actorId: actor.id,
+        action: 'project_links_updated',
+        safeChanges: { count: input.links.length },
+      });
+    }
+    if (input.defaultBoardId !== undefined) {
+      await recordActivity(client, {
+        workspaceId: updatedRow.workspace_id,
+        projectId,
+        boardId: input.defaultBoardId,
+        visibilityScope: input.defaultBoardId ? 'board' : 'project',
+        actorId: actor.id,
+        action: 'default_board_changed',
+        safeChanges: { defaultBoardId: input.defaultBoardId ?? null },
+      });
     }
 
     // The caller is the owner here, so this is the landing board id as they can read it.
