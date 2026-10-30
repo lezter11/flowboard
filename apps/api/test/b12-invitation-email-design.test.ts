@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildInvitationEmail, EMAIL_COLORS, escapeHtml, logoUrl } from '../src/services/invitation-email.ts';
+import { buildInvitationEmail, EMAIL_COLORS, EXPIRY_CHIP, escapeHtml, expiryDate, initialsOf, ROLE_ABILITIES, ROLE_CHIP, emailImageUrls } from '../src/services/invitation-email.ts';
 
 // B-12: the invitation email in the Flowboard theme. Structure, escaping, colour contrast and subject.
 
@@ -17,7 +17,7 @@ const base = {
 
 // The tag sequence of the rendered HTML, as a fingerprint. A change to the layout changes this line.
 const STRUCTURE =
-  'html head meta meta meta meta title /title /head body div /div table tr td table tr td table tr td img /td td /td /tr /table /td /tr tr td h1 /h1 p strong /strong /p p span /span /p /td /tr tr td table tr td a /a /td /tr /table /td /tr tr td p /p p a /a /p p /p /td /tr tr td p /p /td /tr /table /td /tr /table /body /html';
+  'html head meta meta meta meta title /title /head body div /div table tr td table tr td img /td /tr tr td img /td /tr tr td table tr td /td td strong /strong /td /tr /table /td /tr tr td h1 /h1 table tr td p /p p /p table tr td span /span /td td span /span /td /tr /table /td /tr /table /td /tr tr td p /p table tr td /td td /td td /td td /td td /td /tr /table /td /tr tr td table tr td a /a /td /tr /table /td /tr tr td p /p table tr td /td /tr /table /td /tr tr td div /div /td /tr tr td table tr td img /td td /td /tr /table /td /tr /table /td /tr /table /body /html';
 
 /** Relative luminance and WCAG contrast, to check the palette. */
 function luminance(hex: string): number {
@@ -43,9 +43,9 @@ test('B-12 email structure: table layout, 600px cap, preheader, logo, and the fi
   assert.ok(html.includes('name="supported-color-schemes" content="light dark"'), 'supported schemes meta');
   assert.ok(html.includes('display:none;max-height:0'), 'hidden preheader');
   assert.ok(html.includes('Asha Rao invited you to Spring Launch as Manager'), 'preheader text');
-  assert.ok(html.includes(`src="${ORIGIN}/apple-touch-icon.png"`), 'logo on the app origin');
-  assert.ok(html.includes('alt="Flowboard logo"'), 'logo has alt text');
-  assert.equal(logoUrl(ORIGIN), `${ORIGIN}/apple-touch-icon.png`);
+  assert.ok(html.includes(`src="${ORIGIN}/email/flowboard-lockup-dark.png"`), 'gradient lockup image on the app origin');
+  assert.ok(html.includes('alt="Flowboard"'), 'lockup has alt text');
+  assert.equal(emailImageUrls(ORIGIN).mark, `${ORIGIN}/apple-touch-icon.png`);
 });
 
 test('B-12 email: inline styles only, no script, no web font, no external stylesheet', () => {
@@ -63,9 +63,9 @@ test('B-12 email: one primary button to the accept link, and a plain fallback li
   const links = [...html.matchAll(/<a href="([^"]+)"/g)].map((m) => m[1]);
   assert.deepEqual([...new Set(links)], [URL_], 'every link goes to the accept URL');
   assert.ok(html.includes('>Accept invitation</a>'), 'primary button text');
-  assert.ok(html.includes(`>${URL_}</a>`), 'visible fallback link');
-  assert.ok(html.includes('Role: Manager'), 'role badge');
-  assert.ok(html.includes('expires on 2026-11-06 (UTC)'), 'expiry line');
+  assert.ok(html.includes(`>${URL_}</td>`), 'the full URL shows in the copy box');
+  assert.ok(html.includes('>Manager</span>'), 'role chip');
+  assert.ok(html.includes('Expires 2026-11-06 (UTC)'), 'expiry chip');
   assert.ok(text.includes(URL_), 'plain text carries the link');
 });
 
@@ -114,9 +114,17 @@ test('B-12 colours: every text and button pair meets WCAG AA (4.5:1)', () => {
     ['ink on card', c.ink, c.card],
     ['muted on card', c.muted, c.card],
     ['muted on canvas', c.muted, c.canvas],
-    ['accent on badge', c.accent, c.badge],
     ['white on accent button', '#FFFFFF', c.accent],
     ['plum wordmark on card', c.plum, c.card],
+    ['white on plum band text', '#FFFFFF', c.plum],
+    ['initials white on avatar', '#FFFFFF', c.accent],
+    ['ability text on tint', c.ink, c.tint],
+    ['monospace link on code box', c.ink, c.code],
+    ['footer on canvas', c.muted, c.canvas],
+    ['role chip: manager', ROLE_CHIP.manager!.ink, ROLE_CHIP.manager!.bg],
+    ['role chip: member', ROLE_CHIP.member!.ink, ROLE_CHIP.member!.bg],
+    ['role chip: viewer', ROLE_CHIP.viewer!.ink, ROLE_CHIP.viewer!.bg],
+    ['expiry chip', EXPIRY_CHIP.ink, EXPIRY_CHIP.bg],
     ['accent link on card', c.accent, c.card],
   ];
   for (const [label, fg, bg] of pairs) {
@@ -126,4 +134,51 @@ test('B-12 colours: every text and button pair meets WCAG AA (4.5:1)', () => {
 
 test('B-12 escapeHtml: the five characters', () => {
   assert.equal(escapeHtml(`&<>"'`), '&amp;&lt;&gt;&quot;&#39;');
+});
+
+test('B-13 design: the header is the dark plum band with the gradient lockup, and the hero is hosted', () => {
+  const { html } = buildInvitationEmail(base);
+  assert.ok(html.includes(`bgcolor="${EMAIL_COLORS.plum}"`), 'plum header band with a bgcolor fallback');
+  assert.ok(html.includes('width="200" height="48"'), 'lockup has width and height');
+  assert.ok(html.includes(`src="${ORIGIN}/email/invite-board-hero.png"`), 'hero hosted on the app origin');
+  assert.ok(html.includes('alt="Illustration of a three-column Flowboard board'), 'hero has descriptive alt text');
+  assert.ok(html.includes('width="552" height="184"'), 'hero has width and height');
+});
+
+test('B-13 design: an initials avatar is a table cell, not an image', () => {
+  const { html } = buildInvitationEmail(base);
+  assert.ok(html.includes(`bgcolor="${EMAIL_COLORS.accent}"`));
+  assert.ok(html.includes('>AR</td>'), 'initials from the inviter name');
+  assert.equal(initialsOf('asha rao'), 'AR');
+  assert.equal(initialsOf('Zoë'), 'Z');
+  assert.equal(initialsOf('<img>'), 'I', 'markup contributes letters only');
+  assert.equal(initialsOf('  '), 'F', 'fallback when there are no letters');
+});
+
+test('B-13 design: the abilities follow the role, and the role chip is coloured per role', () => {
+  for (const role of ['manager', 'member', 'viewer']) {
+    const { html, text } = buildInvitationEmail({ ...base, role });
+    for (const item of ROLE_ABILITIES[role]!) {
+      assert.ok(html.includes(`>${item}</td>`), `${role}: ${item}`);
+      assert.ok(text.includes(item));
+    }
+    assert.ok(html.includes(`background-color:${ROLE_CHIP[role]!.bg};color:${ROLE_CHIP[role]!.ink}`), `${role} chip`);
+  }
+  const viewer = buildInvitationEmail({ ...base, role: 'viewer' }).html;
+  assert.ok(!viewer.includes('Manage boards'), 'a viewer is not told it can manage boards');
+});
+
+test('B-13 design: the expiry chip carries a date only; copy-link box holds the full URL', () => {
+  assert.equal(expiryDate('2026-11-06T10:00:00.000Z'), '2026-11-06');
+  assert.equal(expiryDate('nonsense <b>'), '');
+  const { html } = buildInvitationEmail(base);
+  assert.ok(html.includes('Expires 2026-11-06 (UTC)'));
+  assert.ok(html.includes(`font-family:ui-monospace`), 'monospace link box');
+  assert.ok(html.includes(`>${URL_}</td>`), 'the full URL in the copy box');
+});
+
+test('B-13 design: the primary button is a table cell with fill and padding, so Outlook draws it', () => {
+  const { html } = buildInvitationEmail(base);
+  assert.ok(/<td align="center" bgcolor="#302638" style="padding:16px 40px;/.test(html), 'button cell carries the fill and padding');
+  assert.ok(html.includes('>Accept invitation</a>'));
 });

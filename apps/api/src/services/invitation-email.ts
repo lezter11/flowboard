@@ -44,42 +44,82 @@ export function acceptInvitationUrl(appOrigin: string, token: string): string {
   return `${appOrigin}/invitation?token=${encodeURIComponent(token)}`;
 }
 
-/** Brand tokens (apps/web/src/styles): plum mark, warm canvas, white card. Checked for 4.5:1 contrast. */
+/** Brand tokens (apps/web/src/styles). Every text and fill pair is checked for WCAG AA in the tests. */
 export const EMAIL_COLORS = {
   canvas: '#F8F5FA',
   card: '#FFFFFF',
+  tint: '#F1EBF5',
   ink: '#2D2532',
   muted: '#5F5468',
   plum: '#302638',
   accent: '#684B7C',
-  badge: '#F1EBF5',
   line: '#E3D9E9',
+  code: '#F8F5FA',
 } as const;
 
-const FONT_STACK = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+/** Role chip colours: background and text. Each text colour clears 4.5:1 on its own chip. */
+export const ROLE_CHIP: Record<string, { bg: string; ink: string }> = {
+  manager: { bg: '#E9DDF2', ink: '#4B2F63' },
+  member: { bg: '#D7F3E2', ink: '#1E5A36' },
+  viewer: { bg: '#DCEEFD', ink: '#1D4A73' },
+};
+export const EXPIRY_CHIP = { bg: '#FBEFD9', ink: '#6B4A12' } as const;
 
-/** The logo is the app's own icon, served from the app origin. It is public (static Pages asset). */
-export function logoUrl(appOrigin: string): string {
-  return `${appOrigin}/apple-touch-icon.png`;
+/** What the role can do: three short, warm items per role. */
+export const ROLE_ABILITIES: Record<string, [string, string, string]> = {
+  manager: ['Manage boards', 'Manage people', 'Create and move cards'],
+  member: ['Create and move cards', 'Comment on cards', 'Upload images'],
+  viewer: ['View cards', 'Read comments', 'View images'],
+};
+
+const FONT_STACK = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif";
+const MONO_STACK = "ui-monospace,SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace";
+
+/** Hosted images on the app origin. They are public static files and carry alt text. */
+export function emailImageUrls(appOrigin: string) {
+  return {
+    lockup: `${appOrigin}/email/flowboard-lockup-dark.png`,
+    hero: `${appOrigin}/email/invite-board-hero.png`,
+    mark: `${appOrigin}/apple-touch-icon.png`,
+  };
+}
+
+/** Two initials from the inviter's name: the first letter of the first two words. Letters only. */
+export function initialsOf(name: string): string {
+  const words = name.split(/\s+/).filter(Boolean);
+  const letters = words
+    .map((w) => w.match(/\p{L}/u)?.[0] ?? '')
+    .filter(Boolean)
+    .slice(0, 2)
+    .join('');
+  return (letters || 'F').toUpperCase();
+}
+
+/** Day-only UTC date for the chip. The input is shortened to YYYY-MM-DD and any other text is dropped. */
+export function expiryDate(value: string): string {
+  const match = /\d{4}-\d{2}-\d{2}/.exec(value);
+  return match ? match[0] : '';
 }
 
 export function buildInvitationEmail(input: InvitationEmailInput & { appOrigin?: string }): InvitationEmailContent {
   const project = plainLine(input.projectName, 100) || 'a project';
   const inviter = plainLine(input.inviterName, 100) || 'A Flowboard member';
-  const role = ROLE_LABELS[input.role] ?? 'Member';
-  const expires = plainLine(input.expiresAt, 40).slice(0, 10);
+  const roleKey = ROLE_CHIP[input.role] ? input.role : 'member';
+  const role = ROLE_LABELS[roleKey] ?? 'Member';
+  const expires = expiryDate(input.expiresAt) || plainLine(input.expiresAt, 40).slice(0, 10);
   const url = input.acceptUrl;
-  const logo = input.appOrigin ? logoUrl(input.appOrigin) : '';
-
   const subject = plainLine(`${inviter} invited you to ${project} on Flowboard`, 160);
-  const preheader = `${inviter} invited you to ${project} as ${role}. Accept by ${expires}.`;
+  const preheader = `${inviter} invited you to ${project} as ${role}.`;
   const footerLine = `You received this because ${inviter} invited you to a Flowboard project. If you do not expect this, ignore it.`;
+  const abilities = ROLE_ABILITIES[roleKey]!;
+  const chip = ROLE_CHIP[roleKey]!;
 
   const text = [
     `${inviter} invited you to join ${project} on Flowboard as ${role}.`,
     '',
     `Accept the invitation: ${url}`,
     '',
+    `You can: ${abilities.join('; ')}.`,
     `This invitation expires on ${expires} (UTC).`,
     '',
     footerLine,
@@ -87,6 +127,14 @@ export function buildInvitationEmail(input: InvitationEmailInput & { appOrigin?:
 
   const c = EMAIL_COLORS;
   const e = escapeHtml;
+  const img = input.appOrigin ? emailImageUrls(input.appOrigin) : null;
+  const ability = (label: string) =>
+    `<td width="33%" valign="top" bgcolor="${c.tint}" style="width:33%;padding:12px 10px;background-color:${c.tint};border-radius:12px;font-family:${FONT_STACK};font-size:14px;line-height:1.4;color:${c.ink};">${e(label)}</td>`;
+  const abilityCells = abilities
+    .map((label, i) => (i === 0 ? ability(label) : `<td width="8" style="width:8px;font-size:1px;line-height:1px;">&nbsp;</td>${ability(label)}`))
+    .join('');
+  const divider = `<tr><td style="padding:0 32px;"><div style="height:1px;line-height:1px;font-size:1px;background-color:${c.line};">&nbsp;</div></td></tr>`;
+
   const html = [
     '<!doctype html>',
     '<html lang="en">',
@@ -101,36 +149,67 @@ export function buildInvitationEmail(input: InvitationEmailInput & { appOrigin?:
     `<div style="display:none;max-height:0;max-width:0;opacity:0;overflow:hidden;mso-hide:all;">${e(preheader)}</div>`,
     `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="${c.canvas}" style="background-color:${c.canvas};">`,
     '<tr><td align="center" style="padding:24px 12px;">',
-    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;" bgcolor="${c.card}">`,
-    // Header: the app icon and the wordmark.
-    `<tr><td style="padding:20px 28px;border-bottom:1px solid ${c.line};background-color:${c.card};" bgcolor="${c.card}">`,
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%;max-width:600px;border-radius:16px;overflow:hidden;" bgcolor="${c.card}">`,
+    // Header band: dark plum with the gradient lockup.
+    `<tr><td align="left" bgcolor="${c.plum}" style="padding:22px 28px;background-color:${c.plum};">`,
+    img
+      ? `<img src="${e(img.lockup)}" width="200" height="48" alt="Flowboard" style="display:block;border:0;outline:none;text-decoration:none;width:200px;height:48px;">`
+      : `<span style="font-family:${FONT_STACK};font-size:22px;font-weight:700;color:#e6d7f0;">Flowboard</span>`,
+    '</td></tr>',
+    // Hero: the kanban illustration on a pale tint.
+    `<tr><td align="center" bgcolor="${c.tint}" style="padding:24px 24px 20px 24px;background-color:${c.tint};">`,
+    img
+      ? `<img src="${e(img.hero)}" width="552" height="184" alt="Illustration of a three-column Flowboard board: To do, Doing and Done, with pastel cards." style="display:block;border:0;width:552px;height:184px;max-width:100%;">`
+      : '',
+    '</td></tr>',
+    // Inviter with an initials avatar (a table cell, not an image).
+    `<tr><td style="padding:28px 32px 0 32px;background-color:${c.card};" bgcolor="${c.card}">`,
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>',
-    `<td style="vertical-align:middle;padding-right:10px;">${logo ? `<img src="${e(logo)}" width="32" height="32" alt="Flowboard logo" style="display:block;border:0;width:32px;height:32px;">` : ''}</td>`,
-    `<td style="vertical-align:middle;font-family:${FONT_STACK};font-size:20px;font-weight:700;color:${c.plum};">Flowboard</td>`,
+    `<td valign="middle" width="44" bgcolor="${c.accent}" align="center" style="width:44px;height:44px;border-radius:22px;background-color:${c.accent};font-family:${FONT_STACK};font-size:15px;font-weight:700;color:#FFFFFF;">${e(initialsOf(inviter))}</td>`,
+    `<td valign="middle" style="padding-left:12px;font-family:${FONT_STACK};font-size:16px;line-height:1.4;color:${c.ink};"><strong>${e(inviter)}</strong> invited you to join Flowboard</td>`,
     '</tr></table>',
     '</td></tr>',
-    // Body.
-    `<tr><td style="padding:32px 28px 8px 28px;background-color:${c.card};" bgcolor="${c.card}">`,
-    `<h1 style="margin:0 0 12px 0;font-family:${FONT_STACK};font-size:22px;line-height:1.3;font-weight:700;color:${c.ink};">Join ${e(project)}</h1>`,
-    `<p style="margin:0 0 16px 0;font-family:${FONT_STACK};font-size:16px;line-height:1.5;color:${c.ink};">${e(inviter)} invited you to join <strong>${e(project)}</strong> on Flowboard.</p>`,
-    `<p style="margin:0 0 24px 0;"><span style="display:inline-block;padding:4px 12px;border-radius:999px;background-color:${c.badge};color:${c.accent};font-family:${FONT_STACK};font-size:13px;font-weight:700;">Role: ${e(role)}</span></p>`,
-    '</td></tr>',
-    // Primary button.
-    `<tr><td style="padding:0 28px 8px 28px;background-color:${c.card};" bgcolor="${c.card}">`,
+    // Heading and project summary card.
+    `<tr><td style="padding:24px 32px 8px 32px;background-color:${c.card};" bgcolor="${c.card}">`,
+    `<h1 style="margin:0 0 16px 0;font-family:${FONT_STACK};font-size:26px;line-height:1.25;font-weight:700;color:${c.ink};">You are invited to ${e(project)}</h1>`,
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid ${c.line};border-radius:16px;" bgcolor="${c.canvas}">`,
+    `<tr><td style="padding:18px 20px 16px 20px;background-color:${c.canvas};">`,
+    `<p style="margin:0 0 4px 0;font-family:${FONT_STACK};font-size:12px;line-height:1.4;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:${c.muted};">Project</p>`,
+    `<p style="margin:0 0 14px 0;font-family:${FONT_STACK};font-size:22px;line-height:1.3;font-weight:700;color:${c.ink};">${e(project)}</p>`,
     '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>',
-    `<td bgcolor="${c.accent}" style="border-radius:8px;background-color:${c.accent};">`,
-    `<a href="${e(url)}" target="_blank" style="display:inline-block;padding:14px 26px;font-family:${FONT_STACK};font-size:16px;font-weight:700;color:#FFFFFF;text-decoration:none;border-radius:8px;">Accept invitation</a>`,
+    `<td style="padding-right:8px;"><span style="display:inline-block;padding:5px 12px;border-radius:999px;background-color:${chip.bg};color:${chip.ink};font-family:${FONT_STACK};font-size:13px;font-weight:700;">${e(role)}</span></td>`,
+    `<td><span style="display:inline-block;padding:5px 12px;border-radius:999px;background-color:${EXPIRY_CHIP.bg};color:${EXPIRY_CHIP.ink};font-family:${FONT_STACK};font-size:13px;font-weight:700;">Expires ${e(expires)} (UTC)</span></td>`,
+    '</tr></table>',
     '</td></tr></table>',
     '</td></tr>',
-    // Fallback link and expiry.
-    `<tr><td style="padding:20px 28px 8px 28px;background-color:${c.card};" bgcolor="${c.card}">`,
-    `<p style="margin:0 0 8px 0;font-family:${FONT_STACK};font-size:14px;line-height:1.5;color:${c.muted};">If the button does not work, copy this link into your browser:</p>`,
-    `<p style="margin:0 0 16px 0;font-family:${FONT_STACK};font-size:14px;line-height:1.5;word-break:break-all;"><a href="${e(url)}" target="_blank" style="color:${c.accent};text-decoration:underline;">${e(url)}</a></p>`,
-    `<p style="margin:0 0 24px 0;font-family:${FONT_STACK};font-size:14px;line-height:1.5;color:${c.muted};">This invitation expires on ${e(expires)} (UTC).</p>`,
+    // Abilities for the role.
+    `<tr><td style="padding:24px 32px 8px 32px;background-color:${c.card};" bgcolor="${c.card}">`,
+    `<p style="margin:0 0 12px 0;font-family:${FONT_STACK};font-size:16px;font-weight:700;color:${c.ink};">What you will be able to do</p>`,
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>',
+    abilityCells,
+    '</tr></table>',
     '</td></tr>',
-    // Footer.
-    `<tr><td style="padding:16px 28px 24px 28px;border-top:1px solid ${c.line};background-color:${c.card};" bgcolor="${c.card}">`,
-    `<p style="margin:0;font-family:${FONT_STACK};font-size:12px;line-height:1.5;color:${c.muted};">${e(footerLine)}</p>`,
+    // Primary button: a table cell with the fill and padding, so Outlook draws it too.
+    `<tr><td align="center" style="padding:28px 32px 12px 32px;background-color:${c.card};" bgcolor="${c.card}">`,
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>',
+    `<td align="center" bgcolor="${c.plum}" style="padding:16px 40px;border-radius:14px;background-color:${c.plum};">`,
+    `<a href="${e(url)}" target="_blank" style="display:inline-block;font-family:${FONT_STACK};font-size:17px;line-height:20px;font-weight:700;color:#FFFFFF;text-decoration:none;">Accept invitation</a>`,
+    '</td></tr></table>',
+    '</td></tr>',
+    // Secondary: the full link in a monospace box.
+    `<tr><td style="padding:12px 32px 8px 32px;background-color:${c.card};" bgcolor="${c.card}">`,
+    `<p style="margin:0 0 8px 0;font-family:${FONT_STACK};font-size:14px;line-height:1.5;color:${c.muted};">Or copy this link</p>`,
+    `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`,
+    `<td bgcolor="${c.code}" style="padding:12px 14px;border:1px solid ${c.line};border-radius:10px;background-color:${c.code};font-family:${MONO_STACK};font-size:13px;line-height:1.5;color:${c.ink};word-break:break-all;">${e(url)}</td>`,
+    '</tr></table>',
+    '</td></tr>',
+    divider,
+    // Footer: the small mark, the reason, and nothing else.
+    `<tr><td style="padding:20px 32px 28px 32px;background-color:${c.card};" bgcolor="${c.card}">`,
+    '<table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>',
+    img ? `<td valign="top" style="padding-right:10px;"><img src="${e(img.mark)}" width="24" height="24" alt="" style="display:block;border:0;width:24px;height:24px;"></td>` : '',
+    `<td valign="top" style="font-family:${FONT_STACK};font-size:12px;line-height:1.5;color:${c.muted};">${e(footerLine)}</td>`,
+    '</tr></table>',
     '</td></tr>',
     '</table>',
     '</td></tr>',
