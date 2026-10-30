@@ -155,7 +155,8 @@ async function validateAssigneeIds(
     });
   }
 
-  // Find all user IDs in the list that are either the workspace owner or active project members
+  // Assignees are the workspace owner or an active manager or member with a board grant. A viewer
+  // reads cards but cannot be assigned work (docs/FEATURE_SPEC.md: assignees active owner/manager/member).
   const validUsersRes = await clientOrPool.query<{ id: string }>(
     `SELECT u.id
      FROM users u
@@ -169,6 +170,7 @@ async function validateAssigneeIds(
            WHERE pm.project_id = $3
              AND pm.user_id = u.id
              AND pm.status = 'active'
+             AND pm.role IN ('manager', 'member')
          )
        )`,
     [assigneeIds, workspaceId, projectId, boardId],
@@ -178,11 +180,11 @@ async function validateAssigneeIds(
   const invalidUsers = assigneeIds.filter((id) => !validSet.has(id));
 
   if (invalidUsers.length > 0) {
-    throw validationError('All assignees must be active members of this project.', {
+    throw validationError('All assignees must be active owners, managers or members with access to this board.', {
       issues: [
         {
           path: 'assigneeIds',
-          message: `Users are not active project members: ${invalidUsers.join(', ')}`,
+          message: `Users are not eligible assignees (active owner, manager or member with board access): ${invalidUsers.join(', ')}`,
         },
       ],
       invalidAssigneeIds: invalidUsers,
