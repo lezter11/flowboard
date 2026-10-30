@@ -112,7 +112,7 @@ export default function ActivityPage() {
           {feed.isError && <div className="activity-empty" role="alert"><strong>{describeError(feed.error)}</strong></div>}
           {!activeProject && <div className="activity-empty"><Icon name="activity" /><strong>No projects yet</strong><span>Activity appears once you can open a project.</span></div>}
           {feed.isSuccess && groups.length === 0 && (
-            <div className="activity-empty"><Icon name="activity" /><strong>{active ? 'No matching activity' : 'No activity yet'}</strong><span>{active ? 'Try a different filter or search.' : 'Changes to cards and comments will be recorded here.'}</span>{active && <button type="button" onClick={reset}>Clear filters</button>}</div>
+            <div className="activity-empty"><Icon name="activity" /><strong>{active ? 'No matching activity' : 'No activity yet'}</strong><span>{active ? 'Try a different filter or search.' : 'Changes to cards, boards, columns and people will be recorded here.'}</span>{active && <button type="button" onClick={reset}>Clear filters</button>}</div>
           )}
           {groups.map((group) => (
             <section key={group.key} className="activity-day">
