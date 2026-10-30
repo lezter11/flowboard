@@ -42,6 +42,14 @@ The dev environment was dropped (decision in docs/decisions/2026-10-28-uat-first
 | Pages project | `flowboard-app-uat` | `flowboard-app` |
 | Pages service binding `API` | `flowboard-api-uat` | `flowboard-api` |
 
+## Delivery guarantee: invitation email is at-least-once (B-14)
+
+Brevo's transactional send API (`POST /v3/smtp/email`, https://developers.brevo.com/reference/send-transac-email, read 2026-10-30) documents no idempotency key. Its `headers` field sets email headers, so it is not used as one. The sender therefore cannot prove that a message was not accepted before a crash.
+
+What that means: if the Worker or database connection fails after Brevo accepts an invitation and before the outbox row is marked delivered, the scheduled drain sends the same accept link again. The duplicate is harmless: the link is single use and the first delivery is the one that works. Operators see the duplicate as a second email, not as data loss.
+
+The outbox row keeps the token and recipient only until it settles. After that it holds `{providerMessageId}`, and settled rows are deleted after 30 days (B-14).
+
 ## Accepted risk: invitation link in the query string (B-10, accepted by the Architect)
 
 The accept link is `${APP_ORIGIN}/invitation?token=...`. The web screen reads `?token=`, so the single-use token can appear in proxy, CDN or access logs for the Pages and Worker hosts. Accepted because the token is single use and expires (seven days). Do not add query logging of this path, and do not log the full request URL in new code.
