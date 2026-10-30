@@ -1,5 +1,6 @@
 'use client';
 
+import { pickFocusTarget } from '@/lib/inert-lock';
 import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
@@ -344,9 +345,15 @@ export function BoardView() {
     const next = new URLSearchParams(params.toString());
     next.delete('card');
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
-    const target = returnFocus.current;
-    requestAnimationFrame(() => target?.isConnected && target.focus({ preventScroll: true }));
-  }, [params, pathname, router]);
+    // A deep link (?card=) has no remembered trigger: fall back to the card's own button, then the board heading.
+    const remembered = returnFocus.current;
+    const closing = cardId;
+    requestAnimationFrame(() => pickFocusTarget(
+      remembered,
+      () => (closing ? document.querySelector<HTMLElement>(`.card[data-card-id="${CSS.escape(closing)}"] .card-open`) : null),
+      () => document.getElementById('boardTitle'),
+    )?.focus({ preventScroll: true }));
+  }, [params, pathname, router, cardId]);
 
   if (!boardId) {
     return <section className="state-note"><h1>No board selected</h1><Link className="btn" href="/projects">Back to projects</Link></section>;
@@ -395,7 +402,7 @@ export function BoardView() {
             <button className="icon-btn menu-btn" ref={shell.menuRef} type="button" aria-label={shell.navVisible ? 'Hide navigation' : 'Show navigation'} aria-controls="rail" aria-expanded={shell.navVisible} title={shell.navVisible ? 'Hide navigation' : 'Show navigation'} onClick={shell.toggleNav}>
               <Icon name="menu" />
             </button>
-            <h1 id="boardTitle" title={board.name}>{board.name}</h1>
+            <h1 id="boardTitle" tabIndex={-1} title={board.name}>{board.name}</h1>
             {board.isArchived && <span id="boardReadOnly">{projectArchived ? 'Project archived · read-only' : 'Archived · read-only'}</span>}
             {role === 'owner' && !board.isArchived && (
               <button className="icon-btn edit-board-btn" type="button" aria-label="Edit board name and description" title="Edit board" onClick={() => setEditBoardOpen(true)}>
