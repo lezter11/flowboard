@@ -53,11 +53,21 @@ function fakeBrevo(reply: (n: number) => Response | Error = () => Response.json(
 const brevoFor = (fetchImpl: typeof fetch) =>
   new BrevoMailer('test-key-not-real', { fromEmail: 'mail@flowboard.example', fromName: 'Flowboard', appOrigin: ORIGIN }, fetchImpl);
 
+// A settled row keeps no invitation id (B-14, receipts hold only the provider id), so each row id is
+// remembered while the row is still pending and looked up by id after it settles.
+const outboxIdsByInvitation = new Map<string, Set<string>>();
+
 async function outboxRow(invitationId: string) {
+  const known = [...(outboxIdsByInvitation.get(invitationId) ?? [])];
   const res = await pool.query<{ id: string; status: string; retry_count: number; payload: any }>(
-    `SELECT id, status, retry_count, payload FROM outbox WHERE event_type = 'invitation.created' AND payload->>'invitationId' = $1 ORDER BY created_at DESC`,
-    [invitationId],
+    `SELECT id, status, retry_count, payload FROM outbox
+     WHERE event_type = 'invitation.created' AND (payload->>'invitationId' = $1 OR id = ANY($2::text[]))
+     ORDER BY created_at DESC`,
+    [invitationId, known],
   );
+  const ids = outboxIdsByInvitation.get(invitationId) ?? new Set<string>();
+  for (const r of res.rows) ids.add(r.id);
+  outboxIdsByInvitation.set(invitationId, ids);
   return res.rows;
 }
 
@@ -92,6 +102,7 @@ test('B-10 email: create sends the accept link to the invitee, then drops the to
   const res = await invite(fx, email);
   const body = (await res.json()) as any;
   const token = body.data.token as string;
+  await outboxRow(body.data.id); // remembers the pending row before it settles
 
   const fake = fakeBrevo();
   await t.test('the drain sends one email with the accept link on the configured origin', async () => {
@@ -138,6 +149,7 @@ test('B-10 email: resend supersedes the earlier pending email, so only the newes
   const email = `resend.${fx.s}@example.com`;
   const created = (await (await invite(fx, email)).json()) as any;
   const oldToken = created.data.token as string;
+  await outboxRow(created.data.id); // remembers the pending row before the resend supersedes it
   const invitationId = created.data.id as string;
 
   const resend = await app.request(`http://localhost/api/v1/projects/${fx.project}/invitations/${invitationId}/resend`, {
@@ -175,6 +187,7 @@ test('B-10 email: Brevo 5xx, 429 and network errors retry; other 4xx is permanen
       const email = `class.${fx.s}@example.com`;
       const created = (await (await invite(fx, email)).json()) as any;
       const token = created.data.token as string;
+      await outboxRow(created.data.id); // remembers the pending row before it settles
       const fake = fakeBrevo(reply);
       await processOutboxLease(pool, { batchSize: 50, mailer: brevoFor(fake.fetchImpl) });
       const [row] = await outboxRow(created.data.id);

@@ -5,6 +5,7 @@ import { cleanupOrphanUploads } from '../adapters/images.ts';
 import { processOutboxLease } from '../adapters/notifications.ts';
 import { mailerFromEnv, type MailEnv } from '../services/mailer.ts';
 import { purgeEndedWindows } from '../adapters/rate-limit-postgres.ts';
+import { purgeSettledOutbox } from '../services/outbox-retention.ts';
 import { R2StorageDriver, runWithStorageDriver, type R2BucketBinding } from '../adapters/storage.ts';
 
 export type WorkerBindings = MailEnv & {
@@ -86,6 +87,8 @@ export default {
         { name: 'pending-storage', run: () => runWithStorageDriver(storage, () => processPendingStorageDeletions(pool)) },
         // Invitation mail is sent only when the mail configuration is complete (see mailerFromEnv).
         { name: 'outbox', run: () => processOutboxLease(pool, { mailer: mailerFromEnv(env) }) },
+        // Settled outbox rows past the 30-day retention window (B-14, FB-AUD-11).
+        { name: 'outbox-retention', run: () => purgeSettledOutbox(pool) },
         { name: 'rate-windows', run: () => purgeEndedWindows(pool) },
       ]);
     } finally {

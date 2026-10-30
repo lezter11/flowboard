@@ -374,7 +374,7 @@ export async function processOutboxLease(
 
         // Successfully delivered
         await client.query(
-          `UPDATE outbox SET status = 'delivered' WHERE id = $1`,
+          `UPDATE outbox SET status = 'delivered', settled_at = NOW() WHERE id = $1`,
           [row.id],
         );
         delivered++;
@@ -383,7 +383,7 @@ export async function processOutboxLease(
         if (nextRetry >= maxRetries) {
           // Dead-letter quarantine
           await client.query(
-            `UPDATE outbox SET status = 'failed', retry_count = $1 WHERE id = $2`,
+            `UPDATE outbox SET status = 'failed', settled_at = NOW(), retry_count = $1 WHERE id = $2`,
             [nextRetry, row.id],
           );
           failed++;

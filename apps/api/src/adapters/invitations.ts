@@ -587,7 +587,7 @@ export async function resendInvitation(
   // invitation carry the previous token, so they are settled without sending and the token is dropped.
   await client.query(
     `UPDATE outbox
-     SET status = 'failed', payload = (payload - 'token') || '{"superseded":true}'::jsonb
+     SET status = 'failed', settled_at = NOW(), payload = '{"superseded":true}'::jsonb
      WHERE event_type = 'invitation.created' AND status IN ('pending', 'processing')
        AND payload->>'invitationId' = $1`,
     [updatedRow.id],

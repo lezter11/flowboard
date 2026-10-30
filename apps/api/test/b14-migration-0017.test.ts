@@ -68,7 +68,8 @@ test('B-14 migration 0017: the child-side indexes exist', async () => {
     await runMigrations(db.pool);
     const names = await db.pool.query<{ indexname: string }>(
       `SELECT indexname FROM pg_indexes
-       WHERE indexname IN ('project_links_workspace_idx', 'board_grants_granted_by_idx')
+       WHERE schemaname = current_schema()
+         AND indexname IN ('project_links_workspace_idx', 'board_grants_granted_by_idx')
        ORDER BY indexname`,
     );
     assert.deepEqual(

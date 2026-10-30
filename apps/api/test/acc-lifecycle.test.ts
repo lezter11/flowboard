@@ -412,9 +412,9 @@ test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Admini
     // 3. Verify no secret link is stored in outbox payload
     const client = await pool.connect();
     try {
+      // The receipt keeps only the provider id (B-14), so the row is the newest delivered invitation.
       const outRes = await client.query<{ payload: any; status: string }>(
-        `SELECT payload, status FROM outbox WHERE event_type = 'invitation.created' AND payload::text LIKE $1`,
-        [`%${invId}%`],
+        `SELECT payload, status FROM outbox WHERE event_type = 'invitation.created' AND status = 'delivered' ORDER BY created_at DESC LIMIT 1`,
       );
       assert.ok(outRes.rows.length >= 1);
       const outRow = outRes.rows[0]!;
@@ -422,6 +422,7 @@ test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Admini
       const payloadStr = JSON.stringify(outRow.payload);
       assert.ok(!payloadStr.includes('token='), 'Must not contain token');
       assert.ok(!payloadStr.includes('secret'), 'Must not contain secret');
+      assert.deepEqual(Object.keys(outRow.payload), ['providerMessageId'], 'the receipt holds only the provider id');
     } finally {
       client.release();
     }

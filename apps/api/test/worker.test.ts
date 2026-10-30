@@ -206,10 +206,19 @@ test('local workerd: scheduled callback runs purge and outbox jobs against the i
     // exercise failure paths. Give the scheduled-worker check a clean synthetic
     // database so it verifies the callback itself, not another suite's fixtures.
     await setupPool.query('TRUNCATE workspaces CASCADE');
+    // B-14: the scheduled retention job deletes a row that settled over 30 days ago, and keeps a recent one.
+    await setupPool.query(`INSERT INTO users (id,email,display_name,created_at,updated_at) VALUES ('usr_wkr','wkr@flowboard.example','W',now(),now())`);
+    await setupPool.query(`INSERT INTO workspaces (id,name,timezone,owner_id,created_at,updated_at) VALUES ('ws_wkr','WS','UTC','usr_wkr',now(),now())`);
+    await setupPool.query(`INSERT INTO projects (id,workspace_id,name,created_at,updated_at) VALUES ('p_wkr','ws_wkr','P',now(),now())`);
+    await setupPool.query(`INSERT INTO outbox (id,workspace_id,project_id,event_type,payload,status,next_retry_at,created_at,settled_at) VALUES
+      ('out_old','ws_wkr','p_wkr','invitation.created','{"providerMessageId":"m"}','delivered',now(),now() - interval '40 days',now() - interval '31 days'),
+      ('out_new','ws_wkr','p_wkr','invitation.created','{"providerMessageId":"m"}','delivered',now(),now(),now() - interval '2 days')`);
     // A deployed Worker always has the IMAGES bucket bound; an empty fake stands in for it here.
     const emptyBucket = { put: async () => undefined, get: async () => null, delete: async () => undefined };
     await worker.scheduled(
       { scheduledTime: Date.now() },
       { HYPERDRIVE: { connectionString: localDatabaseUrl(process.env['DATABASE_URL']) }, IMAGES: emptyBucket },
     );
+    const kept = await setupPool.query<{ id: string }>('SELECT id FROM outbox ORDER BY id');
+    assert.deepEqual(kept.rows.map((r) => r.id), ['out_new'], 'the 40-day-old settled row was purged by the scheduled job');
   });
