@@ -684,3 +684,76 @@ Pre-conditions: R2 enabled and `flowboard-images-uat` created as in section 1. T
 Rollback anchors: the current UAT Worker version and the current Pages deployment (`6ed70912-...` for the earlier UAT Pages, the live id at deploy time to be recorded).
 
 Not verified: the signed-in upload path, the B-8 delete-then-cleanup behaviour on UAT, and the dashboard checks for the bucket.
+
+## D-13 continued: bucket created, privacy checked, cost limits and a cleanup gap (not deployed)
+
+### 1. Bucket `flowboard-images-uat` (created, private)
+
+- Created with `npx wrangler r2 bucket create flowboard-images-uat` after R2 was enabled on the account. Account `6592b59b…`, same account as the Workers.
+- `wrangler r2 bucket dev-url get flowboard-images-uat`: "Public access via the r2.dev URL is disabled."
+- `wrangler r2 bucket domain list flowboard-images-uat`: no custom domains connected.
+- Production bucket: **not created** (approval given for UAT only). The production `IMAGES` binding is also not present.
+
+### 2. Privacy check (status codes only)
+
+A synthetic probe object (`zz-d13-probe.txt`, 20 bytes of test text, no user data) was written with `wrangler r2 object put --remote`, then read anonymously, then deleted with `wrangler r2 object delete --remote`.
+
+| Request (no credentials) | Object state | Status | Probe bytes in body |
+| --- | --- | --- | --- |
+| S3 endpoint, path-style | present | 400 | no |
+| S3 endpoint, virtual-hosted | present | 400 | no |
+| same two requests | deleted | 400 | n/a |
+
+Result: anonymous reads are refused and return no object bytes. The status is 400, not the 401 or 403 the docs suggest for an unsigned request, so the refusal comes from the endpoint rather than from an object policy. Not verified: a signed request with a revoked key, and the Worker-side read path, which the B-7/B-8 tests cover in code.
+
+The `pub-…r2.dev` public URL was not tested, because no public URL exists while `dev-url` reports disabled. A guessed host name gave a 401 and was not a real r2.dev URL, so it is not counted.
+
+Both probe requests used the local wrangler OAuth login (write and delete), and the anonymous reads used no credentials. No token was printed. The probe object was deleted.
+
+### 3. Billing: read-only check and overage rates
+
+- A read-only billing lookup with the local wrangler OAuth token (`/accounts/<id>/subscriptions`) returned 403, error 10000 "Authentication error". The token has no billing scope. **Plan and billing state are not verified.** The Billing page in the dashboard is the place to confirm the plan and whether a payment method and alerts are set.
+- Overage (beyond the free tier), from the R2 pricing page (updated Oct 26, 2026; fetched 30 Oct 2026; docs only, not verified in this account's invoice):
+  - Storage (Standard): $0.015 per GB-month above 10 GB-month free.
+  - Class A operations (writes, list, copy): $4.50 per million above 1 million free.
+  - Class B operations (reads, head): $0.36 per million above 10 million free.
+  - Egress to the Internet: free. Deletes: free. Failed authentication: not billed.
+- What can be charged at all: only storage and operations above the free allowance. With UAT data (synthetic), charges should not occur. The risk is the cleanup gap in section 4, not the unit prices.
+
+### 4. What in our code limits cost
+
+| Limit | Where | Value | Notes |
+| --- | --- | --- | --- |
+| Images per card | `apps/api/src/adapters/images.ts` (`MAX_CARD_IMAGES`) | 10 | Counts finalized `card_images` only (see gaps) |
+| Image bytes | `apps/api/src/services/image-validator.ts` | 10 MiB (10,485,760) | Rejected before the staging `put` |
+| Dimensions and pixels | `image-validator.ts` | 8192 px per side, 20 MP | |
+| Request body cap | `apps/api/src/http/middleware/limits.ts` | 10 MiB plus multipart allowance on `PUT /api/v1/image-uploads/:id/content` | Applied per route |
+| Stage, upload and finalize rate | PostgreSQL window limiter (migration 0011) | 10 per minute per client IP | Fixed window, fail closed |
+| Staged upload expiry | `images.ts` (`expires_at = NOW() + 1 hour`) | 1 hour | Expired uploads are refused at finalize |
+| Client compression | `apps/web/src/lib/image-prepare.ts` | resize and re-encode before upload (PNG, JPEG, WebP) | Advisory only: the server does not require it, so a client that skips it can send up to 10 MiB |
+| Card deletion | `apps/api/src/services/trash-purge.ts` | purge after the 24-hour window, with R2 deletes via `pending_storage_deletions` | Runs on the scheduled handler |
+
+### 5. Gaps (ranked by cost risk)
+
+1. **Staged uploads are never cleaned up in production or UAT.** `cleanupOrphanUploads` in `apps/api/src/adapters/images.ts` deletes `staging/<id>/<file>` objects and marks expired rows. Its only caller is a test (`apps/api/test/att01-att07.test.ts`). The scheduled handler in `apps/api/src/runtime/worker.ts` does not call it: it runs `purgeExpiredTrash`, `processOutboxLease` and `purgeEndedWindows` only. So an upload that is staged, has its bytes written and is never finalized keeps its staging object indefinitely. **Note for Backend:** add a call to `cleanupOrphanUploads` to the scheduled handler (after the trash purge, with its own error handling). No code was changed in this pass.
+2. **The count cap ignores staged uploads.** `createImageUpload` checks `card_images` only, so a writer can stage many uploads on one card without finalizing any. Each `PUT` can store up to 10 MiB. The rate limit (10 per minute per IP) allows about 600 stages per hour per IP, which is up to about 6 GB per hour if nothing is cleaned up (gap 1). Recommend counting in-flight uploads toward the cap, and adding a per-project storage quota.
+3. **Cap check is not atomic.** The count is read and the upload row inserted in separate statements, so two concurrent stages can both pass a count of 9. Recommend a row lock on the card, or a unique constraint on a slot.
+4. **No per-user or per-project byte quota.** Ten images per card, times cards per project, times projects per workspace, is the only bound. Recommend a per-project byte quota before production.
+5. **Client compression is not enforced.** The server accepts any valid image up to 10 MiB and 20 MP. This is a cost and bandwidth issue, not a security one.
+
+### 6. R2 lifecycle rule (recommended, not created)
+
+For the staging prefix only, so finalized images are never expired by it. Wrangler 4.152.0 provides `wrangler r2 bucket lifecycle add`, with `--expire-days` and a prefix argument. Suggested, after the Architect approves:
+
+```bash
+npx wrangler r2 bucket lifecycle add flowboard-images-uat staging-expire staging/ --expire-days 1
+```
+
+The rule is a backstop only: it deletes `staging/` objects after 1 day regardless of the database state. The database cleanup in gap 1 is still needed so rows are marked expired. Not verified: whether the prefix rule removes objects that are still referenced by a staging row (it would, which is the intent after 1 day, because the upload expires after 1 hour). Check the rule with `wrangler r2 bucket lifecycle list flowboard-images-uat` after adding it.
+
+### 7. Status
+
+- Bucket created and private (UAT only).
+- Config from section D-13 (binding `IMAGES` for `env.uat`) unchanged.
+- Nothing deployed. Production bucket and production binding not created.
+- Not verified: billing plan and alerts (dashboard), the signed-in upload path, the cleanup behaviour on UAT (no cron call exists).
