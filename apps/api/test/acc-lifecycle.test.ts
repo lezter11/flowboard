@@ -154,15 +154,13 @@ test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Admini
         'Content-Type': 'application/json',
         'Cookie': member.cookie,
       },
-      body: JSON.stringify({
-        displayName: 'Member Renamed',
-        avatarUrl: 'https://example.com/avatar.jpg',
-      }),
+      body: JSON.stringify({ displayName: 'Member Renamed' }),
     });
     assert.equal(patchRes.status, 200);
     const patchJson = (await patchRes.json()) as any;
     assert.equal(patchJson.data.displayName, 'Member Renamed');
-    assert.equal(patchJson.data.avatarUrl, 'https://example.com/avatar.jpg');
+    // Avatar is Google-owned (B-9): a profile PATCH cannot set it.
+    assert.equal(patchJson.data.avatarUrl, null);
 
     // 2. Revoke member access (simulate departure)
     const client = await pool.connect();
@@ -182,7 +180,7 @@ test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Admini
     assert.equal(sessRes.status, 200);
     const sessJson = (await sessRes.json()) as any;
     assert.equal(sessJson.data.actor.displayName, 'Member Renamed');
-    assert.equal(sessJson.data.actor.avatarUrl, 'https://example.com/avatar.jpg');
+    assert.equal(sessJson.data.actor.avatarUrl, null);
 
     // Restore member membership for subsequent tests
     const restoreClient = await pool.connect();

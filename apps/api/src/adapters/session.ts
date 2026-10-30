@@ -251,23 +251,15 @@ export async function createDevUserAndSession(
 
 export async function updateUserProfile(
   userId: string,
-  input: { displayName?: string | undefined; avatarUrl?: string | null | undefined },
+  input: { displayName: string },
   clientOrPool?: pg.Pool | pg.ClientBase,
 ): Promise<SessionActor> {
   const pool = clientOrPool ?? getPool();
-  const fields: string[] = [];
-  const values: any[] = [];
-  let idx = 1;
-
-  if (input.displayName !== undefined) {
-    fields.push(`display_name = $${idx++}`);
-    values.push(input.displayName.trim());
-  }
-  if (input.avatarUrl !== undefined) {
-    fields.push(`avatar_url = $${idx++}`);
-    values.push(input.avatarUrl);
-  }
-  fields.push(`updated_at = NOW()`);
+  // Only the display name is user-editable. Google sign-in keeps a non-empty name (see the
+  // ON CONFLICT rule in routes/google-auth.ts) and owns the email and avatar.
+  const fields = ['display_name = $1', 'updated_at = NOW()'];
+  const values: unknown[] = [input.displayName.trim()];
+  const idx = 2;
   values.push(userId);
 
   const res = await pool.query<{

@@ -18,6 +18,7 @@ import {
   getSessionResponseSchema,
   parseOrThrow,
   updateLastLocationInputSchema,
+  updateProfileInputSchema,
 } from '@flowboard/contracts';
 
 const devLoginRequestSchema = z.object({
@@ -77,17 +78,9 @@ sessionRoutes.patch('/profile', authMiddleware, async (c) => {
     throw HttpError.unauthorized('Authentication required.');
   }
 
+  // Display name only (B-9). Unknown fields, including avatarUrl, are refused with 422.
   const rawBody = await c.req.json();
-  const schema = z
-    .object({
-      displayName: z.string().trim().min(1).max(100).optional(),
-      avatarUrl: z.string().url().nullable().optional(),
-    })
-    .refine((data) => data.displayName !== undefined || data.avatarUrl !== undefined, {
-      message: 'At least one field (displayName or avatarUrl) must be provided',
-    });
-
-  const parsed = parseOrThrow(schema, rawBody);
+  const parsed = parseOrThrow(updateProfileInputSchema, rawBody);
   const updatedActor = await updateUserProfile(actor.id, parsed);
   return c.json({ data: updatedActor }, 200);
 });

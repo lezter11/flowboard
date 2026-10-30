@@ -74,3 +74,19 @@ export const logoutResponseSchema = z.object({
   }),
 });
 export type LogoutResponse = z.infer<typeof logoutResponseSchema>;
+
+// PATCH /api/v1/session/profile (B-9). The user may change their own display name only. Email and
+// avatar are owned by Google and refreshed at sign-in. Control characters are refused before trim,
+// so a trailing CR or LF cannot slip through as whitespace.
+export const PROFILE_DISPLAY_NAME_MAX = 80;
+export const updateProfileInputSchema = z
+  .object({
+    displayName: z
+      .string()
+      .refine((value) => !/\p{Cc}/u.test(value), { message: 'Display name must not contain control characters' })
+      .trim()
+      .min(1, 'Display name cannot be empty')
+      .max(PROFILE_DISPLAY_NAME_MAX, 'Display name cannot exceed 80 characters'),
+  })
+  .strict();
+export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
