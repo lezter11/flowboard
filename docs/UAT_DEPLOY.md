@@ -501,3 +501,29 @@ Smoke, signed out (curl; no credentials, no secrets printed):
 - Unauthenticated `PATCH /api/v1/projects/x` returns 401.
 
 Not verified here: the rail logo lockup, board toolbar overflow menu, column editor and invitation dialog. They are client-rendered and signed-in, so the user checks them on UAT.
+
+## Deploy log addendum: ecc5bcd (activity recording, overview project-scope rows, role badge, activity sentences; Worker and Pages)
+
+Deployed by the Deployment chat as task D-11 on the Architect's instruction. UAT only; production untouched. The deploy used a clean worktree at ecc5bcd, not the shared working tree. Includes B-5 `c3e6dbf` and B-6 (activity recording for columns, boards, invitations, members and brief; overview project-scope rows for Owner and Manager), UI S-12 `64f0767` (role badge) and S-13 `9793a87` (activity sentences).
+
+Migration check: `git diff --name-only b655d93..ecc5bcd -- database` is empty. No migration was applied; the database is still at 0014.
+
+Rollback anchors (live before this deploy):
+- Worker: `1fc9af14-4257-45d7-92f3-d29316054393`. The D-11 brief listed `e3fcad14-258a-45c9-9fc4-fa8f1b99e927`, which was the Worker before D-7. D-7 replaced it with `1fc9af14`, so `1fc9af14` is the live rollback.
+- Pages: `359bc74a-d208-4a3a-9de8-b001f4d7fc0b`.
+
+Worker: `flowboard-api-uat` deployed from ecc5bcd. Version after this deploy: `3efbf146-ef74-4ea1-8a9b-61663d073ebe`. Bindings and cron `*/15` unchanged. The API test suite and contracts tests were not run in this pass (the Worker deploy used typecheck only), so this deploy is verified by typecheck and signed-out smoke only.
+
+Pages: `flowboard-app-uat` deployed from ecc5bcd via `scripts/stage-pages-functions.mjs` (five files staged, including `src/lib/return-path.ts`). Deployment after this deploy: `6ed70912-0911-4c17-b2d9-6d58b9536703` (`https://6ed70912.flowboard-app-uat.pages.dev`).
+
+Local checks at ecc5bcd: `npm run typecheck` and `npm run typecheck:web` passed; static export (`NEXT_EXPORT=true`, no `NEXT_PUBLIC_API_URL`) built in a clean worktree, exit 0.
+
+Smoke, signed out (curl; no credentials, no secrets printed):
+- Worker `/health/ready` 200 and `/health/live` 200.
+- Pages `/`, `/projects/x` and `/boards/x` redirect to `/signin`; `/projects` and `/board?id=x` redirect to `/signin?next=...`.
+- `/signin` 200 with the CSP header and `x-frame-options: DENY`.
+- `/favicon.svg` and `/apple-touch-icon.png` return 200, both `cache-control: public, max-age=0, must-revalidate`.
+- Unauthenticated `GET /api/v1/projects/x/activity` and `GET /api/v1/projects/x/overview` return 401 on both the Pages host and the Worker host.
+- Unauthenticated `PATCH /api/v1/projects/x` returns 401.
+
+Not verified here: the role badge and activity sentences, and the new activity rows for columns, boards, invitations, members and brief. They need a signed-in check on UAT.
