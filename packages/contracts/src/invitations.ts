@@ -6,13 +6,41 @@ import {
   utcIsoTimestampSchema,
 } from './common.ts';
 
+// Invitation email rules (B-7). One plain address only: ASCII letters, digits and RFC 5322 atext
+// in the local part, a dotted hostname with a letter TLD. Refused: control characters (CR, LF, tab),
+// spaces, non-ASCII, display-name forms such as "Name <a@b.c>", quoted parts, empty or over-long
+// parts, and leading, trailing or doubled dots. The header-injection risk is why CR and LF are named.
+const EMAIL_LOCAL_ATOM = /^[a-z0-9!#$%&'*+/=?^_`{|}~-]+$/;
+const EMAIL_DOMAIN_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?$/;
+const EMAIL_TLD = /^[a-z]{2,63}$/;
+const EMAIL_CONTROL_CHARACTERS = /[\u0000-\u001f\u007f]/;
+const EMAIL_REFUSED_CHARACTERS = /[\u0000-\u0020\u007f-\uffff<>"(),;:[\]\\]/;
+
+export function isValidInvitationEmail(value: string): boolean {
+  if (value.length > 254 || EMAIL_REFUSED_CHARACTERS.test(value)) return false;
+  const at = value.indexOf('@');
+  if (at === -1 || value.indexOf('@', at + 1) !== -1) return false;
+
+  const local = value.slice(0, at);
+  const domain = value.slice(at + 1);
+  if (local.length === 0 || local.length > 64 || domain.length === 0 || domain.length > 255) return false;
+
+  // An empty label means a leading, trailing or doubled dot, and fails the label pattern here.
+  if (!local.split('.').every((atom) => EMAIL_LOCAL_ATOM.test(atom))) return false;
+  const labels = domain.split('.');
+  if (labels.length < 2 || !labels.every((label) => EMAIL_DOMAIN_LABEL.test(label))) return false;
+  return EMAIL_TLD.test(labels[labels.length - 1]!);
+}
+
 export const createInvitationInputSchema = z.object({
   email: z
     .string()
+    // Checked before trim: trim would otherwise quietly drop a trailing CR or LF.
+    .refine((value) => !EMAIL_CONTROL_CHARACTERS.test(value), { message: 'Invalid email address format' })
     .trim()
-    .email('Invalid email address format')
     .max(254, 'Email must not exceed 254 characters')
-    .toLowerCase(),
+    .toLowerCase()
+    .refine(isValidInvitationEmail, { message: 'Invalid email address format' }),
   role: projectRoleSchema,
 });
 export type CreateInvitationInput = z.infer<typeof createInvitationInputSchema>;

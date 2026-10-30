@@ -41,7 +41,7 @@ Grant check and mutation serialize under a common lock order: owner/workspace or
 | POST /projects/:pid/archive or /reopen | Owner-only, expectedVersion; archive read-only, deadlines continue (S6) |
 | GET /projects/:pid/people | Active eligible people, query/purpose=display,assignee,mention, cursor; purpose changes eligibility, not authorization |
 | GET /projects/:pid/members | Owner/manager administration view, paginated status/role/version; no global directory |
-| POST /projects/:pid/invitations | {email,role}; owner manager/member/viewer, manager member/viewer only; durable email intent. Limits (B-7): per IP 10/min, per inviter 20/min and 200/h, per project 30/min and 300/h; refusal 429 TOO_MANY_REQUESTS with details.retryAfterSeconds; limiter outage 503 |
+| POST /projects/:pid/invitations | {email,role}; owner manager/member/viewer, manager member/viewer only; durable email intent. Limits (B-7): per IP 10/min, per inviter 20/min and 200/h, per project 30/min and 300/h; refusal 429 TOO_MANY_REQUESTS with details.retryAfterSeconds; limiter outage 503. Email (B-7, contracts `isValidInvitationEmail`): one plain address, trimmed and lowercased, at most 254 characters; refused: control characters (CR, LF, tab), spaces, non-ASCII, display-name forms such as `Name <a@b.c>`, quoted parts, local part over 64, domain over 255, leading, trailing or doubled dots |
 | GET /projects/:pid/invitations | Owner/manager scoped states; never raw token/hash |
 | POST /invitations/accept | Verified matching signed-in email + single-use token; safe wrong/expired/revoked state |
 | POST /projects/:pid/invitations/:iid/resend or /revoke | Owner/manager within role authority; resend rotates token and prior token fails |
