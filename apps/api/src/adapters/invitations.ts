@@ -5,9 +5,41 @@ import { HttpError } from '../http/errors.ts';
 import { saveReceipt } from './idempotency.ts';
 import { recordActivity } from './activity.ts';
 
+/**
+ * The outbox payload for an invitation email: the link token, the project name and the inviter's
+ * display name, read now so the email can be built later without a session.
+ */
+async function invitationEmailPayload(
+  client: pg.ClientBase,
+  input: {
+    invitationId: string; email: string; role: string; projectId: string; workspaceId: string;
+    inviterId: string; expiresAt: string; rawToken: string;
+  },
+): Promise<Record<string, unknown>> {
+  const res = await client.query<{ project_name: string; inviter_name: string }>(
+    `SELECT p.name AS project_name, u.display_name AS inviter_name
+     FROM projects p, users u
+     WHERE p.id = $1 AND u.id = $2`,
+    [input.projectId, input.inviterId],
+  );
+  return {
+    invitationId: input.invitationId,
+    email: input.email,
+    role: input.role,
+    projectId: input.projectId,
+    workspaceId: input.workspaceId,
+    projectName: res.rows[0]?.project_name ?? '',
+    inviterName: res.rows[0]?.inviter_name ?? '',
+    expiresAt: input.expiresAt,
+    token: input.rawToken,
+  };
+}
+
 export interface CreateInvitationResult {
   invitation: Invitation;
   rawToken: string;
+  /** The outbox row that will send the email. The route starts an immediate send from it (B-10). */
+  outboxId: string;
 }
 
 export interface AcceptInvitationResult {
@@ -166,15 +198,19 @@ export async function createInvitation(
     throw new Error('Failed to create invitation record');
   }
 
-  // 5. Insert outbox record for asynchronous email delivery
+  // 5. Insert outbox record for asynchronous email delivery. The raw token is needed to build the
+  // accept link at send time; it leaves the payload when the row settles (invitation-delivery.ts).
   const outboxId = 'out_' + crypto.randomUUID();
-  const outboxPayload = {
+  const outboxPayload = await invitationEmailPayload(client, {
     invitationId: invRow.id,
     email: invRow.email,
     role: invRow.role,
     projectId: invRow.project_id,
     workspaceId,
-  };
+    inviterId: actor.id,
+    expiresAt: new Date(invRow.expires_at).toISOString(),
+    rawToken,
+  });
 
   await client.query(
     `INSERT INTO outbox (
@@ -238,7 +274,7 @@ export async function createInvitation(
     responsePayload,
   );
 
-  return { invitation, rawToken };
+  return { invitation, rawToken, outboxId };
 }
 
 /**
@@ -399,6 +435,7 @@ export async function acceptInvitation(
 export interface ResendInvitationResult {
   invitation: Invitation;
   rawToken: string;
+  outboxId: string;
 }
 
 /**
@@ -546,15 +583,26 @@ export async function resendInvitation(
     safeChanges: { invitationId: updatedRow.id, role: updatedRow.role },
   });
 
-  // 6. Insert outbox record for asynchronous email delivery
+  // 6. Insert outbox record for asynchronous email delivery. Older pending emails for this
+  // invitation carry the previous token, so they are settled without sending and the token is dropped.
+  await client.query(
+    `UPDATE outbox
+     SET status = 'failed', payload = (payload - 'token') || '{"superseded":true}'::jsonb
+     WHERE event_type = 'invitation.created' AND status IN ('pending', 'processing')
+       AND payload->>'invitationId' = $1`,
+    [updatedRow.id],
+  );
   const outboxId = 'out_' + crypto.randomUUID();
-  const outboxPayload = {
+  const outboxPayload = await invitationEmailPayload(client, {
     invitationId: updatedRow.id,
     email: updatedRow.email,
     role: updatedRow.role,
     projectId: updatedRow.project_id,
     workspaceId: updatedRow.workspace_id,
-  };
+    inviterId: actor.id,
+    expiresAt: new Date(updatedRow.expires_at).toISOString(),
+    rawToken,
+  });
 
   await client.query(
     `INSERT INTO outbox (
@@ -607,7 +655,7 @@ export async function resendInvitation(
     responsePayload,
   );
 
-  return { invitation, rawToken };
+  return { invitation, rawToken, outboxId };
 }
 
 export interface RevokeInvitationResult {

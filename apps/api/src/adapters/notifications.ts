@@ -3,7 +3,8 @@ import type { Notification, NotificationType } from '@flowboard/contracts';
 import { getPool } from './postgres.ts';
 import { resolveProjectRole } from './rbac.ts';
 import { HttpError } from '../http/errors.ts';
-import { emailAdapter } from '../services/email-adapter.ts';
+import type { Mailer } from '../services/mailer.ts';
+import { deliverInvitationRow } from './invitation-delivery.ts';
 import { createHash } from 'node:crypto';
 import { lockBoardAccess } from './board-grants-foundation.ts';
 
@@ -222,6 +223,11 @@ export async function markAllNotificationsRead(
 export interface ProcessOutboxOptions {
   batchSize?: number;
   maxRetries?: number;
+  /**
+   * The invitation mailer (B-10). Without one, invitation rows stay pending and untouched, and the
+   * comment work still runs. Nothing is counted as failed just because mail is not configured.
+   */
+  mailer?: Mailer | null;
 }
 
 export interface ProcessOutboxResult {
@@ -242,6 +248,7 @@ export async function processOutboxLease(
 ): Promise<ProcessOutboxResult> {
   const batchSize = Math.min(Math.max(options?.batchSize ?? 10, 1), 50);
   const maxRetries = options?.maxRetries ?? 5;
+  const mailer = options?.mailer ?? null;
 
   const client = await pool.connect();
   let processed = 0;
@@ -267,10 +274,11 @@ export async function processOutboxLease(
        FROM outbox
        WHERE status IN ('pending', 'processing')
          AND next_retry_at <= NOW()
+         AND (event_type <> 'invitation.created' OR $2::boolean)
        ORDER BY next_retry_at ASC, id ASC
        LIMIT $1
        FOR UPDATE SKIP LOCKED`,
-      [batchSize],
+      [batchSize, mailer !== null],
     );
 
     const rows = leaseRes.rows;
@@ -353,16 +361,15 @@ export async function processOutboxLease(
             }
           }
         } else if (row.event_type === 'invitation.created') {
-          const payload = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
-          const result = await emailAdapter.sendInvitationEmail({
-            to: payload.email,
-            role: payload.role,
-            projectId: row.project_id,
-            invitationId: payload.invitationId,
-          });
-          if (!result.success) {
-            throw new Error(`Email delivery failed: ${result.error || 'Unknown error'}`);
+          if (!mailer) continue;
+          // deliverInvitationRow records the final status and drops the token itself.
+          const outcome = await deliverInvitationRow(client, row, mailer);
+          if (outcome.kind === 'retry') {
+            throw new Error(`Email delivery failed: ${outcome.reason}`);
           }
+          if (outcome.kind === 'delivered') delivered++;
+          else failed++;
+          continue;
         }
 
         // Successfully delivered

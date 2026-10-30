@@ -2,10 +2,11 @@ import { createPool, queryDatabase } from '../adapters/postgres.ts';
 import { createApp } from '../http/app.ts';
 import { purgeExpiredTrash } from '../services/trash-purge.ts';
 import { processOutboxLease } from '../adapters/notifications.ts';
+import { mailerFromEnv, type MailEnv } from '../services/mailer.ts';
 import { purgeEndedWindows } from '../adapters/rate-limit-postgres.ts';
 import { R2StorageDriver, runWithStorageDriver, type R2BucketBinding } from '../adapters/storage.ts';
 
-export type WorkerBindings = {
+export type WorkerBindings = MailEnv & {
   HYPERDRIVE: { connectionString: string };
   DATABASE_URL?: string;
   CURSOR_SECRET?: string;
@@ -59,7 +60,8 @@ export default {
         () => null,
         (err: unknown) => err,
       );
-      await processOutboxLease(pool);
+      // Invitation mail is sent only when the mail configuration is complete (see mailerFromEnv).
+      await processOutboxLease(pool, { mailer: mailerFromEnv(env) });
       await purgeEndedWindows(pool);
       if (purgeError) throw purgeError;
     } finally {

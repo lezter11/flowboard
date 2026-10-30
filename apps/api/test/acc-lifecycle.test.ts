@@ -5,7 +5,7 @@ import { runMigrations } from '../src/adapters/migrations.ts';
 import { createApp } from '../src/http/app.ts';
 import { getPool, closePool } from '../src/adapters/postgres.ts';
 import { createDevUserAndSession, createSession } from '../src/adapters/session.ts';
-import { emailAdapter } from '../src/services/email-adapter.ts';
+
 import { processOutboxLease } from '../src/adapters/notifications.ts';
 
 test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Administration Suite', async (t) => {
@@ -372,9 +372,15 @@ test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Admini
     assert.equal(newOwnerRes.status, 200);
   });
 
-  await t.test('INV-02: Invitation delivery via configured email adapter', async () => {
-    emailAdapter.setSimulateFailure(false);
-    emailAdapter.sentEmails = [];
+  await t.test('INV-02: Invitation delivery through the configured mailer', async () => {
+    const sentMail: Array<{ to: string; subject: string; text: string; html: string }> = [];
+    const recordingMailer = {
+      appOrigin: 'https://flowboard.example',
+      async send(message: { to: string; subject: string; text: string; html: string }) {
+        sentMail.push(message);
+        return { status: 'sent' as const, providerMessageId: 'test-message' };
+      },
+    };
 
     // 1. Create invitation to trigger outbox record
     const invRes = await app.request(`/api/v1/projects/${projectId}/invitations`, {
@@ -394,14 +400,14 @@ test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Admini
     const invId = invJson.data.id;
 
     // 2. Process outbox lease
-    const procRes = await processOutboxLease(pool, { batchSize: 10, maxRetries: 3 });
+    const procRes = await processOutboxLease(pool, { batchSize: 10, maxRetries: 3, mailer: recordingMailer });
     assert.ok(procRes.delivered >= 1);
 
-    // Verify email was received by email adapter
-    const sent = emailAdapter.sentEmails.find((e) => e.invitationId === invId);
-    assert.ok(sent, 'Email adapter received invitation notification');
-    assert.equal(sent?.to, 'invitee-delivery@example.com');
-    assert.equal(sent?.role, 'member');
+    // The mailer received the invitation, with the accept link built from the configured origin.
+    const sent = sentMail.find((m) => m.to === 'invitee-delivery@example.com');
+    assert.ok(sent, 'mailer received the invitation');
+    assert.match(sent!.text, /https:\/\/flowboard\.example\/invitation\?token=[0-9a-f]{64}/);
+    void invId;
 
     // 3. Verify no secret link is stored in outbox payload
     const client = await pool.connect();

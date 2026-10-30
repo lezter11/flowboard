@@ -9,6 +9,7 @@ import {
 import { getPool } from '../../adapters/postgres.ts';
 import { checkOrReplayReceipt, saveReceipt } from '../../adapters/idempotency.ts';
 import { consumeInvitationScopeLimits } from '../../adapters/rate-limit-postgres.ts';
+import { sendInvitationEmailSoon } from '../../adapters/invitation-delivery.ts';
 import {
   createInvitation,
   acceptInvitation,
@@ -78,7 +79,7 @@ invitationsRoutes.post('/projects/:projectId/invitations', authMiddleware, async
     // Per inviter and per project limits, after the grant and replay checks (B-7, FB-AUD-05).
     await consumeInvitationScopeLimits(client, actor.id, projectId);
 
-    const { invitation, rawToken } = await createInvitation(
+    const { invitation, rawToken, outboxId } = await createInvitation(
       client,
       actor,
       projectId,
@@ -88,6 +89,7 @@ invitationsRoutes.post('/projects/:projectId/invitations', authMiddleware, async
     );
 
     await client.query('COMMIT');
+    sendInvitationEmailSoon(c, outboxId);
 
     const responseData = {
       id: invitation.id,
@@ -317,7 +319,7 @@ invitationsRoutes.post(
         );
       }
 
-      const { invitation, rawToken } = await resendInvitation(
+      const { invitation, rawToken, outboxId } = await resendInvitation(
         client,
         actor,
         projectId,
@@ -326,6 +328,7 @@ invitationsRoutes.post(
       );
 
       await client.query('COMMIT');
+      sendInvitationEmailSoon(c, outboxId);
 
       const responseData = {
         id: invitation.id,

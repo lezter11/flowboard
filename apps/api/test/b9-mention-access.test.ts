@@ -59,7 +59,7 @@ async function fixture() {
 type Fx = Awaited<ReturnType<typeof fixture>>;
 const cookie = (who: { session: { id: string } }) => `flowboard_session=${who.session.id}`;
 
-function post(fx: Fx, actor: { session: { id: string } }, body: string, mentions: Array<{ userId: string; start: number; end: number }>, key = crypto.randomUUID()) {
+function post(fx: Fx, actor: { session: { id: string } }, body: string, mentions: Array<{ userId: string; start: number; end: number }>, key: string = crypto.randomUUID()) {
   return app.request(`http://localhost/api/v1/cards/${fx.card}/comments`, {
     method: 'POST',
     headers: { cookie: cookie(actor), origin: 'http://localhost', 'idempotency-key': `b9m-${key}`, 'content-type': 'application/json' },
