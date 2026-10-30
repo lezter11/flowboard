@@ -38,7 +38,10 @@
         "CORS_ORIGIN": "https://flowboard-app-uat.pages.dev",
         "GOOGLE_REDIRECT_URI": "https://flowboard-app-uat.pages.dev/api/v1/auth/google/callback"
       },
-      "triggers": { "crons": ["*/15 * * * *"] }
+      "triggers": { "crons": ["*/15 * * * *"] },
+      // Private image bucket for UAT only (no public access, no r2.dev, no custom domain).
+      // Production has no IMAGES binding yet, so image routes return 503 CONFIG_ERROR there.
+      "r2_buckets": [{ "binding": "IMAGES", "bucket_name": "flowboard-images-uat" }]
     }
   }
 }

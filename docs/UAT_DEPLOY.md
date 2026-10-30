@@ -625,3 +625,62 @@ Limits: the generic-rule findings were not validated one by one, so this is "no 
 - R2: steps and config prepared; no bucket created, `wrangler.jsonc` not edited; approval needed.
 - Secret scan: no provider-specific secrets; generic hits are fixture or reference values by location.
 - CI: green at head; Node 20 action pins and a `pg` test-code warning to fix.
+
+## D-13: UAT image bucket (R2) prep, and the deploy plan (not deployed)
+
+Scope from the Architect: create the private UAT bucket, add the UAT `IMAGES` binding only, dry-run, and prepare (but do not run) the deploy plan. No deploy, no production bucket, no push.
+
+### 1. Bucket: blocked, R2 is not enabled on this account
+
+`npx wrangler r2 bucket list` (account `6592b59b…`) returns error code 10042: "Please enable R2 through the Cloudflare Dashboard". No bucket was created. Enabling R2 is an account setting that may need a billing step, so it is for the user to do in the dashboard. After it is enabled, create the bucket with `npx wrangler r2 bucket create flowboard-images-uat`, then check that it is private: no `r2.dev` public URL and no custom domain (`npx wrangler r2 bucket dev-url get flowboard-images-uat` should report disabled, and `npx wrangler r2 bucket domain list flowboard-images-uat` should be empty; confirm both in the dashboard as well).
+
+### 2. Config: `IMAGES` binding for `env.uat` only
+
+`apps/api/wrangler.jsonc`, inside `env.uat`:
+
+```jsonc
+"r2_buckets": [{ "binding": "IMAGES", "bucket_name": "flowboard-images-uat" }]
+```
+
+Top level (production) has no `r2_buckets`. Production image routes stay at 503 `CONFIG_ERROR` until the production bucket is created and approved.
+
+Checks at `9838e0c` plus this change:
+- `npm run typecheck` exit 0.
+- `wrangler deploy --env uat --dry-run` exit 0. Bindings list shows `env.IMAGES (flowboard-images-uat)` as an R2 Bucket.
+- `wrangler deploy --dry-run` (production, no env) exit 0. `IMAGES` does not appear.
+- `npm test --workspace @flowboard/api` against a disposable Postgres 17.11 on `127.0.0.1:55613` (removed afterwards): 581/581 pass. This includes `B-7 images: the Worker without an IMAGES binding answers 503 CONFIG_ERROR on image routes`.
+
+### 3. R2 figures
+
+Source: Cloudflare R2 pricing page (`developers.cloudflare.com/r2/pricing/`, "Last updated Oct 26, 2026"), fetched 30 Oct 2026. Checked against the docs only. The dashboard figures are **not verified** here, because the bucket cannot be created until R2 is enabled.
+
+| Item | Free each month | Price after free tier |
+| --- | --- | --- |
+| Storage (Standard) | 10 GB-month | $0.015 per GB-month |
+| Class A operations (writes, list, copy) | 1 million | $4.50 per million |
+| Class B operations (reads, head) | 10 million | $0.36 per million |
+| Egress to the Internet | free | free |
+| Deletes | free | free |
+
+Notes from the same page: storage is the daily peak averaged over 30 days; requests that fail authentication or authorization are not billed. Standard storage has no minimum duration. Infrequent Access is not used.
+
+Estimate for UAT: synthetic images only, a few GB at most, so UAT should stay inside the free tier. Not verified: the account's plan, billing and any alerts.
+
+### 4. Deploy plan (prepared, not run)
+
+Pre-conditions: R2 enabled and `flowboard-images-uat` created as in section 1. The Architect says when to deploy, after Backend B-8/B-9 and UI S-14/S-15 are reviewed.
+
+1. Neon backup branch of `uat` before migrating: `npx neonctl branches create --project-id misty-unit-76664549 --parent uat --name uat-backup-<date>-d14`, and confirm it is `ready`.
+2. Migration 0015 (and any later ones the Architect sends) on the UAT branch only, with `ALLOW_REMOTE_DB=true`, the direct host (no `-pooler`), and the runner from the worktree at the deploy commit. Verify `schema_migrations` and the new objects.
+3. Worker: `npx wrangler deploy --env uat` from a clean worktree at the deploy commit. Record the version id as the new rollback anchor.
+4. Pages: `env -u NEXT_PUBLIC_API_URL NEXT_EXPORT=true npx next build` in `apps/web`, then `node scripts/stage-pages-functions.mjs` into the staging folder, then `wrangler pages deploy out --project-name flowboard-app-uat --branch main`. Record the deployment id.
+5. Signed-out smoke tests (no credentials): Worker `/health/ready` 200; Pages `/`, `/projects/x`, `/boards/x` redirect to `/signin`; `/projects` and `/board?id=x` redirect to `/signin?next=...`; `/signin` 200 with CSP; `/favicon.svg` and `/apple-touch-icon.png` 200; unauthenticated `PATCH /api/v1/projects/x` 401; unauthenticated image routes 401.
+6. Image smoke plan (the user does the signed-in step):
+   - The user signs in on UAT and uploads one synthetic image to a card. Check: an object appears in `flowboard-images-uat` (list with `npx wrangler r2 object list flowboard-images-uat`, which shows keys and sizes only, not bytes).
+   - Delete the card or the image as the user. Check: the object is removed after the delete commits (B-8 behaviour), by listing the bucket again.
+   - Anonymous check: `curl -s -o /dev/null -w "%{http_code}"` on the image URL with no cookie must return 401 or 403, not the bytes. Also try the bucket's public URL, which should not exist.
+   - Record counts and status codes only. Do not record image bytes, keys with user data, or session values.
+
+Rollback anchors: the current UAT Worker version and the current Pages deployment (`6ed70912-...` for the earlier UAT Pages, the live id at deploy time to be recorded).
+
+Not verified: the signed-in upload path, the B-8 delete-then-cleanup behaviour on UAT, and the dashboard checks for the bucket.
