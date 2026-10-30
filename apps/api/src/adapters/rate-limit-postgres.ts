@@ -1,5 +1,6 @@
 import type pg from 'pg';
-import type { WindowCount, WindowCounter, WindowBucket } from '../services/rate-limit.ts';
+import { HttpError } from '../http/errors.ts';
+import { LONGEST_WINDOW_SECONDS, WINDOW_BUCKETS, type WindowCount, type WindowCounter, type WindowBucket } from '../services/rate-limit.ts';
 
 // One atomic statement per limited request. The upsert locks the (bucket, key, window) row, so
 // concurrent requests are counted exactly once each. Time comes from the database clock, so
@@ -61,9 +62,45 @@ WHERE ctid IN (
 
 export async function purgeEndedWindows(
   pool: pg.Pool | pg.ClientBase,
-  maxWindowSeconds = 60,
+  maxWindowSeconds = LONGEST_WINDOW_SECONDS,
   batchSize = 5000,
 ): Promise<number> {
   const result = await pool.query(PURGE_SQL, [maxWindowSeconds, batchSize]);
   return result.rowCount ?? 0;
+}
+
+/**
+ * Per inviter and per project invitation limits (B-7, FB-AUD-05). Runs on the caller's client,
+ * inside the invitation transaction, after the grant check and the idempotency replay check. The
+ * counts therefore roll back with a refused or failed attempt, and only the actor who holds the
+ * grant can spend the project's allowance. Fail closed: a counter error becomes 503.
+ */
+export async function consumeInvitationScopeLimits(
+  client: pg.ClientBase,
+  inviterId: string,
+  projectId: string,
+): Promise<void> {
+  const checks: Array<{ bucket: WindowBucket; key: string }> = [
+    { bucket: 'invite-inviter', key: inviterId },
+    { bucket: 'invite-inviter-hour', key: inviterId },
+    { bucket: 'invite-project', key: projectId },
+    { bucket: 'invite-project-hour', key: projectId },
+  ];
+  for (const { bucket, key } of checks) {
+    const config = WINDOW_BUCKETS[bucket];
+    let counted: WindowCount;
+    try {
+      counted = await consumeWindow(client, bucket, key, config.windowSeconds);
+    } catch {
+      throw new HttpError(503, 'SERVICE_UNAVAILABLE', 'Rate limit check unavailable. Try again shortly.');
+    }
+    if (counted.count > config.limit) {
+      throw new HttpError(
+        429,
+        'TOO_MANY_REQUESTS',
+        'Too many invitations sent recently. Try again later.',
+        { retryAfterSeconds: counted.retryAfterSeconds },
+      );
+    }
+  }
 }

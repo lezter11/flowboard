@@ -29,9 +29,18 @@ export const WINDOW_BUCKETS = {
   invite: { limit: 10, windowSeconds: 60 },
   import: { limit: 5, windowSeconds: 60 },
   upload: { limit: 10, windowSeconds: 60 },
+  // Invitation scope limits, counted per authenticated inviter and per project on top of the per-IP
+  // 'invite' bucket (B-7, FB-AUD-05). Counted only after the actor is shown to hold the grant.
+  'invite-inviter': { limit: 20, windowSeconds: 60 },
+  'invite-inviter-hour': { limit: 200, windowSeconds: 3600 },
+  'invite-project': { limit: 30, windowSeconds: 60 },
+  'invite-project-hour': { limit: 300, windowSeconds: 3600 },
 } as const;
 
 export type WindowBucket = keyof typeof WINDOW_BUCKETS;
+
+// The purge must keep every counter until its own window has ended, so it uses the longest window.
+export const LONGEST_WINDOW_SECONDS = Math.max(...Object.values(WINDOW_BUCKETS).map((b) => b.windowSeconds));
 
 export interface WindowCount {
   // Requests counted in this window, including the current one.

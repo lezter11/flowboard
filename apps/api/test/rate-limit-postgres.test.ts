@@ -90,7 +90,7 @@ test('purge: removes only windows that have ended, and a repeat run deletes noth
   const current = await consumeWindow(pool, 'auth', key, 60);
   assert.equal(current.count, 1);
 
-  await purgeEndedWindows(pool);
+  await purgeEndedWindows(pool, 60);
   const remaining = await pool.query<{ window_start: string }>(
     'SELECT window_start FROM rate_limit_windows WHERE client_key = $1 ORDER BY window_start',
     [key],
@@ -99,8 +99,8 @@ test('purge: removes only windows that have ended, and a repeat run deletes noth
   assert.equal(remaining.rows.length, 2);
   assert.ok(Number(remaining.rows[0]!.window_start) > now - 600);
 
-  await purgeEndedWindows(pool);
-  await purgeEndedWindows(pool);
+  await purgeEndedWindows(pool, 60);
+  await purgeEndedWindows(pool, 60);
   const after = await pool.query('SELECT 1 FROM rate_limit_windows WHERE client_key = $1 AND window_start = $2', [key, now - 600]);
   assert.equal(after.rowCount, 0);
 });

@@ -8,6 +8,7 @@ import {
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
 import { checkOrReplayReceipt, saveReceipt } from '../../adapters/idempotency.ts';
+import { consumeInvitationScopeLimits } from '../../adapters/rate-limit-postgres.ts';
 import {
   createInvitation,
   acceptInvitation,
@@ -73,6 +74,9 @@ invitationsRoutes.post('/projects/:projectId/invitations', authMiddleware, async
         replay.statusCode as any,
       );
     }
+
+    // Per inviter and per project limits, after the grant and replay checks (B-7, FB-AUD-05).
+    await consumeInvitationScopeLimits(client, actor.id, projectId);
 
     const { invitation, rawToken } = await createInvitation(
       client,
