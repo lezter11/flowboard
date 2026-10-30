@@ -21,9 +21,10 @@ import { getWorkspaceToday } from './boards.ts';
  *   - due soon: open, due from today to seven days later, inclusive;
  *   - unassigned open: open with no assignee.
  *
- * Recent activity uses only board-scoped rows (visibility_scope = 'board') on readable boards.
- * Project-wide and unscoped rows are never shown here, so this endpoint cannot reveal manager-only
- * audit to a member.
+ * Recent activity: board-scoped rows on readable boards, plus project-scope rows (member, invitation,
+ * brief and links events) for the owner and managers only (B-6). Members and viewers never see
+ * project rows. Unscoped legacy rows are never shown. Token and invitee email are never logged, so
+ * they cannot appear here.
  *
  * All reads run in one REPEATABLE READ, READ ONLY transaction, so the numbers describe one moment.
  */
@@ -135,7 +136,10 @@ export async function getProjectOverview(
       [projectId, actorId],
     );
 
-    // 5. The last 10 board-scoped activity rows on readable boards.
+    // 5. The last 10 activity rows: board rows on readable boards, plus project-scope rows (member,
+    // invitation, brief and links events) for the owner and managers only. Members and viewers never
+    // get project rows. One query; the project-row branch is a flag computed from the access check.
+    const canSeeProjectRows = row.owner_id === actorId || row.role === 'manager';
     const activityRows = await client.query<{
       id: string;
       action: string;
@@ -147,12 +151,15 @@ export async function getProjectOverview(
       `WITH ${READABLE_BOARDS}
        SELECT a.id, a.action, a.card_id, a.created_at, a.actor_id, u.display_name AS actor_name
        FROM activity_log a
-       JOIN readable r ON r.id = a.board_id
        JOIN users u ON u.id = a.actor_id
-       WHERE a.project_id = $1 AND a.visibility_scope = 'board'
+       WHERE a.project_id = $1
+         AND (
+           (a.visibility_scope = 'board' AND a.board_id IN (SELECT id FROM readable))
+           OR (a.visibility_scope = 'project' AND $3::boolean)
+         )
        ORDER BY a.created_at DESC, a.id DESC
        LIMIT 10`,
-      [projectId, actorId],
+      [projectId, actorId, canSeeProjectRows],
     );
 
     await client.query('COMMIT');

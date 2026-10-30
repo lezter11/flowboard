@@ -148,7 +148,7 @@ export const projectOverviewSchema = z.object({
     avatarUrl: z.string().nullable(),
     openCount: z.number().int().nonnegative(),
   })).max(50),
-  // Last 10 card-level activity rows on boards the caller can read.
+  // Last 10 activity rows: board rows on readable boards; project-scope rows for owner and managers only (B-6). cardId is null for non-card rows.
   recentActivity: z.array(z.object({
     id: z.string().min(1),
     action: z.string().min(1),

@@ -38,6 +38,7 @@ async function setup(pool: pg.Pool) {
   const invitee = await mk('invitee');          // invited, accepts, then role changed and removed
   const other = await mk('other');              // invited, then revoked
   const stranger = await mk('stranger');
+  const viewer = await mk('viewer');            // project viewer, no grant
 
   const ws = `ws_${s}`;
   const p1 = `p1_${s}`;
@@ -56,7 +57,8 @@ async function setup(pool: pg.Pool) {
   await membership('mgrnogrant', 'manager', managerNoGrant.id);
   await membership('member', 'member', member.id);
   await membership('nogrant', 'member', memberNoGrant.id);
-  return { s, ws, p1, owner, manager, managerNoGrant, member, memberNoGrant, invitee, other, stranger, pool };
+  await membership('viewer', 'viewer', viewer.id);
+  return { s, ws, p1, owner, manager, managerNoGrant, member, memberNoGrant, invitee, other, stranger, viewer, pool };
 }
 
 type Fixture = Awaited<ReturnType<typeof setup>>;
@@ -349,6 +351,37 @@ test('B-5 activity coverage: writes, atomicity, replay, visibility and leaks', a
     assert.equal((await call(stranger, 'GET', `/api/v1/projects/${p1}/overview`)).status, 404);
   });
 
+  await t.test('overview (B-6): owner and manager see project rows; member, viewer and no-grant member do not', async () => {
+    const projectRows = async (who: Who) => {
+      const res = await call(who, 'GET', `/api/v1/projects/${p1}/overview`);
+      assert.equal(res.status, 200);
+      const recent = (await json(res)).data.recentActivity as Array<{ action: string }>;
+      return recent.filter((r) => PROJECT_SCOPE_ACTIONS.includes(r.action)).map((r) => r.action);
+    };
+    assert.ok((await projectRows(owner)).includes('invitation_sent'), 'owner should see project rows');
+    assert.ok((await projectRows(manager)).includes('member_removed'), 'manager with grant should see project rows');
+    assert.ok((await projectRows(managerNoGrant)).length > 0, 'manager without grant should see project rows');
+    assert.equal((await projectRows(member)).length, 0, 'member must not see project rows');
+    assert.equal((await projectRows(fx.viewer)).length, 0, 'viewer must not see project rows');
+    assert.equal((await projectRows(memberNoGrant)).length, 0, 'no-grant member must not see project rows');
+    assert.equal((await call(fx.viewer, 'GET', `/api/v1/projects/${p1}/activity`)).status, 403);
+  });
+
+  await t.test('overview (B-6): no token or invitee email in any overview body', async () => {
+    for (const who of [owner, manager, managerNoGrant]) {
+      const text = await (await call(who, 'GET', `/api/v1/projects/${p1}/overview`)).text();
+      for (const tok of tokens) assert.ok(!text.includes(tok), 'token leaked into overview');
+      for (const email of [invitee.email, other.email]) assert.ok(!text.includes(email), 'email leaked into overview');
+    }
+  });
+
+  await t.test('leak: the owner feed JSON never contains a token or an invitee email', async () => {
+    const res = await call(owner, 'GET', `/api/v1/projects/${p1}/activity?limit=100`);
+    const text = await res.text();
+    for (const tok of tokens) assert.ok(!text.includes(tok), 'token leaked through the activity feed');
+    for (const email of [invitee.email, other.email]) assert.ok(!text.includes(email), 'email leaked through the activity feed');
+  });
+
   await t.test('removing a member also revokes their pending invitation and logs that revoke once', async () => {
     const invId = `inv_side_${fx.s}`;
     await pool.query(
@@ -366,12 +399,5 @@ test('B-5 activity coverage: writes, atomicity, replay, visibility and leaks', a
       [p1],
     );
     assert.deepEqual(row.rows[0]!.safe_changes, { invitationId: invId, role: 'viewer', reason: 'member_removed' });
-  });
-
-  await t.test('leak: the owner feed JSON never contains a token or an invitee email', async () => {
-    const res = await call(owner, 'GET', `/api/v1/projects/${p1}/activity?limit=100`);
-    const text = await res.text();
-    for (const tok of tokens) assert.ok(!text.includes(tok), 'token leaked through the activity feed');
-    for (const email of [invitee.email, other.email]) assert.ok(!text.includes(email), 'email leaked through the activity feed');
   });
 });

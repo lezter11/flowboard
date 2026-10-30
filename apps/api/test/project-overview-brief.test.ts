@@ -183,13 +183,13 @@ test('project overview: counts over readable boards, privacy, and the snapshot r
     ]);
   });
 
-  await t.test('recent activity holds only board-scoped rows on readable boards', async () => {
+  await t.test('recent activity: board rows on readable boards, and project rows for the owner (B-6)', async () => {
     const data = (await jsonOf(await overview(fx.owner))).data;
-    const ids = data.recentActivity.map((r: any) => r.cardId);
-    // Newest first: d1 (11:00) then c1 (10:00). The project-scoped audit row is never shown.
-    assert.deepEqual(ids, [fx.d1, fx.c1]);
-    assert.equal(data.recentActivity[0].actor.displayName, 'member');
-    assert.ok(!JSON.stringify(data).includes('member.role_changed'));
+    const cardIds = data.recentActivity.map((r: any) => r.cardId);
+    // Newest first: the project-scoped row (12:00, no card) then d1 (11:00) then c1 (10:00).
+    assert.deepEqual(cardIds, [null, fx.d1, fx.c1]);
+    assert.equal(data.recentActivity[0].action, 'member.role_changed');
+    assert.equal(data.recentActivity[1].actor.displayName, 'member');
   });
 
   await t.test('a manager or member with a grant sees only that board: no counts from b2', async () => {
