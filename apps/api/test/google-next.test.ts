@@ -87,16 +87,17 @@ test('Google ?next= round trip, tampering and fallback', async (t) => {
   await t.test('a cookie with a valid next but a different state is refused', async () => {
     const { cookie } = await start('?next=/board?id=abc');
     const res = await callback('forged-state', cookie, `tamper.${crypto.randomUUID()}@flowboard.example`);
-    assert.equal(res.status, 403);
-    assert.equal((await res.json() as any).error.code, 'CSRF_MISMATCH');
-    assert.equal(res.headers.get('location'), null);
+    assert.equal(res.status, 302, 'a failure redirects to sign-in');
+    assert.match(res.headers.get('location') ?? '', /\/signin\?state=expired$/);
+    assert.equal(res.headers.get('location')?.includes('forged-state'), false, 'the state is never reflected');
   });
 
   await t.test('a state swapped for the cookie next value is refused', async () => {
     const { state } = await start('?next=/board?id=abc');
     const swapped = `${OAUTH_STATE_COOKIE}=${encodeCookieNext('/board?id=abc')}.${state}`;
     const res = await callback(state, swapped, `swap.${crypto.randomUUID()}@flowboard.example`);
-    assert.equal(res.status, 403);
+    assert.equal(res.status, 302, 'a failure redirects to sign-in');
+    assert.match(res.headers.get('location') ?? '', /\/signin\?state=expired$/);
   });
 
   await t.test('a missing next keeps the existing behaviour', async () => {

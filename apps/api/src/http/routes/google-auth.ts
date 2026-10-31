@@ -112,7 +112,7 @@ googleAuthRoutes.get('/google', startGoogleSignIn);
 googleAuthRoutes.get('/google/start', startGoogleSignIn);
 
 // 2. GET /api/v1/auth/google/callback: Handle Google OAuth code callback
-googleAuthRoutes.get('/google/callback', async (c) => {
+async function completeGoogleSignIn(c: import('hono').Context): Promise<Response> {
   const query = c.req.query();
   if (query.error) {
     throw HttpError.badRequest(`Google sign-in was denied: ${query.error}`, 'OAUTH_ERROR');
@@ -255,5 +255,36 @@ googleAuthRoutes.get('/google/callback', async (c) => {
     throw err;
   } finally {
     client.release();
+  }
+}
+
+
+/**
+ * ERR-R1 S10. The callback is a top-level navigation, so a JSON error page is the wrong answer. Every failure
+ * (the provider's denial, a bad or expired state, a missing email, an unexpected error) becomes a 302 to the
+ * sign-in page with a state value. The provider's error text is never reflected, and only the error code is logged.
+ */
+const SIGNIN_STATE_BY_CODE: Record<string, string> = {
+  OAUTH_ERROR: 'denied',
+  CSRF_MISMATCH: 'expired',
+  EMAIL_NOT_VERIFIED: 'email_unverified',
+  EMAIL_REQUIRED: 'email_missing',
+};
+
+function frontendOrigin(c: import('hono').Context): string {
+  const envObj = c.env as { FRONTEND_URL?: string } | undefined;
+  const frontendUrl = envObj?.FRONTEND_URL || (typeof process !== 'undefined' ? process.env?.['FRONTEND_URL'] : undefined);
+  return frontendUrl ? frontendUrl.replace(/\/$/, '') : '';
+}
+
+googleAuthRoutes.get('/google/callback', async (c) => {
+  try {
+    return await completeGoogleSignIn(c);
+  } catch (err) {
+    const code = (err as { code?: unknown } | null)?.code;
+    const codeText = typeof code === 'string' && /^[A-Z_]{1,40}$/.test(code) ? code : 'UNEXPECTED';
+    console.error(JSON.stringify({ event: 'google_callback_failed', code: codeText }));
+    const state = SIGNIN_STATE_BY_CODE[codeText] ?? 'failed';
+    return c.redirect(`${frontendOrigin(c)}/signin?state=${state}`, 302);
   }
 });

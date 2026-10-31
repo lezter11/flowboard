@@ -44,8 +44,8 @@ test('Google sign-in and system routes', async (t) => {
 
   await t.test('rejects an unverified Google email and issues no session', async () => {
     const res = await signIn({ sub: '1', email: 'unverified.user@flowboard.example', email_verified: false });
-    assert.equal(res.status, 403);
-    assert.equal((await res.json() as any).error.code, 'EMAIL_NOT_VERIFIED');
+    assert.equal(res.status, 302, 'a failure redirects to sign-in');
+    assert.match(res.headers.get('location') ?? '', /\/signin\?state=email_unverified$/);
     assert.equal(res.headers.get('set-cookie')?.includes('flowboard_session=') ?? false, false);
     const rows = await getPool().query(`SELECT 1 FROM users WHERE email = 'unverified.user@flowboard.example'`);
     assert.equal(rows.rowCount, 0);
@@ -53,16 +53,17 @@ test('Google sign-in and system routes', async (t) => {
 
   await t.test('rejects a missing email_verified claim', async () => {
     const res = await signIn({ sub: '2', email: 'noclaim.user@flowboard.example' });
-    assert.equal(res.status, 403);
+    assert.equal(res.status, 302, 'a failure redirects to sign-in');
+    assert.match(res.headers.get('location') ?? '', /\/signin\?state=email_unverified$/);
   });
 
   await t.test('rejects a state that does not match the cookie', async () => {
     const res = await signIn({ sub: '3', email: 'csrf.user@flowboard.example', email_verified: true }, 'forged');
-    assert.equal(res.status, 403);
-    assert.equal((await res.json() as any).error.code, 'CSRF_MISMATCH');
+    assert.equal(res.status, 302, 'a failure redirects to sign-in');
+    assert.match(res.headers.get('location') ?? '', /\/signin\?state=expired$/);
   });
 
-  await t.test('signs in a verified email with an HttpOnly session cookie', async () => {
+  await t.test('a cookie with a valid next', async () => {
     const res = await signIn({ sub: '4', email: 'Verified.User@flowboard.example', email_verified: true, name: 'Verified User' });
     assert.equal(res.status, 302);
     assert.match(res.headers.get('set-cookie')!, /flowboard_session=/);
