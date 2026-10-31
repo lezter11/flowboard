@@ -1,3 +1,4 @@
+import { REFUSED_NAME_CHARACTERS, REFUSED_NAME_MESSAGE } from './common.ts';
 import { z } from 'zod';
 import {
   cardSummarySchema,
@@ -21,7 +22,9 @@ export const columnCategorySchema = z.enum(COLUMN_CATEGORIES);
 export type ColumnCategory = z.infer<typeof columnCategorySchema>;
 
 export const createBoardInputSchema = z.object({
-  name: z.string().trim().min(1, 'Board name cannot be empty').max(100, 'Board name cannot exceed 100 characters'),
+  name: z.string()
+    .refine((v) => !REFUSED_NAME_CHARACTERS.test(v), { message: REFUSED_NAME_MESSAGE })
+    .trim().min(1, 'Board name cannot be empty').max(100, 'Board name cannot exceed 100 characters'),
   // Optional. Same rule as project descriptions: plain text, up to 2000 characters.
   description: z.string().max(2000, 'Description cannot exceed 2000 characters').optional(),
 });
@@ -30,7 +33,9 @@ export type CreateBoardInput = z.infer<typeof createBoardInputSchema>;
 // Owner only; see docs/API.md. At least one of name or description; null clears the description.
 export const updateBoardInputSchema = z
   .object({
-    name: z.string().trim().min(1, 'Board name cannot be empty').max(100, 'Board name cannot exceed 100 characters').optional(),
+    name: z.string()
+      .refine((v) => !REFUSED_NAME_CHARACTERS.test(v), { message: REFUSED_NAME_MESSAGE })
+      .trim().min(1, 'Board name cannot be empty').max(100, 'Board name cannot exceed 100 characters').optional(),
     description: z.string().max(2000, 'Description cannot exceed 2000 characters').nullable().optional(),
     expectedVersion: z.number().int().nonnegative(),
   })

@@ -36,7 +36,7 @@ export interface InvitationEmailContent {
 
 /** Removes control characters, including CR and LF, and bounds the length. */
 export function plainLine(value: string, max: number): string {
-  return value.replace(/[\p{Cc}\p{Zl}\p{Zp}]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
+  return value.replace(/[\p{Cc}\p{Cf}\p{Zl}\p{Zp}]/gu, ' ').replace(/\s+/g, ' ').trim().slice(0, max);
 }
 
 /** HTML-escapes text for an element body or a double-quoted attribute. */

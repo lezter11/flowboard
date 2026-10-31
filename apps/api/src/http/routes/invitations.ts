@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { Hono } from 'hono';
 import {
   acceptInvitationInputSchema,
@@ -12,6 +13,10 @@ import { checkOrReplayReceipt, saveReceipt } from '../../adapters/idempotency.ts
 import { consumeInvitationScopeLimits } from '../../adapters/rate-limit-postgres.ts';
 import { sendInvitationEmailSoon } from '../../adapters/invitation-delivery.ts';
 import { readNameState } from '../../adapters/session.ts';
+import { lockProjectQuota } from '../../adapters/quotas.ts';
+import { assertInvitationSeats } from '../../adapters/invitations.ts';
+import { limitsOf } from '../../services/limits.ts';
+
 import {
   createInvitation,
   acceptInvitation,
@@ -51,6 +56,8 @@ invitationsRoutes.post('/projects/:projectId/invitations', authMiddleware, async
 
   try {
     await client.query('BEGIN');
+    // Project quota lock before any row lock (B-22, F-04, F-11).
+    await lockProjectQuota(client, projectId);
 
     const grant = await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
     await acquireWritableProjectContextLock(client, projectId);
@@ -78,8 +85,14 @@ invitationsRoutes.post('/projects/:projectId/invitations', authMiddleware, async
       );
     }
 
+    // F-24: sending an invitation needs a stored name, so the email shows a real one.
+    if ((await readNameState(actor.id, client)).needsName) {
+      throw HttpError.conflict(NAME_REQUIRED_CODE, 'Save your first and last name before you invite people.');
+    }
+
     // Per inviter and per project limits, after the grant and replay checks (B-7, FB-AUD-05).
     await consumeInvitationScopeLimits(client, actor.id, projectId);
+    await assertInvitationSeats(client, projectId, limitsOf(c));
 
     const { invitation, rawToken, outboxId } = await createInvitation(
       client,
@@ -150,6 +163,9 @@ invitationsRoutes.post('/invitations/accept', authMiddleware, async (c) => {
 
   try {
     await client.query('BEGIN');
+    // Project quota lock before the workspace and invitation locks (B-22, F-04). The project is read by token, unlocked.
+    const owningProject = await client.query<{ project_id: string }>('SELECT project_id FROM project_invitations WHERE token_hash = $1', [crypto.createHash('sha256').update(body.token).digest('hex')]);
+    if (owningProject.rows[0]) await lockProjectQuota(client, owningProject.rows[0].project_id);
 
     const methodPath = '/api/v1/invitations/accept';
     const replay = await checkOrReplayReceipt(
@@ -186,7 +202,7 @@ invitationsRoutes.post('/invitations/accept', authMiddleware, async (c) => {
       );
     }
 
-    const result = await acceptInvitation(client, actor, body.token);
+    const result = await acceptInvitation(client, actor, body.token, limitsOf(c));
 
     const responsePayload = {
       data: {
@@ -292,6 +308,8 @@ invitationsRoutes.post(
 
     try {
       await client.query('BEGIN');
+      // Project quota lock before any row lock (B-22, F-04, F-07).
+      await lockProjectQuota(client, projectId);
 
       const grant = await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
       await acquireWritableProjectContextLock(client, projectId);
@@ -325,6 +343,10 @@ invitationsRoutes.post(
           replay.statusCode as any,
         );
       }
+
+      // Resend spends the same inviter and project buckets as create (F-07), and respects the seats (rule 6).
+      await consumeInvitationScopeLimits(client, actor.id, projectId);
+      await assertInvitationSeats(client, projectId, limitsOf(c));
 
       const { invitation, rawToken, outboxId } = await resendInvitation(
         client,

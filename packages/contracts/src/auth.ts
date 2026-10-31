@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { roleSchema, utcIsoTimestampSchema } from './common.ts';
+import { REFUSED_NAME_CHARACTERS, roleSchema, utcIsoTimestampSchema } from './common.ts';
 
 // displayName is 'First Last' once names are saved (B-16): up to 60 + 1 + 60 characters.
 export const sessionActorSchema = z.object({
@@ -63,7 +63,7 @@ export type LastLocationResponse = z.infer<typeof lastLocationResponseSchema>;
 // or paragraph separators are refused before trimming, so none can hide in a name.
 export const NAME_PART_MAX = 60;
 // A tab is whitespace and collapses to a space. Every other control character, CR and LF included, is refused.
-const REFUSED_NAME_CHARACTERS = /(?!\t)\p{Cc}|[\p{Cf}\p{Zl}\p{Zp}]/u;
+
 
 /** The normalised name part, or null when it is refused. The one rule the API and the tests share. */
 export function normalizeNamePart(value: string): string | null {

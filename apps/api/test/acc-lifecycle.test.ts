@@ -340,7 +340,8 @@ test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Admini
     const invId = invJson.data.id;
 
     // 2. Process outbox lease
-    const procRes = await processOutboxLease(pool, { batchSize: 10, maxRetries: 3, mailer: recordingMailer });
+    // A large batch: other suites leave pending invitation rows in the shared database, drained oldest first.
+    const procRes = await processOutboxLease(pool, { batchSize: 1000, maxRetries: 3, mailer: recordingMailer });
     assert.ok(procRes.delivered >= 1);
 
     // The mailer received the invitation, with the accept link built from the configured origin.

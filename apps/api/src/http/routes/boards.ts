@@ -710,6 +710,8 @@ boardsRoutes.post('/api/v1/boards/:boardId/archive', authMiddleware, async (c) =
     await client.query('BEGIN');
     const access = await lockBoardAccess(client, boardId, actor.id);
     await acquireWriteGrantLock(client, access.projectId, actor.id, 'manager', boardId);
+    // F-30: archiving a board inside an archived project is refused as a write (READ_ONLY_CONTEXT).
+    await acquireWritableProjectContextLock(client, access.projectId);
 
     // 1. Fetch board to get project_id
     const bCheck = await client.query<{ id: string; project_id: string; archived: boolean; snapshot_version: number; structure_version: number }>(

@@ -1,3 +1,4 @@
+import { REFUSED_NAME_CHARACTERS, REFUSED_NAME_MESSAGE } from './common.ts';
 import { z } from 'zod';
 import {
   createDataEnvelopeSchema,
@@ -50,7 +51,9 @@ export const projectLinkSchema = z.object({
 export type ProjectLink = z.infer<typeof projectLinkSchema>;
 
 export const createProjectInputSchema = z.object({
-  name: z.string().trim().min(1, 'Project name cannot be empty').max(100, 'Project name cannot exceed 100 characters'),
+  name: z.string()
+    .refine((v) => !REFUSED_NAME_CHARACTERS.test(v), { message: REFUSED_NAME_MESSAGE })
+    .trim().min(1, 'Project name cannot be empty').max(100, 'Project name cannot exceed 100 characters'),
   description: z.string().max(2000, 'Description cannot exceed 2000 characters').optional(),
 });
 export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
@@ -60,7 +63,9 @@ export type CreateProjectInput = z.infer<typeof createProjectInputSchema>;
 // links replaces the whole list (at most 10); send [] to remove them all.
 export const updateProjectInputSchema = z
   .object({
-    name: z.string().trim().min(1).max(100).optional(),
+    name: z.string()
+      .refine((v) => !REFUSED_NAME_CHARACTERS.test(v), { message: REFUSED_NAME_MESSAGE })
+      .trim().min(1).max(100).optional(),
     description: z.string().max(2000, 'Description cannot exceed 2000 characters').nullable().optional(),
     brief: z.string().max(PROJECT_BRIEF_MAX, 'Brief cannot exceed 5000 characters').nullable().optional(),
     links: z.array(projectLinkInputSchema).max(PROJECT_LINKS_MAX, 'A project can have at most 10 links').optional(),

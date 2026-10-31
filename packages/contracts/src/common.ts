@@ -153,3 +153,9 @@ export const quotaExceededDetailsSchema = z.object({
   remedy: quotaRemedySchema,
 });
 export type QuotaExceededDetails = z.infer<typeof quotaExceededDetailsSchema>;
+
+// Characters refused in names of people, projects and boards (B-16 rule, extended by B-22 to projects and
+// boards, edge-case review F-17). Control characters (except a tab, which is whitespace), format characters
+// (zero-width, bidirectional overrides and isolates), and line or paragraph separators.
+export const REFUSED_NAME_CHARACTERS = /(?!\t)\p{Cc}|[\p{Cf}\p{Zl}\p{Zp}]/u;
+export const REFUSED_NAME_MESSAGE = 'Name must not contain control, zero-width or bidirectional characters';

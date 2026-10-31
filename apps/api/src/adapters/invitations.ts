@@ -1,3 +1,5 @@
+import { lockProjectQuota, countActiveMembers, countPendingInvitations, quotaExceeded } from './quotas.ts';
+import { DEFAULT_LIMITS, type Limits } from '../services/limits.ts';
 import crypto from 'node:crypto';
 import type pg from 'pg';
 import type { Invitation, InvitationStatus, ProjectRole } from '@flowboard/contracts';
@@ -284,9 +286,14 @@ export async function acceptInvitation(
   client: pg.ClientBase,
   actor: { id: string; email?: string },
   rawToken: string,
+  limits: Limits = { ...DEFAULT_LIMITS },
 ): Promise<AcceptInvitationResult> {
   // 1. Compute SHA-256 of rawToken
   const tokenHash = crypto.createHash('sha256').update(rawToken).digest('hex');
+
+  // F-04: the project quota lock comes before the invitation row lock, the order create and resend use.
+  const owning = await client.query<{ project_id: string }>('SELECT project_id FROM project_invitations WHERE token_hash = $1', [tokenHash]);
+  if (owning.rows[0]) await lockProjectQuota(client, owning.rows[0].project_id);
 
   // 2. Query project_invitations locking the row for update
   const invRes = await client.query<{
@@ -326,6 +333,12 @@ export async function acceptInvitation(
     );
     await client.query('COMMIT').catch(() => {});
     throw HttpError.badRequest('Invitation has expired.', 'INVITATION_EXPIRED');
+  }
+
+  // F-18: an invitation into an archived project is refused, as create, resend and revoke already refuse.
+  const archivedRes = await client.query<{ archived: boolean }>('SELECT archived FROM projects WHERE id = $1', [invitation.project_id]);
+  if (archivedRes.rows[0]?.archived) {
+    throw HttpError.conflict('Project is archived and read-only.', 'READ_ONLY_CONTEXT');
   }
 
   // 4. Email verification
@@ -385,6 +398,11 @@ export async function acceptInvitation(
         );
       }
     }
+  }
+
+  // F-11: an accept needs a free active seat. The Owner is not counted, and an active member never reaches here.
+  if ((await countActiveMembers(client, invitation.project_id)) >= limits.membersPerProject) {
+    throw quotaExceeded('members', limits.membersPerProject, 'remove_member');
   }
 
   // 5. Transactional state transition and membership upsert
@@ -531,6 +549,11 @@ export async function resendInvitation(
   // Project Manager can resend member/viewer invitations only.
   if (actorRole === 'manager' && invitationRow.role === 'manager') {
     throw HttpError.forbidden('Only workspace owners can resend invitations for managers.', 'FORBIDDEN');
+  }
+
+  // F-07: an expired invitation is not revived by resend. The inviter sends a new one.
+  if (invitationRow.status === 'expired' || new Date(invitationRow.expires_at).getTime() <= Date.now()) {
+    throw HttpError.conflict('This invitation has expired. Send a new invitation.', 'INVITATION_EXPIRED');
   }
 
   // Target invitation must be pending or expired. If accepted or revoked, return 400 INVALID_INVITATION
@@ -1026,3 +1049,19 @@ export async function leaveProject(
   return { success: true };
 }
 
+
+/**
+ * Seat reservation (edge-case review rule 6): an invitation or resend is refused when the project already
+ * has the pending limit, or when active members plus pending invitations reach the member limit. Callers
+ * are Owners and Managers, who can already list members and invitations, so the counts are shown.
+ */
+export async function assertInvitationSeats(client: pg.ClientBase, projectId: string, limits: Limits): Promise<void> {
+  const pending = await countPendingInvitations(client, projectId);
+  if (pending >= limits.pendingInvitesPerProject) {
+    throw quotaExceeded('pending_invitations', limits.pendingInvitesPerProject, 'revoke_invitation', pending);
+  }
+  const active = await countActiveMembers(client, projectId);
+  if (active + pending >= limits.membersPerProject) {
+    throw quotaExceeded('members', limits.membersPerProject, pending > 0 ? 'revoke_invitation' : 'remove_member', active);
+  }
+}
