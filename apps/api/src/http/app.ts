@@ -1,3 +1,4 @@
+import { DEFAULT_LIMITS, type Limits } from '../services/limits.ts';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import type pg from 'pg';
@@ -54,6 +55,8 @@ export interface CreateAppOptions {
   // Image bytes for this app. Pass null when no bucket is bound: image routes then return 503 CONFIG_ERROR.
   // Omit to use the process default (tests set MemoryStorageDriver).
   storage?: StorageDriver | null;
+  // Own-projects limits (B-17). Pass limitsFromEnv(env) on the Worker. Omit for the defaults.
+  limits?: Limits;
 }
 
 export function createApp(probeDatabase: () => Promise<void> = async () => {}, options?: CreateAppOptions) {
@@ -61,7 +64,12 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
     setGlobalPool(options.pool);
   }
 
-  const app = new Hono<{ Variables: { requestId: string; pool?: pg.Pool } }>();
+  const app = new Hono<{ Variables: { requestId: string; pool?: pg.Pool; limits?: Limits } }>();
+  const limits: Limits = options?.limits ?? { ...DEFAULT_LIMITS };
+  app.use('*', async (c, next) => {
+    c.set('limits', limits);
+    await next();
+  });
 
   // 0. CORS middleware for browser frontend integration & preflight handling
   app.use('*', cors({

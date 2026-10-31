@@ -7,6 +7,7 @@ import { processOutboxLease } from '../adapters/notifications.ts';
 import { mailerFromEnv, type MailEnv } from '../services/mailer.ts';
 import { purgeEndedWindows } from '../adapters/rate-limit-postgres.ts';
 import { purgeSettledOutbox } from '../services/outbox-retention.ts';
+import { limitsFromEnv } from '../services/limits.ts';
 import { R2StorageDriver, runWithStorageDriver, type R2BucketBinding } from '../adapters/storage.ts';
 
 export type WorkerBindings = MailEnv & {
@@ -69,6 +70,7 @@ export default {
       deadlineMs: 25_000,
       rateLimitBindingsRequired: true,
       storage: imageStorage(env),
+      limits: limitsFromEnv(env as unknown as Record<string, unknown>),
     });
     try {
       return await app.fetch(request, env, ctx);

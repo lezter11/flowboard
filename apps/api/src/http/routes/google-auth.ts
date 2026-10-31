@@ -8,6 +8,7 @@ import {
   isLocalhost,
 } from '../../adapters/session.ts';
 import { normalizeNamePart } from '@flowboard/contracts';
+import { ensurePersonalWorkspace } from '../../adapters/personal-workspace.ts';
 import { SESSION_COOKIE_NAME } from '../middleware/auth.ts';
 import { HttpError } from '../errors.ts';
 import { sanitizeNextPath } from '../safe-next.ts';
@@ -221,21 +222,8 @@ googleAuthRoutes.get('/google/callback', async (c) => {
 
     const user = userRes.rows[0]!;
 
-    // Check if user owns at least one workspace; if not, create a personal workspace
-    const wsCheck = await client.query<{ id: string }>(
-      `SELECT id FROM workspaces WHERE owner_id = $1 LIMIT 1`,
-      [user.id],
-    );
-
-    if (wsCheck.rows.length === 0) {
-      const defaultWsId = 'ws_' + crypto.randomUUID();
-      const wsName = `${user.display_name}'s Workspace`;
-      await client.query(
-        `INSERT INTO workspaces (id, name, timezone, owner_id, version, created_at, updated_at)
-         VALUES ($1, $2, 'UTC', $3, 1, NOW(), NOW())`,
-        [defaultWsId, wsName, user.id],
-      );
-    }
+    // One personal workspace per person, made through the shared helper (B-17, F-05, F-15).
+    await ensurePersonalWorkspace(client, user.id);
 
     // Create session
     const session = await createSession(user.id, 24 * 7, client);
