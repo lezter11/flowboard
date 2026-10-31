@@ -963,6 +963,9 @@ test('COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite', as
     const failBody = await restoreFailRes.json();
     assert.equal(failBody.error.code, 'RESTORE_DESTINATION_REQUIRED');
     assert.equal(failBody.error.details.reason, 'destination_missing');
+    // ERR-R1 S14: the board's columns come with the refusal, so the picker needs no second call.
+    assert.ok(Array.isArray(failBody.error.details.columns), 'columns are listed');
+    assert.ok(failBody.error.details.columns.every((col: { id: unknown; name: unknown }) => typeof col.id === 'string' && typeof col.name === 'string'));
 
     // 5. Restore with invalid toColumnId from non-existent column -> 400 INVALID_DESTINATION
     const restoreInvalidColRes = await app.request(`/api/v1/cards/${card2Id}/restore`, {

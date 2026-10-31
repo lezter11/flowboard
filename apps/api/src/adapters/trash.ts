@@ -606,12 +606,18 @@ export async function restoreCard(
       [card.column_id, card.board_id],
     );
     if (colRes.rows.length === 0) {
+      // The caller can read this board (lockCardBoard above), so its columns may be listed for the picker (ERR-R1 S14).
+      const boardColumns = await client.query<{ id: string; name: string }>(
+        'SELECT id, name FROM columns WHERE board_id = $1 ORDER BY position ASC, id ASC',
+        [card.board_id],
+      );
       throw HttpError.conflict(
         'RESTORE_DESTINATION_REQUIRED',
         'Original column was deleted; explicit destination column is required.',
         {
           reason: 'destination_missing',
           boardId: card.board_id,
+          columns: boardColumns.rows.map((col) => ({ id: col.id, name: col.name })),
         },
       );
     }

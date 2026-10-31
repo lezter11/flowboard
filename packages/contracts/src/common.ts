@@ -279,4 +279,11 @@ export const assigneeNotEligibleDetailsSchema = z
 Object.assign(ERROR_DETAILS_SCHEMAS, {
   ASSIGNEE_NOT_ELIGIBLE: assigneeNotEligibleDetailsSchema,
   QUOTA_EXCEEDED: quotaExceededDetailsSchema,
+  RESTORE_DESTINATION_REQUIRED: z
+    .object({
+      reason: z.string().min(1),
+      boardId: z.string().min(1),
+      columns: z.array(z.object({ id: z.string().min(1), name: z.string().min(1) })),
+    })
+    .passthrough(),
 });
