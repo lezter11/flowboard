@@ -1,0 +1,14 @@
+# Needs owner
+
+Run these steps with two real Google accounts on a phone and desktop. Do not send credentials or screenshots containing private project content into the audit logs.
+
+1. **Invite delivery:** As Owner, invite a second account as Member. Open the email from inbox or spam in light and dark mode on phone and desktop. Expected: it arrives within seconds; the displayed project, inviter and role are correct; the accept link opens Flowboard.
+2. **Name and accept:** Sign in with the invited account. Expected: the name screen appears once, is prefilled, and after saving returns to the accept screen. Accept the invitation. Expected: the shared project appears and no board is visible before a board grant.
+3. **Own-project quota:** As that Member/Viewer, create an owned project (you become Owner), create three active projects, and try a fourth. Expected: the fourth shows a calm quota message with the archive remedy and no dead end. Archive one and try again; expected: creation succeeds. Repeat with archive/reopen and idempotent retry if practical.
+4. **Manager board cap and grant:** As a Manager in someone else's project, create boards until there are five active boards total. Try a sixth. Expected: it is refused. Expected: the Manager can open only the board they created, not other boards.
+5. **Leave behavior:** Leave a shared project. Then test leaving a project as its only Owner. Expected: regular membership is removed; the only Owner cannot leave and receives a clear explanation.
+6. **Two-browser live and merge behavior:** Open the same board in two browsers. Make a change in one and observe refresh in the other (about 15 seconds), then create a conflict and observe conflict handling. Select multiple boards with shared column names and one extra column; drag cards across matching columns. Expected: each card stays bound to its own board; a missing destination column is refused with a hint; one failing board does not blank the others.
+7. **Invitation edge states:** Test a wrong-account link, expired invitation, revoked invitation, and resent invitation. Expected: wrong account cannot accept; expired/revoked tokens do not work; resending invalidates the prior link and the current link succeeds once.
+8. **Accessibility:** On the new name, projects, switcher, invitation, and Leave project screens, complete the main flows with keyboard only and with reduced motion enabled. Expected: focus stays visible and returns after dialogs, animations/easter eggs stop, controls have labels, and phone-width layout remains usable.
+
+Also test ownership transfer directly only if the product owner deliberately re-enables that capability after the audit: the Round 4 requirement is that it is disabled, and local evidence confirms the API currently transfers a workspace. No live UAT ownership-transfer test was run.

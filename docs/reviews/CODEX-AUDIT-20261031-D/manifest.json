@@ -1,0 +1,224 @@
+{
+  "target": {
+    "ownerProvidedCommit": "99ae250d1c1f6fddf7747bd5676a7234abf72a11",
+    "observedHead": "99ae250d1c1f6fddf7747bd5676a7234abf72a11",
+    "branch": "detached",
+    "worktree": "/private/tmp/flowboard-audit-99ae250",
+    "worktreeStatusShort": "clean",
+    "baseCommitFromPriorAuditManifest": "36dfb3a4172ca5cc910c6c6503b4efd641031e35",
+    "commitsAfterBase": 45
+  },
+  "freeze": {
+    "scopeRoots": [
+      "apps/api/src",
+      "apps/web/src",
+      "apps/web/functions",
+      "packages/contracts/src",
+      "database/migrations",
+      "apps/api/wrangler.jsonc",
+      "apps/web/wrangler*.jsonc"
+    ],
+    "fileCount": 230,
+    "sourceBytes": 1822990,
+    "algorithm": "SHA-256 of compact UTF-8 JSON array [{path,sha256,bytes}] sorted by path and object keys",
+    "canonicalSha256": "abd4c1ceee98cf2c14f44045d02f4638c0a2e7e0bf181db6df69afd4ba14a008",
+    "files": "raw/scope-hashes.json"
+  },
+  "tools": {
+    "node": "v24.15.0",
+    "npm": "11.12.1",
+    "python": "3.14.6",
+    "git": "2.54.0 Apple Git-157",
+    "docker": "29.6.2",
+    "gitleaks": "8.30.1",
+    "postgres": "17.11",
+    "postgresImage": "postgres:17.11-alpine",
+    "postgresImageDigest": "sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b",
+    "postgresPort": 55801
+  },
+  "commandLog": [
+    {
+      "command": "git worktree add --detach /private/tmp/flowboard-audit-99ae250 99ae250d1c1f6fddf7747bd5676a7234abf72a11 (retry with local permission after sandbox denial)",
+      "exitCode": 0
+    },
+    {
+      "command": "git rev-parse HEAD; git status --short",
+      "exitCode": 0,
+      "result": "target SHA matched; clean"
+    },
+    {
+      "command": "git diff --stat and git log 36dfb3a4172ca5cc910c6c6503b4efd641031e35..99ae250d1c1f6fddf7747bd5676a7234abf72a11",
+      "exitCode": 0,
+      "result": "325 files changed; 57,534 insertions; 304 deletions"
+    },
+    {
+      "command": "npm ci --ignore-scripts",
+      "exitCode": 0,
+      "result": "230 packages added"
+    },
+    {
+      "command": "npm test before installing dependencies",
+      "exitCode": 1,
+      "result": "pg module missing; no tests ran"
+    },
+    {
+      "command": "npm test after installation with disposable DBs on port 55801",
+      "exitCode": 130,
+      "result": "interrupted before suite completion; no full-suite count"
+    },
+    {
+      "command": "node --test-concurrency=1 --test selected B-14/B-16/B-17/B-18/immediate-send API tests",
+      "exitCode": 0,
+      "result": "61/61 passed, 0 skipped"
+    },
+    {
+      "command": "node --test-concurrency=1 --test test/acc-lifecycle.test.ts",
+      "exitCode": 0,
+      "result": "7/7 passed, 0 skipped; confirms ownership transfer succeeds"
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run test --workspace @flowboard/web",
+      "exitCode": 0,
+      "result": "145/145 passed, 0 skipped"
+    },
+    {
+      "command": "npm run test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "result": "108/108 passed, 0 skipped"
+    },
+    {
+      "command": "npm audit --omit=dev --json",
+      "exitCode": 1,
+      "result": "2 advisories: 1 high, 1 moderate"
+    },
+    {
+      "command": "npm audit --json",
+      "exitCode": 1,
+      "result": "5 advisories: 2 high, 3 moderate"
+    },
+    {
+      "command": "gitleaks dir --redact=100 --report-format json",
+      "exitCode": 1,
+      "result": "249 redacted generic-api-key detections"
+    },
+    {
+      "command": "gitleaks git --log-opts=--all --redact=100 --report-format json",
+      "exitCode": 1,
+      "result": "211 commits scanned; 249 redacted generic-api-key detections"
+    },
+    {
+      "command": "generated route authorization matrix from route declarations; synthetic identities; disposable Postgres",
+      "exitCode": 0,
+      "result": "95 routes x 10 identities = 950 cells"
+    },
+    {
+      "command": "UAT anonymous probes: Pages root; guessed Worker host; documented UAT Worker host",
+      "exitCode": 0,
+      "result": "4 successful responses; 3 incorrect-host DNS failures; total 7 requests"
+    },
+    {
+      "command": "docker pull postgres:17.11-alpine",
+      "exitCode": 0
+    },
+    {
+      "command": "docker run disposable PostgreSQL, create flowboard_harness and flowboard_access_test; pg_isready",
+      "exitCode": 0,
+      "result": "localhost port 55801; PostgreSQL 17.11"
+    },
+    {
+      "command": "sanitized Wrangler config structure review",
+      "exitCode": 0
+    },
+    {
+      "command": "git worktree add initial unprivileged attempt",
+      "exitCode": 1,
+      "result": "sandbox denied .git/worktrees metadata write; retried with permission and succeeded"
+    },
+    {
+      "command": "synthetic target-at-cap workspace transfer probe on disposable PostgreSQL port 55801",
+      "exitCode": 0,
+      "result": "200 transfer; target owned project count 3 before and 4 after"
+    },
+    {
+      "command": "initial target-at-cap probe with missing synthetic target workspace",
+      "exitCode": 1,
+      "result": "fixture error, PostgreSQL 23502; corrected rerun passed"
+    },
+    {
+      "command": "rerun raw route-list generator against frozen source",
+      "exitCode": 0,
+      "result": "95 routes; executed matrix has 950 cells"
+    },
+    {
+      "command": "scope hash recheck after tests",
+      "exitCode": 0,
+      "result": "all 230 scoped file hashes unchanged; worktree clean"
+    },
+    {
+      "command": "gitleaks redaction metadata check",
+      "exitCode": 0,
+      "result": "Secret and Match fields in both 249-entry reports carry redaction markers"
+    },
+    {
+      "command": "docker rm -f flowboard-r4-99ae250-pg",
+      "exitCode": 0,
+      "result": "disposable PostgreSQL container removed"
+    },
+    {
+      "command": "git worktree remove /private/tmp/flowboard-audit-99ae250",
+      "exitCode": 0,
+      "result": "detached audit worktree removed"
+    }
+  ],
+  "limitationsAndFailedAttempts": [
+    "The first unprivileged git worktree creation was blocked by .git write sandbox permissions; authorized retry succeeded.",
+    "First npm test failed before installation because the detached worktree had no node_modules.",
+    "The full npm test attempt did not complete; it was interrupted and no total count is claimed.",
+    "First route-list generator attempt had a tuple-unpack bug; corrected generator completed and route set was checked against the prior 93-route matrix.",
+    "Three early UAT requests used an incorrectly guessed Worker hostname and failed DNS; the documented hostname then returned expected responses.",
+    "npm audit reports exit 1 because advisory findings were present, not because the registry request failed.",
+    "Gitleaks reports were fully redacted and findings were not individually triaged.",
+    "No signed-in UAT, production service, database, Worker, Pages, or R2 was accessed.",
+    "Initial quota-transfer fixture omitted the target personal workspace and failed with PostgreSQL 23502; the corrected target-at-cap reproduction succeeded with a count increase from 3 to 4.",
+    "The Round 1 GEMINI_REVIEW_HANDOVER.md and RULES.md were consulted from the frozen target after probing rather than before, as required by their read order; recorded as a process limitation."
+  ],
+  "artifacts": [
+    "findings.md",
+    "coverage.md",
+    "needs-owner.md",
+    "summary.md",
+    "route-authorization-matrix-round4.json",
+    "raw/scope-hashes.json",
+    "raw/route-list-generated.json",
+    "raw/run-route-matrix-round4.mjs",
+    "raw/route-matrix-run.log",
+    "raw/npm-test-before-install.log",
+    "raw/full-api-suite-attempt.txt",
+    "raw/focused-api-tests.log",
+    "raw/acc-lifecycle.log",
+    "raw/typecheck.log",
+    "raw/web-tests.log",
+    "raw/contracts-tests.log",
+    "raw/npm-audit-prod.json",
+    "raw/npm-audit-all.json",
+    "raw/gitleaks-dir.json",
+    "raw/gitleaks-history.json",
+    "raw/uat-anonymous.json",
+    "raw/uat-api-anonymous.json",
+    "raw/commit-range.log",
+    "raw/diff-stat.log",
+    "raw/generate-route-list.py",
+    "raw/probe-transfer-quota-bypass.mjs",
+    "raw/transfer-quota-bypass.log",
+    "raw/transfer-quota-bypass-initial-attempt.txt",
+    "raw/command-log.md"
+  ],
+  "supplementaryInstructionsReadAfterProbing": [
+    "docs/GEMINI_REVIEW_HANDOVER.md",
+    "RULES.md"
+  ]
+}

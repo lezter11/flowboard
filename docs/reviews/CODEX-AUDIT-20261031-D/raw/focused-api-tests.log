@@ -1,0 +1,77 @@
+✔ B-14 migration 0017: 0001 to 0017 migrate from empty and the file runs twice without error (153.143458ms)
+✔ B-14 migration 0017: rate_limit_windows rejects a negative request_count and accepts zero (118.090042ms)
+✔ B-14 migration 0017: the child-side indexes exist (133.456875ms)
+✔ B-14 migration 0017: a settled outbox row without settled_at is backfilled from created_at on re-run; pending rows stay unsettled (125.839917ms)
+✔ B-14: a delivered invitation keeps only a receipt with the provider message id (140.271458ms)
+✔ B-14: a permanently refused invitation keeps an empty receipt, with no recipient or template fields (113.488583ms)
+✔ B-14: a retryable failure keeps the payload, so the drain can still send it (123.982459ms)
+✔ B-14: the retention purge deletes settled rows older than 30 days, and nothing else (135.0165ms)
+✔ B-14: the trash-then-purge path leaves no card title, description or comment text in notifications, activity or the outbox (201.193125ms)
+✔ B-16 migration 0018: adds the three columns, is idempotent, and enforces the length bounds (28.624334ms)
+▶ B-16 Google sign-in: given and family name are suggestions only, and the name stays unconfirmed
+  ✔ a second sign-in refreshes the suggestion while the name is unconfirmed (5.035458ms)
+  ✔ a profile with no given or family name gives no suggestion, and sign-in still works (4.711083ms)
+  ✔ after the user saves a name, a later sign-in changes neither the names nor the confirmation (7.472417ms)
+✔ B-16 Google sign-in: given and family name are suggestions only, and the name stays unconfirmed (38.734167ms)
+✔ B-16 session: an existing or Google user is asked for a name; a dev fixture user is not (7.956584ms)
+✔ B-16 save: names are trimmed and collapsed, display_name follows, and saving again is idempotent (5.390375ms)
+▶ B-16 hostile input: refused with 422 and nothing stored; plain text is kept as text
+  ✔ NUL control (0.997167ms)
+  ✔ zero-width space (0.845583ms)
+  ✔ zero-width joiner (0.619708ms)
+  ✔ BOM (0.687208ms)
+  ✔ right-to-left override (0.635084ms)
+  ✔ left-to-right isolate (0.664083ms)
+  ✔ line separator (0.561625ms)
+  ✔ paragraph separator (0.585375ms)
+  ✔ CRLF injection (0.582792ms)
+  ✔ too long (61) (0.570917ms)
+  ✔ whitespace only (0.570833ms)
+  ✔ empty last name (0.585ms)
+  ✔ missing last name (0.699625ms)
+  ✔ number (0.538958ms)
+  ✔ unknown field (0.606916ms)
+✔ B-16 hostile input: refused with 422 and nothing stored; plain text is kept as text (13.895041ms)
+✔ B-16 authorization: the save needs a signed-in session and a same-site Origin (1.404458ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-16 accept gate: an unnamed user cannot accept an invitation; a named user can (23.751334ms)
+✔ B-17 ensure: parallel callers for a person with no workspace make exactly one (39.751541ms)
+✔ B-17 ensure: the primary workspace is the oldest owned one, by created_at then id (3.155625ms)
+✔ B-17 sign-in: a long display name never makes a workspace the session cannot parse (19.680333ms)
+✔ B-17 double Google sign-in: the callback twice gives the person one workspace (9.216167ms)
+▶ backstops count archived items and session exposes effective limits
+  ✔ Node runtime applies environment overrides to session limits (20.130792ms)
+  ✔ Worker handler applies environment overrides to session limits (9.492125ms)
+  ✔ board archive cycles reach the total backstop (50.405542ms)
+  ✔ project archive cycles reach the total backstop (26.141833ms)
+  ✔ invalid overrides fall back and valid overrides apply (0.115333ms)
+✔ backstops count archived items and session exposes effective limits (156.156708ms)
+✔ default 20-project and 25-board backstops include archived rows (51.367875ms)
+▶ B-18: owned project and shared board permissions
+  ✔ member and viewer cannot create shared boards; manager can (18.536833ms)
+  ✔ each shared role can create a project of their own without a workspace (14.063084ms)
+  ✔ a supplied workspaceId is rejected (1.003792ms)
+  ✔ project limit rejects the fourth create but allows replay at the cap (35.823583ms)
+  ✔ board limit applies across creators and hides the count from a manager (29.434666ms)
+  ✔ archive frees a board slot and an archived board cannot reopen at the cap (26.882542ms)
+  ✔ two project creates waiting at the same quota lock cannot exceed the cap (34.916333ms)
+  ✔ two board creates waiting at the project quota lock cannot exceed the cap (28.634542ms)
+  ✔ project archive frees a slot and reopening at the cap is rejected (19.309334ms)
+  ✔ existing over-limit projects are preserved and further creation is refused (5.969833ms)
+✔ B-18: owned project and shared board permissions (268.70575ms)
+{"event":"invitation_immediate_send","result":"delivered"}
+✔ UAT: the invite route hands the immediate send to waitUntil, and the row is delivered before the drain runs (172.53925ms)
+{"level":"warn","event":"rate_limit_client_ip_missing"}
+{"event":"invitation_immediate_send","result":"delivered"}
+✔ UAT: the Worker passes its ExecutionContext to the app, so the immediate send starts on a real request (138.186375ms)
+✔ UAT: with no ExecutionContext the invite still succeeds, and the skip is logged as a reason code only (127.925583ms)
+✔ UAT: each skip path logs its reason code, and nothing is sent (144.562667ms)
+✔ UAT: a Brevo 500 is logged as a retry reason and the row stays pending for the drain (144.100041ms)
+ℹ tests 61
+ℹ suites 0
+ℹ pass 61
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3841.821
