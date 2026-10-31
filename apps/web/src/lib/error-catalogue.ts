@@ -58,14 +58,18 @@ const list = (names: string[]) => {
 };
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
 
-const SERVER_FAULT = e('Something broke on our side', 'Nothing was changed. Try again. If it keeps happening, tell support the reference below.', 'retry', { retryable: true });
+/** Whether the note will show a reference: server faults and unknown codes with a request id (see describeFailureOf). */
+const refShown = (f: Failure) => !!f.requestId && (f.status >= 500 || !CATALOGUE[f.code]) && f.status !== 0;
+// Only promises a reference when one is on screen.
+const SERVER_FAULT: Entry = (f) => ({ title: 'Something broke on our side', body: `Nothing was changed. Try again. If it keeps happening, tell support${refShown(f) ? ' the reference below' : ''}.`, action: 'retry', retryable: true });
+// A 400 the person did not cause on purpose: not the server's fault, and no reference is shown for it.
+const CLIENT_FAULT = e('That request didn’t go through', 'Reload the page and try again. If it keeps happening, tell us what you were doing.', 'reload');
 const STALE_ENTITY: Record<string, string> = { card: 'card', board: 'board', project: 'project', member: 'person', comment: 'comment', image: 'image', import: 'import', workspace: 'project' };
 const OUT_OF_DATE = e('Flowboard was updated', 'This tab is out of date. Reload to get the latest version.', 'reload');
 const NO_PEOPLE_PICK = e('That column no longer exists', 'Choose another column.', 'column');
 
 function forbidden(f: Failure, c: Ctx) {
   const reason = String(asDetails(f).reason ?? '');
-  const ask = isOwner(c) ? 'Change it in People.' : `Ask ${owner(c)}.`;
   switch (reason) {
     case 'viewer_read_only': return { title: 'Viewers can read, not change', body: 'Ask an Owner or Manager to make you a Member if you need to edit.' };
     case 'manager_required': return { title: 'Managers and Owners only', body: 'Ask an Owner or Manager to do this.' };
@@ -78,7 +82,7 @@ function forbidden(f: Failure, c: Ctx) {
     case 'owner_cannot_leave': return { title: 'Owners can’t leave their project', body: 'Archive it in Settings if you are done with it.', action: 'settings' as ActionKind };
     case 'author_only': return { title: 'Only the author can edit this', body: 'You can reply instead, or delete it if your role allows.' };
     case 'uploader_or_manager': return { title: 'Only the uploader or a Manager can do this', body: 'Ask the person who added it, or a Manager.' };
-    default: return { title: 'Your role can’t do that', body: `Ask an Owner or Manager. ${ask}`.replace(/ Ask the project Owner\.$/, '') };
+    default: return isOwner(c) ? { title: 'That isn’t available here', body: 'Reload the page and try again. If it keeps happening, tell us what you were doing.' } : { title: 'Your role can’t do that', body: 'Ask an Owner or Manager.' };
   }
 }
 
@@ -173,8 +177,8 @@ export const CATALOGUE: Record<string, Entry> = {
   DATABASE_UNAVAILABLE: e('Flowboard is busy', 'Your change was not saved. Wait a few seconds and try again.', 'retry', { retryable: true }),
   DEADLINE_EXCEEDED: e('That took too long', 'We don’t know if it saved. Reload to check before trying again.', 'reload', { retryable: true }),
   CONFIG_ERROR: e('This isn’t set up yet', 'Ask whoever runs this Flowboard to finish the setup.'),
-  MALFORMED_REQUEST: SERVER_FAULT,
-  BAD_REQUEST: SERVER_FAULT,
+  MALFORMED_REQUEST: CLIENT_FAULT,
+  BAD_REQUEST: CLIENT_FAULT,
   PAYLOAD_TOO_LARGE: payloadTooLarge,
   // Session and roles
   UNAUTHORIZED: e('Your session ended', 'Sign in again to keep working. Your unsaved text stays on this page until you leave it.', 'signin'),
@@ -228,7 +232,7 @@ export const CATALOGUE: Record<string, Entry> = {
   INVALID_IMAGE: e('That file isn’t a valid image', 'Only PNG, JPEG and WebP images work.', 'file'),
   EMPTY_FILE: e('The file is empty', 'Choose a file that has content.', 'file'),
   INVALID_DIMENSIONS: e('That image has no size', 'Choose a different image.', 'file'),
-  FILE_TOO_LARGE: (f) => { const max = num(asDetails(f).maxBytes); return { title: 'This image is too large', body: max !== null ? `The limit is ${Math.round(max / 1_048_576)} MB. Choose a smaller image.` : 'Choose a smaller image.', action: 'file' as ActionKind }; },
+  FILE_TOO_LARGE: (f) => { const max = num(asDetails(f).maxBytes); return { title: 'This image is too large', body: max !== null ? `The limit is ${Math.max(1, Math.round(max / 1_048_576))} MB. Choose a smaller image.` : 'Choose a smaller image.', action: 'file' as ActionKind }; },
   UNSUPPORTED_MEDIA_TYPE: e('That image type isn’t supported', 'Only PNG, JPEG and WebP images work.', 'file'),
   DIMENSIONS_EXCEEDED: e('This image has too many pixels', 'Choose a smaller image, or shrink it before uploading.', 'file'),
   MEGAPIXELS_EXCEEDED: e('This image has too many pixels', 'Choose a smaller image, or shrink it before uploading.', 'file'),
@@ -240,7 +244,7 @@ export const CATALOGUE: Record<string, Entry> = {
   ALREADY_FINALIZED: e('This image was already added', 'Reload the card to see it.', 'reload'),
   CONTENT_MISSING: e('The upload was interrupted', 'Start the upload again.', 'retry', { retryable: true }),
   MENTION_NOT_ALLOWED: e('A mention can’t be sent', 'Someone you mentioned can’t see this board. Remove the mention, then post.'),
-  MENTION_RANGE_INVALID: SERVER_FAULT,
+  MENTION_RANGE_INVALID: CLIENT_FAULT,
   // People and invitations
   ALREADY_MEMBER: (f, c) => c.role === 'owner' || c.role === 'manager' ? { title: 'They are already in this project', body: 'Change their role in People instead.', action: 'people' as ActionKind } : { title: 'You’re already in this project', body: 'Open it from your projects.', action: 'projects' as ActionKind },
   INVITATION_ALREADY_EXISTS: e('That email already has an invitation', 'Send it again instead of creating a second one.'),
@@ -251,7 +255,7 @@ export const CATALOGUE: Record<string, Entry> = {
   RATE_LIMITED: rateLimited,
   INVALID_ACCESS_REVISION: e('Access changed', 'The list is updated. Try again.', 'retry'),
   INVALID_CURSOR: e('The list changed', 'Reload the list to keep browsing.', 'reload'),
-  INVALID_CONTENT_TYPE: SERVER_FAULT,
+  INVALID_CONTENT_TYPE: CLIENT_FAULT,
   // Trash and import
   RESTORE_WINDOW_EXPIRED: (f, c) => ({ title: 'Too late to restore', body: `Cards can be restored for 24 hours after deletion. ${c.item ? `“${c.item}” is` : 'This card is'} past that and will be removed for good.` }),
   RESTORE_DESTINATION_REQUIRED: (f, c) => ({ title: 'Pick a column to restore into', body: `${c.item ? `“${c.item}” was` : 'This card was'} in a column that no longer exists. Choose where it should go.`, action: 'column' as ActionKind }),
@@ -289,10 +293,10 @@ export const CATALOGUE: Record<string, Entry> = {
   INVALID_STATE: e('That can’t be done right now', 'The item is in a different state than expected. Reload and try again.', 'reload'),
   MAX_LENGTH_EXCEEDED: e('That is too long', 'Shorten the text and try again.'),
   REQUIRED: e('A required field is empty', 'Fill it in and try again.'),
-  NUMERIC_ID_REJECTED: SERVER_FAULT,
+  NUMERIC_ID_REJECTED: CLIENT_FAULT,
   UNRECOGNIZED_STATUS: e('That status isn’t recognised', 'Use one of the statuses from the template.', 'template'),
   MIGRATION_FAILED: e('Flowboard is being updated', 'Your change was not saved. Wait a few minutes and try again.', 'retry', { retryable: true }),
-  IDEMPOTENCY_KEY_REQUIRED: SERVER_FAULT,
+  IDEMPOTENCY_KEY_REQUIRED: CLIENT_FAULT,
   IDEMPOTENCY_CONFLICT: e('That request was already sent', 'Reload, then try again.', 'reload'),
 };
 

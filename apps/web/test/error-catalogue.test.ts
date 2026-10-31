@@ -138,3 +138,35 @@ test('codes with two statuses read the same at either', () => {
     assert.deepEqual([a!.title, a!.body], [b!.title, b!.body], code);
   }
 });
+
+test('client-caused 400s do not blame the server, and no note promises a reference that is not shown', () => {
+  for (const code of ['MALFORMED_REQUEST', 'BAD_REQUEST', 'MENTION_RANGE_INVALID', 'INVALID_CONTENT_TYPE', 'NUMERIC_ID_REJECTED', 'IDEMPOTENCY_KEY_REQUIRED']) {
+    const d = describeFailureOf(f(code, 400, { requestId: 'req-9' }));
+    assert.equal(d.title, 'That request didn’t go through', code);
+    assert.equal(d.action?.kind, 'reload', code);
+    assert.match(d.body, /Reload the page and try again/, code);
+    assert.doesNotMatch(d.title + d.body, /our side|reference/i, code);
+    assert.equal(d.reference, null, code);
+  }
+});
+
+test('"the reference below" is promised only when a reference is shown', () => {
+  const withRef = describeFailureOf(f('INTERNAL_ERROR', 500, { requestId: 'req-1' }));
+  assert.match(withRef.body, /the reference below/);
+  assert.equal(withRef.reference, 'req-1');
+  const noId = describeFailureOf(f('INTERNAL_ERROR', 500));
+  assert.doesNotMatch(noId.body, /reference/);
+  assert.equal(noId.reference, null);
+  for (const code of ALL) for (const status of [0, 400, 409, 422, 500, 503]) {
+    const d = describeFailureOf(f(code, status, { requestId: 'r' }));
+    if (/reference below/.test(d.body)) assert.equal(d.reference, 'r', `${code}/${status} promises a reference it does not show`);
+  }
+});
+
+test('a plain 403 never tells an Owner to ask an Owner, and small file limits never read "0 MB"', () => {
+  const owner = describeFailureOf(f('FORBIDDEN', 403), { role: 'owner' });
+  assert.doesNotMatch(owner.body, /Ask an Owner/);
+  assert.match(describeFailureOf(f('FORBIDDEN', 403), { role: 'member' }).body, /Ask an Owner or Manager/);
+  assert.match(describeFailureOf(f('FILE_TOO_LARGE', 422, { details: { maxBytes: 300_000 } })).body, /limit is 1 MB/);
+  assert.match(describeFailureOf(f('PAYLOAD_TOO_LARGE', 413, { details: { maxBytes: 300_000 } })).body, /limit is 1 MB/);
+});

@@ -46,3 +46,12 @@ test('name step animation sits inside no-preference', () => {
   const outside = css.replace(/@media \(prefers-reduced-motion: no-preference\) \{[\s\S]*?\n\}\n/g, '').replace(/@keyframes[\s\S]*?\n\}\n/g, '');
   assert.ok(!/animation\s*:|transition\s*:/.test(outside));
 });
+
+test('name errors are announced: both inline error paragraphs are alerts and stay tied to their inputs', () => {
+  const src = readFileSync(new URL('../src/components/auth/name-step.tsx', import.meta.url), 'utf8');
+  assert.match(src, /id="nameFirstError" role="alert"/);
+  assert.match(src, /id="nameLastError" role="alert"/);
+  assert.match(src, /aria-describedby=\{showFirst \? 'nameFirstError' : undefined\}/);
+  assert.match(src, /aria-describedby=\{showLast \? 'nameLastError' : undefined\}/);
+  assert.match(src, /aria-invalid=\{showFirst \? true : undefined\}/);
+});

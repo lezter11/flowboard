@@ -76,12 +76,12 @@ export function NameStep({ session }: { session: SessionData }) {
                 <div className="field">
                   <label className="field-label" htmlFor="nameFirst">First name</label>
                   <input ref={firstRef} className="control" id="nameFirst" name="given-name" autoComplete="given-name" value={first} onChange={(event) => { setFirst(event.target.value); setServerError(''); }} aria-invalid={showFirst ? true : undefined} aria-describedby={showFirst ? 'nameFirstError' : undefined} />
-                  {showFirst && <p className="form-error" id="nameFirstError">{check.errors.firstName}</p>}
+                  {showFirst && <p className="form-error" id="nameFirstError" role="alert">{check.errors.firstName}</p>}
                 </div>
                 <div className="field">
                   <label className="field-label" htmlFor="nameLast">Last name</label>
                   <input ref={lastRef} className="control" id="nameLast" name="family-name" autoComplete="family-name" value={last} onChange={(event) => { setLast(event.target.value); setServerError(''); }} aria-invalid={showLast ? true : undefined} aria-describedby={showLast ? 'nameLastError' : undefined} />
-                  {showLast && <p className="form-error" id="nameLastError">{check.errors.lastName}</p>}
+                  {showLast && <p className="form-error" id="nameLastError" role="alert">{check.errors.lastName}</p>}
                 </div>
               </div>
               {(session.suggestedFirstName || session.suggestedLastName) && <p className="name-hint">We filled this in from your Google account. Change it if it is not how you want to appear.</p>}
