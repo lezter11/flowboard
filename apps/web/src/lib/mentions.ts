@@ -12,14 +12,83 @@ export interface Trigger { start: number; query: string }
 const WORD = /[\p{L}\p{N}_]/u;
 export const MAX_MENTIONS = 20;
 
-/** The "@que" being typed just before the caret, if the @ starts the text or follows whitespace. */
-export function activeTrigger(text: string, caret: number): Trigger | null {
+export const MAX_QUERY = 40;
+
+/** Lower-case, accent-free form of a name or query, with a map from each character back to the original text. */
+function fold(text: string): { norm: string; map: number[] } {
+  let norm = '';
+  const map: number[] = [];
+  let i = 0;
+  for (const ch of text) {
+    const piece = ch.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase();
+    for (let k = 0; k < piece.length; k += 1) map.push(i);
+    norm += piece;
+    i += ch.length;
+  }
+  map.push(text.length);
+  return { norm, map };
+}
+const foldQuery = (q: string) => fold(q).norm.replace(/\s+/g, ' ');
+
+/** Where a typed query matches a name: the start of the name or the start of any later word. Accents and case are ignored. */
+export function matchRange(name: string, query: string): { start: number; end: number; rank: 0 | 1 } | null {
+  const q = foldQuery(query);
+  if (q.trim() === '') return { start: 0, end: 0, rank: 0 };
+  const { norm, map } = fold(name);
+  const flat = norm.replace(/\s+/g, ' ');
+  if (flat !== norm) return null; // names are stored with single spaces; anything else cannot be mapped back safely
+  const at = norm.startsWith(q) ? 0 : (() => { const w = norm.indexOf(` ${q}`); return w < 0 ? -1 : w + 1; })();
+  if (at < 0) return null;
+  const end = at + q.length;
+  return { start: map[at]!, end: map[end] ?? name.length, rank: at === 0 ? 0 : 1 };
+}
+
+/** Candidates for a query, best first: full-name prefix, then other word-start matches, then A to Z by full name. */
+export function rankPeople<T extends { id: string; displayName: string }>(people: readonly T[], query: string): T[] {
+  return people
+    .map((p) => ({ p, m: matchRange(p.displayName, query) }))
+    .filter((x): x is { p: T; m: NonNullable<ReturnType<typeof matchRange>> } => x.m !== null)
+    .sort((a, b) => a.m.rank - b.m.rank || a.p.displayName.localeCompare(b.p.displayName) || a.p.id.localeCompare(b.p.id))
+    .map((x) => x.p);
+}
+
+/** The name split into plain and matched pieces, for emphasising what was typed. */
+export function highlight(name: string, query: string): Array<{ text: string; hit: boolean }> {
+  const m = query.trim() === '' ? null : matchRange(name, query);
+  if (!m || m.end <= m.start) return [{ text: name, hit: false }];
+  return [{ text: name.slice(0, m.start), hit: false }, { text: name.slice(m.start, m.end), hit: true }, { text: name.slice(m.end), hit: false }].filter((x) => x.text !== '');
+}
+
+/** For people who share a full name: a stable "1 of 2" (ordered by id) so two identical rows can still be told apart. */
+export function duplicateLabels(people: ReadonlyArray<{ id: string; displayName: string }>): Map<string, string> {
+  const groups = new Map<string, string[]>();
+  for (const p of people) { const k = foldQuery(p.displayName); groups.set(k, [...(groups.get(k) ?? []), p.id]); }
+  const out = new Map<string, string>();
+  for (const ids of groups.values()) if (ids.length > 1) [...ids].sort().forEach((id, i) => out.set(id, `${i + 1} of ${ids.length}`));
+  return out;
+}
+
+/**
+ * The "@que" being typed just before the caret, if the @ starts the text or follows whitespace. The query may hold spaces
+ * ("@shubham si") up to 40 characters. It ends at a newline or another @. When `names` is given, a query with a space that
+ * can no longer match anyone ends the trigger, so ordinary text after "@bob" is not swallowed.
+ */
+export function activeTrigger(text: string, caret: number, names?: readonly string[]): Trigger | null {
   let j = caret - 1;
-  while (j >= 0 && !/\s/.test(text[j]!) && text[j] !== '@') j -= 1;
+  while (j >= 0 && caret - j <= MAX_QUERY + 1 && text[j] !== '@' && text[j] !== '\n' && text[j] !== '\r') j -= 1;
   if (j < 0 || text[j] !== '@') return null;
   if (j > 0 && !/\s/.test(text[j - 1]!)) return null;
   const query = text.slice(j + 1, caret);
-  return query.length > 40 ? null : { start: j, query };
+  if (query.length > MAX_QUERY) return null;
+  if (/\s/.test(query) && names && !names.some((n) => matchRange(n, query) !== null)) return null;
+  return { start: j, query };
+}
+
+/** Backspace over a mention removes all of it at once when the caret sits at its end (or inside it). */
+export function backspaceMention(text: string, caret: number, mentions: Mention[]): { text: string; caret: number } | null {
+  const m = mentions.find((x) => x.start < caret && caret <= x.end && text.slice(x.start, x.end) === `@${x.name}`);
+  if (!m) return null;
+  return { text: text.slice(0, m.start) + text.slice(m.end), caret: m.start };
 }
 
 /** Replaces the trigger with "@Name " and returns the new text, caret and the span that covers "@Name". */

@@ -320,8 +320,14 @@ export const api = {
     return request<ProjectDirectoryResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/members?limit=100`);
   },
 
-  async listProjectPeople(projectId: string, purpose?: 'display' | 'assignee' | 'mention'): Promise<ProjectPeopleResponse> {
-    return request<ProjectPeopleResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/people${purpose ? `?purpose=${purpose}` : ''}`);
+  /** Mentions need cardId (or boardId): the server answers an empty list without one, because mentions are limited to people who can read that board. */
+  async listProjectPeople(projectId: string, purpose?: 'display' | 'assignee' | 'mention', opts: { cardId?: string; boardId?: string } = {}): Promise<ProjectPeopleResponse> {
+    const q = new URLSearchParams();
+    if (purpose) q.set('purpose', purpose);
+    if (opts.cardId) q.set('cardId', opts.cardId);
+    if (opts.boardId) q.set('boardId', opts.boardId);
+    const qs = q.toString();
+    return request<ProjectPeopleResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/people${qs ? `?${qs}` : ''}`);
   },
 
   // Boards

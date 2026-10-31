@@ -10,12 +10,14 @@ import { usePollKeys } from '@/components/polling';
 import { dueInfo, relativeTime } from '@/lib/dates';
 import { neighbours } from '@/lib/board-model';
 import { describeActivity } from '@/lib/activity';
-import { can, type Role } from '@/lib/roles';
+import { can, ROLE_META, normalizeRole, type Role } from '@/lib/roles';
 import { useAssignablePeople } from '@/lib/assignee-people';
 import { EMPTY_ASSIGNEES, MAX_ASSIGNEES, assignableList, canAddAssignee, ineligibleIds, namesFor, pickerState } from '@/lib/assignees';
 import { Icon } from '@/components/ui/icon';
 import { CardImages } from './card-images';
-import { activeTrigger, applyMention, finalizeMentions, segments, shiftMentions, type Mention, type Trigger } from '@/lib/mentions';
+import { activeTrigger, applyMention, backspaceMention, duplicateLabels, finalizeMentions, highlight, rankPeople, segments, shiftMentions, type Mention, type Trigger } from '@/lib/mentions';
+import { mentionCandidates, mentionEmptyText } from '@/lib/mention-ui';
+import { useSession } from '@/lib/session';
 import { Avatar } from '@/components/ui/avatar';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { useToast } from '@/components/ui/toasts';
@@ -428,18 +430,24 @@ function Comments({ cardId, projectId, people, role, onPosted }: { cardId: strin
   }, [body]);
   const comments = (list.data ?? []).filter((c) => !c.deletedAt);
   const canComment = can(role, 'edit');
-  // The board snapshot only lists people the card already references, so mention candidates come from the project people endpoint
-  // (purpose=mention). It does not check board grants: the server refuses anyone who cannot read this card (422) and the composer explains that.
-  const mentionPeople = useQuery({ queryKey: ['project-people', projectId, 'mention'], queryFn: async () => (await api.listProjectPeople(projectId, 'mention')).data, enabled: canComment, staleTime: 60_000 });
-  const candidates = useMemo(() => (mentionPeople.data ?? []).filter((p) => p.activeInProject && p.mentionable !== false), [mentionPeople.data]);
-  const matches = useMemo(() => {
-    if (!picker) return [];
-    const q = picker.trigger.query.toLowerCase();
-    return candidates.filter((p) => p.displayName.toLowerCase().includes(q)).slice(0, 8);
-  }, [candidates, picker]);
+  // The board snapshot only lists people the card already references, so mention candidates come from the project people endpoint.
+  // The server needs the card id: it limits mentions to people who can read that card's board, and answers an empty list without one.
+  const { state: sessionState } = useSession();
+  const actorId = sessionState.status === 'ready' ? sessionState.session.actor.id : null;
+  const mentionPeople = useQuery({
+    queryKey: ['project-people', projectId, 'mention', cardId],
+    queryFn: async () => (await api.listProjectPeople(projectId, 'mention', { cardId })).data,
+    enabled: canComment, staleTime: 60_000,
+    retry: (count, error) => !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 1,
+  });
+  const candidates = useMemo(() => mentionCandidates(mentionPeople.data), [mentionPeople.data]);
+  const candidateNames = useMemo(() => candidates.map((p) => p.displayName), [candidates]);
+  const dupes = useMemo(() => duplicateLabels(candidates), [candidates]);
+  const names = useMemo(() => namesFor(people, mentionPeople.data), [people, mentionPeople.data]);
+  const matches = useMemo(() => (picker ? rankPeople(candidates, picker.trigger.query) : []), [candidates, picker]);
 
   const refreshPicker = (text: string, caret: number) => {
-    const trigger = activeTrigger(text, caret);
+    const trigger = activeTrigger(text, caret, candidateNames);
     setPicker(trigger ? { trigger, caret } : null);
     setActive(0);
   };
@@ -457,6 +465,11 @@ function Comments({ cardId, projectId, people, role, onPosted }: { cardId: strin
     setBody(r.text); setPicker(null);
   };
   const onKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    // Backspace at the end of a mention removes the whole mention in one step, like a chip.
+    if (event.key === 'Backspace' && event.currentTarget.selectionStart === event.currentTarget.selectionEnd) {
+      const gone = backspaceMention(body, event.currentTarget.selectionStart, mentions);
+      if (gone) { event.preventDefault(); setMentions((m) => shiftMentions(body, gone.text, m)); pendingCaret.current = gone.caret; setBody(gone.text); setPicker(null); return; }
+    }
     if (!picker || matches.length === 0) { if (picker && event.key === 'Escape') { event.preventDefault(); setPicker(null); } return; }
     if (event.key === 'ArrowDown') { event.preventDefault(); setActive((i) => (i + 1) % matches.length); }
     else if (event.key === 'ArrowUp') { event.preventDefault(); setActive((i) => (i - 1 + matches.length) % matches.length); }
@@ -493,7 +506,7 @@ function Comments({ cardId, projectId, people, role, onPosted }: { cardId: strin
                   <span className="comment-author">{name}</span>
                   <span className="comment-time">{relativeTime(comment.createdAt)}{comment.version > 1 ? ' · edited' : ''}</span>
                 </div>
-                <div className="comment-body">{segments(comment.body, comment.mentions).map((part, i) => part.userId ? <mark key={i} className="mention" title="Mentioned">{part.text}</mark> : <span key={i}>{part.text}</span>)}</div>
+                <div className="comment-body">{segments(comment.body, comment.mentions).map((part, i) => part.userId ? <mark key={i} className="mention" title={names.get(part.userId)?.displayName ?? 'Former member'}>{part.text}</mark> : <span key={i}>{part.text}</span>)}</div>
               </div>
             </div>
           );
@@ -514,14 +527,20 @@ function Comments({ cardId, projectId, people, role, onPosted }: { cardId: strin
             />
             {picker && (
               <ul className="mention-list" id={listId} role="listbox" aria-label="People you can mention" onMouseDown={(event) => event.preventDefault()}>
-                {matches.length === 0 && <li className="mention-none" role="presentation">{candidates.length === 0 ? 'No one else can be mentioned on this board.' : 'No one matches.'}</li>}
-                {matches.map((person, i) => (
-                  <li key={person.id} id={`${listId}-${i}`} role="option" aria-selected={i === active} className={`mention-option${i === active ? ' is-active' : ''}`} onClick={() => choose(person)} onMouseEnter={() => setActive(i)}>
-                    <Avatar id={person.id} name={person.displayName} /><span>{person.displayName}</span>{person.scopedRole && <small>{person.scopedRole}</small>}
-                  </li>
-                ))}
+                {matches.length === 0 && <li className="mention-none" role="presentation">{mentionEmptyText({ loading: mentionPeople.isPending, failed: mentionPeople.isError, candidates, actorId, typed: picker.trigger.query })}</li>}
+                {matches.map((person, i) => {
+                  const roleLabel = ROLE_META[normalizeRole(person.scopedRole)].label;
+                  return (
+                    <li key={person.id} id={`${listId}-${i}`} role="option" aria-label={`${person.displayName}, ${roleLabel}${dupes.has(person.id) ? `, ${dupes.get(person.id)}` : ''}`} aria-selected={i === active} className={`mention-option${i === active ? ' is-active' : ''}`} onClick={() => choose(person)} onMouseEnter={() => setActive(i)}>
+                      <Avatar id={person.id} name={person.displayName} />
+                      <span className="mention-name">{highlight(person.displayName, picker.trigger.query).map((part, k) => part.hit ? <b key={k}>{part.text}</b> : <span key={k}>{part.text}</span>)}</span>
+                      <small>{roleLabel}{dupes.has(person.id) ? ` · ${dupes.get(person.id)}` : ''}</small>
+                    </li>
+                  );
+                })}
               </ul>
             )}
+            <span className="sr-only" role="status" aria-live="polite">{picker && matches.length > 0 ? `${matches.length} ${matches.length === 1 ? 'person' : 'people'} found` : ''}</span>
           </div>
           {shown.size > 0 && <p className="hint" id="mentionNote"><Icon name="at" />{shown.size === 1 ? '1 person will be notified' : `${shown.size} people will be notified`}.</p>}
           {error && <p role="alert" className="field-error">{error}</p>}

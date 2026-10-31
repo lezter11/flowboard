@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { activeTrigger, applyMention, finalizeMentions, segments, shiftMentions, type Mention } from '../src/lib/mentions.ts';
+import { activeTrigger, applyMention, backspaceMention, duplicateLabels, finalizeMentions, highlight, matchRange, rankPeople, segments, shiftMentions, type Mention } from '../src/lib/mentions.ts';
 
 const olivia = { id: 'usr_1', displayName: 'Olivia Owner' };
 const mention = (start: number, end: number, name = 'Olivia Owner', userId = 'usr_1'): Mention => ({ userId, name, start, end });
@@ -12,7 +12,7 @@ test('trigger is found after @ at the start or after whitespace', () => {
 });
 test('no trigger inside an email address, after a space, or without @', () => {
   assert.equal(activeTrigger('mail a@b', 8), null);
-  assert.equal(activeTrigger('@oli ver', 8), null);
+  assert.equal(activeTrigger('@oli ver', 8, ['Olivia Owner']), null);
   assert.equal(activeTrigger('hello', 5), null);
 });
 test('applyMention writes @Name plus a space and spans exactly @Name', () => {
@@ -68,4 +68,57 @@ test('segments split a stored comment and ignore bad spans', () => {
   assert.deepEqual(segments('hi', [{ userId: 'u', start: 1, end: 99 }]), [{ text: 'hi' }]);
   assert.deepEqual(segments('hi', undefined), [{ text: 'hi' }]);
   assert.deepEqual(segments('', []), [{ text: '' }]);
+});
+
+const crowd = [
+  { id: 'u1', displayName: 'Shubham Singh' }, { id: 'u2', displayName: 'Sam Shubhra' }, { id: 'u3', displayName: 'Ana Singh' },
+  { id: 'u4', displayName: 'José Álvarez' }, { id: 'u5', displayName: 'Shubham Singh' }, { id: 'u6', displayName: 'Priya Rao' },
+];
+
+test('match any word start, ignoring case and accents', () => {
+  assert.ok(matchRange('Shubham Singh', 'sh'));
+  assert.ok(matchRange('Shubham Singh', 'SIN'));
+  assert.equal(matchRange('Shubham Singh', 'ham'), null);
+  assert.ok(matchRange('José Álvarez', 'jose'));
+  assert.ok(matchRange('José Álvarez', 'alv'));
+});
+test('a first name, a space and part of the last name narrows to one person', () => {
+  assert.deepEqual(rankPeople(crowd.slice(0, 4), 'shubham si').map((p) => p.id), ['u1']);
+  assert.deepEqual(rankPeople(crowd, 'shubham ').map((p) => p.id), ['u1', 'u5']);
+});
+test('ranking: full-name prefix, then other word starts, then A to Z', () => {
+  assert.deepEqual(rankPeople(crowd.slice(0, 3), 'sh').map((p) => p.id), ['u1', 'u2']);
+  assert.deepEqual(rankPeople(crowd.slice(0, 3), 'si').map((p) => p.id), ['u3', 'u1']);
+  assert.deepEqual(rankPeople(crowd, '').length, crowd.length);
+});
+test('matched characters are emphasised on the original spelling', () => {
+  assert.deepEqual(highlight('José Álvarez', 'alv'), [{ text: 'José ', hit: false }, { text: 'Álv', hit: true }, { text: 'arez', hit: false }]);
+  assert.deepEqual(highlight('Priya Rao', ''), [{ text: 'Priya Rao', hit: false }]);
+});
+test('same full name gets a stable "n of m" label; unique names get none', () => {
+  const l = duplicateLabels(crowd);
+  assert.equal(l.get('u1'), '1 of 2'); assert.equal(l.get('u5'), '2 of 2'); assert.equal(l.has('u6'), false);
+});
+test('a multi-word query keeps the trigger open while it can match, and closes when it cannot', () => {
+  const names = crowd.map((p) => p.displayName);
+  assert.deepEqual(activeTrigger('hi @shubham si', 14, names), { start: 3, query: 'shubham si' });
+  assert.equal(activeTrigger('hi @shubham sixteen', 19, names), null);
+  assert.equal(activeTrigger('@a\nb', 5), null);
+  assert.equal(activeTrigger('@x @sh', 6, names)?.start, 3);
+  assert.equal(activeTrigger('@' + 'a'.repeat(41), 42), null);
+});
+test('inserting a full name writes "@First Last " and keeps the caret after the space', () => {
+  const r = applyMention('@shubham si', { start: 0, query: 'shubham si' }, 11, crowd[0]!);
+  assert.equal(r.text, '@Shubham Singh ');
+  assert.equal(r.caret, r.text.length);
+});
+test('backspace deletes a whole mention at once, and ignores plain text', () => {
+  const m = [mention(3, 16, 'Olivia Owner')];
+  assert.deepEqual(backspaceMention('hi @Olivia Owner ok', 16, m), { text: 'hi  ok', caret: 3 });
+  assert.equal(backspaceMention('hi @Olivia Owner ok', 17, m), null);
+  assert.equal(backspaceMention('hi @Olivia Owner ok', 2, m), null);
+});
+test('ranges still shift after edits with full-name mentions', () => {
+  const m = [mention(0, 14, 'Shubham Singh', 'u1')];
+  assert.deepEqual(shiftMentions('@Shubham Singh x', 'Hey @Shubham Singh x', m), [{ ...m[0]!, start: 4, end: 18 }]);
 });

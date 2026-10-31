@@ -563,3 +563,10 @@ mark.mention { background: var(--accent-soft); color: var(--accent); border-radi
   background: var(--surface-2, var(--surface)); border: 1px solid var(--line); border-radius: 8px;
 }
 .conflict-note { margin: 0 0 8px; font-size: 12px; color: var(--ink); background: var(--surface-2, var(--surface)); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; }
+/* Mentions like Teams: full names, matched letters emphasised, role as a quiet second label, eight rows then scroll. */
+.mention-list { max-height: min(360px, 40dvh); }
+.mention-option { min-width: 0; }
+.mention-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mention-name b { font-weight: 700; color: var(--accent); }
+.mention-option small { flex: none; text-transform: none; }
+@media (max-width: 480px) { .mention-option small { font-size: 11px; max-width: 42%; text-align: right; } }
