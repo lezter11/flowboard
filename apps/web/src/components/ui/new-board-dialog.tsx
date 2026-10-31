@@ -8,6 +8,7 @@ import { describeError } from '@/lib/errors';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { Icon } from '@/components/ui/icon';
 import { useToast } from '@/components/ui/toasts';
+import { ErrorNote } from '@/components/ui/error-note';
 import { QuotaPanel } from '@/components/ui/quota-panel';
 import { quotaAdvice, type QuotaAdvice } from '@/lib/quota-messages';
 import type { Role } from '@/lib/roles';
@@ -27,20 +28,21 @@ export function NewBoardDialog({ projectId, role, open, onClose }: { projectId: 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
+  const [failure, setFailure] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [advice, setAdvice] = useState<QuotaAdvice | null>(null);
   const attempt = useRef<string | null>(null);
 
-  useEffect(() => { if (open) { setName(''); setDescription(''); setError(''); setAdvice(null); attempt.current = null; } }, [open]);
+  useEffect(() => { if (open) { setName(''); setDescription(''); setError(''); setFailure(null); setAdvice(null); attempt.current = null; } }, [open]);
 
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
+  const submit = async (event?: FormEvent) => {
+    event?.preventDefault();
     if (busy) return;
     const trimmed = name.trim();
     if (!trimmed) { setError('Enter a board name.'); return; }
     if (trimmed.length > NAME_MAX) { setError(`Board names can be up to ${NAME_MAX} characters.`); return; }
     setBusy(true);
-    setError('');
+    setError(''); setFailure(null);
     attempt.current ??= `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     try {
       const body: { name: string; description?: string } = { name: trimmed };
@@ -55,11 +57,11 @@ export function NewBoardDialog({ projectId, role, open, onClose }: { projectId: 
       // At the board limit: explain calmly. A Manager gets no number (the server sends none), the Owner gets the way out.
       const quota = err instanceof ApiError ? quotaAdvice(err, { role, projectId }) : null;
       if (quota) { setAdvice(quota); void queryClient.invalidateQueries({ queryKey: ['boards', projectId] }); }
-      else setError(err instanceof ApiError && err.status === 409 && err.code !== 'READ_ONLY_CONTEXT' ? 'A board with that name already exists in this project. Pick another name.' : describeError(err, { role, projectId }));
+      else setFailure(err);
     } finally { setBusy(false); }
   };
 
-  const edit = <T,>(set: (value: T) => void) => (value: T) => { attempt.current = null; setError(''); setAdvice(null); set(value); };
+  const edit = <T,>(set: (value: T) => void) => (value: T) => { attempt.current = null; setError(''); setFailure(null); setAdvice(null); set(value); };
 
   return (
     <DialogLayer open={open} onClose={onClose} labelledBy="newBoardTitle" className="wide">
@@ -78,7 +80,8 @@ export function NewBoardDialog({ projectId, role, open, onClose }: { projectId: 
             <textarea className="control textarea" id="newBoardDescription" rows={3} maxLength={DESCRIPTION_MAX} placeholder="What is this board for?" value={description} onChange={(event) => edit(setDescription)(event.target.value)} />
           </div>
           {advice && <QuotaPanel advice={advice} role="alert" onNavigate={onClose} />}
-          {error && <p className="form-error" id="newBoardError" role="alert">{error}</p>}
+          {error && <ErrorNote text={error} />}
+          {failure != null && <ErrorNote error={failure} ctx={{ role, projectId }} focusOnMount onRetry={() => void submit()} />}
         </div>
         <footer className="dialog-foot">
           <span className="spacer" />

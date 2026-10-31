@@ -50,3 +50,17 @@
 .assignee-option.is-disabled { opacity: 0.6; cursor: default; }
 .save-state.is-error { color: var(--danger); font-weight: 600; }
 .save-state.is-error .dot { background: var(--danger); }
+
+/* ErrorNote: one shape for every failure */
+.error-note { display: flex; gap: 10px; padding: 11px 12px; border: 1px solid color-mix(in srgb, var(--danger) 35%, transparent); border-radius: 10px; background: var(--danger-soft); color: var(--ink); font-size: 13px; line-height: 1.45; }
+.error-note[data-severity="warn"] { border-color: color-mix(in srgb, var(--warn) 35%, transparent); background: var(--warn-soft); }
+.error-note:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.error-note-icon { flex: none; color: var(--danger); }
+.error-note-icon .icon { width: 16px; height: 16px; }
+.error-note-main { min-width: 0; flex: 1; }
+.error-note-main strong { display: block; font-weight: 650; }
+.error-note-main p { margin: 3px 0 0; overflow-wrap: anywhere; }
+.error-note-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 9px; }
+.error-note-ref { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 12px; }
+.error-note-ref code { font: 12px ui-monospace, monospace; overflow-wrap: anywhere; }
+@media (max-width: 480px) { .error-note-actions .btn { flex: 1 1 100%; justify-content: center; } .error-note-ref { flex: 1 1 100%; } }

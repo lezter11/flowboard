@@ -8,6 +8,7 @@ import { api, ApiError } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { quotaAdvice, retryAfterSeconds, waitText, type QuotaAdvice } from '@/lib/quota-messages';
 import { usageText, type ProjectUsage } from '@/lib/project-groups';
+import { ErrorNote } from '@/components/ui/error-note';
 import { QuotaPanel } from '@/components/ui/quota-panel';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { Icon } from '@/components/ui/icon';
@@ -28,25 +29,26 @@ export function NewProjectDialog({ open, onClose, usage }: { open: boolean; onCl
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
+  const [failure, setFailure] = useState<unknown>(null);
   const [advice, setAdvice] = useState<QuotaAdvice | null>(null);
   const [busy, setBusy] = useState(false);
   const attempt = useRef<string | null>(null);
 
-  useEffect(() => { if (open) { setName(''); setDescription(''); setError(''); setAdvice(null); attempt.current = null; } }, [open]);
+  useEffect(() => { if (open) { setName(''); setDescription(''); setError(''); setFailure(null); setAdvice(null); attempt.current = null; } }, [open]);
 
   const atCap = !!usage?.atCap;
   const capAdvice: QuotaAdvice | null = atCap && usage
     ? { title: `You have ${usageText(usage)}`, body: `That is your limit of active projects. Archive a project to free a slot, then create another.`, action: { label: 'Choose a project to archive', href: '/projects' } }
     : null;
 
-  const submit = async (event: FormEvent) => {
-    event.preventDefault();
+  const submit = async (event?: FormEvent) => {
+    event?.preventDefault();
     if (busy) return;
     const trimmed = name.trim();
     if (!trimmed) { setError('Enter a project name.'); return; }
     if ([...trimmed].length > NAME_MAX) { setError(`Project names can be up to ${NAME_MAX} characters.`); return; }
     setBusy(true);
-    setError('');
+    setError(''); setFailure(null);
     attempt.current ??= `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     try {
       const created = await api.createOwnProject({ name: trimmed, ...(description.trim() ? { description: description.trim() } : {}) }, attempt.current);
@@ -58,15 +60,14 @@ export function NewProjectDialog({ open, onClose, usage }: { open: boolean; onCl
       if (err instanceof ApiError) {
         const quota = quotaAdvice(err);
         if (quota) { setAdvice(quota); void queryClient.invalidateQueries({ queryKey: ['session'] }); }
-        else if (err.status === 429) setError(waitText(retryAfterSeconds(err), 'creating projects'));
-        else setError(describeError(err));
+        else setFailure(err);
         // A refusal is a final answer for this attempt; the next press is a new attempt.
         if (err.status >= 400 && err.status < 500 && err.status !== 0) attempt.current = null;
-      } else setError(describeError(err));
+      } else setFailure(err);
     } finally { setBusy(false); }
   };
 
-  const edit = <T,>(set: (value: T) => void) => (value: T) => { attempt.current = null; setError(''); set(value); };
+  const edit = <T,>(set: (value: T) => void) => (value: T) => { attempt.current = null; setError(''); setFailure(null); set(value); };
   const showPanel = advice ?? capAdvice;
 
   return (
@@ -92,7 +93,8 @@ export function NewProjectDialog({ open, onClose, usage }: { open: boolean; onCl
               <textarea className="control textarea" id="newProjectDescription" maxLength={DESCRIPTION_MAX} placeholder="What is this project for?" value={description} onChange={(event) => edit(setDescription)(event.target.value)} />
             </div>
             {advice && <QuotaPanel advice={advice} role="alert" onNavigate={onClose} archivedLink />}
-            {error && <p className="form-error" id="newProjectError" role="alert">{error}</p>}
+            {error && <ErrorNote text={error} />}
+            {failure != null && <ErrorNote error={failure} ctx={{ doing: 'creating projects' }} focusOnMount onRetry={() => void submit()} />}
           </div>
           <footer className="dialog-foot">
             <span className="spacer" />

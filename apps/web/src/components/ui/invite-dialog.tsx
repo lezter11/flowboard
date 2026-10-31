@@ -7,6 +7,7 @@ import type { Invitation } from '@flowboard/contracts';
 import { api } from '@/lib/api';
 import { usePollKeys } from '@/components/polling';
 import { describeError } from '@/lib/errors';
+import { ErrorNote } from '@/components/ui/error-note';
 import { QuotaPanel } from '@/components/ui/quota-panel';
 import { quotaAdvice, type QuotaAdvice } from '@/lib/quota-messages';
 import { ApiError } from '@/lib/api';
@@ -46,14 +47,14 @@ export function InviteDialog({ projectId, projectName, actorRole, open, onClose 
   const [role, setRole] = useState<InviteRole>('member');
   const [error, setError] = useState('');
   const [advice, setAdvice] = useState<QuotaAdvice | null>(null);
-  const [needsName, setNeedsName] = useState(false);
+  const [failure, setFailure] = useState<unknown>(null);
   const [emailError, setEmailError] = useState('');
   const [fresh, setFresh] = useState<{ id: string; email: string; role: InviteRole; token: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const attempt = useRef<string | null>(null);
   const roles: InviteRole[] = actorRole === 'owner' ? ['manager', 'member', 'viewer'] : ['member', 'viewer'];
 
-  useEffect(() => { if (open) { setEmail(''); setRole('member'); setError(''); setAdvice(null); setNeedsName(false); setEmailError(''); setFresh(null); setCopied(false); attempt.current = null; } }, [open, projectId]);
+  useEffect(() => { if (open) { setEmail(''); setRole('member'); setError(''); setAdvice(null); setFailure(null); setEmailError(''); setFresh(null); setCopied(false); attempt.current = null; } }, [open, projectId]);
 
   usePollKeys([['invitations', projectId]], open);
   const list = useQuery({ queryKey: ['invitations', projectId], queryFn: async () => (await api.listInvitations(projectId)).data, enabled: open });
@@ -62,24 +63,24 @@ export function InviteDialog({ projectId, projectName, actorRole, open, onClose 
   const fail = (err: unknown) => {
     const quota = err instanceof ApiError ? quotaAdvice(err, ctxFor(actorRole, projectId)) : null;
     setAdvice(quota);
-    setNeedsName(err instanceof ApiError && err.code === 'NAME_REQUIRED');
-    setError(quota ? '' : describeError(err, ctxFor(actorRole, projectId)));
+    setFailure(quota ? null : err);
+    setError('');
   };
 
   const create = useMutation({
     mutationFn: () => { attempt.current ??= `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`; return api.createInvitation(projectId, { email: checked(email), role }, attempt.current); },
-    onSuccess: (res) => { attempt.current = null; setError(''); setAdvice(null); setNeedsName(false); setCopied(false); setFresh(res.data.token ? { id: res.data.id, email: res.data.email, role: res.data.role as InviteRole, token: res.data.token } : null); setEmail(''); toast('Invitation sent', { icon: 'check' }); void refresh(); },
+    onSuccess: (res) => { attempt.current = null; setError(''); setAdvice(null); setFailure(null); setCopied(false); setFresh(res.data.token ? { id: res.data.id, email: res.data.email, role: res.data.role as InviteRole, token: res.data.token } : null); setEmail(''); toast('Invitation sent', { icon: 'check' }); void refresh(); },
     onError: (err) => { attempt.current = null; fail(err); void refresh(); },
   });
   const resend = useMutation({
     mutationFn: (inv: Invitation) => api.resendInvitation(projectId, inv.id),
-    onSuccess: (res) => { setError(''); setAdvice(null); setNeedsName(false); setCopied(false); setFresh(res.data.token ? { id: res.data.id, email: res.data.email, role: res.data.role as InviteRole, token: res.data.token } : null); toast('Invitation sent again. The earlier link no longer works.', { icon: 'check' }); void refresh(); },
+    onSuccess: (res) => { setError(''); setAdvice(null); setFailure(null); setCopied(false); setFresh(res.data.token ? { id: res.data.id, email: res.data.email, role: res.data.role as InviteRole, token: res.data.token } : null); toast('Invitation sent again. The earlier link no longer works.', { icon: 'check' }); void refresh(); },
     onError: (err) => { fail(err); void refresh(); },
   });
   const revoke = useMutation({
     mutationFn: (inv: Invitation) => api.revokeInvitation(projectId, inv.id),
     onSuccess: (_r, inv) => { setError(''); setFresh((f) => (f?.id === inv.id ? null : f)); toast('Invitation revoked', { icon: 'check' }); void refresh(); },
-    onError: (err) => { setError(describeError(err)); void refresh(); },
+    onError: (err) => { fail(err); void refresh(); },
   });
 
   const submit = (event: FormEvent) => {
@@ -124,7 +125,8 @@ export function InviteDialog({ projectId, projectName, actorRole, open, onClose 
         <p className="invite-access-note"><Icon name="lock" /><span><strong>Project access is not board access.</strong> {actorRole === 'owner' ? <>After they accept, give them boards under <Link href="/people">People › Board access</Link>. Until then they see no boards.</> : 'After they accept, the project Owner chooses which boards they can open. Until then they see no boards.'}</span></p>
 
         {advice && <QuotaPanel advice={advice} role="alert" onNavigate={onClose} />}
-        {error && <p className="form-error" role="alert">{error}{needsName && <> <Link href="/settings?tab=account" onClick={onClose}>Open Settings</Link></>}</p>}
+        {error && <ErrorNote text={error} />}
+        {failure != null && <ErrorNote error={failure} ctx={{ ...ctxFor(actorRole, projectId), doing: 'sending invitations' }} />}
 
         {fresh && (
           <div className="invite-fresh" role="status">
@@ -140,7 +142,7 @@ export function InviteDialog({ projectId, projectName, actorRole, open, onClose 
         <section aria-labelledby="inviteListTitle" className="invite-list-wrap">
           <h3 id="inviteListTitle">Pending invitations {pending.length > 0 && <span className="badge">{pending.length}</span>}</h3>
           {list.isPending && <p className="field-help">Loading…</p>}
-          {list.isError && <p className="form-error" role="alert">{describeError(list.error)}</p>}
+          {list.isError && <ErrorNote error={list.error} ctx={ctxFor(actorRole, projectId)} onRetry={() => void list.refetch()} />}
           {list.isSuccess && pending.length === 0 && <p className="field-help">No pending invitations.</p>}
           <ul className="invite-list">
             {pending.map((inv) => (

@@ -16,6 +16,7 @@ import { Icon } from '@/components/ui/icon';
 import { Avatar } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/toasts';
 import { useShell } from '@/components/shell/shell-context';
+import { ErrorNote } from '@/components/ui/error-note';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { ColumnsDialog } from '@/components/board/columns-dialog';
 
@@ -86,11 +87,11 @@ function SettingsScreen() {
   };
   const [leaveOpen, setLeaveOpen] = useState(false);
   const [leaveBusy, setLeaveBusy] = useState(false);
-  const [leaveError, setLeaveError] = useState('');
+  const [leaveError, setLeaveError] = useState<unknown>(null);
   const leaveAttempt = useRef<string | null>(null);
   const leave = async () => {
     if (!project || leaveBusy) return;
-    setLeaveBusy(true); setLeaveError('');
+    setLeaveBusy(true); setLeaveError(null);
     leaveAttempt.current ??= `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
     try {
       await api.leaveProject(project.id, leaveAttempt.current);
@@ -102,7 +103,7 @@ function SettingsScreen() {
       router.replace('/projects');
     } catch (err) {
       leaveAttempt.current = null;
-      setLeaveError(err instanceof ApiError ? describeLeaveFailure(err) : describeError(err));
+      setLeaveError(err);
       refetch();
     } finally { setLeaveBusy(false); }
   };
@@ -226,7 +227,7 @@ function SettingsScreen() {
                   {canLeave(project)
                     ? <>
                         <p className="settings-section-sub">Leaving removes your access to {project?.name} and its boards. Your own projects are not affected.</p>
-                        <div className="row"><button className="btn" type="button" onClick={() => { setLeaveError(''); setLeaveOpen(true); }}><Icon name="arrow-left" />Leave project</button></div>
+                        <div className="row"><button className="btn" type="button" onClick={() => { setLeaveError(null); setLeaveOpen(true); }}><Icon name="arrow-left" />Leave project</button></div>
                       </>
                     : <p className="settings-section-sub">You own this project, so you cannot leave it. Archive it if you no longer need it.</p>}
                 </div>
@@ -330,7 +331,7 @@ function SettingsScreen() {
         <div className="dialog-head"><div className="dialog-head-copy"><h2 id="leaveTitle">{leaveCopy(project?.name ?? 'this project').title}</h2></div></div>
         <div className="dialog-body">
           <p id="leaveCopy" className="confirm-copy">{leaveCopy(project?.name ?? 'this project').body}</p>
-          {leaveError && <p className="form-error" role="alert">{leaveError}</p>}
+          {leaveError != null && <ErrorNote error={leaveError} ctx={{ role }} focusOnMount onRetry={() => void leave()} />}
         </div>
         <footer className="dialog-foot"><span className="spacer" /><button className="btn" type="button" data-autofocus onClick={() => setLeaveOpen(false)} disabled={leaveBusy}>Stay in project</button><button className="btn danger" type="button" onClick={() => void leave()} disabled={leaveBusy}>{leaveBusy ? 'Leaving…' : leaveCopy(project?.name ?? '').confirm}</button></footer>
       </DialogLayer>
