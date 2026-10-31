@@ -7,6 +7,9 @@ test('session response accepts lastLocation as null, absent or a project/board p
     actor: { id: 'usr_1', email: 'a@flowboard.example', displayName: 'A', avatarUrl: null },
     ownedWorkspaces: [],
     accessibleProjects: [],
+    needsName: false,
+    suggestedFirstName: null,
+    suggestedLastName: null,
   };
   assert.ok(getSessionResponseSchema.safeParse({ data: { ...base } }).success);
   assert.ok(getSessionResponseSchema.safeParse({ data: { ...base, lastLocation: null } }).success);

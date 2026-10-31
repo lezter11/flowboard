@@ -33,6 +33,13 @@ export const OPENAPI_ROUTES: OpenApiRouteDefinition[] = [
     minimumRole: 'authenticated',
   },
   {
+    method: 'PATCH',
+    path: '/session/name',
+    summary: 'Save first and last name',
+    description: 'Saves the signed-in user first and last name (1 to 60 characters each, both required). Sets display_name to First Last and confirms the name once. Needed before an invitation can be accepted (409 NAME_REQUIRED).',
+    minimumRole: 'authenticated',
+  },
+  {
     method: 'POST',
     path: '/session/logout',
     summary: 'Logout actor',

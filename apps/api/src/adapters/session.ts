@@ -1,7 +1,7 @@
 import crypto from 'node:crypto';
 import type pg from 'pg';
 import { getPool } from './postgres.ts';
-import type { SessionActor } from '@flowboard/contracts';
+import { normalizeNamePart, type SessionActor } from '@flowboard/contracts';
 
 export interface SessionRecord {
   id: string;
@@ -216,19 +216,24 @@ export async function createDevUserAndSession(
   const now = new Date().toISOString();
   const userId = `usr_${crypto.randomBytes(8).toString('hex')}`;
 
+  // Dev and test sign-in is a local fixture, so its names count as confirmed (B-16). Google sign-in
+  // never does: see routes/google-auth.ts.
+  const [first, ...rest] = displayName.trim().split(/\s+/);
+  const firstName = normalizeNamePart(first ?? '') ?? 'User';
+  const lastName = normalizeNamePart(rest.join(' ')) ?? firstName;
   const userRes = await pool.query<{
     id: string;
     email: string;
     display_name: string;
     avatar_url: string | null;
   }>(
-    `INSERT INTO users (id, email, display_name, avatar_url, created_at, updated_at)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO users (id, email, display_name, avatar_url, created_at, updated_at, first_name, last_name, name_confirmed_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $5)
      ON CONFLICT (email) DO UPDATE SET
        display_name = COALESCE(NULLIF(TRIM(users.display_name), ''), EXCLUDED.display_name),
        updated_at = EXCLUDED.updated_at
      RETURNING id, email, display_name, avatar_url`,
-    [userId, email, displayName, null, now, now],
+    [userId, email, displayName, null, now, now, firstName, lastName],
   );
 
   const userRow = userRes.rows[0];
@@ -286,4 +291,56 @@ export async function updateUserProfile(
     displayName: row.display_name,
     avatarUrl: row.avatar_url ?? null,
   };
+}
+
+export interface NameState {
+  needsName: boolean;
+  suggestedFirstName: string | null;
+  suggestedLastName: string | null;
+}
+
+/**
+ * Whether the user still has to save a name (B-16), and Google's suggestions while they do. The
+ * suggestions are the stored first and last name while name_confirmed_at is null, and null after.
+ */
+export async function readNameState(userId: string, clientOrPool?: pg.Pool | pg.ClientBase): Promise<NameState> {
+  const pool = clientOrPool ?? getPool();
+  const res = await pool.query<{ first_name: string | null; last_name: string | null; name_confirmed_at: Date | null }>(
+    'SELECT first_name, last_name, name_confirmed_at FROM users WHERE id = $1',
+    [userId],
+  );
+  const row = res.rows[0];
+  const confirmed = row?.name_confirmed_at != null;
+  return {
+    needsName: !confirmed,
+    suggestedFirstName: confirmed ? null : (row?.first_name ?? null),
+    suggestedLastName: confirmed ? null : (row?.last_name ?? null),
+  };
+}
+
+/**
+ * Saves the user's first and last name (B-16). display_name becomes 'First Last'. name_confirmed_at
+ * is set the first time and kept after, so saving again changes only the names.
+ */
+export async function saveUserName(
+  userId: string,
+  firstName: string,
+  lastName: string,
+  clientOrPool?: pg.Pool | pg.ClientBase,
+): Promise<SessionActor> {
+  const pool = clientOrPool ?? getPool();
+  const res = await pool.query<{ id: string; email: string; display_name: string; avatar_url: string | null }>(
+    `UPDATE users
+     SET first_name = $2,
+         last_name = $3,
+         display_name = $4,
+         name_confirmed_at = COALESCE(name_confirmed_at, NOW()),
+         updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, email, display_name, avatar_url`,
+    [userId, firstName, lastName, `${firstName} ${lastName}`],
+  );
+  const row = res.rows[0];
+  if (!row) throw new Error('User not found');
+  return { id: row.id, email: row.email, displayName: row.display_name, avatarUrl: row.avatar_url ?? null };
 }

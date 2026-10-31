@@ -1,10 +1,11 @@
 import { z } from 'zod';
 import { roleSchema, utcIsoTimestampSchema } from './common.ts';
 
+// displayName is 'First Last' once names are saved (B-16): up to 60 + 1 + 60 characters.
 export const sessionActorSchema = z.object({
   id: z.string().min(1),
   email: z.string().email(),
-  displayName: z.string().trim().min(1).max(100),
+  displayName: z.string().trim().min(1).max(121),
   avatarUrl: z.string().url().nullable(),
 });
 export type SessionActor = z.infer<typeof sessionActorSchema>;
@@ -55,11 +56,64 @@ export const lastLocationResponseSchema = z.object({
 });
 export type LastLocationResponse = z.infer<typeof lastLocationResponseSchema>;
 
+// First and last name (B-16). A part is 1 to 60 characters after trimming and collapsing whitespace.
+// Control characters, format characters (zero-width and bidirectional overrides among them) and line
+// or paragraph separators are refused before trimming, so none can hide in a name.
+export const NAME_PART_MAX = 60;
+// A tab is whitespace and collapses to a space. Every other control character, CR and LF included, is refused.
+const REFUSED_NAME_CHARACTERS = /(?!\t)\p{Cc}|[\p{Cf}\p{Zl}\p{Zp}]/u;
+
+/** The normalised name part, or null when it is refused. The one rule the API and the tests share. */
+export function normalizeNamePart(value: string): string | null {
+  if (REFUSED_NAME_CHARACTERS.test(value)) return null;
+  const collapsed = value.trim().replace(/\s+/gu, ' ');
+  const length = [...collapsed].length;
+  return length >= 1 && length <= NAME_PART_MAX ? collapsed : null;
+}
+
+const namePartSchema = z
+  .string()
+  .superRefine((value, ctx) => {
+    if (REFUSED_NAME_CHARACTERS.test(value)) {
+      ctx.addIssue({ code: 'custom', message: 'Name must not contain control, zero-width or bidirectional characters' });
+    } else if (normalizeNamePart(value) === null) {
+      ctx.addIssue({ code: 'custom', message: 'Name must be 1 to 60 characters' });
+    }
+  })
+  .transform((value) => normalizeNamePart(value) ?? '');
+
+// PATCH /api/v1/session/name (B-16). Both parts are required. Unknown fields are refused with 422.
+export const saveNameInputSchema = z
+  .object({
+    firstName: namePartSchema,
+    lastName: namePartSchema,
+  })
+  .strict();
+export type SaveNameInput = z.infer<typeof saveNameInputSchema>;
+
+export const saveNameResponseSchema = z.object({
+  data: z.object({
+    actor: sessionActorSchema,
+    firstName: z.string().min(1).max(NAME_PART_MAX),
+    lastName: z.string().min(1).max(NAME_PART_MAX),
+    needsName: z.literal(false),
+  }),
+});
+export type SaveNameResponse = z.infer<typeof saveNameResponseSchema>;
+
+/** The error code for an invitation accept while the user still has to save a name (HTTP 409). */
+export const NAME_REQUIRED_CODE = 'NAME_REQUIRED';
+
 export const sessionDataSchema = z.object({
   actor: sessionActorSchema,
   ownedWorkspaces: z.array(sessionWorkspaceSummarySchema),
   accessibleProjects: z.array(sessionProjectSummarySchema),
   lastLocation: lastLocationSchema.nullable().optional(),
+  // True until the user saves a first and last name (name_confirmed_at is null). Google's given and
+  // family name are suggestions only: they arrive as suggestedFirstName and suggestedLastName.
+  needsName: z.boolean(),
+  suggestedFirstName: z.string().min(1).max(NAME_PART_MAX).nullable(),
+  suggestedLastName: z.string().min(1).max(NAME_PART_MAX).nullable(),
 });
 export type SessionData = z.infer<typeof sessionDataSchema>;
 

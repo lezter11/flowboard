@@ -7,6 +7,7 @@ import {
   getSessionCookieOptions,
   isLocalhost,
 } from '../../adapters/session.ts';
+import { normalizeNamePart } from '@flowboard/contracts';
 import { SESSION_COOKIE_NAME } from '../middleware/auth.ts';
 import { HttpError } from '../errors.ts';
 import { sanitizeNextPath } from '../safe-next.ts';
@@ -27,6 +28,8 @@ interface GoogleUserInfo {
   email: string;
   email_verified: boolean;
   name?: string;
+  given_name?: string;
+  family_name?: string;
   picture?: string;
 }
 
@@ -183,6 +186,9 @@ googleAuthRoutes.get('/google/callback', async (c) => {
   const normalizedEmail = profile.email.trim().toLowerCase();
   const displayName = profile.name?.trim() || normalizedEmail.split('@')[0] || 'User';
   const avatarUrl = profile.picture || null;
+  // Google's given and family name, as suggestions only (B-16). Never marks the name confirmed.
+  const suggestedFirstName = normalizeNamePart(profile.given_name ?? '');
+  const suggestedLastName = normalizeNamePart(profile.family_name ?? '');
 
   const pool = getPool(c);
   const client = await pool.connect();
@@ -199,15 +205,18 @@ googleAuthRoutes.get('/google/callback', async (c) => {
       display_name: string;
       avatar_url: string | null;
     }>(
-      `INSERT INTO users (id, email, display_name, avatar_url, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, NOW(), NOW())
+      `INSERT INTO users (id, email, display_name, avatar_url, first_name, last_name, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
        ON CONFLICT (email)
        DO UPDATE SET
          display_name = COALESCE(NULLIF(TRIM(users.display_name), ''), EXCLUDED.display_name),
          avatar_url = COALESCE(NULLIF(EXCLUDED.avatar_url, ''), users.avatar_url),
+         -- Google's names are suggestions: they replace the stored ones only until the user confirms.
+         first_name = CASE WHEN users.name_confirmed_at IS NULL THEN EXCLUDED.first_name ELSE users.first_name END,
+         last_name = CASE WHEN users.name_confirmed_at IS NULL THEN EXCLUDED.last_name ELSE users.last_name END,
          updated_at = NOW()
        RETURNING id, email, display_name, avatar_url`,
-      [userId, normalizedEmail, displayName, avatarUrl],
+      [userId, normalizedEmail, displayName, avatarUrl, suggestedFirstName, suggestedLastName],
     );
 
     const user = userRes.rows[0]!;

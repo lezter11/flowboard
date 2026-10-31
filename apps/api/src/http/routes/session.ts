@@ -9,7 +9,9 @@ import {
   getClearSessionCookieOptions,
   getSessionCookieOptions,
   getUserByEmail,
+  readNameState,
   revokeSession,
+  saveUserName,
   updateUserProfile,
 } from '../../adapters/session.ts';
 import { HttpError } from '../errors.ts';
@@ -17,6 +19,7 @@ import { adminSecretMatches } from '../admin-secret.ts';
 import {
   getSessionResponseSchema,
   parseOrThrow,
+  saveNameInputSchema,
   updateLastLocationInputSchema,
   updateProfileInputSchema,
 } from '@flowboard/contracts';
@@ -45,6 +48,8 @@ sessionRoutes.get('/', authMiddleware, async (c) => {
   const accessibleProjects = await getAccessibleProjects(actor.id);
   // Re-checked on every read: a revoked, archived or deleted target comes back as null.
   const lastLocation = await readLastLocation(actor.id);
+  // B-16: whether a first and last name is still needed, with Google's suggestions while it is.
+  const names = await readNameState(actor.id);
 
   const response = getSessionResponseSchema.parse({
     data: {
@@ -52,6 +57,9 @@ sessionRoutes.get('/', authMiddleware, async (c) => {
       ownedWorkspaces,
       accessibleProjects,
       lastLocation,
+      needsName: names.needsName,
+      suggestedFirstName: names.suggestedFirstName,
+      suggestedLastName: names.suggestedLastName,
     },
   });
 
@@ -83,6 +91,23 @@ sessionRoutes.patch('/profile', authMiddleware, async (c) => {
   const parsed = parseOrThrow(updateProfileInputSchema, rawBody);
   const updatedActor = await updateUserProfile(actor.id, parsed);
   return c.json({ data: updatedActor }, 200);
+});
+
+// 2b. PATCH /api/v1/session/name (B-16): save the first and last name. Both are required. Saving
+// again changes only the names; name_confirmed_at is set the first time. Origin and rate limits
+// apply as for every write.
+sessionRoutes.patch('/name', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Authentication required.');
+  }
+
+  const rawBody = await c.req.json();
+  const input = parseOrThrow(saveNameInputSchema, rawBody);
+  const saved = await saveUserName(actor.id, input.firstName, input.lastName);
+  return c.json({
+    data: { actor: saved, firstName: input.firstName, lastName: input.lastName, needsName: false },
+  }, 200);
 });
 
 // 3. POST /api/v1/session/logout

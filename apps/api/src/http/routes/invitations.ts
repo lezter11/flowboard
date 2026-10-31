@@ -5,11 +5,13 @@ import {
   idempotencyKeySchema,
   invitationSchema,
   parseOrThrow,
+  NAME_REQUIRED_CODE,
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
 import { checkOrReplayReceipt, saveReceipt } from '../../adapters/idempotency.ts';
 import { consumeInvitationScopeLimits } from '../../adapters/rate-limit-postgres.ts';
 import { sendInvitationEmailSoon } from '../../adapters/invitation-delivery.ts';
+import { readNameState } from '../../adapters/session.ts';
 import {
   createInvitation,
   acceptInvitation,
@@ -137,6 +139,11 @@ invitationsRoutes.post('/invitations/accept', authMiddleware, async (c) => {
 
   const rawBody = await c.req.json();
   const body = parseOrThrow(acceptInvitationInputSchema, rawBody);
+
+  // B-16: the name is collected before an invitation can be accepted, so the UI cannot skip it.
+  if ((await readNameState(actor.id)).needsName) {
+    throw HttpError.conflict(NAME_REQUIRED_CODE, 'Save your first and last name before you accept an invitation.');
+  }
 
   const pool = getPool();
   const client = await pool.connect();

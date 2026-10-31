@@ -54,8 +54,9 @@ test('INV-01 & INV-03: Project Invitations Lifecycle Suite', async (t) => {
 
       for (const u of users) {
         await client.query(
-          `INSERT INTO users (id, email, display_name, avatar_url, created_at, updated_at)
-           VALUES ($1, $2, $3, null, NOW(), NOW())`,
+          // Fixture users have a confirmed name (B-16), so the accept gate tests only the invitation rules.
+          `INSERT INTO users (id, email, display_name, avatar_url, created_at, updated_at, first_name, last_name, name_confirmed_at)
+           VALUES ($1, $2, $3, null, NOW(), NOW(), 'Fixture', 'User', NOW())`,
           [u.id, u.email, u.name],
         );
       }

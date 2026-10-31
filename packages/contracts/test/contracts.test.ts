@@ -200,6 +200,9 @@ describe('Contracts Schema Validation Tests', () => {
               updatedAt: FIXTURE_PROJECTS.betaClient.updatedAt,
             },
           ],
+          needsName: false,
+          suggestedFirstName: null,
+          suggestedLastName: null,
         },
       };
       assert.doesNotThrow(() => getSessionResponseSchema.parse(session));
