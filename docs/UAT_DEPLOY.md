@@ -1014,3 +1014,77 @@ Requested by the Architect with the user's go ("complete all the prod deployment
 ### Resume
 
 To continue, the user needs to approve the production actions in their own terminal or in the permission prompt, and then the Deployment chat runs, in order: create `flowboard-images-prod` (private, no r2.dev, no custom domain), add the top-level `r2_buckets` IMAGES binding, deploy the Worker, deploy the Pages `flowboard-app` build (staged as in D-16, no `NEXT_PUBLIC_API_URL`), then the unauthenticated smoke tests, then the scheduled-tick check on a `*/5` tick.
+
+## D-19: production deploy of ee1c921 (Worker 810e8e4b, Pages 6da2354a)
+
+Deployed by the Deployment chat. The user approved the production bucket creation and the production deploy in this chat ("Yes, proceed", after a classifier denial of the first production action earlier in the session). A peer session's relayed approval was not used. Nothing was pushed by the Deployment chat; the Architect pushes.
+
+This replaces the blocked-state addendum above (commit `88be7da`).
+
+### Commits
+
+- `61cbafd`: top-level vars `APP_ORIGIN=https://flowboard-app.pages.dev`, `MAIL_FROM_NAME=Flowboard`, `MAIL_FROM_EMAIL` (same sender as UAT). No secret values.
+- `373e594`: top-level `r2_buckets` IMAGES -> `flowboard-images-prod`. Deployed from a clean worktree at `373e594` (code identical to `ee1c921`; the only change is config).
+
+### Bucket
+
+- `flowboard-images-prod` created, private: `wrangler r2 bucket dev-url get` reports r2.dev disabled; `wrangler r2 bucket domain list` reports no custom domains.
+
+### Rollback targets (recorded before the deploy)
+
+- Worker `flowboard-api` (top level): `d93ad124-360a-427c-ab60-1f5b6a34a9f1` (100%).
+- Pages `flowboard-app`: `af89478d-f241-491e-9289-6f0f20e955a1` (commit `6120e51`, newest production deployment); earlier `bf88fa29-cd64-4e34-bcda-0b33d10a0738` (same commit).
+
+### Deploy
+
+- Dry run before deploy listed: HYPERDRIVE (production id), IMAGES `flowboard-images-prod`, FB_RL_WRITES, FRONTEND_URL, CORS_ORIGIN, GOOGLE_REDIRECT_URI, APP_ORIGIN, MAIL_FROM_NAME, MAIL_FROM_EMAIL. No secret printed.
+- Worker: `npx wrangler deploy` (top level). Version `810e8e4b-c86a-4d47-a2ec-a71edb30a83a` (100%). Cron `*/5 * * * *`.
+- Pages: built with `NEXT_EXPORT=true` (no `NEXT_PUBLIC_API_URL`), staged with `scripts/stage-pages-functions.mjs` (5 files), deployed to project `flowboard-app`, branch `main`, commit hash `373e594`. Deployment `6da2354a-...` (`https://6da2354a.flowboard-app.pages.dev`).
+
+### Tests (real counts, at `ee1c921`, the same code as production)
+
+- Typecheck API: pass. Typecheck web: pass.
+- API: 589 tests, 570 pass, 3 fail, 16 skipped. The 3 failing tests are the image tests below; they fail at `4bb656b` too. Backend is investigating whether this is environmental.
+  - `B-7 images: the Worker without an IMAGES binding answers 503 CONFIG_ERROR on image routes`
+  - `B-7 images: upload, finalize, read and delete through the Worker, across separate isolates`
+  - `B-14 images: storage keys carry no user filename, and filenames with separators or control characters are refused`
+- Contracts: 101 of 101 pass.
+- Web: 129 of 129 pass.
+- **Production image upload is therefore not yet proven.** The unauthenticated checks below show the image routes are wired (401, not 503), but no authenticated upload has been run on production.
+
+### Unauthenticated smoke tests (production; no sign-in; no data created; no secrets printed)
+
+- Worker `/health/ready` 200, `/health/live` 200.
+- `GET https://flowboard-app.pages.dev/api/v1/session`: 401, `cache-control: no-store`.
+- Anonymous `GET /api/v1/images/x/content`: 401 on the Pages host and on the Worker host. Not 503, so the IMAGES binding is in place.
+- `/email/flowboard-lockup-dark.png` and `/email/invite-board-hero.png`: 200 `image/png`.
+- `/signin`: `content-security-policy` present.
+- Served bundle: `/_next/static/chunks/app/board/page-56db993e830cbf65.js` contains `Boards in this project` (S-20). The chunks the `/invitation` page loads contain `Open project` (S-19).
+- Not run: the rate-limit burst (`docs/RATE_LIMITING.md` section 7 forbids it on production); any sign-in; any data creation.
+
+### Scheduled tick (production `*/5`)
+
+- Tail `wrangler tail --format json` (production) started at 05:02:59 UTC; output in the scratchpad (`d19-tail.log`).
+- Result: one scheduled event at scheduledTime 1793423018925 (about 05:03:38 UTC) on Worker version `810e8e4b`: outcome `ok`, `exceptions` empty.
+- Open discrepancy: the tail reports the event `cron` as `* * * * *`, while the deploy output and `wrangler.jsonc` say `*/5 * * * *`. Not explained yet. Check the trigger in the Cloudflare dashboard (Workers > flowboard-api > Triggers) before relying on the cadence. The UAT tail showed `*/15 * * * *` as expected.
+- Only one tick was seen in the window, so the outbox drain and the next */5 tick are not yet confirmed.
+
+### Schema
+
+- Not re-read by the Deployment chat (no production database connection here). The Architect reported `schema_migrations` 0008 to 0017 (9 migrations applied, clean, no backup branch; the user declined the backup).
+
+### Accepted by the user for now (not changed)
+
+- Runtime database role is still `neondb_owner`; the role split is deferred until the user sets passwords.
+- `BREVO_API_KEY` is not set on production: the mailer returns null, invitation outbox rows stay pending until the key is added, then the cron drains them.
+- No uptime alert yet.
+
+### Open
+
+- D-18 (UAT) invitation proof is still open: the signed-in invitation has not been sent yet.
+- Production image upload is not proven (see the API image tests above).
+
+### Status
+
+- Deployed to production: Worker `810e8e4b`, Pages `6da2354a`, IMAGES binding to `flowboard-images-prod`, mail vars from `61cbafd`.
+- Rollback targets: Worker `d93ad124`, Pages `af89478d`.
