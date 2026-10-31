@@ -1271,3 +1271,46 @@ UAT only. Production not touched. Nothing pushed by the Deployment chat (the Arc
 - Signed-in S-23 behaviour: assignee pickers with real people, mention send with `cardId`, full names in mentions, numbered names for same-name people, and that no email appears in any person payload.
 - The D-22 `*/15` tick outcome.
 - Production: untouched and not in scope. Production remains on `810e8e4b` (Worker) and `6da2354a` (Pages), from D-19.
+
+## D-23: PRODUCTION deploy of 6f81115 (code identical to e0f5a16, as on UAT)
+
+Production deploy approved by the user directly in this chat (after the Architect relayed the go). Production migrations 0018 and 0019 were applied by the Architect before this deploy (latest 0019, 19 total; production had 0 users, 0 workspaces; no backup branch, the user declined one). This Deployment chat did not touch the database. Nothing was pushed by the Deployment chat.
+
+### Rollback targets (confirmed live before the deploy)
+
+- Worker `flowboard-api` (top level): `810e8e4b-c86a-4d47-a2ec-a71edb30a83a` (100%).
+- Pages `flowboard-app`: `6da2354a-27d1-4aec-9a43-7f1748ff773b` (commit `373e594`, from D-19).
+
+### Build and deploy (clean detached worktree at 6f81115)
+
+- Source: clean worktree (`scratchpad/d16`) at `6f81115`, 0 tracked and 0 untracked changes before the build. The shared tree was not used.
+- Typecheck: API pass, web pass. Full test suites not rerun for this deploy; the same code passed on UAT in D-22 (API 644 of 660 pass, 0 fail; contracts 108 of 108; web 197 of 197).
+- `FB_LIMIT_*` variables: none set. `DEV_LOGIN_ENABLED` and `NODE_ENV`: not set (not in `wrangler.jsonc`).
+- Worker: `npx wrangler deploy` (top level, no `--env`). Dry run and deploy listed the production bindings: Hyperdrive `flowboard-hyperdrive`, IMAGES `flowboard-images-prod`, FB_RL_WRITES, FRONTEND_URL, CORS_ORIGIN, GOOGLE_REDIRECT_URI, APP_ORIGIN, MAIL_FROM_NAME, MAIL_FROM_EMAIL. Version `fffbe9a7-6730-4731-a429-abf5e40a1583` (100%). Cron `*/5 * * * *`.
+- Pages: `NEXT_EXPORT=true npm run build` (no `NEXT_PUBLIC_API_URL`), staged with `scripts/stage-pages-functions.mjs` (6 files), deployed to project `flowboard-app`, branch `main`, commit hash `6f81115`. Deployment `754ab13b-174f-42bf-80d4-e275ca51c66e` (`https://754ab13b.flowboard-app.pages.dev`).
+
+### Smoke tests (unauthenticated only; no sign-in; no data created; no burst test; no secrets printed)
+
+- Worker `/health/ready` 200, `/health/live` 200.
+- `GET https://flowboard-app.pages.dev/api/v1/session`: 401, `cache-control: no-store`.
+- `POST /api/v1/workspaces` with no session: 401. `GET /api/v1/projects` with no session: 401.
+- `/signin`: `content-security-policy` present.
+- `/email/flowboard-lockup-dark.png` and `/email/invite-board-hero.png`: 200 `image/png`.
+- S-22 bundle strings: `Shared with you`, in `app/layout-55ceae62dc007281.js` and `app/projects/page-1bed784bfc6c61f8.js`, each byte-identical to the build.
+- S-23 bundle strings: `Loading people`, in `app/add-card/page-88f7807c809f6650.js` and `app/board/page-1ed3af86600441ae.js`, each byte-identical to the build.
+- `dev-login`: 0 matches in the build output.
+
+### Scheduled tick
+
+- Production `*/5` tick at about 09:30:12 UTC on Worker `fffbe9a7`: outcome `ok`, `exceptions` empty. The tail reports the cron as `*/5 * * * *`, matching the config (the earlier `* * * * *` reading did not recur).
+- Only one tick was observed; later ticks are not verified here.
+
+### Not verified
+
+- The invitation timing proof (reason-code log line and outbox row settled before the next tick): not done. Needs a signed-in invitation; no invitation was sent by the Deployment chat.
+- Signed-in behaviour: sign-in, workspace and project creation, the limits, mentions, assignee pickers, numbered names.
+- Production image upload: not proven (no authenticated upload). The API image tests pass at `e0f5a16` and `6f81115`.
+- BREVO_API_KEY is not set on production (accepted): invitation emails queue until the key is added, then the cron sends them.
+- The runtime database role is still `neondb_owner` (accepted).
+- No uptime alert on production (accepted).
+- Schema: not re-read by the Deployment chat. The Architect reported migrations 0018 and 0019 applied on production (latest 0019, 19 total).
