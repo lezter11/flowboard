@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Notification } from '@flowboard/contracts';
 import { api } from '@/lib/api';
+import { toastFailure } from '@/lib/toast-failure';
 import { describeError } from '@/lib/errors';
 import { relativeTime } from '@/lib/dates';
 import { Icon } from '@/components/ui/icon';
@@ -47,11 +48,11 @@ export default function InboxPage() {
   const selected = items.find((n) => n.id === selectedId) ?? visible[0] ?? null;
 
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ['notifications'] });
-  const markRead = useMutation({ mutationFn: (id: string) => api.markNotificationRead(id), onSuccess: refresh, onError: (e) => toast(describeError(e), { tone: 'danger', icon: 'alert' }) });
+  const markRead = useMutation({ mutationFn: (id: string) => api.markNotificationRead(id), onSuccess: refresh, onError: (e) => toastFailure(toast, e) });
   const markAll = useMutation({
     mutationFn: () => api.markAllNotificationsRead(),
     onSuccess: () => { toast('All notifications marked read', { icon: 'check-circle' }); refresh(); },
-    onError: (e) => toast(describeError(e), { tone: 'danger', icon: 'alert' }),
+    onError: (e) => toastFailure(toast, e),
   });
 
   const row = (n: Notification) => {

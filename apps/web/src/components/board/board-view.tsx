@@ -9,6 +9,7 @@ import { useRememberLocation } from '@/lib/last-location';
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BoardSnapshotData, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
+import { toastFailure } from '@/lib/toast-failure';
 import { describeError } from '@/lib/errors';
 import { boardQueryOptions } from '@/lib/queries';
 import { daysUntil } from '@/lib/dates';
@@ -218,7 +219,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
     },
     onError: (error, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(['board', context.id], context.previous);
-      toast(describeError(error), { tone: 'danger', icon: 'alert' });
+      toastFailure(toast, error);
     },
     onSettled: (_data, _error, vars) => refresh(vars.boardId),
   });
@@ -252,7 +253,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
               nextCardId: origin.nextCardId,
               expectedVersion: latest?.version ?? card.version + 1,
               expectedBoardVersion: structure,
-            }).then(() => { toast('Move undone.'); refresh(id); }).catch((error) => { toast(describeError(error), { tone: 'danger', icon: 'alert' }); refresh(id); });
+            }).then(() => { toast('Move undone.'); refresh(id); }).catch((error) => { toastFailure(toast, error); refresh(id); });
           },
         });
       },
@@ -298,7 +299,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
           const board = snapOf(info.id)?.board ?? info.snap.board;
           api.softDeleteCard(res.data.id, { expectedVersion: res.data.version ?? 1, expectedBoardVersion: board.structureVersion })
             .then(() => { toast('Card removed.'); refresh(info.id); })
-            .catch((error) => { toast(describeError(error), { tone: 'danger', icon: 'alert' }); refresh(info.id); });
+            .catch((error) => { toastFailure(toast, error); refresh(info.id); });
         },
       });
     } catch (error) {

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { TrashRow } from '@flowboard/contracts';
 import { api } from '@/lib/api';
+import { toastFailure } from '@/lib/toast-failure';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole } from '@/lib/roles';
 import { useProjectBoards } from '@/lib/portfolio';
@@ -55,7 +56,7 @@ export default function TrashPage() {
   const restore = useMutation({
     mutationFn: (row: TrashRow) => api.restoreCard(row.id, { expectedVersion: row.version, expectedBoardVersion: row.structureVersion }),
     onSuccess: (_d, row) => { toast(`“${row.title}” restored`, { icon: 'restore' }); void queryClient.invalidateQueries({ queryKey: ['trash'] }); void queryClient.invalidateQueries({ queryKey: ['board'] }); },
-    onError: (error) => { toast(describeError(error), { tone: 'danger', icon: 'alert' }); void queryClient.invalidateQueries({ queryKey: ['trash'] }); },
+    onError: (error) => { toastFailure(toast, error); void queryClient.invalidateQueries({ queryKey: ['trash'] }); },
   });
 
   if (state.status === 'ready' && projects.length === 0) {

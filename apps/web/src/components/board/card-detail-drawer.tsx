@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Card, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
+import { toastFailure } from '@/lib/toast-failure';
 import { describeError, isStale } from '@/lib/errors';
 import { reconcileDraft } from '@/lib/draft-sync';
 import { usePollKeys } from '@/components/polling';
@@ -169,7 +170,7 @@ function DiscardDeleteDialog({ kind, onCancel, card, structureVersion, onDiscard
       toast('Card moved to trash.', { icon: 'trash' });
       onDeleted();
     } catch (error) {
-      toast(describeError(error), { tone: 'danger', icon: 'alert' });
+      toastFailure(toast, error);
     } finally { setBusy(false); }
   };
   const isDelete = kind === 'delete';
