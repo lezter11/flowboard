@@ -8,7 +8,7 @@ import { api, ApiError } from '@/lib/api';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { Wordmark } from '@/components/ui/wordmark';
-import { createTapCounter, invitationSignInHref, motionAllowed, pickGreeting, signedInAsLine } from '@/lib/invitation-fx';
+import { acceptedCopy, createTapCounter, invitationSignInHref, motionAllowed, pickGreeting, signedInAsLine } from '@/lib/invitation-fx';
 
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
 function useMotionAllowed(): boolean {
@@ -31,8 +31,9 @@ const CONFETTI = Array.from({ length: 14 }, (_, i) => {
 
 /** Small hero picture: an envelope that opens, a check that draws, or two account bubbles that float. Decorative. Five quick taps (pointer only, no extra tab stop) fire the easter egg, and only when motion is allowed. */
 function HeroArt({ kind, motion }: { kind: 'envelope' | 'check' | 'accounts'; motion: boolean }) {
+  const arrival = kind === 'check' && motion;
   const counter = useRef(createTapCounter()).current;
-  const [burst, setBurst] = useState(0);
+  const [burst, setBurst] = useState(arrival ? 1 : 0);
   const onTap = () => { if (motion && counter.tap()) setBurst((n) => n + 1); };
   return (
     <div className={`invite-art${kind === 'envelope' ? ' is-envelope' : ''}${burst && kind === 'accounts' ? ' is-swap' : ''}`} key={`${kind}-${kind === 'accounts' ? burst : 0}`} onClick={onTap} aria-hidden="true" data-art={kind}>
@@ -124,8 +125,11 @@ function AcceptScreen() {
     }
   };
 
+  const openRef = useRef<HTMLAnchorElement>(null);
+  useEffect(() => { if (outcome.kind === 'accepted') openRef.current?.focus(); }, [outcome.kind]);
+
   const view = (() => {
-    if (outcome.kind === 'accepted') return { status: 'accepted', title: "You're in. Welcome aboard.", copy: `You joined the project as a ${outcome.role}. The invitation link can no longer be used.` };
+    if (outcome.kind === 'accepted') return { status: 'accepted', title: acceptedCopy(outcome.role).title, copy: acceptedCopy(outcome.role).lead };
     if (outcome.kind === 'expired') return { status: 'expired', title: 'This invitation expired.', copy: 'Invitation links have a fixed server deadline. Ask an Owner or Manager to send a new invitation if you still need access.' };
     if (outcome.kind === 'mismatch') return { status: 'mismatch', title: 'This invitation is for a different account.', copy: 'You are signed in with a different email than the one that was invited. Switch accounts and we will bring you straight back to this invitation.' };
     if (outcome.kind === 'readonly') return { status: 'invalid', title: 'This project is archived.', copy: 'Archived projects are read-only, so no new members can join.' };
@@ -156,7 +160,7 @@ function AcceptScreen() {
                 <p>{view.copy}</p>
               </div>
               <div className="invite-body">
-                {outcome.kind === 'accepted' && <div className="auth-note success invite-state-note"><Icon name="info" /><span><strong>Invitation accepted</strong> Access is project-scoped, and project access is not board access: you will see no boards until the Owner gives you access to them. If the Owner changes your role later, this page will not update your grant.</span></div>}
+                {outcome.kind === 'accepted' && <div className="auth-note success invite-state-note"><Icon name="info" /><span><strong>{acceptedCopy(outcome.role).noteTitle}</strong> {acceptedCopy(outcome.role).note}</span></div>}
                 {outcome.kind === 'expired' && <div className="auth-note warn invite-state-note"><Icon name="clock" /><span><strong>Expired on the server clock</strong> The browser cannot extend or refresh the deadline.</span></div>}
                 {outcome.kind === 'mismatch' && signedInAs && <div className="invite-who"><Icon name="users" /><span>{signedInAs}</span></div>}
                 {outcome.kind === 'mismatch' && <div className="auth-note warn invite-state-note"><Icon name="clock" /><span><strong>Why this happened</strong> An invitation can only be accepted by the email it was sent to. Nothing was changed on either account.</span></div>}
@@ -183,7 +187,7 @@ function AcceptScreen() {
                 )}
                 {outcome.kind === 'accepted' && (
                   <div className="invite-actions">
-                    <Link className="btn primary" href={`/project?id=${encodeURIComponent(outcome.projectId)}`}><Icon name="folder" /> Open project</Link>
+                    <Link ref={openRef} className="btn primary" href={`/project?id=${encodeURIComponent(outcome.projectId)}`}><Icon name="folder" /> Open project</Link>
                   </div>
                 )}
                 {view.status !== 'valid' && view.status !== 'mismatch' && outcome.kind !== 'accepted' && (
@@ -191,7 +195,7 @@ function AcceptScreen() {
                     <Link className="btn primary" href="/signin"><Icon name="arrow-left" /> Back to sign in</Link>
                   </div>
                 )}
-                <div className="invite-privacy"><Icon name="lock" /><span>Before you accept, this page shows nothing about the project. Member lists, card content and the project description stay private until the grant exists.</span></div>
+                <div className="invite-privacy"><Icon name="lock" /><span>{outcome.kind === 'accepted' ? acceptedCopy(outcome.role).footer : 'Before you accept, this page shows nothing about the project. Member lists, card content and the project description stay private until the grant exists.'}</span></div>
               </div>
             </article>
           </div>

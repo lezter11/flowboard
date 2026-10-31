@@ -72,3 +72,10 @@
 @media (prefers-reduced-motion: reduce) {
   .invite-confetti { display: none; }
 }
+.invite-card[data-state="accepted"] .invite-actions .btn.primary { min-height: 44px; font-size: 13px; }
+@media (prefers-reduced-motion: no-preference) {
+  .invite-card[data-state="accepted"] .invite-actions .btn.primary .icon { animation: art-float 2.4s ease-in-out infinite; }
+  .invite-card[data-state="accepted"] .invite-actions .btn.primary:hover .icon { animation: none; transform: translateX(3px) scale(1.1); }
+  .invite-card[data-state="accepted"] .invite-state-note { animation: invite-in 420ms 500ms ease-out both; }
+  .invite-art[data-art="check"]:hover { transform: rotate(-4deg) scale(1.05); transition: transform 160ms ease; }
+}

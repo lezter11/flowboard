@@ -44,3 +44,20 @@ export function signedInAsLine(email: string | null | undefined): string | null 
 export function invitationSignInHref(token: string | null): string {
   return token ? `/api/v1/auth/google/start?next=${encodeURIComponent(`/invitation?token=${token}`)}` : '/signin';
 }
+
+/** "a member", "a manager", "a viewer", "an owner": the article follows the sound of the role word. */
+export function roleWithArticle(role: string): string {
+  const r = role.trim().toLowerCase() || 'member';
+  return `${/^[aeiou]/.test(r) ? 'an' : 'a'} ${r}`;
+}
+
+/** Copy for the post-accept screen. Says nothing about the project: only the role the person was given. */
+export function acceptedCopy(role: string): { title: string; lead: string; noteTitle: string; note: string; footer: string } {
+  return {
+    title: "You're in. Welcome aboard.",
+    lead: `You joined as ${roleWithArticle(role)}. This invitation link is now used up.`,
+    noteTitle: 'Next step',
+    note: 'You will not see any boards yet. Ask the project Owner to give you access to the boards you need, then they will appear in the project.',
+    footer: 'The invitation link has been used and cannot be opened again.',
+  };
+}
