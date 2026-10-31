@@ -173,10 +173,10 @@ export async function createBoard(
     `INSERT INTO boards (
        id, workspace_id, project_id, name, description,
        structure_version, snapshot_version, archived,
-       created_at, updated_at
-     ) VALUES ($1, $2, $3, $4, $5, 1, 1, FALSE, $6, $6)
+       created_at, updated_at, created_by
+     ) VALUES ($1, $2, $3, $4, $5, 1, 1, FALSE, $6, $6, $7)
      RETURNING id, workspace_id, project_id, name, description, structure_version, snapshot_version, archived, created_at, updated_at`,
-    [boardId, workspaceId, projectId, name.trim(), description, nowIso],
+    [boardId, workspaceId, projectId, name.trim(), description, nowIso, actorId],
   );
 
   const bRow = boardRes.rows[0];
