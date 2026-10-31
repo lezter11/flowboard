@@ -117,3 +117,24 @@ test('quota copy always names the limit and only shows a count the server sent',
   const members = describeFailureOf(f('QUOTA_EXCEEDED', 409, { details: { scope: 'members', limit: 50, remedy: 'remove_member' } }), { role: 'owner' });
   assert.match(members.body, /up to 50 members|50 members/);
 });
+
+import { ERROR_CATALOG } from '@flowboard/contracts';
+
+test('every code in the shared ERROR_CATALOG has its own catalogue entry, and reads well at its listed status', () => {
+  const codes = Object.keys(ERROR_CATALOG);
+  assert.ok(codes.length >= 104);
+  for (const code of codes) {
+    assert.ok(CATALOGUE[code], `${code}: no catalogue entry (a class default is not enough for a listed code)`);
+    const status = (ERROR_CATALOG as Record<string, { status: number }>)[code]!.status;
+    const d = describeFailureOf({ status, code }, { role: 'member' });
+    assert.ok(d.title.trim() && d.body.trim(), code);
+    assert.doesNotMatch(`${d.title} ${d.body}`, /please|successfully|!|workspace/i, code);
+  }
+});
+
+test('codes with two statuses read the same at either', () => {
+  for (const [code, statuses] of [['VALIDATION_ERROR', [400, 422]], ['BOARD_ARCHIVED', [409, 422]], ['INVITATION_EXPIRED', [400, 409]]] as const) {
+    const [a, b] = statuses.map((status) => describeFailureOf({ status, code }));
+    assert.deepEqual([a!.title, a!.body], [b!.title, b!.body], code);
+  }
+});
