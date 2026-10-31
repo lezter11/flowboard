@@ -50,6 +50,8 @@ export async function deliverInvitationRow(
     role: text(payload['role']),
     expiresAt: text(payload['expiresAt']),
     acceptUrl: acceptInvitationUrl(mailer.appOrigin, token),
+    invitationId: text(payload['invitationId']),
+    recipientEmail: to,
   });
   const outcome = await mailer.send({ to, ...content });
 

@@ -210,6 +210,8 @@ test('B-10 email: the HTML is escaped, the subject is one line, and names cannot
     role: 'manager',
     expiresAt: '2026-11-06T10:00:00.000Z',
     acceptUrl: `${ORIGIN}/invitation?token=abc`,
+    invitationId: 'inv_0123abcd',
+    recipientEmail: 'victim@example.net',
   });
   assert.ok(!content.subject.includes('\r') && !content.subject.includes('\n'), 'no CR or LF in the subject');
   assert.ok(!content.html.includes('<script>'), 'no raw script in the HTML');
