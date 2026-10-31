@@ -3,14 +3,9 @@
 import { Suspense, useEffect, useState, type FormEvent } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
+import { signinNote } from '@/lib/signin-states';
 import { Wordmark } from '@/components/ui/wordmark';
 import { BoardPreview } from '@/components/signin/board-preview';
-
-const MESSAGES: Record<string, string> = {
-  'callback-error': 'Google sign-in could not be completed. Try again.',
-  expired: 'Your session expired. Sign in again to continue.',
-  denied: 'This account does not have access. Ask the project owner or manager for an invitation.',
-};
 
 /** Compiled out of production builds: NODE_ENV is inlined by Next, so the dev-login code below is dead code there. */
 const DEV_LOGIN = process.env.NODE_ENV !== 'production';
@@ -22,7 +17,7 @@ function SignInScreen() {
   // ?next= is only handed to the API, which validates it and does the redirecting after sign-in.
   const next = params.get('next');
   const googleHref = next ? `/api/v1/auth/google/start?next=${encodeURIComponent(next)}` : '/api/v1/auth/google/start';
-  const alertText = MESSAGES[params.get('state') ?? ''] ?? '';
+  const note = signinNote(params.get('state'));
   const [devEmail, setDevEmail] = useState('');
   const [devError, setDevError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -85,7 +80,7 @@ function SignInScreen() {
             </a>
 
             <p className="signin-note" id="signinNote">Flowboard opens project data only after the server verifies your account.</p>
-            <p className="signin-alert" id="signinAlert" role="alert" hidden={!alertText}>{alertText}</p>
+            <p className="signin-alert" id="signinAlert" role="alert" hidden={!note}>{note && <><strong>{note.title}.</strong> {note.body}</>}</p>
 
             {DEV_LOGIN && (
               <form onSubmit={devLogin} className="dialog-field" aria-label="Local development sign-in">

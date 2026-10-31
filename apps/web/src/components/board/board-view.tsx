@@ -9,6 +9,7 @@ import { useRememberLocation } from '@/lib/last-location';
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { BoardSnapshotData, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
+import { hasUnsaved } from '@/lib/unsaved';
 import { toastFailure } from '@/lib/toast-failure';
 import { describeError } from '@/lib/errors';
 import { boardQueryOptions } from '@/lib/queries';
@@ -119,7 +120,8 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
   const project = state.status === 'ready' ? state.session.accessibleProjects.find((p) => p.id === snapshot?.board.projectId) : undefined;
   const role = normalizeRole(project?.role);
   const projectArchived = !!project?.isArchived;
-  const lostOf = (q: (typeof boardQueries)[number]) => q.error instanceof ApiError && [401, 403, 404].includes(q.error.status);
+  // A 401 while text is unsaved is not "lost": keep the board (and its open card) on screen; the shell offers Sign in (unsaved.ts).
+  const lostOf = (q: (typeof boardQueries)[number]) => q.error instanceof ApiError && [401, 403, 404].includes(q.error.status) && !(q.error.status === 401 && hasUnsaved());
 
   // Boards that have data and are still reachable; a board that failed or vanished never blanks the others.
   const live = boardQueries.map((q, i) => ({ id: boardIds[i]!, index: i, query: q, data: q.data, lost: q.isError && lostOf(q) })).filter((b) => b.data && !b.lost);
@@ -455,7 +457,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
   }, [params, pathname, router, cardId]);
 
   if (boardQueries.every((q) => q.isPending)) return <div role="status" className="state-note">Loading board…</div>;
-  const lostAccess = boardQuery.error instanceof ApiError && [401, 403, 404].includes(boardQuery.error.status);
+  const lostAccess = boardQuery.error instanceof ApiError && [401, 403, 404].includes(boardQuery.error.status) && !(boardQuery.error.status === 401 && hasUnsaved());
   // A failed background poll keeps the board on screen (the status banner explains it); only a lost board or a first-load failure replaces it.
   // The session is polled: removed from the project while looking at its board.
   if (snapshot && state.status === 'ready' && projectAccess(state.session.accessibleProjects, snapshot.board.projectId).kind === 'removed') {

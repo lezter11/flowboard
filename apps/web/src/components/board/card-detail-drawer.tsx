@@ -7,6 +7,7 @@ import type { Card, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard
 import { api, ApiError } from '@/lib/api';
 import { toastFailure } from '@/lib/toast-failure';
 import { describeError, describeFailure, isStale } from '@/lib/errors';
+import { setUnsaved } from '@/lib/unsaved';
 import { ErrorNote } from '@/components/ui/error-note';
 import { reconcileDraft } from '@/lib/draft-sync';
 import { usePollKeys } from '@/components/polling';
@@ -218,6 +219,8 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
   const editable = can(role, 'edit');
   const dirty = draft.title !== base.title || draft.description !== base.description || draft.priority !== base.priority || draft.dueDate !== base.dueDate || draft.assigneeIds.join(',') !== base.assigneeIds.join(',') || draft.columnId !== base.columnId;
   useEffect(() => { dirtyRef.current = dirty; }, [dirty, dirtyRef]);
+  // A session that ends while this text is unsaved must not replace the page (see unsaved.ts).
+  useEffect(() => { setUnsaved(`card:${card.id}`, dirty); return () => setUnsaved(`card:${card.id}`, false); }, [dirty, card.id]);
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((d) => ({ ...d, [key]: value }));
 
   const currentColumn = columns.find((c) => c.id === card.columnId);

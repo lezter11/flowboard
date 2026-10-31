@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
 import { signinPathFor } from '@/lib/return-path';
 import { landingFor } from '@/lib/landing';
+import { hasUnsaved } from '@/lib/unsaved';
 import { useSession } from '@/lib/session';
 
 /** Pages that handle a signed-out visitor themselves. Everything else needs a session. */
@@ -19,7 +20,8 @@ export function SessionGate() {
   const { state } = useSession();
 
   useEffect(() => {
-    if (state.status === 'signedOut' && !OPEN_ROUTES.includes(pathname)) {
+    // Unsaved text keeps its page: the shell shows a banner with Sign in instead of replacing the screen.
+    if (state.status === 'signedOut' && !OPEN_ROUTES.includes(pathname) && !hasUnsaved()) {
       router.replace(signinPathFor(pathname, window.location.search));
     } else if (state.status === 'ready' && pathname === '/signin') {
       let cancelled = false;

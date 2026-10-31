@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, type FormEvent } from 'react';
+import { Suspense, useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { api, ApiError } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { boardQueryOptions } from '@/lib/queries';
+import { setUnsaved } from '@/lib/unsaved';
 import { ErrorNote } from '@/components/ui/error-note';
 import { useAssignablePeople } from '@/lib/assignee-people';
 import { EMPTY_ASSIGNEES, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, peopleLoadError, pickerState } from '@/lib/assignees';
@@ -46,6 +47,7 @@ function AddCardScreen() {
   const [saved, setSaved] = useState<Card | null>(null);
   const key = useState(() => crypto.randomUUID())[0];
   const dirty = !!(title || description || priority || due || assignees.length);
+  useEffect(() => { setUnsaved('add-card', dirty && !saved); return () => setUnsaved('add-card', false); }, [dirty, saved]);
   const column = columns.find((c) => c.id === columnId) ?? columns[0];
   const backHref = boardId ? `/board?id=${encodeURIComponent(boardId)}` : '/projects';
 

@@ -3,6 +3,7 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { describeFailure } from '@/lib/errors';
+import { hasUnsaved } from '@/lib/unsaved';
 import type { ActionKind, Ctx, Described } from '@/lib/error-catalogue';
 import { Icon } from '@/components/ui/icon';
 
@@ -46,13 +47,16 @@ export const ErrorNote = forwardRef<HTMLDivElement, ErrorNoteProps>(function Err
   }, [focusOnMount, d.title, d.body]);
 
   const act = d.action;
+  // Signing in must not throw away text that is not saved yet: open the sign-in page in another tab, so this page keeps it.
+  const signInElsewhere = act?.kind === 'signin' && hasUnsaved();
   const run = () => {
     if (!act) return;
+    if (signInElsewhere) { window.open(`/signin?state=session_ended&next=${encodeURIComponent(window.location.pathname + window.location.search)}`, '_blank', 'noopener'); return; }
     if (act.kind === 'reload') { window.location.reload(); return; }
     if (act.kind === 'retry') { onRetry?.(); return; }
     onAction?.(act.kind);
   };
-  const showButton = !!act && !(act.href && !onAction) && !(act.kind === 'retry' && !onRetry);
+  const showButton = !!act && (signInElsewhere || !(act.href && !onAction)) && !(act.kind === 'retry' && !onRetry);
   return (
     <div
       ref={(el) => { inner.current = el; if (typeof outer === 'function') outer(el); else if (outer) outer.current = el; }}
@@ -66,7 +70,7 @@ export const ErrorNote = forwardRef<HTMLDivElement, ErrorNoteProps>(function Err
         {children}
         {(act || d.reference) && (
           <div className="error-note-actions">
-            {act && act.href && !onAction && act.kind !== 'reload' && <Link className="btn sm" href={act.href}>{act.label}</Link>}
+            {act && act.href && !onAction && act.kind !== 'reload' && !signInElsewhere && <Link className="btn sm" href={act.href}>{act.label}</Link>}
             {showButton && <button className="btn sm" type="button" disabled={busy} onClick={run}>{act!.label}</button>}
             {d.reference && (
               <span className="error-note-ref">

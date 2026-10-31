@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useSyncExternalStore, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useSession } from '@/lib/session';
@@ -9,6 +9,9 @@ import { Topbar } from './topbar';
 import { ShellProvider, useShell } from './shell-context';
 import { ToastProvider } from '@/components/ui/toasts';
 import { PollBanner } from '@/components/polling';
+import { ErrorNote } from '@/components/ui/error-note';
+import { describeFailureOf } from '@/lib/error-catalogue';
+import { hasUnsaved, subscribeUnsaved } from '@/lib/unsaved';
 import { NameStep } from '@/components/auth/name-step';
 import { HoverTip } from '@/components/ui/hover-tip';
 
@@ -20,8 +23,19 @@ function Frame({ children }: { children: ReactNode }) {
   const shell = useShell();
   const isBoard = pathname === '/board';
 
+  const unsaved = useSyncExternalStore(subscribeUnsaved, hasUnsaved, () => false);
   let content = children;
-  if (state.status === 'loading') {
+  if (state.status === 'signedOut' && unsaved) {
+    // Keep the page so the unsaved text survives: sign in again in another tab, then come back here.
+    content = (
+      <>
+        <ErrorNote note={describeFailureOf({ status: 401, code: 'UNAUTHORIZED' })} onAction={() => window.open(`/signin?state=session_ended&next=${encodeURIComponent(window.location.pathname + window.location.search)}`, '_blank', 'noopener')}>
+          <div className="error-note-actions"><button className="btn sm" type="button" onClick={refetch}>I’ve signed in</button></div>
+        </ErrorNote>
+        {children}
+      </>
+    );
+  } else if (state.status === 'loading') {
     content = <div role="status" className="state-note">Loading your session…</div>;
   } else if (state.status === 'signedOut') {
     content = (
