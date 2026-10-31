@@ -71,3 +71,15 @@ Threat actors we plan for: a curious invited user trying to see another project;
 ## How we will know it worked
 
 Each item has an evidence line. We do not mark an item done on a design or a passing unit test alone: S1 needs a burst test, S2 needs the generated matrix passing, S4 needs a real alert received, S14 needs a timed restore. Results go in docs/UAT_DEPLOY.md or the review folders, and the gate in BACKEND_REVIEW_GATE.md still applies to backend changes.
+
+## Round 4a audit dispositions (Codex, frozen SHA 99ae250, recorded 2026-10-31)
+
+Source: `docs/reviews/CODEX-AUDIT-20261031-D/` (0 critical, 1 high, 1 medium, 1 low; matrix 950 cells over 95 routes; focused API 61/61, lifecycle 7/7, web 145/145, contracts 108/108; full API suite interrupted, so no full-suite claim). Coverage was partial: areas D (names), E (email), G (database) and J (tests and docs) were not covered, and A, B, C, F, H, I were marked fail on the findings below. Not a clean bill of health.
+
+| Finding | Disposition | Evidence needed to close |
+|---|---|---|
+| FB-R4-01 high: ownership transfer enabled, bypasses the target's project quota | **Fixed after the audited SHA**: `efc1e10` (B-20) returns 410 `TRANSFER_OWNERSHIP_RETIRED` (`apps/api/src/http/routes/workspaces.ts:163`); the lifecycle test was rewritten. | Round 4b re-test at a new frozen SHA |
+| FB-R4-02 medium: PostCSS high and Next moderate advisory in the production tree (Undici high in dev) | **Accepted for the beta** (FB-AUD-04). Next 16 upgrade is a pre-public-launch item. | Dependency update commit and a clean `npm audit --omit=dev` |
+| FB-R4-03 low: shared-project header can show the user's own workspace name (`active-project.ts:22-24`) | **In progress**: UI task S-22 (switcher and label). | UI commit plus a browser check with a shared-only account |
+| Secret scan: 249 redacted gitleaks detections, not inspected | **Open, not certified.** Earlier manual review judged the known classes false positives (`Idempotency-Key` test headers, manifest hashes); this 249 count has not been triaged by the Architect. | Triage a sample and the classes; allowlist file for confirmed false positives |
+| Full API suite interrupted; signed-in UAT flows not run; deploy log older than the audited SHA | **Open.** Round 4b runs the full suite with the access suite on; the owner runs `needs-owner.md` against the deployed UAT after the single combined deployment. | Round 4b report; owner checklist results |
