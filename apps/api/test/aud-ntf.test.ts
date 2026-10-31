@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { insertWorkspaceForCookie } from './support/workspace-fixture.ts';
 import crypto from 'node:crypto';
 import test, { before, after } from 'node:test';
 import pg from 'pg';
@@ -85,18 +86,8 @@ test('AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite',
     outsider = await createSession('outsider@flowboard.test', 'Complete Outsider');
 
     // 1. Owner creates workspace
-    const wsRes = await app.request('/api/v1/workspaces', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': owner.cookie,
-        'Idempotency-Key': nextKey('ws-create'),
-      },
-      body: JSON.stringify({ name: 'Activity Audit Workspace', timezone: 'UTC' }),
-    });
-    assert.equal(wsRes.status, 201);
-    const wsJson = (await wsRes.json()) as any;
-    workspaceId = wsJson.data.id;
+    // B-20: POST /api/v1/workspaces is retired; the fixture inserts the owner's workspace.
+    workspaceId = (await insertWorkspaceForCookie(owner.cookie, { name: 'Activity Audit Workspace' })).id;
 
     // 2. Owner creates Project 1
     const p1Res = await app.request(`/api/v1/workspaces/${workspaceId}/projects`, {

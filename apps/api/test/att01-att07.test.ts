@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { insertWorkspaceForCookie } from './support/workspace-fixture.ts';
 import crypto from 'node:crypto';
 import test, { before, after } from 'node:test';
 import pg from 'pg';
@@ -159,18 +160,8 @@ test('ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Su
     siblingUser = sibling.user;
 
     // Create workspace
-    const wsRes = await app.request('/api/v1/workspaces', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: ownerCookie,
-        'Idempotency-Key': 'ws-att-test-setup-001',
-      },
-      body: JSON.stringify({ name: 'Attachment Test Workspace', timezone: 'UTC' }),
-    });
-    assert.equal(wsRes.status, 201);
-    const wsJson = (await wsRes.json()) as any;
-    workspaceId = wsJson.data.id;
+    // B-20: POST /api/v1/workspaces is retired; the fixture inserts the owner's workspace.
+    workspaceId = (await insertWorkspaceForCookie(ownerCookie, { name: 'Attachment Test Workspace' })).id;
 
     // Create Project A
     const prjRes = await app.request(`/api/v1/workspaces/${workspaceId}/projects`, {

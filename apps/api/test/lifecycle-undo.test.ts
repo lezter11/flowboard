@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { insertWorkspaceForCookie } from './support/workspace-fixture.ts';
 import test, { before, after } from 'node:test';
 import crypto from 'node:crypto';
 import { runMigrations } from '../src/adapters/migrations.ts';
@@ -56,21 +57,8 @@ test('PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Sui
     };
 
     // 1. Create Workspace
-    const wsRes = await app.request('/api/v1/workspaces', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': owner.cookie,
-        'Idempotency-Key': nextKey('ws-create'),
-      },
-      body: JSON.stringify({
-        name: 'Archiving Test Workspace',
-        timezone: 'UTC',
-      }),
-    });
-    assert.equal(wsRes.status, 201);
-    const wsJson = (await wsRes.json()) as any;
-    workspaceId = wsJson.data.id;
+    // B-20: POST /api/v1/workspaces is retired; the fixture inserts the owner's workspace.
+    workspaceId = (await insertWorkspaceForCookie(owner.cookie, { name: 'Archiving Test Workspace' })).id;
 
     // 2. Create Project
     const prjRes = await app.request(`/api/v1/workspaces/${workspaceId}/projects`, {

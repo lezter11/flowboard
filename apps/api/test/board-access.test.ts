@@ -93,6 +93,27 @@ test('board access comprehensive integration on isolated PostgreSQL', {
     // Initialize App with mounted board grants
     const app = createApp(async () => {}, { pool });
 
+    // B-20: the transfer route is retired. A synthetic owner change takes the same workspace row lock an
+    // owner change takes, so the reader-blocking checks below keep their meaning without the route.
+    const syntheticOwnerChange = async (targetUserId: string, expectedVersion: number) => {
+      const client = await pool.connect();
+      try {
+        await client.query('BEGIN');
+        const res = await client.query(
+          `UPDATE workspaces SET owner_id = $2, version = version + 1, updated_at = NOW()
+           WHERE id = $1 AND version = $3`,
+          ['w1', targetUserId, expectedVersion],
+        );
+        await client.query('COMMIT');
+        return { status: res.rowCount ? 200 : 409 };
+      } catch (error) {
+        await client.query('ROLLBACK').catch(() => {});
+        throw error;
+      } finally {
+        client.release();
+      }
+    };
+
     const req = (method: string, path: string, sessionId?: string, body?: unknown, headers?: Record<string, string>) =>
       app.request(`http://localhost/api/v1${path}`, {
         method,
@@ -1154,10 +1175,7 @@ test('board access comprehensive integration on isolated PostgreSQL', {
           `SELECT version FROM workspaces WHERE id = 'w1'`,
         )).rows[0]?.version;
         assert.ok(workspaceVersion !== undefined);
-        const transferPromise = req('POST', '/workspaces/w1/transfer-ownership', owner.session.id, {
-          targetUserId: summaryNextOwner.user.id,
-          expectedVersion: workspaceVersion,
-        });
+        const transferPromise = syntheticOwnerChange(summaryNextOwner.user.id, workspaceVersion);
         let transferPid: number | undefined;
         for (let attempt = 0; attempt < 200; attempt++) {
           const waiting = await pool.query<{ pid: number }>(
@@ -1316,9 +1334,7 @@ test('board access comprehensive integration on isolated PostgreSQL', {
           `SELECT version FROM workspaces WHERE id = 'w1'`,
         )).rows[0]?.version;
         assert.ok(workspaceVersion !== undefined);
-        const transfer = req('POST', '/workspaces/w1/transfer-ownership', owner.session.id, {
-          targetUserId: nextOwner.user.id, expectedVersion: workspaceVersion,
-        });
+        const transfer = syntheticOwnerChange(nextOwner.user.id, workspaceVersion);
         try {
           await waitUntilBlockedBy(workspaceProjectsRace.readerPid, 'Ownership transfer after workspace project list start');
         } finally {
@@ -1360,10 +1376,7 @@ test('board access comprehensive integration on isolated PostgreSQL', {
           `SELECT version FROM workspaces WHERE id = 'w1'`,
         )).rows[0]?.version;
         assert.ok(workspaceVersion !== undefined);
-        const transferPromise = req('POST', '/workspaces/w1/transfer-ownership', owner.session.id, {
-          targetUserId: nextOwner.user.id,
-          expectedVersion: workspaceVersion,
-        });
+        const transferPromise = syntheticOwnerChange(nextOwner.user.id, workspaceVersion);
         let transferPid: number | undefined;
         for (let attempt = 0; attempt < 200; attempt++) {
           const waiting = await pool.query<{ pid: number }>(

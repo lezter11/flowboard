@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { insertWorkspaceForCookie } from './support/workspace-fixture.ts';
 import crypto from 'node:crypto';
 import test, { before, after } from 'node:test';
 import zlib from 'node:zlib';
@@ -358,17 +359,8 @@ test('IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite
     outsiderUser = outsider.user;
 
     // Create Workspace
-    const wsRes = await app.request('/api/v1/workspaces', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Cookie: ownerCookie,
-        'Idempotency-Key': 'ws-imp-test-setup-001',
-      },
-      body: JSON.stringify({ name: 'Import Test Workspace', timezone: 'UTC' }),
-    });
-    assert.equal(wsRes.status, 201);
-    workspaceId = ((await wsRes.json()) as any).data.id;
+    // B-20: POST /api/v1/workspaces is retired; the fixture inserts the owner's workspace.
+    workspaceId = (await insertWorkspaceForCookie(ownerCookie, { name: 'Import Test Workspace' })).id;
 
     // Create Project Alpha
     const prjRes = await app.request(`/api/v1/workspaces/${workspaceId}/projects`, {

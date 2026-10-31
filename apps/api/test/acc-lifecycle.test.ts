@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { insertWorkspaceForCookie } from './support/workspace-fixture.ts';
 import test, { before, after } from 'node:test';
 import crypto from 'node:crypto';
 import { runMigrations } from '../src/adapters/migrations.ts';
@@ -46,21 +47,8 @@ test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Admini
     };
 
     // 1. Create Workspace owned by owner
-    const wsRes = await app.request('/api/v1/workspaces', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': owner.cookie,
-        'Idempotency-Key': nextKey('ws-create'),
-      },
-      body: JSON.stringify({
-        name: 'Lifecycle Corp Workspace',
-        timezone: 'UTC',
-      }),
-    });
-    assert.equal(wsRes.status, 201);
-    const wsJson = (await wsRes.json()) as any;
-    workspaceId = wsJson.data.id;
+    // B-20: POST /api/v1/workspaces is retired; the fixture inserts the owner's workspace.
+    workspaceId = (await insertWorkspaceForCookie(owner.cookie, { name: 'Lifecycle Corp Workspace' })).id;
 
     // 2. Create Project in Workspace
     const prjRes = await app.request(`/api/v1/workspaces/${workspaceId}/projects`, {
@@ -277,71 +265,23 @@ test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Admini
   });
 
   await t.test('ACC-07: Owner transfer atomic transition and idempotency', async () => {
-    // 1. Non-owner cannot transfer ownership (403 FORBIDDEN)
-    const badActorRes = await app.request(`/api/v1/workspaces/${workspaceId}/transfer-ownership`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': member.cookie,
-        'Idempotency-Key': nextKey('bad-transfer'),
-      },
-      body: JSON.stringify({
-        targetUserId: candidate.user.id,
-        expectedVersion: 2,
-      }),
-    });
-    assert.equal(badActorRes.status, 403);
+    // B-20: the transfer route is retired. Owner, member and stranger all get 410 after authentication,
+    // and nothing changes (edge-case review F-06).
+    for (const [label, cookie] of [['owner', owner.cookie], ['member', member.cookie]] as const) {
+      const retired = await app.request(`/api/v1/workspaces/${workspaceId}/transfer-ownership`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Cookie': cookie, 'Idempotency-Key': nextKey(`retired-${label}`) },
+        body: JSON.stringify({ targetUserId: candidate.user.id, expectedVersion: 2 }),
+      });
+      assert.equal(retired.status, 410, label);
+      assert.equal(((await retired.json()) as any).error.code, 'TRANSFER_OWNERSHIP_RETIRED', label);
+    }
+    const ownerRowBefore = await getPool().query<{ owner_id: string; version: number }>(`SELECT owner_id, version FROM workspaces WHERE id = $1`, [workspaceId]);
+    assert.equal(ownerRowBefore.rows[0]!.owner_id, owner.user.id, 'the retired route changed nothing');
 
-    // 2. Self-transfer rejected (400 BAD REQUEST)
-    const selfRes = await app.request(`/api/v1/workspaces/${workspaceId}/transfer-ownership`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': owner.cookie,
-        'Idempotency-Key': nextKey('self-transfer'),
-      },
-      body: JSON.stringify({
-        targetUserId: owner.user.id,
-        expectedVersion: 2,
-      }),
-    });
-    assert.equal(selfRes.status, 400);
-
-    // 3. Transfer ownership to Candidate Owner
-    const transferKey = nextKey('valid-transfer');
-    const transferRes = await app.request(`/api/v1/workspaces/${workspaceId}/transfer-ownership`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': owner.cookie,
-        'Idempotency-Key': transferKey,
-      },
-      body: JSON.stringify({
-        targetUserId: candidate.user.id,
-        expectedVersion: 2,
-      }),
-    });
-    assert.equal(transferRes.status, 200);
-    const transferJson = (await transferRes.json()) as any;
-    assert.equal(transferJson.data.ownerId, candidate.user.id);
-    assert.equal(transferJson.data.version, 3);
-
-    // 4. Idempotency replay returns replayed: true
-    const replayRes = await app.request(`/api/v1/workspaces/${workspaceId}/transfer-ownership`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Cookie': owner.cookie,
-        'Idempotency-Key': transferKey,
-      },
-      body: JSON.stringify({
-        targetUserId: candidate.user.id,
-        expectedVersion: 2,
-      }),
-    });
-    assert.equal(replayRes.status, 200);
-    const replayJson = (await replayRes.json()) as any;
-    assert.equal(replayJson.replayed, true);
+    // The owner change itself is made directly, the way a future owner change would be, so the checks that
+    // follow still cover a former owner.
+    await getPool().query(`UPDATE workspaces SET owner_id = $2, version = version + 1, updated_at = NOW() WHERE id = $1`, [workspaceId, candidate.user.id]);
 
     // 5. Former owner attempting another owner action now receives 403 FORBIDDEN
     const formerOwnerRes = await app.request(`/api/v1/workspaces/${workspaceId}`, {

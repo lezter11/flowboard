@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { insertWorkspaceForUser } from './support/workspace-fixture.ts';
 import crypto from 'node:crypto';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
@@ -93,49 +94,18 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
       assert.equal(sessionData.data.actor.email, testEmail);
       assert.ok(Array.isArray(sessionData.data.ownedWorkspaces));
 
-      // 7. Authenticated POST /api/v1/workspaces with idempotency key via Worker
-      const createWsRes = await worker.fetch('http://localhost/api/v1/workspaces', {
+      // 7. B-20: POST /api/v1/workspaces is retired. Authenticated callers get 410 through the Worker.
+      const retiredWsRes = await worker.fetch('http://localhost/api/v1/workspaces', {
         method: 'POST',
-        headers: {
-          Cookie: sessionCookie,
-          'Content-Type': 'application/json',
-          'Idempotency-Key': wsKey,
-        },
-        body: JSON.stringify({
-          name: 'Worker R4 Cloud Workspace',
-          timezone: 'America/New_York',
-        }),
+        headers: { Cookie: sessionCookie, 'Content-Type': 'application/json', 'Idempotency-Key': wsKey },
+        body: JSON.stringify({ name: 'Worker R4 Cloud Workspace', timezone: 'America/New_York' }),
       });
-      assert.equal(createWsRes.status, 201);
-      const wsBody = (await createWsRes.json()) as {
-        data: { id: string; name: string; ownerId: string; timezone: string };
-        replayed: boolean;
-      };
-      assert.equal(wsBody.data.name, 'Worker R4 Cloud Workspace');
-      assert.equal(wsBody.data.ownerId, userId);
-      assert.equal(wsBody.replayed, false);
-      const workspaceId = wsBody.data.id;
+      assert.equal(retiredWsRes.status, 410);
+      assert.equal(((await retiredWsRes.json()) as { error: { code: string } }).error.code, 'WORKSPACE_CREATE_RETIRED');
 
-      // 8. Idempotency replay check via Worker: repeating with same key & payload returns replayed: true
-      const replayWsRes = await worker.fetch('http://localhost/api/v1/workspaces', {
-        method: 'POST',
-        headers: {
-          Cookie: sessionCookie,
-          'Content-Type': 'application/json',
-          'Idempotency-Key': wsKey,
-        },
-        body: JSON.stringify({
-          name: 'Worker R4 Cloud Workspace',
-          timezone: 'America/New_York',
-        }),
-      });
-      assert.equal(replayWsRes.status, 201);
-      const replayWsBody = (await replayWsRes.json()) as {
-        data: { id: string };
-        replayed: boolean;
-      };
-      assert.equal(replayWsBody.data.id, workspaceId);
-      assert.equal(replayWsBody.replayed, true);
+      // 8. The personal workspace is inserted by the fixture; the Worker lists it in step 9.
+      const fixtureWs = await insertWorkspaceForUser(userId, { name: 'Worker R4 Cloud Workspace', timezone: 'America/New_York' });
+      const workspaceId = fixtureWs.id;
 
       // 9. Authenticated GET /api/v1/workspaces via Worker lists the workspace
       const listWsRes = await worker.fetch('http://localhost/api/v1/workspaces', {
