@@ -81,10 +81,23 @@ async function settle(client: pg.ClientBase, id: string, status: 'delivered' | '
 }
 
 /**
- * Sends one pending invitation row straight after its commit. A row locked by the scheduled drain
- * is skipped. A retryable failure is left pending for the drain to retry.
+ * What the immediate path did, as a reason code. Never a token, address, name or provider body.
+ * `skipped:*` means nothing was attempted; `error:*` carries a SQLSTATE or a short system code.
  */
-export async function deliverInvitationNow(pool: pg.Pool, outboxId: string, mailer: Mailer): Promise<void> {
+export type ImmediateResult =
+  | 'delivered'
+  | 'failed'
+  | 'not_pending'
+  | `retry:${string}`
+  | `skipped:${string}`
+  | `error:${string}`;
+
+/**
+ * Sends one pending invitation row straight after its commit. A row locked by the scheduled drain
+ * (or already settled) is skipped. A retryable failure is left pending for the drain to retry.
+ * Throws if no connection can be taken; the caller logs that as an error code.
+ */
+export async function deliverInvitationNow(pool: pg.Pool, outboxId: string, mailer: Mailer): Promise<ImmediateResult> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -95,36 +108,62 @@ export async function deliverInvitationNow(pool: pg.Pool, outboxId: string, mail
       [outboxId],
     );
     const row = res.rows[0];
-    if (row) await deliverInvitationRow(client, row, mailer);
+    const outcome = row ? await deliverInvitationRow(client, row, mailer) : null;
     await client.query('COMMIT');
-  } catch {
+    if (!outcome) return 'not_pending';
+    if (outcome.kind === 'retry') return `retry:${outcome.reason}`;
+    return outcome.kind;
+  } catch (error) {
     await client.query('ROLLBACK').catch(() => {});
+    return `error:${errorCode(error)}`;
   } finally {
     client.release();
   }
 }
 
+/** A SQLSTATE or a short system code such as ECONNREFUSED. Never the message, which can echo SQL or values. */
+function errorCode(error: unknown): string {
+  const code = (error as { code?: unknown } | null)?.code;
+  return typeof code === 'string' && /^[A-Z0-9_]{1,16}$/.test(code) ? code : 'unknown';
+}
+
+/**
+ * One line per immediate attempt, with the reason code only. Delivery and "already handled" are
+ * info; everything else is a warning, because the scheduled drain must then pick the row up.
+ */
+function logImmediate(result: ImmediateResult): void {
+  const line = JSON.stringify({ event: 'invitation_immediate_send', result });
+  if (result === 'delivered' || result === 'not_pending') console.info(line);
+  else console.warn(line);
+}
+
+type WaitUntilContext = { waitUntil(promise: Promise<unknown>): void };
+
 /**
  * Starts the immediate send on the Worker's waitUntil, after the response is decided. Fail-soft:
  * with no mail configuration, no connection string, or no waitUntil (tests, Node), nothing starts
- * and the scheduled drain sends the email later.
+ * and the scheduled drain sends the email later. Each early return logs its reason code (UAT, B-14
+ * follow-up), so a missing setting shows up in the Worker logs rather than as silence.
  */
 export function sendInvitationEmailSoon(c: Context, outboxId: string): void {
   const env = c.env as (MailEnv & { HYPERDRIVE?: { connectionString?: string }; DATABASE_URL?: string }) | undefined;
   const mailer = mailerFromEnv(env);
+  if (!mailer) return logImmediate('skipped:mail_not_configured');
   const connectionString = env?.HYPERDRIVE?.connectionString ?? env?.DATABASE_URL;
-  if (!mailer || !connectionString) return;
-  let ctx: { waitUntil(promise: Promise<unknown>): void };
+  if (!connectionString) return logImmediate('skipped:no_connection_string');
+  let ctx: WaitUntilContext;
   try {
     ctx = c.executionCtx;
   } catch {
-    return;
+    // Hono throws here when the app was called without an ExecutionContext (the Worker must pass one).
+    return logImmediate('skipped:no_execution_context');
   }
   // A private pool: the request's pool is closed when the response ends.
   const pool = createPool(connectionString, 1);
   ctx.waitUntil(
     deliverInvitationNow(pool, outboxId, mailer)
-      .catch(() => {})
-      .finally(() => pool.end()),
+      .catch((error: unknown) => `error:${errorCode(error)}` as ImmediateResult)
+      .then(logImmediate)
+      .finally(() => pool.end().catch(() => {})),
   );
 }

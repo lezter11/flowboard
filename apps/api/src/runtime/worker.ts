@@ -1,3 +1,4 @@
+import type { ExecutionContext } from 'hono';
 import { createPool, queryDatabase } from '../adapters/postgres.ts';
 import { createApp } from '../http/app.ts';
 import { processPendingStorageDeletions, purgeExpiredTrash } from '../services/trash-purge.ts';
@@ -45,7 +46,8 @@ function imageStorage(env: WorkerBindings): R2StorageDriver | null {
 }
 
 export default {
-  async fetch(request: Request, env: WorkerBindings): Promise<Response> {
+  // The ExecutionContext is passed to Hono so routes can call waitUntil (the immediate invitation send).
+  async fetch(request: Request, env: WorkerBindings, ctx?: ExecutionContext): Promise<Response> {
     // A request-scoped pool owns at most one pg connection; never shared across
     // Worker requests. Real Hyperdrive pooling is a later hosted verification.
     const connectionString = env.HYPERDRIVE?.connectionString ?? env.DATABASE_URL;
@@ -69,7 +71,7 @@ export default {
       storage: imageStorage(env),
     });
     try {
-      return await app.fetch(request, env);
+      return await app.fetch(request, env, ctx);
     } finally {
       await pool.end();
     }
