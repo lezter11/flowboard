@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Card, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
@@ -12,7 +13,7 @@ import { neighbours } from '@/lib/board-model';
 import { describeActivity } from '@/lib/activity';
 import { can, ROLE_META, normalizeRole, type Role } from '@/lib/roles';
 import { useAssignablePeople } from '@/lib/assignee-people';
-import { EMPTY_ASSIGNEES, MAX_ASSIGNEES, assignableList, canAddAssignee, ineligibleIds, namesFor, pickerState } from '@/lib/assignees';
+import { EMPTY_ASSIGNEES, MAX_ASSIGNEES, NO_ACCESS_HINT, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, ineligibleIds, namesFor, noBoardAccess, pickerState, saveBarText } from '@/lib/assignees';
 import { Icon } from '@/components/ui/icon';
 import { CardImages } from './card-images';
 import { formatPersonName, personAria } from '@/lib/person-name';
@@ -222,24 +223,32 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
   const done = draftColumn?.category === 'done';
   const due = dueInfo(draft.dueDate || null, done);
   // Candidates come from the card's own project, not from the board snapshot (which only knows people already on cards).
-  const projectPeople = useAssignablePeople(card.projectId, editable);
+  const projectPeople = useAssignablePeople(card.projectId, card.boardId, editable);
+  // Owners and Managers also see who is blocked only by a missing board grant (the project-wide list minus the board's).
+  const canSeeBlocked = editable && (role === 'owner' || role === 'manager');
+  const projectWide = useAssignablePeople(card.projectId, null, canSeeBlocked);
+  const blocked = useMemo(() => (canSeeBlocked && projectPeople.isSuccess ? noBoardAccess(projectWide.data, projectPeople.data) : []), [canSeeBlocked, projectWide.data, projectPeople.data, projectPeople.isSuccess]);
   const assignable = useMemo(() => assignableList(projectPeople.data), [projectPeople.data]);
   const picker = pickerState(projectPeople, assignable);
-  const names = useMemo(() => namesFor(people, projectPeople.data), [people, projectPeople.data]);
+  const names = useMemo(() => namesFor(namesFor(people, projectWide.data), projectPeople.data), [people, projectWide.data, projectPeople.data]);
   // Cards saved before viewers were refused may still list one (or someone since removed). The server rejects them on save, so say so up front.
   const ineligible = ineligibleIds(draft.assigneeIds, assignable, projectPeople.isSuccess, people);
 
+  const [assigneeFailure, setAssigneeFailure] = useState<{ ids: string[]; message: string } | null>(null);
+  const assigneeErrorRef = useRef<HTMLDivElement>(null);
   const save = useMutation({
-    mutationFn: async () => {
+    // `override` is the assignee list for "Remove them and save", so the save does not wait for a state update.
+    mutationFn: async (override?: string[]) => {
       let version = card.version;
-      const fieldsChanged = draft.title !== base.title || draft.description !== base.description || draft.priority !== base.priority || draft.dueDate !== base.dueDate || draft.assigneeIds.join(',') !== base.assigneeIds.join(',');
+      const assigneeIds = override ?? draft.assigneeIds;
+      const fieldsChanged = draft.title !== base.title || draft.description !== base.description || draft.priority !== base.priority || draft.dueDate !== base.dueDate || assigneeIds.join(',') !== base.assigneeIds.join(',');
       if (fieldsChanged) {
         const res = await api.updateCard(card.id, {
           title: draft.title.trim(),
           description: draft.description,
           priority: draft.priority,
           dueDate: draft.dueDate || null,
-          assigneeIds: draft.assigneeIds,
+          assigneeIds,
           expectedVersion: version,
         });
         version = res.data.version ?? version + 1;
@@ -249,8 +258,17 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
         await api.moveCard(card.id, { toColumnId: draft.columnId, previousCardId, nextCardId, expectedVersion: version, expectedBoardVersion: structureVersion });
       }
     },
-    onSuccess: () => { setError(''); setConflict(false); setDraft((d) => ({ ...d, title: d.title.trim() })); toast('Changes saved', { icon: 'check' }); dirtyRef.current = false; onSaved(); },
-    onError: (err) => { setError(err instanceof ApiError && err.status === 404 ? 'This card was removed, so your changes could not be saved.' : isStale(err) ? 'Someone else changed this card. Their changes are loaded; review your edits and save again.' : describeError(err)); onSaved(); },
+    onSuccess: (_r, override) => { setError(''); setAssigneeFailure(null); if (override) setDraft((d) => ({ ...d, assigneeIds: override })); setConflict(false); setDraft((d) => ({ ...d, title: d.title.trim() })); toast('Changes saved', { icon: 'check' }); dirtyRef.current = false; onSaved(); },
+    onError: (err) => {
+      const refused = err instanceof ApiError ? ineligibleFromFailure(err) : null;
+      if (refused) {
+        setAssigneeFailure({ ids: refused.length ? refused : draft.assigneeIds.filter((id) => !assignable.some((p) => p.id === id)), message: err instanceof ApiError ? err.message : '' });
+        setError('');
+        void projectPeople.refetch();
+        return;
+      }
+      setAssigneeFailure(null);
+      setError(err instanceof ApiError && err.status === 404 ? 'This card was removed, so your changes could not be saved.' : isStale(err) ? 'Someone else changed this card. Their changes are loaded; review your edits and save again.' : describeError(err)); onSaved(); },
   });
 
   const submit = (event?: FormEvent) => {
@@ -258,9 +276,13 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
     if (!draft.title.trim() || draft.title.trim().length > 200) { setError('Enter a title with 1 to 200 characters.'); return; }
     if (draft.description.length > 20000) { setError('Description must be 20,000 characters or fewer.'); return; }
     if (ineligible.length > 0) { setError('Remove the assignees marked “can’t be assigned” first. Only owners, managers and members can be assigned.'); return; }
-    setError('');
-    save.mutate();
+    setError(''); setAssigneeFailure(null);
+    save.mutate(undefined);
   };
+  // Bring the refusal into view and focus it as soon as it renders, so keyboard and screen-reader users land on it.
+  useEffect(() => { if (assigneeFailure) { assigneeErrorRef.current?.scrollIntoView({ block: 'nearest' }); assigneeErrorRef.current?.focus(); } }, [assigneeFailure]);
+  const failedNames = (assigneeFailure?.ids ?? []).map((id) => formatPersonName(names.get(id), 'A person'));
+  const removeAndSave = () => { const keep = draft.assigneeIds.filter((id) => !(assigneeFailure?.ids ?? []).includes(id)); setDraft((d) => ({ ...d, assigneeIds: keep })); setAssigneeFailure(null); setError(''); save.mutate(keep); };
 
   return (
     <>
@@ -338,11 +360,30 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
                         </label>
                       );
                     })}
+                    {blocked.length > 0 && (
+                      <div className="assignee-blocked" aria-label="No access to this board">
+                        <div className="menu-title">No access to this board</div>
+                        {blocked.map((person) => (
+                          <div key={person.id} className="assignee-option is-disabled" aria-disabled="true">
+                            <Avatar id={person.id} name={formatPersonName(person)} />
+                            {formatPersonName(person)}
+                            {person.scopedRole && <span className="role-mini">{person.scopedRole}</span>}
+                          </div>
+                        ))}
+                        <div className="menu-note">{NO_ACCESS_HINT} {role === 'owner' ? <Link href="/people">Open board access</Link> : 'Ask the project Owner.'}</div>
+                      </div>
+                    )}
                     <div className="menu-note">Viewers can read and be mentioned but cannot be assigned. Up to {MAX_ASSIGNEES} assignees.</div>
                   </div>
                 </details>
               )}
             </div>
+            {assigneeFailure && (
+              <div className="assignee-failure" role="alert" tabIndex={-1} ref={assigneeErrorRef}>
+                <p>{describeIneligible(failedNames, assigneeFailure.message)}</p>
+                {failedNames.length > 0 && <button className="btn sm" type="button" disabled={save.isPending} onClick={removeAndSave}>{failedNames.length === 1 ? 'Remove them and save' : 'Remove them and save'}</button>}
+              </div>
+            )}
           </div>
           <div className="field">
             <label className="field-label" htmlFor="detailDue">Due date</label>
@@ -387,7 +428,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
       <footer className="drawer-foot">
         {editable || can(role, 'move') ? (
           <>
-            <span className={`save-state${dirty ? ' is-dirty' : ''}`} role="status" aria-live="polite"><span className="dot" /> {save.isPending ? 'Saving…' : dirty ? 'Unsaved changes' : 'All changes saved'}</span>
+            <span className={`save-state${save.isError && dirty ? ' is-error' : dirty ? ' is-dirty' : ''}`} role="status" aria-live="polite"><span className="dot" /> {saveBarText({ saving: save.isPending, failed: save.isError && dirty, dirty })}</span>
             <div className="foot-actions">
               <button className="btn ghost" type="button" disabled={!dirty || save.isPending} onClick={() => { setDraft(base); setError(''); }}>Discard</button>
               <button className="btn primary" type="button" disabled={!dirty || save.isPending} onClick={() => submit()}>Save changes</button>

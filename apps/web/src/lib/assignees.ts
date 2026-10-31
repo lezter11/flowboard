@@ -41,3 +41,40 @@ export function ineligibleIds(ids: readonly string[], projectList: readonly Pers
 }
 
 export const canAddAssignee = (count: number): boolean => count < MAX_ASSIGNEES;
+
+export interface FailureLike { status: number; code: string; message: string; details?: unknown }
+
+/**
+ * The people a refused save names: code ASSIGNEE_NOT_ELIGIBLE, or today's 422 whose details carry invalidAssigneeIds.
+ * Null when the failure is about something else. Ids only; the caller turns them into names.
+ */
+export function ineligibleFromFailure(f: FailureLike): string[] | null {
+  if (f.status !== 422 && f.code !== 'ASSIGNEE_NOT_ELIGIBLE') return null;
+  const d = f.details as { invalidAssigneeIds?: unknown } | null | undefined;
+  const ids = Array.isArray(d?.invalidAssigneeIds) ? d!.invalidAssigneeIds.filter((x): x is string => typeof x === 'string') : [];
+  if (ids.length > 0) return ids;
+  return f.code === 'ASSIGNEE_NOT_ELIGIBLE' || /access to this board/i.test(f.message) ? [] : null;
+}
+
+const joinNames = (names: string[]) => names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+
+/** "Couldn't assign Sam Lee and Ana Rao. They do not have access to this board." Falls back to the server's sentence when no one is named. */
+export function describeIneligible(names: string[], serverMessage: string): string {
+  if (names.length === 0) return serverMessage;
+  return `Couldn’t assign ${joinNames(names)}. ${names.length === 1 ? 'They do' : 'They do'} not have access to this board.`;
+}
+
+/** Managers and Members of the project who hold no grant on this board: in the project's assignable list but not in the board's. */
+export function noBoardAccess<T extends PersonLike>(projectWide: readonly T[] | undefined, boardWide: readonly T[] | undefined): T[] {
+  const onBoard = new Set((boardWide ?? []).map((p) => p.id));
+  return assignableList(projectWide).filter((p) => !onBoard.has(p.id) && p.scopedRole !== 'owner');
+}
+
+/** What the save bar says. A failed save never sits on "Unsaved changes". */
+export function saveBarText(s: { saving: boolean; failed: boolean; dirty: boolean }): string {
+  if (s.saving) return 'Saving…';
+  if (s.failed) return 'Couldn’t save';
+  return s.dirty ? 'Unsaved changes' : 'All changes saved';
+}
+
+export const NO_ACCESS_HINT = 'Give them access to this board first.';

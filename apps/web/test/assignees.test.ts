@@ -44,3 +44,50 @@ test('the 20-assignee cap', () => {
   assert.equal(canAddAssignee(MAX_ASSIGNEES - 1), true);
   assert.equal(canAddAssignee(MAX_ASSIGNEES), false);
 });
+
+import { describeIneligible, ineligibleFromFailure, noBoardAccess, saveBarText } from '../src/lib/assignees.ts';
+import { readFileSync } from 'node:fs';
+
+test('the assignee query carries the card board, and the project-wide query does not', () => {
+  const hook = readFileSync(new URL('../src/lib/assignee-people.ts', import.meta.url), 'utf8');
+  assert.match(hook, /boardId \? \{ boardId \} : \{\}/);
+  assert.match(hook, /'assignee', boardId \?\? null\]/);
+  const drawer = readFileSync(new URL('../src/components/board/card-detail-drawer.tsx', import.meta.url), 'utf8');
+  assert.match(drawer, /useAssignablePeople\(card\.projectId, card\.boardId, editable\)/);
+  assert.match(drawer, /useAssignablePeople\(card\.projectId, null, canSeeBlocked\)/);
+  assert.match(drawer, /canSeeBlocked = editable && \(role === 'owner' \|\| role === 'manager'\)/);
+});
+
+test('people without a grant are not selectable: only the board list is offered, the rest are listed as blocked', () => {
+  const p = (id: string, name: string, role: string) => ({ id, displayName: name, scopedRole: role, activeInProject: true, assignable: true });
+  const projectWide = [p('o', 'Olu', 'owner'), p('m1', 'Mia', 'member'), p('m2', 'Max', 'manager')];
+  const onBoard = [p('o', 'Olu', 'owner'), p('m1', 'Mia', 'member')];
+  assert.deepEqual(assignableList(onBoard).map((x) => x.id), ['o', 'm1']);
+  assert.deepEqual(noBoardAccess(projectWide, onBoard).map((x) => x.id), ['m2']);
+  assert.deepEqual(noBoardAccess(onBoard, onBoard), []);
+  assert.deepEqual(noBoardAccess(undefined, onBoard), []);
+});
+
+test('a 422 names the people: by new code, by today’s details, and not for other failures', () => {
+  assert.deepEqual(ineligibleFromFailure({ status: 422, code: 'VALIDATION_ERROR', message: 'x', details: { invalidAssigneeIds: ['a', 'b'] } }), ['a', 'b']);
+  assert.deepEqual(ineligibleFromFailure({ status: 422, code: 'ASSIGNEE_NOT_ELIGIBLE', message: 'x', details: { invalidAssigneeIds: ['a'] } }), ['a']);
+  assert.deepEqual(ineligibleFromFailure({ status: 422, code: 'VALIDATION_ERROR', message: 'All assignees must be active owners, managers or members with access to this board.' }), []);
+  assert.equal(ineligibleFromFailure({ status: 422, code: 'VALIDATION_ERROR', message: 'Title too long' }), null);
+  assert.equal(ineligibleFromFailure({ status: 409, code: 'STALE_VERSION', message: 'x' }), null);
+});
+
+test('error text names people with and, and falls back to the server sentence', () => {
+  assert.equal(describeIneligible(['Sam Lee'], 'srv'), 'Couldn’t assign Sam Lee. They do not have access to this board.');
+  assert.equal(describeIneligible(['Sam Lee', 'Ana Rao', 'Shubham Singh (2)'], 'srv'), 'Couldn’t assign Sam Lee, Ana Rao and Shubham Singh (2). They do not have access to this board.');
+  assert.equal(describeIneligible([], 'The server says no.'), 'The server says no.');
+});
+
+test('the save bar never sits on "Unsaved changes" after a failed save', () => {
+  assert.equal(saveBarText({ saving: false, failed: true, dirty: true }), 'Couldn’t save');
+  assert.equal(saveBarText({ saving: false, failed: false, dirty: true }), 'Unsaved changes');
+  assert.equal(saveBarText({ saving: true, failed: true, dirty: true }), 'Saving…');
+  assert.equal(saveBarText({ saving: false, failed: false, dirty: false }), 'All changes saved');
+  const drawer = readFileSync(new URL('../src/components/board/card-detail-drawer.tsx', import.meta.url), 'utf8');
+  assert.match(drawer, /Remove them and save/);
+  assert.match(drawer, /saveBarText\(\{ saving: save\.isPending, failed: save\.isError && dirty, dirty \}\)/);
+});

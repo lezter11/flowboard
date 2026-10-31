@@ -5,12 +5,12 @@ import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Card } from '@flowboard/contracts';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { boardQueryOptions } from '@/lib/queries';
 import { useAssignablePeople } from '@/lib/assignee-people';
-import { EMPTY_ASSIGNEES, assignableList, canAddAssignee, pickerState } from '@/lib/assignees';
+import { EMPTY_ASSIGNEES, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, pickerState } from '@/lib/assignees';
 import { formatPersonName } from '@/lib/person-name';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
@@ -28,7 +28,7 @@ function AddCardScreen() {
   const role = normalizeRole(project?.role);
   const columns = [...(snapshot?.columns ?? [])].sort((a, b) => a.position - b.position);
   // Candidates are the project's people, not the snapshot's (which lists only people already on cards, so a fresh board would offer nobody).
-  const projectPeople = useAssignablePeople(snapshot?.board.projectId, true);
+  const projectPeople = useAssignablePeople(snapshot?.board.projectId, snapshot?.board.id, true);
   const assignable = assignableList(projectPeople.data);
   const picker = pickerState(projectPeople, assignable);
 
@@ -40,6 +40,7 @@ function AddCardScreen() {
   const [assignees, setAssignees] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ title?: string; priority?: string; form?: string }>({});
   const [busy, setBusy] = useState(false);
+  const [refused, setRefused] = useState<{ ids: string[]; message: string } | null>(null);
   const [saved, setSaved] = useState<Card | null>(null);
   const key = useState(() => crypto.randomUUID())[0];
   const dirty = !!(title || description || priority || due || assignees.length);
@@ -51,7 +52,7 @@ function AddCardScreen() {
     const next: typeof errors = {};
     if (!title.trim()) next.title = 'Enter a title with 1 to 200 characters.';
     if (!priority) next.priority = 'Choose a priority before saving the card.';
-    setErrors(next);
+    setErrors(next); setRefused(null);
     if (next.title || next.priority || !snapshot || !column) return;
     setBusy(true);
     try {
@@ -63,7 +64,9 @@ function AddCardScreen() {
       setSaved(created.data);
       void queryClient.invalidateQueries({ queryKey: ['board', boardId] });
     } catch (error) {
-      setErrors({ form: describeError(error) });
+      const ids = error instanceof ApiError ? ineligibleFromFailure(error) : null;
+      if (ids) { setRefused({ ids: ids.length ? ids : assignees, message: error instanceof ApiError ? error.message : '' }); setErrors({}); }
+      else { setRefused(null); setErrors({ form: describeError(error) }); }
     } finally { setBusy(false); }
   };
 
@@ -175,6 +178,13 @@ function AddCardScreen() {
                     </label>
                   ))}
                 </div>
+                {refused && (
+                  <div className="note danger" role="alert" style={{ marginTop: 8 }}>
+                    <Icon name="x-circle" />
+                    <span>{describeIneligible(refused.ids.map((id) => formatPersonName(assignable.find((p) => p.id === id), 'A person')), refused.message)}{' '}
+                      <button className="btn sm" type="button" onClick={() => { setAssignees((prev) => prev.filter((id) => !refused.ids.includes(id))); setRefused(null); }}>Remove them</button></span>
+                  </div>
+                )}
                 <div className="selection-summary" style={{ marginTop: 8 }}>{assignees.length ? `${assignees.length} assigned` : 'Unassigned'}</div>
               </section>
               <div className="note"><Icon name="lock" /><span>Images and comments are added on the next step, after the card is saved. They are never staged against a temporary or client-only card.</span></div>
