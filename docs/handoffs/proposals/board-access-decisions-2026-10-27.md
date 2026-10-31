@@ -4,7 +4,7 @@ These product decisions supersede conflicting older project-inheritance statemen
 
 - Existing project members receive **no automatic board grants** at migration. The workspace Owner explicitly grants access per board.
 - Only the workspace Owner can grant or revoke board access. A project role does not become stronger because of a board grant.
-- A project Manager can create a board in a project they administer. Board creation does not automatically grant that Manager or other project members access; the Owner must grant it. This preserves the Owner-only grant authority.
+- **Amended 31 October 2026:** a project Manager who creates a board receives access to that new board only, in the same transaction. Other project members receive no automatic access, and only the Owner can administer anyone else's grants. Existing boards receive no retroactive creator grants.
 - A non-Owner needs both active project membership and access to the particular board. An Owner has implicit access to all boards in their own workspace; ownership in another workspace grants no extra rights here. A combined view remains inside one project.
 
 The full cutover is described in [the access proposal](project-board-access-v2-2026-10-27.md) and [frozen acceptance criteria](../../reviews/BOARD-ACCESS-20261027/criteria.json). Until every affected path and the independent review gate pass, neither a grant table nor a subset of protected routes establishes the new security boundary. Existing deployment, backend handoff, and feature-checklist statuses are unchanged.
@@ -13,7 +13,7 @@ The full cutover is described in [the access proposal](project-board-access-v2-2
 
 These conservative choices flesh out the product decisions for development; they are not additional user-confirmed policy or evidence of implementation.
 
-- Owner creation may include explicit initial grants to current project members; a Manager creation request must not include grants. A Manager creating a board cannot open it until the Owner grants access.
+- Owner creation may include explicit initial grants to current project members; a Manager creation request must not include grants for other people. The Manager creator receives the new board's creator grant as described above.
 - Invitations and membership changes grant no boards. Removing or leaving project membership invalidates all associated board grants; rejoining does not resurrect them.
 - Owners and project Managers retain the current project-level people directory, without exposing board membership. Board-specific assignee and mention pickers must limit candidates to people who can access that board.
 - Project membership can expose the project itself even with zero board grants. Board listings return an empty set in that case. Unknown, foreign, and inaccessible boards and descendants share the existing non-enumerating not-found response.
