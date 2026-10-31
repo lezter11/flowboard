@@ -920,3 +920,49 @@ Deployed by the Deployment chat on the Architect's instruction. UAT only; produc
 - Deployed to UAT: migration 0017 (reported by the Architect), Worker `ee49f08f`, Pages `e2c8f17d`, mail vars from `eb0d07b`.
 - Not deployed: production (Worker, Pages, database, secrets, bucket, binding).
 - Note for the cutover: `DEV_LOGIN_SECRET` is set on UAT. Check whether production needs it (see the D-17 runbook).
+
+## D-18: UAT deploy of ee1c921 (938f041 invite send path, S-19 invitation screens, S-20 board switcher)
+
+Deployed by the Deployment chat on the Architect's instruction, with the user's approval. UAT only; production untouched; nothing pushed by the Deployment chat (the Architect pushes). `origin/chore/baseline-2026-10-28` already matched `ee1c921` before the deploy.
+
+### Scope and database
+
+- Range `0e212af..ee1c921` (13 files): `938f041` (the Worker passes its ExecutionContext so the immediate invitation send runs, with reason-code logs), `29d7dc2` and `809736f` (S-19 invitation screens), `ee1c921` (S-20 board switcher and stacked multi-board view).
+- No schema change: no file under `database/` changed in this range, so no Neon backup branch was taken for this deploy. Migration state stays at `0001` to `0017`.
+
+### Rollback targets (recorded before the deploy)
+
+- Worker `flowboard-api-uat`: `ee49f08f-e02f-465c-8283-479eff464941` (100%, from D-16).
+- Pages `flowboard-app-uat`: `e2c8f17d-b9c8-4a40-88aa-216623181db5` (live, branch `main`, built from `4bb656b`).
+
+### Tests (real counts, run at ee1c921 in this checkout)
+
+- Typecheck API (`npm run typecheck`): pass. Typecheck web (`npm run typecheck:web`): pass.
+- API (`npm run test --workspace @flowboard/api`, with the local harness Postgres from `database/compose.local.yaml`): 589 tests, 570 pass, 3 fail, 16 skipped.
+  - The same 3 tests fail at `4bb656b` (584 tests, 565 pass, 3 fail, 16 skipped), so they were not introduced by this range:
+    - `B-7 images: the Worker without an IMAGES binding answers 503 CONFIG_ERROR on image routes`
+    - `B-7 images: upload, finalize, read and delete through the Worker, across separate isolates` (`CONFIG_ERROR`: missing HYPERDRIVE or DATABASE_URL binding in the Worker test environment)
+    - `B-14 images: storage keys carry no user filename, and filenames with separators or control characters are refused` (`sub/dir.png` was not refused)
+  - These 3 are open for Backend. They are test-harness or code findings, not deploy blockers for this range, but the Architect should decide before production.
+- Contracts: 101 tests, 101 pass.
+- Web (`npm run test --workspace @flowboard/web`): 129 tests, 129 pass.
+- Web build (`npm run build:web`): pass. Static export (`NEXT_EXPORT=true npm run build`) in a clean worktree at `ee1c921`: pass.
+
+### Deploy
+
+- Worker: `npx wrangler deploy --env uat` from a clean worktree at `ee1c921`. The dry run listed the same bindings and vars as D-16 (HYPERDRIVE, IMAGES `flowboard-images-uat`, FB_RL_WRITES, FRONTEND_URL, CORS_ORIGIN, GOOGLE_REDIRECT_URI, APP_ORIGIN, MAIL_FROM_NAME, MAIL_FROM_EMAIL). Version `3d880f0b-4629-4e02-82a7-a38262a025ab` (100%). Cron `*/15 * * * *`.
+- Pages: staged with `scripts/stage-pages-functions.mjs` (5 files), deployed to branch `main` with commit hash `ee1c921`. Deployment `907808f4` (`https://907808f4.flowboard-app-uat.pages.dev`); the `flowboard-app-uat.pages.dev` alias serves the same build.
+
+### Signed-out smoke tests (no credentials; no secrets printed)
+
+- Worker `/health/ready` 200, `/health/live` 200.
+- `GET /api/v1/session` on the Pages host: 401, `cache-control: no-store`.
+- `GET /api/v1/images/x/content` anonymous: 401.
+- `/email/flowboard-lockup-dark.png` and `/email/invite-board-hero.png`: 200 `image/png`.
+- Served bundle: `/_next/static/chunks/app/board/page-56db993e830cbf65.js` (200) contains `Boards in this project` (S-20). The invitation page chunk contains `Open project` (S-19).
+
+### Invitation proof (pending; needs a signed-in session)
+
+- Log tail `wrangler tail --env uat --format json` started at 04:47:53 UTC; output in the scratchpad (`d18-tail.log`).
+- Needed: one synthetic invitation sent from a signed-in browser by the user; a log line with the delivered reason code within seconds; the outbox row settled before the next `*/15` tick (05:00 UTC).
+- Not done when this addendum was written. The result is recorded below when checked.
