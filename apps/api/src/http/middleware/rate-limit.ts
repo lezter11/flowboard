@@ -1,3 +1,4 @@
+import { EDGE_RETRY_AFTER_SECONDS, scopeForBucket, scopeForPath } from '../../services/rate-limit.ts';
 import type { Context, MiddlewareHandler } from 'hono';
 import {
   clientKey,
@@ -56,7 +57,10 @@ export function rateLimitMiddleware(resolve: RateLimiterResolver, options: RateL
       }
       if (!success) {
         logLine('warn', 'rate_limit_refused', { binding });
-        throw new HttpError(429, 'RATE_LIMITED', 'Too many requests. Try again later.');
+        throw new HttpError(429, 'RATE_LIMITED', 'Too many requests. Try again later.', {
+          retryAfterSeconds: EDGE_RETRY_AFTER_SECONDS,
+          scope: scopeForPath(c.req.path),
+        });
       }
     }
     return next();
@@ -96,7 +100,7 @@ export function windowRateLimitMiddleware(resolve: WindowCounterResolver, option
       if (counted.count > config.limit) {
         logLine('warn', 'rate_limit_window_refused', { bucket });
         return c.json(
-          { error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again later.', requestId } },
+          { error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again later.', requestId, details: { retryAfterSeconds: counted.retryAfterSeconds, scope: scopeForBucket(bucket) } } },
           429,
           { ...headers, 'Retry-After': String(counted.retryAfterSeconds) },
         );

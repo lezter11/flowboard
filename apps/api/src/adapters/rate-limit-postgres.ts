@@ -1,6 +1,6 @@
 import type pg from 'pg';
 import { HttpError } from '../http/errors.ts';
-import { LONGEST_WINDOW_SECONDS, WINDOW_BUCKETS, type WindowCount, type WindowCounter, type WindowBucket } from '../services/rate-limit.ts';
+import { scopeForBucket, LONGEST_WINDOW_SECONDS, WINDOW_BUCKETS, type WindowCount, type WindowCounter, type WindowBucket } from '../services/rate-limit.ts';
 
 // One atomic statement per limited request. The upsert locks the (bucket, key, window) row, so
 // concurrent requests are counted exactly once each. Time comes from the database clock, so
@@ -96,6 +96,7 @@ export async function consumeActorWindows(
     if (counted.count > config.limit) {
       throw new HttpError(429, 'RATE_LIMITED', 'Too many requests. Try again later.', {
         retryAfterSeconds: counted.retryAfterSeconds,
+        scope: scopeForBucket(bucket),
       });
     }
   }
@@ -125,7 +126,7 @@ export async function consumeInvitationScopeLimits(
         429,
         'RATE_LIMITED',
         'Too many invitations sent recently. Try again later.',
-        { retryAfterSeconds: counted.retryAfterSeconds },
+        { retryAfterSeconds: counted.retryAfterSeconds, scope: scopeForBucket(bucket) },
       );
     }
   }

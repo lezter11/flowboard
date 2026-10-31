@@ -279,6 +279,12 @@ export const assigneeNotEligibleDetailsSchema = z
 Object.assign(ERROR_DETAILS_SCHEMAS, {
   ASSIGNEE_NOT_ELIGIBLE: assigneeNotEligibleDetailsSchema,
   QUOTA_EXCEEDED: quotaExceededDetailsSchema,
+  RATE_LIMITED: z
+    .object({
+      retryAfterSeconds: z.number().int().min(1),
+      scope: z.enum(['invitations', 'projects', 'general']).optional(),
+    })
+    .passthrough(),
   RESTORE_DESTINATION_REQUIRED: z
     .object({
       reason: z.string().min(1),
@@ -287,3 +293,9 @@ Object.assign(ERROR_DETAILS_SCHEMAS, {
     })
     .passthrough(),
 });
+
+// Rate-limit details (ERR-R1 S11): the same shape the RATE_LIMITED entry in ERROR_DETAILS_SCHEMAS describes.
+export const rateLimitDetailsSchema = z.object({
+  retryAfterSeconds: z.number().int().min(1),
+  scope: z.enum(['invitations', 'projects', 'general']).optional(),
+}).passthrough();

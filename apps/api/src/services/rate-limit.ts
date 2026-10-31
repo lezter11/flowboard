@@ -90,3 +90,22 @@ export function clientKey(headers: Headers): string {
   const value = headers.get(CLIENT_IP_HEADER)?.trim() ?? '';
   return IP_SHAPE.test(value) ? value : UNKNOWN_CLIENT_KEY;
 }
+
+/** What a refused request was limited on, for the UI to name (ERR-R1 S11). */
+export type RateLimitScope = 'invitations' | 'projects' | 'general';
+
+export function scopeForBucket(bucket: WindowBucket): RateLimitScope {
+  if (bucket.startsWith('invite')) return 'invitations';
+  if (bucket.startsWith('project-create')) return 'projects';
+  return 'general';
+}
+
+/** The scope for an edge-limited path (the soft Cloudflare binding), from the route it protects. */
+export function scopeForPath(path: string): RateLimitScope {
+  if (path.includes('/invitations')) return 'invitations';
+  if (path === '/api/v1/projects' || /^\/api\/v1\/workspaces\/[^/]+\/projects$/.test(path)) return 'projects';
+  return 'general';
+}
+
+/** The soft edge binding's window is 60 seconds, so that is the honest retry hint (ERR-R1 S11). */
+export const EDGE_RETRY_AFTER_SECONDS = 60;
