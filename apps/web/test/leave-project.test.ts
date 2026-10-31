@@ -20,7 +20,7 @@ test('confirm copy names the project, says what is lost and what is not', () => 
 test('server refusals are rewritten without the word workspace', () => {
   const owner = describeLeaveFailure({ status: 403, code: 'FORBIDDEN', message: 'Workspace owners cannot leave their project.' });
   assert.doesNotMatch(owner, /workspace/i);
-  assert.match(owner, /Owner cannot leave/);
+  assert.match(owner, /Owners can’t leave/);
   assert.match(describeLeaveFailure({ status: 404, code: 'NOT_FOUND', message: 'x' }), /no longer a member/);
-  assert.equal(describeLeaveFailure({ status: 500, code: 'X', message: 'Boom' }), 'Boom');
+  assert.doesNotMatch(describeLeaveFailure({ status: 500, code: 'X', message: 'SECRET-SERVER-TEXT' }), /SECRET/);
 });

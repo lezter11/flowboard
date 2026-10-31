@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import type { ImportStatus } from '@flowboard/contracts';
+import { describeFailureOf } from '@/lib/error-catalogue';
 import { api } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole } from '@/lib/roles';
@@ -213,7 +214,7 @@ function ImportScreen() {
                   <button className="btn sm" type="button" onClick={() => void reset()}>Choose another</button>
                 </div>
                 <Summary status={status} />
-                {status.error && <div className="note danger" role="alert"><Icon name="x-circle" /><span><strong>{status.error.code}.</strong> {status.error.message}</span></div>}
+                {status.error && <div className="note danger" role="alert"><Icon name="x-circle" /><span><strong>{describeFailureOf({ status: 422, code: status.error.code }).title}.</strong> {describeFailureOf({ status: 422, code: status.error.code }).body}</span></div>}
                 {blocking > 0
                   ? <div className="note danger"><Icon name="x-circle" /><span><strong>{blocking} blocking row{blocking === 1 ? '' : 's'}.</strong> {status.counts.invalid} invalid and {status.counts.conflict} conflicting. No cards will be created until every row is ready. There is no partial success.</span></div>
                   : <div className="note success"><Icon name="check-circle" /><span><strong>Every row is ready.</strong> {status.counts.new} card{status.counts.new === 1 ? '' : 's'} can be created. Nothing has been written yet.</span></div>}

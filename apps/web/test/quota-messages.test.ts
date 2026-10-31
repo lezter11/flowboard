@@ -5,25 +5,26 @@ import { isOwnedProject, projectUsage, splitProjects, usageText } from '../src/l
 
 const quota = (details: unknown): FailureLike => ({ status: 409, code: 'QUOTA_EXCEEDED', message: 'x', details });
 
-test('owned-project cap: calm advice with the archive way out, numbers from the server only', () => {
+test('owned-project cap: calm advice with the archive way out, the limit named, no workspace', () => {
   const advice = quotaAdvice(quota({ scope: 'owned_projects', limit: 3, current: 3, remedy: 'archive_project' }))!;
   assert.match(advice.title, /project limit/);
-  assert.match(advice.body, /Archive a project/);
+  assert.match(advice.body, /Archive one to free a slot/);
+  assert.match(advice.body, /3 active projects/);
   assert.equal(advice.action?.href, '/projects');
   assert.ok(!/workspace/i.test(advice.body + advice.title));
 });
 
-test('a Manager at the board cap never sees a number (no `current`)', () => {
-  const advice = quotaAdvice(quota({ scope: 'boards_per_project', limit: 5, remedy: 'archive_board' }), { role: 'manager', projectId: 'p1' })!;
-  assert.doesNotMatch(advice.body, /\d/);
-  assert.match(advice.body, /Ask the project Owner/);
+test('a Manager at the board cap sees the limit but never the hidden count, and is told whom to ask', () => {
+  const advice = quotaAdvice(quota({ scope: 'boards_per_project', limit: 5, remedy: 'archive_board' }), { role: 'manager', projectId: 'p1', ownerName: 'Olivia Owner' })!;
+  assert.deepEqual(advice.body.match(/\d+/g), ['5']);
+  assert.match(advice.body, /Ask Olivia Owner to archive one/);
   assert.equal(advice.action, null);
+  assert.match(quotaAdvice(quota({ scope: 'boards_per_project', limit: 5, remedy: 'archive_board' }), { role: 'member' })!.body, /Ask the project Owner/);
 });
 
-test('an Owner at the board cap gets the count and a link to the project', () => {
+test('an Owner at the board cap gets the way out', () => {
   const advice = quotaAdvice(quota({ scope: 'boards_per_project', limit: 5, current: 5, remedy: 'archive_board' }), { role: 'owner', projectId: 'p 1' })!;
-  assert.match(advice.body, /5 active boards/);
-  assert.equal(advice.action?.href, '/project?id=p%201');
+  assert.match(advice.body, /Archive one you no longer need/);
 });
 
 test('member and invitation caps: Owner and Manager get a way out, others are told to ask', () => {
@@ -31,7 +32,7 @@ test('member and invitation caps: Owner and Manager get a way out, others are to
   assert.equal(quotaAdvice(m, { role: 'manager' })!.action?.href, '/people');
   assert.equal(quotaAdvice(m, { role: 'member' })!.action, null);
   const hidden = quotaAdvice(quota({ scope: 'pending_invitations', limit: 50, remedy: 'revoke_invitation' }), { role: 'manager' })!;
-  assert.doesNotMatch(hidden.body, /\d/);
+  assert.deepEqual(hidden.body.match(/\d+/g), ['50']);
 });
 
 test('unknown future scopes and the remedy "none" still give a safe message', () => {
@@ -78,9 +79,10 @@ import { friendlyMessage } from '../src/lib/quota-messages.ts';
 test('friendly sentences for the new server refusals', () => {
   const f = (status: number, code: string, details?: unknown): FailureLike => ({ status, code, message: 'raw', details });
   assert.match(friendlyMessage(f(409, 'NAME_REQUIRED'))!, /first and last name in Settings/);
-  assert.match(friendlyMessage(f(409, 'READ_ONLY_CONTEXT'))!, /archived/);
-  assert.match(friendlyMessage(f(400, 'INVITATION_EXPIRED'))!, /Send a new invitation/);
+  assert.match(friendlyMessage(f(409, 'READ_ONLY_CONTEXT', { reason: 'project_archived' }), { role: 'owner' })!, /Reopen it in Settings/);
+  assert.match(friendlyMessage(f(409, 'READ_ONLY_CONTEXT', { reason: 'board_archived' }), { role: 'member', boardName: 'Chat' })!, /Archived boards are read-only/);
+  assert.match(friendlyMessage(f(409, 'INVITATION_EXPIRED'))!, /new one/);
   assert.match(friendlyMessage(f(429, 'RATE_LIMITED', { retryAfterSeconds: 30 }))!, /in 30 seconds/);
   assert.match(friendlyMessage(f(409, 'QUOTA_EXCEEDED', { scope: 'members', limit: 50, remedy: 'remove_member' }), { role: 'member' })!, /Ask the project Owner/);
-  assert.equal(friendlyMessage(f(500, 'INTERNAL')), null);
+  assert.equal(friendlyMessage(f(500, 'SOMETHING_NEW')), null);
 });

@@ -65,7 +65,7 @@ function AddCardScreen() {
       void queryClient.invalidateQueries({ queryKey: ['board', boardId] });
     } catch (error) {
       const ids = error instanceof ApiError ? ineligibleFromFailure(error) : null;
-      if (ids) { setRefused({ ids: ids.length ? ids : assignees, message: error instanceof ApiError ? error.message : '' }); setErrors({}); }
+      if (ids) { setRefused({ ids: ids.length ? ids : assignees, message: '' }); setErrors({}); }
       else { setRefused(null); setErrors({ form: describeError(error) }); }
     } finally { setBusy(false); }
   };

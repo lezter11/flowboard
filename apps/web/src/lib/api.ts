@@ -56,7 +56,11 @@ export class ApiError extends Error {
     public readonly status: number,
     public readonly code: string,
     message: string,
-    public readonly details?: unknown
+    public readonly details?: unknown,
+    /** Server request id, shown only as a support reference on server faults. */
+    public readonly requestId?: string,
+    /** Seconds from the Retry-After header, when present. */
+    public readonly retryAfter?: number | null
   ) {
     super(message);
     this.name = 'ApiError';
@@ -65,6 +69,13 @@ export class ApiError extends Error {
 
 function generateIdempotencyKey(): string {
   return `idemp_${Date.now()}_${Math.random().toString(36).substring(2, 10)}`;
+}
+
+/** Retry-After as whole seconds; HTTP dates are not used by this API. */
+function parseRetryAfter(value: string | null): number | null {
+  if (!value) return null;
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? Math.ceil(n) : null;
 }
 
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
@@ -94,7 +105,9 @@ async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
       response.status,
       errorDetail?.code || 'HTTP_ERROR',
       errorDetail?.message || `HTTP request failed with status ${response.status}`,
-      errorDetail?.details
+      errorDetail?.details,
+      typeof errorDetail?.requestId === 'string' ? errorDetail.requestId : undefined,
+      parseRetryAfter(response.headers.get('retry-after')),
     );
   }
 

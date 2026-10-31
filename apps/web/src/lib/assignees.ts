@@ -42,7 +42,7 @@ export function ineligibleIds(ids: readonly string[], projectList: readonly Pers
 
 export const canAddAssignee = (count: number): boolean => count < MAX_ASSIGNEES;
 
-export interface FailureLike { status: number; code: string; message: string; details?: unknown }
+export interface FailureLike { status: number; code: string; message?: string; details?: unknown }
 
 /**
  * The people a refused save names: code ASSIGNEE_NOT_ELIGIBLE, or today's 422 whose details carry invalidAssigneeIds.
@@ -55,14 +55,15 @@ export function ineligibleFromFailure(f: FailureLike): string[] | null {
   const raw = Array.isArray(d?.ineligibleUserIds) ? d!.ineligibleUserIds : Array.isArray(d?.invalidAssigneeIds) ? d!.invalidAssigneeIds : [];
   const ids = raw.filter((x): x is string => typeof x === 'string');
   if (ids.length > 0) return ids;
-  return f.code === 'ASSIGNEE_NOT_ELIGIBLE' || /access to this board/i.test(f.message) ? [] : null;
+  return f.code === 'ASSIGNEE_NOT_ELIGIBLE' || /access to this board/i.test(f.message ?? '') ? [] : null;
 }
 
 const joinNames = (names: string[]) => names.length <= 1 ? (names[0] ?? '') : `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
 
 /** "Couldn't assign Sam Lee and Ana Rao. They do not have access to this board." Falls back to the server's sentence when no one is named. */
-export function describeIneligible(names: string[], serverMessage: string): string {
-  if (names.length === 0) return serverMessage;
+export function describeIneligible(names: string[], _serverMessage = ''): string {
+  // The server's sentence is never shown (it is for logs); without names, say it in general.
+  if (names.length === 0) return 'Some people can’t be assigned to this card. Remove them and save.';
   return `Couldn’t assign ${joinNames(names)}. ${names.length === 1 ? 'They do' : 'They do'} not have access to this board.`;
 }
 

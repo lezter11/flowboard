@@ -34,7 +34,7 @@ function Frame({ children }: { children: ReactNode }) {
   } else if (state.status === 'error') {
     content = (
       <section role="alert" className="state-note">
-        <h1>Flowboard is unreachable</h1>
+        <h1>Flowboard isn’t reachable</h1>
         <p>{state.message}</p>
         <button type="button" className="btn" onClick={refetch}>Try again</button>
       </section>

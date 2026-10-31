@@ -4,6 +4,7 @@ import { createContext, useCallback, useContext, useMemo, type ReactNode } from 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { SessionData } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
+import { describeError } from '@/lib/errors';
 
 type SessionState =
   | { status: 'loading' }
@@ -48,7 +49,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     if (query.data) return { status: 'ready', session: query.data };
     if (query.isError) {
       if (query.error instanceof ApiError && query.error.status === 401) return { status: 'signedOut' };
-      return { status: 'error', message: query.error instanceof Error ? query.error.message : 'Could not reach Flowboard.' };
+      return { status: 'error', message: describeError(query.error) };
     }
     return { status: 'loading' };
   }, [query.data, query.isError, query.error]);

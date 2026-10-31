@@ -8,7 +8,7 @@ import { api, ApiError } from '@/lib/api';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { Wordmark } from '@/components/ui/wordmark';
-import { friendlyMessage } from '@/lib/quota-messages';
+import { describeError } from '@/lib/errors';
 import { NameStep } from '@/components/auth/name-step';
 import { NAME_REQUIRED_CODE } from '@flowboard/contracts';
 import { acceptedCopy, createTapCounter, invitationSignInHref, motionAllowed, pickGreeting, signedInAsLine } from '@/lib/invitation-fx';
@@ -69,9 +69,9 @@ function outcomeFor(error: unknown): Outcome {
     if (error.code === 'READ_ONLY_CONTEXT') return { kind: 'readonly' };
     if (error.status === 403) return { kind: 'mismatch' };
     // Project full (member limit) or too many tries: say so plainly; the link stays valid for a retry.
-    return { kind: 'error', message: friendlyMessage(error, { role: 'member' }) ?? error.message };
+    return { kind: 'error', message: describeError(error, { role: 'member' }) };
   }
-  return { kind: 'error', message: error instanceof Error ? error.message : 'Something went wrong.' };
+  return { kind: 'error', message: describeError(error) };
 }
 
 /**

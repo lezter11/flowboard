@@ -262,7 +262,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
     onError: (err) => {
       const refused = err instanceof ApiError ? ineligibleFromFailure(err) : null;
       if (refused) {
-        setAssigneeFailure({ ids: refused.length ? refused : draft.assigneeIds.filter((id) => !assignable.some((p) => p.id === id)), message: err instanceof ApiError ? err.message : '' });
+        setAssigneeFailure({ ids: refused.length ? refused : draft.assigneeIds.filter((id) => !assignable.some((p) => p.id === id)), message: '' });
         setError('');
         void projectPeople.refetch();
         return;

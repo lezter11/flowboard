@@ -1,5 +1,5 @@
 /** Pure rules for the Leave project action, so they can be tested without the browser. */
-export interface LeaveFailure { status: number; code: string; message: string }
+export interface LeaveFailure { status: number; code: string; message?: string }
 
 /** Only people who joined someone else's project can leave it. The Owner archives instead. */
 export function canLeave(project: { role: string; isOwned?: boolean } | null | undefined): boolean {
@@ -17,7 +17,7 @@ export function leaveCopy(projectName: string) {
 
 /** The server's answer in plain words. Its own text mentions a container the person never sees, so the refusal is rewritten. */
 export function describeLeaveFailure(failure: LeaveFailure): string {
-  if (failure.status === 403) return 'The project Owner cannot leave. Archive the project instead, or ask for ownership to be handed over.';
+  if (failure.status === 403) return 'Owners can’t leave their project. Archive it in Settings if you are done with it.';
   if (failure.status === 404) return 'You are no longer a member of this project.';
-  return failure.message;
+  return 'Something broke on our side. Nothing was changed. Try again.';
 }

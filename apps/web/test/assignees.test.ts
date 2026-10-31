@@ -80,7 +80,7 @@ test('a 422 names the people: by new code, by today’s details, and not for oth
 test('error text names people with and, and falls back to the server sentence', () => {
   assert.equal(describeIneligible(['Sam Lee'], 'srv'), 'Couldn’t assign Sam Lee. They do not have access to this board.');
   assert.equal(describeIneligible(['Sam Lee', 'Ana Rao', 'Shubham Singh (2)'], 'srv'), 'Couldn’t assign Sam Lee, Ana Rao and Shubham Singh (2). They do not have access to this board.');
-  assert.equal(describeIneligible([], 'The server says no.'), 'The server says no.');
+  assert.match(describeIneligible([], 'SECRET-SERVER-TEXT'), /Some people can’t be assigned/);
 });
 
 test('the save bar never sits on "Unsaved changes" after a failed save', () => {
