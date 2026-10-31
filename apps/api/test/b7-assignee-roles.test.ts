@@ -83,7 +83,7 @@ test('B-7 assignees: a viewer cannot be assigned and the card is untouched', asy
       body: JSON.stringify({ assigneeIds: [fx.viewer], expectedVersion: before.version }),
     });
     assert.equal(res.status, 422, await res.clone().text());
-    assert.equal(((await res.json()) as any).error.code, 'VALIDATION_ERROR');
+    assert.equal(((await res.json()) as any).error.code, 'ASSIGNEE_NOT_ELIGIBLE');
     assert.deepEqual(await cardState(fx.card), before);
   });
 

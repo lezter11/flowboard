@@ -467,6 +467,11 @@ projectsRoutes.get('/api/v1/projects/:projectId/people', authMiddleware, async (
   // Authorize actor in this project
   const queryParams = c.req.query();
   const parsedQuery = parseOrThrow(projectPeopleQuerySchema, queryParams);
+  // B-24 (Architect decision): assignees are chosen for a board, so the list needs one. Without it the picker
+  // would show people the save rule refuses. The UI reloads on this code (stale tabs).
+  if (parsedQuery.purpose === 'assignee' && !parsedQuery.boardId) {
+    throw new HttpError(422, 'BOARD_REQUIRED', 'Choose a card or board first.');
+  }
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

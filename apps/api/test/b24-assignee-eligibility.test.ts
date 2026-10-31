@@ -97,8 +97,10 @@ async function validatorAccepts(fx: Awaited<ReturnType<typeof fixture>>, userId:
     body: JSON.stringify({ title: 'Assignee check', columnId: fx.columnId, assigneeIds: [userId], expectedBoardVersion: version }),
   });
   if (res.status === 422) {
-    const body = (await res.json()) as { error: { details?: { invalidAssigneeIds?: string[] } } };
-    assert.ok(body.error.details?.invalidAssigneeIds?.includes(userId), 'the 422 names the ineligible user');
+    const body = (await res.json()) as { error: { code: string; details?: { ineligibleUserIds?: string[]; invalidAssigneeIds?: string[] } } };
+    assert.equal(body.error.code, 'ASSIGNEE_NOT_ELIGIBLE', 'a stable code');
+    assert.ok(body.error.details?.ineligibleUserIds?.includes(userId), 'the 422 names the ineligible user');
+    assert.ok(body.error.details?.invalidAssigneeIds?.includes(userId), 'the old key stays for old clients');
     return false;
   }
   assert.equal(res.status, 201, await res.clone().text());
@@ -167,4 +169,13 @@ test('B-24 no email appears in any assignee picker response', async () => {
   for (const person of data) {
     assert.equal(JSON.stringify(person).includes('@'), false, 'no address in a person object');
   }
+});
+
+test('B-24 the picker refuses assignee without a board (BOARD_REQUIRED, 422)', async () => {
+  const fx = await fixture();
+  const res = await app.request(`${ORIGIN}/api/v1/projects/${fx.projectId}/people?purpose=assignee`, { headers: { cookie: fx.cookie } });
+  assert.equal(res.status, 422);
+  assert.equal(((await res.json()) as { error: { code: string } }).error.code, 'BOARD_REQUIRED');
+  const display = await app.request(`${ORIGIN}/api/v1/projects/${fx.projectId}/people`, { headers: { cookie: fx.cookie } });
+  assert.equal(display.status, 200, 'display is unchanged without a board');
 });

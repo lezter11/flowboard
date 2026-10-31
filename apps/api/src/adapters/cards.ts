@@ -164,14 +164,15 @@ async function validateAssigneeIds(
   const invalidUsers = assigneeIds.filter((id) => !validSet.has(id));
 
   if (invalidUsers.length > 0) {
-    throw validationError('All assignees must be active owners, managers or members with access to this board.', {
+    throw new HttpError(422, 'ASSIGNEE_NOT_ELIGIBLE', 'All assignees must be active owners, managers or members with access to this board.', {
+      ineligibleUserIds: invalidUsers,
+      invalidAssigneeIds: invalidUsers, // kept for clients that read the earlier key
       issues: [
         {
           path: 'assigneeIds',
           message: `Users are not eligible assignees (active owner, manager or member with board access): ${invalidUsers.join(', ')}`,
         },
       ],
-      invalidAssigneeIds: invalidUsers,
     });
   }
 }

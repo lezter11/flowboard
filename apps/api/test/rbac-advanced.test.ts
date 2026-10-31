@@ -883,16 +883,21 @@ test('RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)', async (t) => {
   });
 
   await t.test('RBAC-04: HTTP GET /api/v1/projects/:projectId/people enforces privacy and purpose filtering', async () => {
-    // 1. Member queries assignees
-    const assigneeRes = await app.request(`/api/v1/projects/${prjMainId}/people?purpose=assignee`, {
+    // 1. Assignees need a board (B-24): without one the picker refuses, so a wrong list cannot be shown.
+    const noBoard = await app.request(`/api/v1/projects/${prjMainId}/people?purpose=assignee`, {
       headers: { Cookie: memberCookie },
+    });
+    assert.equal(noBoard.status, 422);
+    assert.equal(((await noBoard.json()) as { error: { code: string } }).error.code, 'BOARD_REQUIRED');
+    // With the board, the owner is always offered and a viewer never is (manager and member depend on grants).
+    // The member cannot read this board (no grant), so the owner, who reads every board, runs the check.
+    const assigneeRes = await app.request(`/api/v1/projects/${prjMainId}/people?purpose=assignee&boardId=${brdMainId}`, {
+      headers: { Cookie: ownerCookie },
     });
     assert.equal(assigneeRes.status, 200);
     const assigneeJson = (await assigneeRes.json()) as { data: PersonDisplay[] };
     const assigneeIds = assigneeJson.data.map((p) => p.id);
     assert.ok(assigneeIds.includes(ownerUserId));
-    assert.ok(assigneeIds.includes(managerUserId));
-    assert.ok(assigneeIds.includes(memberUserId));
     assert.ok(!assigneeIds.includes(viewerUserId));
 
     // 2. Member queries mentionees

@@ -18,6 +18,9 @@ export const STANDARD_ERROR_CODES = [
   'BAD_REQUEST',
   'PAYLOAD_TOO_LARGE',
   'RATE_LIMITED',
+  // B-24: a card assignee is outside the board rule (422, details.ineligibleUserIds); the picker needs a board (422).
+  'ASSIGNEE_NOT_ELIGIBLE',
+  'BOARD_REQUIRED',
   'DATABASE_UNAVAILABLE',
   'INTERNAL_ERROR',
 ] as const;
