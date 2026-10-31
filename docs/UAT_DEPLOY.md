@@ -1103,3 +1103,49 @@ The Architect reported uncommitted S-21 work in the shared working tree (modifie
 Worktree cleanup: the clean worktree at `scratchpad/d16` (commit `373e594`) remains in place. Removing it needs `git worktree remove --force` because of its ignored `node_modules`; that force removal was not run without approval.
 
 Bucket: the Architect reports having created `flowboard-images-prod` at 05:01 UTC. This Deployment chat's bucket was the only creation attempted after the user's approval; the bucket is present, empty, r2.dev disabled, no custom domain (`wrangler r2 bucket dev-url get` and `domain list` checked earlier).
+
+## D-20: UAT Pages deploy of 4accf6a (S-21 merged multi-board view; Backend test-only fix)
+
+UAT only. Production not touched. Nothing pushed by the Deployment chat.
+
+### What was deployed
+
+- Pages `flowboard-app-uat` only. Built from a **clean worktree at `4accf6a`** (not the shared tree; uncommitted files in the shared tree, such as `apps/web/web8.log`, were not touched). `npm ci` in the worktree, then `NEXT_EXPORT=true npm run build` (no `NEXT_PUBLIC_API_URL`), staged with `scripts/stage-pages-functions.mjs` (5 files), deployed to branch `main` with commit hash `4accf6a`.
+- Worker `flowboard-api-uat` **not redeployed**. `git diff 373e594 4accf6a -- apps/api` changes only `apps/api/package.json` (the `test` script now runs `scripts/check-test-databases.mjs` first), `apps/api/scripts/check-test-databases.mjs` and `apps/api/test/b7-image-storage-r2.test.ts`. No runtime source changed, so the UAT Worker stays at `3d880f0b-4629-4e02-82a7-a38262a025ab`.
+
+### Rollback targets (recorded before the deploy)
+
+- Pages `flowboard-app-uat`: `907808f4-0f71-4720-b60b-7e0577f86ad8` (commit `ee1c921`, live before this deploy).
+- Worker `flowboard-api-uat`: `3d880f0b-4629-4e02-82a7-a38262a025ab` (unchanged).
+
+### Deployed
+
+- Pages `fcf81399-ef50-4d0f-b3c3-6c104a1e53f5` (`https://fcf81399.flowboard-app-uat.pages.dev`), commit `4accf6a`.
+
+### Build provenance
+
+- Clean worktree `scratchpad/d16` at `4accf6a`: 0 tracked changes, 0 untracked changes before the build.
+- The staged `out/` was copied from that build. Its board chunk `app/board/page-bd3f28b168014506.js` matches the live file byte for byte (SHA-256 prefix `866bb929d187b743` for both).
+
+### Checks (unauthenticated; no sign-in; no data created; no secrets printed)
+
+- Typecheck and tests at `4accf6a`: not rerun for this addendum. The UAT build passed (`npm run build`, export mode). The Architect's Backend test-only fix changes only the test script and one test file, and the API runtime is unchanged.
+- Worker `/health/ready` 200, `/health/live` 200.
+- `GET https://flowboard-app-uat.pages.dev/api/v1/session`: 401, `cache-control: no-store`.
+- `/email/flowboard-lockup-dark.png` and `/email/invite-board-hero.png`: 200 `image/png`.
+- Live bundle: board chunk `app/board/page-bd3f28b168014506.js` contains `All cards in this view, before filters` (1 match) and `Drag a card to another column of its own board` (1 match), checked separately.
+
+### Cron schedules (read-only, Cloudflare API)
+
+Read with `GET /accounts/<account>/workers/scripts/<name>/schedules` using the wrangler login already on this machine. The token was not printed.
+
+- Production `flowboard-api`: cron `*/5 * * * *`, created and modified `2026-10-31T05:01:51Z` (the redeploy of the production Worker at 810e8e4b).
+- UAT `flowboard-api-uat`: cron `*/15 * * * *`, created and modified `2026-10-28T15:53:57Z`.
+
+So the tail's `* * * * *` was not the production schedule. It matches the config and the deploy output. The production tick check from D-19 is therefore consistent with `*/5`, but only one production tick was observed, so the next tick is still unconfirmed.
+
+### Open items (unchanged from D-18 and D-19)
+
+- D-18 invitation proof (signed-in invite and reason-code log): not yet done.
+- Production image upload is unproven (3 API image tests fail; Backend investigating).
+- Runtime role is still `neondb_owner`; `BREVO_API_KEY` is not on production; no uptime alert.
