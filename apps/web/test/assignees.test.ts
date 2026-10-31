@@ -50,11 +50,12 @@ import { readFileSync } from 'node:fs';
 
 test('the assignee query carries the card board, and the project-wide query does not', () => {
   const hook = readFileSync(new URL('../src/lib/assignee-people.ts', import.meta.url), 'utf8');
-  assert.match(hook, /boardId \? \{ boardId \} : \{\}/);
+  assert.match(hook, /'assignee', \{ boardId: boardId! \}/);
+  assert.match(hook, /enabled && !!projectId && !!boardId/);
   assert.match(hook, /'assignee', boardId \?\? null\]/);
   const drawer = readFileSync(new URL('../src/components/board/card-detail-drawer.tsx', import.meta.url), 'utf8');
   assert.match(drawer, /useAssignablePeople\(card\.projectId, card\.boardId, editable\)/);
-  assert.match(drawer, /useAssignablePeople\(card\.projectId, null, canSeeBlocked\)/);
+  assert.match(drawer, /useProjectPeople\(card\.projectId, canSeeBlocked\)/);
   assert.match(drawer, /canSeeBlocked = editable && \(role === 'owner' \|\| role === 'manager'\)/);
 });
 
@@ -90,4 +91,12 @@ test('the save bar never sits on "Unsaved changes" after a failed save', () => {
   const drawer = readFileSync(new URL('../src/components/board/card-detail-drawer.tsx', import.meta.url), 'utf8');
   assert.match(drawer, /Remove them and save/);
   assert.match(drawer, /saveBarText\(\{ saving: save\.isPending, failed: save\.isError && dirty, dirty \}\)/);
+});
+
+import { peopleLoadError } from '../src/lib/assignees.ts';
+test('BOARD_REQUIRED means reload, and a new-contract 422 names people by ineligibleUserIds', () => {
+  assert.match(peopleLoadError({ code: 'BOARD_REQUIRED' }), /Reload the page/);
+  assert.match(peopleLoadError(null), /Could not load/);
+  assert.deepEqual(ineligibleFromFailure({ status: 422, code: 'ASSIGNEE_NOT_ELIGIBLE', message: 'x', details: { ineligibleUserIds: ['a', 'b'], issues: [] } }), ['a', 'b']);
+  assert.deepEqual(ineligibleFromFailure({ status: 422, code: 'ASSIGNEE_NOT_ELIGIBLE', message: 'x', details: { ineligibleUserIds: ['n'], invalidAssigneeIds: ['o'] } }), ['n']);
 });

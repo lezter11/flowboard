@@ -50,8 +50,10 @@ export interface FailureLike { status: number; code: string; message: string; de
  */
 export function ineligibleFromFailure(f: FailureLike): string[] | null {
   if (f.status !== 422 && f.code !== 'ASSIGNEE_NOT_ELIGIBLE') return null;
-  const d = f.details as { invalidAssigneeIds?: unknown } | null | undefined;
-  const ids = Array.isArray(d?.invalidAssigneeIds) ? d!.invalidAssigneeIds.filter((x): x is string => typeof x === 'string') : [];
+  // ineligibleUserIds is the contract; invalidAssigneeIds is what older servers sent.
+  const d = f.details as { ineligibleUserIds?: unknown; invalidAssigneeIds?: unknown } | null | undefined;
+  const raw = Array.isArray(d?.ineligibleUserIds) ? d!.ineligibleUserIds : Array.isArray(d?.invalidAssigneeIds) ? d!.invalidAssigneeIds : [];
+  const ids = raw.filter((x): x is string => typeof x === 'string');
   if (ids.length > 0) return ids;
   return f.code === 'ASSIGNEE_NOT_ELIGIBLE' || /access to this board/i.test(f.message) ? [] : null;
 }
@@ -78,3 +80,9 @@ export function saveBarText(s: { saving: boolean; failed: boolean; dirty: boolea
 }
 
 export const NO_ACCESS_HINT = 'Give them access to this board first.';
+
+/** Why the people list failed. BOARD_REQUIRED means this tab is older than the server: say so, never show an empty list. */
+export function peopleLoadError(f: { status?: number; code?: string } | null | undefined): string {
+  if (f?.code === 'BOARD_REQUIRED') return 'Flowboard was updated. Reload the page to assign people.';
+  return 'Could not load the project’s people.';
+}

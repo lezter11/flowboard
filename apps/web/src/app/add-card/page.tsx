@@ -10,7 +10,7 @@ import { describeError } from '@/lib/errors';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { boardQueryOptions } from '@/lib/queries';
 import { useAssignablePeople } from '@/lib/assignee-people';
-import { EMPTY_ASSIGNEES, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, pickerState } from '@/lib/assignees';
+import { EMPTY_ASSIGNEES, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, peopleLoadError, pickerState } from '@/lib/assignees';
 import { formatPersonName } from '@/lib/person-name';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
@@ -167,7 +167,7 @@ function AddCardScreen() {
                 <div className="form-section-head"><Icon name="users" /><div><h2 id="assignTitle">Assignees</h2><p>Only project people who can work on cards appear here. Viewers are never assignable.</p></div></div>
                 <div className="check-list">
                   {picker === 'loading' && <p className="small muted" role="status">Loading people…</p>}
-                  {picker === 'error' && <p className="small muted" role="alert">Could not load the project's people. <button className="btn sm" type="button" onClick={() => void projectPeople.refetch()}>Try again</button></p>}
+                  {picker === 'error' && <p className="small muted" role="alert">{peopleLoadError(projectPeople.error as { code?: string } | null)} {(projectPeople.error as { code?: string } | null)?.code === 'BOARD_REQUIRED' ? <button className="btn sm" type="button" onClick={() => window.location.reload()}>Reload</button> : <button className="btn sm" type="button" onClick={() => void projectPeople.refetch()}>Try again</button>}</p>}
                   {picker === 'empty' && <p className="small muted" role="status">{EMPTY_ASSIGNEES}</p>}
                   {assignable.map((person) => (
                     <label key={person.id} className="check-row">

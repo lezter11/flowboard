@@ -12,8 +12,8 @@ import { dueInfo, relativeTime } from '@/lib/dates';
 import { neighbours } from '@/lib/board-model';
 import { describeActivity } from '@/lib/activity';
 import { can, ROLE_META, normalizeRole, type Role } from '@/lib/roles';
-import { useAssignablePeople } from '@/lib/assignee-people';
-import { EMPTY_ASSIGNEES, MAX_ASSIGNEES, NO_ACCESS_HINT, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, ineligibleIds, namesFor, noBoardAccess, pickerState, saveBarText } from '@/lib/assignees';
+import { useAssignablePeople, useProjectPeople } from '@/lib/assignee-people';
+import { EMPTY_ASSIGNEES, MAX_ASSIGNEES, NO_ACCESS_HINT, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, peopleLoadError, ineligibleIds, namesFor, noBoardAccess, pickerState, saveBarText } from '@/lib/assignees';
 import { Icon } from '@/components/ui/icon';
 import { CardImages } from './card-images';
 import { formatPersonName, personAria } from '@/lib/person-name';
@@ -226,7 +226,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
   const projectPeople = useAssignablePeople(card.projectId, card.boardId, editable);
   // Owners and Managers also see who is blocked only by a missing board grant (the project-wide list minus the board's).
   const canSeeBlocked = editable && (role === 'owner' || role === 'manager');
-  const projectWide = useAssignablePeople(card.projectId, null, canSeeBlocked);
+  const projectWide = useProjectPeople(card.projectId, canSeeBlocked);
   const blocked = useMemo(() => (canSeeBlocked && projectPeople.isSuccess ? noBoardAccess(projectWide.data, projectPeople.data) : []), [canSeeBlocked, projectWide.data, projectPeople.data, projectPeople.isSuccess]);
   const assignable = useMemo(() => assignableList(projectPeople.data), [projectPeople.data]);
   const picker = pickerState(projectPeople, assignable);
@@ -347,7 +347,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
                   <div className="assignee-menu">
                     <div className="menu-title">Assignable project people</div>
                     {picker === 'loading' && <div className="menu-note" role="status">Loading people…</div>}
-                    {picker === 'error' && <div className="menu-note" role="alert">Could not load the project's people. <button className="btn sm" type="button" onClick={() => void projectPeople.refetch()}>Try again</button></div>}
+                    {picker === 'error' && <div className="menu-note" role="alert">{peopleLoadError(projectPeople.error as { code?: string } | null)} {(projectPeople.error as { code?: string } | null)?.code === 'BOARD_REQUIRED' ? <button className="btn sm" type="button" onClick={() => window.location.reload()}>Reload</button> : <button className="btn sm" type="button" onClick={() => void projectPeople.refetch()}>Try again</button>}</div>}
                     {picker === 'empty' && <div className="menu-note" role="status">{EMPTY_ASSIGNEES}</div>}
                     {assignable.map((person) => {
                       const checked = draft.assigneeIds.includes(person.id);
