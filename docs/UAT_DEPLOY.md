@@ -1088,3 +1088,18 @@ This replaces the blocked-state addendum above (commit `88be7da`).
 
 - Deployed to production: Worker `810e8e4b`, Pages `6da2354a`, IMAGES binding to `flowboard-images-prod`, mail vars from `61cbafd`.
 - Rollback targets: Worker `d93ad124`, Pages `af89478d`.
+
+### D-19 verification: which tree the Pages bundle came from
+
+The Architect reported uncommitted S-21 work in the shared working tree (modified board-card, board-column, board-switcher, board-view, components/polling, styles/boards-stack.css, styles/proto/detail.css; untracked lib/board-merge.ts and test/board-merge.test.ts). The production Pages export was **not** built from the shared tree.
+
+- Build source: a clean detached worktree at commit `373e594` (the same code as `ee1c921`, plus the config commits). `git status` in that worktree: 0 tracked changes, 0 untracked files. It contains 0 files named `board-merge` (`git ls-files | grep board-merge`).
+- The export was built there with `NEXT_EXPORT=true npm run build` and staged with `scripts/stage-pages-functions.mjs`. The staged copy of `out/` is byte-identical to the clean build's `out/` (`diff -rq` reports no differences).
+- Live proof: the production board chunk `/_next/static/chunks/app/board/page-56db993e830cbf65.js` is byte-identical to the clean build's chunk (SHA-256 prefix `2d6d3541883723f5` for both).
+- The S-21 identifiers (`mergeColumns`, `cardBoardMap`, `planMove`) occur in neither the clean build nor the live bundle. The minifier renames identifiers, so this check is weak on its own; the byte comparison above is the strong proof.
+- The shared working tree was not stashed, reset or checked out by the Deployment chat. Its S-21 files are untouched.
+- Nothing from the shared tree was built or deployed. No rebuild was needed.
+
+Worktree cleanup: the clean worktree at `scratchpad/d16` (commit `373e594`) remains in place. Removing it needs `git worktree remove --force` because of its ignored `node_modules`; that force removal was not run without approval.
+
+Bucket: the Architect reports having created `flowboard-images-prod` at 05:01 UTC. This Deployment chat's bucket was the only creation attempted after the user's approval; the bucket is present, empty, r2.dev disabled, no custom domain (`wrangler r2 bucket dev-url get` and `domain list` checked earlier).
