@@ -28,6 +28,8 @@
   "triggers": {
     "crons": ["*/5 * * * *"]
   },
+  // Private image bucket for production (no public access, no r2.dev, no custom domain).
+  "r2_buckets": [{ "binding": "IMAGES", "bucket_name": "flowboard-images-prod" }],
   // Top level == production (deployed as flowboard-api). uat redefines every
   // non-inherited key (vars, hyperdrive, triggers) so it never shares prod data.
   "env": {
