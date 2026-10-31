@@ -23,3 +23,40 @@ export async function boardAssigneeIds(db: pg.Pool | pg.ClientBase, projectId: s
   );
   return new Set(res.rows.map((row) => row.id));
 }
+
+export type AssigneeIneligibilityReason = 'no_board_access' | 'viewer' | 'not_active';
+
+/**
+ * Why each refused user cannot be assigned on this board (ERR-R1 S1). Uses the same tables as the rule above,
+ * so the reason always matches the decision:
+ * - no_board_access: an active manager or member with no active grant on this board;
+ * - viewer: an active viewer (never assignable);
+ * - not_active: no active membership in the project (left, removed, or never a member).
+ * Only ids the rule refuses are returned, in the order given.
+ */
+export async function assigneeIneligibilityReasons(
+  db: pg.Pool | pg.ClientBase,
+  projectId: string,
+  boardId: string,
+  userIds: string[],
+): Promise<Array<{ userId: string; reason: AssigneeIneligibilityReason }>> {
+  const eligible = await boardAssigneeIds(db, projectId, boardId);
+  const refused = userIds.filter((id) => !eligible.has(id));
+  if (refused.length === 0) return [];
+  const res = await db.query<{ user_id: string; role: string; status: string; granted: boolean }>(
+    `SELECT pm.user_id, pm.role, pm.status,
+            EXISTS (SELECT 1 FROM board_grants bg
+                    WHERE bg.board_id = $2 AND bg.project_id = pm.project_id AND bg.user_id = pm.user_id) AS granted
+     FROM project_memberships pm
+     WHERE pm.project_id = $1 AND pm.user_id = ANY($3::text[])`,
+    [projectId, boardId, refused],
+  );
+  const byUser = new Map(res.rows.map((r) => [r.user_id, r]));
+  return refused.map((userId) => {
+    const row = byUser.get(userId);
+    if (!row || row.status !== 'active') return { userId, reason: 'not_active' as const };
+    if (row.role === 'viewer') return { userId, reason: 'viewer' as const };
+    if (!row.granted) return { userId, reason: 'no_board_access' as const };
+    return { userId, reason: 'not_active' as const };
+  });
+}

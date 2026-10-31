@@ -1,4 +1,4 @@
-import { boardAssigneeIds } from '../services/board-assignees.ts';
+import { assigneeIneligibilityReasons, boardAssigneeIds } from '../services/board-assignees.ts';
 import { projectNameSuffixes, withNameSuffix } from '../services/person-suffix.ts';
 import crypto from 'node:crypto';
 import type pg from 'pg';
@@ -164,7 +164,10 @@ async function validateAssigneeIds(
   const invalidUsers = assigneeIds.filter((id) => !validSet.has(id));
 
   if (invalidUsers.length > 0) {
+    const reasons = await assigneeIneligibilityReasons(clientOrPool, projectId, boardId, invalidUsers);
     throw new HttpError(422, 'ASSIGNEE_NOT_ELIGIBLE', 'All assignees must be active owners, managers or members with access to this board.', {
+      boardId,
+      reasons,
       ineligibleUserIds: invalidUsers,
       invalidAssigneeIds: invalidUsers, // kept for clients that read the earlier key
       issues: [

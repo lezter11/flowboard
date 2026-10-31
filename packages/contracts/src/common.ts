@@ -264,3 +264,19 @@ export type QuotaExceededDetails = z.infer<typeof quotaExceededDetailsSchema>;
 // (zero-width, bidirectional overrides and isolates), and line or paragraph separators.
 export const REFUSED_NAME_CHARACTERS = /(?!\t)\p{Cc}|[\p{Cf}\p{Zl}\p{Zp}]/u;
 export const REFUSED_NAME_MESSAGE = 'Name must not contain control, zero-width or bidirectional characters';
+
+// Specific details schemas (ERR-R1 S1, S11). Assigned here, after the schemas they reference.
+export const assigneeNotEligibleReasonSchema = z.enum(['no_board_access', 'viewer', 'not_active']);
+export const assigneeNotEligibleDetailsSchema = z
+  .object({
+    boardId: z.string().min(1),
+    ineligibleUserIds: z.array(z.string().min(1)),
+    invalidAssigneeIds: z.array(z.string().min(1)),
+    reasons: z.array(z.object({ userId: z.string().min(1), reason: assigneeNotEligibleReasonSchema })),
+    issues: z.array(z.object({ path: z.string(), message: z.string() })).optional(),
+  })
+  .passthrough();
+Object.assign(ERROR_DETAILS_SCHEMAS, {
+  ASSIGNEE_NOT_ELIGIBLE: assigneeNotEligibleDetailsSchema,
+  QUOTA_EXCEEDED: quotaExceededDetailsSchema,
+});
