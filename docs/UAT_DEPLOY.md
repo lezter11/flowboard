@@ -1149,3 +1149,64 @@ So the tail's `* * * * *` was not the production schedule. It matches the config
 - D-18 invitation proof (signed-in invite and reason-code log): not yet done.
 - Production image upload is unproven (3 API image tests fail; Backend investigating).
 - Runtime role is still `neondb_owner`; `BREVO_API_KEY` is not on production; no uptime alert.
+
+## D-21: UAT combined deploy of e479b57 (B-15 to B-22 own-projects model, migrations 0018 and 0019, S-22, S-21)
+
+UAT only. Production not touched. Nothing pushed by the Deployment chat (the Architect pushes).
+
+### Database (done by the Architect; not repeated here)
+
+- Neon backup branch `uat-backup-2026-10-31-d21` created before the migrations.
+- Migrations `0018` and `0019` applied to the UAT branch. Latest `0019`, 19 migrations in total. The UAT branch had 2 users and 2 workspaces, with 0 users without a workspace. The backfill inserted 0 rows.
+- This Deployment chat had no database connection, so these facts are the Architect's report, not re-read here.
+
+### Rollback targets (recorded before the deploy)
+
+- Worker `flowboard-api-uat`: `3d880f0b-4629-4e02-82a7-a38262a025ab` (100%, from D-18/D-20).
+- Pages `flowboard-app-uat`: `fcf81399-ef50-4d0f-b3c3-6c104a1e53f5` (commit `4accf6a`, live before this deploy).
+
+### Build and deploy (clean worktree at e479b57)
+
+- Source: a clean worktree (`scratchpad/d16`) detached at `e479b57`. 0 tracked changes, 0 untracked changes before the build. The shared tree was not used for the build or deploy.
+- `FB_LIMIT_*` variables: none set. The only mentions in `wrangler.jsonc` are comments documenting the defaults, so the defaults apply.
+- Worker `flowboard-api-uat`: `npx wrangler deploy --env uat`. Dry run listed the same bindings and vars as before (HYPERDRIVE, IMAGES `flowboard-images-uat`, FB_RL_WRITES, FRONTEND_URL, CORS_ORIGIN, GOOGLE_REDIRECT_URI, APP_ORIGIN, MAIL_FROM_NAME, MAIL_FROM_EMAIL). Version `651cb421-d3b2-4a7d-a619-ddc8c11a97ef` (100%). Cron `*/15 * * * *`.
+- Pages `flowboard-app-uat`: `NEXT_EXPORT=true npm run build` (no `NEXT_PUBLIC_API_URL`), staged with `scripts/stage-pages-functions.mjs` (6 files this time, one more than D-18/D-20 because of a new import), deployed to branch `main` with commit hash `e479b57`. Deployment `00a57d29-6d72-4240-a22c-5affbea5ba10` (`https://00a57d29.flowboard-app-uat.pages.dev`).
+
+### Tests (real counts, at e479b57, clean worktree)
+
+- Typecheck API: pass. Typecheck web: pass.
+- API: 649 tests, 633 pass, 0 fail, 16 skipped. The board-access and related access suites ran within these 649 (for example `board-access.test.ts`, `board-access-boards-imports-trash.test.ts`, `board-access-cards-images.test.ts`, `board-grants-foundation.test.ts`, and the account and B-16/B-17/B-18 suites).
+- The 3 image tests that failed at `ee1c921` and `4bb656b` now pass at `e479b57`. Backend's test fix (in `apps/api/test/b7-image-storage-r2.test.ts` and `scripts/check-test-databases.mjs`) resolves them, so production image upload is still not proven by a signed-in upload, but the test suite no longer reports it as failing.
+- Contracts: 108 of 108 pass.
+- Web: 172 of 172 pass.
+- Web build (export) passed.
+
+### Build provenance
+
+- The Pages `out/` was built from the clean worktree at `e479b57` (0 tracked changes, 0 untracked changes). The staged copy was deployed unchanged.
+- Live chunks match the build byte for byte (SHA-256 prefix compared): `app/layout-f66b8537f9d2adc7.js` (`fca42fdae4fd374c`), `app/projects/page-c708af740cd505cd.js` (`c8ed1b8a61227314`), `608-0c4b3a71cd7ff2c6.js` (`51bf2f033205df2d`), `app/board/page-15d79939e61653ef.js` (`97e99a8bb4afd4f9`).
+
+### Smoke tests (unauthenticated; no sign-in; no data created; no secrets printed)
+
+- Worker `/health/ready` 200, `/health/live` 200.
+- `GET /api/v1/session` on the Pages host: 401, `cache-control: no-store`.
+- `POST /api/v1/workspaces` with no session: 401 (not 5xx).
+- `GET /api/v1/projects` with no session: 401.
+- Anonymous `GET /api/v1/images/x/content`: 401.
+- `/email/flowboard-lockup-dark.png` and `/email/invite-board-hero.png`: 200 `image/png`.
+- S-22 strings in the live bundle: `Shared with you` (in `app/projects/page-c708af740cd505cd.js`, 1 match), `Create a project` (1 match), and `You have reached your project limit` (1 match, in `608-0c4b3a71cd7ff2c6.js`). The name-step text `Add your first and last name in Settings, then try again.` is also in `608-0c4b3a71cd7ff2c6.js` (1 match).
+- S-21 strings in the live bundle: `All cards in this view, before filters` and `Drag a card to another column of its own board` (both 1 match, in `app/board/page-15d79939e61653ef.js`).
+- Not run: the `*/15` cron tick (see below), the invitation proof, and any signed-in check.
+
+### Scheduled tick and invitation proof
+
+- Tail `wrangler tail --env uat --format json` started at 08:48:10 UTC; output in the scratchpad (`d21-tail.log`). The next `*/15` tick is expected at 09:00 UTC.
+- Pending: the tick outcome; one signed-in invitation sent by the user; a reason-code log line showing the immediate send delivered within seconds; the outbox row settled before the next tick (read-only query, no payload columns).
+
+### Not verified (this deploy)
+
+- The scheduled tick outcome (not yet observed).
+- The signed-in invitation proof (needs the user).
+- Authenticated flows: sign-in, workspace and project creation, the limits (3 owned projects, 5 boards, backstops 20 and 25), the name step, Leave project, and the resend limits. These are for the user, with synthetic data.
+- The production schedule and production state: untouched and not in scope.
+- The D-18 invitation proof is still open (it was not completed before D-21).
