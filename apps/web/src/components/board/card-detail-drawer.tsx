@@ -15,7 +15,8 @@ import { useAssignablePeople } from '@/lib/assignee-people';
 import { EMPTY_ASSIGNEES, MAX_ASSIGNEES, assignableList, canAddAssignee, ineligibleIds, namesFor, pickerState } from '@/lib/assignees';
 import { Icon } from '@/components/ui/icon';
 import { CardImages } from './card-images';
-import { activeTrigger, applyMention, backspaceMention, duplicateLabels, finalizeMentions, highlight, rankPeople, segments, shiftMentions, type Mention, type Trigger } from '@/lib/mentions';
+import { formatPersonName, personAria } from '@/lib/person-name';
+import { activeTrigger, applyMention, backspaceMention, finalizeMentions, highlight, rankPeople, segments, shiftMentions, type Mention, type Trigger } from '@/lib/mentions';
 import { mentionCandidates, mentionEmptyText } from '@/lib/mention-ui';
 import { useSession } from '@/lib/session';
 import { Avatar } from '@/components/ui/avatar';
@@ -283,7 +284,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
           <div className="detail-context">
             <span className="badge">{currentColumn?.name ?? 'Column'}</span>
             <span className="dot" aria-hidden="true" />
-            <span>{card.createdBy ? `Created by ${card.createdBy.displayName}` : 'Created'} {relativeTime(card.createdAt)}</span>
+            <span>{card.createdBy ? `Created by ${formatPersonName(card.createdBy)}` : 'Created'} {relativeTime(card.createdAt)}</span>
             <span className="dot" aria-hidden="true" />
             <span>Updated {relativeTime(card.updatedAt)}</span>
           </div>
@@ -308,7 +309,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
               <div className="assignee-chips">
                 {draft.assigneeIds.length === 0 && <span className="hint">Unassigned</span>}
                 {draft.assigneeIds.map((id) => {
-                  const name = names.get(id)?.displayName ?? 'Unknown member';
+                  const name = formatPersonName(names.get(id), 'Unknown member');
                   return (
                     <span key={id} className="assignee-chip" title={ineligible.includes(id) ? 'This person can no longer be assigned to cards' : undefined}>
                       <Avatar id={id} name={name} />
@@ -331,8 +332,8 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
                       return (
                         <label key={person.id} className="assignee-option">
                           <input type="checkbox" checked={checked} disabled={!checked && !canAddAssignee(draft.assigneeIds.length)} onChange={(event) => set('assigneeIds', event.target.checked ? [...draft.assigneeIds, person.id] : draft.assigneeIds.filter((a) => a !== person.id))} />
-                          <Avatar id={person.id} name={person.displayName} />
-                          {person.displayName}
+                          <Avatar id={person.id} name={formatPersonName(person)} />
+                          {formatPersonName(person)}
                           {person.scopedRole && <span className="role-mini">{person.scopedRole}</span>}
                         </label>
                       );
@@ -441,8 +442,7 @@ function Comments({ cardId, projectId, people, role, onPosted }: { cardId: strin
     retry: (count, error) => !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 1,
   });
   const candidates = useMemo(() => mentionCandidates(mentionPeople.data), [mentionPeople.data]);
-  const candidateNames = useMemo(() => candidates.map((p) => p.displayName), [candidates]);
-  const dupes = useMemo(() => duplicateLabels(candidates), [candidates]);
+  const candidateNames = useMemo(() => candidates.map((p) => formatPersonName(p)), [candidates]);
   const names = useMemo(() => namesFor(people, mentionPeople.data), [people, mentionPeople.data]);
   const matches = useMemo(() => (picker ? rankPeople(candidates, picker.trigger.query) : []), [candidates, picker]);
 
@@ -459,7 +459,7 @@ function Comments({ cardId, projectId, people, role, onPosted }: { cardId: strin
   };
   const choose = (person: PersonDisplay) => {
     if (!picker) return;
-    const r = applyMention(body, picker.trigger, picker.caret, person);
+    const r = applyMention(body, picker.trigger, picker.caret, { id: person.id, displayName: formatPersonName(person) });
     setMentions((m) => [...shiftMentions(body, r.text, m), r.mention]);
     pendingCaret.current = r.caret;
     setBody(r.text); setPicker(null);
@@ -497,7 +497,7 @@ function Comments({ cardId, projectId, people, role, onPosted }: { cardId: strin
         {list.isSuccess && comments.length === 0 && <div className="comment-empty">No comments yet.{canComment ? ' Start the discussion below.' : ''}</div>}
         {comments.map((comment) => {
           const person = comment.author ?? people.get(comment.authorId);
-          const name = person?.displayName ?? 'Former member';
+          const name = formatPersonName(person, 'Former member');
           return (
             <div key={comment.id} className="comment">
               <Avatar id={comment.authorId} name={name} />
@@ -506,7 +506,7 @@ function Comments({ cardId, projectId, people, role, onPosted }: { cardId: strin
                   <span className="comment-author">{name}</span>
                   <span className="comment-time">{relativeTime(comment.createdAt)}{comment.version > 1 ? ' · edited' : ''}</span>
                 </div>
-                <div className="comment-body">{segments(comment.body, comment.mentions).map((part, i) => part.userId ? <mark key={i} className="mention" title={names.get(part.userId)?.displayName ?? 'Former member'}>{part.text}</mark> : <span key={i}>{part.text}</span>)}</div>
+                <div className="comment-body">{segments(comment.body, comment.mentions).map((part, i) => part.userId ? <mark key={i} className="mention" title={formatPersonName(names.get(part.userId), 'Former member')}>{part.text}</mark> : <span key={i}>{part.text}</span>)}</div>
               </div>
             </div>
           );
@@ -531,10 +531,10 @@ function Comments({ cardId, projectId, people, role, onPosted }: { cardId: strin
                 {matches.map((person, i) => {
                   const roleLabel = ROLE_META[normalizeRole(person.scopedRole)].label;
                   return (
-                    <li key={person.id} id={`${listId}-${i}`} role="option" aria-label={`${person.displayName}, ${roleLabel}${dupes.has(person.id) ? `, ${dupes.get(person.id)}` : ''}`} aria-selected={i === active} className={`mention-option${i === active ? ' is-active' : ''}`} onClick={() => choose(person)} onMouseEnter={() => setActive(i)}>
-                      <Avatar id={person.id} name={person.displayName} />
-                      <span className="mention-name">{highlight(person.displayName, picker.trigger.query).map((part, k) => part.hit ? <b key={k}>{part.text}</b> : <span key={k}>{part.text}</span>)}</span>
-                      <small>{roleLabel}{dupes.has(person.id) ? ` · ${dupes.get(person.id)}` : ''}</small>
+                    <li key={person.id} id={`${listId}-${i}`} role="option" aria-label={personAria(person, roleLabel)} aria-selected={i === active} className={`mention-option${i === active ? ' is-active' : ''}`} onClick={() => choose(person)} onMouseEnter={() => setActive(i)}>
+                      <Avatar id={person.id} name={formatPersonName(person)} />
+                      <span className="mention-name">{highlight(formatPersonName(person), picker.trigger.query).map((part, k) => part.hit ? <b key={k}>{part.text}</b> : <span key={k}>{part.text}</span>)}</span>
+                      <small>{roleLabel}</small>
                     </li>
                   );
                 })}
@@ -566,7 +566,7 @@ function CardActivity({ cardId, people }: { cardId: string; people: Map<string, 
     <div className="activity-list">
       {feed.data.map((event) => {
         const view = describeActivity(event);
-        const name = event.actor?.displayName ?? people.get(event.actorId)?.displayName ?? 'Former member';
+        const name = formatPersonName(event.actor ?? people.get(event.actorId), 'Former member');
         return (
           <div key={event.id} className="activity-item">
             <span className="activity-icon"><Icon name={view.icon} /></span>

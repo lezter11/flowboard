@@ -1,4 +1,5 @@
 import type { PersonDisplay } from '@flowboard/contracts';
+import { formatPersonName } from './person-name.ts';
 
 const TONES = ['alice', 'charlie', 'david', 'eve'] as const;
 export type AvatarTone = (typeof TONES)[number];
@@ -15,5 +16,5 @@ export function toneFor(id: string): AvatarTone {
 }
 
 export function personName(people: Map<string, PersonDisplay>, id: string): string {
-  return people.get(id)?.displayName ?? 'Unknown member';
+  return formatPersonName(people.get(id), 'Unknown member');
 }

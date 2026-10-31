@@ -11,6 +11,7 @@ import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { boardQueryOptions } from '@/lib/queries';
 import { useAssignablePeople } from '@/lib/assignee-people';
 import { EMPTY_ASSIGNEES, assignableList, canAddAssignee, pickerState } from '@/lib/assignees';
+import { formatPersonName } from '@/lib/person-name';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { Avatar } from '@/components/ui/avatar';
@@ -168,8 +169,8 @@ function AddCardScreen() {
                   {assignable.map((person) => (
                     <label key={person.id} className="check-row">
                       <input type="checkbox" checked={assignees.includes(person.id)} disabled={!assignees.includes(person.id) && !canAddAssignee(assignees.length)} onChange={(event) => setAssignees((prev) => event.target.checked ? [...prev, person.id] : prev.filter((id) => id !== person.id))} />
-                      <Avatar id={person.id} name={person.displayName} />
-                      <span>{person.displayName}</span>
+                      <Avatar id={person.id} name={formatPersonName(person)} />
+                      <span>{formatPersonName(person)}</span>
                       {person.scopedRole && <span className="role-mini">{ROLE_META[person.scopedRole].label}</span>}
                     </label>
                   ))}

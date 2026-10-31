@@ -40,11 +40,11 @@ test('listbox pattern: combobox textarea, listbox, options named "Name, Role", p
   const d = src('../src/components/board/card-detail-drawer.tsx');
   assert.match(d, /role="combobox" aria-autocomplete="list"/);
   assert.match(d, /role="listbox"/);
-  assert.match(d, /role="option" aria-label=\{`\$\{person\.displayName\}, \$\{roleLabel\}/);
+  assert.match(d, /role="option" aria-label=\{personAria\(person, roleLabel\)\}/);
   assert.match(d, /aria-live="polite">\{picker && matches\.length > 0 \? `\$\{matches\.length\}/);
 });
 
 test('saved mentions show the current full name on hover, not the stored text', () => {
   const d = src('../src/components/board/card-detail-drawer.tsx');
-  assert.match(d, /title=\{names\.get\(part\.userId\)\?\.displayName \?\? 'Former member'\}/);
+  assert.match(d, /title=\{formatPersonName\(names\.get\(part\.userId\), 'Former member'\)\}/);
 });

@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
+import { formatPersonName } from '../src/lib/person-name.ts';
 import test from 'node:test';
-import { activeTrigger, applyMention, backspaceMention, duplicateLabels, finalizeMentions, highlight, matchRange, rankPeople, segments, shiftMentions, type Mention } from '../src/lib/mentions.ts';
+import { activeTrigger, applyMention, backspaceMention, finalizeMentions, highlight, matchRange, rankPeople, segments, shiftMentions, type Mention } from '../src/lib/mentions.ts';
 
 const olivia = { id: 'usr_1', displayName: 'Olivia Owner' };
 const mention = (start: number, end: number, name = 'Olivia Owner', userId = 'usr_1'): Mention => ({ userId, name, start, end });
@@ -95,9 +96,14 @@ test('matched characters are emphasised on the original spelling', () => {
   assert.deepEqual(highlight('José Álvarez', 'alv'), [{ text: 'José ', hit: false }, { text: 'Álv', hit: true }, { text: 'arez', hit: false }]);
   assert.deepEqual(highlight('Priya Rao', ''), [{ text: 'Priya Rao', hit: false }]);
 });
-test('same full name gets a stable "n of m" label; unique names get none', () => {
-  const l = duplicateLabels(crowd);
-  assert.equal(l.get('u1'), '1 of 2'); assert.equal(l.get('u5'), '2 of 2'); assert.equal(l.has('u6'), false);
+test('numbered duplicates: "@shubham" finds both, "@shubham singh (2)" narrows to one, order is by number', () => {
+  const twins = [{ id: 'b', displayName: 'Shubham Singh', nameSuffix: 2 }, { id: 'a', displayName: 'Shubham Singh', nameSuffix: null }, { id: 'c', displayName: 'Shubham Rao' }];
+  assert.deepEqual(rankPeople(twins, 'shubham').map((p) => p.id), ['c', 'a', 'b']);
+  assert.deepEqual(rankPeople(twins, 'shubham singh (2)').map((p) => p.id), ['b']);
+  assert.deepEqual(rankPeople(twins, 'shubham singh').map((p) => p.id), ['a', 'b']);
+  const r = applyMention('@shub', { start: 0, query: 'shub' }, 5, { id: 'b', displayName: formatPersonName(twins[0]) });
+  assert.equal(r.text, '@Shubham Singh (2) ');
+  assert.deepEqual(activeTrigger('@shubham singh (2', 17, ['Shubham Singh (2)'])?.query, 'shubham singh (2');
 });
 test('a multi-word query keeps the trigger open while it can match, and closes when it cannot', () => {
   const names = crowd.map((p) => p.displayName);

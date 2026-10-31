@@ -12,6 +12,8 @@ export interface Trigger { start: number; query: string }
 const WORD = /[\p{L}\p{N}_]/u;
 export const MAX_MENTIONS = 20;
 
+import { formatPersonName } from './person-name.ts';
+
 export const MAX_QUERY = 40;
 
 /** Lower-case, accent-free form of a name or query, with a map from each character back to the original text. */
@@ -43,12 +45,12 @@ export function matchRange(name: string, query: string): { start: number; end: n
   return { start: map[at]!, end: map[end] ?? name.length, rank: at === 0 ? 0 : 1 };
 }
 
-/** Candidates for a query, best first: full-name prefix, then other word-start matches, then A to Z by full name. */
-export function rankPeople<T extends { id: string; displayName: string }>(people: readonly T[], query: string): T[] {
+/** Candidates for a query, best first (matched on the numbered name the picker shows, so "@shubham" and "@shubham singh (2)" both work): full-name prefix, then other word-start matches, then A to Z by full name. */
+export function rankPeople<T extends { id: string; displayName: string; nameSuffix?: number | null }>(people: readonly T[], query: string): T[] {
   return people
-    .map((p) => ({ p, m: matchRange(p.displayName, query) }))
+    .map((p) => ({ p, m: matchRange(formatPersonName(p), query) }))
     .filter((x): x is { p: T; m: NonNullable<ReturnType<typeof matchRange>> } => x.m !== null)
-    .sort((a, b) => a.m.rank - b.m.rank || a.p.displayName.localeCompare(b.p.displayName) || a.p.id.localeCompare(b.p.id))
+    .sort((a, b) => a.m.rank - b.m.rank || a.p.displayName.localeCompare(b.p.displayName) || (a.p.nameSuffix ?? 1) - (b.p.nameSuffix ?? 1) || a.p.id.localeCompare(b.p.id))
     .map((x) => x.p);
 }
 
@@ -57,15 +59,6 @@ export function highlight(name: string, query: string): Array<{ text: string; hi
   const m = query.trim() === '' ? null : matchRange(name, query);
   if (!m || m.end <= m.start) return [{ text: name, hit: false }];
   return [{ text: name.slice(0, m.start), hit: false }, { text: name.slice(m.start, m.end), hit: true }, { text: name.slice(m.end), hit: false }].filter((x) => x.text !== '');
-}
-
-/** For people who share a full name: a stable "1 of 2" (ordered by id) so two identical rows can still be told apart. */
-export function duplicateLabels(people: ReadonlyArray<{ id: string; displayName: string }>): Map<string, string> {
-  const groups = new Map<string, string[]>();
-  for (const p of people) { const k = foldQuery(p.displayName); groups.set(k, [...(groups.get(k) ?? []), p.id]); }
-  const out = new Map<string, string>();
-  for (const ids of groups.values()) if (ids.length > 1) [...ids].sort().forEach((id, i) => out.set(id, `${i + 1} of ${ids.length}`));
-  return out;
 }
 
 /**

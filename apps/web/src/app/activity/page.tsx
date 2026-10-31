@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { describeActivity } from '@/lib/activity';
 import { relativeTime } from '@/lib/dates';
+import { formatPersonName } from '@/lib/person-name';
 import { describeError } from '@/lib/errors';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
@@ -40,7 +41,7 @@ export default function ActivityPage() {
   const items = useMemo(() => (feed.data ?? []).map((item) => ({ item, view: describeActivity(item, 'a card') })), [feed.data]);
   const actors = useMemo(() => {
     const map = new Map<string, string>();
-    items.forEach(({ item }) => map.set(item.actorId, item.actor?.displayName ?? 'Former member'));
+    items.forEach(({ item }) => map.set(item.actorId, formatPersonName(item.actor, 'Former member')));
     return [...map.entries()];
   }, [items]);
   const categories = [...new Set(items.map(({ view }) => view.category))];
@@ -49,7 +50,7 @@ export default function ActivityPage() {
     if (category !== 'all' && view.category !== category) return false;
     if (date !== 'all' && new Date(item.createdAt).getTime() < Date.now() - Number(date) * 86_400_000) return false;
     const needle = q.trim().toLowerCase();
-    return !needle || `${item.actor?.displayName ?? ''} ${view.text} ${view.category}`.toLowerCase().includes(needle);
+    return !needle || `${formatPersonName(item.actor)} ${view.text} ${view.category}`.toLowerCase().includes(needle);
   });
   const shown = filtered.slice(0, limit);
   const active = actor !== 'all' || category !== 'all' || date !== 'all' || !!q.trim();
@@ -121,7 +122,7 @@ export default function ActivityPage() {
                 <article key={item.id} className="activity-event" data-category={view.category.toLowerCase()}>
                   <span className="event-icon" aria-hidden="true"><Icon name={view.icon} /></span>
                   <div className="event-body">
-                    <p className="event-title"><strong>{item.actor?.displayName ?? 'Someone'}</strong> {view.text}</p>
+                    <p className="event-title"><strong>{formatPersonName(item.actor, 'Someone')}</strong> {view.text}</p>
                     {item.boardId && item.cardId && (
                       <Link className="event-card" href={`/board?id=${encodeURIComponent(item.boardId)}&card=${encodeURIComponent(item.cardId)}`}>{item.cardKey ?? 'Card'} <span>{item.cardTitle ?? ''}</span><Icon name="arrow-right" /></Link>
                     )}

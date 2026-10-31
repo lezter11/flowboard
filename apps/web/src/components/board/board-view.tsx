@@ -19,6 +19,7 @@ import { BoardSwitcher } from './board-switcher';
 import { addTarget, addableBoards, boardTone, cardBoardMap, mergeColumns, planMove, type MergeSource, type MergedColumn } from '@/lib/board-merge';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
+import { formatPersonName } from '@/lib/person-name';
 import { NewBoardDialog } from '@/components/ui/new-board-dialog';
 import { EditBoardDialog } from '@/components/ui/edit-board-dialog';
 import { InviteDialog } from '@/components/ui/invite-dialog';
@@ -174,7 +175,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
   const matches = useCallback((card: CardSummary) => {
     const q = filters.q.trim().toLowerCase();
     if (q) {
-      const hay = [card.title, card.key ?? '', card.descriptionExcerpt ?? '', ...card.assigneeIds.map((id) => people.get(id)?.displayName ?? '')].join(' ').toLowerCase();
+      const hay = [card.title, card.key ?? '', card.descriptionExcerpt ?? '', ...card.assigneeIds.map((id) => formatPersonName(people.get(id)))].join(' ').toLowerCase();
       if (!hay.includes(q)) return false;
     }
     if (filters.assignees.length) {
@@ -600,7 +601,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
               {assignable.map((person) => (
                 <label key={person.id} className="filter-option">
                   <input type="checkbox" checked={selectedAssignees.includes(person.id)} onChange={(event) => setFilters((f) => ({ ...f, assignees: event.target.checked ? [...f.assignees, person.id] : f.assignees.filter((id) => id !== person.id) }))} />{' '}
-                  <Avatar id={person.id} name={person.displayName} /> {person.displayName}
+                  <Avatar id={person.id} name={formatPersonName(person)} /> {formatPersonName(person)}
                 </label>
               ))}
               <label className="filter-option">

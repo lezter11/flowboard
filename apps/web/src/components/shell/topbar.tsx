@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Icon } from '@/components/ui/icon';
 import { Avatar } from '@/components/ui/avatar';
 import { useActiveProject } from '@/lib/active-project';
+import { formatPersonName } from '@/lib/person-name';
 import { ROLE_META } from '@/lib/roles';
 import { useSession } from '@/lib/session';
 import { useShell } from './shell-context';
@@ -55,7 +56,7 @@ export function Topbar() {
       {team.length > 0 && (
         <div className="presence" aria-label="Project team">
           <span className="presence-label">Team</span>
-          {team.map((person) => <Avatar key={person.id} id={person.id} name={person.displayName} />)}
+          {team.map((person) => <Avatar key={person.id} id={person.id} name={formatPersonName(person)} />)}
         </div>
       )}
       {project && role && <span className="role-badge" data-role={role} role="group" tabIndex={0} aria-label={`Your role in this project: ${ROLE_META[role].label}. ${ROLE_META[role].description}.`} data-tip={`Your role in this project: ${ROLE_META[role].description}`}>
