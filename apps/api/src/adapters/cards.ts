@@ -1,3 +1,4 @@
+import { boardAssigneeIds } from '../services/board-assignees.ts';
 import { projectNameSuffixes, withNameSuffix } from '../services/person-suffix.ts';
 import crypto from 'node:crypto';
 import type pg from 'pg';
@@ -158,26 +159,8 @@ async function validateAssigneeIds(
 
   // Assignees are the workspace owner or an active manager or member with a board grant. A viewer
   // reads cards but cannot be assigned work (docs/FEATURE_SPEC.md: assignees active owner/manager/member).
-  const validUsersRes = await clientOrPool.query<{ id: string }>(
-    `SELECT u.id
-     FROM users u
-     WHERE u.id = ANY($1::TEXT[])
-       AND (
-         u.id = (SELECT owner_id FROM workspaces WHERE id = $2)
-         OR EXISTS (
-           SELECT 1 FROM project_memberships pm
-           JOIN board_grants bg ON bg.project_id = pm.project_id
-             AND bg.user_id = pm.user_id AND bg.board_id = $4
-           WHERE pm.project_id = $3
-             AND pm.user_id = u.id
-             AND pm.status = 'active'
-             AND pm.role IN ('manager', 'member')
-         )
-       )`,
-    [assigneeIds, workspaceId, projectId, boardId],
-  );
-
-  const validSet = new Set(validUsersRes.rows.map((r) => r.id));
+  // The shared rule (services/board-assignees.ts), also used by the assignee picker (B-24).
+  const validSet = await boardAssigneeIds(clientOrPool, projectId, boardId);
   const invalidUsers = assigneeIds.filter((id) => !validSet.has(id));
 
   if (invalidUsers.length > 0) {

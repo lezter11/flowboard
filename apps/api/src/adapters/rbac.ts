@@ -1,3 +1,4 @@
+import { boardAssigneeIds } from '../services/board-assignees.ts';
 import { projectNameSuffixes, withNameSuffix } from '../services/person-suffix.ts';
 import type pg from 'pg';
 import { readableDefaultBoardJoin } from './default-board.ts';
@@ -462,6 +463,7 @@ export async function getProjectPeople(
   const pool = clientOrPool ?? getPool();
 
   let boardEligibleIds: Set<string> | null = null;
+  let boardAssignees: Set<string> | null = null;
   if (boardId) {
     const board = await pool.query<{ owner_id: string }>(
       `SELECT w.owner_id FROM boards b
@@ -479,6 +481,8 @@ export async function getProjectPeople(
       [boardId, projectId],
     );
     boardEligibleIds = new Set([board.rows[0].owner_id, ...grants.rows.map((row) => row.user_id)]);
+    // Assignable on this board follows the same rule the card validator uses (B-24).
+    boardAssignees = await boardAssigneeIds(pool, projectId, boardId);
     if (actorId && !boardEligibleIds.has(actorId)) {
       throw HttpError.notFound('Board not found.', 'NOT_FOUND');
     }
@@ -551,7 +555,7 @@ export async function getProjectPeople(
       avatarUrl: row.avatar_url ?? null,
       activeInProject: isActive,
       scopedRole: role,
-      assignable: isActive && isWritableRole && hasBoardAccess,
+      assignable: isActive && isWritableRole && hasBoardAccess && (boardAssignees ? boardAssignees.has(row.id) : true),
       mentionable: isActive && hasBoardAccess,
     };
   });
