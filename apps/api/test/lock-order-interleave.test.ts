@@ -40,6 +40,10 @@ test('comment PATCH/DELETE, import commit and their controls never return a serv
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
     async function setupRound() {
+      // Each round is independent; keep old boards outside the active quota and reset only
+      // this synthetic fixture's board-create windows before creating its next board.
+      await pool.query(`UPDATE boards SET archived=true WHERE project_id='p' AND archived=false`);
+      await pool.query(`DELETE FROM rate_limit_windows WHERE bucket IN ('board-create','board-create-hour')`);
       const boardId = ((await (await req('POST', '/api/v1/projects/p/boards', { name: 'B' })).json()) as any).data.id as string;
       const cols = (await pool.query('SELECT id FROM columns WHERE board_id=$1 ORDER BY position', [boardId])).rows.map((r) => r.id as string);
       const bv = async () => Number((await pool.query('SELECT structure_version FROM boards WHERE id=$1', [boardId])).rows[0].structure_version);

@@ -1,6 +1,11 @@
+import { lockUserQuota } from '../../adapters/quotas.ts';
+import { ensurePersonalWorkspace } from '../../adapters/personal-workspace.ts';
+import { assertOwnedProjectRoom, consumeProjectCreateWindows, insertProjectRow } from '../../adapters/own-projects.ts';
+import { limitsOf } from '../../services/limits.ts';
 import crypto from 'node:crypto';
 import { Hono } from 'hono';
 import {
+  createOwnProjectInputSchema,
   createProjectInputSchema,
   updateProjectInputSchema,
   idempotencyKeySchema,
@@ -122,6 +127,8 @@ projectsRoutes.post('/api/v1/workspaces/:workspaceId/projects', authMiddleware, 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    // Quota lock before any row lock (B-18, F-01, F-03).
+    await lockUserQuota(client, actor.id);
 
     const methodPath = `/api/v1/workspaces/${workspaceId}/projects`;
     const currentOwner = await client.query<{ owner_id: string }>(
@@ -148,41 +155,9 @@ projectsRoutes.post('/api/v1/workspaces/:workspaceId/projects', authMiddleware, 
       );
     }
 
-    const projectId = 'prj_' + crypto.randomUUID();
-    const nowIso = new Date().toISOString();
-    const description = body.description ?? null;
-
-    const insertRes = await client.query<{
-      id: string;
-      workspace_id: string;
-      name: string;
-      description: string | null;
-      archived: boolean;
-      version: number;
-      created_at: Date;
-      updated_at: Date;
-    }>(
-      `INSERT INTO projects (id, workspace_id, name, description, archived, version, created_at, updated_at, key_prefix)
-       VALUES ($1, $2, $3, $4, FALSE, 1, $5, $5, $6)
-       RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
-      [projectId, workspaceId, body.name, description, nowIso, projectKeyPrefix(body.name)],
-    );
-
-    const row = insertRes.rows[0];
-    if (!row) {
-      throw new Error('Failed to insert project row');
-    }
-
-    const project: Project = {
-      id: row.id,
-      workspaceId: row.workspace_id,
-      name: row.name,
-      description: row.description,
-      isArchived: Boolean(row.archived),
-      version: row.version,
-      createdAt: new Date(row.created_at).toISOString(),
-      updatedAt: new Date(row.updated_at).toISOString(),
-    };
+    await consumeProjectCreateWindows(client, actor.id);
+    await assertOwnedProjectRoom(client, actor.id, limitsOf(c));
+    const project = await insertProjectRow(client, workspaceId, body.name, body.description ?? null);
 
     const responsePayload = { data: project };
     const saved = await saveReceipt(
@@ -203,6 +178,61 @@ projectsRoutes.post('/api/v1/workspaces/:workspaceId/projects', authMiddleware, 
         { ...(saved.responseBody as object), replayed: true },
         saved.statusCode as any,
       );
+    }
+    return c.json({ ...responsePayload, replayed: false }, 201);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+});
+
+// 2b. POST /api/v1/projects (B-17, B-18): create a project in the caller's own personal workspace.
+// The caller never names a workspace. Idempotency is scoped to the actor. Quotas are checked after the
+// replay, so a replay at the cap returns the original response (edge-case review rule 11).
+projectsRoutes.post('/api/v1/projects', authMiddleware, async (c) => {
+  const actor = c.get('actor');
+  if (!actor) {
+    throw HttpError.unauthorized('Invalid or missing authentication session.');
+  }
+
+  const idempotencyKey = c.req.header('idempotency-key');
+  if (!idempotencyKey || !idempotencyKeySchema.safeParse(idempotencyKey).success) {
+    throw HttpError.badRequest(
+      'Missing or invalid Idempotency-Key header.',
+      'IDEMPOTENCY_KEY_REQUIRED',
+    );
+  }
+
+  const rawBody = await c.req.json();
+  const body = parseOrThrow(createOwnProjectInputSchema, rawBody);
+  const limits = limitsOf(c);
+  const pool = getPool();
+  const client = await pool.connect();
+
+  try {
+    await client.query('BEGIN');
+    // Quota lock first, before any row lock. ensurePersonalWorkspace takes the same lock again, which is allowed.
+    await lockUserQuota(client, actor.id);
+    const workspaceId = await ensurePersonalWorkspace(client, actor.id);
+
+    const methodPath = '/api/v1/projects';
+    const replay = await checkOrReplayReceipt(client, actor.id, 'actor', actor.id, idempotencyKey, methodPath, body);
+    if (replay) {
+      await client.query('ROLLBACK');
+      return c.json({ ...(replay.responseBody as object), replayed: true }, replay.statusCode as any);
+    }
+
+    await consumeProjectCreateWindows(client, actor.id);
+    await assertOwnedProjectRoom(client, actor.id, limits);
+    const project = await insertProjectRow(client, workspaceId, body.name, body.description ?? null);
+
+    const responsePayload = { data: project };
+    const saved = await saveReceipt(client, actor.id, 'actor', actor.id, idempotencyKey, methodPath, body, 201, responsePayload);
+    await client.query('COMMIT');
+    if (saved?.replayed) {
+      return c.json({ ...(saved.responseBody as object), replayed: true }, saved.statusCode as any);
     }
     return c.json({ ...responsePayload, replayed: false }, 201);
   } catch (err) {
@@ -645,6 +675,8 @@ projectsRoutes.post('/api/v1/projects/:projectId/reopen', authMiddleware, async 
     await client.query('BEGIN');
 
     const methodPath = `/api/v1/projects/${projectId}/reopen`;
+    // Quota lock before the row locks (B-18, F-09).
+    await lockUserQuota(client, actor.id);
     await lockProjectOwner(client, projectId, actor.id, 'reopen');
     const replay = await checkOrReplayReceipt(
       client,
@@ -677,6 +709,11 @@ projectsRoutes.post('/api/v1/projects/:projectId/reopen', authMiddleware, async 
     }
     if (role !== 'owner') {
       throw HttpError.forbidden('Only workspace owner can reopen projects.', 'FORBIDDEN');
+    }
+
+    const archivedNow = await client.query<{ archived: boolean }>('SELECT archived FROM projects WHERE id = $1', [projectId]);
+    if (archivedNow.rows[0]?.archived) {
+      await assertOwnedProjectRoom(client, actor.id, limitsOf(c));
     }
 
     const updateRes = await client.query<{

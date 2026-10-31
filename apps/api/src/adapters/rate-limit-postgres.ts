@@ -75,6 +75,32 @@ export async function purgeEndedWindows(
  * counts therefore roll back with a refused or failed attempt, and only the actor who holds the
  * grant can spend the project's allowance. Fail closed: a counter error becomes 503.
  */
+/**
+ * Counts one authenticated actor against the named windows and refuses with 429 RATE_LIMITED when a
+ * window is over its limit. Called inside the transaction, after replay, so a replayed or rolled-back
+ * request spends no token (edge-case review F-19).
+ */
+export async function consumeActorWindows(
+  client: pg.ClientBase,
+  actorId: string,
+  buckets: WindowBucket[],
+): Promise<void> {
+  for (const bucket of buckets) {
+    const config = WINDOW_BUCKETS[bucket];
+    let counted: WindowCount;
+    try {
+      counted = await consumeWindow(client, bucket, actorId, config.windowSeconds);
+    } catch {
+      throw new HttpError(503, 'SERVICE_UNAVAILABLE', 'Rate limit check unavailable. Try again shortly.');
+    }
+    if (counted.count > config.limit) {
+      throw new HttpError(429, 'RATE_LIMITED', 'Too many requests. Try again later.', {
+        retryAfterSeconds: counted.retryAfterSeconds,
+      });
+    }
+  }
+}
+
 export async function consumeInvitationScopeLimits(
   client: pg.ClientBase,
   inviterId: string,
@@ -97,7 +123,7 @@ export async function consumeInvitationScopeLimits(
     if (counted.count > config.limit) {
       throw new HttpError(
         429,
-        'TOO_MANY_REQUESTS',
+        'RATE_LIMITED',
         'Too many invitations sent recently. Try again later.',
         { retryAfterSeconds: counted.retryAfterSeconds },
       );

@@ -56,7 +56,7 @@ export function rateLimitMiddleware(resolve: RateLimiterResolver, options: RateL
       }
       if (!success) {
         logLine('warn', 'rate_limit_refused', { binding });
-        throw new HttpError(429, 'TOO_MANY_REQUESTS', 'Too many requests. Try again later.');
+        throw new HttpError(429, 'RATE_LIMITED', 'Too many requests. Try again later.');
       }
     }
     return next();
@@ -96,7 +96,7 @@ export function windowRateLimitMiddleware(resolve: WindowCounterResolver, option
       if (counted.count > config.limit) {
         logLine('warn', 'rate_limit_window_refused', { bucket });
         return c.json(
-          { error: { code: 'TOO_MANY_REQUESTS', message: 'Too many requests. Try again later.', requestId } },
+          { error: { code: 'RATE_LIMITED', message: 'Too many requests. Try again later.', requestId } },
           429,
           { ...headers, 'Retry-After': String(counted.retryAfterSeconds) },
         );

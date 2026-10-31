@@ -13,7 +13,11 @@ import {
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
 import { checkOrReplayReceipt, checkOrReplayProjectWriteReceipt, saveReceipt } from '../../adapters/idempotency.ts';
-import { acquireWriteGrantLock } from '../../adapters/rbac.ts';
+import { acquireWriteGrantLock, acquireWritableProjectContextLock, resolveProjectRole } from '../../adapters/rbac.ts';
+import { lockProjectQuota, countActiveBoards, quotaExceeded } from '../../adapters/quotas.ts';
+import { consumeActorWindows } from '../../adapters/rate-limit-postgres.ts';
+import { grantCreatorBoardAccess } from '../../adapters/board-grants-foundation.ts';
+import { limitsOf } from '../../services/limits.ts';
 import { recordActivity } from '../../adapters/activity.ts';
 import { lockBoardAccess, lockProjectBoardReadScope } from '../../adapters/board-grants-foundation.ts';
 import {
@@ -63,6 +67,8 @@ boardsRoutes.post('/api/v1/projects/:projectId/boards', authMiddleware, async (c
 
   try {
     await client.query('BEGIN');
+    // Project quota lock before any row lock (B-18, F-02).
+    await lockProjectQuota(client, projectId);
 
     const methodPath = `/api/v1/projects/${projectId}/boards`;
     const replay = await checkOrReplayProjectWriteReceipt(
@@ -83,7 +89,21 @@ boardsRoutes.post('/api/v1/projects/:projectId/boards', authMiddleware, async (c
       );
     }
 
+    // Rate windows and the board cap, after the replay so a replayed create spends nothing and is never refused (F-19).
+    await consumeActorWindows(client, actor.id, ['board-create', 'board-create-hour']);
+    const limits = limitsOf(c);
+    const role = await resolveProjectRole(projectId, actor.id, client);
+    const used = await countActiveBoards(client, projectId);
+    if (used >= limits.boardsPerProject) {
+      // The count is shown only to the Owner (edge-case review F-10). A Manager learns only that the limit is reached.
+      throw quotaExceeded('boards_per_project', limits.boardsPerProject, 'archive_board', role === 'owner' ? used : undefined);
+    }
+
     const board = await createBoard(client, projectId, body.name, actor.id, body.description ?? null);
+    // B-19: a Manager who creates a board gets a grant for that board only.
+    if (role === 'manager') {
+      await grantCreatorBoardAccess(client, board.id, projectId, actor.id);
+    }
     const responsePayload = { data: board };
 
     const saved = await saveReceipt(
@@ -801,6 +821,9 @@ boardsRoutes.post('/api/v1/boards/:boardId/reopen', authMiddleware, async (c) =>
 
   try {
     await client.query('BEGIN');
+    // Project quota lock before the board row locks (B-18, F-09).
+    const owningProject = await client.query<{ project_id: string }>('SELECT project_id FROM boards WHERE id = $1', [boardId]);
+    if (owningProject.rows[0]) await lockProjectQuota(client, owningProject.rows[0].project_id);
     const access = await lockBoardAccess(client, boardId, actor.id);
     await acquireWriteGrantLock(client, access.projectId, actor.id, 'manager', boardId);
 
@@ -831,6 +854,17 @@ boardsRoutes.post('/api/v1/boards/:boardId/reopen', authMiddleware, async (c) =>
         { ...(replay.responseBody as object), replayed: true },
         replay.statusCode as any,
       );
+    }
+
+    // A reopen that brings a board back counts against the cap (B-18, F-09). The count is the Owner's view only.
+    await acquireWritableProjectContextLock(client, bRow.project_id);
+    if (bRow.archived) {
+      const reopenRole = await resolveProjectRole(bRow.project_id, actor.id, client);
+      const reopenUsed = await countActiveBoards(client, bRow.project_id);
+      const reopenLimits = limitsOf(c);
+      if (reopenUsed >= reopenLimits.boardsPerProject) {
+        throw quotaExceeded('boards_per_project', reopenLimits.boardsPerProject, 'archive_board', reopenRole === 'owner' ? reopenUsed : undefined);
+      }
     }
 
     const updateRes = await client.query<{

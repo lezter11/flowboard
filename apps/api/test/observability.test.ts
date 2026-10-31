@@ -359,7 +359,7 @@ describe('FND-04: Observability, Correlation, Limits & Safe Error Baseline', () 
       assert.equal(parsed.error.details?.['serverNow'], '2026-10-26T00:00:00Z');
     });
 
-    it('maps 429 TOO_MANY_REQUESTS and attaches Retry-After: 60 header', async () => {
+    it('maps 429 RATE_LIMITED and attaches Retry-After: 60 header', async () => {
       const app = createApp(async () => {});
       app.get('/api/v1/rate-limit', () => { throw tooManyRequests(); });
 
@@ -368,7 +368,7 @@ describe('FND-04: Observability, Correlation, Limits & Safe Error Baseline', () 
       assert.equal(res.headers.get('Retry-After'), '60', 'Retry-After header must be 60 seconds');
       const body = await res.json();
       const parsed = errorEnvelopeSchema.parse(body);
-      assert.equal(parsed.error.code, 'TOO_MANY_REQUESTS');
+      assert.equal(parsed.error.code, 'RATE_LIMITED');
     });
 
     it('maps 503 SERVICE_UNAVAILABLE / DATABASE_UNAVAILABLE safely', async () => {

@@ -130,3 +130,36 @@ export async function changeBoardGrant(
   });
   return true;
 }
+
+/**
+ * B-19: when a Manager creates a board, that Manager gets a grant for that board only (decision 1 of the
+ * own-projects decisions; amends board-access-decisions-2026-10-27). Grant administration stays Owner-only:
+ * this is the one self-grant path, and it runs only from createBoard, in the board's transaction, with an
+ * audit row whose source is 'creator' (edge-case review F-12). The caller checked the Manager role.
+ */
+export async function grantCreatorBoardAccess(
+  client: pg.ClientBase,
+  boardId: string,
+  projectId: string,
+  creatorId: string,
+): Promise<void> {
+  const boardRes = await client.query<{ workspace_id: string }>('SELECT workspace_id FROM boards WHERE id = $1', [boardId]);
+  const workspaceId = boardRes.rows[0]?.workspace_id;
+  if (!workspaceId) throw new Error('creator grant: board not found');
+  const inserted = await client.query(
+    `INSERT INTO board_grants (board_id, project_id, workspace_id, user_id, granted_by)
+     VALUES ($1, $2, $3, $4, $4) ON CONFLICT (board_id, user_id) DO NOTHING RETURNING board_id`,
+    [boardId, projectId, workspaceId, creatorId],
+  );
+  if (!inserted.rowCount) return;
+  await client.query('UPDATE boards SET access_revision = access_revision + 1 WHERE id = $1', [boardId]);
+  await recordActivity(client, {
+    workspaceId,
+    projectId,
+    boardId,
+    visibilityScope: 'board',
+    actorId: creatorId,
+    action: 'board_access_granted',
+    safeChanges: { boardId, userId: creatorId, source: 'creator' },
+  });
+}

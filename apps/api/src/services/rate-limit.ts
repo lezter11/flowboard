@@ -35,6 +35,11 @@ export const WINDOW_BUCKETS = {
   'invite-inviter-hour': { limit: 200, windowSeconds: 3600 },
   'invite-project': { limit: 30, windowSeconds: 60 },
   'invite-project-hour': { limit: 300, windowSeconds: 3600 },
+  // Own-projects creates, counted per actor id (edge-case review rule 14, F-19).
+  'project-create': { limit: 5, windowSeconds: 60 },
+  'project-create-hour': { limit: 30, windowSeconds: 3600 },
+  'board-create': { limit: 10, windowSeconds: 60 },
+  'board-create-hour': { limit: 60, windowSeconds: 3600 },
 } as const;
 
 export type WindowBucket = keyof typeof WINDOW_BUCKETS;

@@ -127,8 +127,8 @@ test('PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Sui
 
     await pool.query(
       `INSERT INTO board_grants (workspace_id, project_id, board_id, user_id, granted_by)
-       VALUES ($1, $2, $3, $4, $5), ($1, $2, $3, $6, $5)`,
-      [workspaceId, projectId, boardId, manager.user.id, owner.user.id, member.user.id],
+       VALUES ($1, $2, $3, $4, $5)`,
+      [workspaceId, projectId, boardId, member.user.id, owner.user.id],
     );
 
     // 5. Fetch columns created with board

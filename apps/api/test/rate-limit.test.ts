@@ -41,7 +41,7 @@ test('soft limit: a refused general write returns 429 TOO_MANY_REQUESTS with Ret
   assert.equal(res.status, 429);
   assert.equal(res.headers.get('retry-after'), '60');
   const body = (await res.json()) as { error: { code: string; requestId: string } };
-  assert.equal(body.error.code, 'TOO_MANY_REQUESTS');
+  assert.equal(body.error.code, 'RATE_LIMITED');
   assert.ok(body.error.requestId.length > 0);
 });
 
@@ -127,7 +127,7 @@ test('window: a count over the limit returns 429 with Retry-After from the count
   assert.equal(res.headers.get('retry-after'), '17');
   assert.equal(res.headers.get('cache-control'), 'no-store');
   const body = (await res.json()) as { error: { code: string; requestId: string } };
-  assert.equal(body.error.code, 'TOO_MANY_REQUESTS');
+  assert.equal(body.error.code, 'RATE_LIMITED');
   assert.ok(body.error.requestId.length > 0);
 });
 

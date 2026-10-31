@@ -77,7 +77,7 @@ test('B-7 invitations: per inviter and per project limits hold across rotating c
     const refused = await invite(fx.project, fx.m1.session);
     assert.equal(refused.status, 429);
     const body = (await refused.json()) as any;
-    assert.equal(body.error.code, 'TOO_MANY_REQUESTS');
+    assert.equal(body.error.code, 'RATE_LIMITED');
     assert.ok(body.error.details.retryAfterSeconds >= 1);
   });
 
@@ -87,7 +87,7 @@ test('B-7 invitations: per inviter and per project limits hold across rotating c
     }
     const refused = await invite(fx.project, fx.m2.session);
     assert.equal(refused.status, 429);
-    assert.equal(((await refused.json()) as any).error.code, 'TOO_MANY_REQUESTS');
+    assert.equal(((await refused.json()) as any).error.code, 'RATE_LIMITED');
   });
 
   await t.test('refused attempts roll back: the counters stay at the allowance, not above it', async () => {

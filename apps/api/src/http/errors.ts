@@ -223,7 +223,7 @@ export function tooManyRequests(
   message = 'Rate limit exceeded.',
   details?: Record<string, unknown>,
 ): HttpError {
-  return new HttpError(429, 'TOO_MANY_REQUESTS', message, details);
+  return new HttpError(429, 'RATE_LIMITED', message, details);
 }
 
 export function serviceUnavailable(

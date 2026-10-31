@@ -217,8 +217,8 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
     const mgrBoardId = json.data.id;
     await pool.query(
       `INSERT INTO board_grants (board_id, project_id, workspace_id, user_id, granted_by)
-       VALUES ($1, $2, $3, $4, $7), ($1, $2, $3, $5, $7), ($1, $2, $3, $6, $7)`,
-      [mgrBoardId, projectAId, workspaceId, bobManagerId, charlieMemberId, daveViewerId, aliceOwnerId],
+       VALUES ($1, $2, $3, $4, $6), ($1, $2, $3, $5, $6)`,
+      [mgrBoardId, projectAId, workspaceId, charlieMemberId, daveViewerId, aliceOwnerId],
     );
   });
 
@@ -503,11 +503,8 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
     assert.equal(createRes.status, 201);
     const createJson = await createRes.json();
     const limitBoardId = createJson.data.id;
-    await pool.query(
-      `INSERT INTO board_grants (workspace_id, project_id, board_id, user_id, granted_by)
-       VALUES ($1, $2, $3, $4, $5)`,
-      [workspaceId, projectAId, limitBoardId, bobManagerId, aliceOwnerId],
-    );
+    const creatorGrant = await pool.query('SELECT 1 FROM board_grants WHERE board_id=$1 AND user_id=$2', [limitBoardId, bobManagerId]);
+    assert.equal(creatorGrant.rowCount, 1);
 
     // limitBoardId starts with 5 default columns, structure_version = 1; add up to the 12-column bound
     let curVer = 1;
