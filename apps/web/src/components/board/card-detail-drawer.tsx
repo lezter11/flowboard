@@ -11,6 +11,8 @@ import { dueInfo, relativeTime } from '@/lib/dates';
 import { neighbours } from '@/lib/board-model';
 import { describeActivity } from '@/lib/activity';
 import { can, type Role } from '@/lib/roles';
+import { useAssignablePeople } from '@/lib/assignee-people';
+import { EMPTY_ASSIGNEES, MAX_ASSIGNEES, assignableList, canAddAssignee, ineligibleIds, namesFor, pickerState } from '@/lib/assignees';
 import { Icon } from '@/components/ui/icon';
 import { CardImages } from './card-images';
 import { activeTrigger, applyMention, finalizeMentions, segments, shiftMentions, type Mention, type Trigger } from '@/lib/mentions';
@@ -216,9 +218,13 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
   const draftColumn = columns.find((c) => c.id === draft.columnId);
   const done = draftColumn?.category === 'done';
   const due = dueInfo(draft.dueDate || null, done);
-  const assignable = [...people.values()].filter((p) => p.activeInProject && p.assignable !== false);
+  // Candidates come from the card's own project, not from the board snapshot (which only knows people already on cards).
+  const projectPeople = useAssignablePeople(card.projectId, editable);
+  const assignable = useMemo(() => assignableList(projectPeople.data), [projectPeople.data]);
+  const picker = pickerState(projectPeople, assignable);
+  const names = useMemo(() => namesFor(people, projectPeople.data), [people, projectPeople.data]);
   // Cards saved before viewers were refused may still list one (or someone since removed). The server rejects them on save, so say so up front.
-  const ineligible = draft.assigneeIds.filter((id) => !assignable.some((p) => p.id === id));
+  const ineligible = ineligibleIds(draft.assigneeIds, assignable, projectPeople.isSuccess, people);
 
   const save = useMutation({
     mutationFn: async () => {
@@ -300,7 +306,7 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
               <div className="assignee-chips">
                 {draft.assigneeIds.length === 0 && <span className="hint">Unassigned</span>}
                 {draft.assigneeIds.map((id) => {
-                  const name = people.get(id)?.displayName ?? 'Unknown member';
+                  const name = names.get(id)?.displayName ?? 'Unknown member';
                   return (
                     <span key={id} className="assignee-chip" title={ineligible.includes(id) ? 'This person can no longer be assigned to cards' : undefined}>
                       <Avatar id={id} name={name} />
@@ -315,15 +321,21 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
                   <summary className="add-assignee"><Icon name="plus" />Assign</summary>
                   <div className="assignee-menu">
                     <div className="menu-title">Assignable project people</div>
-                    {assignable.map((person) => (
-                      <label key={person.id} className="assignee-option">
-                        <input type="checkbox" checked={draft.assigneeIds.includes(person.id)} onChange={(event) => set('assigneeIds', event.target.checked ? [...draft.assigneeIds, person.id] : draft.assigneeIds.filter((a) => a !== person.id))} />
-                        <Avatar id={person.id} name={person.displayName} />
-                        {person.displayName}
-                        {person.scopedRole && <span className="role-mini">{person.scopedRole}</span>}
-                      </label>
-                    ))}
-                    <div className="menu-note">Viewers can read and be mentioned but cannot be assigned. Up to 20 assignees.</div>
+                    {picker === 'loading' && <div className="menu-note" role="status">Loading people…</div>}
+                    {picker === 'error' && <div className="menu-note" role="alert">Could not load the project's people. <button className="btn sm" type="button" onClick={() => void projectPeople.refetch()}>Try again</button></div>}
+                    {picker === 'empty' && <div className="menu-note" role="status">{EMPTY_ASSIGNEES}</div>}
+                    {assignable.map((person) => {
+                      const checked = draft.assigneeIds.includes(person.id);
+                      return (
+                        <label key={person.id} className="assignee-option">
+                          <input type="checkbox" checked={checked} disabled={!checked && !canAddAssignee(draft.assigneeIds.length)} onChange={(event) => set('assigneeIds', event.target.checked ? [...draft.assigneeIds, person.id] : draft.assigneeIds.filter((a) => a !== person.id))} />
+                          <Avatar id={person.id} name={person.displayName} />
+                          {person.displayName}
+                          {person.scopedRole && <span className="role-mini">{person.scopedRole}</span>}
+                        </label>
+                      );
+                    })}
+                    <div className="menu-note">Viewers can read and be mentioned but cannot be assigned. Up to {MAX_ASSIGNEES} assignees.</div>
                   </div>
                 </details>
               )}

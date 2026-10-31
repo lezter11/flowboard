@@ -9,6 +9,8 @@ import { api } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { boardQueryOptions } from '@/lib/queries';
+import { useAssignablePeople } from '@/lib/assignee-people';
+import { EMPTY_ASSIGNEES, assignableList, canAddAssignee, pickerState } from '@/lib/assignees';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { Avatar } from '@/components/ui/avatar';
@@ -24,7 +26,10 @@ function AddCardScreen() {
   const project = state.status === 'ready' ? state.session.accessibleProjects.find((p) => p.id === snapshot?.board.projectId) : undefined;
   const role = normalizeRole(project?.role);
   const columns = [...(snapshot?.columns ?? [])].sort((a, b) => a.position - b.position);
-  const assignable = (snapshot?.people ?? []).filter((p) => p.activeInProject && p.assignable !== false);
+  // Candidates are the project's people, not the snapshot's (which lists only people already on cards, so a fresh board would offer nobody).
+  const projectPeople = useAssignablePeople(snapshot?.board.projectId, true);
+  const assignable = assignableList(projectPeople.data);
+  const picker = pickerState(projectPeople, assignable);
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -157,9 +162,12 @@ function AddCardScreen() {
               <section className="form-section" aria-labelledby="assignTitle">
                 <div className="form-section-head"><Icon name="users" /><div><h2 id="assignTitle">Assignees</h2><p>Only project people who can work on cards appear here. Viewers are never assignable.</p></div></div>
                 <div className="check-list">
+                  {picker === 'loading' && <p className="small muted" role="status">Loading people…</p>}
+                  {picker === 'error' && <p className="small muted" role="alert">Could not load the project's people. <button className="btn sm" type="button" onClick={() => void projectPeople.refetch()}>Try again</button></p>}
+                  {picker === 'empty' && <p className="small muted" role="status">{EMPTY_ASSIGNEES}</p>}
                   {assignable.map((person) => (
                     <label key={person.id} className="check-row">
-                      <input type="checkbox" checked={assignees.includes(person.id)} onChange={(event) => setAssignees((prev) => event.target.checked ? [...prev, person.id] : prev.filter((id) => id !== person.id))} />
+                      <input type="checkbox" checked={assignees.includes(person.id)} disabled={!assignees.includes(person.id) && !canAddAssignee(assignees.length)} onChange={(event) => setAssignees((prev) => event.target.checked ? [...prev, person.id] : prev.filter((id) => id !== person.id))} />
                       <Avatar id={person.id} name={person.displayName} />
                       <span>{person.displayName}</span>
                       {person.scopedRole && <span className="role-mini">{ROLE_META[person.scopedRole].label}</span>}
