@@ -276,7 +276,7 @@ export async function receiveImageContent(
   // Length check
   if (rawBytes.byteLength !== upload.byte_length) {
     throw HttpError.badRequest(
-      `Payload byte length (${rawBytes.byteLength}) does not match staged byteLength (${upload.byte_length}).`,
+      'The upload does not match what was declared. Start the upload again.',
       'SIZE_MISMATCH',
     );
   }
@@ -825,7 +825,7 @@ export async function deleteCardImage(
     // OCC version check
     if (image.version !== expectedVersion) {
       throw HttpError.conflict(
-        `OCC conflict: current image version is ${image.version}, expected ${expectedVersion}.`,
+        'This image changed since you loaded it. Reload to see the latest version.',
         'STALE_VERSION',
       );
     }

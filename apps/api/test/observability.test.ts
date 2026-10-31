@@ -242,7 +242,7 @@ describe('FND-04: Observability, Correlation, Limits & Safe Error Baseline', () 
       const body = await oversizedRes.json();
       const parsed = errorEnvelopeSchema.parse(body);
       assert.equal(parsed.error.code, 'PAYLOAD_TOO_LARGE');
-      assert.match(parsed.error.message, /payload exceeds maximum/i);
+      assert.match(parsed.error.message, /too large/i);
       assert.equal(parsed.error.requestId, oversizedRes.headers.get('x-request-id'));
     });
 
@@ -285,7 +285,7 @@ describe('FND-04: Observability, Correlation, Limits & Safe Error Baseline', () 
       const body = await res.json();
       const parsed = errorEnvelopeSchema.parse(body);
       assert.equal(parsed.error.code, 'DEADLINE_EXCEEDED');
-      assert.match(parsed.error.message, /deadline/i);
+      assert.match(parsed.error.message, /took too long/i);
       assert.equal(parsed.error.requestId, res.headers.get('x-request-id'));
     });
 

@@ -53,7 +53,7 @@ function unzipXlsx(buffer: Buffer): Map<string, Buffer> {
     throw new HttpError(
       413,
       'PAYLOAD_TOO_LARGE',
-      `Workbook upload of ${buffer.length} bytes exceeds maximum allowed size of ${MAX_COMPRESSED_BYTES} bytes (5 MiB).`,
+      'The workbook is too large to import.',
     );
   }
 
@@ -90,7 +90,7 @@ function unzipXlsx(buffer: Buffer): Map<string, Buffer> {
     new HttpError(
       413,
       'PAYLOAD_TOO_LARGE',
-      `Expanded workbook XML content exceeds maximum allowed size of ${MAX_EXPANDED_BYTES} bytes (20 MiB).`,
+      'The workbook contains too much content to import.',
     );
 
   for (let i = 0; i < totalEntries; i++) {

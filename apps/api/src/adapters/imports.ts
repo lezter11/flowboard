@@ -209,7 +209,7 @@ async function assertImportAccessBeforeParse(
     throw HttpError.forbidden('Viewers cannot perform write operations.', 'FORBIDDEN');
   }
   if (member.role !== 'manager') {
-    throw HttpError.forbidden(`Requires manager role for this operation. Current role: ${member.role}.`, 'FORBIDDEN');
+    throw HttpError.forbidden('Only a manager or the owner can do this.', 'FORBIDDEN');
   }
 }
 
@@ -889,7 +889,7 @@ export async function commitCardImport(
       `UPDATE card_imports SET state = 'expired', updated_at = NOW() WHERE id = $1`,
       [importId],
     );
-    throw new HttpError(410, 'PREVIEW_EXPIRED', 'Preview has expired. Please re-upload and preview the file again.');
+    throw new HttpError(410, 'PREVIEW_EXPIRED', 'This preview has expired. Upload the file again to preview it.');
   }
 
   if (imp.state !== 'ready') {
@@ -898,7 +898,7 @@ export async function commitCardImport(
 
   // 5. OCC Version and Preview Digest validation
   if (imp.version !== input.expectedVersion) {
-    throw HttpError.conflict('STALE_VERSION', 'Stale import version. Please revalidate before confirming.', {
+    throw HttpError.conflict('STALE_VERSION', 'This import changed since you previewed it. Preview it again before confirming.', {
       expectedVersion: input.expectedVersion,
       currentVersion: imp.version,
     });

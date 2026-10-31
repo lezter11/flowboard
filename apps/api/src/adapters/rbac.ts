@@ -373,7 +373,7 @@ export async function acquireWriteGrantLock(
   }
 
   if (minRole === 'manager' && member.role !== 'manager') {
-    throw HttpError.forbidden(`Requires manager role for this operation. Current role: ${member.role}.`, 'FORBIDDEN');
+    throw HttpError.forbidden('Only a manager or the owner can do this.', 'FORBIDDEN');
   }
 
   return { role: member.role, isOwner: false, ownerId: projectRow.owner_id };

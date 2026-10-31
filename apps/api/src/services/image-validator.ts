@@ -280,7 +280,7 @@ export function validateImageBinary(
   if (buffer.length > MAX_IMAGE_BYTE_LENGTH) {
     throw new ImageValidationError(
       'FILE_TOO_LARGE',
-      `Image file size (${buffer.length} bytes) exceeds maximum limit of 10 MiB (10,485,760 bytes).`,
+      'The image is too large.',
     );
   }
 

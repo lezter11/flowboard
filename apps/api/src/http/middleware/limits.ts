@@ -45,7 +45,7 @@ export function bodyLimitMiddleware(maxBytes: number = DEFAULT_BODY_LIMIT_BYTES)
       throw new HttpError(
         413,
         'PAYLOAD_TOO_LARGE',
-        `Request payload exceeds maximum allowed size of ${maxBytes} bytes.`,
+        'The request is too large.',
       );
     },
   });
@@ -54,6 +54,6 @@ export function bodyLimitMiddleware(maxBytes: number = DEFAULT_BODY_LIMIT_BYTES)
 export function deadlineMiddleware(deadlineMs: number = DEFAULT_DEADLINE_MS) {
   return timeout(
     deadlineMs,
-    () => new HttpError(504, 'DEADLINE_EXCEEDED', `Request deadline of ${deadlineMs}ms exceeded.`),
+    () => new HttpError(504, 'DEADLINE_EXCEEDED', 'The request took too long. Try again.'),
   );
 }
