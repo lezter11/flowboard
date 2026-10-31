@@ -4,7 +4,9 @@ import { Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from '
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import { canLeave, describeLeaveFailure, leaveCopy } from '@/lib/leave-project';
+import { useRouter } from 'next/navigation';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { useProjectBoards } from '@/lib/portfolio';
@@ -26,6 +28,7 @@ function SettingsScreen() {
   const shell = useShell();
   const toast = useToast();
   const queryClient = useQueryClient();
+  const router = useRouter();
   const initial = params.get('tab');
   const [tab, setTab] = useState<Tab>(TABS.some(([id]) => id === initial) ? (initial as Tab) : 'project');
   const projects = useMemo(() => (state.status === 'ready' ? state.session.accessibleProjects : []), [state]);
@@ -80,6 +83,28 @@ function SettingsScreen() {
       await queryClient.invalidateQueries();
       toast('Name updated', { icon: 'check' });
     } catch (err) { setNameError(describeError(err)); } finally { setNameBusy(false); }
+  };
+  const [leaveOpen, setLeaveOpen] = useState(false);
+  const [leaveBusy, setLeaveBusy] = useState(false);
+  const [leaveError, setLeaveError] = useState('');
+  const leaveAttempt = useRef<string | null>(null);
+  const leave = async () => {
+    if (!project || leaveBusy) return;
+    setLeaveBusy(true); setLeaveError('');
+    leaveAttempt.current ??= `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    try {
+      await api.leaveProject(project.id, leaveAttempt.current);
+      // Everything cached about the project is now off limits; the session lists what is left.
+      queryClient.removeQueries({ predicate: (q) => JSON.stringify(q.queryKey).includes(project.id) });
+      await queryClient.invalidateQueries({ queryKey: ['session'] });
+      toast(`You left ${project.name}`, { icon: 'check' });
+      setLeaveOpen(false);
+      router.replace('/projects');
+    } catch (err) {
+      leaveAttempt.current = null;
+      setLeaveError(err instanceof ApiError ? describeLeaveFailure(err) : describeError(err));
+      refetch();
+    } finally { setLeaveBusy(false); }
   };
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [lifecycleBusy, setLifecycleBusy] = useState(false);
@@ -195,6 +220,16 @@ function SettingsScreen() {
                     {!isOwner && <span className="field-help">Only the project Owner can archive or reopen a project.</span>}
                   </div>
                 </div>
+                <div className="divider" />
+                <div className="stack-sm">
+                  <h3 className="settings-section-title">Leave this project</h3>
+                  {canLeave(project)
+                    ? <>
+                        <p className="settings-section-sub">Leaving removes your access to {project?.name} and its boards. Your own projects are not affected.</p>
+                        <div className="row"><button className="btn" type="button" onClick={() => { setLeaveError(''); setLeaveOpen(true); }}><Icon name="arrow-left" />Leave project</button></div>
+                      </>
+                    : <p className="settings-section-sub">You own this project, so you cannot leave it. Archive it if you no longer need it.</p>}
+                </div>
               </div>
             </section>
           )}
@@ -291,6 +326,14 @@ function SettingsScreen() {
         </div>
       </div>
       {board && editable && <ColumnsDialog boardId={board.id} open={columnsOpen} onClose={() => setColumnsOpen(false)} />}
+      <DialogLayer open={leaveOpen} onClose={() => { if (!leaveBusy) setLeaveOpen(false); }} labelledBy="leaveTitle" describedBy="leaveCopy" role="alertdialog">
+        <div className="dialog-head"><div className="dialog-head-copy"><h2 id="leaveTitle">{leaveCopy(project?.name ?? 'this project').title}</h2></div></div>
+        <div className="dialog-body">
+          <p id="leaveCopy" className="confirm-copy">{leaveCopy(project?.name ?? 'this project').body}</p>
+          {leaveError && <p className="form-error" role="alert">{leaveError}</p>}
+        </div>
+        <footer className="dialog-foot"><span className="spacer" /><button className="btn" type="button" data-autofocus onClick={() => setLeaveOpen(false)} disabled={leaveBusy}>Stay in project</button><button className="btn danger" type="button" onClick={() => void leave()} disabled={leaveBusy}>{leaveBusy ? 'Leaving…' : leaveCopy(project?.name ?? '').confirm}</button></footer>
+      </DialogLayer>
       <DialogLayer open={archiveOpen} onClose={() => { if (!lifecycleBusy) setArchiveOpen(false); }} labelledBy="archiveTitle" describedBy="archiveCopy" role="alertdialog">
         <div className="dialog-head"><div className="dialog-head-copy"><h2 id="archiveTitle">{project?.isArchived ? 'Reopen this project?' : 'Archive this project?'}</h2></div></div>
         <div className="dialog-body">

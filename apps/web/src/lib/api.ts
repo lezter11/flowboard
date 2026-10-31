@@ -160,6 +160,10 @@ export const api = {
   async deleteImage(imageId: string, expectedVersion: number, idempotencyKey?: string): Promise<void> {
     await request<unknown>(`/api/v1/images/${encodeURIComponent(imageId)}`, { method: 'DELETE', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify({ expectedVersion }) });
   },
+  /** Leave a project you joined. One Idempotency-Key per confirmed attempt. */
+  async leaveProject(projectId: string, idempotencyKey: string): Promise<void> {
+    await request<unknown>(`/api/v1/projects/${encodeURIComponent(projectId)}/leave`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: '{}' });
+  },
   async archiveProject(projectId: string, expectedVersion: number, idempotencyKey?: string): Promise<void> {
     await request<unknown>(`/api/v1/projects/${encodeURIComponent(projectId)}/archive`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify({ expectedVersion }) });
   },
