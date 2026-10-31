@@ -222,3 +222,54 @@ Before feature handlers, shared schemas/OpenAPI/fixtures must cover two workspac
 The scheduled handler runs each job in isolation: trash purge, orphan staged-upload cleanup, pending storage deletions, the invitation outbox, settled-outbox retention (B-14: delete delivered or failed rows whose settled time is over 30 days old, in batches of 1000; pending rows are never deleted) and rate-window cleanup. One failing job does not stop the others, and the run is still reported as failed. Orphan cleanup settles each expired, cancelled or failed staged upload once (`staging_cleaned`, migration 0016), queues its bytes for deletion and deletes them after commit; failed deletes are retried.
 
 The 10-image cap counts finalized images plus staged uploads that have not expired. The stage transaction locks the card row first, so concurrent stages for one card are serialised.
+
+## Routes and error catalogue, complete list (ERR-R1b)
+
+Added after a docs drift audit (docs/reviews/HAIKU-AUDIT-20261031/docs-drift.md). Every item was checked against the code. The list below is the source for the routes that were missing.
+
+| Route | Behaviour |
+|---|---|
+| GET /api/v1/projects | Projects the caller can read, across workspaces: owned (role owner) or accessible. Query `limit` (default 50, capped at 100; a missing, non-numeric or lower-than-1 value means 50) and `cursor`. Returns `{data, nextCursor}`. |
+| POST /api/v1/projects | Creates a project in the caller's personal workspace. Body `{name, description?}`, strict (a workspaceId is 422). Idempotency-Key required; the idempotency scope is the actor. 201 `{data: Project}`. Owned-project quota applies (see QUOTA_EXCEEDED below). |
+| POST /api/v1/workspaces/:wid/projects | Kept for compatibility. Owner only (404 otherwise). The same owned-project quota applies. |
+| GET /api/v1/boards/:bid/access | Board access state for a caller who can read the board. Board-access cutover is still pending, so the response contract is not final. |
+| GET /api/v1/import/template | Legacy blank workbook template (authenticated). |
+| GET /api/v1/boards/:bid/import-template, GET /api/v1/boards/:bid/card-import-template | Board-scoped template download (same handler). |
+| POST /api/v1/boards/:bid/imports, POST /api/v1/boards/:bid/card-imports | Creates an import from an uploaded workbook. |
+| GET /api/v1/imports/:iid, GET /api/v1/card-imports/:iid | Reads an import. |
+| POST /api/v1/imports/:iid/mappings, POST /api/v1/card-imports/:iid/mappings | Updates the column mappings. |
+| POST /api/v1/imports/:iid/commit, POST /api/v1/card-imports/:iid/commit | Commits a validated import. |
+| DELETE /api/v1/imports/:iid, DELETE /api/v1/card-imports/:iid | Cancels an import. |
+| GET /api/v1/imports/:iid/report, GET /api/v1/card-imports/:iid/report | The import report. |
+| GET /api/v1/activity/health, GET /api/v1/notifications/health | Unauthenticated liveness, `{data:{status:"ok"}}`. Never rate limited. |
+| GET /health/live | Unauthenticated liveness at the root, `{data:{status:"ok"}}`. |
+| GET /health/ready | Root readiness. 200 `{data:{status:"ready"}}` when the database answers. 503 `DATABASE_UNAVAILABLE` otherwise. |
+| GET /api/v1/system/status | Operator route. Needs the administrative secret header (`x-dev-secret`); otherwise 403 `FORBIDDEN`. Returns the applied migrations and which rate-limit bindings the runtime sees (booleans only). |
+| POST /api/v1/system/migrate | Operator route, **mutates the schema**. Needs the administrative secret. Applies pending migrations; on failure returns 500 `MIGRATION_FAILED`. Use only under the deployment runbook. |
+
+### QUOTA_EXCEEDED scopes and remedies (complete)
+
+Scopes: `owned_projects`, `boards_per_project`, `members`, `pending_invitations`, `owned_projects_total`, `boards_per_project_total`.
+Remedies: `archive_project`, `archive_board`, `remove_member`, `revoke_invitation`, `none`.
+The two `_total` scopes are the archived-item backstops (archived items count). Their remedy is `none`, because archiving does not free a slot.
+
+### Error statuses that differ by site
+
+The catalogue (`ERROR_CATALOG` in packages/contracts/src/common.ts) records the most common status for each code. These codes also use another status at some sites:
+- `VALIDATION_ERROR`: 422 for field problems. 400 for board anchor refusals (`boards.ts`) and comment mention range refusals (`comments.ts`).
+- `BOARD_ARCHIVED`: 422 when a project's default board is set to an archived board. 409 when a board import targets an archived board.
+- `INVITATION_EXPIRED`: 400 on accept, 409 on resend.
+- `ALREADY_MEMBER`: 400 on accept (a 409 with `details.role` is planned for Release 2).
+- `DATABASE_UNAVAILABLE`: 503 (readiness probe). `MIGRATION_FAILED`: 500 (operator migrate).
+
+Default codes when a route does not name one: `MALFORMED_REQUEST` (400), `UNAUTHORIZED` (401), `FORBIDDEN` (403), `NOT_FOUND` (404), `CONFLICT` (409).
+
+Every code the API throws is listed in `ERROR_CATALOG`. A static scan test in apps/api fails when a code is thrown without being in the catalogue, including codes passed through imported constants.
+
+### Image upload error codes (ImageUpload.error.code)
+
+These are stored with the upload, not thrown as HTTP errors: `EMPTY_FILE`, `MALFORMED_IMAGE`, `MIME_SPOOF_DETECTED`, `REJECTED_FORMAT`, `DIMENSIONS_EXCEEDED`, `MEGAPIXELS_EXCEEDED`, `INVALID_IMAGE`.
+
+### Session limits and ownership (shape)
+
+`GET /api/v1/session` `data.limits` (optional, additive): `{ownedProjects:{limit,used}, boardsPerProject:{limit}, membersPerProject:{limit}, pendingInvitationsPerProject:{limit}}`. The archived-item backstops (20 owned, 25 boards) are not listed; the UI does not need them. Each `accessibleProjects` entry carries `isOwned` (optional boolean; true when the caller owns the project's workspace).
