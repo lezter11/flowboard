@@ -9,6 +9,7 @@ import { api, ApiError } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { boardQueryOptions } from '@/lib/queries';
+import { ErrorNote } from '@/components/ui/error-note';
 import { useAssignablePeople } from '@/lib/assignee-people';
 import { EMPTY_ASSIGNEES, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, peopleLoadError, pickerState } from '@/lib/assignees';
 import { formatPersonName } from '@/lib/person-name';
@@ -40,7 +41,8 @@ function AddCardScreen() {
   const [assignees, setAssignees] = useState<string[]>([]);
   const [errors, setErrors] = useState<{ title?: string; priority?: string; form?: string }>({});
   const [busy, setBusy] = useState(false);
-  const [refused, setRefused] = useState<{ ids: string[]; message: string } | null>(null);
+  const [refused, setRefused] = useState<{ ids: string[]; error: unknown } | null>(null);
+  const [formFailure, setFormFailure] = useState<unknown>(null);
   const [saved, setSaved] = useState<Card | null>(null);
   const key = useState(() => crypto.randomUUID())[0];
   const dirty = !!(title || description || priority || due || assignees.length);
@@ -52,7 +54,7 @@ function AddCardScreen() {
     const next: typeof errors = {};
     if (!title.trim()) next.title = 'Enter a title with 1 to 200 characters.';
     if (!priority) next.priority = 'Choose a priority before saving the card.';
-    setErrors(next); setRefused(null);
+    setErrors(next); setRefused(null); setFormFailure(null);
     if (next.title || next.priority || !snapshot || !column) return;
     setBusy(true);
     try {
@@ -65,8 +67,8 @@ function AddCardScreen() {
       void queryClient.invalidateQueries({ queryKey: ['board', boardId] });
     } catch (error) {
       const ids = error instanceof ApiError ? ineligibleFromFailure(error) : null;
-      if (ids) { setRefused({ ids: ids.length ? ids : assignees, message: '' }); setErrors({}); }
-      else { setRefused(null); setErrors({ form: describeError(error) }); }
+      if (ids) { setRefused({ ids: ids.length ? ids : assignees, error }); setFormFailure(null); setErrors({}); }
+      else { setRefused(null); setFormFailure(error); setErrors({}); }
     } finally { setBusy(false); }
   };
 
@@ -179,11 +181,9 @@ function AddCardScreen() {
                   ))}
                 </div>
                 {refused && (
-                  <div className="note danger" role="alert" style={{ marginTop: 8 }}>
-                    <Icon name="x-circle" />
-                    <span>{describeIneligible(refused.ids.map((id) => formatPersonName(assignable.find((p) => p.id === id), 'A person')), refused.message)}{' '}
-                      <button className="btn sm" type="button" onClick={() => { setAssignees((prev) => prev.filter((id) => !refused.ids.includes(id))); setRefused(null); }}>Remove them</button></span>
-                  </div>
+                  <ErrorNote className="assignee-failure" error={refused.error} ctx={{ role, ownerName: null, boardName: snapshot.board.name, names: refused.ids.map((id) => formatPersonName(assignable.find((p) => p.id === id), 'A person')) }} focusOnMount>
+                    <div className="error-note-actions"><button className="btn sm" type="button" onClick={() => { setAssignees((prev) => prev.filter((id) => !refused.ids.includes(id))); setRefused(null); }}>Remove them</button></div>
+                  </ErrorNote>
                 )}
                 <div className="selection-summary" style={{ marginTop: 8 }}>{assignees.length ? `${assignees.length} assigned` : 'Unassigned'}</div>
               </section>
@@ -208,7 +208,8 @@ function AddCardScreen() {
               </section>
             </aside>
           </div>
-          {errors.form && <div className="note danger" role="alert" style={{ marginTop: 12 }}><Icon name="x-circle" /><span>{errors.form}</span></div>}
+          {errors.form && <ErrorNote text={errors.form} />}
+          {formFailure != null && <ErrorNote error={formFailure} ctx={{ role, boardName: snapshot.board.name }} focusOnMount onRetry={() => void submit({ preventDefault() {} } as FormEvent)} />}
           <div className="sticky-actions">
             <span className={`dirty-note${dirty ? ' is-dirty' : ''}`}><span className="dot" />{dirty ? 'Unsaved changes' : 'No unsaved changes'}</span>
             <span className="spacer" />

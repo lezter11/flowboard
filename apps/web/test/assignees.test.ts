@@ -84,13 +84,16 @@ test('error text names people with and, and falls back to the server sentence', 
 });
 
 test('the save bar never sits on "Unsaved changes" after a failed save', () => {
-  assert.equal(saveBarText({ saving: false, failed: true, dirty: true }), 'Couldn’t save');
+  assert.equal(saveBarText({ saving: false, failed: true, dirty: true }), 'Couldn’t save.');
+  assert.equal(saveBarText({ saving: false, failed: true, dirty: true, reason: 'This card changed' }), 'Couldn’t save. This card changed');
   assert.equal(saveBarText({ saving: false, failed: false, dirty: true }), 'Unsaved changes');
   assert.equal(saveBarText({ saving: true, failed: true, dirty: true }), 'Saving…');
   assert.equal(saveBarText({ saving: false, failed: false, dirty: false }), 'All changes saved');
   const drawer = readFileSync(new URL('../src/components/board/card-detail-drawer.tsx', import.meta.url), 'utf8');
   assert.match(drawer, /Remove them and save/);
-  assert.match(drawer, /saveBarText\(\{ saving: save\.isPending, failed: save\.isError && dirty, dirty \}\)/);
+  assert.match(drawer, /saveBarText\(\{ saving: save\.isPending, failed: save\.isError && dirty, dirty, reason:/);
+  assert.match(drawer, /save\.isError && dirty \? 'Try again' : 'Save changes'/);
+  assert.match(drawer, /<ErrorNote error=\{saveFailure\} ctx=\{noteCtx\} focusOnMount/);
 });
 
 import { peopleLoadError } from '../src/lib/assignees.ts';

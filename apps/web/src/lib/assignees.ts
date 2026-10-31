@@ -74,9 +74,9 @@ export function noBoardAccess<T extends PersonLike>(projectWide: readonly T[] | 
 }
 
 /** What the save bar says. A failed save never sits on "Unsaved changes". */
-export function saveBarText(s: { saving: boolean; failed: boolean; dirty: boolean }): string {
+export function saveBarText(s: { saving: boolean; failed: boolean; dirty: boolean; reason?: string }): string {
   if (s.saving) return 'Saving…';
-  if (s.failed) return 'Couldn’t save';
+  if (s.failed) return s.reason ? `Couldn’t save. ${s.reason}` : 'Couldn’t save.';
   return s.dirty ? 'Unsaved changes' : 'All changes saved';
 }
 

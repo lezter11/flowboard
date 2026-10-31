@@ -6,7 +6,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Card, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
 import { toastFailure } from '@/lib/toast-failure';
-import { describeError, isStale } from '@/lib/errors';
+import { describeError, describeFailure, isStale } from '@/lib/errors';
+import { ErrorNote } from '@/components/ui/error-note';
 import { reconcileDraft } from '@/lib/draft-sync';
 import { usePollKeys } from '@/components/polling';
 import { dueInfo, relativeTime } from '@/lib/dates';
@@ -235,8 +236,8 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
   // Cards saved before viewers were refused may still list one (or someone since removed). The server rejects them on save, so say so up front.
   const ineligible = ineligibleIds(draft.assigneeIds, assignable, projectPeople.isSuccess, people);
 
-  const [assigneeFailure, setAssigneeFailure] = useState<{ ids: string[]; message: string } | null>(null);
-  const assigneeErrorRef = useRef<HTMLDivElement>(null);
+  const [assigneeFailure, setAssigneeFailure] = useState<{ ids: string[]; error: unknown } | null>(null);
+  const [saveFailure, setSaveFailure] = useState<unknown>(null);
   const save = useMutation({
     // `override` is the assignee list for "Remove them and save", so the save does not wait for a state update.
     mutationFn: async (override?: string[]) => {
@@ -259,17 +260,17 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
         await api.moveCard(card.id, { toColumnId: draft.columnId, previousCardId, nextCardId, expectedVersion: version, expectedBoardVersion: structureVersion });
       }
     },
-    onSuccess: (_r, override) => { setError(''); setAssigneeFailure(null); if (override) setDraft((d) => ({ ...d, assigneeIds: override })); setConflict(false); setDraft((d) => ({ ...d, title: d.title.trim() })); toast('Changes saved', { icon: 'check' }); dirtyRef.current = false; onSaved(); },
+    onSuccess: (_r, override) => { setError(''); setSaveFailure(null); setAssigneeFailure(null); if (override) setDraft((d) => ({ ...d, assigneeIds: override })); setConflict(false); setDraft((d) => ({ ...d, title: d.title.trim() })); toast('Changes saved', { icon: 'check' }); dirtyRef.current = false; onSaved(); },
     onError: (err) => {
       const refused = err instanceof ApiError ? ineligibleFromFailure(err) : null;
       if (refused) {
-        setAssigneeFailure({ ids: refused.length ? refused : draft.assigneeIds.filter((id) => !assignable.some((p) => p.id === id)), message: '' });
-        setError('');
+        setAssigneeFailure({ ids: refused.length ? refused : draft.assigneeIds.filter((id) => !assignable.some((p) => p.id === id)), error: err });
+        setSaveFailure(null); setError('');
         void projectPeople.refetch();
         return;
       }
-      setAssigneeFailure(null);
-      setError(err instanceof ApiError && err.status === 404 ? 'This card was removed, so your changes could not be saved.' : isStale(err) ? 'Someone else changed this card. Their changes are loaded; review your edits and save again.' : describeError(err)); onSaved(); },
+      setAssigneeFailure(null); setError('');
+      setSaveFailure(err); onSaved(); },
   });
 
   const submit = (event?: FormEvent) => {
@@ -277,13 +278,13 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
     if (!draft.title.trim() || draft.title.trim().length > 200) { setError('Enter a title with 1 to 200 characters.'); return; }
     if (draft.description.length > 20000) { setError('Description must be 20,000 characters or fewer.'); return; }
     if (ineligible.length > 0) { setError('Remove the assignees marked “can’t be assigned” first. Only owners, managers and members can be assigned.'); return; }
-    setError(''); setAssigneeFailure(null);
+    setError(''); setSaveFailure(null); setAssigneeFailure(null);
     save.mutate(undefined);
   };
-  // Bring the refusal into view and focus it as soon as it renders, so keyboard and screen-reader users land on it.
-  useEffect(() => { if (assigneeFailure) { assigneeErrorRef.current?.scrollIntoView({ block: 'nearest' }); assigneeErrorRef.current?.focus(); } }, [assigneeFailure]);
   const failedNames = (assigneeFailure?.ids ?? []).map((id) => formatPersonName(names.get(id), 'A person'));
-  const removeAndSave = () => { const keep = draft.assigneeIds.filter((id) => !(assigneeFailure?.ids ?? []).includes(id)); setDraft((d) => ({ ...d, assigneeIds: keep })); setAssigneeFailure(null); setError(''); save.mutate(keep); };
+  const removeAndSave = () => { const keep = draft.assigneeIds.filter((id) => !(assigneeFailure?.ids ?? []).includes(id)); setDraft((d) => ({ ...d, assigneeIds: keep })); setAssigneeFailure(null); setError(''); setSaveFailure(null); save.mutate(keep); };
+  const ownerName = [...names.values()].find((p) => p.scopedRole === 'owner')?.displayName ?? null;
+  const noteCtx = { role, ownerName, names: failedNames, boardName, item: card.title, resource: 'card' } as const;
 
   return (
     <>
@@ -380,10 +381,9 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
               )}
             </div>
             {assigneeFailure && (
-              <div className="assignee-failure" role="alert" tabIndex={-1} ref={assigneeErrorRef}>
-                <p>{describeIneligible(failedNames, assigneeFailure.message)}</p>
-                {failedNames.length > 0 && <button className="btn sm" type="button" disabled={save.isPending} onClick={removeAndSave}>{failedNames.length === 1 ? 'Remove them and save' : 'Remove them and save'}</button>}
-              </div>
+              <ErrorNote className="assignee-failure" error={assigneeFailure.error} ctx={noteCtx} focusOnMount>
+                {failedNames.length > 0 && <div className="error-note-actions"><button className="btn sm" type="button" disabled={save.isPending} onClick={removeAndSave}>Remove them and save</button></div>}
+              </ErrorNote>
             )}
           </div>
           <div className="field">
@@ -423,16 +423,17 @@ function DrawerBody({ card, columns, people, role, boardName, structureVersion, 
           )}
         </section>
         {conflict && <p role="status" className="field-note conflict-note">Updated by someone else - review before saving.</p>}
-        {error && <p role="alert" className="field-error">{error}</p>}
+        {error && <ErrorNote text={error} />}
+        {saveFailure != null && <ErrorNote error={saveFailure} ctx={noteCtx} focusOnMount onRetry={() => submit()} />}
       </div>
 
       <footer className="drawer-foot">
         {editable || can(role, 'move') ? (
           <>
-            <span className={`save-state${save.isError && dirty ? ' is-error' : dirty ? ' is-dirty' : ''}`} role="status" aria-live="polite"><span className="dot" /> {saveBarText({ saving: save.isPending, failed: save.isError && dirty, dirty })}</span>
+            <span className={`save-state${save.isError && dirty ? ' is-error' : dirty ? ' is-dirty' : ''}`} role="status" aria-live="polite"><span className="dot" /> {saveBarText({ saving: save.isPending, failed: save.isError && dirty, dirty, reason: save.isError ? describeFailure(save.error, noteCtx).title : undefined })}</span>
             <div className="foot-actions">
               <button className="btn ghost" type="button" disabled={!dirty || save.isPending} onClick={() => { setDraft(base); setError(''); }}>Discard</button>
-              <button className="btn primary" type="button" disabled={!dirty || save.isPending} onClick={() => submit()}>Save changes</button>
+              <button className="btn primary" type="button" disabled={!dirty || save.isPending} onClick={() => submit()}>{save.isError && dirty ? 'Try again' : 'Save changes'}</button>
             </div>
           </>
         ) : (

@@ -33,6 +33,8 @@ export interface Ctx {
   doing?: string;
   /** Title of the card or other item the action was about. */
   item?: string;
+  /** What a NOT_FOUND was about when the server did not say (card, board, project…). */
+  resource?: string;
 }
 
 const LABEL: Record<ActionKind, string> = {
@@ -141,8 +143,8 @@ function stale(f: Failure, c: Ctx) {
   return { title: `This ${entity} changed`, body: `${by} changed it while you were looking. The latest version is loaded. Review it, then try again.`, action: 'reload' as ActionKind };
 }
 
-function notFound(f: Failure) {
-  const r = String(asDetails(f).resource ?? '');
+function notFound(f: Failure, c: Ctx = {}) {
+  const r = String(asDetails(f).resource ?? c.resource ?? '');
   const thing = ({ card: 'This card', board: 'This board', project: 'This project', column: 'This column', comment: 'This comment', image: 'This image', invitation: 'This invitation', import: 'This import', member: 'This person' } as Record<string, string>)[r] ?? 'That';
   return { title: `${thing} isn’t available`, body: 'It may have been deleted, or you may not have access to it.', action: 'projects' as ActionKind };
 }
@@ -215,7 +217,7 @@ export const CATALOGUE: Record<string, Entry> = {
   CARD_ALREADY_TRASHED: e('This card is already in the trash', 'Someone deleted it just now.'),
   CARD_NOT_TRASHED: e('This card is no longer in the trash', 'Someone restored it just now. Reload to see it on its board.', 'reload'),
   COMMENT_DELETED: e('This comment was deleted', 'Reload to see the latest comments.', 'reload'),
-  NOT_FOUND: notFound,
+  NOT_FOUND: (f, c) => notFound(f, c),
   // Comments, images
   IMAGE_LIMIT_EXCEEDED: (f) => ({ title: 'This card has the most images it can', body: limitMsg(f, 'A card can have {limit} images. Remove one to add another.', 'Remove one to add another.') }),
   MIME_SPOOF_DETECTED: e('That file isn’t a valid image', 'Only PNG, JPEG and WebP images work.', 'file'),
@@ -298,7 +300,7 @@ function byClass(f: Failure): ReturnType<Entry> {
   if (s === 0) return CATALOGUE.NETWORK_ERROR!(f, {});
   if (s === 401) return CATALOGUE.UNAUTHORIZED!(f, {});
   if (s === 403) return { title: 'Your role can’t do that', body: 'Ask an Owner or Manager.' };
-  if (s === 404) return notFound(f);
+  if (s === 404) return notFound(f, {});
   if (s === 413) return payloadTooLarge(f);
   if (s === 429) return rateLimited(f, {});
   if (s === 409) return { title: 'This changed', body: 'Someone else changed it, or it is no longer possible. Reload and try again.', action: 'reload' };
