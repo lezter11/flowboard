@@ -278,7 +278,7 @@ test('B-22 races: accept and resend of the same invitation never deadlock (F-04)
   const invitationId = invitation.data.id as string;
   const invitee = await createDevUserAndSession(email, 'Racer', pool);
   const inviteeCookie = `flowboard_session=${invitee.session.id}`;
-  const jobs: Array<Promise<Response>> = [];
+  const jobs: Array<Response | Promise<Response>> = [];
   for (let i = 0; i < 10; i++) {
     jobs.push(acceptWith(app, inviteeCookie, token));
     jobs.push(app.request(`${ORIGIN}/api/v1/projects/${projectId}/invitations/${invitationId}/resend`, {
