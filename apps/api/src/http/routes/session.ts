@@ -4,6 +4,9 @@ import { z } from 'zod';
 import { authMiddleware, optionalAuthMiddleware, SESSION_COOKIE_NAME } from '../middleware/auth.ts';
 import { getOwnedWorkspaces, getAccessibleProjects } from '../../adapters/rbac.ts';
 import { readLastLocation, writeLastLocation } from '../../adapters/last-location.ts';
+import { getPool } from '../../adapters/postgres.ts';
+import { countOwnedActiveProjects } from '../../adapters/quotas.ts';
+import { limitsOf, type Limits } from '../../services/limits.ts';
 import {
   createDevUserAndSession,
   getClearSessionCookieOptions,
@@ -34,6 +37,7 @@ export const sessionRoutes = new Hono<{
     requestId: string;
     actor?: import('@flowboard/contracts').SessionActor;
     sessionId?: string;
+    limits?: Limits;
   };
 }>();
 
@@ -50,12 +54,20 @@ sessionRoutes.get('/', authMiddleware, async (c) => {
   const lastLocation = await readLastLocation(actor.id);
   // B-16: whether a first and last name is still needed, with Google's suggestions while it is.
   const names = await readNameState(actor.id);
+  const limits = limitsOf(c);
+  const ownedUsed = await countOwnedActiveProjects(getPool(), actor.id);
 
   const response = getSessionResponseSchema.parse({
     data: {
       actor,
       ownedWorkspaces,
       accessibleProjects,
+      limits: {
+        ownedProjects: { limit: limits.ownedProjects, used: ownedUsed },
+        boardsPerProject: { limit: limits.boardsPerProject },
+        membersPerProject: { limit: limits.membersPerProject },
+        pendingInvitationsPerProject: { limit: limits.pendingInvitesPerProject },
+      },
       lastLocation,
       needsName: names.needsName,
       suggestedFirstName: names.suggestedFirstName,

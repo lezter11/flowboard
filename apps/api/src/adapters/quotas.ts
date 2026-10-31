@@ -9,8 +9,8 @@ import { HttpError } from '../http/errors.ts';
  * form a cycle with the existing board-then-card order.
  */
 
-export type QuotaScope = 'owned_projects' | 'boards_per_project' | 'members' | 'pending_invitations';
-export type QuotaRemedy = 'archive_project' | 'archive_board' | 'remove_member' | 'revoke_invitation';
+export type QuotaScope = 'owned_projects' | 'boards_per_project' | 'members' | 'pending_invitations' | 'owned_projects_total' | 'boards_per_project_total';
+export type QuotaRemedy = 'archive_project' | 'archive_board' | 'remove_member' | 'revoke_invitation' | 'none';
 
 /** Serializes every create, reopen and ownership change that counts one user's owned projects. */
 export async function lockUserQuota(client: pg.ClientBase, userId: string): Promise<void> {
@@ -23,7 +23,7 @@ export async function lockProjectQuota(client: pg.ClientBase, projectId: string)
 }
 
 /** Active owned projects across every workspace the user owns. Memberships never count. */
-export async function countOwnedActiveProjects(client: pg.ClientBase, userId: string): Promise<number> {
+export async function countOwnedActiveProjects(client: pg.Pool | pg.ClientBase, userId: string): Promise<number> {
   const res = await client.query<{ n: number }>(
     `SELECT COUNT(*)::int AS n FROM projects p JOIN workspaces w ON w.id = p.workspace_id
      WHERE w.owner_id = $1 AND p.archived = FALSE`,
@@ -38,6 +38,16 @@ export async function countActiveBoards(client: pg.ClientBase, projectId: string
     'SELECT COUNT(*)::int AS n FROM boards WHERE project_id = $1 AND archived = FALSE',
     [projectId],
   );
+  return res.rows[0]?.n ?? 0;
+}
+
+export async function countOwnedTotalProjects(client: pg.ClientBase, userId: string): Promise<number> {
+  const res = await client.query<{ n: number }>('SELECT COUNT(*)::int AS n FROM projects p JOIN workspaces w ON w.id=p.workspace_id WHERE w.owner_id=$1', [userId]);
+  return res.rows[0]?.n ?? 0;
+}
+
+export async function countTotalBoards(client: pg.ClientBase, projectId: string): Promise<number> {
+  const res = await client.query<{ n: number }>('SELECT COUNT(*)::int AS n FROM boards WHERE project_id=$1', [projectId]);
   return res.rows[0]?.n ?? 0;
 }
 
@@ -69,6 +79,8 @@ const MESSAGES: Record<QuotaScope, string> = {
   boards_per_project: 'This project has reached its board limit. Archive a board to free a slot.',
   members: 'This project has reached its member limit. Remove a member to free a slot.',
   pending_invitations: 'This project has reached its limit of pending invitations. Revoke one to free a slot.',
+  owned_projects_total: 'You have reached the total number of projects allowed, including archived projects.',
+  boards_per_project_total: 'This project has reached the total number of boards allowed, including archived boards.',
 };
 
 /**

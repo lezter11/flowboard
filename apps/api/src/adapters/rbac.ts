@@ -158,6 +158,7 @@ export async function getAccessibleProjects(
   return res.rows.map((row) => ({
     id: row.id,
     workspaceId: row.workspace_id,
+    isOwned: row.role === 'owner',
     name: row.name,
     description: row.description ?? null,
     defaultBoardId: row.default_board_id,

@@ -1,6 +1,6 @@
 import { lockUserQuota } from '../../adapters/quotas.ts';
 import { ensurePersonalWorkspace } from '../../adapters/personal-workspace.ts';
-import { assertOwnedProjectRoom, consumeProjectCreateWindows, insertProjectRow } from '../../adapters/own-projects.ts';
+import { assertOwnedProjectRoom, assertOwnedProjectTotalRoom, consumeProjectCreateWindows, insertProjectRow } from '../../adapters/own-projects.ts';
 import { limitsOf } from '../../services/limits.ts';
 import crypto from 'node:crypto';
 import { Hono } from 'hono';
@@ -157,6 +157,7 @@ projectsRoutes.post('/api/v1/workspaces/:workspaceId/projects', authMiddleware, 
 
     await consumeProjectCreateWindows(client, actor.id);
     await assertOwnedProjectRoom(client, actor.id, limitsOf(c));
+    await assertOwnedProjectTotalRoom(client, actor.id, limitsOf(c));
     const project = await insertProjectRow(client, workspaceId, body.name, body.description ?? null);
 
     const responsePayload = { data: project };
@@ -226,6 +227,7 @@ projectsRoutes.post('/api/v1/projects', authMiddleware, async (c) => {
 
     await consumeProjectCreateWindows(client, actor.id);
     await assertOwnedProjectRoom(client, actor.id, limits);
+    await assertOwnedProjectTotalRoom(client, actor.id, limits);
     const project = await insertProjectRow(client, workspaceId, body.name, body.description ?? null);
 
     const responsePayload = { data: project };

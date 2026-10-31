@@ -3,7 +3,7 @@ import type pg from 'pg';
 import type { Project } from '@flowboard/contracts';
 import { HttpError } from '../http/errors.ts';
 import { consumeActorWindows } from './rate-limit-postgres.ts';
-import { countOwnedActiveProjects, quotaExceeded } from './quotas.ts';
+import { countOwnedActiveProjects, countOwnedTotalProjects, quotaExceeded } from './quotas.ts';
 import type { Limits } from '../services/limits.ts';
 
 /**
@@ -16,6 +16,12 @@ export async function assertOwnedProjectRoom(client: pg.ClientBase, userId: stri
   if (used >= limits.ownedProjects) {
     throw quotaExceeded('owned_projects', limits.ownedProjects, 'archive_project', used);
   }
+}
+
+/** Only creation increases the total; reopening an existing project does not. */
+export async function assertOwnedProjectTotalRoom(client: pg.ClientBase, userId: string, limits: Limits): Promise<void> {
+  const used = await countOwnedTotalProjects(client, userId);
+  if (used >= limits.ownedProjectsTotal) throw quotaExceeded('owned_projects_total', limits.ownedProjectsTotal, 'none', used);
 }
 
 export async function consumeProjectCreateWindows(client: pg.ClientBase, userId: string): Promise<void> {

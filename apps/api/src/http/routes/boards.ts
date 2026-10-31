@@ -14,7 +14,7 @@ import {
 import { getPool } from '../../adapters/postgres.ts';
 import { checkOrReplayReceipt, checkOrReplayProjectWriteReceipt, saveReceipt } from '../../adapters/idempotency.ts';
 import { acquireWriteGrantLock, acquireWritableProjectContextLock, resolveProjectRole } from '../../adapters/rbac.ts';
-import { lockProjectQuota, countActiveBoards, quotaExceeded } from '../../adapters/quotas.ts';
+import { lockProjectQuota, countActiveBoards, countTotalBoards, quotaExceeded } from '../../adapters/quotas.ts';
 import { consumeActorWindows } from '../../adapters/rate-limit-postgres.ts';
 import { grantCreatorBoardAccess } from '../../adapters/board-grants-foundation.ts';
 import { limitsOf } from '../../services/limits.ts';
@@ -97,6 +97,10 @@ boardsRoutes.post('/api/v1/projects/:projectId/boards', authMiddleware, async (c
     if (used >= limits.boardsPerProject) {
       // The count is shown only to the Owner (edge-case review F-10). A Manager learns only that the limit is reached.
       throw quotaExceeded('boards_per_project', limits.boardsPerProject, 'archive_board', role === 'owner' ? used : undefined);
+    }
+    const total = await countTotalBoards(client, projectId);
+    if (total >= limits.boardsPerProjectTotal) {
+      throw quotaExceeded('boards_per_project_total', limits.boardsPerProjectTotal, 'none', role === 'owner' ? total : undefined);
     }
 
     const board = await createBoard(client, projectId, body.name, actor.id, body.description ?? null);

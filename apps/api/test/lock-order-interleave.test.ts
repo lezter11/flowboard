@@ -5,6 +5,7 @@ import pg from 'pg';
 import { runMigrations } from '../src/adapters/migrations.ts';
 import { createDevUserAndSession } from '../src/adapters/session.ts';
 import { createApp } from '../src/http/app.ts';
+import { DEFAULT_LIMITS } from '../src/services/limits.ts';
 
 // Forced-interleaving tests through mounted routes (review R3 probes P1-P6). A helper connection
 // holds the board row; two requests then queue behind it in a fixed order. When the helper commits,
@@ -25,7 +26,7 @@ test('comment PATCH/DELETE, import commit and their controls never return a serv
     const owner = await createDevUserAndSession('owner@lockorder.test', 'Owner', pool);
     await pool.query(`INSERT INTO workspaces (id,name,timezone,owner_id,created_at,updated_at) VALUES ('w','W','UTC',$1,NOW(),NOW())`, [owner.user.id]);
     await pool.query(`INSERT INTO projects (id,workspace_id,name,created_at,updated_at) VALUES ('p','w','P',NOW(),NOW())`);
-    const app = createApp(async () => {}, { pool });
+    const app = createApp(async () => {}, { pool, limits: { ...DEFAULT_LIMITS, boardsPerProjectTotal: 1000 } });
     const req = (method: string, path: string, body?: unknown) => app.request(path, {
       method,
       headers: {

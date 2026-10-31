@@ -8,6 +8,8 @@ export interface Limits {
   boardsPerProject: number;
   membersPerProject: number;
   pendingInvitesPerProject: number;
+  ownedProjectsTotal: number;
+  boardsPerProjectTotal: number;
 }
 
 export const DEFAULT_LIMITS: Readonly<Limits> = Object.freeze({
@@ -15,6 +17,8 @@ export const DEFAULT_LIMITS: Readonly<Limits> = Object.freeze({
   boardsPerProject: 5,
   membersPerProject: 50,
   pendingInvitesPerProject: 50,
+  ownedProjectsTotal: 20,
+  boardsPerProjectTotal: 25,
 });
 
 export const LIMIT_ENV_NAMES: Readonly<Record<keyof Limits, string>> = Object.freeze({
@@ -22,6 +26,8 @@ export const LIMIT_ENV_NAMES: Readonly<Record<keyof Limits, string>> = Object.fr
   boardsPerProject: 'FB_LIMIT_BOARDS_PER_PROJECT',
   membersPerProject: 'FB_LIMIT_MEMBERS_PER_PROJECT',
   pendingInvitesPerProject: 'FB_LIMIT_PENDING_INVITES_PER_PROJECT',
+  ownedProjectsTotal: 'FB_LIMIT_OWNED_PROJECTS_TOTAL',
+  boardsPerProjectTotal: 'FB_LIMIT_BOARDS_PER_PROJECT_TOTAL',
 });
 
 /** A whole number from 1 to 1000. Anything else is the fallback. */

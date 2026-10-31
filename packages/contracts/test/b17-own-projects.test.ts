@@ -20,6 +20,8 @@ test('QUOTA_EXCEEDED details carry scope, limit, optional current, and remedy', 
   assert.equal(QUOTA_EXCEEDED_CODE, 'QUOTA_EXCEEDED');
   assert.ok(quotaExceededDetailsSchema.safeParse({ scope: 'owned_projects', limit: 3, current: 3, remedy: 'archive_project' }).success);
   assert.ok(quotaExceededDetailsSchema.safeParse({ scope: 'boards_per_project', limit: 5, remedy: 'archive_board' }).success, 'current may be absent');
+  assert.ok(quotaExceededDetailsSchema.safeParse({ scope: 'owned_projects_total', limit: 20, current: 20, remedy: 'none' }).success);
+  assert.ok(quotaExceededDetailsSchema.safeParse({ scope: 'boards_per_project_total', limit: 25, remedy: 'none' }).success);
   assert.equal(quotaExceededDetailsSchema.safeParse({ scope: 'owned_projects', limit: 3, remedy: 'nope' }).success, false);
   assert.equal(quotaExceededDetailsSchema.safeParse({ scope: 'boards', limit: 5, remedy: 'archive_board' }).success, false);
 });

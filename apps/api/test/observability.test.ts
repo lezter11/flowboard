@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { describe, it } from 'node:test';
+import { HTTPException } from 'hono/http-exception';
 import {
   createWorkspaceInputSchema,
   errorEnvelopeSchema,
@@ -369,6 +370,17 @@ describe('FND-04: Observability, Correlation, Limits & Safe Error Baseline', () 
       const body = await res.json();
       const parsed = errorEnvelopeSchema.parse(body);
       assert.equal(parsed.error.code, 'RATE_LIMITED');
+    });
+
+    it('uses the actual retry interval and the same code for a Hono 429', async () => {
+      const app = createApp(async () => {});
+      app.get('/api/v1/rate-interval', () => { throw tooManyRequests('Wait.', { retryAfterSeconds: 7 }); });
+      app.get('/api/v1/rate-hono', () => { throw new HTTPException(429); });
+      const interval = await app.request('/api/v1/rate-interval');
+      assert.equal(interval.headers.get('Retry-After'), '7');
+      assert.equal(((await interval.json()) as any).error.details.retryAfterSeconds, 7);
+      const hono = await app.request('/api/v1/rate-hono');
+      assert.equal(((await hono.json()) as any).error.code, 'RATE_LIMITED');
     });
 
     it('maps 503 SERVICE_UNAVAILABLE / DATABASE_UNAVAILABLE safely', async () => {

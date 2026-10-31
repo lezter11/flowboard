@@ -141,9 +141,9 @@ export type PaginationQuery = z.infer<typeof paginationQuerySchema>;
 // Own-projects limits (B-17, edge-case review rules 16-17). 409 for a limit, 429 for speed. The
 // error envelope carries them in error.details: { scope, limit, current?, remedy }.
 export const QUOTA_EXCEEDED_CODE = 'QUOTA_EXCEEDED';
-export const quotaScopeSchema = z.enum(['owned_projects', 'boards_per_project', 'members', 'pending_invitations']);
+export const quotaScopeSchema = z.enum(['owned_projects', 'boards_per_project', 'members', 'pending_invitations', 'owned_projects_total', 'boards_per_project_total']);
 export type QuotaScope = z.infer<typeof quotaScopeSchema>;
-export const quotaRemedySchema = z.enum(['archive_project', 'archive_board', 'remove_member', 'revoke_invitation']);
+export const quotaRemedySchema = z.enum(['archive_project', 'archive_board', 'remove_member', 'revoke_invitation', 'none']);
 export type QuotaRemedy = z.infer<typeof quotaRemedySchema>;
 export const quotaExceededDetailsSchema = z.object({
   scope: quotaScopeSchema,

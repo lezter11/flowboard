@@ -3,6 +3,7 @@ import { pathToFileURL } from 'node:url';
 import type pg from 'pg';
 import { createPool, queryDatabase } from '../adapters/postgres.ts';
 import { createApp } from '../http/app.ts';
+import { limitsFromEnv } from '../services/limits.ts';
 import { localDatabaseUrl } from './local-config.ts';
 
 export interface NodeRuntime {
@@ -17,7 +18,7 @@ export function startNode(
 ): NodeRuntime {
   const resolvedConnectionString = localDatabaseUrl(connectionString);
   const pool = createPool(resolvedConnectionString, 4);
-  const app = createApp(() => queryDatabase(pool), { pool });
+  const app = createApp(() => queryDatabase(pool), { pool, limits: limitsFromEnv(process.env) });
   const server = serve({ fetch: app.fetch, hostname: '127.0.0.1', port });
   return {
     server,

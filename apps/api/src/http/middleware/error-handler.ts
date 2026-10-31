@@ -13,7 +13,7 @@ const STATUS_TO_DEFAULT_CODE: Record<number, string> = {
   410: 'RESTORE_WINDOW_EXPIRED',
   413: 'PAYLOAD_TOO_LARGE',
   422: 'VALIDATION_ERROR',
-  429: 'TOO_MANY_REQUESTS',
+  429: 'RATE_LIMITED',
   503: 'SERVICE_UNAVAILABLE',
   504: 'DEADLINE_EXCEEDED',
 };
@@ -58,7 +58,8 @@ export const errorHandler: ErrorHandler<{ Variables: { requestId: string } }> = 
   // 3. Known HttpError
   if (err instanceof HttpError) {
     if (err.status === 429) {
-      c.header('Retry-After', '60');
+      const retry = err.details?.['retryAfterSeconds'];
+      c.header('Retry-After', typeof retry === 'number' && Number.isFinite(retry) && retry > 0 ? String(Math.ceil(retry)) : '60');
     }
     return c.json(
       {
