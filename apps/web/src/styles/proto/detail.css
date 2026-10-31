@@ -553,7 +553,11 @@ mark.mention { background: var(--accent-soft); color: var(--accent); border-radi
 @media (pointer: coarse) { .mention-option { min-height: 44px; } }
 
 /* ---------- Live updates (polling) ---------- */
-.poll-status { align-self: flex-start; font-size: 11px; color: var(--muted); }
+.poll-pill { flex: none; display: inline-flex; align-items: center; gap: 6px; align-self: center; min-width: 118px; height: 24px; padding: 0 10px; border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--surface) 70%, transparent); color: var(--muted); font-size: 11px; line-height: 1; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.poll-pill i { flex: none; width: 6px; height: 6px; border-radius: 50%; background: var(--dot-completed); }
+@media (prefers-reduced-motion: no-preference) { .poll-pill-text { animation: poll-pill-in 260ms ease-out both; } }
+@keyframes poll-pill-in { from { opacity: .35; } to { opacity: 1; } }
+@media (max-width: 520px) { .board-app .board-heading { flex-wrap: wrap; } .board-app .board-heading .poll-pill { order: 5; margin-left: 40px; } }
 .poll-banner {
   margin: 0; padding: 8px 12px; font-size: 12px; color: var(--ink);
   background: var(--surface-2, var(--surface)); border: 1px solid var(--line); border-radius: 8px;

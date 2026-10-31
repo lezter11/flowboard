@@ -108,11 +108,20 @@ export function usePollHold(active: boolean) {
   useEffect(() => (active ? hold() : undefined), [active, hold]);
 }
 
-/** Quiet "Updated 12s ago" next to the board header. Hidden from screen readers: it changes every few seconds. */
+/**
+ * Quiet freshness pill next to the board title: a dot and "Updated 12s ago". It is an image with a stable label, not a live
+ * region, because the number changes every few seconds. Width is reserved so the title never shifts.
+ */
 export function PollAge() {
   const { state } = useNow();
   const age = describeAge(state.lastSuccessAt, state.now);
-  return age ? <span className="poll-status" aria-hidden="true">{age}</span> : null;
+  if (!age) return null;
+  return (
+    <span className="poll-pill" role="img" aria-label={`Board ${age.charAt(0).toLowerCase()}${age.slice(1)}`}>
+      <i aria-hidden="true" />
+      <span className="poll-pill-text" key={age} aria-hidden="true">{age}</span>
+    </span>
+  );
 }
 
 function useNow() {

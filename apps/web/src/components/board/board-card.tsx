@@ -15,6 +15,8 @@ interface Props {
   cardStyle: CardStyle;
   people: Map<string, PersonDisplay>;
   canMove: boolean;
+  /** Merged view: which board the card belongs to. */
+  chip?: { name: string; tone: number } | null;
   draggable: boolean;
   dragging: boolean;
   onOpen: (card: CardSummary, trigger: HTMLElement) => void;
@@ -28,7 +30,7 @@ interface Props {
 const cap = (value: string) => value[0]!.toUpperCase() + value.slice(1);
 
 /** One card; markup and classes follow cardHTML() in design/flowboard-ui/board.js. */
-export function BoardCard({ card, done, view, cardStyle, people, canMove, draggable, dragging, onOpen, onMove, onDragStart, onDragEnd, preview = false }: Props) {
+export function BoardCard({ card, done, view, cardStyle, people, canMove, chip = null, draggable, dragging, onOpen, onMove, onDragStart, onDragEnd, preview = false }: Props) {
   const list = view === 'list';
   const glass = !list && cardStyle === 'glass';
   const due = dueInfo(card.dueDate, done);
@@ -97,6 +99,7 @@ export function BoardCard({ card, done, view, cardStyle, people, canMove, dragga
     >
       <div className="card-head">{header}</div>
       <div className="card-body" onClick={preview ? undefined : (event) => { const trigger = event.currentTarget.querySelector<HTMLElement>('.card-open'); if (trigger) onOpen(card, trigger); }}>
+        {chip && <span className="board-chip" data-tone={chip.tone} title={`Board: ${chip.name}`}><i aria-hidden="true" /><span className="sr-only">Board: </span>{chip.name}</span>}
         <h3 className="card-title" id={`card-title-${card.id}`}>
           {preview ? <span className="card-open">{card.title}</span> : <button className="card-open" type="button" data-tooltip={card.title} onClick={(event) => { event.stopPropagation(); onOpen(card, event.currentTarget); }}>{card.title}</button>}
         </h3>

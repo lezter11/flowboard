@@ -47,14 +47,14 @@ export function BoardSwitcher({ boards, selected, onSwitch, onChange }: { boards
 
   return (
     <div className="board-switcher" ref={rootRef} onKeyDown={onKeyDown}>
-      <button ref={buttonRef} className={`filter-btn board-switcher-btn${selected.length > 1 ? ' has-active' : ''}`} type="button" aria-expanded={open} aria-controls={panelId} aria-haspopup="true" title="Switch boards" onClick={() => setOpen((v) => !v)}>
+      <button ref={buttonRef} className={`filter-btn board-switcher-btn${selected.length > 1 ? ' has-active' : ''}`} type="button" aria-expanded={open} aria-controls={panelId} aria-haspopup="true" aria-label={selected.length > 1 ? `Boards, ${selected.length} selected` : 'Boards'} title="Switch boards" onClick={() => setOpen((v) => !v)}>
         <Icon name="board" />
-        <span>Boards</span>
+        <span className="board-switcher-label">Boards</span>
         {selected.length > 1 && <span className="badge">{selected.length}</span>}
         <Icon name="chevron-down" className="icon-sm" />
       </button>
       <div className="board-switcher-panel" id={panelId} hidden={!open} role="group" aria-label="Boards in this project">
-        <p className="board-switcher-hint" id={`${panelId}-hint`}>Click a name to open just that board. Tick several to see them stacked.</p>
+        <p className="board-switcher-hint" id={`${panelId}-hint`}>Click a name to open just that board. Tick several to merge them into one board, matched by column name.</p>
         <ul className="board-switcher-list">
           {open_.map((board) => {
             const checked = selected.includes(board.id);
@@ -62,7 +62,7 @@ export function BoardSwitcher({ boards, selected, onSwitch, onChange }: { boards
             const blocked = !checked && capped;
             return (
               <li key={board.id} className={`board-switcher-row${selected.length === 1 && checked ? ' is-current' : ''}`}>
-                <input type="checkbox" id={`${panelId}-${board.id}`} checked={checked} disabled={only || blocked} aria-label={`Show ${board.name} in the combined view`} aria-describedby={blocked ? `${panelId}-cap` : only ? `${panelId}-one` : undefined} onChange={() => onChange((prev) => toggleBoard(prev, board.id))} />
+                <input type="checkbox" id={`${panelId}-${board.id}`} checked={checked} disabled={only || blocked} aria-label={`Include ${board.name} in the merged view`} aria-describedby={blocked ? `${panelId}-cap` : only ? `${panelId}-one` : undefined} onChange={() => onChange((prev) => toggleBoard(prev, board.id))} />
                 <button type="button" className="board-switcher-name" aria-current={selected.length === 1 && checked ? 'true' : undefined} onClick={() => { onSwitch(board.id); close(true); }}>{board.name}</button>
               </li>
             );

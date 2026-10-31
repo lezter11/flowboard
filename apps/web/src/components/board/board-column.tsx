@@ -18,6 +18,13 @@ interface Props {
   people: Map<string, PersonDisplay>;
   canEdit: boolean;
   canMove: boolean;
+  /** Merged view: each card answers to its own board's permissions. Defaults to `canMove`. */
+  canMoveCard?: (card: CardSummary) => boolean;
+  cardChip?: (card: CardSummary) => { name: string; tone: number } | null;
+  addBoards?: { id: string; name: string }[];
+  addBoardId?: string;
+  onAddBoard?: (boardId: string) => void;
+  addNote?: string;
   dragId: string | null;
   drop: DropTarget | null;
   composerOpen: boolean;
@@ -40,6 +47,7 @@ const PRIORITIES = ['low', 'medium', 'high', 'urgent'] as const;
 export function BoardColumn(props: Props) {
   const { column, shown, filtering, view, cardStyle, people, canEdit, canMove, dragId, drop, composerOpen } = props;
   const tone = toneFor(column);
+  const cardMovable = (card: CardSummary) => (props.canMoveCard ? props.canMoveCard(card) : canMove);
   const isCompleted = column.category === 'done';
   const [expanded, setExpanded] = useState(false);
   const [title, setTitle] = useState('');
@@ -110,8 +118,9 @@ export function BoardColumn(props: Props) {
                 view={view}
                 cardStyle={cardStyle}
                 people={people}
-                canMove={canMove}
-                draggable={canMove && !filtering && view === 'board'}
+                canMove={cardMovable(card)}
+                chip={props.cardChip?.(card) ?? null}
+                draggable={cardMovable(card) && !filtering && view === 'board'}
                 dragging={dragId === card.id}
                 onOpen={props.onOpenCard}
                 onMove={props.onMoveCard}
@@ -144,6 +153,15 @@ export function BoardColumn(props: Props) {
                 <option value="">Choose a priority</option>
                 {PRIORITIES.map((p) => <option key={p} value={p}>{p[0]!.toUpperCase() + p.slice(1)}</option>)}
               </select>
+              {props.addBoards && props.addBoards.length > 0 && (
+                <>
+                  <label className="quick-add-priority-label" htmlFor={`quickAddBoard-${column.id}`}>Board</label>
+                  <select className="quick-add-priority" id={`quickAddBoard-${column.id}`} value={props.addBoardId} onChange={(event) => props.onAddBoard?.(event.target.value)}>
+                    {props.addBoards.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
+                  </select>
+                  {props.addNote && <p className="quick-add-note" role="status">{props.addNote}</p>}
+                </>
+              )}
               <p className="quick-add-error" id={`quickAddPriorityError-${column.id}`} role="alert" hidden={!(error || props.quickAddError)}>{error || props.quickAddError}</p>
               <div className="quick-add-actions">
                 <span className="hint">Choose a priority · Enter to add · Esc to cancel</span>
