@@ -165,7 +165,7 @@ export function ProjectView({ projectId }: { projectId: string }) {
         </div>
       </section>
 
-      <NewBoardDialog projectId={projectId} open={creating} onClose={() => setCreating(false)} />
+      <NewBoardDialog projectId={projectId} role={role} open={creating} onClose={() => setCreating(false)} />
     </section>
   );
 }

@@ -1,7 +1,6 @@
 import {
   type GetSessionResponse,
   type LogoutResponse,
-  type WorkspaceListResponse,
   type ProjectResponse,
   type ProjectOverviewResponse,
   type ProjectListResponse,
@@ -186,11 +185,6 @@ export const api = {
     return request<LogoutResponse>('/api/v1/session/logout', {
       method: 'POST',
     });
-  },
-
-  // Workspaces
-  async listWorkspaces(): Promise<WorkspaceListResponse> {
-    return request<WorkspaceListResponse>('/api/v1/workspaces');
   },
 
   // Projects

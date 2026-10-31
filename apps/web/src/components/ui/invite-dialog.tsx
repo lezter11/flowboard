@@ -7,6 +7,9 @@ import type { Invitation } from '@flowboard/contracts';
 import { api } from '@/lib/api';
 import { usePollKeys } from '@/components/polling';
 import { describeError } from '@/lib/errors';
+import { QuotaPanel } from '@/components/ui/quota-panel';
+import { quotaAdvice, type QuotaAdvice } from '@/lib/quota-messages';
+import { ApiError } from '@/lib/api';
 import { checkInvitationEmail, emailFieldAria } from '@/lib/invite-email';
 import type { Role } from '@/lib/roles';
 import { DialogLayer } from '@/components/ui/dialog-layer';
@@ -26,6 +29,8 @@ const expiresIn = (iso: string) => {
   const hours = Math.round(ms / 3_600_000);
   return hours < 24 ? `in ${Math.max(hours, 1)}h` : `in ${Math.round(hours / 24)} days`;
 };
+/** One place for every refusal in this dialog: a limit gets the panel, a missing name gets a link to Settings, the rest one sentence. */
+const ctxFor = (role: Role, projectId: string) => ({ role, projectId });
 const checked = (raw: string) => { const r = checkInvitationEmail(raw); return r.ok ? r.value : raw.trim().toLowerCase(); };
 const linkFor = (token: string) => `${window.location.origin}/invitation?token=${encodeURIComponent(token)}`;
 
@@ -40,27 +45,36 @@ export function InviteDialog({ projectId, projectName, actorRole, open, onClose 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<InviteRole>('member');
   const [error, setError] = useState('');
+  const [advice, setAdvice] = useState<QuotaAdvice | null>(null);
+  const [needsName, setNeedsName] = useState(false);
   const [emailError, setEmailError] = useState('');
   const [fresh, setFresh] = useState<{ id: string; email: string; role: InviteRole; token: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const attempt = useRef<string | null>(null);
   const roles: InviteRole[] = actorRole === 'owner' ? ['manager', 'member', 'viewer'] : ['member', 'viewer'];
 
-  useEffect(() => { if (open) { setEmail(''); setRole('member'); setError(''); setEmailError(''); setFresh(null); setCopied(false); attempt.current = null; } }, [open, projectId]);
+  useEffect(() => { if (open) { setEmail(''); setRole('member'); setError(''); setAdvice(null); setNeedsName(false); setEmailError(''); setFresh(null); setCopied(false); attempt.current = null; } }, [open, projectId]);
 
   usePollKeys([['invitations', projectId]], open);
   const list = useQuery({ queryKey: ['invitations', projectId], queryFn: async () => (await api.listInvitations(projectId)).data, enabled: open });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['invitations', projectId] });
 
+  const fail = (err: unknown) => {
+    const quota = err instanceof ApiError ? quotaAdvice(err, ctxFor(actorRole, projectId)) : null;
+    setAdvice(quota);
+    setNeedsName(err instanceof ApiError && err.code === 'NAME_REQUIRED');
+    setError(quota ? '' : describeError(err, ctxFor(actorRole, projectId)));
+  };
+
   const create = useMutation({
     mutationFn: () => { attempt.current ??= `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`; return api.createInvitation(projectId, { email: checked(email), role }, attempt.current); },
-    onSuccess: (res) => { attempt.current = null; setError(''); setCopied(false); setFresh(res.data.token ? { id: res.data.id, email: res.data.email, role: res.data.role as InviteRole, token: res.data.token } : null); setEmail(''); toast('Invitation sent', { icon: 'check' }); void refresh(); },
-    onError: (err) => { attempt.current = null; setError(describeError(err)); void refresh(); },
+    onSuccess: (res) => { attempt.current = null; setError(''); setAdvice(null); setNeedsName(false); setCopied(false); setFresh(res.data.token ? { id: res.data.id, email: res.data.email, role: res.data.role as InviteRole, token: res.data.token } : null); setEmail(''); toast('Invitation sent', { icon: 'check' }); void refresh(); },
+    onError: (err) => { attempt.current = null; fail(err); void refresh(); },
   });
   const resend = useMutation({
     mutationFn: (inv: Invitation) => api.resendInvitation(projectId, inv.id),
-    onSuccess: (res) => { setError(''); setCopied(false); setFresh(res.data.token ? { id: res.data.id, email: res.data.email, role: res.data.role as InviteRole, token: res.data.token } : null); toast('Invitation sent again. The earlier link no longer works.', { icon: 'check' }); void refresh(); },
-    onError: (err) => { setError(describeError(err)); void refresh(); },
+    onSuccess: (res) => { setError(''); setAdvice(null); setNeedsName(false); setCopied(false); setFresh(res.data.token ? { id: res.data.id, email: res.data.email, role: res.data.role as InviteRole, token: res.data.token } : null); toast('Invitation sent again. The earlier link no longer works.', { icon: 'check' }); void refresh(); },
+    onError: (err) => { fail(err); void refresh(); },
   });
   const revoke = useMutation({
     mutationFn: (inv: Invitation) => api.revokeInvitation(projectId, inv.id),
@@ -109,7 +123,8 @@ export function InviteDialog({ projectId, projectName, actorRole, open, onClose 
 
         <p className="invite-access-note"><Icon name="lock" /><span><strong>Project access is not board access.</strong> {actorRole === 'owner' ? <>After they accept, give them boards under <Link href="/people">People › Board access</Link>. Until then they see no boards.</> : 'After they accept, the project Owner chooses which boards they can open. Until then they see no boards.'}</span></p>
 
-        {error && <p className="form-error" role="alert">{error}</p>}
+        {advice && <QuotaPanel advice={advice} role="alert" onNavigate={onClose} />}
+        {error && <p className="form-error" role="alert">{error}{needsName && <> <Link href="/settings?tab=account" onClick={onClose}>Open Settings</Link></>}</p>}
 
         {fresh && (
           <div className="invite-fresh" role="status">

@@ -72,3 +72,15 @@ test('usage comes from session.limits only', () => {
   assert.equal(u.atCap, false);
   assert.equal(projectUsage({ limits: { ownedProjects: { limit: 3, used: 4 }, boardsPerProject: { limit: 5 }, membersPerProject: { limit: 50 }, pendingInvitationsPerProject: { limit: 50 } } })!.atCap, true);
 });
+
+import { friendlyMessage } from '../src/lib/quota-messages.ts';
+
+test('friendly sentences for the new server refusals', () => {
+  const f = (status: number, code: string, details?: unknown): FailureLike => ({ status, code, message: 'raw', details });
+  assert.match(friendlyMessage(f(409, 'NAME_REQUIRED'))!, /first and last name in Settings/);
+  assert.match(friendlyMessage(f(409, 'READ_ONLY_CONTEXT'))!, /archived/);
+  assert.match(friendlyMessage(f(400, 'INVITATION_EXPIRED'))!, /Send a new invitation/);
+  assert.match(friendlyMessage(f(429, 'RATE_LIMITED', { retryAfterSeconds: 30 }))!, /in 30 seconds/);
+  assert.match(friendlyMessage(f(409, 'QUOTA_EXCEEDED', { scope: 'members', limit: 50, remedy: 'remove_member' }), { role: 'member' })!, /Ask the project Owner/);
+  assert.equal(friendlyMessage(f(500, 'INTERNAL')), null);
+});

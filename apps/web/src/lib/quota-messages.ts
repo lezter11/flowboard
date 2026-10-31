@@ -85,3 +85,14 @@ export function waitText(seconds: number | null, what: string): string {
   if (seconds >= 90) return `You are ${what} too quickly. Try again in about ${Math.ceil(seconds / 60)} minutes.`;
   return `You are ${what} too quickly. Try again in ${seconds} ${seconds === 1 ? 'second' : 'seconds'}.`;
 }
+
+/** Codes the server added with the own-projects work, mapped to one calm sentence each. Null when nothing special applies. */
+export function friendlyMessage(failure: FailureLike, ctx: QuotaContext = {}): string | null {
+  const quota = quotaAdvice(failure, ctx);
+  if (quota) return quota.body;
+  if (failure.status === 429) return waitText(retryAfterSeconds(failure), 'doing that');
+  if (failure.code === 'NAME_REQUIRED') return 'Add your first and last name in Settings, then try again.';
+  if (failure.code === 'READ_ONLY_CONTEXT') return 'This project is archived, so it is read-only. Reopen it first.';
+  if (failure.code === 'INVITATION_EXPIRED') return 'That invitation expired. Send a new invitation to the same email instead.';
+  return null;
+}

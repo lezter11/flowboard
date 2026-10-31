@@ -511,7 +511,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
 
   return (
     <>
-      <NewBoardDialog projectId={board.projectId} open={newBoardOpen} onClose={() => setNewBoardOpen(false)} />
+      <NewBoardDialog projectId={board.projectId} role={role} open={newBoardOpen} onClose={() => setNewBoardOpen(false)} />
       {can(role, 'invite') && !board.isArchived && <InviteDialog projectId={board.projectId} projectName={project?.name ?? 'this project'} actorRole={role} open={inviteOpen} onClose={() => setInviteOpen(false)} />}
       {!merged && can(role, 'manageBoard') && <ColumnsDialog boardId={board.id} open={columnsOpen} onClose={() => setColumnsOpen(false)} />}
       {!merged && role === 'owner' && <EditBoardDialog board={board} open={editBoardOpen} onClose={() => setEditBoardOpen(false)} />}

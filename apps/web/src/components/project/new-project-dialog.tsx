@@ -8,29 +8,13 @@ import { api, ApiError } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { quotaAdvice, retryAfterSeconds, waitText, type QuotaAdvice } from '@/lib/quota-messages';
 import { usageText, type ProjectUsage } from '@/lib/project-groups';
+import { QuotaPanel } from '@/components/ui/quota-panel';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { Icon } from '@/components/ui/icon';
 import { useToast } from '@/components/ui/toasts';
 
 const NAME_MAX = 100;
 const DESCRIPTION_MAX = 2000;
-
-/** Calm explanation with the way out: never a dead end, never a disabled button without a reason. */
-function QuotaPanel({ advice, role, onNavigate }: { advice: QuotaAdvice; role: 'status' | 'alert'; onNavigate: () => void }) {
-  return (
-    <div className="quota-panel" role={role} id="projectQuota">
-      <span className="quota-panel-icon" aria-hidden="true"><Icon name="folder" /></span>
-      <div>
-        <strong>{advice.title}</strong>
-        <p>{advice.body}</p>
-        <p className="quota-panel-links">
-          {advice.action && <Link className="btn sm" href={advice.action.href} onClick={onNavigate}>{advice.action.label}</Link>}
-          <Link className="btn ghost sm" href="/projects?tab=archived" onClick={onNavigate}>See archived projects</Link>
-        </p>
-      </div>
-    </div>
-  );
-}
 
 /**
  * Create a project of your own (POST /api/v1/projects, no container named). The button that opens this is always visible;
@@ -93,7 +77,7 @@ export function NewProjectDialog({ open, onClose, usage }: { open: boolean; onCl
       </div>
       {showPanel && !advice ? (
         <>
-          <div className="dialog-body"><QuotaPanel advice={showPanel} role="status" onNavigate={onClose} /></div>
+          <div className="dialog-body"><QuotaPanel advice={showPanel} role="status" onNavigate={onClose} archivedLink /></div>
           <footer className="dialog-foot"><span className="spacer" /><button className="btn" type="button" onClick={onClose}>Close</button></footer>
         </>
       ) : (
@@ -107,7 +91,7 @@ export function NewProjectDialog({ open, onClose, usage }: { open: boolean; onCl
               <label htmlFor="newProjectDescription">Description <span className="field-optional">(optional)</span></label>
               <textarea className="control textarea" id="newProjectDescription" maxLength={DESCRIPTION_MAX} placeholder="What is this project for?" value={description} onChange={(event) => edit(setDescription)(event.target.value)} />
             </div>
-            {advice && <QuotaPanel advice={advice} role="alert" onNavigate={onClose} />}
+            {advice && <QuotaPanel advice={advice} role="alert" onNavigate={onClose} archivedLink />}
             {error && <p className="form-error" id="newProjectError" role="alert">{error}</p>}
           </div>
           <footer className="dialog-foot">

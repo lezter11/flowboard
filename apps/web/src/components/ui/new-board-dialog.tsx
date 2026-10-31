@@ -8,6 +8,9 @@ import { describeError } from '@/lib/errors';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { Icon } from '@/components/ui/icon';
 import { useToast } from '@/components/ui/toasts';
+import { QuotaPanel } from '@/components/ui/quota-panel';
+import { quotaAdvice, type QuotaAdvice } from '@/lib/quota-messages';
+import type { Role } from '@/lib/roles';
 
 const NAME_MAX = 100;
 const DESCRIPTION_MAX = 2000;
@@ -17,7 +20,7 @@ const DESCRIPTION_MAX = 2000;
  * One Idempotency-Key per attempt: a retry after a lost response replays the same board instead of making a second one;
  * editing the form starts a new attempt. On success the user lands on the new board.
  */
-export function NewBoardDialog({ projectId, open, onClose }: { projectId: string; open: boolean; onClose: () => void }) {
+export function NewBoardDialog({ projectId, role, open, onClose }: { projectId: string; role: Role; open: boolean; onClose: () => void }) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const toast = useToast();
@@ -25,9 +28,10 @@ export function NewBoardDialog({ projectId, open, onClose }: { projectId: string
   const [description, setDescription] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
+  const [advice, setAdvice] = useState<QuotaAdvice | null>(null);
   const attempt = useRef<string | null>(null);
 
-  useEffect(() => { if (open) { setName(''); setDescription(''); setError(''); attempt.current = null; } }, [open]);
+  useEffect(() => { if (open) { setName(''); setDescription(''); setError(''); setAdvice(null); attempt.current = null; } }, [open]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -47,12 +51,15 @@ export function NewBoardDialog({ projectId, open, onClose }: { projectId: string
       onClose();
       router.push(`/board?id=${encodeURIComponent(created.data.id)}`);
     } catch (err) {
-      if (err instanceof ApiError && (err.status === 409 || err.status === 422 || err.status === 400)) attempt.current = null;
-      setError(err instanceof ApiError && err.status === 409 ? 'A board with that name already exists in this project. Pick another name.' : describeError(err));
+      if (err instanceof ApiError && err.status >= 400 && err.status < 500) attempt.current = null;
+      // At the board limit: explain calmly. A Manager gets no number (the server sends none), the Owner gets the way out.
+      const quota = err instanceof ApiError ? quotaAdvice(err, { role, projectId }) : null;
+      if (quota) { setAdvice(quota); void queryClient.invalidateQueries({ queryKey: ['boards', projectId] }); }
+      else setError(err instanceof ApiError && err.status === 409 && err.code !== 'READ_ONLY_CONTEXT' ? 'A board with that name already exists in this project. Pick another name.' : describeError(err, { role, projectId }));
     } finally { setBusy(false); }
   };
 
-  const edit = <T,>(set: (value: T) => void) => (value: T) => { attempt.current = null; setError(''); set(value); };
+  const edit = <T,>(set: (value: T) => void) => (value: T) => { attempt.current = null; setError(''); setAdvice(null); set(value); };
 
   return (
     <DialogLayer open={open} onClose={onClose} labelledBy="newBoardTitle" className="wide">
@@ -70,6 +77,7 @@ export function NewBoardDialog({ projectId, open, onClose }: { projectId: string
             <label htmlFor="newBoardDescription">Description <span className="field-optional">(optional)</span></label>
             <textarea className="control textarea" id="newBoardDescription" rows={3} maxLength={DESCRIPTION_MAX} placeholder="What is this board for?" value={description} onChange={(event) => edit(setDescription)(event.target.value)} />
           </div>
+          {advice && <QuotaPanel advice={advice} role="alert" onNavigate={onClose} />}
           {error && <p className="form-error" id="newBoardError" role="alert">{error}</p>}
         </div>
         <footer className="dialog-foot">
