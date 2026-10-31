@@ -114,6 +114,9 @@ export const personDisplaySchema = z.object({
   scopedRole: roleSchema.optional(),
   assignable: z.boolean().optional(),
   mentionable: z.boolean().optional(),
+  // Optional, additive (B-23). Set only when another active member of the same project has the same name:
+  // the first keeps no number, then 2, 3 and so on. Absent or null when the name is unique in the project.
+  nameSuffix: z.number().int().min(2).nullable().optional(),
 });
 export type PersonDisplay = z.infer<typeof personDisplaySchema>;
 
