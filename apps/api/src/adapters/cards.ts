@@ -1,3 +1,4 @@
+import { projectNameSuffixes, withNameSuffix } from '../services/person-suffix.ts';
 import crypto from 'node:crypto';
 import type pg from 'pg';
 import {
@@ -510,6 +511,7 @@ async function getCardCreator(
   displayName: string;
   avatarUrl: string | null;
   activeInProject: boolean;
+  nameSuffix?: number;
 } | null> {
   const res = await db.query<{ id: string; display_name: string; avatar_url: string | null; active: boolean }>(
     `SELECT u.id, u.display_name, u.avatar_url,
@@ -525,7 +527,9 @@ async function getCardCreator(
   );
   const row = res.rows[0];
   if (!row) return null;
-  return { id: row.id, displayName: row.display_name, avatarUrl: row.avatar_url, activeInProject: Boolean(row.active) };
+  const creator = { id: row.id, displayName: row.display_name, avatarUrl: row.avatar_url, activeInProject: Boolean(row.active) };
+  // Same-name number over the project's active members (B-23).
+  return withNameSuffix(creator, await projectNameSuffixes(db, projectId));
 }
 
 /**

@@ -1,3 +1,4 @@
+import { projectNameSuffixes, withNameSuffix } from '../services/person-suffix.ts';
 import crypto from 'node:crypto';
 import type pg from 'pg';
 import { HttpError } from '../http/errors.ts';
@@ -1348,7 +1349,7 @@ export async function getBoardSnapshot(
       [boardId],
     );
 
-    const people: PersonDisplay[] = peopleRes.rows.map((r) => ({
+    const peopleRaw: PersonDisplay[] = peopleRes.rows.map((r) => ({
       id: r.id,
       displayName: r.display_name,
       avatarUrl: r.avatar_url,
@@ -1357,6 +1358,9 @@ export async function getBoardSnapshot(
       assignable: Boolean(r.assignable),
       mentionable: Boolean(r.mentionable),
     }));
+    // Same-name numbers over the whole project, so the snapshot agrees with the people endpoint (B-23).
+    const suffixes = await projectNameSuffixes(client, bRow.project_id);
+    const people: PersonDisplay[] = peopleRaw.map((p) => withNameSuffix(p, suffixes));
 
     await client.query('COMMIT');
 

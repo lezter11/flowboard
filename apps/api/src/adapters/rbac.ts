@@ -1,3 +1,4 @@
+import { projectNameSuffixes, withNameSuffix } from '../services/person-suffix.ts';
 import type pg from 'pg';
 import { readableDefaultBoardJoin } from './default-board.ts';
 import { getPool } from './postgres.ts';
@@ -555,6 +556,10 @@ export async function getProjectPeople(
     };
   });
 
+  // Same-name numbers come from every active member of the project, not from this page (B-23).
+  const suffixes = await projectNameSuffixes(pool, projectId);
+  people = people.map((p) => withNameSuffix(p, suffixes));
+
   // Filter based on purpose
   if (purpose === 'assignee') {
     people = people.filter((p) => p.assignable === true);
@@ -606,7 +611,22 @@ export async function getEligibleMentionees(
   return data;
 }
 
+/**
+ * One person as they appear in a project (comments, activity, trash, card detail). Carries the same-name
+ * number for the project (B-23), so every producer agrees with the people list and the board snapshot.
+ */
 export async function getHistoricalPersonDisplay(
+  clientOrPool: pg.Pool | pg.ClientBase,
+  projectId: string,
+  userId: string,
+): Promise<PersonDisplay | null> {
+  const person = await historicalPersonBase(clientOrPool, projectId, userId);
+  if (!person) return null;
+  const suffixes = await projectNameSuffixes(clientOrPool ?? getPool(), projectId);
+  return withNameSuffix(person, suffixes);
+}
+
+async function historicalPersonBase(
   clientOrPool: pg.Pool | pg.ClientBase,
   projectId: string,
   userId: string,

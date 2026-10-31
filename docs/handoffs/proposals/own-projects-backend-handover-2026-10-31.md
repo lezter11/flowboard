@@ -168,3 +168,14 @@ Ownership transfer (F-06) is to be disabled for the beta (410, typed code). Prod
 - First backstop full run: 719 API tests, 716 passed, 3 failed, access suite enabled; its lock-order stress fixture hit the new 25-board total. The fixture now explicitly uses a higher **test-only** total and its seven forced-lock checks pass; the subsequent full API run passed 722/722, contracts 108/108.
 - Focused grant-admin tests initially used a numeric access revision and expected 403; the existing contract requires a string and intentionally conceals the Owner-only route with 404. Corrected regression passes and asserts no grant was created.
 - `npm run lint --if-present` exited 0 but there is no lint script; never report this as a lint pass. No push, deploy, production access, or hosted service verification was performed. A fresh Codex auditor must run the round-4 brief against the eventual frozen commit and UAT only when the owner authorizes that separate step.
+
+
+## 11. B-23 same-name numbers: privacy finding (2026-10-31)
+
+Numbers are computed over all active members of the project (the Owner first), not over the rows a caller can see, so filters and boards do not change them. What a caller can learn from a number:
+
+- GET /projects/:id/people is open to every active project member and already returns every active member's name and role. A Viewer can already count same-named members, so a number reveals nothing new about who exists.
+- The number reveals join order among same-named members (a "(2)" is later than the unnumbered one). Membership timestamps are not returned.
+- A board-filtered people view (boardId or mention purpose) shows only people with board access. The number is still project-wide, so a Member with access to one board can learn that a hidden same-named member exists in the project. This is the one new fact. We chose project-wide numbering anyway, for consistency across screens, as the Architect instructed. Decision needed: accept this, or number per board view (which would break agreement between screens).
+- Workspace-wide activity (listWorkspaceActivity) has no single project, so its actors are not numbered. A same-name pair can look identical there. Decision needed.
+- Project overview assignee and activity rows (project-overview.ts) are not PersonDisplay objects in the contract, so they are not numbered either. Adding nameSuffix to that shape is a contract change.

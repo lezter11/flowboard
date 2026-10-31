@@ -1,3 +1,4 @@
+import { projectNameSuffixes, withNameSuffix } from '../services/person-suffix.ts';
 import crypto from 'node:crypto';
 import type pg from 'pg';
 import {
@@ -324,6 +325,8 @@ export async function listProjectTrash(
   options?: { limit?: number | undefined; cursor?: string | undefined; authorizedBoardIds?: string[] | undefined } | undefined,
 ): Promise<ListTrashResult> {
   const pool = clientOrPool ?? getPool();
+  // Same-name numbers over the project's active members, computed once for this page (B-23).
+  const trashSuffixes = await projectNameSuffixes(pool, projectId);
 
   // 1. Authorization check
   const role = await resolveProjectRole(projectId, actorId, pool);
@@ -452,7 +455,7 @@ export async function listProjectTrash(
     }
 
     const actorDisplay: PersonDisplay | undefined = row.actor_id
-      ? {
+      ? withNameSuffix<PersonDisplay>({
           id: row.actor_id,
           displayName: row.actor_name ?? 'Teammate',
           avatarUrl: row.actor_avatar ?? null,
@@ -460,7 +463,7 @@ export async function listProjectTrash(
           scopedRole: 'manager',
           assignable: true,
           mentionable: true,
-        }
+        }, trashSuffixes)
       : undefined;
 
     return {
