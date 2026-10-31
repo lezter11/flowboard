@@ -9,6 +9,7 @@ import { Topbar } from './topbar';
 import { ShellProvider, useShell } from './shell-context';
 import { ToastProvider } from '@/components/ui/toasts';
 import { PollBanner } from '@/components/polling';
+import { NameStep } from '@/components/auth/name-step';
 import { HoverTip } from '@/components/ui/hover-tip';
 
 const BARE_ROUTES = ['/signin', '/invitation', '/invitations/accept', '/all-work'];
@@ -59,6 +60,9 @@ function Frame({ children }: { children: ReactNode }) {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const { state } = useSession();
+  // A signed-in person without a saved name sees the name step before any other screen (the invitation page does it itself).
+  if (state.status === 'ready' && state.session.needsName && pathname !== '/invitations/accept' && pathname !== '/invitation') return <NameStep session={state.session} />;
   if (BARE_ROUTES.includes(pathname)) return <>{children}</>;
   return (
     <ShellProvider>

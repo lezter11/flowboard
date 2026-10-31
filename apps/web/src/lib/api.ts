@@ -24,6 +24,8 @@ import {
   type UpdateProjectMemberInput,
   type UpdateProjectInput,
   type UpdateProfileInput,
+  type SaveNameInput,
+  type SaveNameResponse,
   type UpdateBoardInput,
   type BoardSnapshotResponse,
   type BoardSnapshotQuery,
@@ -121,6 +123,10 @@ function putBytes(path: string, blob: Blob, opts: { onProgress?: (fraction: numb
 }
 
 export const api = {
+  /** First and last name (B-16). Setting a value is idempotent, so no Idempotency-Key. */
+  async saveName(input: SaveNameInput): Promise<SaveNameResponse> {
+    return request<SaveNameResponse>('/api/v1/session/name', { method: 'PATCH', body: JSON.stringify(input) });
+  },
   /** Own display name only. Setting a value is idempotent, so no Idempotency-Key. */
   async updateProfile(input: UpdateProfileInput): Promise<void> {
     await request<unknown>('/api/v1/session/profile', { method: 'PATCH', body: JSON.stringify(input) });

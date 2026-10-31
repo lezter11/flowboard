@@ -1,0 +1,15 @@
+/* "What should we call you?" step. Reuses the invitation plum shell; motion only under no-preference. */
+.name-card { max-width: 520px; }
+.name-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.name-form .control { min-height: 42px; font-size: 14px; }
+.name-form .field-label { font-size: 12px; }
+.name-form .form-error { font-size: 12.5px; }
+.name-hint { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.45; }
+.name-art .art-ring { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 2.5; }
+@media (max-width: 480px) {
+  .name-fields { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .name-art { animation: art-float 3.6s ease-in-out infinite; }
+  .name-form .control { transition: border-color 140ms ease, box-shadow 140ms ease; }
+}

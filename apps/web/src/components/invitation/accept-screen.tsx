@@ -8,6 +8,8 @@ import { api, ApiError } from '@/lib/api';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { Wordmark } from '@/components/ui/wordmark';
+import { NameStep } from '@/components/auth/name-step';
+import { NAME_REQUIRED_CODE } from '@flowboard/contracts';
 import { acceptedCopy, createTapCounter, invitationSignInHref, motionAllowed, pickGreeting, signedInAsLine } from '@/lib/invitation-fx';
 
 const REDUCED_QUERY = '(prefers-reduced-motion: reduce)';
@@ -108,6 +110,8 @@ function AcceptScreen() {
   const signedInAs = state.status === 'ready' ? signedInAsLine(state.session.actor.email) : null;
   const [greeting, setGreeting] = useState(pickGreeting(0));
   useEffect(() => { setGreeting(pickGreeting(Math.random())); }, []);
+  const retryAfterName = useRef(false);
+  const needsName = state.status === 'ready' && state.session.needsName;
   const accept = async () => {
     const token = tokenRef.current;
     if (!token) return;
@@ -118,12 +122,25 @@ function AcceptScreen() {
       await queryClient.invalidateQueries({ queryKey: ['session'] });
       setOutcome({ kind: 'accepted', projectId: res.data.projectId, role: res.data.role });
     } catch (error) {
+      // No name saved yet: send the person to the name step, keep the link in memory and accept again once it is saved.
+      if (error instanceof ApiError && error.code === NAME_REQUIRED_CODE) {
+        retryAfterName.current = true;
+        setOutcome({ kind: 'idle' });
+        await queryClient.invalidateQueries({ queryKey: ['session'] });
+        return;
+      }
       const next = outcomeFor(error);
       // A wrong-account answer keeps the link usable: the person can switch accounts and accept without opening the email again.
       if (next.kind !== 'error' && next.kind !== 'mismatch') tokenRef.current = null;
       setOutcome(next);
     }
   };
+
+  useEffect(() => {
+    if (!needsName && retryAfterName.current && tokenRef.current) { retryAfterName.current = false; void accept(); }
+    // accept only reads refs and the stable query client
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsName]);
 
   const openRef = useRef<HTMLAnchorElement>(null);
   useEffect(() => { if (outcome.kind === 'accepted') openRef.current?.focus(); }, [outcome.kind]);
@@ -136,6 +153,9 @@ function AcceptScreen() {
     if (outcome.kind === 'invalid' || hasToken === false) return { status: 'invalid', title: 'This invitation link is not valid.', copy: 'The link may be incomplete, already used, or replaced by a newer invitation. Ask an Owner or Manager for a new one.' };
     return { status: 'valid', title: 'You have been invited to a project.', copy: 'Accept to join with the account you are signed in with. It takes one click.' };
   })();
+
+  // The name step comes first. The component stays mounted, so the one-time link held in memory survives it.
+  if (state.status === 'ready' && needsName) return <NameStep session={state.session} />;
 
   return (
     <div className="invite-shell">
