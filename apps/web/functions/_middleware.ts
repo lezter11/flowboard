@@ -9,7 +9,8 @@
 // Redirects are Cache-Control: no-store. The client gate in components/shell/session-gate.tsx
 // covers in-app navigation, where no page request reaches this file.
 
-import { APP_ROUTES, locationPath, signinPathFor } from '../src/lib/return-path';
+import { APP_ROUTES, signinPathFor } from '../src/lib/return-path';
+import { chooseLanding } from '../src/lib/landing-rule';
 
 interface ApiFetcher {
   fetch(request: Request): Promise<Response>;
@@ -51,16 +52,14 @@ async function callApi(env: Env, request: Request, path: string, cookie: string)
   return null;
 }
 
-interface SessionProject { id: string; isArchived?: boolean }
+interface SessionProject { id: string; isArchived?: boolean; isOwned?: boolean; role?: string }
 interface LastLocation { projectId: string; boardId: string | null }
 
-/** Where a valid session lands: its remembered location, else the only project/board it can open, else the projects hub. */
+/** Where a valid session lands: its remembered location, else the projects hub on first run when it owns no project, else the only project/board it can open, else the projects hub (rule: src/lib/landing-rule.ts, shared with the client). */
 async function landingPath(env: Env, request: Request, cookie: string, projects: SessionProject[], last: LastLocation | null): Promise<string> {
-  const remembered = locationPath(last);
-  if (remembered) return remembered;
-  const open = projects.filter((p) => !p.isArchived);
-  if (open.length !== 1) return '/projects';
-  const projectId = open[0]!.id;
+  const choice = chooseLanding(projects, last);
+  if ('to' in choice) return choice.to;
+  const projectId = choice.singleProject;
   const res = await callApi(env, request, `/api/v1/projects/${encodeURIComponent(projectId)}/boards`, cookie);
   if (res?.ok) {
     const body = (await res.json().catch(() => null)) as { data?: Array<{ id: string; isArchived?: boolean }> } | Array<{ id: string; isArchived?: boolean }> | null;
