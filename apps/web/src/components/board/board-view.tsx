@@ -219,7 +219,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
     },
     onError: (error, _vars, context) => {
       if (context?.previous) queryClient.setQueryData(['board', context.id], context.previous);
-      toastFailure(toast, error);
+      toastFailure(toast, error, { role, projectName: project?.name });
     },
     onSettled: (_data, _error, vars) => refresh(vars.boardId),
   });
@@ -253,7 +253,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
               nextCardId: origin.nextCardId,
               expectedVersion: latest?.version ?? card.version + 1,
               expectedBoardVersion: structure,
-            }).then(() => { toast('Move undone.'); refresh(id); }).catch((error) => { toastFailure(toast, error); refresh(id); });
+            }).then(() => { toast('Move undone.'); refresh(id); }).catch((error) => { toastFailure(toast, error, { role, projectName: project?.name }); refresh(id); });
           },
         });
       },
@@ -299,7 +299,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
           const board = snapOf(info.id)?.board ?? info.snap.board;
           api.softDeleteCard(res.data.id, { expectedVersion: res.data.version ?? 1, expectedBoardVersion: board.structureVersion })
             .then(() => { toast('Card removed.'); refresh(info.id); })
-            .catch((error) => { toastFailure(toast, error); refresh(info.id); });
+            .catch((error) => { toastFailure(toast, error, { role, projectName: project?.name }); refresh(info.id); });
         },
       });
     } catch (error) {

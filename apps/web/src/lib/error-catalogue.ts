@@ -87,7 +87,9 @@ function readOnly(f: Failure, c: Ctx) {
   const board = c.boardName ? `“${c.boardName}”` : 'This board';
   const project = c.projectName ? `“${c.projectName}”` : 'This project';
   if (reason === 'board_archived') return { title: `${board} is archived`, body: isOwner(c) ? 'Archived boards are read-only. Restore it in board settings, or use another board.' : `Archived boards are read-only. Ask ${owner(c)} to restore it, or use another board.`, action: null };
-  return { title: `${project} is archived`, body: isOwner(c) ? 'Reopen it in Settings to make changes.' : `Ask ${owner(c)} to reopen it.`, action: isOwner(c) ? 'settings' as ActionKind : null };
+  if (reason === 'project_archived') return { title: `${project} is archived`, body: isOwner(c) ? 'Reopen it in Settings to make changes.' : `Ask ${owner(c)} to reopen it.`, action: isOwner(c) ? 'settings' as ActionKind : null };
+  // The server did not say which: do not guess between the project and the board.
+  return { title: 'This is archived', body: isOwner(c) ? 'Archived projects and boards are read-only. Reopen it in Settings to make changes.' : `Archived projects and boards are read-only. Ask ${owner(c)} to reopen it.`, action: isOwner(c) ? 'settings' as ActionKind : null };
 }
 
 function assigneeRefused(f: Failure, c: Ctx) {

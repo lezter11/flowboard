@@ -101,3 +101,19 @@ test('rate limit: seconds, minutes, and the Retry-After header as a fallback', (
   assert.match(describeFailureOf(f('RATE_LIMITED', 429, { retryAfter: 120 })).body, /about 2 minutes/);
   assert.match(describeFailureOf(f('RATE_LIMITED', 429)).body, /Wait a moment/);
 });
+
+test('read-only without a reason does not guess between project and board', () => {
+  const d = describeFailureOf(f('READ_ONLY_CONTEXT', 409), { role: 'member', ownerName: 'Olivia Owner' });
+  assert.equal(d.title, 'This is archived');
+  assert.match(d.body, /Ask Olivia Owner to reopen it/);
+  assert.equal(describeFailureOf(f('READ_ONLY_CONTEXT', 409), { role: 'owner' }).action?.kind, 'settings');
+});
+
+test('quota copy always names the limit and only shows a count the server sent', () => {
+  const owned = describeFailureOf(f('QUOTA_EXCEEDED', 409, { details: { scope: 'owned_projects', limit: 3, remedy: 'archive_project' } }), { role: 'owner' });
+  assert.deepEqual((owned.title + owned.body).match(/\d+/g), ['3']);
+  const withCount = describeFailureOf(f('QUOTA_EXCEEDED', 409, { details: { scope: 'owned_projects', limit: 3, current: 3, remedy: 'archive_project' } }), { role: 'owner' });
+  assert.deepEqual((withCount.body).match(/\d+/g), ['3', '3']);
+  const members = describeFailureOf(f('QUOTA_EXCEEDED', 409, { details: { scope: 'members', limit: 50, remedy: 'remove_member' } }), { role: 'owner' });
+  assert.match(members.body, /up to 50 members|50 members/);
+});
