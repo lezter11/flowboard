@@ -1210,3 +1210,64 @@ UAT only. Production not touched. Nothing pushed by the Deployment chat (the Arc
 - Authenticated flows: sign-in, workspace and project creation, the limits (3 owned projects, 5 boards, backstops 20 and 25), the name step, Leave project, and the resend limits. These are for the user, with synthetic data.
 - The production schedule and production state: untouched and not in scope.
 - The D-18 invitation proof is still open (it was not completed before D-21).
+
+## D-22: UAT deploy of e0f5a16 (S-23 assignee people pickers, mentions with cardId and full names, numbered names, PersonDisplay.nameSuffix)
+
+UAT only. Production not touched. Nothing pushed by the Deployment chat (the Architect pushes). No migrations in range (`git diff --name-only 6d9f5b1 e0f5a16 -- database/migrations` is empty); the database was not touched.
+
+### Contents since D-21
+
+- `dbf6d8c`: assignee pickers load the project's people (S-23).
+- `8be2838`: mentions send `cardId` and show full names.
+- `3f5d577`: numbered names for same-name people on the web.
+- `43e0cb0` and `e0f5a16`: the API side of numbered names and contracts (`PersonDisplay.nameSuffix`); no email is sent in any person payload.
+
+### Rollback targets (recorded before the deploy, confirmed live)
+
+- Worker `flowboard-api-uat`: `651cb421-d3b2-4a7d-a619-ddc8c11a97ef` (100%, from D-21).
+- Pages `flowboard-app-uat`: `00a57d29-6d72-4240-a22c-5affbea5ba10` (commit `e479b57`, from D-21).
+
+### Build and deploy (clean worktree at e0f5a16)
+
+- Source: a clean detached worktree (`scratchpad/d16`) at `e0f5a16`. 0 tracked and 0 untracked changes before the build and after it. The shared tree (with `apps/api/api6.log`, `apps/web/web8.log`, and similar files) was not used.
+- `FB_LIMIT_*` variables: none set (the config has only comments mentioning them).
+- Worker `flowboard-api-uat`: `npx wrangler deploy --env uat`. Version `bb01e069-93ad-46d9-b8fd-9be787a6eb97` (100%). Cron `*/15 * * * *`.
+- Pages `flowboard-app-uat`: `NEXT_EXPORT=true npm run build` (no `NEXT_PUBLIC_API_URL`), staged with `scripts/stage-pages-functions.mjs` (6 files), deployed to branch `main` with commit hash `e0f5a16`. Deployment `44355e10-9f0b-4a21-b47d-20596d86cad8` (`https://44355e10.flowboard-app-uat.pages.dev`).
+
+### Tests (real counts, at e0f5a16, clean worktree)
+
+- Typecheck API: pass. Typecheck web: pass.
+- API: 660 tests, 644 pass, 0 fail, 16 skipped.
+- Access suite: ran. The log shows the named suites `INV-06 & INV-07: Change Member Roles & Remove Project Access Suite` and `default landing board: owner-only set, board checks and access-safe reads`, and the board-access and grants test files are among the 660 tests.
+- Contracts: 108 of 108 pass.
+- Web: 197 of 197 pass.
+- Web build (export) passed.
+
+### Build provenance
+
+- The Pages `out/` was built from the clean worktree at `e0f5a16`, and the staged copy was deployed unchanged.
+- Live chunks match the build byte for byte (SHA-256 prefix): `app/layout-55ceae62dc007281.js` (`748032604b5431f3`), `app/projects/page-1bed784bfc6c61f8.js` (`6e4e147771382307`), `app/add-card/page-88f7807c809f6650.js` (`b1de9446859ff0f0`), `app/activity/page-229104933ea3a8f7.js` (`3cc4aa7691a31017`), `app/board/page-1ed3af86600441ae.js` (`1848106b025ab813`).
+
+### Smoke tests (unauthenticated; no sign-in; no data created; no secrets printed)
+
+- Worker `/health/ready` 200, `/health/live` 200.
+- `GET /api/v1/session` on the Pages host: 401, `cache-control: no-store`.
+- `GET /api/v1/projects` with no session: 401. `POST /api/v1/workspaces` with no session: 401 (not 5xx).
+- `/signin`: `content-security-policy` present.
+- `/email/flowboard-lockup-dark.png` and `/email/invite-board-hero.png`: 200 `image/png`.
+- S-23 strings in the live bundle, each checked by fetching the chunk and matching its build bytes: `Loading people…` (`app/add-card` and `app/board` chunks), `Former member` (`app/activity` and `app/board`), `No one matches.` (`app/board`), and `Could not load people for this card` (`app/board` only).
+- S-22 strings in the live bundle: `Shared with you` (in `app/layout` and `app/projects/page`, both byte-identical to the build).
+- `dev-login`: 0 matches in the whole build output, so no `dev-login` code is in the bundle.
+
+### Scheduled tick and invitation proof (carried over from D-21)
+
+- D-21 tick: verified. The `*/15` tick at 09:00 UTC on Worker `651cb421` ran with outcome `ok` and no exceptions (524 events in the tail window). Tail output: `d21-tail.log` in the scratchpad.
+- D-21 invitation proof: **not done.** The tail from 08:48 to 09:07 UTC has no POST requests and no invitation calls, so no invitation was sent in that window. The reason-code log line and the settled outbox row are still unverified.
+- D-22 tick (`*/15`, expected 09:15 UTC): not observed in this addendum.
+
+### Not verified
+
+- The invitation timing proof (D-21 and D-22): needs one signed-in invitation from the user, then a reason-code log line within seconds and an outbox row settled before the next tick.
+- Signed-in S-23 behaviour: assignee pickers with real people, mention send with `cardId`, full names in mentions, numbered names for same-name people, and that no email appears in any person payload.
+- The D-22 `*/15` tick outcome.
+- Production: untouched and not in scope. Production remains on `810e8e4b` (Worker) and `6da2354a` (Pages), from D-19.
