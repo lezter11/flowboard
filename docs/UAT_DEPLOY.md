@@ -966,3 +966,51 @@ Deployed by the Deployment chat on the Architect's instruction, with the user's 
 - Log tail `wrangler tail --env uat --format json` started at 04:47:53 UTC; output in the scratchpad (`d18-tail.log`).
 - Needed: one synthetic invitation sent from a signed-in browser by the user; a log line with the delivered reason code within seconds; the outbox row settled before the next `*/15` tick (05:00 UTC).
 - Not done when this addendum was written. The result is recorded below when checked.
+
+## D-19: production deploy of ee1c921 (status: BLOCKED before any production change; not deployed)
+
+Requested by the Architect with the user's go ("complete all the prod deployment"). The Deployment chat did not deploy to production. The auto-mode classifier denied the first production action (creating the bucket `flowboard-images-prod`), so the steps below were not run. Nothing was pushed.
+
+### Gate check
+
+- D-18 (UAT) smoke: clean (see the D-18 addendum). The D-18 invitation proof is still open: the user has not sent the signed-in invitation, and the UAT log tail (`d18-tail.log`) is empty. This is recorded as an open item, not as a pass.
+
+### Rollback targets (production, read-only, recorded)
+
+- Worker `flowboard-api` (top level): `d93ad124-360a-427c-ab60-1f5b6a34a9f1`, 100%.
+- Pages `flowboard-app`: newest production deployment `af89478d-f241-491e-9289-6f0f20e955a1`, commit `6120e51`, branch `main` (listed first by `pages deployment list`). The previous production deployment is `bf88fa29-cd64-4e34-bcda-0b33d10a0738` (same commit).
+
+### Schema
+
+- Not re-read here. This Deployment chat has no production database connection, and the Architect reported `schema_migrations` 0008 to 0017 (9 migrations, clean). Do not run migrations again.
+
+### Config committed
+
+- `61cbafd`: top-level `vars` in `apps/api/wrangler.jsonc` now set `APP_ORIGIN=https://flowboard-app.pages.dev`, `MAIL_FROM_NAME=Flowboard`, `MAIL_FROM_EMAIL` (the same sender as UAT). No secret values.
+- The IMAGES binding (`flowboard-images-prod`) is **not** added: the bucket does not exist yet, and a binding to a missing bucket would fail the deploy.
+- `NODE_ENV` and `DEV_LOGIN_ENABLED` do not appear in `wrangler.jsonc`.
+
+### Bucket
+
+- `npx wrangler r2 bucket create flowboard-images-prod` was **denied by the auto-mode classifier** (reason: production deploy). Not created. Nothing was retried through another route.
+
+### Secrets (names only, production)
+
+- Present: `CURSOR_SECRET`, `DEV_LOGIN_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
+- Absent: `BREVO_API_KEY` (accepted by the user for now: the mailer returns null, and invitation outbox rows stay pending until the key is added; the cron then drains them).
+
+### Tests (real counts, at `ee1c921`, the production commit)
+
+- Typecheck API: pass. Typecheck web: pass.
+- API: 589 tests, 570 pass, 3 fail, 16 skipped. The same 3 image tests as D-18 fail (pre-existing at `4bb656b`).
+- Contracts: 101 of 101 pass.
+- Web: 129 of 129 pass.
+
+### Not done
+
+- Production Worker deploy, production Pages deploy, smoke tests and the scheduled-tick check: not run (blocked by the classifier denial above).
+- Accepted by the user for now (no change): runtime database role is still `neondb_owner` (role split deferred until the user sets passwords); no uptime alert yet.
+
+### Resume
+
+To continue, the user needs to approve the production actions in their own terminal or in the permission prompt, and then the Deployment chat runs, in order: create `flowboard-images-prod` (private, no r2.dev, no custom domain), add the top-level `r2_buckets` IMAGES binding, deploy the Worker, deploy the Pages `flowboard-app` build (staged as in D-16, no `NEXT_PUBLIC_API_URL`), then the unauthenticated smoke tests, then the scheduled-tick check on a `*/5` tick.
