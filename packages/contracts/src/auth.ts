@@ -23,6 +23,8 @@ export type SessionWorkspaceSummary = z.infer<typeof sessionWorkspaceSummarySche
 export const sessionProjectSummarySchema = z.object({
   id: z.string().min(1),
   workspaceId: z.string().min(1),
+  // Optional, additive (B-17). True when the caller owns the project's workspace. Drives Yours and Shared with you.
+  isOwned: z.boolean().optional(),
   name: z.string().trim().min(1).max(100),
   description: z.string().max(2000).nullable(),
   // Optional, additive: set only when the caller can read that board, else null.
@@ -104,11 +106,23 @@ export type SaveNameResponse = z.infer<typeof saveNameResponseSchema>;
 /** The error code for an invitation accept while the user still has to save a name (HTTP 409). */
 export const NAME_REQUIRED_CODE = 'NAME_REQUIRED';
 
+// Effective limits for the signed-in user (B-17, B-18). The UI reads these and never hardcodes 3 or 5.
+// Additive and optional: the API always sends it on GET /api/v1/session.
+export const sessionLimitsSchema = z.object({
+  ownedProjects: z.object({ limit: z.number().int().positive(), used: z.number().int().nonnegative() }),
+  boardsPerProject: z.object({ limit: z.number().int().positive() }),
+  membersPerProject: z.object({ limit: z.number().int().positive() }),
+  pendingInvitationsPerProject: z.object({ limit: z.number().int().positive() }),
+});
+export type SessionLimits = z.infer<typeof sessionLimitsSchema>;
+
 export const sessionDataSchema = z.object({
   actor: sessionActorSchema,
   ownedWorkspaces: z.array(sessionWorkspaceSummarySchema),
   accessibleProjects: z.array(sessionProjectSummarySchema),
   lastLocation: lastLocationSchema.nullable().optional(),
+  // Optional, additive (B-17). Effective limits, so the UI never hardcodes them.
+  limits: sessionLimitsSchema.optional(),
   // True until the user saves a first and last name (name_confirmed_at is null). Google's given and
   // family name are suggestions only: they arrive as suggestedFirstName and suggestedLastName.
   needsName: z.boolean(),
@@ -144,3 +158,4 @@ export const updateProfileInputSchema = z
   })
   .strict();
 export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
+

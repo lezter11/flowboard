@@ -242,3 +242,14 @@ export type ProjectAccessSummary = z.infer<typeof projectAccessSummarySchema>;
 
 export const projectAccessSummaryResponseSchema = createDataEnvelopeSchema(projectAccessSummarySchema);
 export type ProjectAccessSummaryResponse = z.infer<typeof projectAccessSummaryResponseSchema>;
+
+// POST /api/v1/projects (B-17): create a project in the caller's own personal workspace. The caller
+// never names a workspace: a workspaceId in the body is refused with 422 (strict). Idempotency-Key is
+// required (scope: actor). Returns 201 { data: Project }, or 200 with replayed: true on a replay.
+export const createOwnProjectInputSchema = createProjectInputSchema.strict();
+export type CreateOwnProjectInput = z.infer<typeof createOwnProjectInputSchema>;
+export const createOwnProjectResponseSchema = z.object({
+  data: projectSchema,
+  replayed: z.boolean().optional(),
+});
+export type CreateOwnProjectResponse = z.infer<typeof createOwnProjectResponseSchema>;
