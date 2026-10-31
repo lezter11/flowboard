@@ -4,7 +4,10 @@ import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { TrashRow } from '@flowboard/contracts';
-import { api } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
+import { ErrorNote } from '@/components/ui/error-note';
+import { DialogLayer } from '@/components/ui/dialog-layer';
+import { defaultRestoreColumn, restoreColumns, trashEmptyState, type ColumnOption } from '@/lib/restore-destination';
 import { toastFailure } from '@/lib/toast-failure';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole } from '@/lib/roles';
@@ -53,19 +56,35 @@ export default function TrashPage() {
   const restorable = rows.filter((r) => remainingOf(r) > 0).length;
   const expiring = rows.filter((r) => windowState(remainingOf(r)) === 'soon').length;
 
+  // A card whose column was deleted needs a destination: the picker opens, preselecting the first column.
+  const [pick, setPick] = useState<{ row: TrashRow; columns: ColumnOption[]; columnId: string } | null>(null);
+  const [pickFailure, setPickFailure] = useState<unknown>(null);
   const restore = useMutation({
-    mutationFn: (row: TrashRow) => api.restoreCard(row.id, { expectedVersion: row.version, expectedBoardVersion: row.structureVersion }),
-    onSuccess: (_d, row) => { toast(`“${row.title}” restored`, { icon: 'restore' }); void queryClient.invalidateQueries({ queryKey: ['trash'] }); void queryClient.invalidateQueries({ queryKey: ['board'] }); },
-    onError: (error) => { toastFailure(toast, error); void queryClient.invalidateQueries({ queryKey: ['trash'] }); },
+    mutationFn: (arg: { row: TrashRow; toColumnId?: string }) => api.restoreCard(arg.row.id, { expectedVersion: arg.row.version, expectedBoardVersion: arg.row.structureVersion, ...(arg.toColumnId ? { toColumnId: arg.toColumnId } : {}) }),
+    onSuccess: (_d, { row }) => { setPick(null); setPickFailure(null); toast(`“${row.title}” restored`, { icon: 'restore' }); void queryClient.invalidateQueries({ queryKey: ['trash'] }); void queryClient.invalidateQueries({ queryKey: ['board'] }); },
+    onError: async (error, { row, toColumnId }) => {
+      void queryClient.invalidateQueries({ queryKey: ['trash'] });
+      if (error instanceof ApiError && (error.code === 'RESTORE_DESTINATION_REQUIRED' || (toColumnId && error.code === 'INVALID_DESTINATION'))) {
+        let columns = restoreColumns(error.details, undefined);
+        if (!columns.length) {
+          try { columns = restoreColumns(undefined, (await api.getBoardSnapshot(row.boardId, { cardLimitPerColumn: 1 })).data.columns); } catch { /* the picker explains below */ }
+        }
+        setPickFailure(toColumnId ? error : null);
+        setPick({ row, columns, columnId: defaultRestoreColumn(columns) });
+        return;
+      }
+      toastFailure(toast, error, { item: row.title, role: normalizeRole(project?.role), boardName: boardName(row.boardId) });
+    },
   });
 
-  if (state.status === 'ready' && projects.length === 0) {
+  const empty = trashEmptyState({ ready: state.status === 'ready', projects: state.status === 'ready' ? state.session.accessibleProjects.length : 0, manageable: projects.length });
+  if (empty === 'no-projects' || empty === 'not-allowed') {
     return (
       <div className="recovery-denied">
         <div className="ph-empty">
-          <span className="ph-empty-mark" aria-hidden="true"><Icon name="lock" /></span>
-          <h3>Trash is unavailable</h3>
-          <p>Only project owners and managers can view deleted cards.</p>
+          <span className="ph-empty-mark" aria-hidden="true"><Icon name={empty === 'no-projects' ? 'folder' : 'lock'} /></span>
+          <h3>{empty === 'no-projects' ? 'You have no projects yet' : 'Trash is for Owners and Managers'}</h3>
+          <p>{empty === 'no-projects' ? 'Deleted cards from your projects will show up here.' : 'Ask an Owner or Manager if a card was deleted by mistake.'}</p>
           <Link className="btn" href="/projects">Browse projects</Link>
         </div>
       </div>
@@ -96,7 +115,7 @@ export default function TrashPage() {
         <div className="recovery-results"><span aria-live="polite">{needle ? `${filtered.length} matching ${filtered.length === 1 ? 'card' : 'cards'}` : 'All deleted cards'}</span><span>Nearest deadline first</span></div>
         <div id="trashList">
           {trash.isPending && project && <div className="recovery-empty"><strong>Loading…</strong></div>}
-          {trash.isError && <div className="recovery-empty" role="alert"><strong>{describeError(trash.error)}</strong></div>}
+          {trash.isError && <ErrorNote error={trash.error} ctx={{ role: normalizeRole(project?.role) }} onRetry={() => void trash.refetch()} />}
           {trash.isSuccess && filtered.length === 0 && (
             <div className="recovery-empty"><Icon name="trash" /><strong>{needle ? 'No matching cards' : 'Trash is empty'}</strong><span>{needle ? 'Try a different search.' : 'No deleted cards in this project.'}</span>{needle && <button type="button" onClick={() => setQ('')}>Clear filters</button>}</div>
           )}
@@ -114,13 +133,36 @@ export default function TrashPage() {
                   <div className="item-deadline"><Icon name="calendar" /><span>Deleted {dateTime(row.deletedAt)}</span><span aria-hidden="true">·</span><span>Deadline {dateTime(row.restoreUntil)}</span></div>
                 </div>
                 <div className="item-window"><span className="window-status"><Icon name="clock" />{label}</span><strong>{timeLeft(remaining)}</strong><span className="window-track" aria-hidden="true"><span style={{ width: `${pct}%` }} /></span></div>
-                <button className="restore-preview" type="button" disabled={!row.canRestore || restore.isPending} title={row.blockedReason ? `Cannot restore: ${row.blockedReason.replace(/_/g, ' ')}` : undefined} onClick={() => restore.mutate(row)}><Icon name="restore" /> Restore</button>
+                <button className="restore-preview" type="button" disabled={!row.canRestore || restore.isPending} title={row.blockedReason ? `Cannot restore: ${row.blockedReason.replace(/_/g, ' ')}` : undefined} onClick={() => restore.mutate({ row })}><Icon name="restore" /> Restore</button>
               </article>
             );
           })}
         </div>
       </section>
       <p className="recovery-foot"><Icon name="info" />Restored cards return to their original board. Times use the server clock.</p>
+      <DialogLayer open={!!pick} onClose={() => { if (!restore.isPending) setPick(null); }} labelledBy="restoreTitle" describedBy="restoreCopy">
+        {pick && (
+          <>
+            <div className="dialog-head"><div className="dialog-head-copy"><h2 id="restoreTitle">Pick a column to restore into</h2><p id="restoreCopy">“{pick.row.title}” was in a column that no longer exists. Choose where it should go.</p></div></div>
+            <div className="dialog-body">
+              {pick.columns.length > 0 ? (
+                <div className="dialog-field">
+                  <label htmlFor="restoreColumn">Column</label>
+                  <select className="control" id="restoreColumn" data-autofocus value={pick.columnId} onChange={(event) => setPick({ ...pick, columnId: event.target.value })}>
+                    {pick.columns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+                  </select>
+                </div>
+              ) : <ErrorNote text="This board has no columns to restore into. Add a column on the board, then try again." />}
+              {pickFailure != null && <ErrorNote error={pickFailure} ctx={{ item: pick.row.title }} focusOnMount />}
+            </div>
+            <footer className="dialog-foot">
+              <span className="spacer" />
+              <button className="btn" type="button" onClick={() => setPick(null)} disabled={restore.isPending}>Cancel</button>
+              <button className="btn primary" type="button" disabled={!pick.columnId || restore.isPending} onClick={() => restore.mutate({ row: pick.row, toColumnId: pick.columnId })}>{restore.isPending ? 'Restoring…' : 'Restore card'}</button>
+            </footer>
+          </>
+        )}
+      </DialogLayer>
     </div>
   );
 }
