@@ -20,3 +20,24 @@
   .page-actions:has(.usage-hint) { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
   .usage-hint { order: 2; }
 }
+
+/* Rail project switcher */
+.rail-pswitch { position: relative; z-index: 60; width: 100%; }
+.rail-pswitch .workspace-switch { cursor: pointer; color: var(--ink); background: var(--surface); font: inherit; }
+.rail-pswitch .workspace-switch:hover, .rail-pswitch .workspace-switch[aria-expanded="true"] { background: var(--surface-3); border-color: var(--line-strong); color: var(--ink); }
+.rail-pswitch .workspace-switch:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.workspace-copy strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.workspace-copy { flex: 1; }
+.rail-pswitch-panel { position: absolute; z-index: 40; left: 0; right: 0; top: calc(100% + 6px); width: max(100%, min(280px, calc(100vw - 32px))); right: auto; max-height: min(70vh, 460px); overflow-y: auto; padding: 8px; border: 1px solid var(--line-strong); border-radius: var(--radius-md); background: var(--surface); box-shadow: var(--shadow-lg); }
+.rail-pswitch-panel[hidden] { display: none; }
+.rail-pswitch-panel.is-compact { position: fixed; left: 84px; right: auto; top: 120px; width: 260px; }
+.rail-pswitch-group { margin: 8px 6px 4px; color: var(--muted); font-size: 11px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.rail-pswitch-panel ul { list-style: none; margin: 0; padding: 0; }
+.rail-pswitch-row { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 6px 8px; border-radius: 8px; color: var(--ink); text-decoration: none; font-size: 13px; }
+.rail-pswitch-row:hover, .rail-pswitch-row:focus-visible { background: var(--surface-3); }
+.rail-pswitch-row[aria-current="true"] { background: var(--accent-soft); font-weight: 650; }
+.rail-pswitch-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rail-pswitch-row .role-chip { flex: none; }
+.rail-pswitch-empty { margin: 8px; color: var(--muted); font-size: 13px; }
+.rail-pswitch-foot { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--line); }
+.rail-pswitch-foot .btn { flex: 1; justify-content: center; }

@@ -280,7 +280,7 @@ function SettingsScreen() {
                     <button key={choice} className="theme-card" type="button" aria-pressed={shell.theme === choice} onClick={() => { if (shell.theme !== choice) shell.toggleTheme(); }}>
                       <span className={`theme-preview ${choice}`} aria-hidden="true"><span className="theme-preview-bar" /><span className="theme-preview-body"><span className="theme-preview-col" /><span className="theme-preview-col" /><span className="theme-preview-col" /></span></span>
                       <strong>{choice === 'light' ? 'Light' : 'Dark'}</strong>
-                      <span>{choice === 'light' ? 'A bright, calm workspace.' : 'Softer surfaces for low-light work.'}</span>
+                      <span>{choice === 'light' ? 'A bright, calm look.' : 'Softer surfaces for low-light work.'}</span>
                     </button>
                   ))}
                 </div>

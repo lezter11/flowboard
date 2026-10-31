@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   icons: { icon: [{ url: '/favicon.svg', type: 'image/svg+xml' }], apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }] },
   title: 'Flowboard - Project Portfolio Kanban',
   description:
-    'Production Kanban workspace with unified multi-board visibility, pastel green completion states, and private scoped assets.',
+    'Kanban boards with unified multi-board visibility, pastel green completion states, and private scoped assets.',
 };
 
 export default function RootLayout({

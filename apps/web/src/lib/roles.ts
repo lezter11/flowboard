@@ -1,7 +1,7 @@
 export type Role = 'owner' | 'manager' | 'member' | 'viewer';
 
 export const ROLE_META: Record<Role, { label: string; description: string }> = {
-  owner: { label: 'Owner', description: 'Full workspace and project access' },
+  owner: { label: 'Owner', description: 'Full access to this project, including people and settings' },
   manager: { label: 'Manager', description: 'Runs this project; cannot grant managers' },
   member: { label: 'Member', description: 'Works on cards; no board settings or trash' },
   viewer: { label: 'Viewer', description: 'Read-only, including comments and images' },

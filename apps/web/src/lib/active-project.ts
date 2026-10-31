@@ -5,6 +5,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import { boardQueryOptions } from '@/lib/queries';
 import { normalizeRole, type Role } from '@/lib/roles';
+import { strongestRole } from '@/lib/project-switcher';
 import { useSession } from '@/lib/session';
 import { usePollKeys } from '@/components/polling';
 
@@ -19,18 +20,14 @@ export function useActiveProject() {
   const board = useQuery({ ...boardQueryOptions(boardId), enabled: !!boardId && state.status === 'ready' });
   const projectId = pathname === '/project' ? id : board.data?.board.projectId ?? null;
   const project = projects.find((p) => p.id === projectId) ?? null;
-  const workspace = state.status === 'ready'
-    ? state.session.ownedWorkspaces.find((w) => w.id === project?.workspaceId) ?? state.session.ownedWorkspaces[0] ?? null
-    : null;
   const boards = useQuery({
     queryKey: ['boards', projectId],
     queryFn: async () => (await api.listProjectBoards(projectId!)).data,
     enabled: !!projectId && state.status === 'ready',
   });
   usePollKeys([['boards', projectId]], !!projectId && state.status === 'ready');
-  // Outside a project (e.g. the project list) show the strongest role the actor holds.
-  const ownsWorkspace = state.status === 'ready' && state.session.ownedWorkspaces.length > 0;
-  const strongest = (['owner', 'manager', 'member', 'viewer'] as const).find((r) => ownsWorkspace && r === 'owner' || projects.some((p) => p.role === r));
-  const role: Role = project ? normalizeRole(project.role) : normalizeRole(strongest);
-  return { projectId, project, workspace, role, boardId, boards: boards.data ?? [], board: board.data ?? null, projects };
+  // The role is the one held in this project. Outside a project it is the strongest role held in any project, or none:
+  // owning a project elsewhere grants nothing here, and a person with no projects gets no management navigation.
+  const role: Role | null = project ? normalizeRole(project.role) : strongestRole(projects);
+  return { projectId, project, role, boardId, boards: boards.data ?? [], board: board.data ?? null, projects };
 }

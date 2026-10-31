@@ -13,6 +13,7 @@ import { api } from '@/lib/api';
 import { useBoardHref } from '@/lib/board-target';
 import { useActiveProject } from '@/lib/active-project';
 import { can, ROLE_META } from '@/lib/roles';
+import { ProjectSwitcher } from './project-switcher';
 import { useSession } from '@/lib/session';
 import { usePollKeys } from '@/components/polling';
 import { useShell } from './shell-context';
@@ -56,7 +57,7 @@ export function Rail() {
   const pathname = usePathname();
   const { state } = useSession();
   const shell = useShell();
-  const { workspace, projects, projectId, role, boardId } = useActiveProject();
+  const { project, projects, projectId, role, boardId } = useActiveProject();
   const actor = state.status === 'ready' ? state.session.actor : null;
   const unreadQuery = useQuery({ queryKey: ['notifications'], queryFn: async () => (await api.listNotifications()).data, enabled: state.status === 'ready', staleTime: 30_000 });
   usePollKeys([['notifications']], state.status === 'ready');
@@ -95,13 +96,12 @@ export function Rail() {
     else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
   };
   const close = () => { if (shell.overlay) shell.closeNav(false); };
-  const workspaceName = workspace?.name ?? 'Workspace';
-  const manage = can(role, 'manageBoard');
+  const manage = !!role && can(role, 'manageBoard');
   return (
     <aside
       className={`rail${shell.overlay && shell.navOpen ? ' is-open' : ''}`}
       id="rail"
-      aria-label="Workspace navigation"
+      aria-label="Main navigation"
       aria-hidden={!shell.navVisible}
       inert={!shell.navVisible}
       role={shell.overlay && shell.navOpen ? 'dialog' : undefined}
@@ -118,14 +118,7 @@ export function Rail() {
         </button>
       </div>
 
-      <Link className="workspace-switch" href="/projects" onClick={close} aria-label={`Open ${workspaceName} projects`} data-tip={workspaceName}>
-        <span className="workspace-avatar" aria-hidden="true">{workspaceName.slice(0, 2).toUpperCase()}</span>
-        <span className="workspace-copy">
-          <strong>{workspaceName}</strong>
-          <span>{projects.length} project{projects.length === 1 ? '' : 's'}</span>
-        </span>
-        <Icon name="chevron-down" />
-      </Link>
+      <ProjectSwitcher projects={projects} current={project} compact={compact} onNavigate={close} />
 
       {boardHref.startsWith('/board') && (
         <button className="nav-search" type="button" onClick={openSearch} aria-label="Search cards" aria-keyshortcuts="/" data-tip="Search cards ( / )">
@@ -136,7 +129,7 @@ export function Rail() {
       )}
 
       <nav className="rail-nav" aria-label="Primary" onKeyDown={arrows}>
-        <NavGroup id="workspace" label="Workspace" count={5} closed={!!closedGroups.workspace && !compact} onToggle={toggleGroup}>
+        <NavGroup id="workspace" label="Navigate" count={5} closed={!!closedGroups.workspace && !compact} onToggle={toggleGroup}>
           <NavLink href={boardHref} icon="board" label="Board" tone="thistle" active={pathname === '/board'} onNavigate={close} />
           <NavLink href="/projects" icon="folder" label="Projects" tone="icy" active={pathname === '/projects' || pathname === '/project'} onNavigate={close} />
           <NavLink href="/my-tasks" icon="list" label="My tasks" tone="petal" active={pathname === '/my-tasks'} badge={taskCount} onNavigate={close} />
@@ -163,7 +156,7 @@ export function Rail() {
             <Avatar id={actor.id} name={actor.displayName} />
             <span className="rail-user-copy">
               <strong>{actor.displayName}</strong>
-              <span>{ROLE_META[role].label}</span>
+              {project && role && <span>{ROLE_META[role].label}</span>}
             </span>
             <Icon name="chevron-up" className="icon-sm" />
           </UserMenu>

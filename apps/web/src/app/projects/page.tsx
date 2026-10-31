@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useMemo, useState, type ReactNode } from 'react';
+import { Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { Board, SessionProjectSummary } from '@flowboard/contracts';
@@ -48,7 +48,7 @@ function ProjectsScreen() {
   const tab: 'active' | 'archived' = params.get('tab') === 'archived' ? 'archived' : 'active';
   const view: 'map' | 'list' = params.get('view') === 'list' ? 'list' : 'map';
   const [query, setQuery] = useState('');
-  const [creating, setCreating] = useState(false);
+  const [creating, setCreating] = useState(params.get('new') === '1');
 
   const usage = state.status === 'ready' ? projectUsage(state.session) : null;
   const setParam = (key: string, value: string | null) => {
@@ -56,6 +56,9 @@ function ProjectsScreen() {
     if (value) next.set(key, value); else next.delete(key);
     router.replace(`${pathname}${next.size ? `?${next.toString()}` : ''}`, { scroll: false });
   };
+
+  // ?new=1 (from the project switcher) opens the dialog once and is then removed, so a refresh does not reopen it.
+  useEffect(() => { if (params.get('new') === '1') setParam('new', null); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const activeCount = projects.filter((p) => !p.isArchived).length;
   const archivedCount = projects.length - activeCount;
