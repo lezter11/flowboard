@@ -16,7 +16,8 @@ import {
   type ReorderColumnsInput,
   type DeleteColumnInput,
   type BoardResponse,
-  type CreateProjectInput,
+  type CreateOwnProjectInput,
+  type CreateOwnProjectResponse,
   type CreateBoardInput,
   type AcceptInvitationResponse,
   type ImportStatusResponse,
@@ -197,10 +198,11 @@ export const api = {
     return request<ProjectListResponse>(`/api/v1/workspaces/${encodeURIComponent(workspaceId)}/projects`);
   },
 
-  async createProject(workspaceId: string, input: CreateProjectInput, idempotencyKey?: string): Promise<ProjectResponse> {
-    return request<ProjectResponse>(`/api/v1/workspaces/${encodeURIComponent(workspaceId)}/projects`, {
+  /** Creates a project the caller owns. The server picks the container; the caller never names one. One Idempotency-Key per attempt. */
+  async createOwnProject(input: CreateOwnProjectInput, idempotencyKey: string): Promise<CreateOwnProjectResponse> {
+    return request<CreateOwnProjectResponse>('/api/v1/projects', {
       method: 'POST',
-      headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() },
+      headers: { 'Idempotency-Key': idempotencyKey },
       body: JSON.stringify(input),
     });
   },

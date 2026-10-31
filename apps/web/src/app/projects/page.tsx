@@ -1,16 +1,15 @@
 'use client';
 
-import { Suspense, useMemo, useState, type FormEvent } from 'react';
+import { Suspense, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import type { Board, SessionProjectSummary } from '@flowboard/contracts';
-import { api } from '@/lib/api';
-import { describeError } from '@/lib/errors';
 import { projectMark, projectTone, usePortfolio, type BoardStats } from '@/lib/portfolio';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
-import { DialogLayer } from '@/components/ui/dialog-layer';
-import { useToast } from '@/components/ui/toasts';
+import { NewProjectDialog } from '@/components/project/new-project-dialog';
+import { ROLE_META, normalizeRole } from '@/lib/roles';
+import { projectUsage, splitProjects, usageText } from '@/lib/project-groups';
 
 const NO_STATS: BoardStats = { total: 0, done: 0, open: 0, percent: 0 };
 
@@ -26,24 +25,32 @@ function projectStats(boards: Board[], stats: Map<string, BoardStats | null>): B
   return { ...sum, percent: sum.total ? Math.round((sum.done / sum.total) * 100) : 0 };
 }
 
+function RoleChip({ project }: { project: SessionProjectSummary }) {
+  const role = normalizeRole(project.role);
+  return <span className="role-chip" title={ROLE_META[role].description}><span className="sr-only">Your role: </span>{ROLE_META[role].label}</span>;
+}
+
+function ProjectGroup({ id, title, count, view, children }: { id: string; title: string; count: number; view: 'map' | 'list'; children: ReactNode }) {
+  return (
+    <section className="project-group" aria-labelledby={`${id}Heading`}>
+      <h2 className="project-group-title" id={`${id}Heading`}>{title} <span>{count}</span></h2>
+      <div className={`project-collection ${view === 'list' ? 'project-collection-list' : 'project-collection-map'}`}>{children}</div>
+    </section>
+  );
+}
+
 function ProjectsScreen() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const toast = useToast();
-  const { state, refetch } = useSession();
+  const { state } = useSession();
   const { projects, boardsByProject, statsByBoard, loading } = usePortfolio();
   const tab: 'active' | 'archived' = params.get('tab') === 'archived' ? 'archived' : 'active';
   const view: 'map' | 'list' = params.get('view') === 'list' ? 'list' : 'map';
   const [query, setQuery] = useState('');
   const [creating, setCreating] = useState(false);
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [error, setError] = useState('');
-  const [busy, setBusy] = useState(false);
 
-  const workspaces = state.status === 'ready' ? state.session.ownedWorkspaces : [];
-  const canCreate = workspaces.length > 0;
+  const usage = state.status === 'ready' ? projectUsage(state.session) : null;
   const setParam = (key: string, value: string | null) => {
     const next = new URLSearchParams(params.toString());
     if (value) next.set(key, value); else next.delete(key);
@@ -65,36 +72,103 @@ function ProjectsScreen() {
   const summaryBoards = activeProjects.reduce((n, p) => n + (boardsByProject.get(p.id) ?? []).filter((b) => !b.isArchived).length, 0);
   const summaryCards = activeProjects.reduce((n, p) => n + projectStats(boardsByProject.get(p.id) ?? [], statsByBoard).total, 0);
 
-  const create = async (event: FormEvent) => {
-    event.preventDefault();
-    const trimmed = name.trim();
-    if (!trimmed) { setError('Enter a project name.'); return; }
-    setBusy(true);
-    setError('');
-    try {
-      await api.createProject(workspaces[0]!.id, { name: trimmed, ...(description.trim() ? { description: description.trim() } : {}) });
-      setCreating(false); setName(''); setDescription('');
-      refetch();
-      toast(`Project “${trimmed}” created`, { icon: 'check' });
-    } catch (err) {
-      setError(describeError(err));
-    } finally { setBusy(false); }
+  const signedIn = state.status === 'ready';
+  const renderProject = (project: SessionProjectSummary) => {
+    const boards = (boardsByProject.get(project.id) ?? []).filter((b) => !b.isArchived);
+    const stats = projectStats(boards, statsByBoard);
+    const href = `/project?id=${encodeURIComponent(project.id)}`;
+    const archived = project.isArchived;
+    const tone = projectTone(project.id);
+    if (view === 'list') {
+      return (
+        <article key={project.id} className={`pm-row tone-${tone}${archived ? ' is-archived' : ''}`}>
+          <ProjectMark project={project} />
+          <div className="pm-row-copy"><h3><Link href={href}>{project.name}</Link></h3><p>{project.description || 'No description added.'}</p></div>
+          <div className="pm-row-boards" aria-label={`Boards in ${project.name}`}>
+            {boards.slice(0, 4).map((b) => <Link key={b.id} className={`pm-chip tone-${projectTone(b.id)}`} href={`/board?id=${encodeURIComponent(b.id)}`}><i aria-hidden="true" />{b.name}</Link>)}
+            {boards.length === 0 && <span className="pm-chip is-empty">No boards</span>}
+            {boards.length > 4 && <span className="pm-chip is-empty">+{boards.length - 4}</span>}
+          </div>
+          <div className="pm-row-stats"><span><strong>{stats.total}</strong> cards</span><span><strong>{stats.open}</strong> open</span></div>
+          <span className={`ph-status ${archived ? 'is-archived' : 'is-active'}`}><i aria-hidden="true" />{archived ? 'Archived' : 'Active'}</span>
+          <RoleChip project={project} />
+          <Link className="pm-row-open" href={href} aria-label={`Open ${project.name}`}><Icon name="arrow-right" /></Link>
+        </article>
+      );
+    }
+    const shown = boards.slice(0, 4);
+    const rest = boards.length - shown.length;
+    return (
+      <article key={project.id} className={`pm-project tone-${tone}${archived ? ' is-archived' : ''}`}>
+        <div className="pm-root">
+          <div className="pm-root-head">
+            <ProjectMark project={project} />
+            <div className="pm-root-copy"><h3><Link href={href}>{project.name}</Link></h3><p>{project.description || 'No description added.'}</p></div>
+          </div>
+          <div className="pm-root-stats" aria-label="Project totals">
+            <div><strong>{stats.total}</strong><span>cards</span></div>
+            <div><strong>{stats.open}</strong><span>open</span></div>
+          </div>
+          <div className="pm-meter" role="img" aria-label={`${stats.done} of ${stats.total} cards completed`}><span style={{ width: `${stats.percent}%` }} /></div>
+          <p className="pm-meter-label">{stats.done} of {stats.total} cards completed · {stats.percent}%</p>
+          <div className="pm-root-foot">
+            <span className={`ph-status ${archived ? 'is-archived' : 'is-active'}`}><i aria-hidden="true" />{archived ? 'Archived' : 'Active'}</span>
+            <RoleChip project={project} />
+            <span className="pm-separator" aria-hidden="true" />
+            <span className="pm-root-boards">{boards.length} {boards.length === 1 ? 'board' : 'boards'}</span>
+            <span className="spacer" />
+          </div>
+        </div>
+        <div className="pm-branches">
+          <div className="pm-branches-head"><span className="pm-branches-title">Boards</span><span className="pm-branches-hint">{archived ? 'Read-only while archived' : 'Each board keeps its own workflow and access'}</span></div>
+          {boards.length ? (
+            <ul className="pm-branch-list" aria-label={`Boards in ${project.name}`}>
+              {shown.map((board) => {
+                const s = statsByBoard.get(board.id) ?? NO_STATS;
+                const bhref = `/board?id=${encodeURIComponent(board.id)}`;
+                return (
+                  <li key={board.id} className={`pm-branch tone-${projectTone(board.id)}`}>
+                    <span className="pm-node" aria-hidden="true" />
+                    <div className="pm-branch-copy">
+                      <Link className="pm-branch-name" href={bhref}>{board.name}</Link>
+                      <span className="pm-branch-description">No description added.</span>
+                    </div>
+                    <span className="pm-branch-count">{s.total} {s.total === 1 ? 'card' : 'cards'}<i aria-hidden="true">·</i>{s.open} open</span>
+                    <span className="pm-branch-bar" role="img" aria-label={`${s.done} of ${s.total} cards completed`}><i style={{ width: `${s.percent}%` }} /></span>
+                    {project.role === 'owner' || project.role === 'manager'
+                      ? <span className="pm-branch-access"><Icon name="users" /><span>Full access</span></span>
+                      : <span className="pm-branch-access is-grant"><Icon name="lock" /><span>Granted</span></span>}
+                    <Link className="pm-branch-open" href={bhref} aria-label={`Open ${board.name} board`}><Icon name="arrow-right" /></Link>
+                  </li>
+                );
+              })}
+              {rest > 0 && <li className="pm-branch-more"><span aria-hidden="true">+</span>{rest} more {rest === 1 ? 'board' : 'boards'}</li>}
+            </ul>
+          ) : (
+            <div className="pm-branches-empty"><span className="pm-branches-empty-icon" aria-hidden="true"><Icon name="board" /></span><div><strong>No boards available</strong><p>Open the project to add the first board, or ask an owner for board access.</p></div></div>
+          )}
+          <div className="pm-branches-foot"><Link className="pm-link is-strong" href={href}>Open project<span aria-hidden="true">→</span></Link></div>
+        </div>
+      </article>
+    );
   };
 
-  const signedIn = state.status === 'ready';
-  const emptyTitle = query ? 'No matching projects' : tab === 'archived' ? 'No archived projects' : 'No active projects';
-  const emptyMessage = query ? 'Try another project or board name, or clear your search.' : tab === 'archived' ? 'Archived projects you can access will appear here.' : canCreate ? 'Create a project to gather its related boards in one place.' : 'No project has been shared with you yet. Ask a project owner to add you.';
+  const { yours, shared } = splitProjects(visible);
+  const nothingAtAll = visible.length === 0 && (tab === 'archived' || query !== '' || projects.length === 0);
+  const emptyTitle = query ? 'No matching projects' : tab === 'archived' ? 'No archived projects' : 'Start with your first project';
+  const emptyMessage = query ? 'Try another project or board name, or clear your search.' : tab === 'archived' ? 'Archived projects you can access will appear here.' : 'Projects group related boards. Create your own, and projects other people add you to will appear under Shared with you.';
 
   return (
     <>
       <div className="page-head portfolio-head">
         <div className="page-head-copy">
-          <p className="portfolio-eyebrow">Workspace portfolio</p>
+          <p className="portfolio-eyebrow">Portfolio</p>
           <h1>Projects</h1>
           <p className="page-sub">{signedIn ? `${projects.length} accessible ${projects.length === 1 ? 'project' : 'projects'} · ${state.session.actor.displayName}` : 'Projects group related boards. Your list follows your project access.'}</p>
         </div>
         <div className="page-actions">
-          {canCreate && <button className="btn primary" type="button" onClick={() => { setError(''); setCreating(true); }}><Icon name="plus" />New project</button>}
+          {signedIn && usage && <span className={`usage-hint${usage.atCap ? ' is-full' : ''}`} id="projectUsage">{usageText(usage)}</span>}
+          {signedIn && <button className="btn primary" type="button" aria-describedby={usage ? 'projectUsage' : undefined} onClick={() => setCreating(true)}><Icon name="plus" />New project</button>}
         </div>
       </div>
 
@@ -129,91 +203,36 @@ function ProjectsScreen() {
         <p aria-live="polite">{loading ? 'Loading projects…' : `${visible.length} ${visible.length === 1 ? 'project' : 'projects'}${query ? ' found' : ''}`}</p>
       </div>
 
-      <section id="projectList" className={`project-collection ${view === 'list' ? 'project-collection-list' : 'project-collection-map'}`} role="tabpanel" aria-labelledby={`${tab}ProjectsTab`} tabIndex={0}>
-        {visible.length === 0 && !loading ? (
+      <section id="projectList" role="tabpanel" aria-labelledby={`${tab}ProjectsTab`} tabIndex={0}>
+        {nothingAtAll && !loading ? (
           <div className="ph-empty">
             <span className="ph-empty-mark" aria-hidden="true"><Icon name={tab === 'archived' ? 'archive' : 'folder'} /></span>
             <h3>{emptyTitle}</h3>
             <p>{emptyMessage}</p>
             {query && <button className="btn" type="button" onClick={() => setQuery('')}>Clear search</button>}
+            {!query && tab === 'active' && signedIn && <button className="btn primary" type="button" onClick={() => setCreating(true)}><Icon name="plus" />Create your first project</button>}
           </div>
-        ) : visible.map((project) => {
-          const boards = (boardsByProject.get(project.id) ?? []).filter((b) => !b.isArchived);
-          const stats = projectStats(boards, statsByBoard);
-          const href = `/project?id=${encodeURIComponent(project.id)}`;
-          const archived = project.isArchived;
-          const tone = projectTone(project.id);
-          if (view === 'list') {
-            return (
-              <article key={project.id} className={`pm-row tone-${tone}${archived ? ' is-archived' : ''}`}>
-                <ProjectMark project={project} />
-                <div className="pm-row-copy"><h3><Link href={href}>{project.name}</Link></h3><p>{project.description || 'No description added.'}</p></div>
-                <div className="pm-row-boards" aria-label={`Boards in ${project.name}`}>
-                  {boards.slice(0, 4).map((b) => <Link key={b.id} className={`pm-chip tone-${projectTone(b.id)}`} href={`/board?id=${encodeURIComponent(b.id)}`}><i aria-hidden="true" />{b.name}</Link>)}
-                  {boards.length === 0 && <span className="pm-chip is-empty">No boards</span>}
-                  {boards.length > 4 && <span className="pm-chip is-empty">+{boards.length - 4}</span>}
+        ) : (
+          <>
+            <ProjectGroup id="yours" title="Yours" count={yours.length} view={view}>
+              {yours.length ? yours.map(renderProject) : !loading && (
+                <div className="ph-empty is-compact">
+                  <h3>{query ? 'No matches in your projects' : tab === 'archived' ? 'No archived projects of yours' : 'You do not own a project yet'}</h3>
+                  <p>{query ? 'Try another name.' : tab === 'archived' ? 'Projects you archive wait here until you reopen them.' : 'Create one of your own to organise your own boards. Projects you are invited to stay under Shared with you.'}</p>
+                  {!query && tab === 'active' && signedIn && <button className="btn primary" type="button" onClick={() => setCreating(true)}><Icon name="plus" />New project</button>}
                 </div>
-                <div className="pm-row-stats"><span><strong>{stats.total}</strong> cards</span><span><strong>{stats.open}</strong> open</span></div>
-                <span className={`ph-status ${archived ? 'is-archived' : 'is-active'}`}><i aria-hidden="true" />{archived ? 'Archived' : 'Active'}</span>
-                <Link className="pm-row-open" href={href} aria-label={`Open ${project.name}`}><Icon name="arrow-right" /></Link>
-              </article>
-            );
-          }
-          const shown = boards.slice(0, 4);
-          const rest = boards.length - shown.length;
-          return (
-            <article key={project.id} className={`pm-project tone-${tone}${archived ? ' is-archived' : ''}`}>
-              <div className="pm-root">
-                <div className="pm-root-head">
-                  <ProjectMark project={project} />
-                  <div className="pm-root-copy"><h3><Link href={href}>{project.name}</Link></h3><p>{project.description || 'No description added.'}</p></div>
+              )}
+            </ProjectGroup>
+            <ProjectGroup id="shared" title="Shared with you" count={shared.length} view={view}>
+              {shared.length ? shared.map(renderProject) : !loading && (
+                <div className="ph-empty is-compact">
+                  <h3>{query ? 'No matches in shared projects' : 'Nothing shared with you yet'}</h3>
+                  <p>{query ? 'Try another name.' : 'When someone adds you to their project, it appears here with your role.'}</p>
                 </div>
-                <div className="pm-root-stats" aria-label="Project totals">
-                  <div><strong>{stats.total}</strong><span>cards</span></div>
-                  <div><strong>{stats.open}</strong><span>open</span></div>
-                </div>
-                <div className="pm-meter" role="img" aria-label={`${stats.done} of ${stats.total} cards completed`}><span style={{ width: `${stats.percent}%` }} /></div>
-                <p className="pm-meter-label">{stats.done} of {stats.total} cards completed · {stats.percent}%</p>
-                <div className="pm-root-foot">
-                  <span className={`ph-status ${archived ? 'is-archived' : 'is-active'}`}><i aria-hidden="true" />{archived ? 'Archived' : 'Active'}</span>
-                  <span className="pm-separator" aria-hidden="true" />
-                  <span className="pm-root-boards">{boards.length} {boards.length === 1 ? 'board' : 'boards'}</span>
-                  <span className="spacer" />
-                </div>
-              </div>
-              <div className="pm-branches">
-                <div className="pm-branches-head"><span className="pm-branches-title">Boards</span><span className="pm-branches-hint">{archived ? 'Read-only while archived' : 'Each board keeps its own workflow and access'}</span></div>
-                {boards.length ? (
-                  <ul className="pm-branch-list" aria-label={`Boards in ${project.name}`}>
-                    {shown.map((board) => {
-                      const s = statsByBoard.get(board.id) ?? NO_STATS;
-                      const bhref = `/board?id=${encodeURIComponent(board.id)}`;
-                      return (
-                        <li key={board.id} className={`pm-branch tone-${projectTone(board.id)}`}>
-                          <span className="pm-node" aria-hidden="true" />
-                          <div className="pm-branch-copy">
-                            <Link className="pm-branch-name" href={bhref}>{board.name}</Link>
-                            <span className="pm-branch-description">No description added.</span>
-                          </div>
-                          <span className="pm-branch-count">{s.total} {s.total === 1 ? 'card' : 'cards'}<i aria-hidden="true">·</i>{s.open} open</span>
-                          <span className="pm-branch-bar" role="img" aria-label={`${s.done} of ${s.total} cards completed`}><i style={{ width: `${s.percent}%` }} /></span>
-                          {project.role === 'owner' || project.role === 'manager'
-                            ? <span className="pm-branch-access"><Icon name="users" /><span>Full access</span></span>
-                            : <span className="pm-branch-access is-grant"><Icon name="lock" /><span>Granted</span></span>}
-                          <Link className="pm-branch-open" href={bhref} aria-label={`Open ${board.name} board`}><Icon name="arrow-right" /></Link>
-                        </li>
-                      );
-                    })}
-                    {rest > 0 && <li className="pm-branch-more"><span aria-hidden="true">+</span>{rest} more {rest === 1 ? 'board' : 'boards'}</li>}
-                  </ul>
-                ) : (
-                  <div className="pm-branches-empty"><span className="pm-branches-empty-icon" aria-hidden="true"><Icon name="board" /></span><div><strong>No boards available</strong><p>Open the project to add the first board, or ask an owner for board access.</p></div></div>
-                )}
-                <div className="pm-branches-foot"><Link className="pm-link is-strong" href={href}>Open project<span aria-hidden="true">→</span></Link></div>
-              </div>
-            </article>
-          );
-        })}
+              )}
+            </ProjectGroup>
+          </>
+        )}
       </section>
 
       <footer className="portfolio-footer">
@@ -221,31 +240,7 @@ function ProjectsScreen() {
         <p>Boards stay inside their project. Project access does not reveal sibling projects or automatically grant access to every board.</p>
       </footer>
 
-      <DialogLayer open={creating} onClose={() => setCreating(false)} labelledBy="newProjectTitle" describedBy="newProjectHint" className="wide">
-        <div className="dialog-head">
-          <div className="dialog-head-copy"><h2 id="newProjectTitle">Create a project</h2><p>Give this group of boards a clear name.</p></div>
-          <button className="dialog-close" type="button" onClick={() => setCreating(false)} aria-label="Close create project dialog"><Icon name="x" /></button>
-        </div>
-        <form onSubmit={create} noValidate>
-          <div className="dialog-body">
-            <div className="dialog-field">
-              <label htmlFor="newProjectName">Project name</label>
-              <input className={`control${error && !name.trim() ? ' is-invalid' : ''}`} id="newProjectName" type="text" maxLength={100} autoComplete="off" placeholder="e.g. My Fashion" required data-autofocus value={name} onChange={(event) => setName(event.target.value)} aria-invalid={error && !name.trim() ? true : undefined} />
-            </div>
-            <div className="dialog-field">
-              <label htmlFor="newProjectDescription">Description <span className="faint">(optional)</span></label>
-              <textarea className="control textarea" id="newProjectDescription" maxLength={2000} placeholder="What is this project for?" aria-describedby="newProjectHint" value={description} onChange={(event) => setDescription(event.target.value)} />
-              <p className="hint" id="newProjectHint">Creating a project does not create a board or invite people. Add boards from the project page.</p>
-            </div>
-            {error && <p className="form-error" role="alert">{error}</p>}
-          </div>
-          <footer className="dialog-foot">
-            <span className="spacer" />
-            <button className="btn" type="button" onClick={() => setCreating(false)}>Cancel</button>
-            <button className="btn primary" type="submit" disabled={busy}>{busy ? 'Creating…' : 'Create project'}</button>
-          </footer>
-        </form>
-      </DialogLayer>
+      <NewProjectDialog open={creating} onClose={() => setCreating(false)} usage={usage} />
     </>
   );
 }

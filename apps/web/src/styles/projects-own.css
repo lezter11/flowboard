@@ -1,0 +1,22 @@
+/* Yours / Shared with you, usage hint, role chips and the limit panel. */
+.project-group { margin-top: 22px; }
+.project-group:first-child { margin-top: 0; }
+.project-group-title { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font-size: 15px; font-weight: 650; letter-spacing: -0.01em; color: var(--ink); }
+.project-group-title span { padding: 1px 8px; border-radius: 999px; background: var(--surface-3); color: var(--muted); font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ph-empty.is-compact { min-height: 0; padding: 18px; }
+.ph-empty.is-compact h3 { font-size: 15px; }
+.ph-empty.is-compact p { font-size: 13px; }
+.usage-hint { align-self: center; color: var(--muted); font-size: 13px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.usage-hint.is-full { color: var(--warn); font-weight: 600; }
+.role-chip { white-space: nowrap; }
+.pm-root-foot .role-chip, .pm-row .role-chip { flex: none; }
+.quota-panel { display: flex; gap: 12px; padding: 14px; border: 1px solid color-mix(in srgb, var(--warn) 30%, transparent); border-radius: 12px; background: var(--warn-soft); color: var(--ink); }
+.quota-panel-icon { display: grid; place-items: center; width: 34px; height: 34px; flex: none; border-radius: 10px; background: var(--surface); color: var(--warn); }
+.quota-panel-icon .icon { width: 18px; height: 18px; }
+.quota-panel strong { font-size: 14px; font-weight: 650; }
+.quota-panel p { margin: 4px 0 0; font-size: 13px; line-height: 1.5; color: var(--ink-soft, var(--ink)); }
+.quota-panel .quota-panel-links { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+@media (max-width: 600px) {
+  .page-actions:has(.usage-hint) { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .usage-hint { order: 2; }
+}
