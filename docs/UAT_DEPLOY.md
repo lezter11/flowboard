@@ -1314,3 +1314,41 @@ Production deploy approved by the user directly in this chat (after the Architec
 - The runtime database role is still `neondb_owner` (accepted).
 - No uptime alert on production (accepted).
 - Schema: not re-read by the Deployment chat. The Architect reported migrations 0018 and 0019 applied on production (latest 0019, 19 total).
+
+## D-24: UAT then PRODUCTION deploy of 3a82b24 (no migrations; no database changes by the Deployment chat)
+
+Explicit go: the user in the Architect chat ("Go with UAT and Prod both and then monitor closely"), and the user approved the production deploy directly in this chat. Nothing was pushed by the Deployment chat. The Architect took the Neon backup branch `production-backup-2026-10-31-d24-pre` before this release; the Deployment chat did not create or delete any Neon branch and did not touch the database. Migration range `742f7e0..3a82b24` under `database/migrations` is empty.
+
+### Build (clean detached worktree at 3a82b24, used for UAT and production)
+
+- Source: clean worktree (`scratchpad/d16`) at `3a82b24`, 0 tracked and 0 untracked changes before the build. The shared tree was not used.
+- Typecheck: API pass, web pass. Full suites not rerun (Architect verified: contracts 108, web 235, API 664 pass, 0 fail, 16 skipped).
+- `FB_LIMIT_*` variables: none set. `DEV_LOGIN_ENABLED` and `NODE_ENV`: not set.
+- `npm ci` in the worktree before the build.
+
+### UAT
+
+- Rollback targets (confirmed live): Worker `flowboard-api-uat` `bb01e069-93ad-46d9-b8fd-9be787a6eb97`; Pages `flowboard-app-uat` `44355e10-9f0b-4a21-b47d-20596d86cad8`.
+- Worker `flowboard-api-uat`: `npx wrangler deploy --env uat`. Version `41559e81-1e69-483b-a9f8-e7d08e103a11` (100%). Cron `*/15`.
+- Pages `flowboard-app-uat`: `NEXT_EXPORT=true` build (no `NEXT_PUBLIC_API_URL`), staged with `scripts/stage-pages-functions.mjs` (6 files), branch `main`, commit hash `3a82b24`. Deployment `35af3b28-20d8-4932-870e-f32278b927af` (`https://35af3b28.flowboard-app-uat.pages.dev`).
+- UAT smoke (unauthenticated): Worker `/health/ready` and `/health/live` 200; `/api/v1/session` 401 with `no-store`; `POST /api/v1/workspaces` 401; `/signin` CSP present; email images 200 `image/png`; `GET /api/v1/auth/google` 302 to `accounts.google.com`; bundle strings `Couldn’t save.`, `Open People`, `Ask the project Owner` present in chunks byte-identical to the build; no `dev-login` in the build.
+
+### PRODUCTION
+
+- Rollback targets (confirmed live before the deploy): Worker `flowboard-api` `fffbe9a7-6730-4731-a429-abf5e40a1583` (100%); Pages `flowboard-app` `754ab13b-174f-42bf-80d4-e275ca51c66e`.
+- Backup branch: `production-backup-2026-10-31-d24-pre` (taken by the Architect; not verified by the Deployment chat).
+- Worker `flowboard-api` (top level, no `--env`): `npx wrangler deploy`. Version `756fdc6e-34f9-4ea8-88cc-59f21cdc940b` (100%). Cron `*/5 * * * *`. Hyperdrive not changed.
+- Pages `flowboard-app`: same clean build, staged, branch `main`, commit hash `3a82b24`. Deployment `876eacf4-2890-4b3a-a54b-d71cf1fa6ff1` (`https://876eacf4.flowboard-app.pages.dev`).
+- Production smoke (unauthenticated only; no sign-in; no data created; no burst test): Worker `/health/ready` 200, `/health/live` 200; `/api/v1/session` 401 `no-store`; `POST /api/v1/workspaces` 401; `/signin` CSP present; email images 200 `image/png`; `GET /api/v1/auth/google` 302 to `accounts.google.com`; bundle chunks byte-identical to the build, containing `Couldn’t save.`, `Open People`, `Ask the project Owner`; no `dev-login` in the build.
+- Read-only checks after the deploy: Hyperdrive `18f56141ecef4b7cb07ecd42c90b155f` (`flowboard-hyperdrive`) reports `caching.disabled: true`, unchanged. Secret names on production: `BREVO_API_KEY`, `CURSOR_SECRET`, `DEV_LOGIN_SECRET`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` (names only). `BREVO_API_KEY` is now present; the D-23 addendum recorded it as absent, and it was set after D-23.
+- Scheduled tick (`*/5`): one production tick at about 14:30 UTC on Worker `756fdc6e`, cron `*/5 * * * *`, outcome `ok`, `exceptions` empty. Only this one tick is observed.
+
+### Not verified
+
+- The scheduled tick result beyond the one tick observed in this addendum; later ticks are not checked.
+- Signed-in behaviour: sign-in and the Google callback failure path (302 to `/signin?state=...`), the assignee picker and validator rules, persistent toasts, save-bar reasons, Trash restore picker, read-only and limit copy, the sign-in states ERR-U1 to ERR-U10, 429 details, and the message hygiene changes.
+- Production image upload (no authenticated upload was run).
+- The invitation timing proof (reason-code log line and outbox row settled before the next tick): not done; no invitation was sent by the Deployment chat.
+- The backup branch `production-backup-2026-10-31-d24-pre`: taken by the Architect, not verified here.
+- Schema: not re-read by the Deployment chat; the release has no migrations.
+- Accepted: runtime database role is still `neondb_owner`; no uptime alert on production.
