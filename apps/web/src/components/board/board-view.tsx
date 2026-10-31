@@ -2,7 +2,7 @@
 
 import { pickFocusTarget } from '@/lib/inert-lock';
 import { projectAccess } from '@/lib/project-access';
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useRememberLocation } from '@/lib/last-location';
@@ -14,6 +14,8 @@ import { boardQueryOptions } from '@/lib/queries';
 import { daysUntil } from '@/lib/dates';
 import { EMPTY_FILTERS, filtersActive, neighbours, optimisticMove, sortedCards, toneFor, type Filters } from '@/lib/board-model';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
+import { formatBoardsParam, parseBoardsParam, readMemory, resolveSelection, sectionPermissions, showSwitcher, writeMemory } from '@/lib/board-selection';
+import { BoardSwitcher } from './board-switcher';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { NewBoardDialog } from '@/components/ui/new-board-dialog';
@@ -30,7 +32,21 @@ import { BoardColumn, type DropTarget } from './board-column';
 import { MoveDialog } from './move-dialog';
 import type { CardStyle } from './board-card';
 
-export function BoardView() {
+interface PaneProps {
+  boardId: string;
+  /** Rendered as one section of a stacked multi-board view. */
+  multi?: boolean;
+  /** The first board: owns the page-level ids, the "/" shortcut, the navigation button and the remembered location. */
+  primary?: boolean;
+  index?: number;
+  toolbarLead?: ReactNode;
+}
+
+function BoardPane({ boardId, multi = false, primary = true, index = 0, toolbarLead }: PaneProps) {
+  // Ids that must be unique on the page: the first pane keeps the plain ids (the rail's search shortcut relies on them).
+  const sfx = primary ? '' : `-${boardId}`;
+  // Headings: the stacked view's own h1 is #boardTitle, so every section heading is suffixed.
+  const hid = multi ? `-${boardId}` : '';
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
@@ -38,7 +54,6 @@ export function BoardView() {
   const toast = useToast();
   const shell = useShell();
   const { state } = useSession();
-  const boardId = params.get('id');
   const cardId = params.get('card');
   const view: 'board' | 'list' = params.get('view') === 'list' ? 'list' : 'board';
   const cardStyle: CardStyle = params.get('cards') === 'glass' ? 'glass' : 'focus';
@@ -48,14 +63,14 @@ export function BoardView() {
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const el = event.target as HTMLElement | null;
-      if (event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey || el?.closest('input, textarea, select, [contenteditable="true"], dialog, [role="dialog"]')) return;
+      if (!primary || event.key !== '/' || event.metaKey || event.ctrlKey || event.altKey || el?.closest('input, textarea, select, [contenteditable="true"], dialog, [role="dialog"]')) return;
       event.preventDefault();
       document.getElementById('searchInput')?.focus();
     };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
-  }, []);
-  const wantsSearch = params.get('search') === '1';
+  }, [primary]);
+  const wantsSearch = primary && params.get('search') === '1';
   useEffect(() => {
     if (!wantsSearch) return;
     const timer = window.setTimeout(() => {
@@ -82,7 +97,7 @@ export function BoardView() {
   const { pokeSoon } = usePolling();
   const boardQuery = useQuery(boardQueryOptions(boardId));
   const snapshot = boardQuery.data;
-  useRememberLocation(snapshot?.board.projectId, snapshot?.board.id ?? null);
+  useRememberLocation(primary ? snapshot?.board.projectId : undefined, snapshot?.board.id ?? null);
   const boardKey = useMemo(() => ['board', boardId] as const, [boardId]);
   const refresh = useCallback(() => { void queryClient.invalidateQueries({ queryKey: boardKey }); pokeSoon(1000); }, [queryClient, boardKey, pokeSoon]);
 
@@ -92,8 +107,7 @@ export function BoardView() {
   const project = state.status === 'ready' ? state.session.accessibleProjects.find((p) => p.id === snapshot?.board.projectId) : undefined;
   const role = normalizeRole(project?.role);
   const projectArchived = !!project?.isArchived;
-  const canEdit = can(role, 'edit') && !snapshot?.board.isArchived && !projectArchived;
-  const canMove = can(role, 'move') && !snapshot?.board.isArchived && !projectArchived;
+  const { canEdit, canMove } = sectionPermissions(can(role, 'edit'), can(role, 'move'), !!snapshot?.board.isArchived, projectArchived);
   const filtering = filtersActive(filters);
 
   useEffect(() => {
@@ -346,11 +360,13 @@ export function BoardView() {
     returnFocus.current = trigger;
     const next = new URLSearchParams(params.toString());
     next.set('card', card.id);
+    if (multi) next.set('cardBoard', boardId);
     router.push(`${pathname}?${next.toString()}`, { scroll: false });
   };
   const closeCard = useCallback(() => {
     const next = new URLSearchParams(params.toString());
     next.delete('card');
+    next.delete('cardBoard');
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
     // A deep link (?card=) has no remembered trigger: fall back to the card's own button, then the board heading.
     const remembered = returnFocus.current;
@@ -358,17 +374,17 @@ export function BoardView() {
     requestAnimationFrame(() => pickFocusTarget(
       remembered,
       () => (closing ? document.querySelector<HTMLElement>(`.card[data-card-id="${CSS.escape(closing)}"] .card-open`) : null),
-      () => document.getElementById('boardTitle'),
+      () => document.getElementById(`boardTitle${hid}`),
     )?.focus({ preventScroll: true }));
-  }, [params, pathname, router, cardId]);
+  }, [params, pathname, router, cardId, hid]);
 
-  if (!boardId) {
-    return <section className="state-note"><h1>No board selected</h1><Link className="btn" href="/projects">Back to projects</Link></section>;
-  }
   if (boardQuery.isPending) return <div role="status" className="state-note">Loading board…</div>;
   const lostAccess = boardQuery.error instanceof ApiError && [401, 403, 404].includes(boardQuery.error.status);
   // A failed background poll keeps the board on screen (the status banner explains it); only a lost board or a first-load failure replaces it.
   // The session is polled: removed from the project while looking at its board.
+  if (multi && (!snapshot || (boardQuery.isError && lostAccess))) {
+    return <section className="board-section board-section-error" role="alert"><p>This board is not available to your current account anymore.</p></section>;
+  }
   if (snapshot && state.status === 'ready' && projectAccess(state.session.accessibleProjects, snapshot.board.projectId).kind === 'removed') {
     return (
       <section role="alert" className="board-unavailable" style={{ display: 'block' }}>
@@ -409,20 +425,24 @@ export function BoardView() {
     setComposerColumn(columnId);
   };
 
+  const Root = multi ? 'section' : 'div';
   return (
-    <>
+    <Root className={multi ? 'board-section' : 'board-pane'} data-tone={index % 5} aria-label={multi ? board.name : undefined}>
       <NewBoardDialog projectId={board.projectId} open={newBoardOpen} onClose={() => setNewBoardOpen(false)} />
       {can(role, 'invite') && !board.isArchived && <InviteDialog projectId={board.projectId} projectName={project?.name ?? 'this project'} actorRole={role} open={inviteOpen} onClose={() => setInviteOpen(false)} />}
       {can(role, 'manageBoard') && <ColumnsDialog boardId={board.id} open={columnsOpen} onClose={() => setColumnsOpen(false)} />}
       {role === 'owner' && <EditBoardDialog board={board} open={editBoardOpen} onClose={() => setEditBoardOpen(false)} />}
-      <section className="board-head" aria-labelledby="boardTitle">
+      <section className="board-head" aria-labelledby={`boardTitle${hid}`}>
         <div className="board-title-row">
           <div className="board-heading">
-            <button className="icon-btn menu-btn" ref={shell.menuRef} type="button" aria-label={shell.navVisible ? 'Hide navigation' : 'Show navigation'} aria-controls="rail" aria-expanded={shell.navVisible} title={shell.navVisible ? 'Hide navigation' : 'Show navigation'} onClick={shell.toggleNav}>
+            {!multi && <button className="icon-btn menu-btn" ref={shell.menuRef} type="button" aria-label={shell.navVisible ? 'Hide navigation' : 'Show navigation'} aria-controls="rail" aria-expanded={shell.navVisible} title={shell.navVisible ? 'Hide navigation' : 'Show navigation'} onClick={shell.toggleNav}>
               <Icon name="menu" />
-            </button>
-            <h1 id="boardTitle" tabIndex={-1} title={board.name}>{board.name}</h1>
-            <PollAge />
+            </button>}
+            {multi
+              ? <h2 id={`boardTitle${hid}`} className="board-name" tabIndex={-1} title={board.name}>{board.name}</h2>
+              : <h1 id="boardTitle" tabIndex={-1} title={board.name}>{board.name}</h1>}
+            {multi && <span className="board-section-meta"><span>{total} cards</span><span className="role-chip">{ROLE_META[role].label}</span></span>}
+            {!multi && <PollAge />}
             {board.isArchived && <span id="boardReadOnly">{projectArchived ? 'Project archived · read-only' : 'Archived · read-only'}</span>}
             {role === 'owner' && !board.isArchived && (
               <button className="icon-btn edit-board-btn" type="button" aria-label="Edit board name and description" title="Edit board" onClick={() => setEditBoardOpen(true)}>
@@ -431,15 +451,15 @@ export function BoardView() {
             )}
           </div>
           <div className="board-actions">
-            <div className="view-switch" role="group" aria-label="Card view" data-view={view}>
+            {!multi && <div className="view-switch" role="group" aria-label="Card view" data-view={view}>
               <button type="button" aria-label="List view" aria-pressed={view === 'list'} aria-controls="board" onClick={() => setParam('view', 'list')}>
                 <Icon name="list" /><span className="view-label">List</span>
               </button>
               <button type="button" aria-label="Board view" aria-pressed={view === 'board'} aria-controls="board" onClick={() => setParam('view', null)}>
                 <Icon name="board" /><span className="view-label">Board</span>
               </button>
-            </div>
-            <span className="sr-only" aria-live="polite">{view === 'list' ? 'List' : 'Board'} view</span>
+            </div>}
+            {!multi && <span className="sr-only" aria-live="polite">{view === 'list' ? 'List' : 'Board'} view</span>}
             {canEdit && (
               <button className="btn primary" type="button" aria-label="Add card" title="Add card" onClick={(event) => { if (filtering) setFilters(EMPTY_FILTERS); if (quickAddFirst) openComposer(quickAddFirst, event.currentTarget); }}>
                 <Icon name="plus" /><span className="action-label">Add card</span>
@@ -447,7 +467,7 @@ export function BoardView() {
             )}
             <ActionMenu
               label="Board actions"
-              triggerRef={shell.fullscreenRef}
+              triggerRef={primary ? shell.fullscreenRef : undefined}
               items={[
                 ...(can(role, 'manageBoard') && !board.isArchived ? [{ kind: 'button' as const, label: 'New board', icon: 'plus', onSelect: () => setNewBoardOpen(true) }] : []),
                 ...(can(role, 'manageBoard') && !board.isArchived ? [{ kind: 'button' as const, label: 'Edit columns', icon: 'columns', onSelect: () => setColumnsOpen(true) }] : []),
@@ -459,23 +479,24 @@ export function BoardView() {
           </div>
         </div>
 
-        {board.description && <p className="board-description" id="boardDescription">{board.description}</p>}
+        {board.description && <p className="board-description" id={`boardDescription${hid}`}>{board.description}</p>}
 
         <div className="toolbar" aria-label="Board tools" ref={toolbarRef}>
+          {toolbarLead}
           <div className={`search-field${filters.q ? ' has-value' : ''}`}>
             <Icon name="search" className="icon-sm" />
-            <label className="sr-only" htmlFor="searchInput">Search cards</label>
-            <input id="searchInput" type="search" placeholder="Search…" autoComplete="off" value={filters.q} onChange={(event) => setFilters((f) => ({ ...f, q: event.target.value }))} />
+            <label className="sr-only" htmlFor={`searchInput${sfx}`}>Search cards</label>
+            <input id={`searchInput${sfx}`} type="search" placeholder="Search…" autoComplete="off" value={filters.q} onChange={(event) => setFilters((f) => ({ ...f, q: event.target.value }))} />
             <button className="clear-search" type="button" aria-label="Clear search" onClick={() => setFilters((f) => ({ ...f, q: '' }))}><Icon name="x" className="icon-sm" /></button>
           </div>
 
           <div className="filter-wrap">
-            <button className={`filter-btn${selectedAssignees.length ? ' has-active' : ''}`} type="button" aria-label={`Filter by assignee${selectedAssignees.length ? `, ${selectedAssignees.length} selected` : ''}`} title="Filter by assignee" aria-expanded={menu === 'assignee'} aria-controls="assigneeMenu" onClick={() => setMenu((m) => (m === 'assignee' ? null : 'assignee'))}>
+            <button className={`filter-btn${selectedAssignees.length ? ' has-active' : ''}`} type="button" aria-label={`Filter by assignee${selectedAssignees.length ? `, ${selectedAssignees.length} selected` : ''}`} title="Filter by assignee" aria-expanded={menu === 'assignee'} aria-controls={`assigneeMenu${sfx}`} onClick={() => setMenu((m) => (m === 'assignee' ? null : 'assignee'))}>
               <Icon name="users" /><span className="sr-only">Assignees</span>
               <span className="badge" hidden={selectedAssignees.length === 0}>{selectedAssignees.length}</span>
               <Icon name="chevron-down" className="icon-sm" />
             </button>
-            <div className="filter-menu" id="assigneeMenu" hidden={menu !== 'assignee'}>
+            <div className="filter-menu" id={`assigneeMenu${sfx}`} hidden={menu !== 'assignee'}>
               <h2>Assigned to</h2>
               {assignable.map((person) => (
                 <label key={person.id} className="filter-option">
@@ -493,22 +514,22 @@ export function BoardView() {
           </div>
 
           <div className="filter-wrap">
-            <button className={`filter-btn${filters.due !== 'any' ? ' has-active' : ''}`} type="button" aria-label="Filter by due date" title="Filter by due date" aria-expanded={menu === 'due'} aria-controls="dueMenu" onClick={() => setMenu((m) => (m === 'due' ? null : 'due'))}>
+            <button className={`filter-btn${filters.due !== 'any' ? ' has-active' : ''}`} type="button" aria-label="Filter by due date" title="Filter by due date" aria-expanded={menu === 'due'} aria-controls={`dueMenu${sfx}`} onClick={() => setMenu((m) => (m === 'due' ? null : 'due'))}>
               <Icon name="calendar" /><span className="sr-only">Due date</span>
               <span className="badge" hidden={filters.due === 'any'}>1</span>
               <Icon name="chevron-down" className="icon-sm" />
             </button>
-            <div className="filter-menu" id="dueMenu" hidden={menu !== 'due'}>
+            <div className="filter-menu" id={`dueMenu${sfx}`} hidden={menu !== 'due'}>
               <h2>Due date</h2>
               {([['any', 'Any date'], ['overdue', 'Overdue'], ['soon', 'Due in 7 days'], ['none', 'No due date']] as const).map(([value, label]) => (
-                <label key={value} className="filter-option"><input type="radio" name="dueFilter" checked={filters.due === value} onChange={() => setFilters((f) => ({ ...f, due: value }))} /> {label}</label>
+                <label key={value} className="filter-option"><input type="radio" name={`dueFilter${sfx}`} checked={filters.due === value} onChange={() => setFilters((f) => ({ ...f, due: value }))} /> {label}</label>
               ))}
             </div>
           </div>
 
           <button className="clear-filters" type="button" hidden={!filtering} onClick={() => setFilters(EMPTY_FILTERS)}>Clear all</button>
           <div className="toolbar-spacer" />
-          {view === 'board' && (
+          {view === 'board' && !multi && (
             <label className="card-style-control">
               <span>Cards</span>
               <select aria-label="Card appearance" value={cardStyle} onChange={(event) => setParam('cards', event.target.value === 'glass' ? 'glass' : null)}>
@@ -537,7 +558,7 @@ export function BoardView() {
 
       <section
         className={`board${view === 'list' ? ' is-list' : ''}`}
-        id="board"
+        id={`board${sfx}`}
         data-card-style={cardStyle}
         aria-label={`${board.name} ${view === 'list' ? 'list' : 'board'}`}
         onPointerDown={onBoardPointerDown}
@@ -576,11 +597,11 @@ export function BoardView() {
       </section>
       {columns.length === 0 && <p className="state-note">This board has no columns yet.</p>}
 
-      <footer className="board-foot">
+      {!multi && <footer className="board-foot">
         <span className="foot-role">{ROLE_META[role].label} · {ROLE_META[role].description}</span>
         <span className="sep" aria-hidden="true" />
         <span>{!canMove ? 'Open a card to view its details' : view === 'list' ? 'Use Move to change a card’s column' : 'Drag cards, or use Move for keyboard and filtered views'}</span>
-      </footer>
+      </footer>}
 
       <MoveDialog
         card={moveCard}
@@ -595,7 +616,7 @@ export function BoardView() {
         }}
       />
 
-      {cardId && (
+      {cardId && (!multi || (params.get('cardBoard') ? params.get('cardBoard') === boardId : primary)) && (
         <CardDetailDrawer
           key={cardId}
           cardId={cardId}
@@ -610,6 +631,123 @@ export function BoardView() {
           onRequestMove={(card) => { setMoveCard(card); }}
         />
       )}
+    </Root>
+  );
+}
+
+/**
+ * Chooses which boards to show. One board renders exactly as before (BoardPane alone); two to six render as stacked
+ * sections, one BoardPane each, so every board keeps its own columns, drafts, drag state and permissions.
+ */
+export function BoardView() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const params = useSearchParams();
+  const { state } = useSession();
+  const idParam = params.get('id');
+  const boardsParam = params.get('boards');
+  const view: 'board' | 'list' = params.get('view') === 'list' ? 'list' : 'board';
+  const cardStyle: CardStyle = params.get('cards') === 'glass' ? 'glass' : 'focus';
+  const shell = useShell();
+
+  const firstId = parseBoardsParam(boardsParam)[0] ?? idParam;
+  const firstBoard = useQuery(boardQueryOptions(firstId));
+  const projectId = firstBoard.data?.board.projectId ?? null;
+  const signedIn = state.status === 'ready';
+  const boardsQuery = useQuery({
+    queryKey: ['boards', projectId],
+    queryFn: async () => (await api.listProjectBoards(projectId!)).data,
+    enabled: !!projectId && signedIn,
+  });
+  usePollKeys([['boards', projectId]], !!projectId && signedIn);
+  const boards = boardsQuery.data ?? null;
+  const defaultBoardId = state.status === 'ready' ? state.session.accessibleProjects.find((p) => p.id === projectId)?.defaultBoardId ?? null : null;
+  const [remembered, setRemembered] = useState<string[]>([]);
+  const [memoryReady, setMemoryReady] = useState(false);
+  useEffect(() => { if (projectId) { setRemembered(readMemory(projectId)); setMemoryReady(true); } }, [projectId]);
+
+  // Until the board list and the memory are known, the single ?id= is used: today's behaviour, no waiting.
+  const selection = useMemo(
+    () => resolveSelection({ idParam, boardsParam, remembered, boards: memoryReady ? boards : null, defaultBoardId }),
+    [idParam, boardsParam, remembered, boards, memoryReady, defaultBoardId],
+  );
+
+  const write = useCallback((ids: string[], extra?: (next: URLSearchParams) => void) => {
+    const next = new URLSearchParams(window.location.search);
+    next.set('id', ids[0]!);
+    if (ids.length > 1) next.set('boards', formatBoardsParam(ids)); else next.delete('boards');
+    next.delete('card'); next.delete('cardBoard');
+    extra?.(next);
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  }, [pathname, router]);
+  // The latest choice is kept in a ref: router.replace lands a moment later, and a second quick click must build on the first.
+  const latest = useRef<string[]>(selection);
+  const selectionKey = formatBoardsParam(selection);
+  useEffect(() => { latest.current = selection; }, [selectionKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  const choose = useCallback((ids: string[]) => { latest.current = ids; if (projectId) writeMemory(projectId, ids); write(ids); }, [projectId, write]);
+  const update = useCallback((fn: (previous: string[]) => string[]) => choose(fn(latest.current)), [choose]);
+
+  // Normalise the address bar once the list is known (stale ids dropped, remembered view restored) without adding history entries.
+  const canonical = formatBoardsParam(selection);
+  useEffect(() => {
+    if (!memoryReady || !boards || !selection.length) return;
+    const current = parseBoardsParam(boardsParam);
+    const wantsParam = selection.length > 1;
+    const same = wantsParam ? formatBoardsParam(current) === canonical && idParam === selection[0] : !boardsParam && idParam === selection[0];
+    if (!same) write(selection);
+    if (projectId && wantsParam) writeMemory(projectId, selection);
+  }, [memoryReady, boards, selection, canonical, boardsParam, idParam, projectId, write]);
+
+  const setParam = (key: string, value: string | null) => {
+    const next = new URLSearchParams(params.toString());
+    if (value) next.set(key, value); else next.delete(key);
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  };
+
+  if (!selection.length) {
+    return <section className="state-note"><h1>No board selected</h1><Link className="btn" href="/projects">Back to projects</Link></section>;
+  }
+  const switcher = showSwitcher(boards) && boards
+    ? <BoardSwitcher boards={boards} selected={selection} onSwitch={(id) => choose([id])} onChange={update} />
+    : null;
+
+  if (selection.length === 1) {
+    return <BoardPane key={selection[0]} boardId={selection[0]!} toolbarLead={switcher} />;
+  }
+
+  const names = selection.map((id) => boards?.find((b) => b.id === id)?.name).filter(Boolean);
+  return (
+    <>
+      <section className="board-head multi-head" aria-labelledby="boardTitle">
+        <div className="board-title-row">
+          <div className="board-heading">
+            <button className="icon-btn menu-btn" ref={shell.menuRef} type="button" aria-label={shell.navVisible ? 'Hide navigation' : 'Show navigation'} aria-controls="rail" aria-expanded={shell.navVisible} title={shell.navVisible ? 'Hide navigation' : 'Show navigation'} onClick={shell.toggleNav}>
+              <Icon name="menu" />
+            </button>
+            <h1 id="boardTitle" tabIndex={-1} title={names.join(', ')}>{selection.length} boards</h1>
+            <PollAge />
+            {switcher}
+          </div>
+          <div className="board-actions">
+            <div className="view-switch" role="group" aria-label="Card view" data-view={view}>
+              <button type="button" aria-label="List view" aria-pressed={view === 'list'} onClick={() => setParam('view', 'list')}><Icon name="list" /><span className="view-label">List</span></button>
+              <button type="button" aria-label="Board view" aria-pressed={view === 'board'} onClick={() => setParam('view', null)}><Icon name="board" /><span className="view-label">Board</span></button>
+            </div>
+            {view === 'board' && (
+              <label className="card-style-control">
+                <span>Cards</span>
+                <select aria-label="Card appearance" value={cardStyle} onChange={(event) => setParam('cards', event.target.value === 'glass' ? 'glass' : null)}>
+                  <option value="focus">Focus</option>
+                  <option value="glass">Soft glass</option>
+                </select>
+              </label>
+            )}
+          </div>
+        </div>
+      </section>
+      <div className="boards-stack">
+        {selection.map((id, index) => <BoardPane key={id} boardId={id} multi primary={index === 0} index={index} />)}
+      </div>
     </>
   );
 }

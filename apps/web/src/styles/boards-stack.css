@@ -1,0 +1,49 @@
+/* Board switcher and stacked multi-board sections. Plum tokens; hover polish only under no-preference motion. */
+.board-switcher { position: relative; flex: none; order: 0; }
+.board-switcher-btn { gap: 6px; padding-inline: 10px; }
+.board-switcher-panel {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 60; width: min(320px, calc(100vw - 28px)); padding: 10px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius-md); box-shadow: var(--shadow-md);
+}
+.board-switcher-panel[hidden] { display: none; }
+.board-switcher-hint { margin: 0 4px 8px; font-size: 11px; line-height: 1.45; color: var(--muted); }
+.board-switcher-list { list-style: none; margin: 0 0 8px; padding: 0; max-height: min(320px, 50dvh); overflow-y: auto; }
+.board-switcher-row { display: flex; align-items: center; gap: 4px; border-radius: 8px; }
+.board-switcher-row:hover { background: var(--surface-3); }
+.board-switcher-row.is-current { background: var(--accent-soft); }
+.board-switcher-row input { flex: none; width: 18px; height: 18px; margin: 0 4px 0 8px; accent-color: var(--accent); }
+.board-switcher-row input:disabled { opacity: .55; }
+.board-switcher-name { flex: 1; min-width: 0; min-height: 40px; padding: 8px 10px 8px 4px; text-align: left; font-size: 13px; color: var(--ink); border-radius: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.board-switcher-name[aria-current="true"] { font-weight: 650; color: var(--accent); }
+.board-switcher-foot { display: flex; gap: 6px; border-top: 1px solid var(--line); padding-top: 8px; }
+.board-switcher-foot .btn { min-height: 36px; }
+
+.boards-stack { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 18px; padding-bottom: 12px; }
+.board-section { --tone: var(--dot-backlog); flex: none; border: 1px solid var(--line); border-left: 4px solid var(--tone); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--surface) 55%, transparent); padding: 0 12px 4px; }
+.board-section[data-tone="1"] { --tone: var(--dot-progress); }
+.board-section[data-tone="2"] { --tone: var(--dot-completed); }
+.board-section[data-tone="3"] { --tone: var(--dot-blocked); }
+.board-section[data-tone="4"] { --tone: var(--dot-testing); }
+@media (min-width: 601px) and (min-height: 640px) { .board-section > .board-head { position: sticky; top: 0; z-index: 5; } }
+.board-section > .board-head { padding: 10px 0 8px; background: color-mix(in srgb, var(--canvas) 94%, transparent); backdrop-filter: blur(6px); border-bottom: 1px solid var(--line); margin-bottom: 8px; }
+.board-section .board-name { margin: 0; min-width: 0; font-size: 17px; line-height: 1.2; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.board-section-meta { display: inline-flex; align-items: center; gap: 8px; flex: none; font-size: 12px; color: var(--muted); }
+.role-chip { padding: 2px 8px; border-radius: 999px; border: 1px solid var(--accent-line); background: var(--accent-soft); color: var(--accent); font-size: 11px; font-weight: 650; }
+.board-app .board-section .board { flex: none; min-height: 0; padding-bottom: 12px; }
+.board-app .board-section .board:not(.is-list) .column { max-height: min(62dvh, 560px); min-height: 220px; }
+.board-section-error { padding: 14px 16px; color: var(--muted); font-size: 13px; }
+.board-section-error p { margin: 0; }
+.multi-head .board-heading { flex-wrap: wrap; }
+
+@media (max-width: 600px) {
+  .board-section { padding-inline: 8px; border-left-width: 3px; }
+  .board-switcher-panel { position: fixed; left: 14px; right: 14px; top: auto; bottom: 14px; width: auto; max-height: 70dvh; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .board-switcher-panel:not([hidden]) { animation: board-switcher-in 140ms ease-out both; }
+  .board-switcher-row { transition: background-color 120ms ease, transform 120ms ease; }
+  .board-switcher-row:hover { transform: translateX(2px); }
+  .board-section { transition: box-shadow 160ms ease, border-color 160ms ease; }
+  .board-section:hover { box-shadow: var(--shadow-md); }
+}
+@keyframes board-switcher-in { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
