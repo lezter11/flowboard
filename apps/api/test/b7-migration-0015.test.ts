@@ -27,16 +27,16 @@ async function freshSchema() {
   };
 }
 
-test('B-7 migration 0015: 0001 to 0017 migrate clean from empty, and a second run changes nothing', async () => {
+test('B-7 migration 0015: 0001 to 0020 migrate clean from empty, and a second run changes nothing', async () => {
   const db = await freshSchema();
   try {
     await runMigrations(db.pool);
     const applied = await db.pool.query<{ version: string }>('SELECT version FROM schema_migrations ORDER BY version');
-    assert.equal(applied.rows.at(-1)!.version, '0019');
-    assert.equal(applied.rows.length, 19, 'migrations 0001 to 0019 are all recorded');
+    assert.equal(applied.rows.at(-1)!.version, '0020');
+    assert.equal(applied.rows.length, 20, 'migrations 0001 to 0020 are all recorded');
     await runMigrations(db.pool);
     const again = await db.pool.query<{ n: string }>('SELECT COUNT(*)::text AS n FROM schema_migrations');
-    assert.equal(again.rows[0]!.n, '19');
+    assert.equal(again.rows[0]!.n, '20');
   } finally {
     await db.close();
   }
