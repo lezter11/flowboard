@@ -33,6 +33,7 @@ import { importsRoutes } from './routes/imports.ts';
 import { activityRoutes } from './routes/activity.ts';
 import { notificationsRoutes } from './routes/notifications.ts';
 import { systemRoutes } from './routes/system.ts';
+import { tokensRoutes } from './routes/tokens.ts';
 import { setGlobalPool, poolStorage, createPool } from '../adapters/postgres.ts';
 import { runWithStorageDriver, type StorageDriver } from '../adapters/storage.ts';
 
@@ -187,6 +188,7 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
   app.route('/api/v1', activityRoutes);
   app.route('/api/v1', notificationsRoutes);
   app.route('/api/v1/system', systemRoutes);
+  app.route('', tokensRoutes);
 
   // Central not-found and error handling
   app.notFound(notFoundHandler);

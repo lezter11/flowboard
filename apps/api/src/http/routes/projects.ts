@@ -33,7 +33,7 @@ import {
   getProjectLinks,
 } from '../../adapters/projects.ts';
 import { HttpError } from '../errors.ts';
-import { authMiddleware } from '../middleware/auth.ts';
+import { authMiddleware, requireTokenScope } from '../middleware/auth.ts';
 
 /** Same rule as migration 0009: first three letters/digits of the name, uppercased; PRJ if none. */
 function projectKeyPrefix(name: string): string {
@@ -79,7 +79,7 @@ function parseLimit(limitParam?: string): number {
 }
 
 // 1. GET /api/v1/projects: List all accessible projects across workspaces for current user session
-projectsRoutes.get('/api/v1/projects', authMiddleware, async (c) => {
+projectsRoutes.get('/api/v1/projects', authMiddleware, requireTokenScope('projects:read'), async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
@@ -91,6 +91,12 @@ projectsRoutes.get('/api/v1/projects', authMiddleware, async (c) => {
 
   const pool = getPool();
   const result = await getAllAccessibleProjects(pool, actor, { limit, cursor });
+
+  const tokenProjectId = c.get('tokenProjectId');
+  if (tokenProjectId) {
+    result.data = result.data.filter((p) => p.id === tokenProjectId);
+  }
+
   return c.json(result, 200);
 });
 

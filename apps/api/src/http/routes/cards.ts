@@ -20,7 +20,7 @@ import {
   getMyTasks,
 } from '../../adapters/cards.ts';
 import { HttpError } from '../errors.ts';
-import { authMiddleware } from '../middleware/auth.ts';
+import { authMiddleware, requireTokenScope } from '../middleware/auth.ts';
 
 export const cardsRoutes = new Hono();
 
@@ -35,7 +35,7 @@ function requireIdempotencyKey(keyHeader: string | undefined): string {
 }
 
 // 1. POST /api/v1/boards/:boardId/cards: Quick card creation (CRD-01, CRD-11)
-cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, async (c) => {
+cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, requireTokenScope('cards:create'), async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
@@ -58,6 +58,11 @@ cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, async (c) => {
     throw HttpError.notFound('Board not found.', 'NOT_FOUND');
   }
   const projectId = boardRes.rows[0]!.project_id;
+
+  const tokenProjectId = c.get('tokenProjectId');
+  if (tokenProjectId && tokenProjectId !== projectId) {
+    throw HttpError.forbidden('Token is restricted to a different project.');
+  }
 
   const client = await pool.connect();
   try {

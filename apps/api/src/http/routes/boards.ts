@@ -33,7 +33,7 @@ import {
   listBoardCards,
 } from '../../adapters/boards.ts';
 import { HttpError } from '../errors.ts';
-import { authMiddleware, optionalAuthMiddleware } from '../middleware/auth.ts';
+import { authMiddleware, optionalAuthMiddleware, requireTokenScope } from '../middleware/auth.ts';
 
 export const boardsRoutes = new Hono();
 
@@ -141,9 +141,14 @@ boardsRoutes.post('/api/v1/projects/:projectId/boards', authMiddleware, async (c
 });
 
 // 2. GET /api/v1/projects/:projectId/boards: List active boards in project
-boardsRoutes.get('/api/v1/projects/:projectId/boards', authMiddleware, async (c) => {
+boardsRoutes.get('/api/v1/projects/:projectId/boards', authMiddleware, requireTokenScope('boards:read'), async (c) => {
   const actor = getActorOrThrow(c);
   const projectId = c.req.param('projectId');
+
+  const tokenProjectId = c.get('tokenProjectId');
+  if (tokenProjectId && tokenProjectId !== projectId) {
+    throw HttpError.forbidden('Token is restricted to a different project.');
+  }
 
   const pool = getPool();
   const client = await pool.connect();
@@ -167,9 +172,20 @@ boardsRoutes.get('/api/v1/boards/:boardId', optionalAuthMiddleware, async (c) =>
   const pool = getPool();
 
   // If the board does not exist at all, return 404 regardless of authentication
-  const boardCheck = await pool.query<{ id: string }>('SELECT id FROM boards WHERE id = $1', [boardId]);
+  const boardCheck = await pool.query<{ id: string; project_id: string }>('SELECT id, project_id FROM boards WHERE id = $1', [boardId]);
   if (boardCheck.rows.length === 0) {
     throw HttpError.notFound('Board not found.', 'NOT_FOUND');
+  }
+
+  if (c.get('authType') === 'token') {
+    const scopes = c.get('tokenScopes') || [];
+    if (!scopes.includes('boards:read')) {
+      throw HttpError.forbidden('Token lacks required scope: boards:read');
+    }
+    const tokenProjectId = c.get('tokenProjectId');
+    if (tokenProjectId && boardCheck.rows[0]!.project_id !== tokenProjectId) {
+      throw HttpError.forbidden('Token is restricted to a different project.');
+    }
   }
 
   const actor = getActorOrThrow(c);
