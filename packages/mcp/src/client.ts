@@ -90,13 +90,16 @@ export class FlowboardClient {
   }
 
   async getBoard(boardId: string): Promise<BoardSnapshot> {
-    const res = await this.request<{ data: { id: string; name: string; version: number; columns: BoardColumn[] } }>(
-      `/api/v1/boards/${boardId}`,
-    );
+    const res = await this.request<{
+      data: {
+        board: { id: string; name: string; structureVersion: number; snapshotVersion: number };
+        columns: BoardColumn[];
+      };
+    }>(`/api/v1/boards/${boardId}`);
     return {
-      id: res.data.id,
-      name: res.data.name,
-      version: res.data.version,
+      id: res.data.board.id,
+      name: res.data.board.name,
+      version: res.data.board.structureVersion,
       columns: res.data.columns || [],
     };
   }

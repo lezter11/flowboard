@@ -16,9 +16,12 @@ test('Flowboard MCP Client Suite', async (t) => {
         return new Response(
           JSON.stringify({
             data: {
-              id: 'board_123',
-              name: 'Engineering Sprint',
-              version: 5,
+              board: {
+                id: 'board_123',
+                name: 'Engineering Sprint',
+                structureVersion: 5,
+                snapshotVersion: 5,
+              },
               columns: [
                 { id: 'col_backlog', name: 'Backlog', category: 'todo', position: 0 },
                 { id: 'col_todo', name: 'To Do', category: 'todo', position: 1 },
@@ -88,9 +91,12 @@ test('Flowboard MCP Client Suite', async (t) => {
       return new Response(
         JSON.stringify({
           data: {
-            id: 'board_123',
-            name: 'Engineering Sprint',
-            version: 1,
+            board: {
+              id: 'board_123',
+              name: 'Engineering Sprint',
+              structureVersion: 1,
+              snapshotVersion: 1,
+            },
             columns: [
               { id: 'col_1', name: 'Backlog', category: 'todo', position: 0 },
               { id: 'col_2', name: 'In Progress', category: 'active', position: 1 },
@@ -136,9 +142,12 @@ test('Flowboard MCP Client Suite', async (t) => {
         return new Response(
           JSON.stringify({
             data: {
-              id: 'board_123',
-              name: 'Engineering Sprint',
-              version: boardVersion,
+              board: {
+                id: 'board_123',
+                name: 'Engineering Sprint',
+                structureVersion: boardVersion,
+                snapshotVersion: boardVersion,
+              },
               columns: [{ id: 'col_1', name: 'To Do', category: 'todo', position: 0 }],
             },
           }),
