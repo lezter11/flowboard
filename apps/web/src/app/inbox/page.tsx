@@ -2,14 +2,19 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import type { Notification } from '@flowboard/contracts';
 import { api } from '@/lib/api';
+import { useSession } from '@/lib/session';
+import { useCursorFeed } from '@/lib/cursor-feed';
+import { usePollKeys } from '@/components/polling';
+import { FeedControls } from '@/components/ui/feed-controls';
 import { toastFailure } from '@/lib/toast-failure';
 import { describeError } from '@/lib/errors';
 import { relativeTime } from '@/lib/dates';
 import { Icon } from '@/components/ui/icon';
 import { useToast } from '@/components/ui/toasts';
+import { notificationHref } from '@/lib/notification-link';
 
 type Lane = 'all' | 'needs' | 'updates';
 const TYPE: Record<Notification['type'], { icon: string; label: string }> = {
@@ -25,22 +30,17 @@ const LANES: Array<{ id: Exclude<Lane, 'all'>; label: string; hint: string }> = 
 /** Needs you = unread mentions and assignments; everything else is an update. */
 const laneOf = (n: Notification): Exclude<Lane, 'all'> => (n.type !== 'system' && !n.read ? 'needs' : 'updates');
 
-/** Notification links are server paths; map the ones that name a board to this app's routes. */
-function appHref(link: string): string | null {
-  const board = /boards\/([^/?#]+)/.exec(link)?.[1];
-  const card = /[?&]card=([^&#]+)/.exec(link)?.[1];
-  if (!board) return null;
-  return `/board?id=${encodeURIComponent(board)}${card ? `&card=${card}` : ''}`;
-}
-
 export default function InboxPage() {
   const toast = useToast();
   const queryClient = useQueryClient();
   const [lane, setLane] = useState<Lane>('all');
   const [q, setQ] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const feed = useQuery({ queryKey: ['notifications'], queryFn: async () => (await api.listNotifications()).data });
-  const items = useMemo(() => feed.data ?? [], [feed.data]);
+  const {state}=useSession();const actorId=state.status==='ready'?state.session.actor.id:'';
+  const queryKey=useMemo(()=>['notifications',actorId] as const,[actorId]);
+  const feed = useCursorFeed<Notification>(queryKey,(cursor,signal)=>api.listNotifications({cursor,signal}),!!actorId);
+  usePollKeys([queryKey],!!actorId);
+  const items = feed.items;
   const needle = q.trim().toLowerCase();
   const matches = (n: Notification) => !needle || `${n.title} ${n.body}`.toLowerCase().includes(needle);
   const visible = items.filter((n) => matches(n) && (lane === 'all' || laneOf(n) === lane));
@@ -75,19 +75,19 @@ export default function InboxPage() {
   const empty = (
     <div className="stream-empty">
       <span className="empty-glyph" aria-hidden="true"><Icon name={needle ? 'search' : 'check-circle'} /></span>
-      <h3>{needle ? `No notifications match “${q.trim()}”` : lane === 'needs' ? 'Needs you is clear' : "You're all caught up"}</h3>
-      <p>{needle ? 'Search covers titles and message text.' : 'New mentions and assignments appear here.'}</p>
+      <h3>{needle ? `No notifications match “${q.trim()}”` : lane === 'needs' ? 'No unread mentions or assignments loaded' : 'No notifications loaded'}</h3>
+      <p>{needle ? 'Search covers loaded titles and message text. Load more to search further.' : 'New mentions and assignments appear here.'}</p>
       {needle && <div className="empty-actions"><button className="btn soft" type="button" onClick={() => setQ('')}>Clear search</button></div>}
     </div>
   );
 
-  const href = selected ? appHref(selected.link) : null;
+  const href = selected ? notificationHref(selected.link) : null;
   return (
     <>
       <div className="page-head inbox-head">
         <div className="page-head-copy">
           <h1>Inbox</h1>
-          <p className="page-sub"><span>{feed.isPending ? 'Loading notifications…' : unread ? `${unread} unread · ${items.length} total` : `All caught up · ${items.length} total`}</span></p>
+          <p className="page-sub"><span>{feed.isPending ? 'Loading notifications…' : unread ? `${unread} unread in ${items.length} loaded` : `${items.length} loaded · none unread in this page set`}</span></p>
         </div>
         <div className="page-actions">
           <button className="btn" type="button" disabled={unread === 0 || markAll.isPending} onClick={() => markAll.mutate()}><Icon name="check-circle" />Mark all read</button>
@@ -102,7 +102,7 @@ export default function InboxPage() {
         </div>
         <label className="inbox-search" htmlFor="inboxSearch">
           <Icon name="search" />
-          <input id="inboxSearch" type="search" autoComplete="off" placeholder="Search notifications" aria-label="Search notifications" value={q} onChange={(event) => setQ(event.target.value)} />
+          <input id="inboxSearch" type="search" autoComplete="off" placeholder="Search loaded notifications" aria-label="Search loaded notifications" value={q} onChange={(event) => setQ(event.target.value)} />
         </label>
       </div>
 
@@ -112,7 +112,7 @@ export default function InboxPage() {
           <div className="stream-scroll" tabIndex={0} role="region" aria-label="Notification threads">
             <div className="stream-inner">
               {feed.isError ? <div className="stream-empty" role="alert"><h3>{describeError(feed.error)}</h3></div>
-                : visible.length === 0 ? empty
+                : feed.isPending ? <p role="status">Loading notifications…</p> : visible.length === 0 ? empty
                 : lane === 'all' ? LANES.map((l) => {
                     const inLane = visible.filter((n) => laneOf(n) === l.id);
                     return inLane.length ? (
@@ -125,7 +125,7 @@ export default function InboxPage() {
                 : visible.map(row)}
             </div>
           </div>
-          <div className="stream-foot"><span className="tabular">{visible.length} of {items.length}</span></div>
+          <div className="stream-foot"><span className="tabular">{visible.length} of {items.length} loaded</span><FeedControls name="notifications" queryKey={queryKey} feed={feed} loaded={items.length} /></div>
         </section>
 
         <aside className="inbox-detail" aria-labelledby="detailTitle" tabIndex={-1}>
@@ -145,7 +145,7 @@ export default function InboxPage() {
           ) : (
             <div className="detail-empty">
               <span className="empty-glyph" aria-hidden="true"><Icon name="inbox" /></span>
-              <h3>Inbox clear</h3>
+              <h3>No notification selected</h3>
               <p>New mentions and assignments appear here.</p>
             </div>
           )}

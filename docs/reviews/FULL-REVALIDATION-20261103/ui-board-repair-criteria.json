@@ -1,0 +1,54 @@
+{
+  "version": "ui-board-repair-1",
+  "risk": "sensitive",
+  "base_sha": "917706ae0433df471c72736be4d548eb022236c4",
+  "affectedFeatures": [
+    "BRD-02",
+    "BRD-03",
+    "BRD-04",
+    "BRD-05",
+    "BRD-06",
+    "BRD-07",
+    "BRD-08",
+    "CRD-07",
+    "CRD-08",
+    "CRD-09",
+    "CRD-10",
+    "QRY-01",
+    "QRY-02",
+    "INV-06",
+    "INV-07",
+    "UX-01",
+    "UX-02",
+    "UX-04"
+  ],
+  "mandatoryCriteria": [
+    "All permitted active column cards can be loaded beyond the first15 with explicit server-cursor controls. Preserve canonical position/id order, current title/priority/assignee/due query and each source board in merged view; report loaded, matching and total counts distinctly, including done-column local collapse.",
+    "Filters perform actual server reads for title, priority, one current-contract assignee and due semantics; query keys bind filters and snapshot/page identity. A column filter selects exact authorized column data/pages and counts, not a global or cross-project query. No cached-first-page-only false no-match or total claim.",
+    "Changing filters, snapshot version, structure or access invalidates prior cursor pages without discarding card/comment/create drafts. Stale cursor and read/move failures explain recovery; server counts are never inferred from loaded array length. Foreground polling/refetch must not silently merge pages from different snapshots.",
+    "Pointer drag stays disabled while filters make relative placement ambiguous. Drag and visible click/keyboard Move use actual canonical placement response and current expected versions, not first-page last-neighbor guesses. Move offers first,last,before,after and a bounded/paginated unfiltered reference-card list; stale placement conflicts do not auto-overwrite teammates or discard drafts.",
+    "Owner/Manager can archive/reopen a permitted board through confirmation and current backend behavior; project archive blocks board lifecycle, settings and card writes. Member/Viewer lack lifecycle controls. Archived boards remain discoverable for reopening without implying deleted cards or paused trash clocks.",
+    "People role controls match server target rules: only Owner appoints/removes Managers; Manager cannot change self,peer Manager or Owner and can change/remove only Member/Viewer. Board name/description remain Owner-only. Show protected role context and actual refusals; do not treat UI hiding as server authorization.",
+    "Full People directory/emails and its navigation are Owner/ProjectManager only. Member/Viewer direct-page visits show honest permission state without fetching or rendering old cached directory entries/emails. Keep existing permitted board-scoped assignee/mention pickers and their constrained response scopes.",
+    "Add plain-language COLUMN_HAS_RETAINED_REFERENCES refusal with no fake remedy or hidden counts. It is an interim integrity guard and cannot close genuine empty-column removal BRD-06.",
+    "Meaningful API-boundary/state/role regressions cover exact cursor/filter/placement parameters, over-page source merges and stale reset behavior, plus original request identity retained by prior comment/quick-add slice. Run web suite,typecheck,production build with raw logs and preserve failed rounds.",
+    "No source/fixture/unit/browser diagnostic alone approves phases. Root real Chrome+localAPI+PostgreSQL integration and fresh independent final-target review remain required; UAT checks follow local gates and deployment."
+  ],
+  "contractEvidence": [
+    "packages/contracts/src/boards.ts:125 placementInputSchema",
+    "packages/contracts/src/cards.ts:136 cardsQuerySchema",
+    "apps/api/src/http/routes/boards.ts:678 placement",
+    "apps/api/src/http/routes/boards.ts:711 cards pagination",
+    "apps/api/src/http/routes/boards.ts:737 archive",
+    "apps/api/src/http/routes/boards.ts:856 reopen",
+    "apps/api/src/adapters/boards.ts:1012 placement currently scans all destination card IDs"
+  ],
+  "explicitContractLimits": [
+    "Snapshot accepts one assigneeId; expose single selection rather than pretending multi-select OR is supported.",
+    "due=upcoming means aftertoday, not a7day interval. Use exact labels and server semantics; do not silently alter contracts.",
+    "Snapshot has no columnId parameter; per-column pages use cards endpoint columnId and selecting visible snapshot columns uses their canonical server counts.",
+    "Placement returns small neighbor result, but its current database scan is unbounded. Parent was notified; backend bounded-query verification is separate and required before claiming that end-to-end criterion."
+  ],
+  "scopeLimits": "Own apps/web source/tests and this role-owned review evidence. No backend,sharedcontracts,rootpackage,governance,dependency installation or deployment edits. Invitation delivery/pagination, imports/results,otherfeeds/settings/crossnavigation are later slices. Preserve previous comment/quickadd retry state. Root owns scripts/e2e and its .next-e2e diagnostics; use .next-build for build checks without reverting unrelated generated dev paths.",
+  "policyAmendment": "User-confirmed through root during execution: full People directory/emails are Owner and ProjectManager only; recorded before relevant People UI edits."
+}

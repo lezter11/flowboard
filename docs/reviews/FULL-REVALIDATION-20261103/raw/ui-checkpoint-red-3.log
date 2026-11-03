@@ -1,0 +1,38 @@
+✔ FCP-02 refused read erases clean server fields from external draft store while keeping only edited values (2.233208ms)
+✔ FCP-04 confirmed receipt permits explicit fresh operation and preserves receipt history (2.191959ms)
+✔ FCP-03 dialog stack routes a key to top only and restores lower inert state (1.675791ms)
+✔ FCP-01 fresh canonical empty board list erases former board stats and snapshot caches (2.339041ms)
+✔ FCP-02 generic protected settings memory retains changed empty input but erases clean baselines until authorized restore (3.897875ms)
+✔ FCP-02 unknown original field command survives access loss with the exact original body/key (0.323583ms)
+✖ FCP-01 displayed portfolio polling includes list and stats keys, and refused list erases prior statistics (0.987ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 247.513125
+
+✖ failing tests:
+
+test at apps/web/test/checkpoint-regressions.test.ts:42:1
+✖ FCP-01 displayed portfolio polling includes list and stats keys, and refused list erases prior statistics (0.987ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + {
+  +   privateCount: 25
+  + }
+  - undefined
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/checkpoint-regressions.test.ts:43:545)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { privateCount: 25 },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

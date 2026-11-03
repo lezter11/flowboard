@@ -1,0 +1,77 @@
+▶ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation
+  ✔ node:1000-card first and warm snapshots are correct/bounded and isolated (163.368583ms)
+  ✔ node:MyTasks1000-row cursor walk, tied/NULL dates, filters and actual query growth (203.824791ms)
+  ✔ node:health,correlation,timing,HEAD,OPTIONS and safe malformed errors (8.676917ms)
+  ✔ node:actual wire body-cap boundaries (42.901583ms)
+  ✖ node:real SQL lock deadline has safe retryable response and atomic rollback (3023.573625ms)
+  ✔ worker:1000-card first and warm snapshots are correct/bounded and isolated (228.886ms)
+  ✔ worker:MyTasks1000-row cursor walk, tied/NULL dates, filters and actual query growth (318.914792ms)
+  ✔ worker:health,correlation,timing,HEAD,OPTIONS and safe malformed errors (31.091333ms)
+  ✖ worker:actual wire body-cap boundaries (111.330292ms)
+  ✖ worker:real SQL lock deadline has safe retryable response and atomic rollback (3030.52275ms)
+✖ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation (9283.156709ms)
+✔ FND04 genuine PostgreSQL slow query records HTTP deadline without assuming cancellation (438.148125ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 8
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10314.603583
+
+✖ failing tests:
+
+test at apps/api/test/runtime-validation.test.ts:132:15
+✖ node:real SQL lock deadline has safe retryable response and atomic rollback (3023.573625ms)
+  AssertionError [ERR_ASSERTION]: SQL timeout must be a controlled retryable response, got 500: {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"a4d6918f-8fe2-40e0-942f-05dccec889b3"}}
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:138:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:132:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/runtime-validation.test.ts:125:15
+✖ worker:actual wire body-cap boundaries (111.330292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  429 !== 413
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:130:239)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:125:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 429,
+    expected: 413,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/runtime-validation.test.ts:132:15
+✖ worker:real SQL lock deadline has safe retryable response and atomic rollback (3030.52275ms)
+  AssertionError [ERR_ASSERTION]: SQL timeout must be a controlled retryable response, got 500: {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"d0aab752-025e-4aa5-9bc3-954647a459a4"}}
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:138:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:132:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -1,0 +1,48 @@
+{
+  "version": "boards-lifecycle-repair-2",
+  "risk": "high",
+  "migrationReservation": "0024",
+  "affectedFeatures": [
+    "BRD-02",
+    "BRD-03",
+    "BRD-04",
+    "BRD-05",
+    "BRD-06",
+    "BRD-07",
+    "BRD-08",
+    "CRD-01",
+    "CRD-07",
+    "CRD-08",
+    "CRD-09",
+    "DEL-04",
+    "IMP-02",
+    "IMP-05",
+    "IMP-06"
+  ],
+  "mandatoryCriteria": [
+    "Replace the interim retained-reference409 with a real soft-column lifecycle: an empty nonfinal active column may be removed after all referenced restore windows expire, while original column/source IDs and historical facts remain truthfully retained. Active cards and still-restorable trash block removal; no card/content/history is silently deleted or moved. Retired columns disappear from ordinary active metadata/snapshot/settings/pickers/order/cap checks and cannot accept new card/move/import/undo/restore effects.",
+    "Enumerate EVERY column SELECT/JOIN/INSERT/UPDATE/DELETE by rg before cutover. Classify live operational reads/writes versus historical lookups explicitly; filter only live paths. Cover boards metadata/snapshot/list-card joins/configuration, card create/move/undo, imports preview/map/confirm, trash list/restore targets, ancestry and project-summary reads. Preserve historical source-name resolution instead of blind global filtering. Do not deploy an intermediate partial cutover.",
+    "0024 is additive and history preserving. New active/retired state, active normalized name uniqueness/cap/order rules, active-card/destination integrity and upgrade/idempotency/embedded parity are tested against actual PostgreSQL. Physical foreign-key ancestry is retained; no broad cascade or dropping references to make tests pass. Legacy rows start active; active/history semantics remain valid after restart and failed transaction.",
+    "getPlacement does not select/materialize all destination card IDs. First/last/before/after use bounded indexed canonical neighbor reads with SQL LIMIT. Destination choice pages use actual keyset SQL with limit<=100, canonical position+ID tie-breaking, strict revision/filter/actor/access-revision scope and current grants; no linear all-card helper or hidden count leak. Existing PlacementResult/CardListResponse fields remain compatible unless root explicitly coordinates an additive contract.",
+    "Preserve filtered movement against full destination order, exclude moving card from anchors and use existing optimistic versions. Stale/deleted/foreign anchor/column/board and revoked/expired actor fail with stable safe errors. Test first/last/before/after off-page anchors, tied/gapped ranks, large columns and actual separate-connection mutation/revocation interleavings.",
+    "Add explicit validated includeArchived=true board discovery for session Owner/Manager administration only. Omitted/false preserves current active-only response. Resolve actual project role/current board grants, including zero-grant Manager and sibling project; never reveal hidden board names,IDs,counts or existence. PAT mode cannot gain archive administration; deny requested archive mode with current token-operation403. Member/Viewer forbidden for admin mode. Preserve current strict PAT directory projection/default response.",
+    "Coordinate exact query export/validation/error and response shapes with root shared-schema/OpenAPI/UI owners BEFORE route edits. Proposed name projectBoardsListQuerySchema; only includeArchived is requested now. No implicit cross-project aggregate or Manager board-metadata privileges. Archived parents remain read-only; pure grant-removal policy is unchanged.",
+    "Mounted PostgreSQL tests cover truly empty/historical-only/active/restorable/final column cases, all active readers/writers and retained lookup paths, name/cap/order changes, revision/receipt/activity rollback, concurrent create/restore/delete/purge/import, bounded placement SQL/pages, and archived board rediscovery/reopen for full role/PAT/grant matrix. Run nearest existing suites plus parent full gate; preserve failures and exact logs. Fresh independent full-feature review is still required; builder never self-approves.",
+    "Board archive/reopen parse existing boardLifecycleInputSchema expectedVersion and compare current snapshotVersion under row lock. Include the original parsed body in idempotency receipts. Current authority/context checks precede replay; a valid same-command lost-response replay succeeds before stale-version comparison, whereas a fresh stale/delayed transition returns409 without state/version/activity/receipt changes. UI/OpenAPI use snapshotVersion consistently. Preserve prior criteria unchanged."
+  ],
+  "ownedPaths": [
+    "apps/api/src/adapters/boards.ts",
+    "apps/api/src/http/routes/boards.ts list/metadata/placement and related column reads",
+    "apps/api/src/adapters/cards.ts narrow active-column references",
+    "apps/api/src/adapters/imports.ts narrow active-column references",
+    "apps/api/src/adapters/trash.ts narrow column lifecycle references",
+    "apps/api/src/http/routes/cards.ts move-undo destination",
+    "database/migrations/0024_<coordinated-name>.sql",
+    "relevant tests"
+  ],
+  "coordinationRequired": [
+    "Root owns shared contracts/error catalogue and embedded migration synchronization",
+    "Identity agent owns project member-directory guards and OpenAPI metadata; project-overview active-column joins/rbac ancestry only if root confirms necessity"
+  ],
+  "scopeLimits": "Synthetic local PostgreSQL55931 only, own schemas preferred. No UI/shared-contract edits, cloud credentials, deployment, commits or self-score."
+}

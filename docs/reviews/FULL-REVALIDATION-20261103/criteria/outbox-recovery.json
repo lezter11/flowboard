@@ -1,0 +1,12 @@
+{
+  "featureIds": ["NTF-01", "NTF-03"],
+  "mandatoryCriteria": [
+    "Database-only notification effects and outbox settlement commit atomically; transaction row locks are the single-database consumer fence and crash rollback releases them.",
+    "A recoverable job-specific SQL error rolls back that job's partial effects before persisting bounded retry/backoff or terminal quarantine, while an independent valid job can finish.",
+    "Required schema/configuration failures still fail closed and retain accepted work; never mark undelivered work delivered.",
+    "Concurrent consumers and restart after a rolled-back transaction preserve one logical notification per source/recipient. Real separate PostgreSQL connections prove locking behavior.",
+    "Invitation delivery privacy/idempotency and comment redaction/source locks remain intact. External provider exactly-once delivery is not claimed.",
+    "Recovering a job savepoint must persist the comment allowlist again; rollback cannot restore a legacy body/recipient copy into a retry or terminal job.",
+    "Independent review of the final frozen source is required; these tests do not approve closure."
+  ]
+}

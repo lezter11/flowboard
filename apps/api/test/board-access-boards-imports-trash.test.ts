@@ -1,3 +1,5 @@
+import { versionedBoardLifecycleBody } from './support/board-lifecycle-fixture.ts';
+import { createEmptyImport } from './support/import-fixture.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -55,23 +57,17 @@ test('mounted board, import and trash routes require current board access', {
       `UPDATE cards SET deleted_at = NOW(), deleted_by = $1, restore_until = NOW() + INTERVAL '24 hours' WHERE id = 'trashed'`,
       [owner.user.id],
     );
-    await pool.query(
-      `INSERT INTO card_imports (id, workspace_id, project_id, board_id, default_column_id, uploader_id, version, state, preview_digest, expires_at, created_at, updated_at)
-       VALUES ('imp', 'w', 'p', 'b', 'col', $1, 1, 'ready', 'digest', NOW() + INTERVAL '30 minutes', NOW(), NOW())`,
-      [owner.user.id],
-    );
+    const preview = await createEmptyImport(pool, 'b', 'col', owner.user.id);
+    const importId = preview.id;
 
     const app = createApp(async () => {}, { pool });
-    const request = (method: string, path: string, session: string, body?: unknown, key = crypto.randomUUID()) =>
-      app.request(`http://localhost/api/v1${path}`, {
-        method,
-        headers: {
-          cookie: `flowboard_session=${session}`,
-          ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
-          ...(method !== 'GET' ? { 'Idempotency-Key': key } : {}),
-        },
-        ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+    const request = async (method: string, path: string, session: string, body?: unknown, key: string = crypto.randomUUID()) => {
+      const actualBody = await versionedBoardLifecycleBody(pool, '/api/v1'+path, body, key);
+      return app.request(`http://localhost/api/v1${path}`, {
+        method, headers: { cookie:`flowboard_session=${session}`, ...(actualBody!==undefined?{'content-type':'application/json'}:{}), ...(method!=='GET'?{'Idempotency-Key':key}:{}) },
+        ...(actualBody!==undefined?{body:JSON.stringify(actualBody)}:{}),
       });
+    };
 
     const patchBody = { name: 'Renamed', expectedVersion: 1 };
     assert.equal((await request('GET', '/boards/b', manager.session.id)).status, 404);
@@ -79,9 +75,9 @@ test('mounted board, import and trash routes require current board access', {
     assert.equal((await request('POST', '/boards/b/archive', manager.session.id)).status, 404);
     assert.equal((await request('POST', '/boards/b/reopen', manager.session.id)).status, 404);
     assert.equal((await request('GET', '/boards/b/card-import-template', manager.session.id)).status, 404);
-    assert.equal((await request('GET', '/card-imports/imp', manager.session.id)).status, 404);
-    assert.equal((await request('POST', '/card-imports/imp/commit', manager.session.id,
-      { expectedVersion: 1, previewDigest: 'digest', defaultColumnId: 'col' })).status, 404);
+    assert.equal((await request('GET', `/card-imports/${importId}`, manager.session.id)).status, 404);
+    assert.equal((await request('POST', `/card-imports/${importId}/commit`, manager.session.id,
+      { expectedVersion: 1, previewDigest: preview.previewDigest!, defaultColumnId: 'col' })).status, 404);
     assert.equal((await request('POST', '/cards/active/delete', manager.session.id,
       { expectedVersion: 1, expectedBoardVersion: 1 })).status, 404);
     assert.equal((await request('POST', '/cards/trashed/restore', manager.session.id,
@@ -98,13 +94,13 @@ test('mounted board, import and trash routes require current board access', {
        VALUES ('b', 'p', 'w', $1, $2)`, [manager.user.id, owner.user.id],
     );
     assert.equal((await request('GET', '/boards/b', manager.session.id)).status, 200);
-    assert.equal((await request('GET', '/card-imports/imp', manager.session.id)).status, 200);
+    assert.equal((await request('GET', `/card-imports/${importId}`, manager.session.id)).status, 200);
     const grantedTrash = await request('GET', '/projects/p/trash', manager.session.id);
     assert.equal(grantedTrash.status, 200);
     assert.equal((await grantedTrash.json()).data.length, 1);
-    const commitBody = { expectedVersion: 1, previewDigest: 'digest', defaultColumnId: 'col' };
+    const commitBody = { expectedVersion: 1, previewDigest: preview.previewDigest!, defaultColumnId: 'col' };
     const commitKey = crypto.randomUUID();
-    assert.equal((await request('POST', '/card-imports/imp/commit', manager.session.id, commitBody, commitKey)).status, 200);
+    assert.equal((await request('POST', `/card-imports/${importId}/commit`, manager.session.id, commitBody, commitKey)).status, 200);
     const restoreKey = crypto.randomUUID();
     assert.equal((await request('POST', '/cards/trashed/restore', manager.session.id,
       { expectedVersion: 1, expectedBoardVersion: 2 }, restoreKey)).status, 200);
@@ -126,14 +122,14 @@ test('mounted board, import and trash routes require current board access', {
     await pool.query(`DELETE FROM board_grants WHERE board_id = 'b' AND user_id = $1`, [manager.user.id]);
     assert.equal((await request('PATCH', '/boards/b', manager.session.id,
       { ...patchBody, expectedVersion: currentVersion }, key)).status, 404);
-    assert.equal((await request('POST', '/card-imports/imp/commit', manager.session.id, commitBody, commitKey)).status, 404);
+    assert.equal((await request('POST', `/card-imports/${importId}/commit`, manager.session.id, commitBody, commitKey)).status, 404);
     assert.equal((await request('POST', '/cards/active/delete', manager.session.id,
       { expectedVersion: 1, expectedBoardVersion: 3 }, deleteKey)).status, 404);
     assert.equal((await request('POST', '/cards/trashed/restore', manager.session.id,
       { expectedVersion: 1, expectedBoardVersion: 2 }, restoreKey)).status, 404);
     assert.equal((await request('POST', '/boards/b/archive', manager.session.id, undefined, archivedKey)).status, 404);
     assert.equal((await request('POST', '/boards/b/reopen', manager.session.id, undefined, reopenKey)).status, 404);
-    assert.equal((await request('GET', '/card-imports/imp', manager.session.id)).status, 404);
+    assert.equal((await request('GET', `/card-imports/${importId}`, manager.session.id)).status, 404);
   } finally {
     setGlobalPool(null);
     await pool.end();

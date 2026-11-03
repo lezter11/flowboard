@@ -1,0 +1,82 @@
+✔ import repair: description survives mapping and commit; original row reimport skips after card edit (316.397041ms)
+✔ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (228.484666ms)
+✔ import repair: changed duplicate in a separately ready preview rolls back its whole batch (229.96575ms)
+✔ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (230.439709ms)
+✔ import repair: commit cannot override preview default column and stale board structure rejects confirmation (181.892167ms)
+✔ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (208.230917ms)
+✔ import repair: cancel and expired status remove staged titles/emails and prevent commit (219.668916ms)
+✔ import repair: purge removes imported card title/email copies but keeps duplicate identity (190.434083ms)
+✔ import repair: target membership revocation winning its lock makes a concurrent mounted confirmation stale (197.634709ms)
+✔ import repair: confirmation holding recipient locks commits before waiting revocation with no deadlock (227.548833ms)
+✔ import repair: scheduled retention is bounded, repeatable, and preserves live previews/results/duplicate markers (214.657875ms)
+✔ import repair: failure on final card insert rolls back all cards, external markers, activity and receipt (170.603125ms)
+✔ import repair: migration0021 upgrades old previews conservatively and reruns without changing saved cards/markers (225.238958ms)
+✔ import repair: actual Worker scheduled entry cleans expired previews without a browser request (185.067042ms)
+✔ import repair: an unknown source mapping preserves original description/hash and literal inline strings parse (250.668042ms)
+✔ XML mounted: original findings reject422 before any import, receipt, card or activity write (321.435791ms)
+✖ XML mounted: prior legal entity/richtext/UTF16/singlequotes persist exact values (201.087333ms)
+✖ XML mounted: literal identity, CDATA and shared/inline representations compete without duplicate effects (234.22775ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 16
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4452.036125
+
+✖ failing tests:
+
+test at apps/api/test/import-xml-mounted.test.ts:45:1
+✖ XML mounted: prior legal entity/richtext/UTF16/singlequotes persist exact values (201.087333ms)
+  error: column "import_external_id" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-mounted.test.ts:58:19)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    length: 118,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '31',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_relation.c',
+    line: '3716',
+    routine: 'errorMissingColumn'
+  }
+
+test at apps/api/test/import-xml-mounted.test.ts:62:1
+✖ XML mounted: literal identity, CDATA and shared/inline representations compete without duplicate effects (234.22775ms)
+  error: column "import_external_id" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-mounted.test.ts:84:16)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    length: 118,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '26',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_relation.c',
+    line: '3716',
+    routine: 'errorMissingColumn'
+  }

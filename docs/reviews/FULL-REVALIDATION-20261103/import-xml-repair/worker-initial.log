@@ -1,0 +1,32 @@
+✖ import repair: real workerd serves exact supplied blank XLSX without a host filesystem dependency (1513.541625ms)
+ℹ actual local workerd200-row preview+atomic commit elapsed_ms=537.09; local synthetic fixture, not a hosted CPU/load benchmark
+ℹ actual local workerd resource rejection 20MB-node-forest compressed_bytes=21287 elapsed_ms=106.67
+ℹ actual local workerd resource rejection 19MB-text compressed_bytes=21208 elapsed_ms=63.34
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2077.863792
+
+✖ failing tests:
+
+test at apps/api/test/import-worker-template.test.ts:17:1
+✖ import repair: real workerd serves exact supplied blank XLSX without a host filesystem dependency (1513.541625ms)
+  AssertionError [ERR_ASSERTION]: depth10000: {"error":{"code":"RATE_LIMITED","message":"Too many requests. Try again later.","requestId":"8f1d3780-ab2f-4641-b0d6-31d1b1f5a9dc","details":{"retryAfterSeconds":27,"scope":"general"}}}
+  
+  429 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-worker-template.test.ts:147:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 429,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

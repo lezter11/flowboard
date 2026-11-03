@@ -1,3 +1,4 @@
+import { versionedBoardLifecycleBody, versionedProjectLifecycleBody } from './support/board-lifecycle-fixture.ts';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import test from 'node:test';
@@ -24,7 +25,7 @@ test('B-18: owned project and shared board permissions', async (t) => {
       cookies.set(user.role, `flowboard_session=${session.id}`);
     }
     const create = async (role: string, path: string, body: object, key: string) => app.request(path, {
-      method: 'POST', headers: { cookie: cookies.get(role)!, 'content-type': 'application/json', 'idempotency-key': key }, body: JSON.stringify(body),
+      method: 'POST', headers: { cookie: cookies.get(role)!, 'content-type': 'application/json', 'idempotency-key': key }, body: JSON.stringify(await versionedProjectLifecycleBody(pool,path,await versionedBoardLifecycleBody(pool,path,body,key),key)),
     });
     const ownerResponse = await create('owner', '/api/v1/projects', { name: 'Owned project' }, `b18-owner-${suffix}`);
     assert.equal(ownerResponse.status, 201, await ownerResponse.clone().text());

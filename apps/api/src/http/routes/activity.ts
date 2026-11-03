@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { activityFeedQuerySchema, projectActivityQuerySchema, cardActivityQuerySchema, parseOrThrow } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
 import {
   listCardActivity,
@@ -9,13 +10,6 @@ import { HttpError } from '../errors.ts';
 import { authMiddleware } from '../middleware/auth.ts';
 
 export const activityRoutes = new Hono();
-
-function parseLimit(limitParam?: string): number {
-  if (!limitParam) return 50;
-  const parsed = parseInt(limitParam, 10);
-  if (Number.isNaN(parsed) || parsed < 1) return 50;
-  return Math.min(parsed, 100);
-}
 
 // Health check
 activityRoutes.get('/activity/health', (c) => c.json({ data: { status: 'ok' } }));
@@ -28,8 +22,7 @@ activityRoutes.get('/cards/:cardId/activity', authMiddleware, async (c) => {
   }
 
   const cardId = c.req.param('cardId');
-  const limit = parseLimit(c.req.query('limit'));
-  const cursor = c.req.query('cursor') || undefined;
+  const { limit, cursor } = parseOrThrow(cardActivityQuerySchema, c.req.query());
 
   const pool = getPool();
   const result = await listCardActivity(pool, cardId, actor.id, { limit, cursor });
@@ -48,24 +41,9 @@ activityRoutes.get('/projects/:projectId/activity', authMiddleware, async (c) =>
   }
 
   const projectId = c.req.param('projectId');
-  const limit = parseLimit(c.req.query('limit'));
-  const cursor = c.req.query('cursor') || undefined;
-  const cardId = c.req.query('cardId') || undefined;
-  const actorId = c.req.query('actorId') || undefined;
-  const action = c.req.query('action') || undefined;
-  const fromDate = c.req.query('fromDate') || undefined;
-  const toDate = c.req.query('toDate') || undefined;
-
+  const options = parseOrThrow(projectActivityQuerySchema, c.req.query());
   const pool = getPool();
-  const result = await listProjectActivity(pool, projectId, actor.id, {
-    limit,
-    cursor,
-    cardId,
-    actorId,
-    action,
-    fromDate,
-    toDate,
-  });
+  const result = await listProjectActivity(pool, projectId, actor.id, options);
 
   return c.json({
     data: result.data,
@@ -81,26 +59,9 @@ activityRoutes.get('/workspaces/:workspaceId/activity', authMiddleware, async (c
   }
 
   const workspaceId = c.req.param('workspaceId');
-  const limit = parseLimit(c.req.query('limit'));
-  const cursor = c.req.query('cursor') || undefined;
-  const projectId = c.req.query('projectId') || undefined;
-  const cardId = c.req.query('cardId') || undefined;
-  const actorId = c.req.query('actorId') || undefined;
-  const action = c.req.query('action') || undefined;
-  const fromDate = c.req.query('fromDate') || undefined;
-  const toDate = c.req.query('toDate') || undefined;
-
+  const options = parseOrThrow(activityFeedQuerySchema, c.req.query());
   const pool = getPool();
-  const result = await listWorkspaceActivity(pool, workspaceId, actor.id, {
-    limit,
-    cursor,
-    projectId,
-    cardId,
-    actorId,
-    action,
-    fromDate,
-    toDate,
-  });
+  const result = await listWorkspaceActivity(pool, workspaceId, actor.id, options);
 
   return c.json({
     data: result.data,

@@ -1,0 +1,71 @@
+{
+  "purpose": "Independent bounded FCP-01-04 repair retest; no score/final release approval",
+  "status": "all four original defects not reproduced under the named inverse assertions",
+  "reviewer": {
+    "task": "/root/frontend_checkpoint_audit",
+    "didNotWriteApplicationSource": true
+  },
+  "manifest": "manifest-before.json",
+  "frozenFiles": 367,
+  "changedFiles": [
+    "apps/web/next-env.d.ts"
+  ],
+  "changedBehavioralInputs": [],
+  "criteria": "../../ui-checkpoint-repair-criteria.json",
+  "originalFindings": "../findings.json",
+  "checks": [
+    {
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "tests": 315,
+      "pass": 315,
+      "fail": 0,
+      "evidence": "raw/web-tests.log"
+    },
+    {
+      "command": "node private-memory-retest.mjs",
+      "exitCode": 0,
+      "assertions": 23,
+      "evidence": "raw/private-memory-result.json"
+    },
+    {
+      "command": "node browser-retest.mjs (explicit test environment; owned loopback API/UI and disposable PostgreSQL)",
+      "exitCode": 0,
+      "browserGroups": 4,
+      "completedGroups": 4,
+      "failedGroups": 0,
+      "evidence": "raw/browser-01/result.json"
+    }
+  ],
+  "findingDisposition": [
+    {
+      "id": "FCP-01",
+      "result": "retested repaired",
+      "evidence": "Member hub updates board name/count24to25 then removes board after Owner grantrevoke; canonical authenticated list200[]; source omission clears snapshots/stats."
+    },
+    {
+      "id": "FCP-02",
+      "result": "retested repaired for named scoped memory paths",
+      "evidence": "23 inverse assertions erase clean base/draft, preserve changed title and explicitly cleared description, rehydrate clean current fields with review, retain exact unresolved operation input/key and actor isolation. Actual Settings unrelatedprojectaddition preserves unsentname/cleandescription/saveenabled/no spuriousconflict."
+    },
+    {
+      "id": "FCP-03",
+      "result": "retested repaired",
+      "evidence": "Single Escape removes navigation dialog only; parent/draft remain, parent inert while nested, focus returns to original link, no invitationPOST."
+    },
+    {
+      "id": "FCP-04",
+      "result": "retested repaired",
+      "evidence": "First receipt survives Back; Createanothercard resets required title/priority; two explicitcreations yield exactlytwo distinctdatabasecards."
+    }
+  ],
+  "priorAttempt": "../retest-1/summary.md",
+  "limits": [
+    "Bounded repair retest only; no all98/74UI acceptance or score",
+    "Google/email/R2/hosted Pages/CSP/UAT not exercised",
+    "No independent optimized build rerun; UIowner supplied build/typecheck logs",
+    "No blanket browser acceptance for every generic protected settings/brief/workspace path",
+    "No final backend/Worker/image-decoder or concurrency/performance acceptance"
+  ],
+  "cleanup": "Own browser contexts closed, own Next child terminated, own API closed and random test schema dropped"
+}

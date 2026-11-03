@@ -1,0 +1,30 @@
+✖ comment and card activity reads forward opaque cursors and preserve the next page envelope (8.955292ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 111.688875
+
+✖ failing tests:
+
+test at apps/web/test/comment-api.test.ts:5:1
+✖ comment and card activity reads forward opaque cursors and preserve the next page envelope (8.955292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '/api/v1/cards/card%20%2F1/comments'
+  - '/api/v1/cards/card%20%2F1/comments?limit=50&cursor=opaque%2B%2F%3D'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/comment-api.test.ts:15:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '/api/v1/cards/card%20%2F1/comments',
+    expected: '/api/v1/cards/card%20%2F1/comments?limit=50&cursor=opaque%2B%2F%3D',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

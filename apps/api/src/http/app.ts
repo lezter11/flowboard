@@ -1,3 +1,5 @@
+import { imageVerifierStorage, type ImageVerifier } from '../services/image-verifier.ts';
+import { imageAdmissionMiddleware, isImageMemoryWrite } from './middleware/image-admission.ts';
 import { DEFAULT_LIMITS, type Limits } from '../services/limits.ts';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
@@ -47,6 +49,10 @@ declare module 'hono' {
 export interface CreateAppOptions {
   bodyLimitBytes?: number;
   deadlineMs?: number;
+  imageDeadlineMs?: number;
+  imageBodyReadDeadlineMs?: number;
+  // Runtime cleanup follows real retained work, even after a caller timeout.
+  onImageWorkLifetime?: (work: Promise<void>) => void;
   pool?: pg.Pool;
   // Defaults to the Cloudflare binding lookup; tests inject a fake limiter.
   rateLimiter?: RateLimiterResolver;
@@ -57,6 +63,7 @@ export interface CreateAppOptions {
   // Image bytes for this app. Pass null when no bucket is bound: image routes then return 503 CONFIG_ERROR.
   // Omit to use the process default (tests set MemoryStorageDriver).
   storage?: StorageDriver | null;
+  imageVerifier?: ImageVerifier | null;
   // Own-projects limits (B-17). Pass limitsFromEnv(env) on the Worker. Omit for the defaults.
   limits?: Limits;
 }
@@ -119,6 +126,8 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
     app.use('*', (_c, next) => runWithStorageDriver(scopedStorage, () => next()));
   }
 
+  app.use('*', (_c, next) => imageVerifierStorage.run(options?.imageVerifier ?? null, () => next()));
+
   // 1. Correlation middleware: assigns or validates x-request-id and sets requestId in context
   app.use('*', correlationMiddleware);
 
@@ -140,12 +149,20 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
   // 2. Timing middleware: measures request duration and attaches Server-Timing header
   app.use('*', timingMiddleware);
 
+  // A single isolate owns one buffered image write/full decode at a time. This
+  // precedes Hono's body buffer and bounds slow streamed bodies independently.
+  app.use('*', imageAdmissionMiddleware(options?.bodyLimitBytes,options?.imageBodyReadDeadlineMs,options?.onImageWorkLifetime));
+
   // 3. Body limit middleware: 1 MiB by default; 5 MiB XLSX imports and 10 MiB image content only for
   // a signed-in request on those routes (B-7). Refused with 413 PAYLOAD_TOO_LARGE.
   app.use('*', routeBodyLimitMiddleware(options?.bodyLimitBytes ?? DEFAULT_BODY_LIMIT_BYTES));
 
-  // 4. Deadline middleware: aborts requests exceeding deadline (default 5000ms) with 504 DEADLINE_EXCEEDED
-  app.use('*', deadlineMiddleware(options?.deadlineMs ?? DEFAULT_DEADLINE_MS));
+  // 4. Full image verification has a bounded10s HTTP budget; ordinary Node
+  // requests keep5s. Explicit deadlineMs remains a focused-test override unless
+  // imageDeadlineMs is supplied (Worker ordinary25s/image10s are explicit).
+  const ordinaryDeadline=deadlineMiddleware(options?.deadlineMs??DEFAULT_DEADLINE_MS);
+  const imageDeadline=deadlineMiddleware(options?.imageDeadlineMs??options?.deadlineMs??10_000);
+  app.use('*',(c,next)=>isImageMemoryWrite(c.req.method,c.req.path)?imageDeadline(c,next):ordinaryDeadline(c,next));
 
   // Default no-store cache policy for private application endpoints
   app.use('*', async (c, next) => {

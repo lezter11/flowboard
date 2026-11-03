@@ -1,0 +1,29 @@
+✖ Image admission: actual workerd retains its isolate slot after a504 until the underlying verifier settles (1355.333ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3066.114291
+
+✖ failing tests:
+
+test at apps/api/test/image-admission-worker.test.ts:12:1
+✖ Image admission: actual workerd retains its isolate slot after a504 until the underlying verifier settles (1355.333ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"SERVICE_UNAVAILABLE","message":"Image processing is busy or unavailable. Try again shortly.","requestId":"a8dfc6fc-d9bc-4a53-b16f-b4babfe72fef"}}
+  
+  503 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-admission-worker.test.ts:42:36)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 503,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

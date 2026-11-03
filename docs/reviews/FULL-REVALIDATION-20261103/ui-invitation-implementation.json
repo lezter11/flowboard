@@ -1,0 +1,52 @@
+{
+  "phase": "invitation",
+  "criteria": "ui-invitation-repair-criteria.json",
+  "status": "implemented-locally; independent review and actual browser integration pending",
+  "sourceManifest": [
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "2fde06fcd3f22ab8e960f3f0897170e47273ba5cc60b72065d1d074b82894eb4"
+    },
+    {
+      "path": "apps/web/src/lib/invitation-state.ts",
+      "sha256": "f4ec5721c8f531c0e7839479c29086ce419a27cfd766ec524885f975961e1718"
+    },
+    {
+      "path": "apps/web/src/components/ui/invite-dialog.tsx",
+      "sha256": "01345781f71698d91cb5a1c344f37564cf3db03bbddf6aac7dff09f64824401a"
+    },
+    {
+      "path": "apps/web/src/app/people/page.tsx",
+      "sha256": "277db4abbd3f5f50cb6ac8d8f3f8b86d3268fa93602a5766deeb9972e1308bae"
+    },
+    {
+      "path": "apps/web/test/invitation-api.test.ts",
+      "sha256": "3c7f0837524c2acb1c63c54bff0a45829a73f5a676122d6ca274682b1fbae9cc"
+    },
+    {
+      "path": "apps/web/test/invitation-state.test.ts",
+      "sha256": "52f972986e508b66a237cbe04fafc89812dfbac6583aefaa4adf80a8000a31e6"
+    }
+  ],
+  "checks": {
+    "webTests": "269/269 exit0 raw/ui-invitation-web-tests-final.log",
+    "typecheck": "exit0 raw/ui-invitation-typecheck-final.log",
+    "productionBuild": "19/19 prerendered exit0 raw/ui-invitation-build-final.log"
+  },
+  "retainedFailures": [
+    "raw/ui-invitation-api-red.log: actual missing cursor/status/limit assertion; other3 tests passed",
+    "raw/ui-invitation-typecheck-1.log: new test callback union return inference; fixed explicit Promise<unknown> test callback"
+  ],
+  "browserCases": [
+    "Owner open Invite people; select All statuses; >50 synthetic rows Load more without repeated IDs; pending/history no false totals. Force STALE_CURSOR then Reload invitations; draft retained.",
+    "Inject network response loss after create/resend/revoke commits; retry original button sends byte-identical method/body/path and Idempotency-Key. Close/reopen or same-tab component remount keeps pending request; no second operation allowed. New actor/project cannot see draft or fresh link.",
+    "List delivery pending/retrying/delivered/failed/unknown and absent metadata; only canRetry failed row offers Retry delivery. Create/resend success copy says link created, never Sent. Resend replaces link; expired/revoked Prepare new invitation uses create.",
+    "Manager cannot invite or mutate manager rows; Member/Viewer direct invitation entry no list request/old email data. Role/refusal while open hides rows; archived history readonly. Confirm revoke clears fresh link.",
+    "Copy one-time response token works only in memory while dialog open; closing clears it. No token in persisted storage or log."
+  ],
+  "limits": [
+    "Transport/state tests are controlled fetch, not realAPI/PG/browser acceptance. Root owns next actual Chrome integration; final immutable manifest review and hostedUAT pending.",
+    "Invitation list safe delivery summary is server-owned; canRetry is eligibility only, server may reject rate/quota/current role. No raw provider reason shown.",
+    "Same-tab memory survives route remount; full reload cannot retain unknown request, and beforeunload warns. Navigation/session UX handled in later bounded phase."
+  ]
+}

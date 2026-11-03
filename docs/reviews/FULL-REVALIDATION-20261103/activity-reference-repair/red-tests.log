@@ -1,0 +1,41 @@
+✖ Activity reference identities: exact changed people only, safe historical names and no directory bypass (665.072ms)
+(node:51477) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+{"measurement":"mounted activity query count","oneActor":11,"twelveActors":44}
+✖ Activity identity lookup: mounted query count stays constant from1to12distinct actors (718.84375ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1891.260959
+
+✖ failing tests:
+
+test at apps/api/test/activity-reference-people.test.ts:8:1
+✖ Activity reference identities: exact changed people only, safe historical names and no directory bypass (665.072ms)
+  TypeError: Cannot read properties of undefined (reading 'map')
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/activity-reference-people.test.ts:15:45)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+
+test at apps/api/test/activity-reference-people.test.ts:33:1
+✖ Activity identity lookup: mounted query count stays constant from1to12distinct actors (718.84375ms)
+  AssertionError [ERR_ASSERTION]: Page actor cardinality must not add one query group per actor
+  
+  44 !== 11
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/activity-reference-people.test.ts:47:125)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 44,
+    expected: 11,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

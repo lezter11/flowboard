@@ -38,7 +38,18 @@ export function getPool(target?: pg.Pool | pg.ClientBase | Context | string): pg
   const contextPool = poolStorage.getStore();
   if (contextPool) return contextPool;
   if (globalPool) return globalPool;
-  const connStr = localDatabaseUrl(typeof target === 'string' ? target : process.env['DATABASE_URL']);
+  const selected = typeof target === 'string' ? target : process.env['DATABASE_URL'];
+  if (process.env['NODE_ENV'] === 'test') {
+    if (!selected) throw new Error('Tests require an explicitly selected disposable PostgreSQL instance.');
+    const url = new URL(selected);
+    if (!['postgres:','postgresql:'].includes(url.protocol)
+        || !['127.0.0.1','localhost','[::1]'].includes(url.hostname)
+        || !url.port || ['55432','55479'].includes(url.port)
+        || url.username !== 'flowboard_harness' || url.pathname !== '/flowboard_harness' || url.search) {
+      throw new Error('Tests require the isolated local harness on an explicit non-shared port.');
+    }
+  }
+  const connStr = localDatabaseUrl(selected);
   globalPool = createPool(connStr, 4);
   return globalPool;
 }

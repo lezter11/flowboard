@@ -1,0 +1,19 @@
+# Import structural XML repair acceptance (frozen before source changes)
+
+2026-11-03. Sensitive untrusted workbook parsing / domain-write boundary. Builder is not reviewer. Prior formal-import-round1 remains preserved and failed; this document does not close IMP features or authorize UAT.
+
+Scope: excel-parser.ts, a bounded structural XML helper, parser/mounted/actual workerd regression tests and synthetic ZIP support fixtures. Root coordinates dependency package/lock, shared contracts, API adapter, UI and final review. No new route/payload change. No hosted data, remote DB, credentials or deployment.
+
+Mandatory acceptance:
+
+1. Reproduce prior six findings on actual workbooks before source change. Then preserve literal entity-like values after exactly one decode in external ID/title/description, preserve inline/shared rich-text runs and whitespace; text External ID 0001 remains text. Invalid scalar references and malformed/unknown entities return controlled 422, never 500.
+2. Structural, well-formed XML parsing, correct namespace resolution (including alternative prefixes), single/double quoted attributes, strict Unicode decoding. Support UTF8/UTF16 LE/BE BOM and XML declarations, or reject unsupported/mismatched encodings explicitly. Formula and DTD/entity rejection apply after decoding in every XML/rels part. No unparsed/no-header sheet becomes ready/count0. Header is row1; required/duplicate/unknown header rules stay enforced.
+3. Cards merged cells rejected. Actual macro-free workbook content type required; inspect all content types, relationships and package parts. Reject images, OLE, macros, external targets and executable/unexpected parts. No claim of actual SSRF or execution.
+4. Preserve upload5MiB/expanded20MiB/100entry/200nonemptyrow/10000cell/time limits. Validate ZIP CRC, duplicates, safe names and local/central sizes/data bounds. Bound XML markup/node/depth/text work before full AST allocation; malicious 20MiB forests/large texts fail predictably. No weakening requirements or lowering row cap.
+5. Existing actual template blank0, seven-column valid rows, dates, explicit status mappings, row errors, duplicate identity and receipt privacy continue working. Tests use mounted handlers and isolated real PostgreSQL17.11 loopback55931 synthetic harness/schema. Real separate connections test concurrent corrected literal imports, invalid uploads create no import/domain writes, and rollback/uniqueness remain.
+6. Actual local workerd verifies200row parsing+commit and adversarial resource rejection. Retain runtime/timing/resource observations and distinguish them from hosted CPU/memory guarantees. Run API typecheck/build and relevant regression suites, retain failures. Root handles full final gates.
+7. Fresh independent reviewer must inspect exact manifest and mandatory criteria. Builder hands off unapproved source/evidence; no self score or task closure.
+
+Commands planned: NODE_ENV=test node --test [new XML parser tests]; FLOWBOARD_IMPORT_TEST_DATABASE_URL=synthetic loopback55931 node --test [mounted regression + existing import tests]; actual workerd test; npm run typecheck; npm run build --workspace=@flowboard/api. Exact executed commands/results retained in logs.
+
+Implementation clarification2026-11-03 (acceptance unchanged): raw XML segment bound is655,360UTF16codeunits, decoded cell/text bound65,536, aggregate markup delimiters50,000 across package, parser nesting64. A20,000-character valid description can require100,000rawXMLcharacters when every '&' is escaped, or more with numeric references; the raw-segment bound preserves that acceptance. Actual near20MiB expanded200x20k escaped-description fixture remains accepted. Supported package profile rejects every external relationship (including external hyperlink metadata); ordinary URL text is imported literally. This is a documented compatibility restriction, not evidence of SSRF or network execution.

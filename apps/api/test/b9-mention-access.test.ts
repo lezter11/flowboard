@@ -53,7 +53,7 @@ async function fixture() {
     await pool.query(`INSERT INTO board_grants (board_id,project_id,workspace_id,user_id,granted_by) VALUES ($1,$2,$3,$4,$5)`,
       [board, project, ws, userId, owner.user.id]);
   }
-  return { s, ws, p1, b1, card, owner, author, viewer, noGrant, revoked, otherProject, stranger, body: 'Please check Secret launch plan' };
+  return { s, ws, p1, b1, card, owner, author, viewer, noGrant, revoked, otherProject, stranger, body: 'Please check Secret launch plan @viewer @author' };
 }
 
 type Fx = Awaited<ReturnType<typeof fixture>>;
@@ -67,8 +67,8 @@ function post(fx: Fx, actor: { session: { id: string } }, body: string, mentions
   });
 }
 
-// Span of "Secret launch plan" inside the body, so the mention token is valid.
-const span = (body: string) => ({ start: body.indexOf('Secret'), end: body.indexOf('Secret') + 'Secret'.length });
+// Select the actual displayed @name; ordinary card text cannot be a mention token.
+const span = (body: string, name = 'viewer') => ({ start: body.indexOf('@' + name), end: body.indexOf('@' + name) + name.length + 1 });
 
 async function notificationCount(userId: string, cardId: string) {
   const res = await pool.query<{ n: string }>(`SELECT COUNT(*)::text AS n FROM notifications WHERE user_id = $1 AND card_id = $2`, [userId, cardId]);
@@ -116,7 +116,7 @@ test('B-9 mentions: only readers of the card may be mentioned; refusals do not r
 
   await t.test('a self-mention is accepted and notifies nobody', async () => {
     const before = await notificationCount(fx.author.user.id, fx.card);
-    const res = await post(fx, fx.author, fx.body, [{ userId: fx.author.user.id, ...sp }]);
+    const res = await post(fx, fx.author, fx.body, [{ userId: fx.author.user.id, ...span(fx.body, 'author') }]);
     assert.equal(res.status, 201);
     assert.equal(await notificationCount(fx.author.user.id, fx.card), before);
   });

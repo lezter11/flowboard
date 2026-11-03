@@ -2,12 +2,16 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { TrashRow } from '@flowboard/contracts';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import type { TrashRow, TrashListResponse } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
+import { useCursorFeed } from '@/lib/cursor-feed';
+import { usePollKeys } from '@/components/polling';
+import { FeedControls } from '@/components/ui/feed-controls';
 import { ErrorNote } from '@/components/ui/error-note';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { defaultRestoreColumn, restoreColumns, trashEmptyState, type ColumnOption } from '@/lib/restore-destination';
+import { canInitiateTrashRestore } from '@/lib/trash-restore';
 import { toastFailure } from '@/lib/toast-failure';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole } from '@/lib/roles';
@@ -32,6 +36,7 @@ function timeLeft(remaining: number): string {
 
 export default function TrashPage() {
   const { state } = useSession();
+  const actorId=state.status==='ready'?state.session.actor.id:'';
   const toast = useToast();
   const queryClient = useQueryClient();
   const projects = useMemo(() => (state.status === 'ready' ? state.session.accessibleProjects : []).filter((p) => can(normalizeRole(p.role), 'manageBoard')), [state]);
@@ -41,15 +46,14 @@ export default function TrashPage() {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => { const id = window.setInterval(() => setNow(Date.now()), 30_000); return () => window.clearInterval(id); }, []);
 
-  const trash = useQuery({
-    queryKey: ['trash', project?.id],
-    queryFn: async () => { const res = await api.listProjectTrash(project!.id); return { rows: res.data, skew: new Date(res.serverNow).getTime() - Date.now() }; },
-    enabled: !!project,
-  });
+  const queryKey=useMemo(()=>['trash',project?.id,actorId] as const,[project?.id,actorId]);
+  const trash=useCursorFeed<TrashRow,TrashListResponse & {receivedAt:number}>(queryKey,async(cursor,signal)=>({...await api.listProjectTrash(project!.id,{cursor,signal}),receivedAt:Date.now()}),!!project&&!!actorId);
+  usePollKeys([queryKey],!!project&&!!actorId);
   const boards = useProjectBoards(project?.id ?? null);
   const boardName = (id: string) => boards.data?.find((b) => b.id === id)?.name ?? 'Board';
-  const skew = trash.data?.skew ?? 0;
-  const rows = (trash.data?.rows ?? []).slice().sort((a, b) => new Date(a.restoreUntil).getTime() - new Date(b.restoreUntil).getTime());
+  const clock = trash.data?.pages.at(-1);
+  const skew = clock ? new Date(clock.serverNow).getTime()-clock.receivedAt : 0;
+  const rows = trash.items.slice().sort((a, b) => new Date(a.restoreUntil).getTime() - new Date(b.restoreUntil).getTime());
   const remainingOf = (row: TrashRow) => new Date(row.restoreUntil).getTime() - (now + skew);
   const needle = q.trim().toLowerCase();
   const filtered = rows.filter((row) => !needle || `${row.title} ${boardName(row.boardId)} ${project?.name ?? ''}`.toLowerCase().includes(needle));
@@ -96,7 +100,7 @@ export default function TrashPage() {
       <header className="recovery-heading"><div><h1>Trash</h1></div><Link className="btn recovery-project-link" href="/projects"><Icon name="folder" />Browse projects</Link></header>
       <section className="recovery-overview" aria-label="Recovery overview">
         <span className="overview-mark"><Icon name="restore" /></span>
-        <div className="overview-copy"><strong>{rows.length}</strong><span>deleted cards</span></div>
+        <div className="overview-copy"><strong>{rows.length}</strong><span>loaded deleted cards</span></div>
         <div className="overview-separator" aria-hidden="true" />
         <div className="overview-metric available"><Icon name="check-circle" /><span><strong>{restorable}</strong> within window</span></div>
         <div className={`overview-metric soon${expiring ? ' is-active' : ''}`}><Icon name="clock" /><span><strong>{expiring}</strong> expiring soon</span></div>
@@ -104,7 +108,7 @@ export default function TrashPage() {
       <section className="recovery-queue" aria-labelledby="trashTitle">
         <div className="recovery-queue-head"><div><h2 id="trashTitle">Deleted cards</h2><p>Recovery window: 24 hours</p></div><span className="recovery-count">{filtered.length} {filtered.length === 1 ? 'card' : 'cards'}</span></div>
         <div className="recovery-toolbar">
-          <label className="recovery-search" htmlFor="trashSearch"><Icon name="search" /><span className="sr-only">Search deleted cards</span><input type="search" id="trashSearch" placeholder="Search deleted cards" autoComplete="off" value={q} onChange={(event) => setQ(event.target.value)} /></label>
+          <label className="recovery-search" htmlFor="trashSearch"><Icon name="search" /><span className="sr-only">Search deleted cards</span><input type="search" id="trashSearch" placeholder="Search loaded deleted cards" autoComplete="off" value={q} onChange={(event) => setQ(event.target.value)} /></label>
           <label className="recovery-filter"><span className="sr-only">Project</span>
             <select id="trashProject" aria-label="Filter by project" value={project?.id ?? ''} onChange={(event) => { setProjectId(event.target.value); setQ(''); }}>
               {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
@@ -112,12 +116,12 @@ export default function TrashPage() {
           </label>
           <button className="recovery-clear" type="button" hidden={!needle} onClick={() => setQ('')}>Clear filters</button>
         </div>
-        <div className="recovery-results"><span aria-live="polite">{needle ? `${filtered.length} matching ${filtered.length === 1 ? 'card' : 'cards'}` : 'All deleted cards'}</span><span>Nearest deadline first</span></div>
+        <div className="recovery-results"><span aria-live="polite">{needle ? `${filtered.length} matching ${filtered.length === 1 ? 'card' : 'cards'}` : 'Loaded deleted cards'}</span><span>Nearest deadline first</span></div>
         <div id="trashList">
           {trash.isPending && project && <div className="recovery-empty"><strong>Loading…</strong></div>}
           {trash.isError && <ErrorNote error={trash.error} ctx={{ role: normalizeRole(project?.role) }} onRetry={() => void trash.refetch()} />}
           {trash.isSuccess && filtered.length === 0 && (
-            <div className="recovery-empty"><Icon name="trash" /><strong>{needle ? 'No matching cards' : 'Trash is empty'}</strong><span>{needle ? 'Try a different search.' : 'No deleted cards in this project.'}</span>{needle && <button type="button" onClick={() => setQ('')}>Clear filters</button>}</div>
+            <div className="recovery-empty"><Icon name="trash" /><strong>{needle ? 'No matching cards' : 'Trash is empty'}</strong><span>{needle ? 'Try a different search.' : 'No deleted cards loaded in this project.'}</span>{needle && <button type="button" onClick={() => setQ('')}>Clear filters</button>}</div>
           )}
           {filtered.map((row) => {
             const remaining = remainingOf(row);
@@ -133,14 +137,16 @@ export default function TrashPage() {
                   <div className="item-deadline"><Icon name="calendar" /><span>Deleted {dateTime(row.deletedAt)}</span><span aria-hidden="true">·</span><span>Deadline {dateTime(row.restoreUntil)}</span></div>
                 </div>
                 <div className="item-window"><span className="window-status"><Icon name="clock" />{label}</span><strong>{timeLeft(remaining)}</strong><span className="window-track" aria-hidden="true"><span style={{ width: `${pct}%` }} /></span></div>
-                <button className="restore-preview" type="button" disabled={!row.canRestore || restore.isPending} title={row.blockedReason ? `Cannot restore: ${row.blockedReason.replace(/_/g, ' ')}` : undefined} onClick={() => restore.mutate({ row })}><Icon name="restore" /> Restore</button>
+                <button className="restore-preview" type="button" disabled={!canInitiateTrashRestore(row, remaining, !!project?.isArchived) || restore.isPending} title={row.blockedReason === 'destination_missing' ? 'Choose a column to restore into' : row.blockedReason ? `Cannot restore: ${row.blockedReason.replace(/_/g, ' ')}` : undefined} onClick={() => restore.mutate({ row })}><Icon name="restore" /> Restore</button>
               </article>
             );
           })}
         </div>
+        <FeedControls name="deleted cards" queryKey={queryKey} feed={trash} loaded={rows.length} />
       </section>
+      <p className="field-help">Search and counts cover loaded cards. Load more to see further history.</p>
       <p className="recovery-foot"><Icon name="info" />Restored cards return to their original board. Times use the server clock.</p>
-      <DialogLayer open={!!pick} onClose={() => { if (!restore.isPending) setPick(null); }} labelledBy="restoreTitle" describedBy="restoreCopy">
+      <DialogLayer open={!!pick && pick.row.projectId===project?.id && !!actorId} onClose={() => { if (!restore.isPending) setPick(null); }} labelledBy="restoreTitle" describedBy="restoreCopy">
         {pick && (
           <>
             <div className="dialog-head"><div className="dialog-head-copy"><h2 id="restoreTitle">Pick a column to restore into</h2><p id="restoreCopy">“{pick.row.title}” was in a column that no longer exists. Choose where it should go.</p></div></div>

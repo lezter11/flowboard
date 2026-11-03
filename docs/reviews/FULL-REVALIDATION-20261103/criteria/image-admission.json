@@ -1,0 +1,12 @@
+{
+  "version": "image-admission-1",
+  "status": "criteria_before_implementation_not_approval",
+  "featureIds": ["ATT-01", "ATT-02", "ATT-04"],
+  "criteria": [
+    "One image content PUT or finalize POST may own the process/isolate memory-intensive lease at a time, shared across createApp instances because Worker constructs an app per request. Acquire before body buffering; do not queue retained bodies. Busy returns safe 503 SERVICE_UNAVAILABLE with Retry-After:1.",
+    "Authenticate selected image writes before admission/body consumption. Existing PAT policy, CSRF and rate limits remain in force. Missing/expired sessions do not occupy the slot. Delivery, staging, status, cancellation and deletion remain available while busy.",
+    "Bound actual streamed body bytes, irrespective of Content-Length, and bound body read duration. Over-cap remains413, slow/aborted transport fails safely without reaching image validation/effects. Attempt cancellation without indefinitely awaiting an uncooperative stream.",
+    "Retained work tracks underlying preflight/storage/decoder/provider promise lifetime, not just Promise.race response lifetime. Caller timeout or disconnect marks the scope inactive, denies later effects, and keeps the slot until all already-retained promises settle. Release is idempotent and handles rejection without unhandled rejections. Missing scope keeps direct adapter/test use compatible, not a security authorization shortcut. Actual Worker request context must retain cleanup with waitUntil; its request pool closes only after retained handler work settles. This is explicit before implementing the runtime followthrough exposed by a local workerd recovery probe.",
+    "Actual mounted PostgreSQL tests reproduce concurrency across apps, delayed non-cancellable verifier after response timeout, refusal before body pull, slow stream cancellation/recovery, byte-cap enforcement, invalid session and excluded routes. Preserve red and green logs. No real credential, hosted mutation, paid enablement or production change. Builder evidence is not independent approval."
+  ]
+}

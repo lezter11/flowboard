@@ -1,0 +1,227 @@
+{
+  "version": 1,
+  "slice": "ui-board-repair-1",
+  "criteria": "ui-board-repair-criteria.json",
+  "base_sha": "917706ae0433df471c72736be4d548eb022236c4",
+  "status": "implemented_local_checks_only",
+  "ui_phase_closed": false,
+  "integration_phase_closed": false,
+  "independent_review": "pending",
+  "uat": "pending after local gates and deployment",
+  "implemented": [
+    "Server title, priority (including existing none), single-assignee and exact due filters; title typing is debounced and outdated reads consume AbortSignal. No seven-day claim for upcoming/Aftertoday.",
+    "Per-column Load more uses actual opaque cursor and same original server filters. Page composition is canonical by position/ID, deduped by ID/version and bound to board snapshot/structure/calendar/filter generation. Actual full matching/total counts remain distinct from loaded arrays.",
+    "Same-board previous data keeps drawer/form components mounted while changing filters; pending result is explicitly labeled. Stale cursors offer in-place board list reload without clearing drafts.",
+    "Quick-add title/priority now live above individual columns so column-filter unmount/structure changes retain drafts. Missing original columns expose retained title/priority with deliberate destination selection; unknown operations cannot silently switch intent. Browser unload protects unsaved drafts.",
+    "Drag resolves a visible before/after anchor through the actual placement endpoint. Visible Move supports first/last/before/after and a paginated unfiltered reference list. Drawer status movement also uses canonical last placement. Filtered drag remains disabled.",
+    "Board archive/reopen uses shared confirmation and stable original request identity with expectedVersion=board.snapshotVersion. Owner/Manager archived discovery uses confirmed includeArchived=true and existing Board[].isArchived. Project archived state disables lifecycle/settings/create controls.",
+    "Owner-only board name/description editing retained. Manager People controls cannot promote Manager or change/remove self,peer Manager,Owner; protected rows explain the rule.",
+    "Latest user policy: full People directory and context nav are Owner/Manager only. Member/Viewer direct pages do not enable directory reads, suppress old cached rows/emails and show permission state; board-scoped assignee/mention pickers remain allowed.",
+    "Retained-history column refusal has plain no-action copy; it does not approve or close BRD-06.",
+    "No API/MCP priority-none default change, shared-contract/backend edit, dependency install, commit or deployment by this agent."
+  ],
+  "checks": [
+    {
+      "command": "npm run test --workspace @flowboard/web",
+      "log": "ui-board-web-tests-final.log",
+      "exit_code": 0,
+      "result": "262/262 passed; prior comment/command regressions remain in the suite."
+    },
+    {
+      "command": "NEXT_DIST_DIR=.next-build npm run build:web",
+      "log": "ui-board-build-final.log",
+      "exit_code": 0,
+      "result": "Optimized production build and type validity passed;19/19 pages rendered."
+    },
+    {
+      "command": "npm run typecheck:web",
+      "log": "ui-board-typecheck-final.log",
+      "exit_code": 0,
+      "result": "Final standalone web typecheck, process result confirmed separately."
+    },
+    {
+      "command": "git diff --check -- apps/web",
+      "exit_code": 0,
+      "result": "No whitespace errors."
+    }
+  ],
+  "preserved_failed_evidence": [
+    {
+      "log": "ui-board-red-api.log",
+      "disposition": "Missing cursor/placement methods reproduced before implementation."
+    },
+    {
+      "log": "ui-board-red-column-copy.log",
+      "disposition": "Retained-history refusal fell back to a fake reload remedy; fixed with explicit no-action copy."
+    },
+    {
+      "log": "ui-board-red-pages.log",
+      "disposition": "New helper scaffolding was absent. This is an availability failure, not behavioral red proof."
+    },
+    {
+      "log": "ui-board-red-directory-policy.log",
+      "disposition": "New directory-policy exports were initially absent; not claimed as behavioral red proof."
+    },
+    {
+      "log": "ui-board-red-archived-client.log",
+      "disposition": "Actual URL assertion failed because archived option was ignored; fixed explicit includeArchived=true serializer."
+    },
+    {
+      "log": "ui-board-typecheck-people.log",
+      "disposition": "Intermediate misplaced role-options replacement referenced unavailable controls; corrected directory filter options."
+    },
+    {
+      "log": "ui-board-typecheck-archived.log",
+      "disposition": "Intermediate optional stats projection dereferenced null; corrected explicit pending/unavailable counts."
+    },
+    {
+      "log": "ui-board-typecheck-draft-state-failed.log",
+      "disposition": "Draft lift spread repeated title/priority defaults; corrected fallback object spread."
+    },
+    {
+      "log": "ui-board-build-draft-state-failed.log",
+      "disposition": "Same draft-state type error caught by production build; fixed, all final gates rerun."
+    }
+  ],
+  "limits": [
+    "This is implementation/local verification evidence, not independent review approval or feature closure. Final immutable full-product source review and integrated acceptance still required.",
+    "Root Chrome156 + real local API/PostgreSQL diagnostics in raw/browser-board-roles-1/results.json passed off-page card24 continuation/title search and Owner/Manager-only People directory requests. Artifact labels itself moving-source synthetic diagnostic, not final-target acceptance.",
+    "Root still needs final-target canonical before/after/last placement, stale cursor/role/conflict, archived discovery/reopen, quick-add draft-through-filter, keyboard/focus and narrow-view browser cases.",
+    "Lifecycle backend owner is responsible for bounded placement SQL, snapshotVersion OCC, soft-column history preservation and paged key/excerpt projection; this UI report does not independently approve those changes.",
+    "Move Undo still uses ordinary move/latest cache and needs explicit CRD-12 repair. Field Save plus status move remains two operations with partial-outcome handling needed (UI-09).",
+    "Full cross-project/navigation draft persistence and feed/import/profile/workspace preference gaps are subsequent slices. Card date-label helper still uses browser-local day even though server filter/counts use workspace day; timezone display needs the later profile/preferences slice.",
+    "Unknown command outcomes deliberately retain original input/key; broader expired-receipt/user-driven resolution policy remains final acceptance work.",
+    "Next-generated next-env.d.ts/tsconfig paths were left for root runtime coordination; no blind revert of .next-e2e state."
+  ],
+  "source_manifest": [
+    {
+      "path": "apps/web/src/app/people/page.tsx",
+      "sha256": "b97d284e55971b95df09578fed7afa8939a5ed833a3411dfc07aafbf060a4d24"
+    },
+    {
+      "path": "apps/web/src/app/project/project-view.tsx",
+      "sha256": "e6cf2d3e965d3ecd5801a47d7ddefcbc259a206049c3ef35e48a871064175a11"
+    },
+    {
+      "path": "apps/web/src/app/settings/page.tsx",
+      "sha256": "6eff7d00ce766e9a98d713079955232e4eede7a54b55686065605121685f30b1"
+    },
+    {
+      "path": "apps/web/src/components/board/board-column.tsx",
+      "sha256": "b88dff956783a0afbbfa9c6a05f4ec18419a6cbb26c1bb2b070c274375fa4950"
+    },
+    {
+      "path": "apps/web/src/components/board/board-lifecycle-dialog.tsx",
+      "sha256": "7438a81b7c97c9b3d4f7c2fdac5aa82d62c1d6fdf60ac53ce20b65541e6b7a84"
+    },
+    {
+      "path": "apps/web/src/components/board/board-view.tsx",
+      "sha256": "cfd0060fd37f1f996f091efcb959ddc037ca72b8f92d1b9c0867dd1c4d4bcde2"
+    },
+    {
+      "path": "apps/web/src/components/board/card-comments.tsx",
+      "sha256": "0814a28ad819840f3a1a0eff1b7f20b006fec60fdc0300c7fdc8cdf832d31c32"
+    },
+    {
+      "path": "apps/web/src/components/board/card-detail-drawer.tsx",
+      "sha256": "9d4a8fc0bc148663a25431c68e9ab2f8e063b3ff76346efd1649e43b68cb5b40"
+    },
+    {
+      "path": "apps/web/src/components/board/columns-dialog.tsx",
+      "sha256": "edce036a7125f9989196031c57943c48e490d7b755d88902e865000c77c6fb15"
+    },
+    {
+      "path": "apps/web/src/components/board/comment-composer.tsx",
+      "sha256": "7f5c1ef5d2a59f3d946dbae7139c8daf456d5170023ddafe89f09715bd94fd85"
+    },
+    {
+      "path": "apps/web/src/components/board/move-dialog.tsx",
+      "sha256": "4841063f020677e337c0c4fd95d28e9e7a3bbd6de73f454c5d40e308284a480c"
+    },
+    {
+      "path": "apps/web/src/components/providers.tsx",
+      "sha256": "eb2436d4307610ca48094ca6e7586e72ce9ec23538f6c1b3b039f1732a9be8c4"
+    },
+    {
+      "path": "apps/web/src/components/shell/rail.tsx",
+      "sha256": "60d1789efb8dc01165577270ca3cbfc4ac6c9a783b71bbd15fb13b063de36238"
+    },
+    {
+      "path": "apps/web/src/components/ui/edit-board-dialog.tsx",
+      "sha256": "db756a01d45211707883112c56fdf052c4d54159b76acd4b3f444259a15812b3"
+    },
+    {
+      "path": "apps/web/src/components/ui/new-board-dialog.tsx",
+      "sha256": "e2f349ca41bb17720b1e3c4d803b5320288e1d457386b4af92b10a04a755514a"
+    },
+    {
+      "path": "apps/web/src/lib/active-project.ts",
+      "sha256": "8fb2377144e23687ba6e09397800227bbcbc95bd846b936bb4d74710f79fbe1d"
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "51aae76a28b4472c1fb97aed9954859fd4dd7af1d8f23ab73a9212b7a811484e"
+    },
+    {
+      "path": "apps/web/src/lib/board-model.ts",
+      "sha256": "9fb38038d8b2870cac3fd15b331dfb4832a0993168c9a087809a1017fb4feb57"
+    },
+    {
+      "path": "apps/web/src/lib/board-pages.ts",
+      "sha256": "e4992d57d315dab3776ba0f0bc52a1cc3b306114a6a0b7ab7f77906836c18675"
+    },
+    {
+      "path": "apps/web/src/lib/comment-state.ts",
+      "sha256": "482d5943f9de31ae391e5f89aac189e23eadb827f61663b6bf17add8c57d1ae0"
+    },
+    {
+      "path": "apps/web/src/lib/cursor-feed.ts",
+      "sha256": "42d1f360935ba2452230923672f81bea1a7564321a853a98a59b1867f32132aa"
+    },
+    {
+      "path": "apps/web/src/lib/error-catalogue.ts",
+      "sha256": "bf626b91cf5eb14d46ebacc06c58a331e85aa1eecdb872d7b8730d0b0568d969"
+    },
+    {
+      "path": "apps/web/src/lib/member-controls.ts",
+      "sha256": "ac4e0273e830fafb285e65c41f52bdf99e012e7a5722b748e0d78e66fa1c3c7b"
+    },
+    {
+      "path": "apps/web/src/lib/portfolio.ts",
+      "sha256": "e7b19bc8e5bf47757a81b702761b60182077205becfdcf5dde69cbe7c9e4a616"
+    },
+    {
+      "path": "apps/web/src/lib/queries.ts",
+      "sha256": "e249e2b528e3fb9ec750c72d505a45109d904f89ae332eb72ff2ff58f9cb8936"
+    },
+    {
+      "path": "apps/web/src/lib/retained-command.ts",
+      "sha256": "14bb4ea8604dbc297b672397988955206b065344ff0c6d50916b234842f738c5"
+    },
+    {
+      "path": "apps/web/test/board-api.test.ts",
+      "sha256": "0ba1d34ff606dd24aafc9cc2dc57c1de4b4b55428585b440e55c995cdec9bdc3"
+    },
+    {
+      "path": "apps/web/test/board-pages.test.ts",
+      "sha256": "6dc07258aebd30de87aa1dc262e5eaa9b2ffc39b47da6272c1a95c2853219cd5"
+    },
+    {
+      "path": "apps/web/test/comment-api.test.ts",
+      "sha256": "a7d70135b6921a37ae2d0bc00f608963040d72937f79c0aea841fb494d9828a1"
+    },
+    {
+      "path": "apps/web/test/comment-state.test.ts",
+      "sha256": "f6dfe256e2d00f8a64dd040e95e31e8bd681664603e68ced7ee8a621baf3528a"
+    },
+    {
+      "path": "apps/web/test/error-catalogue.test.ts",
+      "sha256": "f3320a326f42fd481d967be6e5d9803d23af5c96866cf8946808fcf709053e1a"
+    },
+    {
+      "path": "apps/web/test/mention-ui.test.ts",
+      "sha256": "228b3b349b98c4d904619c4fef7210b64d80cbc34159cac96cc24dc0d9167bd2"
+    }
+  ],
+  "manifest_scope": "All currently modified/new web src/test files, including inherited comment slice dependencies; generated Next files excluded."
+}

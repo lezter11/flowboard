@@ -1,0 +1,60 @@
+{
+  "phase": "imports",
+  "criteria": "ui-import-repair-criteria.json",
+  "status": "implemented with local checks; actor metadata contract gap, actualbrowser and final review pending",
+  "manifest": [
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "b9aa4c0fcba0858ac4bb3287666d35376c830f518c2fe426f22b02abbfa74335"
+    },
+    {
+      "path": "apps/web/src/lib/import-state.ts",
+      "sha256": "6aa72fe48033cb8131f4a6bcc40d91980ffd74a141c6e71e01fbbdeb6562b212"
+    },
+    {
+      "path": "apps/web/src/app/import/page.tsx",
+      "sha256": "ba03496298295463c80cec8be730b1ba9998644863b097dd88719696e444a6ed"
+    },
+    {
+      "path": "apps/web/test/import-state.test.ts",
+      "sha256": "b0ec33a53b69df6838ccea59bf78f892794be809a5d54f2dd93d4c6902c68c72"
+    }
+  ],
+  "checks": {
+    "web": "281/281 exit0 raw/ui-import-web-tests-final.log",
+    "typecheck": "exit0 raw/ui-import-typecheck-final.log",
+    "productionBuild": "19/19 exit0 raw/ui-import-build-final.log"
+  },
+  "changes": [
+    "Upload keeps selected file on failure, does not automatically retry uncertain upload. Returned batch id in URL supports authorized reload recovery. Exact target unavailable never silently falls back.",
+    "Actual state polling while uploaded/validating/committing; only committed displays createdsuccess; terminal states are explicit.",
+    "Preview/result rows use actual cursor chain, version/state/digest checks, loaded count and local reload. Confirmation requires full preview rows loaded and actual canCommit.",
+    "Unknown source status mapping uses real destination columns and expectedVersion; existing unchanged rows/skipped counts are honest. Own-property checks protect inherited-key source labels client-side.",
+    "Commit original digest/default/version/key stored actor+batch in memory through uncertain reply/remount; locks other writes until replay resolves.",
+    "Receipt shows batch/project/board/counts/provenance type, original-board createdcard links, server CSV exactbytes download guardedContentType and sameorigin credentials. Cancellation based on backendflag with visiblefailure."
+  ],
+  "tests": [
+    "generation mix refusal/row cursor",
+    "processing vs committed/sourcecard href",
+    "actual statuscursor and mappings wire",
+    "actual lost commit reply originalkey/body across remount",
+    "serverCSV download bytes/credentials/nonCSV refusal",
+    "hostile inherited source status keys"
+  ],
+  "browserCases": [
+    "Actual supplied synthetic workbook unknownstatus then map+revalidate, >50 previewrows Load more until all visible, explicit confirmation and real createdcard links; batchURL reload recovers receipt.",
+    "Inject commit response loss after PG commit; same request key/body retry creates no duplicates, actual committing response does not show Done.",
+    "Invalid field/counts/conflict/expired/cancelled/failed actual states preserved with no false creation; revokedManager cannot read/map/commit/report priorbatch.",
+    "Download safeCSV serverattachment inspect exact escaped output and no unapproved origin; stale mapping preserves choices and current preview conflict recovery."
+  ],
+  "openContractGaps": [
+    "IMP11 initiating actor/timestamp metadata not in current ImportStatus. Do not attribute current viewer as uploader; root notified to coordinate additive safe identity.",
+    "Backend updateImportMappings reads input.mappings[r.source_status] without ownproperty guard; source constructor/toString with empty mappings may resolve inherited values. Root notified; child client guards its own lookup.",
+    "After successfulmapping response status is targetlabel, originalsource_status absent. UI offers mappings only for currently unrecognized labels; no arbitraryheader remap or guessed original source."
+  ],
+  "limits": [
+    "No actualbrowser/API/PG evidence from child and no closure/score. Root owns independent finalmanifestreview and hostedUAT afterdeployment.",
+    "Upload has no idempotency/recovery-list contract; lostresponse before returnedid can leave another temporary preview on explicit retry, creates no cards beforecommit. UI explains this and never auto repeats.",
+    "Tests controlled transport/state; serverCSV formula protection is backend responsibility, download test onlyproves exactserverbytes delivered."
+  ]
+}

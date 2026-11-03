@@ -1,0 +1,34 @@
+▶ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation
+  ✔ node:1000-card first and warm snapshots are correct/bounded and isolated (401.938417ms)
+  ✔ node:MyTasks1000-row cursor walk, tied/NULL dates, filters and actual query growth (946.501708ms)
+  ✔ node:health,correlation,timing,HEAD,OPTIONS and safe malformed errors (34.331709ms)
+  ✖ node:actual wire body-cap boundaries (13.022083ms)
+  ✔ node:real SQL lock deadline has safe retryable response and atomic rollback (3106.262167ms)
+  ✔ worker:1000-card first and warm snapshots are correct/bounded and isolated (627.13725ms)
+  ✔ worker:MyTasks1000-row cursor walk, tied/NULL dates, filters and actual query growth (917.5465ms)
+  ✔ worker:health,correlation,timing,HEAD,OPTIONS and safe malformed errors (80.040875ms)
+  ✔ worker:test-only shared middleware masks faults and records genuine SQL continuation (173.04275ms)
+  ✔ worker:actual wire body-cap boundaries (248.119ms)
+  ✔ worker:real SQL lock deadline has safe retryable response and atomic rollback (3103.755584ms)
+✖ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation (11035.220958ms)
+✔ FND04 genuine PostgreSQL slow query records HTTP deadline without assuming cancellation (913.671542ms)
+✔ FND04 actual unavailable-DB and Worker missing-binding health/privacy controls (1603.045167ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 12
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14256.518167
+
+✖ failing tests:
+
+test at apps/api/test/runtime-validation.test.ts:185:15
+✖ node:actual wire body-cap boundaries (13.022083ms)
+  Error: write EPIPE
+      at WriteWrap.onWriteComplete [as oncomplete] (node:internal/stream_base_commons:87:19) {
+    errno: -32,
+    code: 'EPIPE',
+    syscall: 'write'
+  }

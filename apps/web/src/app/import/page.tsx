@@ -1,363 +1,112 @@
 'use client';
 
-import { Suspense, useMemo, useRef, useState } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
-import type { ImportStatus } from '@flowboard/contracts';
-import { describeFailureOf } from '@/lib/error-catalogue';
-import { api } from '@/lib/api';
-import { describeError } from '@/lib/errors';
+import { useRouter } from '@/lib/guarded-router';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import type { ImportRow, ImportStatus } from '@flowboard/contracts';
+import { api, ApiError } from '@/lib/api';
 import { can, normalizeRole } from '@/lib/roles';
 import { useProjectBoards } from '@/lib/portfolio';
 import { useSession } from '@/lib/session';
+import { useCursorFeed } from '@/lib/cursor-feed';
+import { discardRefusedRows } from '@/lib/feed-state';
+import { importReceiptActors, importProcessing, importMappingValue, importRowsPage, importSessions, importedCardHref, importRowLabel, importStateText, unknownImportStatuses } from '@/lib/import-state';
+import { useMemoryValue, useMemoryDirty } from '@/lib/use-memory-draft';
+import { usePollKeys } from '@/components/polling';
 import { Icon } from '@/components/ui/icon';
 import { DialogLayer } from '@/components/ui/dialog-layer';
+import { ErrorNote } from '@/components/ui/error-note';
+import { FeedControls } from '@/components/ui/feed-controls';
 import { useToast } from '@/components/ui/toasts';
 
-type Stage = 'upload' | 'preview' | 'confirm' | 'done';
-const MAX_BYTES = 5 * 1024 * 1024;
-const STEPS: Array<[Stage, string, string]> = [
-  ['upload', 'Upload', 'Choose board and XLSX'],
-  ['preview', 'Preview', 'Validate every mapped row'],
-  ['confirm', 'Confirm', 'Explicit all-or-nothing commit'],
-  ['done', 'Result', 'Created cards and counts'],
-];
-const formatBytes = (n: number) => (n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KiB` : `${(n / 1024 / 1024).toFixed(1)} MiB`);
+const MAX_BYTES=5*1024*1024;
+const reportName='flowboard-import-report.csv';
+function Counts({status}:{status:ImportStatus}){return <div className="preview-summary">{([['Nonempty rows',status.counts.total],['New',status.counts.new],['Already imported',status.counts.existing],['Invalid',status.counts.invalid],['Conflicts',status.counts.conflict],['Created',status.counts.created],['Skipped',status.counts.skipped]] as const).map(([label,count])=><div className="preview-stat" key={label}><span className="label">{label}</span><span className="value">{count}</span></div>)}</div>;}
 
-function Stat({ label, value, tone }: { label: string; value: number; tone?: string }) {
-  return <div className={`preview-stat${tone ? ` ${tone}` : ''}`}><span className="label">{label}</span><span className="value">{value}</span></div>;
+function ImportScreen(){
+  const params=useSearchParams(); const router=useRouter();const queryClient=useQueryClient();const toast=useToast();const {state}=useSession();
+  const actorId=state.status==='ready'?state.session.actor.id:'';
+  const projects=state.status==='ready'?state.session.accessibleProjects:[];
+  const adminProjects=projects.filter((p)=>can(normalizeRole(p.role),'manageBoard'));
+  const targetScope=['import-target',actorId,params.get('project')??'',params.get('board')??''];
+  const [projectId,setProjectId]=useMemoryValue([...targetScope,'project'],params.get('project')??'');
+  const project=projectId?adminProjects.find((p)=>p.id===projectId):adminProjects.find((p)=>!p.isArchived);
+  const boards=useProjectBoards(project?.id??null);
+  const boardList=(boards.data??[]).filter((b)=>!b.isArchived);
+  const [boardId,setBoardId]=useMemoryValue([...targetScope,'board'],params.get('board')??'');
+  const board=boardId?boardList.find((b)=>b.id===boardId):boardList[0];
+  const snapshot=useQuery({queryKey:['board',board?.id],queryFn:({signal})=>api.getBoardSnapshot(board!.id,{cardLimitPerColumn:1},signal).then((r)=>r.data),enabled:!!board&&!!actorId});
+  const columns=[...(snapshot.data?.columns??[])].sort((a,b)=>a.position-b.position);
+  const [columnId,setColumnId]=useMemoryValue([...targetScope,'column'],'');const column=columns.find((c)=>c.id===columnId)??columns[0];
+  const [batchId,setBatchId]=useState(params.get('import')??'');
+  const statusKey=useMemo(()=>['import-status',batchId,actorId] as const,[batchId,actorId]);
+  const statusQuery=useQuery({queryKey:statusKey,queryFn:({signal})=>api.getImportStatus(batchId,{signal}).then((r)=>r.data),enabled:!!batchId&&!!actorId&&!!adminProjects.length,retry:false,refetchInterval:(query)=>query.state.data&&importProcessing(query.state.data.state)?1500:false});
+  usePollKeys([statusKey],!!batchId&&!!actorId&&!!adminProjects.length);
+  useEffect(()=>{discardRefusedRows(queryClient,statusKey,statusQuery.error);},[queryClient,statusKey,statusQuery.error]);
+  const refused=statusQuery.error instanceof ApiError&&[401,403,404].includes(statusQuery.error.status);
+  const candidate=statusQuery.data;
+  const batchProject=candidate?adminProjects.find((p)=>p.id===candidate.projectId):null;
+  const status=!refused&&actorId&&batchProject?candidate:undefined;
+  useEffect(()=>{if(status){setProjectId(status.projectId);setBoardId(status.boardId);}},[status?.id,status?.projectId,status?.boardId]);
+  const batchSession=useMemo(()=>importSessions.forBatch(actorId,batchId),[actorId,batchId]);
+  const draft=useSyncExternalStore(batchSession.subscribe,batchSession.get,batchSession.get);
+  const rowsKey=useMemo(()=>['import-rows',batchId,actorId,status?.version,status?.state,status?.previewDigest] as const,[batchId,actorId,status?.version,status?.state,status?.previewDigest]);
+  const rowFeed=useCursorFeed<ImportRow & {id:string}>(rowsKey,async(cursor,signal)=>importRowsPage((await api.getImportStatus(batchId,{cursor,signal})).data,status!),!!status&&!importProcessing(status.state));
+  const rows=rowFeed.items;const unknown=unknownImportStatuses(rows);
+  const [file,setFile]=useMemoryValue<File|null>(['import-file',actorId,project?.id??'',board?.id??''],null);const [fileError,setFileError]=useState('');const input=useRef<HTMLInputElement>(null);
+  const [confirm,setConfirm]=useState(false);const [downloadError,setDownloadError]=useState<unknown>(null);const [downloading,setDownloading]=useState(false);
+  const clearFileDirty=useMemoryDirty(['import-file',actorId,project?.id??'',board?.id??'','dirty'],!!file&&!batchId);
+  const live=useRef({actorId});live.current={actorId};
+  const writable=!!status&&!batchProject?.isArchived&&!refused&&!!actorId&&board?.id===status.boardId&&snapshot.data?.board.id===status.boardId&&!snapshot.error;
+  const commit=useMutation({mutationFn:async()=>{
+    const original=batchSession.get().commit??(status?.previewDigest?{previewDigest:status.previewDigest,defaultColumnId:status.defaultColumnId,expectedVersion:status.version}:null);
+    if(!original)throw new Error('Reload a ready preview before confirming.');
+    batchSession.update({commit:original});return batchSession.command.run(original,(body,key)=>api.commitImport(batchId,body,key));
+  },onSuccess:(response)=>{batchSession.update({commit:null,mappings:{}});setConfirm(false);queryClient.setQueryData(statusKey,response.data);if(response.data.state==='committed')toast(`${response.data.counts.created} cards created · ${response.data.counts.skipped} skipped`,{icon:'check-circle'});else void statusQuery.refetch();void queryClient.invalidateQueries({queryKey:['board']});},onError:()=>{if(!batchSession.command.unresolved())batchSession.update({commit:null});setConfirm(false);void statusQuery.refetch();}});
+  const locked=commit.isPending||batchSession.command.unresolved()||!!status&&importProcessing(status.state);
+  const upload=useMutation({mutationFn:()=>{if(!file||!board||!column||project?.isArchived)throw new Error('Choose an active authorized board, column and workbook.');return api.createImport(board.id,file,column.id);},onSuccess:(response)=>{if(live.current.actorId!==actorId)return;const next=response.data;queryClient.setQueryData(['import-status',next.id,actorId],next);setBatchId(next.id);setProjectId(next.projectId);setBoardId(next.boardId);setFile(null);clearFileDirty();router.replace(`/import?project=${encodeURIComponent(next.projectId)}&board=${encodeURIComponent(next.boardId)}&import=${encodeURIComponent(next.id)}`);}});
+  const mapping=useMutation({mutationFn:()=>{if(!status)throw new Error('Reload the preview.');return api.updateImportMappings(batchId,{mappings:draft.mappings,expectedVersion:status.version});},onSuccess:(response)=>{batchSession.update({mappings:{}});queryClient.setQueryData(statusKey,response.data);},onError:()=>{void statusQuery.refetch();}});
+  const cancel=useMutation({mutationFn:()=>api.cancelImport(batchId),onSuccess:()=>{toast('Preview cancelled',{icon:'check'});void statusQuery.refetch();},onError:()=>{void statusQuery.refetch();}});
+  const choose=(picked:File|undefined)=>{setFileError('');if(!picked)return;if(!/\.xlsx$/i.test(picked.name)){setFileError('Choose an .xlsx workbook.');return;}if(!picked.size||picked.size>MAX_BYTES){setFileError('Choose a nonempty workbook no larger than 5 MiB.');return;}setFile(picked);};
+  const startAnother=()=>{if(locked)return;batchSession.update({mappings:{},commit:null});setBatchId('');setFile(null);router.replace(`/import${project?`?project=${encodeURIComponent(project.id)}`:''}`);};
+  const report=async()=>{setDownloading(true);setDownloadError(null);try{const blob=await api.getImportReport(batchId);const url=URL.createObjectURL(blob);const anchor=document.createElement('a');anchor.href=url;anchor.download=reportName;document.body.appendChild(anchor);anchor.click();anchor.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}catch(error){setDownloadError(error);}finally{setDownloading(false);}};
+
+  if(state.status==='ready'&&!adminProjects.length)return <section className="ph-empty"><Icon name="lock" /><h1>Import is unavailable</h1><p>Only project Owners and Managers can import cards.</p><Link className="btn" href="/projects">Browse projects</Link></section>;
+  return <div id="importContent">
+    <div className="page-head"><div className="page-head-copy"><p className="eyebrow">{status?batchProject?.name:project?.name??'Project'} <span className="badge">Create-only XLSX</span></p><h1>Import cards</h1><p className="page-sub">Seven template columns · 200 nonempty rows · 5 MiB · atomic commit</p></div><div className="page-actions">{(status?.boardId??board?.id)&&<Link className="btn" href={`/board?id=${encodeURIComponent(status?.boardId??board!.id)}`}>Back to board</Link>}{!batchId&&board&&<a className="btn ghost" href={`/api/v1/boards/${encodeURIComponent(board.id)}/import-template`} download>Download template</a>}</div></div>
+    <div className="review-bar"><Icon name="shield" /><span><strong>Preview creates no cards.</strong> Review every row, map statuses if needed, then confirm the whole batch explicitly. Existing unchanged rows skip; one invalid or conflicting row blocks all new cards.</span></div>
+    {!batchId?<section className="panel" aria-labelledby="uploadTitle"><div className="panel-head"><h2 id="uploadTitle">Upload a workbook</h2></div><div className="panel-body stack">
+      <div className="form-grid"><div className="field"><label htmlFor="importProject">Project</label><select className="control" id="importProject" value={project?.id??''} disabled={upload.isPending} onChange={(e)=>{setProjectId(e.target.value);setBoardId('');setColumnId('');}}>{!project&&<option value="">Choose an active project</option>}{adminProjects.filter((p)=>!p.isArchived).map((p)=><option key={p.id} value={p.id}>{p.name}</option>)}</select></div><div className="field"><label htmlFor="importBoard">Destination board</label><select className="control" id="importBoard" value={board?.id??''} disabled={upload.isPending} onChange={(e)=>{setBoardId(e.target.value);setColumnId('');}}>{!board&&<option value="">Choose a board</option>}{boardList.map((b)=><option key={b.id} value={b.id}>{b.name}</option>)}</select></div><div className="field"><label htmlFor="importColumn">Default column for blank Status</label><select className="control" id="importColumn" value={column?.id??''} disabled={upload.isPending} onChange={(e)=>setColumnId(e.target.value)}>{columns.map((c)=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div></div>
+      {boards.error&&<ErrorNote error={boards.error} />}{snapshot.error&&<ErrorNote error={snapshot.error} />}{project?.isArchived&&<p role="status">This project is archived. Choose an active project.</p>}
+      <label htmlFor="importFile">Workbook (.xlsx)</label><input id="importFile" ref={input} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" disabled={upload.isPending} onChange={(e)=>choose(e.target.files?.[0])} />
+      <div className="dropzone" onDragOver={(e)=>e.preventDefault()} onDrop={(e)=>{e.preventDefault();if(!upload.isPending)choose(e.dataTransfer.files[0]);}}><Icon name="upload" /><span>{file?`${file.name} · ${file.size} bytes`:'Choose or drop a workbook here.'}</span></div>{fileError&&<ErrorNote text={fileError} />}
+      {upload.error&&<><ErrorNote error={upload.error} /><p className="hint">The workbook is kept. An upload creates a preview only; if its response was lost, an explicit retry may create another temporary preview. No cards are created before confirmation.</p></>}
+      <div className="form-actions"><button className="btn primary" type="button" disabled={!file||!board||!column||!!project?.isArchived||upload.isPending||!!snapshot.error} onClick={()=>upload.mutate()}>{upload.isPending?'Validating…':'Validate workbook'}</button>{file&&!upload.isPending&&<button className="btn" type="button" onClick={()=>setFile(null)}>Discard selected file</button>}</div>
+    </div></section>:<>
+      {statusQuery.isPending&&<p role="status">Loading batch status…</p>}{statusQuery.error&&<ErrorNote error={statusQuery.error} onRetry={()=>void statusQuery.refetch()} />}
+      {candidate&&!batchProject&&<p role="status">This batch is unavailable with your current project role. Your own unsent mapping choices remain in this tab.</p>}
+      {status&&<section className="panel" aria-labelledby="previewTitle"><div className="panel-head"><div className="panel-head-copy"><h2 id="previewTitle">{status.state==='committed'?'Import receipt':'Batch preview'}</h2><p className="panel-sub">Batch <span className="mono">{status.id}</span> · version {status.version} · {status.state}</p></div></div><div className="panel-body stack">
+        <p role="status">{importStateText(status.state)}</p><p className="field-help">Uploaded by {importReceiptActors(status).uploader}{status.createdAt?` · ${new Date(status.createdAt).toLocaleString()}`:''}{importReceiptActors(status).confirmer?` · Confirmed by ${importReceiptActors(status).confirmer}`:''}{status.committedAt?` · ${new Date(status.committedAt).toLocaleString()}`:''}</p><Counts status={status} /><p className="field-help">Source: XLSX import · project {batchProject?.name} · board {status.boardId}. {status.expiresAt?`Preview deadline ${new Date(status.expiresAt).toLocaleString()}.`:''}</p>
+        {batchProject?.isArchived&&<p role="status">Project archived. Import changes are disabled.</p>}
+        {status.error&&<ErrorNote error={new ApiError(422,status.error.code,'Import failed.')} />}
+        {(commit.error||mapping.error||cancel.error)&&<ErrorNote error={commit.error??mapping.error??cancel.error} />}
+        {batchSession.command.unresolved()&&<p className="hint" role="status">The confirmation may have succeeded. Retry its original digest, version and request before starting another operation. <button className="btn" type="button" disabled={commit.isPending||!writable} onClick={()=>commit.mutate()}>Retry original confirmation</button></p>}
+        {!!unknown.length&&<fieldset disabled={!writable||locked||mapping.isPending}><legend>Map unrecognized Status values to existing columns</legend>{unknown.map((source)=><div className="field" key={source}><label htmlFor={`map-${encodeURIComponent(source)}`}>{source}</label><select id={`map-${encodeURIComponent(source)}`} className="control" value={importMappingValue(draft.mappings,source)} onChange={(e)=>batchSession.update({mappings:{...draft.mappings,[source]:e.target.value}})}><option value="">Choose a column</option>{columns.map((c)=><option key={c.id} value={c.id}>{c.name}</option>)}</select></div>)}<button className="btn" type="button" disabled={!unknown.every((source)=>!!importMappingValue(draft.mappings,source))} onClick={()=>mapping.mutate()}>{mapping.isPending?'Revalidating…':'Save mappings and revalidate'}</button><p className="field-help">Only status labels are mapped. Fix other field errors in the workbook and upload a corrected file. {rowFeed.hasNextPage?'Load all rows to find further unrecognized statuses.':''}</p></fieldset>}
+        {rows.some(row=>row.contentRedacted)&&<p className="field-help">Original row content has been removed under the retention policy. Row outcomes and available card links remain.</p>}
+        <div className="table-wrap"><table className="data-table preview-table"><thead><tr><th>Row</th><th>External ID</th><th>Title</th><th>Priority</th><th>Due date</th><th>Assignees</th><th>Status</th><th>Outcome / messages</th></tr></thead><tbody>{rows.map((row)=>{const href=importedCardHref(status.boardId,row);return <tr key={row.rowNumber}><td>{row.rowNumber}</td><td className="mono">{row.contentRedacted?'Removed':row.externalId||'Missing'}</td><td>{href?<Link href={href}>{importRowLabel(row)}</Link>:row.contentRedacted?'Content removed':importRowLabel(row)}</td><td>{row.contentRedacted?'Removed':row.priority}</td><td>{row.contentRedacted?'Removed':row.dueDate??'—'}</td><td>{row.contentRedacted?'Removed':row.assigneeIds.length?row.assigneeIds.join(', '):'—'}</td><td>{row.contentRedacted?'Removed':row.status??'Default column'}</td><td><strong>{row.outcome.replaceAll('_',' ')}</strong>{row.errors.map((error,index)=><p className="row-message" key={`${error.field}-${index}`}>Row {row.rowNumber} · {error.field}: {error.message}</p>)}</td></tr>;})}</tbody></table></div>
+        <FeedControls name="import rows" queryKey={rowsKey} feed={rowFeed} loaded={rows.length} />
+        {rowFeed.error instanceof ApiError&&rowFeed.error.code==='STALE_CURSOR'&&<button className="btn" type="button" onClick={()=>void statusQuery.refetch()}>Reload batch status</button>}
+        {status.state==='committed'&&<div className="note success"><Icon name="check-circle" /><span><strong>{status.counts.created} cards created, {status.counts.skipped} skipped.</strong> The server committed this batch atomically. Created card links above open the original board. Comments/images are not imported.</span></div>}
+        <div className="form-actions"><button className="btn" type="button" disabled={downloading} onClick={()=>void report()}>{downloading?'Downloading…':'Download safe CSV report'}</button>
+          {status.canCommit&&<button className="btn primary" type="button" disabled={!writable||locked||mapping.isPending||cancel.isPending||!!Object.keys(draft.mappings).length||rowFeed.hasNextPage||rowFeed.isPending||rowFeed.isError} onClick={()=>setConfirm(true)}>Review and confirm import</button>}
+          {status.cancellationAllowed&&<button className="btn" type="button" disabled={!writable||locked||mapping.isPending||cancel.isPending} onClick={()=>cancel.mutate()}>{cancel.isPending?'Cancelling…':'Cancel preview'}</button>}
+          {!status.cancellationAllowed&&!importProcessing(status.state)&&<button className="btn" type="button" disabled={locked} onClick={startAnother}>Import another workbook</button>}
+        </div>{downloadError!=null&&<ErrorNote error={downloadError} />}
+      </div></section>}
+    </>}
+    <DialogLayer open={confirm&&!!status} onClose={()=>{if(!commit.isPending)setConfirm(false);}} labelledBy="commitTitle" className="wide"><div className="dialog-head"><h2 id="commitTitle">Create the new cards in this batch?</h2></div><div className="dialog-body">{status&&<><Counts status={status} /><p>No cards have been created by this preview. Existing unchanged rows skip. The server rechecks current access, digest, expiry, columns and assignees; one conflict prevents every new row.</p><p>Batch {status.id} · preview version {status.version}</p></>}</div><footer className="dialog-foot"><button className="btn" type="button" disabled={commit.isPending} onClick={()=>setConfirm(false)}>Keep reviewing</button><button className="btn primary" type="button" disabled={!writable||locked} onClick={()=>commit.mutate()}>Confirm import</button></footer></DialogLayer>
+  </div>;
 }
-
-function Summary({ status }: { status: ImportStatus }) {
-  const c = status.counts;
-  const blocking = c.invalid + c.conflict;
-  return (
-    <div className="preview-summary">
-      <Stat label="Nonempty rows" value={c.total} />
-      <Stat label="Ready" value={c.new} tone="ok" />
-      <Stat label="Invalid" value={c.invalid} tone={c.invalid ? 'bad' : ''} />
-      <Stat label="Conflicts" value={c.conflict} tone={c.conflict ? 'warn' : ''} />
-      <Stat label="Would create" value={blocking ? 0 : c.new} tone={blocking ? 'bad' : 'ok'} />
-    </div>
-  );
-}
-
-function ImportScreen() {
-  const params = useSearchParams();
-  const { state } = useSession();
-  const toast = useToast();
-  const projects = useMemo(() => (state.status === 'ready' ? state.session.accessibleProjects : []).filter((p) => can(normalizeRole(p.role), 'manageBoard') && !p.isArchived), [state]);
-  const [projectId, setProjectId] = useState(params.get('project') ?? '');
-  const project = projects.find((p) => p.id === projectId) ?? projects[0];
-  const boards = useProjectBoards(project?.id ?? null);
-  const boardList = (boards.data ?? []).filter((b) => !b.isArchived);
-  const [boardId, setBoardId] = useState(params.get('board') ?? '');
-  const board = boardList.find((b) => b.id === boardId) ?? boardList[0];
-  const snapshot = useQuery({ queryKey: ['board', board?.id], queryFn: async () => (await api.getBoardSnapshot(board!.id, { cardLimitPerColumn: 1 })).data, enabled: !!board });
-  const columns = [...(snapshot.data?.columns ?? [])].sort((a, b) => a.position - b.position);
-  const [columnId, setColumnId] = useState('');
-  const defaultColumn = columns.find((c) => c.id === columnId) ?? columns[0];
-
-  const [stage, setStage] = useState<Stage>('upload');
-  const [file, setFile] = useState<File | null>(null);
-  const [fileError, setFileError] = useState('');
-  const [status, setStatus] = useState<ImportStatus | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState('');
-  const [commitOpen, setCommitOpen] = useState(false);
-  const input = useRef<HTMLInputElement>(null);
-  const key = useRef<string>(crypto.randomUUID());
-
-  const choose = (picked: File | undefined) => {
-    setFileError('');
-    if (!picked) return;
-    if (!/\.xlsx$/i.test(picked.name)) { setFileError('Choose an .xlsx workbook.'); return; }
-    if (picked.size > MAX_BYTES) { setFileError('The file is larger than 5 MiB.'); return; }
-    if (picked.size === 0) { setFileError('The file is empty.'); return; }
-    setFile(picked);
-  };
-
-  const upload = async () => {
-    if (!file || !board || !defaultColumn) return;
-    setBusy(true); setError('');
-    try {
-      const res = await api.createImport(board.id, file, defaultColumn.id);
-      setStatus(res.data);
-      setStage('preview');
-    } catch (err) { setError(describeError(err)); } finally { setBusy(false); }
-  };
-  const reset = async () => {
-    if (status && status.cancellationAllowed && stage !== 'done') { try { await api.cancelImport(status.id); } catch { /* the preview expires on its own */ } }
-    setStatus(null); setFile(null); setError(''); setStage('upload'); key.current = crypto.randomUUID();
-  };
-  const commit = async () => {
-    if (!status || !status.previewDigest) return;
-    setBusy(true); setError('');
-    try {
-      const res = await api.commitImport(status.id, { previewDigest: status.previewDigest, defaultColumnId: status.defaultColumnId, expectedVersion: status.version }, key.current);
-      setStatus(res.data);
-      setCommitOpen(false);
-      setStage('done');
-      toast(`${res.data.counts.created} cards created`, { icon: 'check-circle' });
-    } catch (err) { setCommitOpen(false); setError(describeError(err)); } finally { setBusy(false); }
-  };
-
-  if (state.status === 'ready' && projects.length === 0) {
-    return (
-      <section className="ph-empty" style={{ marginTop: 24 }}>
-        <span className="ph-empty-mark" aria-hidden="true"><Icon name="lock" /></span>
-        <h3>Import is unavailable</h3>
-        <p>Only project owners and managers of an active project can import cards.</p>
-        <Link className="btn" href="/projects">Browse projects</Link>
-      </section>
-    );
-  }
-
-  const activeIndex = STEPS.findIndex(([id]) => id === stage);
-  const blocking = status ? status.counts.invalid + status.counts.conflict : 0;
-  const rows = status?.rows ?? [];
-
-  return (
-    <div id="importContent">
-      <div className="page-head">
-        <div className="page-head-copy">
-          <p className="eyebrow">{project?.name ?? 'Project'} <span className="badge">Create-only XLSX</span></p>
-          <h1>Import cards</h1>
-          <p className="page-sub"><span>Seven columns</span><span className="dot" aria-hidden="true" /><span>200 nonempty rows</span><span className="dot" aria-hidden="true" /><span>5 MiB upload</span><span className="dot" aria-hidden="true" /><span>All-or-nothing commit</span></p>
-        </div>
-        <div className="page-actions">
-          {board && <Link className="btn" href={`/board?id=${encodeURIComponent(board.id)}`}><Icon name="board" />Back to board</Link>}
-          {board && <a className="btn ghost" href={`/api/v1/boards/${encodeURIComponent(board.id)}/import-template`} download><Icon name="download" />Download template</a>}
-        </div>
-      </div>
-
-      <div className="review-bar">
-        <Icon name="shield" />
-        <span><strong>Preview creates nothing.</strong> Validate every row, then confirm explicitly. Invalid or conflicting rows block the whole batch.</span>
-        <span className="spacer" />
-        <span className="badge">Owner / Manager only</span>
-      </div>
-
-      <div className="steps" aria-label="Import stages">
-        {STEPS.map(([id, title, sub], index) => (
-          <div key={id} className={`step${index === activeIndex ? ' is-active' : ''}${index < activeIndex ? ' is-done' : ''}`}>
-            <span className="step-num">{index + 1}</span>
-            <span className="step-copy"><strong>{title}</strong><span>{sub}</span></span>
-          </div>
-        ))}
-      </div>
-
-      <div className="split-layout wide-aside">
-        <div className="stack">
-          {error && <div className="note danger" role="alert"><Icon name="x-circle" /><span>{error}</span></div>}
-
-          {stage === 'upload' && (
-            <section className="panel" aria-labelledby="uploadTitle">
-              <div className="panel-head"><div className="panel-head-copy"><h2 className="panel-title" id="uploadTitle">Upload a workbook</h2><p className="panel-sub">Choose the destination board, then select one .xlsx file.</p></div><div className="panel-actions"><span className="badge">Step 1 of 4</span></div></div>
-              <div className="panel-body stack">
-                <div className="form-grid">
-                  <div className="field">
-                    <label className="field-label" htmlFor="importProject">Project</label>
-                    <select className="control" id="importProject" value={project?.id ?? ''} onChange={(event) => { setProjectId(event.target.value); setBoardId(''); setColumnId(''); }}>
-                      {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </select>
-                    <p className="field-help">An import cannot create or switch projects.</p>
-                  </div>
-                  <div className="field">
-                    <label className="field-label" htmlFor="importBoard">Destination board</label>
-                    <select className="control" id="importBoard" value={board?.id ?? ''} onChange={(event) => { setBoardId(event.target.value); setColumnId(''); }}>
-                      {boardList.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
-                    </select>
-                    <p className="field-help">Cards inherit this board&apos;s project access.</p>
-                  </div>
-                  <div className="field">
-                    <label className="field-label" htmlFor="importColumn">Default column</label>
-                    <select className="control" id="importColumn" value={defaultColumn?.id ?? ''} onChange={(event) => setColumnId(event.target.value)}>
-                      {columns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-                    </select>
-                    <p className="field-help">Used for rows whose Status is blank.</p>
-                  </div>
-                </div>
-                <div>
-                  <label className="sr-only" htmlFor="importFile">Workbook file</label>
-                  <input id="importFile" ref={input} type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden onChange={(event) => choose(event.target.files?.[0])} />
-                  <div
-                    className="dropzone dropzone-lg"
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Choose an XLSX workbook"
-                    onClick={() => input.current?.click()}
-                    onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); input.current?.click(); } }}
-                    onDragOver={(event) => event.preventDefault()}
-                    onDrop={(event) => { event.preventDefault(); choose(event.dataTransfer.files?.[0]); }}
-                  >
-                    <Icon name="upload" />
-                    <strong>{file ? file.name : 'Drop an .xlsx workbook here'}</strong>
-                    <span>{file ? `${formatBytes(file.size)} · ready to validate` : 'or choose a file · maximum 5 MiB · 200 nonempty rows'}</span>
-                  </div>
-                  <p className="form-error" role="alert" hidden={!fileError}>{fileError}</p>
-                </div>
-                <div className="note"><Icon name="file" /><span><strong>Template:</strong> seven columns and a priority dropdown. Extra blank rows are ignored.</span></div>
-                <div className="form-actions"><span className="spacer" /><button className="btn primary" type="button" disabled={!file || !board || !defaultColumn || busy} onClick={() => void upload()}>{busy ? 'Validating…' : 'Validate workbook'}<Icon name="arrow-right" /></button></div>
-              </div>
-            </section>
-          )}
-
-          {stage === 'preview' && status && (
-            <section className="panel" aria-labelledby="previewTitle">
-              <div className="panel-head"><div className="panel-head-copy"><h2 className="panel-title" id="previewTitle">Preview mapped rows</h2><p className="panel-sub">Validation happens before any card exists. Fix the workbook and upload again if a row blocks commit.</p></div><div className="panel-actions"><span className="badge">Step 2 of 4</span></div></div>
-              <div className="panel-body stack">
-                <div className="file-selected">
-                  <Icon name="file" />
-                  <span className="file-copy"><strong>{file?.name}</strong><span>{file ? formatBytes(file.size) : ''} · {status.counts.total} nonempty row{status.counts.total === 1 ? '' : 's'} · {board?.name}</span></span>
-                  <button className="btn sm" type="button" onClick={() => void reset()}>Choose another</button>
-                </div>
-                <Summary status={status} />
-                {status.error && <div className="note danger" role="alert"><Icon name="x-circle" /><span><strong>{describeFailureOf({ status: 422, code: status.error.code }).title}.</strong> {describeFailureOf({ status: 422, code: status.error.code }).body}</span></div>}
-                {blocking > 0
-                  ? <div className="note danger"><Icon name="x-circle" /><span><strong>{blocking} blocking row{blocking === 1 ? '' : 's'}.</strong> {status.counts.invalid} invalid and {status.counts.conflict} conflicting. No cards will be created until every row is ready. There is no partial success.</span></div>
-                  : <div className="note success"><Icon name="check-circle" /><span><strong>Every row is ready.</strong> {status.counts.new} card{status.counts.new === 1 ? '' : 's'} can be created. Nothing has been written yet.</span></div>}
-                <div className="table-wrap">
-                  <table className="data-table preview-table">
-                    <thead><tr><th>Row</th><th>External ID</th><th>Title</th><th>Priority</th><th>Due Date</th><th>Assignees</th><th>Status</th><th>Result</th></tr></thead>
-                    <tbody>
-                      {rows.map((row) => {
-                        const bad = row.outcome === 'invalid';
-                        const conflict = row.outcome === 'conflict';
-                        const first = row.errors[0];
-                        return (
-                          <tr key={row.rowNumber}>
-                            <td className="mono">{row.rowNumber}</td>
-                            <td className={`mono${conflict ? ' is-conflict' : ''}`}>{row.externalId}</td>
-                            <td><strong>{row.title}</strong></td>
-                            <td style={{ textTransform: 'capitalize' }}>{row.priority}</td>
-                            <td>{row.dueDate ?? '—'}</td>
-                            <td>{row.assigneeIds.length ? `${row.assigneeIds.length} assignee${row.assigneeIds.length === 1 ? '' : 's'}` : '—'}</td>
-                            <td>{row.status ?? '—'}</td>
-                            <td className={bad ? 'is-error' : conflict ? 'is-conflict' : ''}>
-                              {bad ? <><span className="status-chip invalid">Invalid</span>{first && <p className="row-message">{first.field}: {first.message}</p>}</>
-                                : conflict ? <><span className="status-chip conflict">Conflict</span>{first && <p className="row-message warn">{first.field}: {first.message}</p>}</>
-                                : row.outcome === 'already_imported' ? <span className="status-chip conflict">Already imported</span>
-                                : <span className="status-chip ready">Ready</span>}
-                            </td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
-                </div>
-                {status.nextCursor && <p className="field-help">Showing the first {rows.length} rows; the rest are validated too.</p>}
-                <div className="form-actions">
-                  <button className="btn" type="button" onClick={() => void reset()}><Icon name="arrow-left" />Back to upload</button>
-                  <span className="spacer" />
-                  <button className="btn primary" type="button" disabled={!status.canCommit || blocking > 0} onClick={() => setStage('confirm')}>Continue to confirm <Icon name="arrow-right" /></button>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {stage === 'confirm' && status && (
-            <section className="panel" aria-labelledby="confirmTitle">
-              <div className="panel-head"><div className="panel-head-copy"><h2 className="panel-title" id="confirmTitle">Confirm the batch</h2><p className="panel-sub">No cards exist yet. This is the explicit commit step.</p></div><div className="panel-actions"><span className="badge">Step 3 of 4</span></div></div>
-              <div className="panel-body stack">
-                <Summary status={status} />
-                <div className="file-selected"><Icon name="board" /><span className="file-copy"><strong>{board?.name}</strong><span>{file?.name} · {status.counts.new} card{status.counts.new === 1 ? '' : 's'} · create-only</span></span><span className="status-chip ready">Ready</span></div>
-                <div className="note"><Icon name="shield" /><span><strong>All-or-nothing.</strong> If a person, column or External ID changed since preview, the server rejects the entire batch. Nothing is silently skipped.</span></div>
-                <div className="note"><Icon name="columns" /><span>Cards append to their mapped columns. The server assigns card keys and preserves manual order.</span></div>
-                <div className="form-actions">
-                  <button className="btn" type="button" onClick={() => setStage('preview')}><Icon name="arrow-left" />Back to preview</button>
-                  <span className="spacer" />
-                  <button className="btn primary" type="button" onClick={() => setCommitOpen(true)}><Icon name="upload" />Confirm import</button>
-                </div>
-              </div>
-            </section>
-          )}
-
-          {stage === 'done' && status && (
-            <section className="panel" aria-labelledby="resultTitle">
-              <div className="panel-head"><div className="panel-head-copy"><h2 className="panel-title" id="resultTitle">Import result</h2><p className="panel-sub">Committed as one batch. No rows were skipped or partially written.</p></div><div className="panel-actions"><span className="badge">Step 4 of 4</span></div></div>
-              <div className="panel-body stack">
-                <div className="result-banner">
-                  <span className="success-icon"><Icon name="check-circle" /></span>
-                  <div><h2>{status.counts.created} card{status.counts.created === 1 ? '' : 's'} created</h2><p>{status.counts.created} of {status.counts.total} rows committed to {board?.name}. Invalid rows: {status.counts.invalid}. Conflicts: {status.counts.conflict}. Comments and images imported: 0.</p></div>
-                </div>
-                <div className="result-list">
-                  {rows.filter((r) => r.outcome === 'created').map((row) => (
-                    <div key={row.rowNumber} className="result-list-row"><span>{row.title}</span><span className="spacer" /><span className="tiny faint mono">{row.externalId}</span><span className="status-chip ready">Created</span></div>
-                  ))}
-                </div>
-                <div className="note"><Icon name="image" /><span>Imported cards start with no comments and no images. Assignees, priority, due date and column come from the workbook.</span></div>
-                <div className="form-actions">
-                  {board && <Link className="btn primary" href={`/board?id=${encodeURIComponent(board.id)}`}><Icon name="board" />Open board</Link>}
-                  <button className="btn" type="button" onClick={() => void reset()}>Import another file</button>
-                  {project && <Link className="btn ghost" href={`/project?id=${encodeURIComponent(project.id)}`}>Project overview</Link>}
-                </div>
-              </div>
-            </section>
-          )}
-        </div>
-
-        <aside className="stack">
-          <section className="panel">
-            <div className="panel-head"><div className="panel-head-copy"><h2 className="panel-title">Import contract</h2><p className="panel-sub">Version 1 · create-only</p></div></div>
-            <div className="panel-body stack-sm">
-              <div className="row" style={{ justifyContent: 'space-between' }}><span className="small muted">Workbook</span><span className="small">.xlsx only</span></div>
-              <div className="row" style={{ justifyContent: 'space-between' }}><span className="small muted">Upload limit</span><span className="small">5 MiB</span></div>
-              <div className="row" style={{ justifyContent: 'space-between' }}><span className="small muted">Nonempty rows</span><span className="small">200 maximum</span></div>
-              <div className="row" style={{ justifyContent: 'space-between' }}><span className="small muted">Commit</span><span className="small">All or nothing</span></div>
-              <div className="divider" />
-              <div className="status-map">
-                <div className="status-map-row"><strong>External ID</strong><span>required · unique per board</span></div>
-                <div className="status-map-row"><strong>Title</strong><span>required · 1–200 chars</span></div>
-                <div className="status-map-row"><strong>Description</strong><span>optional · 20,000 chars</span></div>
-                <div className="status-map-row"><strong>Priority</strong><span>none/low/medium/high/urgent</span></div>
-                <div className="status-map-row"><strong>Due Date</strong><span>date-only · YYYY-MM-DD</span></div>
-                <div className="status-map-row"><strong>Assignees</strong><span>active project people only</span></div>
-                <div className="status-map-row"><strong>Status</strong><span>existing column name</span></div>
-              </div>
-            </div>
-          </section>
-          <section className="panel">
-            <div className="panel-head"><div className="panel-head-copy"><h2 className="panel-title">Atomic commit</h2><p className="panel-sub">No partial success</p></div></div>
-            <div className="panel-body stack-sm">
-              <div className="hub-coverage-item"><Icon name="check" /><span><strong>All rows valid</strong> means every nonempty row is ready.</span></div>
-              <div className="hub-coverage-item"><Icon name="x" /><span><strong>One invalid or conflicting row</strong> blocks the entire batch.</span></div>
-              <div className="hub-coverage-item"><Icon name="refresh" /><span><strong>Fixing rows</strong> means editing the workbook and uploading again. There is no partial retry.</span></div>
-            </div>
-          </section>
-          <section className="panel">
-            <div className="panel-head"><div className="panel-head-copy"><h2 className="panel-title">What does not import</h2></div></div>
-            <div className="panel-body stack-sm">
-              <div className="hub-coverage-item"><Icon name="x" /><span>Comments, mentions or activity history.</span></div>
-              <div className="hub-coverage-item"><Icon name="x" /><span>Images or image URLs.</span></div>
-              <div className="hub-coverage-item"><Icon name="x" /><span>Projects, boards, people, grants or roles.</span></div>
-              <div className="hub-coverage-item"><Icon name="x" /><span>Card keys. The server assigns those.</span></div>
-              <div className="note"><Icon name="lock" /><span>Unknown people or statuses block the batch. The importer never creates accounts or silently falls back to a default person.</span></div>
-            </div>
-          </section>
-        </aside>
-      </div>
-
-      <DialogLayer open={commitOpen} onClose={() => setCommitOpen(false)} labelledBy="commitTitle" className="wide">
-        <div className="dialog-head">
-          <div className="dialog-head-copy"><h2 id="commitTitle">Create these cards?</h2><p>This commits the whole batch. If anything changed on the server, nothing is created.</p></div>
-          <button className="dialog-close" type="button" onClick={() => setCommitOpen(false)} aria-label="Close import confirmation"><Icon name="x" /></button>
-        </div>
-        <div className="dialog-body">
-          {status && <Summary status={status} />}
-          <div className="note" style={{ marginTop: 12 }}><Icon name="board" /><span>Cards are appended to their mapped columns. The board&apos;s manual order is preserved; imported cards are not silently interleaved.</span></div>
-        </div>
-        <footer className="dialog-foot">
-          <span className="spacer" />
-          <button className="btn" type="button" onClick={() => setCommitOpen(false)}>Cancel</button>
-          <button className="btn primary" type="button" data-autofocus disabled={busy} onClick={() => void commit()}><Icon name="upload" />{busy ? 'Creating…' : 'Confirm import'}</button>
-        </footer>
-      </DialogLayer>
-    </div>
-  );
-}
-
-export default function ImportPage() {
-  return <Suspense fallback={<div role="status" className="state-note">Loading import…</div>}><ImportScreen /></Suspense>;
-}
+export default function ImportPage(){return <Suspense fallback={<p role="status">Loading import…</p>}><ImportScreen /></Suspense>;}

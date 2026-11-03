@@ -1,0 +1,24 @@
+{
+  "version": "png-native-stream-semantics-8",
+  "status": "frozen_before_implementation_not_approval",
+  "featureIds": [
+    "ATT-02"
+  ],
+  "authority": "Root Architect explicitly authorized bounded native streaming PNG semantic validation after feasibility proof; no adapter edit by builder.",
+  "references": [
+    "https://www.w3.org/TR/png-3/#10Compression",
+    "https://www.w3.org/TR/png-3/#8Interlace"
+  ],
+  "baseline": "Independent actual workerd stores extra inflated pixels, trailing zlib junk and concatenated second zlib stream; strict Node rejects all. Native DecompressionStream feasibility14cases confirms both runtimes reject junk/second stream for whole and bytewise chunks.",
+  "acceptance": [
+    "Native DecompressionStream deflate only; no JS deflate decoder/new runtime package/external URL.",
+    "Walk existing PNG buffer by checked chunk offsets; feedIDAT subarray slices<=1KiB with native backpressure, never concatenate IDAT or collect expanded pixels.",
+    "Compute filtered scanline shape for supported grayscale/RGB/palette/grayalpha/RGBA bit depths and noninterlaced/Adam7 including empty tiny passes, packed bits and16bit channels. Validate rowfilter0..4 at exact row boundaries and exact expanded length; JS work O(chunks+rows), never per pixel.",
+    "Known3warning-recovered corruptions plus truncated stream/Adler/filter/short rows reject MALFORMED_IMAGE; genuine all color/depth/Adam7 fixtures pass Node+actualworkerd and native oracle.",
+    "Uses existing absolute8s preflight deadline/signal/admission; no fresh late8s, no separate newbudget. Retain actual decode+cancel work after caller timeout until both settle; do not buffer rawpixels.",
+    "Actualworkerd accepts genuine20MPPNG16 through native stream without collecting up to160MB pixel data; record largest decoded chunk and wall, no hostedmemory/CPU proof.",
+    "Existing full native/Images pixel decode still required after this semantic precheck. Root owns adapter integration/mounted3redcase rerun and full exactsource gates."
+  ],
+  "expectedExport": "validatePngPixelStream(input:Uint8Array, signal?:AbortSignal, deadlineAt?:number):Promise<PngStreamMetrics>",
+  "ownership": "Only NEW png-stream service/test/support/probe files. Root owns images.ts and integration. Priorv7/failed evidence preserved."
+}

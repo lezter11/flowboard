@@ -1,0 +1,12 @@
+{
+  "featureIds": ["QRY-03"],
+  "baseline": "917706ae0433df471c72736be4d548eb022236c4 plus in-progress full revalidation repairs",
+  "mandatoryCriteria": [
+    "Both existing My Tasks routes retain one mandatory project and current actor assignment, membership and board-grant filtering before LIMIT.",
+    "Validated bounded pagination returns nextCursor; deterministic date-null-last/id ordering traverses all unchanged assignments without duplicates, including tied dates and null dates.",
+    "Due filters overdue/today/upcoming/none use workspace date, overdue excludes done; priority is optionally combined. Archived projects/boards and trashed cards are excluded.",
+    "Cursor context is bound to actor, project, workspace, filters, limit, workspace date and current board snapshot/access revisions; changes require restart with 409 STALE_CURSOR. Cursor is pagination state, never authorization.",
+    "Malformed query/cursor fails controlled 4xx; another project/user or revoked grant never exposes data. SQL and enrichment are bounded by page size.",
+    "Real mounted PostgreSQL tests fail before repair and pass afterward. Independent source-bound review remains required for closure."
+  ]
+}

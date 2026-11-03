@@ -1,0 +1,108 @@
+{
+  "phase": "preferences-avatar",
+  "criteria": "ui-preferences-repair-criteria.json",
+  "status": "local implementation/checks; root actualbrowser+finalindependentreview pending",
+  "manifest": [
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "a13ea118b2c9704c218cb1c556b5780d0a7175f0871e5c19a6b48e897f9585a3"
+    },
+    {
+      "path": "apps/web/src/lib/preferences-state.ts",
+      "sha256": "ea88a9ca5dcd3421eccfc03d4751f30da553554a71aeb4a5d50a17cb1e3c45b2"
+    },
+    {
+      "path": "apps/web/src/components/ui/avatar.tsx",
+      "sha256": "3173194386ed474cb515b3fceab4a213fffcf8bc27b57ce107ee57da8a4722d7"
+    },
+    {
+      "path": "apps/web/src/components/ui/workspace-preferences.tsx",
+      "sha256": "a235ca7ab3541665a9a49df3c73bac0ea249450abe0119cc6cddb534319d5afd"
+    },
+    {
+      "path": "apps/web/src/app/settings/page.tsx",
+      "sha256": "cca72eb8785317f5f20fd539b50bb89afd0a85dc9465d6075007a4e23009fe15"
+    },
+    {
+      "path": "apps/web/public/_headers",
+      "sha256": "2a3842916ca2a4562aad57eb95c727a29ee050b2e3c00a8200d945de2925ba03"
+    },
+    {
+      "path": "apps/web/src/app/globals.css",
+      "sha256": "387041429cfd3c4a455013ccb48fbc44875319b0e1cd82d0ab9a50b329e63a4f"
+    },
+    {
+      "path": "apps/web/test/preferences-state.test.ts",
+      "sha256": "2d94d1a4fd635d27442715281d1d6834163d34ff1e50c93222256a5846589b88"
+    },
+    {
+      "path": "apps/web/src/components/shell/rail.tsx",
+      "sha256": "54efc91dab6a00c8743660d0fedc9e48abef31b4d987e88267bc1637d2c29574"
+    },
+    {
+      "path": "apps/web/src/components/shell/user-menu.tsx",
+      "sha256": "d6f1e003ae2b2e006cbfc43a0db05a53a43ec48463c753c47eaac4cb24b24bf7"
+    },
+    {
+      "path": "apps/web/src/components/shell/topbar.tsx",
+      "sha256": "0b7c4b1c7e0e35b2c71e67d1ade642029922f0a3e383a2da598aa0cf04594310"
+    },
+    {
+      "path": "apps/web/src/components/board/card-comments.tsx",
+      "sha256": "4c9645630c5d26ae7779815976f94ea1ad6097cc6d4eab4785a8bd243699d0d6"
+    },
+    {
+      "path": "apps/web/src/components/board/board-card.tsx",
+      "sha256": "036ca5b317d0e52bcf27e16349013c5fcce7e689186fd27d81a1ee379378992f"
+    },
+    {
+      "path": "apps/web/src/components/board/comment-composer.tsx",
+      "sha256": "fb4d2e86e913e29961d23c2ad2a3741ad2ef85f17f2ab7ed5984dfea233ed471"
+    },
+    {
+      "path": "apps/web/src/components/board/card-detail-drawer.tsx",
+      "sha256": "e01794ee03968560615a749caf4203b52b8f6066864cd4bd787b01b9844039c6"
+    },
+    {
+      "path": "apps/web/src/components/board/board-view.tsx",
+      "sha256": "1b71565826405144cd60439fedc06e577e30b4121d3a9be301373c95b0ad7d13"
+    },
+    {
+      "path": "apps/web/src/app/add-card/page.tsx",
+      "sha256": "9f3e3dddbbc562e302ed18fc8915ac5bef3159cfa67eadb251350336fe8b7e60"
+    },
+    {
+      "path": "apps/web/src/app/people/page.tsx",
+      "sha256": "4ecf8c13bf7f5e50befb077ada2f645b0bbb8cbfa00c76b5160d6a6f929e84b1"
+    }
+  ],
+  "checks": {
+    "web": "285/285 exit0 raw/ui-preferences-web-tests-1.log",
+    "typecheck": "exit0 raw/ui-preferences-typecheck-final.log",
+    "productionBuild": "19/19 exit0 raw/ui-preferences-build-final.log"
+  },
+  "retainedFailure": "raw/ui-preferences-targeted-red.log: actual missing api.updateWorkspace method;3 other tests passed",
+  "changes": [
+    "Workspace tab uses only sessionownedWorkspaces, actual PATCH name/timezone/expectedVersion; independent owner scope, no retired workspace create/transfer.",
+    "Actor/workspace in-memory drafts survive tab/remount, keep original baseline version during dirty polling. Conflict shows currentservervalues; explicit Use latest version keeps localvalues. Success canonicalvalues reconciles and invalidates live caches.",
+    "Timezone supports Intl validation and explain Today/overdue shift with date-onlyday preserved; backendroot adds authoritative validation.",
+    "Safe Google avatar with supplied person/actor metadata wherever available; HTTPS lh3..lh6.googleusercontent.com only, no credentials/customport, anonymous/no-referrer/lazy, initials fallback. Narrow CSP img-src allowlist and avatar image CSS; no publicupload scope."
+  ],
+  "newTests": [
+    "URLorigin/protocol/credential/port spoof refusals",
+    "Supported timezone andinvalid zone",
+    "Actual workspace polling/conflict/reconcile/actorisolation state",
+    "Actual PATCH expectedversion/name/timezone wire"
+  ],
+  "browserCases": [
+    "Owner Settings Workspace tab changes name/timezone realPG; refresh retained; anotherworkspace/currentManager context cannot edit unownedprefs. Force staleversion then inputkept/currentvalues visible and explicitlatestversion retry.",
+    "Open MyTasks/begin board task before timezonechange; confirmed shared asOfDate/timezone updates after save, dueDate literal unchanged.",
+    "Syntheticavatar knownGooglehost image routedlocally displays; fail404/invalidhost/missingURL fallsbackinitials; validate request anonymous/no-referrer and CSP originrestrictions. No liveGoogleorrealprofile claim.",
+    "Tab remount keeps unsavedworkspacevalues; signout/currentactor change hidescontrols and neverreuses anotheractor draft."
+  ],
+  "limits": [
+    "No child browser or realAPI/PG acceptance; finalreview/rootbrowser/hostedUAT remain pending.",
+    "Projectoverview assignee summary lacks avatarUrl, so initials remain there; all available typed PersonDisplay/actor/avatarUrl sites receive it.",
+    "Backend handles unsupportedtimezones authoritatively; UI validation does not replace serverchecks. No manualavatarupload requested."
+  ]
+}

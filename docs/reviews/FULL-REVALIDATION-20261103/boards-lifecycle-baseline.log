@@ -1,0 +1,102 @@
+✖ boards lifecycle: remove an empty column retaining trashed source IDs and import context (266.546958ms)
+✖ boards lifecycle: remove an empty column retaining purged source IDs and import context (186.043ms)
+✖ boards lifecycle: placement uses bounded actual query results for off-page anchors (214.664333ms)
+✖ boards lifecycle: card-page cursors reject another actor and changed access revision (191.3715ms)
+✖ boards lifecycle: explicit archived discovery is strict and scoped to current session administration (182.262875ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1217.012208
+
+✖ failing tests:
+
+test at apps/api/test/boards-lifecycle-repair.test.ts:7:41
+✖ boards lifecycle: remove an empty column retaining trashed source IDs and import context (266.546958ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"COLUMN_HAS_RETAINED_REFERENCES","message":"Column is still referenced by retained history or an import. Contact the owner before changing its lifecycle.","requestId":"00622160-1267-4132-ab28-e3c359240193"}}
+  
+  409 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:12:47)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 409,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/boards-lifecycle-repair.test.ts:7:41
+✖ boards lifecycle: remove an empty column retaining purged source IDs and import context (186.043ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"COLUMN_HAS_RETAINED_REFERENCES","message":"Column is still referenced by retained history or an import. Contact the owner before changing its lifecycle.","requestId":"9165f51b-4508-4286-8fab-2ca05cb2e1b7"}}
+  
+  409 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:12:47)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 409,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/boards-lifecycle-repair.test.ts:27:1
+✖ boards lifecycle: placement uses bounded actual query results for off-page anchors (214.664333ms)
+  AssertionError [ERR_ASSERTION]: placement query returned 500 rows for a single neighbor read
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:41:32)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/boards-lifecycle-repair.test.ts:44:1
+✖ boards lifecycle: card-page cursors reject another actor and changed access revision (191.3715ms)
+  AssertionError [ERR_ASSERTION]: {"data":[{"id":"p6","boardId":"brd","columnId":"col2","title":"Paged","priority":"none","dueDate":null,"assigneeIds":[],"position":60,"version":1,"commentCount":0,"imageCount":0,"createdAt":"2026-11-03T05:39:44.473Z","updatedAt":"2026-11-03T05:39:44.473Z"},{"id":"p7","boardId":"brd","columnId":"col2","title":"Paged","priority":"none","dueDate":null,"assigneeIds":[],"position":70,"version":1,"commentCount":0,"imageCount":0,"createdAt":"2026-11-03T05:39:44.473Z","updatedAt":"2026-11-03T05:39:44.473Z"},{"id":"p8","boardId":"brd","columnId":"col2","title":"Paged","priority":"none","dueDate":null,"assigneeIds":[],"position":80,"version":1,"commentCount":0,"imageCount":0,"createdAt":"2026-11-03T05:39:44.473Z","updatedAt":"2026-11-03T05:39:44.473Z"},{"id":"p9","boardId":"brd","columnId":"col2","title":"Paged","priority":"none","dueDate":null,"assigneeIds":[],"position":90,"version":1,"commentCount":0,"imageCount":0,"createdAt":"2026-11-03T05:39:44.473Z","updatedAt":"2026-11-03T05:39:44.473Z"},{"id":"p10","boardId":"brd","columnId":"col2","title":"Paged","priority":"none","dueDate":null,"assigneeIds":[],"position":100,"version":1,"commentCount":0,"imageCount":0,"createdAt":"2026-11-03T05:39:44.473Z","updatedAt":"2026-11-03T05:39:44.473Z"}],"nextCursor":"eyJiSWQiOiJicmQiLCJmSCI6IjIyYjA0ZDgxZTczODZkMWIiLCJzViI6MSwib1YiOjEsInBvc2l0aW9uIjoxMDAsImlkIjoicDEwIn0"}
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:48:138)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/boards-lifecycle-repair.test.ts:55:1
+✖ boards lifecycle: explicit archived discovery is strict and scoped to current session administration (182.262875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:58:197)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

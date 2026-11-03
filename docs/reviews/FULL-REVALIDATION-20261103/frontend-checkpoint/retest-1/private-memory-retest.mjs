@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {QueryClient} from '@tanstack/react-query';
+import {createCardDraftSessions} from '../../../../../apps/web/src/lib/card-drafts.ts';
+import {ApiError} from '../../../../../apps/web/src/lib/api.ts';
+import {discardRefusedRows} from '../../../../../apps/web/src/lib/feed-state.ts';
+import {redactProtectedDrafts} from '../../../../../apps/web/src/lib/protected-drafts.ts';
+const sessions=createCardDraftSessions(),client=new QueryClient();let assertions=0;const eq=(a,b)=>{assert.deepEqual(a,b);assertions++;};
+const card={id:'synthetic-card',projectId:'synthetic-project',boardId:'synthetic-board',title:'Synthetic server-owned title',description:'Synthetic server-owned private description; never typed by this viewer',priority:'high',dueDate:null,assigneeIds:['synthetic-assignee'],columnId:'synthetic-column',version:1};
+const clean=sessions.forCard('synthetic-actor',card),edited=sessions.forCard('synthetic-actor',{...card,id:'edited-card'});edited.edit({title:'User unsent title',description:''});
+for(const id of [card.id,'edited-card']){const key=['card',id,'synthetic-actor'];client.setQueryData(key,{...card,id});eq(discardRefusedRows(client,key,new ApiError(403,'FORBIDDEN','Synthetic access loss')),true);eq(client.getQueryData(key),undefined);}
+eq(clean.get().base.description,'');eq(clean.get().draft.description,'');eq(clean.get().draft.assigneeIds,[]);eq(edited.get().base.title,'');eq(edited.get().draft.title,'User unsent title');eq(edited.get().draft.description,'');eq(edited.get().draft.assigneeIds,[]);
+client.clear();eq(sessions.forCard('synthetic-actor',{...card,description:'replacement'}).get().draft.description,'');
+edited.observe({...card,id:'edited-card',description:'Fresh authorized server description',assigneeIds:['fresh-person'],version:2});eq(edited.get().draft.title,'User unsent title');eq(edited.get().draft.description,'');eq(edited.get().draft.assigneeIds,['fresh-person']);eq(edited.get().conflict,true);
+const pending=sessions.forCard('synthetic-actor',{...card,id:'pending-card'});pending.edit({title:'Original requested title'});const input={title:'Original requested title',description:card.description,expectedVersion:1};pending.intent({fieldInput:input});let key;try{await pending.fields.run(input,async(body,idempotency)=>{key=idempotency;throw new TypeError('synthetic lost reply');});assert.fail('expected lost reply');}catch(error){eq(error.name,'TypeError');}
+redactProtectedDrafts({actorId:'synthetic-actor'});eq(pending.get().base.description,'');eq(pending.get().draft.description,'');eq(pending.get().draft.title,'Original requested title');eq(pending.get().fieldInput,input);let retried;await pending.fields.run({title:'wrong altered request',expectedVersion:99},async(body,idempotency)=>{retried={body,idempotency};});eq(retried,{body:input,idempotency:key});
+eq(sessions.forCard('different-actor',{...card,description:'different actor record'}).get().draft.description,'different actor record');
+const report={kind:'Independent inverse source-wired memory retest; not browser exploit or whole-product approval',assertions,queryClearedOn403:true,cleanServerBaselineErased:true,cleanDraftErased:true,onlyChangedFieldsRetained:true,explicitEmptyEditRetained:true,reauthorizationRehydratesCleanFields:true,retainedChangesNeedReview:true,originalUnknownPayloadAndKeyPreserved:true,differentActorIsolated:true};await fs.writeFile(new URL('./raw/private-memory-result.json',import.meta.url),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));client.clear();

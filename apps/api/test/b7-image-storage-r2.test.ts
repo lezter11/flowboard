@@ -1,3 +1,5 @@
+import { nativeImageBindingForTests } from './support/image-binding-fixture.ts';
+import { SharpImageVerifier } from '../src/services/image-verifier-node.ts';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import test from 'node:test';
@@ -45,18 +47,8 @@ const sfx = () => crypto.randomBytes(4).toString('hex');
 // A file-owned pool. The Worker's fetch() installs and then ends its own pool, so getPool() is unusable after it.
 const pool = createPool(localDatabaseUrl(process.env['DATABASE_URL']), 4);
 
-// A 1x1 PNG the image validator accepts (signature, IHDR with dimensions, IEND).
-const PNG = (() => {
-  const header = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-  const ihdr = Buffer.alloc(25);
-  ihdr.writeUInt32BE(13, 0);
-  ihdr.write('IHDR', 4, 'ascii');
-  ihdr.writeUInt32BE(1, 8);
-  ihdr.writeUInt32BE(1, 12);
-  ihdr[16] = 8;
-  ihdr[17] = 2;
-  return Buffer.concat([header, ihdr, Buffer.from([0, 0, 0, 0, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82])]);
-})();
+import { validPng } from './support/image-fixtures.ts';
+const PNG = validPng();
 
 async function setup(pool: pg.Pool) {
   await runMigrations(pool);
@@ -154,7 +146,7 @@ test('B-7 images: upload, finalize, read and delete through the Worker, across s
   const fx = await setup(pool);
   const bucket = fakeR2();
   // Each call gets a fresh env object over the same bucket store: the durable state two isolates share.
-  const call = (request: Request) => worker.fetch(request, { DATABASE_URL: localDatabaseUrl(process.env['DATABASE_URL']), IMAGES: fakeR2(bucket.objects).binding } as never);
+  const call = (request: Request) => worker.fetch(request, { DATABASE_URL: localDatabaseUrl(process.env['DATABASE_URL']), IMAGES: fakeR2(bucket.objects).binding, IMAGE_VERIFIER:nativeImageBindingForTests() } as never);
   const base = 'http://localhost/api/v1';
 
   // Isolate 1: stage and upload the bytes.
@@ -173,7 +165,7 @@ test('B-7 images: upload, finalize, read and delete through the Worker, across s
   const content = await call(new Request(`${base}/image-uploads/${uploadId}/content`, {
     method: 'PUT',
     headers: { ...headers(fx.cookie), 'content-type': 'image/png' },
-    body: PNG,
+    body: new Uint8Array(PNG).buffer,
   }));
   assert.equal(content.status, 200, await content.clone().text());
   assert.ok(bucket.objects.has(stagingKey), 'staged bytes are in the bucket');
@@ -185,9 +177,11 @@ test('B-7 images: upload, finalize, read and delete through the Worker, across s
   }));
   assert.equal(finalize.status, 200, await finalize.clone().text());
   const imageId = ((await finalize.json()) as any).data.id as string;
-  const finalKey = `images/${fx.project}/${fx.card}/${imageId}`;
-  assert.ok(bucket.objects.has(finalKey), 'permanent bytes are in the bucket');
-  assert.equal(bucket.objects.has(stagingKey), false, 'cleanup removed the staged object after finalize');
+  const finalKey = stagingKey;
+  assert.ok(bucket.objects.has(finalKey), 'the finalized image retains its verified private object');
+  const promoted = await pool.query('SELECT storage_key FROM card_images WHERE id=$1', [imageId]);
+  assert.equal(promoted.rows[0].storage_key, stagingKey, 'finalization atomically promotes the DB reference');
+  assert.equal(bucket.objects.size, 1, 'promotion creates no untracked second object');
 
   // Isolate 3: read the bytes back.
   const read = await call(new Request(`${base}/images/${imageId}/content`, { headers: { cookie: fx.cookie } }));
@@ -210,7 +204,7 @@ test('B-7 images: upload, finalize, read and delete through the Worker, across s
 test('B-7 images: cancelling a staged upload removes its staged object', async () => {
   const fx = await setup(pool);
   const bucket = fakeR2();
-  const scoped = createApp(async () => {}, { pool, storage: new R2StorageDriver(bucket.binding) });
+  const scoped = createApp(async () => {}, { pool, storage: new R2StorageDriver(bucket.binding), imageVerifier:new SharpImageVerifier() });
 
   const stage = await scoped.request(`http://localhost/api/v1/cards/${fx.card}/image-uploads`, {
     method: 'POST',
@@ -225,7 +219,7 @@ test('B-7 images: cancelling a staged upload removes its staged object', async (
   const put = await scoped.request(`http://localhost/api/v1/image-uploads/${uploadId}/content`, {
     method: 'PUT',
     headers: { ...headers(fx.cookie), 'content-type': 'image/png' },
-    body: PNG,
+    body: new Uint8Array(PNG).buffer,
   });
   assert.equal(put.status, 200);
   assert.equal(bucket.objects.size, 1);
@@ -248,7 +242,7 @@ test('B-7 images: the default driver is not used when a scope binds none', () =>
 test('B-14 images: storage keys carry no user filename, and filenames with separators or control characters are refused', async () => {
   const fx = await setup(pool);
   const bucket = fakeR2();
-  const call = (request: Request) => worker.fetch(request, { DATABASE_URL: localDatabaseUrl(process.env['DATABASE_URL']), IMAGES: fakeR2(bucket.objects).binding } as never);
+  const call = (request: Request) => worker.fetch(request, { DATABASE_URL: localDatabaseUrl(process.env['DATABASE_URL']), IMAGES: fakeR2(bucket.objects).binding, IMAGE_VERIFIER:nativeImageBindingForTests() } as never);
   const base = 'http://localhost/api/v1';
   const name = 'holiday photo 2026.png';
   // A fresh client address per run: the stage route is rate limited per client, and other suites share the table.
@@ -276,7 +270,7 @@ test('B-14 images: storage keys carry no user filename, and filenames with separ
   const content = await call(new Request(`${base}/image-uploads/${uploadId}/content`, {
     method: 'PUT',
     headers: { ...headers(fx.cookie), 'content-type': 'image/png', 'cf-connecting-ip': ip },
-    body: PNG,
+    body: new Uint8Array(PNG).buffer,
   }));
   assert.equal(content.status, 200, await content.clone().text());
   assert.ok(bucket.objects.has(stagingKey), 'the staged object uses the random upload key');
@@ -284,8 +278,8 @@ test('B-14 images: storage keys carry no user filename, and filenames with separ
   const finalize = await call(new Request(`${base}/image-uploads/${uploadId}/finalize`, { method: 'POST', headers: { ...headers(fx.cookie), 'cf-connecting-ip': ip } }));
   assert.equal(finalize.status, 200, await finalize.clone().text());
   const imageId = ((await finalize.json()) as any).data.id as string;
-  const finalKey = `images/${fx.project}/${fx.card}/${imageId}`;
-  assert.ok(bucket.objects.has(finalKey), 'the permanent object uses the random image key');
+  const finalKey = stagingKey;
+  assert.ok(bucket.objects.has(finalKey), 'the permanent reference retains the random upload key');
 
   for (const key of bucket.objects.keys()) {
     assert.equal(key.includes('holiday'), false, `no filename in ${key}`);

@@ -1,0 +1,169 @@
+
+> @flowboard/contracts@0.3.0 test
+> node --test --test-concurrency=1 test/*.test.ts
+
+✔ activity action names are unique lowercase snake_case (0.328541ms)
+✔ the names the UI was promised are present (0.062125ms)
+✔ normalizeNamePart trims, collapses whitespace, and bounds the length in code points (0.53625ms)
+✔ normalizeNamePart refuses control, zero-width, bidirectional and separator characters (0.071083ms)
+✔ saveNameInputSchema: both parts are required, stored normalised, and unknown fields are refused (1.0795ms)
+✔ saveNameResponseSchema and the session fields carry the name state (1.146834ms)
+✔ POST /api/v1/projects input refuses a workspace id: the caller never chooses a workspace (1.097042ms)
+✔ QUOTA_EXCEEDED details carry scope, limit, optional current, and remedy (0.294209ms)
+✔ session limits and the isOwned flag are optional and additive (0.856208ms)
+✔ board create accepts an optional description up to 2000 characters (1.118625ms)
+✔ board update needs at least one of name or description; null clears the description (0.319ms)
+✔ board read model accepts description as a string, null or absent (0.3975ms)
+✔ project update accepts defaultBoardId as an id or null, and at least one field (0.275833ms)
+✔ project read model accepts defaultBoardId as an id, null or absent (0.321917ms)
+▶ Contracts Schema Validation Tests
+  ▶ Gregorian Date Validation
+    ✔ validates leap years and non-leap years accurately (0.293875ms)
+    ✔ parses valid date-only strings and rejects invalid ones via Zod (0.4095ms)
+  ✔ Gregorian Date Validation (0.934833ms)
+  ▶ UTC ISO Timestamps
+    ✔ accepts UTC timestamps ending in Z with ISO representation (0.070875ms)
+    ✔ rejects timestamps with local timezone offsets or missing Z (0.088666ms)
+  ✔ UTC ISO Timestamps (0.209875ms)
+  ▶ Idempotency Key Validation
+    ✔ accepts valid ASCII keys between 16 and 128 characters (0.078ms)
+    ✔ rejects short, long, or non-ASCII / forbidden characters (0.106875ms)
+  ✔ Idempotency Key Validation (0.23925ms)
+  ▶ Standard Error Codes and Envelopes
+    ✔ validates all canonical error codes (0.063041ms)
+    ✔ validates standard error envelope (0.948041ms)
+    ✔ validates mutation responses with receipts and replayed boolean (0.338709ms)
+  ✔ Standard Error Codes and Envelopes (1.408833ms)
+  ▶ Auth and Session Schemas
+    ✔ validates GetSessionResponse structure (1.1185ms)
+    ✔ validates LogoutResponse structure (0.124125ms)
+  ✔ Auth and Session Schemas (1.274667ms)
+  ▶ PersonDisplay Validation
+    ✔ validates active project reader display identity (0.210167ms)
+    ✔ permits null avatarUrl and inactive project status (0.028625ms)
+  ✔ PersonDisplay Validation (0.260333ms)
+  ▶ Workspace Schemas
+    ✔ validates workspace creation input (0.115625ms)
+    ✔ rejects empty or whitespace-only name (0.06675ms)
+    ✔ requires at least one field in workspace update (0.136125ms)
+    ✔ validates ownership transfer input (0.086625ms)
+  ✔ Workspace Schemas (0.435417ms)
+  ▶ Project & Membership Schemas
+    ✔ validates project creation and update inputs (0.326292ms)
+    ✔ validates member role and status updates (0.098167ms)
+  ✔ Project & Membership Schemas (0.446916ms)
+  ▶ Invitations Schemas
+    ✔ normalizes email to lowercase and validates role (0.15275ms)
+    ✔ validates accept invitation token bounds (0.084875ms)
+  ✔ Invitations Schemas (0.259667ms)
+  ▶ Board and Column Schemas
+    ✔ validates column creation and category enum (0.145334ms)
+    ✔ enforces column reordering limits (up to 12 columns, unique IDs) (0.196042ms)
+    ✔ validates placement query rules (anchorCardId required for before/after) (0.126167ms)
+  ✔ Board and Column Schemas (0.49925ms)
+  ▶ Card Schemas
+    ✔ validates card creation input with defaults (0.204334ms)
+    ✔ rejects card with duplicate assignees or >20 assignees (0.241417ms)
+    ✔ validates card movement input with nullable neighbors (0.245ms)
+  ✔ Card Schemas (0.729208ms)
+  ▶ Discussion & Mentions
+    ✔ validates non-overlapping mentions and defaults empty list (0.264583ms)
+    ✔ rejects overlapping mention spans (0.05ms)
+    ✔ rejects mention where start >= end (0.047833ms)
+  ✔ Discussion & Mentions (0.393875ms)
+  ▶ Image Upload Schemas
+    ✔ validates image upload request within limits (0.221ms)
+    ✔ B-14: refuses a filename with a slash, a backslash or a control character, and keeps ordinary names (0.284417ms)
+    ✔ rejects image exceeding 10 MiB limit or unsupported content type (0.155209ms)
+  ✔ Image Upload Schemas (0.701042ms)
+  ▶ Trash and Exact 24h Window
+    ✔ validates soft-delete and restore inputs (0.222125ms)
+    ✔ validates trash row representation with blocked reason (0.344792ms)
+    ✔ validates special trash error detail schemas (0.216541ms)
+  ✔ Trash and Exact 24h Window (0.815708ms)
+  ▶ Excel Import Schemas
+    ✔ validates commit import input and status mapping inputs (0.174459ms)
+    ✔ validates import status and rows (0.851708ms)
+  ✔ Excel Import Schemas (1.046292ms)
+  ▶ Board Snapshot Data Schema
+    ✔ validates complete board snapshot with totals, columns, and people (1.79725ms)
+  ✔ Board Snapshot Data Schema (1.832208ms)
+  ▶ OpenAPI Metadata and Routes Catalog
+    ✔ has valid OpenAPI 3.1 metadata and comprehensive route catalog (0.045375ms)
+  ✔ OpenAPI Metadata and Routes Catalog (0.063708ms)
+  ▶ Validation Error Helper
+    ✔ formats error issues cleanly with parseOrThrow (0.126584ms)
+    ✔ returns structured safeParse result on success and failure (0.04375ms)
+  ✔ Validation Error Helper (0.192625ms)
+✔ Contracts Schema Validation Tests (12.142792ms)
+▶ invitation email: table of accepted and refused addresses
+  ✔ accepts plain address (0.938709ms)
+  ✔ accepts dotted local part and subdomains (0.065917ms)
+  ✔ accepts plus tag (0.085917ms)
+  ✔ accepts every atext symbol is allowed (0.051875ms)
+  ✔ accepts punycode label (0.048ms)
+  ✔ accepts local part of exactly 64 characters (0.048625ms)
+  ✔ refuses CRLF header injection (0.259542ms)
+  ✔ refuses trailing LF (0.055291ms)
+  ✔ refuses tab inside local part (0.067542ms)
+  ✔ refuses NUL byte (0.073208ms)
+  ✔ refuses space inside local part (0.041625ms)
+  ✔ refuses space inside domain (0.042459ms)
+  ✔ refuses display name with angle brackets (0.06525ms)
+  ✔ refuses bare angle brackets (0.039166ms)
+  ✔ refuses quoted local part (0.032541ms)
+  ✔ refuses comma (0.02475ms)
+  ✔ refuses semicolon (0.021166ms)
+  ✔ refuses colon (0.025791ms)
+  ✔ refuses parentheses (0.022083ms)
+  ✔ refuses backslash (0.033584ms)
+  ✔ refuses accented local part (0.028167ms)
+  ✔ refuses accented domain (0.020292ms)
+  ✔ refuses empty (0.023917ms)
+  ✔ refuses no at sign (0.019917ms)
+  ✔ refuses empty local part (0.029709ms)
+  ✔ refuses empty domain (0.016875ms)
+  ✔ refuses two at signs (0.015917ms)
+  ✔ refuses two at signs, mid string (0.015542ms)
+  ✔ refuses domain without a TLD (0.0205ms)
+  ✔ refuses one-letter TLD (0.017458ms)
+  ✔ refuses numeric TLD (0.01725ms)
+  ✔ refuses label starts with a hyphen (0.017416ms)
+  ✔ refuses label ends with a hyphen (0.016ms)
+  ✔ refuses leading dot in local part (0.015667ms)
+  ✔ refuses trailing dot in local part (0.01625ms)
+  ✔ refuses consecutive dots in local part (0.021791ms)
+  ✔ refuses leading dot in domain (0.018208ms)
+  ✔ refuses trailing dot in domain (0.020417ms)
+  ✔ refuses consecutive dots in domain (0.01625ms)
+  ✔ refuses local part of 65 characters (0.018375ms)
+  ✔ refuses domain over 255 characters (0.074334ms)
+  ✔ refuses label over 63 characters (0.018125ms)
+  ✔ refuses total over 254 characters (0.032833ms)
+✔ invitation email: table of accepted and refused addresses (4.134166ms)
+✔ invitation email: trim and lowercase still apply, and the stored value is normalised (0.05425ms)
+✔ invitation email: a refused address reports the documented message (0.0285ms)
+✔ session response accepts lastLocation as null, absent or a project/board pair (1.876125ms)
+✔ last-location input is strict: unknown fields and empty ids are refused (0.33875ms)
+✔ project links accept only https URLs without credentials or whitespace (0.871458ms)
+✔ project link input needs a title of 1-100 characters and a safe url (0.760375ms)
+✔ project update: brief up to 5000, links up to 10, and at least one field (0.464583ms)
+✔ overview response accepts the counts shape and refuses more than 10 activity rows (0.862083ms)
+▶ Personal Access Token Schemas
+  ✔ defaults to finite 30-day expiry and rejects unknown fields/non-finite or oversized values (2.172ms)
+  ✔ createTokenInputSchema: validates valid inputs (0.3445ms)
+  ✔ createTokenInputSchema: rejects empty name (0.365667ms)
+  ✔ createTokenInputSchema: rejects empty scopes array (0.080334ms)
+  ✔ createTokenInputSchema: rejects duplicate scopes (0.094083ms)
+  ✔ createTokenInputSchema: rejects invalid scope (0.61725ms)
+  ✔ tokenSummarySchema: parses valid summary object (0.810959ms)
+  ✔ createdTokenResponseSchema: validates data envelope with raw token (0.233625ms)
+✔ Personal Access Token Schemas (5.325833ms)
+ℹ tests 117
+ℹ suites 19
+ℹ pass 117
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 879.676209

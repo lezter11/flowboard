@@ -1,0 +1,52 @@
+✖ Import mappings: inherited-property status labels remain invalid unless explicitly mapped (369.737083ms)
+✖ Import receipt: uploader and commit actors are persisted facts, safe for a different authorized reader (240.182625ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 843.338042
+
+✖ failing tests:
+
+test at apps/api/test/import-receipt-mapping.test.ts:12:1
+✖ Import mappings: inherited-property status labels remain invalid unless explicitly mapped (369.737083ms)
+  AssertionError [ERR_ASSERTION]: Empty mappings must preserve the original source status
+  + actual - expected
+  
+  + null
+  - 'constructor'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-receipt-mapping.test.ts:17:148)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: 'constructor',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-receipt-mapping.test.ts:24:1
+✖ Import receipt: uploader and commit actors are persisted facts, safe for a different authorized reader (240.182625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + undefined
+  - 'usr_ae6773fe6fe927e0'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-receipt-mapping.test.ts:26:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'usr_ae6773fe6fe927e0',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

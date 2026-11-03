@@ -5,6 +5,7 @@ import {
   createInvitationInputSchema,
   idempotencyKeySchema,
   invitationSchema,
+  invitationListQuerySchema,
   parseOrThrow,
   NAME_REQUIRED_CODE,
 } from '@flowboard/contracts';
@@ -165,7 +166,9 @@ invitationsRoutes.post('/invitations/accept', authMiddleware, async (c) => {
     await client.query('BEGIN');
     // Project quota lock before the workspace and invitation locks (B-22, F-04). The project is read by token, unlocked.
     const owningProject = await client.query<{ project_id: string }>('SELECT project_id FROM project_invitations WHERE token_hash = $1', [crypto.createHash('sha256').update(body.token).digest('hex')]);
-    if (owningProject.rows[0]) await lockProjectQuota(client, owningProject.rows[0].project_id);
+    if (!owningProject.rows[0]) throw HttpError.badRequest('Invitation not found or no longer pending.', 'INVALID_INVITATION');
+    await lockProjectQuota(client, owningProject.rows[0].project_id);
+    await acquireWritableProjectContextLock(client, owningProject.rows[0].project_id);
 
     const methodPath = '/api/v1/invitations/accept';
     const replay = await checkOrReplayReceipt(
@@ -191,7 +194,10 @@ invitationsRoutes.post('/invitations/accept', authMiddleware, async (c) => {
           [respData.projectId, actor.id],
         );
         const check = checkRes.rows[0];
-        if (!check || (check.owner_id !== actor.id && check.member_status !== 'active')) {
+        const membership = await client.query<{ status: string }>(
+          'SELECT status FROM project_memberships WHERE project_id=$1 AND user_id=$2 FOR SHARE', [respData.projectId, actor.id],
+        );
+        if (!check || (check.owner_id !== actor.id && membership.rows[0]?.status !== 'active')) {
           throw HttpError.notFound('Project not found or access revoked.', 'NOT_FOUND');
         }
       }
@@ -242,7 +248,11 @@ invitationsRoutes.post('/invitations/accept', authMiddleware, async (c) => {
       200,
     );
   } catch (err) {
-    await client.query('ROLLBACK').catch(() => {});
+    if (err instanceof HttpError && err.code === 'INVITATION_EXPIRED') {
+      await client.query('COMMIT');
+    } else {
+      await client.query('ROLLBACK').catch(() => {});
+    }
     throw err;
   } finally {
     client.release();
@@ -264,14 +274,13 @@ invitationsRoutes.get('/projects/:projectId/invitations', authMiddleware, async 
     await client.query('BEGIN');
     await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
 
-    const invitations = await listInvitations(client, actor, projectId);
+    const query = parseOrThrow(invitationListQuerySchema, c.req.query());
+    const cursorSecret = (c.env as { CURSOR_SECRET?: string } | undefined)?.CURSOR_SECRET ?? process.env['CURSOR_SECRET'];
+    const invitations = await listInvitations(client, actor, projectId, { ...query, cursorSecret });
     await client.query('COMMIT');
 
     return c.json(
-      {
-        data: invitations,
-        nextCursor: null,
-      },
+      invitations,
       200,
     );
   } catch (err) {
@@ -501,6 +510,17 @@ invitationsRoutes.post('/projects/:projectId/leave', authMiddleware, async (c) =
 
   try {
     await client.query('BEGIN');
+    await lockProjectQuota(client, projectId);
+    const project = await client.query<{ owner_id: string }>(
+      `SELECT w.owner_id FROM projects p JOIN workspaces w ON w.id=p.workspace_id
+       WHERE p.id=$1 FOR SHARE OF w`, [projectId],
+    );
+    if (!project.rows[0]) throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+    if (project.rows[0].owner_id === actor.id) throw HttpError.forbidden('Workspace owners cannot leave their project.', 'FORBIDDEN');
+    const membership = await client.query<{ status: string }>(
+      'SELECT status FROM project_memberships WHERE project_id=$1 AND user_id=$2 FOR UPDATE', [projectId, actor.id],
+    );
+    if (!membership.rows[0]) throw HttpError.notFound('Project not found.', 'NOT_FOUND');
 
     const methodPath = `/api/v1/projects/${projectId}/leave`;
     const replay = await checkOrReplayReceipt(
@@ -514,16 +534,6 @@ invitationsRoutes.post('/projects/:projectId/leave', authMiddleware, async (c) =
     );
 
     if (replay) {
-      const prj = await client.query<{ owner_id: string }>(
-        `SELECT w.owner_id FROM projects p JOIN workspaces w ON p.workspace_id = w.id WHERE p.id = $1 FOR SHARE OF w`,
-        [projectId],
-      );
-      if (!prj.rows[0]) {
-        throw HttpError.notFound('Project not found.', 'NOT_FOUND');
-      }
-      if (prj.rows[0].owner_id === actor.id) {
-        throw HttpError.forbidden('Workspace owners cannot leave their project.', 'FORBIDDEN');
-      }
       await client.query('ROLLBACK');
       return c.json(
         { ...(replay.responseBody as object), replayed: true },

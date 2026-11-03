@@ -74,6 +74,8 @@ Detailed explanations, options and primary sources: [data items 01–25](researc
 
 ## Updating an item
 
+2026-11-03 local revalidation evidence is being collected in [FULL-REVALIDATION-20261103](reviews/FULL-REVALIDATION-20261103/PLAN.md): actual separate-connection member/invitation/column races, scoped cursor paging, import reservation/retention, comment-source uniqueness/privacy, and notification savepoint retry/restart tests. Generated edge SQL is now compared byte-for-byte with canonical migrations by `npm run migrations:embed:check`. These are implementation/local-validation advances, not automatic checkmarks or final independent approval. Deferred infrastructure such as Redis/sharding remains deferred; reproducing a database race does not justify adding another service.
+
 Check a delivery box only with a dated link to code plus relevant test/run evidence. Add environment/commit and limitations. For a provider move, reopen affected items until their acceptance tests pass on the new adapter. Review deferred triggers at each release. Root TASKS.md holds the next small task; this document holds the complete risk map.
 
 ## Product scope revision v0.3

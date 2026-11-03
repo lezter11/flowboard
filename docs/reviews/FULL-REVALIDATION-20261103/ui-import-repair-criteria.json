@@ -1,0 +1,29 @@
+{
+  "version": "ui-import-repair-1",
+  "features": [
+    "IMP-01",
+    "IMP-02",
+    "IMP-03",
+    "IMP-04",
+    "IMP-05",
+    "IMP-06",
+    "IMP-07",
+    "IMP-08",
+    "IMP-09",
+    "IMP-10",
+    "UX-01",
+    "UX-02",
+    "UX-04",
+    "IMP-11"
+  ],
+  "mandatoryCriteria": [
+    "Only current Owner/Manager of active project+granted active board can upload/commit/map/cancel; actual read refusal clears protected rows and disables writes. Explicit inaccessible project/board never falls back. Preserve selected synthetic file on validation failure; no automatic repeat upload after uncertain response.",
+    "Import URL carries returned batch id for authorized reload recovery; real status polling covers uploaded/validating/committing, never treats every2xx as committed. Ready/invalid/failed/expired/cancelled have honest terminal/recovery UI; only actual committed state produces created-card success.",
+    "Preview and result rows follow every actual limit/cursor page. Bind pages to batch version/state/digest; changed batch or409 gives explicit in-place reload while keeping local mapping choices. Server counts and loaded counts remain distinct.",
+    "Unknown workbook status strings can map to actual existing destination columns via POST mappings with expectedVersion. Only explicit complete current mapping save; no inferred default for unknown people/status, preserve drafts on conflict/refusal.",
+    "Explicit atomic commit confirms whole batch and retains original input/key across unknown replies. Fields/mappings/cancellation/new import lock until original commit resolves; same-tab draft/controller retained actor/batch. Actual committing response is processing, not done.",
+    "Committed receipt displays batch id/current status/server counts and provenance, every available created row links to original board/card. Download server-generated safe CSV using same-origin authenticated attachment path; never recreate unsafe CSV from workbook strings. Cancel only when backend cancellationAllowed, visible failure and no fake success; import another only after safe state.",
+    "Meaningful boundary/state tests exact statuscursor/mapping/commit identity/state transitions/source links. Run web suite/typecheck/build with retained logs; root owns actual Chrome+localAPI+PG and immutable finalreview, hostedUAT follows deployment."
+  ],
+  "scope": "apps/web only plus review evidence. No backend/sharedcontracts/dependencies/cloud/deployment edits. Mapping backend key is original source status; UI only maps currently unknown source labels; no invented arbitrary headers/people creation."
+}

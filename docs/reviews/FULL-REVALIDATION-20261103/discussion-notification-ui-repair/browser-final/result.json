@@ -1,0 +1,662 @@
+{
+  "executor": "collaboration:/root/discussion_notification_ui_repair",
+  "kind": "builder local mounted synthetic PostgreSQL and Chrome; not independent acceptance or hosted proof",
+  "startedAt": "2026-11-03T10:38:53.466Z",
+  "sourceBefore": {
+    "apps/web/src/lib/comment-state.ts": "93b72803625ff6033f0778ae3464e5a23181dbd229c21cb7bd77c1ee6692482b",
+    "apps/web/src/lib/protected-drafts.ts": "23f3037b880866a230a54a4a1edb4752b445ba4ecf67401784dfbe55d933920e",
+    "apps/web/src/components/board/card-comments.tsx": "17c622221933391c44491dac5d648f0d0ae4d816ed8e5d41219c76d5b0d23474",
+    "apps/web/src/app/inbox/page.tsx": "0d51c493a9ab20bab519bdea31cb754735d0eb7563f2095ed16294c16317255c",
+    "apps/web/src/lib/notification-link.ts": "68d07b5d7298507ba682af800d7b70dac9ff67265307bc1374cf6f9939392132",
+    "apps/web/src/lib/activity.ts": "0ab8a00fa68cf8dae6b554abd388c3d7d713d0282fcf512a91d365870bc199ff",
+    "apps/web/src/components/board/card-detail-drawer.tsx": "0d2139be4674b8c5a98da7a35fc5b729e69bd7240b158b6e72185f87f567183e",
+    "apps/web/src/components/board/activity-details.tsx": "73095ec700100a73a1b2b3024531a77ef73adc5e9caa724bcfbc1cacd2a2478e",
+    "apps/web/src/components/board/board-view.tsx": "bde0a6ac1406d2af43452940efdd14a48e669bcfc240a54d061c3457bd838ddf",
+    "apps/web/src/app/activity/page.tsx": "401576146fe9cca079f46dd9c122be5449d974f27704d5abff45aaa9c1c5a635",
+    "apps/web/src/lib/session.tsx": "1230e2de12ff353d422e6ae1557dc0c946b8cd129126ac54e713ae2032e6108e",
+    "apps/web/src/lib/cursor-feed.ts": "9c1583117a43684aca24a85aca0f2146535a378f36e722f9d074382317f25043",
+    "apps/web/src/lib/retained-command.ts": "cdebf0df3881f7073ac42cbd8f50497cbee863708a6b28f2c5f0855c0d87f75c",
+    "apps/web/src/components/board/comment-composer.tsx": "fb4d2e86e913e29961d23c2ad2a3741ad2ef85f17f2ab7ed5984dfea233ed471",
+    "apps/api/src/adapters/activity.ts": "339f653e80db629b5cef317ec352681f18e1216fc6fcf361d5bfdcf7f6e0c0a0",
+    "apps/api/src/adapters/comments.ts": "5c7964270a5622386cf4e43ebe77dbf87f97c26c0c049293e61455969205c4fd",
+    "apps/api/src/adapters/notifications.ts": "c52a5d4542c180548c382c4371882444e82b2997b4cb7068ea84fe025c4ff148",
+    "packages/contracts/src/discussion.ts": "cc96e190e2075439f404241c89a96be4322b66160da1b4c76676f0c9bc8115d6",
+    "packages/contracts/src/common.ts": "2318d1c9b82140f9c01b5c6db31a2a10de0a171c175484f58f4d9f0c67e5a059",
+    "apps/api/src/services/activity-people.ts": "1f024faa7ac6a2f968f23068aba86ba7da5d15df8aae844f43adfcacc81289ce",
+    "apps/api/src/services/person-suffix.ts": "cb6fcb4b9d78d9fe262c755b0ba25726971bbe455d60ed30493a9f891296ec6c"
+  },
+  "observations": [
+    {
+      "flow": "comment refusal before other reads",
+      "changed": false,
+      "editorCount": 0,
+      "editorValue": null,
+      "heldOtherReadResponses": 6
+    },
+    {
+      "flow": "unchanged baseline remount after access restoration",
+      "canonicalCopyDidNotReappear": true
+    },
+    {
+      "flow": "comment refusal before other reads",
+      "changed": true,
+      "editorCount": 1,
+      "editorValue": "My newly authored unsent edit",
+      "heldOtherReadResponses": 6
+    },
+    {
+      "flow": "unknown edit reply then revocation and recovery",
+      "canonicalEditorHidden": true,
+      "retryDisabledWhileDenied": true,
+      "retryOriginalAfterAuthorizedRead": true,
+      "sameOriginalPayloadAndKey": true,
+      "oneSavedEdit": true
+    },
+    {
+      "flow": "notification keyboard Open",
+      "renderedHref": "/board?id=brd_050f4b7d-6d8b-40e1-b6f4-d7378c00c0ca&card=crd_fe845f6a-a66d-497d-831f-b0759d78662a",
+      "cardDialogCount": 1,
+      "targetCardDetailVisible": true
+    },
+    {
+      "flow": "board ancestry",
+      "contradictoryAuthorizedBoardHidden": true,
+      "offpageDeepLinkVisible": true,
+      "aggregateSourceBoardVisible": true
+    }
+  ],
+  "externalRequests": [],
+  "network": [
+    {
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_f75c1048-76b1-4a4a-a76a-198ade9d5b57/boards",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_6309d7e5-ecb5-4ab4-89f0-6078e83b925b",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_6309d7e5-ecb5-4ab4-89f0-6078e83b925b",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_f75c1048-76b1-4a4a-a76a-198ade9d5b57/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0ee4ab73-4d10-4f0a-9b94-225d9950d417",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0ee4ab73-4d10-4f0a-9b94-225d9950d417/images",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_f75c1048-76b1-4a4a-a76a-198ade9d5b57/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_f75c1048-76b1-4a4a-a76a-198ade9d5b57/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0ee4ab73-4d10-4f0a-9b94-225d9950d417/activity",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0ee4ab73-4d10-4f0a-9b94-225d9950d417/comments",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/session/last-location",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0ee4ab73-4d10-4f0a-9b94-225d9950d417/comments",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_f75c1048-76b1-4a4a-a76a-198ade9d5b57/boards",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0ee4ab73-4d10-4f0a-9b94-225d9950d417/images",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_6309d7e5-ecb5-4ab4-89f0-6078e83b925b",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0ee4ab73-4d10-4f0a-9b94-225d9950d417/comments",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_3b04e55e-a227-42b1-abef-b20e04a9521e/boards",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_4f683fa9-6ba2-49f8-baf9-9314308309c9",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_4f683fa9-6ba2-49f8-baf9-9314308309c9",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_3b04e55e-a227-42b1-abef-b20e04a9521e/people",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/session/last-location",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0467037f-c422-48ff-b458-461b1b67bc5f",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0467037f-c422-48ff-b458-461b1b67bc5f/images",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_3b04e55e-a227-42b1-abef-b20e04a9521e/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0467037f-c422-48ff-b458-461b1b67bc5f/comments",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_3b04e55e-a227-42b1-abef-b20e04a9521e/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0467037f-c422-48ff-b458-461b1b67bc5f/activity",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_0467037f-c422-48ff-b458-461b1b67bc5f/comments",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_8a00ea98-ab79-4d04-9ea6-f32e9cbd25cd/boards",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_7fb3b81d-7c1b-48ef-93ff-48282cc1379b",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_7fb3b81d-7c1b-48ef-93ff-48282cc1379b",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_8a00ea98-ab79-4d04-9ea6-f32e9cbd25cd/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_324b31fb-e412-4b9d-9aad-def6d7db5e85",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_324b31fb-e412-4b9d-9aad-def6d7db5e85/images",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_8a00ea98-ab79-4d04-9ea6-f32e9cbd25cd/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_8a00ea98-ab79-4d04-9ea6-f32e9cbd25cd/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_324b31fb-e412-4b9d-9aad-def6d7db5e85/comments",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_324b31fb-e412-4b9d-9aad-def6d7db5e85/activity",
+      "status": 200
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/session/last-location",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_324b31fb-e412-4b9d-9aad-def6d7db5e85/comments",
+      "status": 404
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_324b31fb-e412-4b9d-9aad-def6d7db5e85/comments",
+      "status": 200
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/comments/cmt_f63ee929-d253-4a28-a1ae-8e04f680b64f",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_800322da-b28c-4ebd-92fa-a682f74eac4d/boards",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_050f4b7d-6d8b-40e1-b6f4-d7378c00c0ca",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_050f4b7d-6d8b-40e1-b6f4-d7378c00c0ca",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_fe845f6a-a66d-497d-831f-b0759d78662a",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_800322da-b28c-4ebd-92fa-a682f74eac4d/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_fe845f6a-a66d-497d-831f-b0759d78662a/images",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_800322da-b28c-4ebd-92fa-a682f74eac4d/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_800322da-b28c-4ebd-92fa-a682f74eac4d/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_fe845f6a-a66d-497d-831f-b0759d78662a/comments",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_fe845f6a-a66d-497d-831f-b0759d78662a/activity",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/boards",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_db7b3bee-b6d8-40a2-a15a-19170cebc4a4",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_db7b3bee-b6d8-40a2-a15a-19170cebc4a4",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_73cb57bd-a426-4be5-aeb7-412bbef65d74",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/boards",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_4c56b68c-091b-477c-a31f-777d9d883b03",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_4c56b68c-091b-477c-a31f-777d9d883b03",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_e8375589-faa0-40f8-8a02-393e01a92c4d",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_e8375589-faa0-40f8-8a02-393e01a92c4d/images",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_e8375589-faa0-40f8-8a02-393e01a92c4d/comments",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_e8375589-faa0-40f8-8a02-393e01a92c4d/activity",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/boards",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_db7b3bee-b6d8-40a2-a15a-19170cebc4a4",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_4c56b68c-091b-477c-a31f-777d9d883b03",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_db7b3bee-b6d8-40a2-a15a-19170cebc4a4",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_73cb57bd-a426-4be5-aeb7-412bbef65d74",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_73cb57bd-a426-4be5-aeb7-412bbef65d74/comments",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_c866b3ec-86a2-4d5b-b29c-3f8023dbab5f/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_73cb57bd-a426-4be5-aeb7-412bbef65d74/images",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_73cb57bd-a426-4be5-aeb7-412bbef65d74/activity",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_6baa7b92-85c4-4bd1-a50f-016a6b24cd47/boards",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_76fe42b3-a6b2-4150-89ee-37c89105d704",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/boards/brd_76fe42b3-a6b2-4150-89ee-37c89105d704",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_74e93972-dd0e-4019-b145-bfeac43769fa",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_6baa7b92-85c4-4bd1-a50f-016a6b24cd47/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_6baa7b92-85c4-4bd1-a50f-016a6b24cd47/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_6baa7b92-85c4-4bd1-a50f-016a6b24cd47/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/projects/prj_6baa7b92-85c4-4bd1-a50f-016a6b24cd47/people",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_74e93972-dd0e-4019-b145-bfeac43769fa/images",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_74e93972-dd0e-4019-b145-bfeac43769fa/comments",
+      "status": 200
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/cards/crd_74e93972-dd0e-4019-b145-bfeac43769fa/activity",
+      "status": 200
+    }
+  ],
+  "browser": "156.0.8078.74",
+  "status": "probe-error",
+  "error": {
+    "name": "Error",
+    "message": "expect(locator).toBeVisible() failed\n\nLocator: getByRole('dialog').first().getByText('LONG_HISTORY_SENTINEL synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history ', { exact: true })\nExpected: visible\nError: strict mode violation: getByRole('dialog').first().getByText('LONG_HISTORY_SENTINEL synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history ', { exact: true }) resolved to 2 elements:\n    1) <textarea maxlength=\"20000\" class=\"detail-desc\" id=\"detailDescription\" placeholder=\"Add context, links or acceptance notes…\">LONG_HISTORY_SENTINEL synthetic history synthetic…</textarea> aka getByRole('textbox', { name: 'Description' })\n    2) <div>LONG_HISTORY_SENTINEL synthetic history synthetic…</div> aka getByText('LONG_HISTORY_SENTINEL').nth(2)\n\nCall log:\n  - Expect \"toBeVisible\" getByRole('dialog').first().getByText('LONG_HISTORY_SENTINEL synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history ', { exact: true }) with timeout 5000ms\n  - waiting for getByRole('dialog').first().getByText('LONG_HISTORY_SENTINEL synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history synthetic history ', { exact: true })\n"
+  },
+  "sourceAfter": {
+    "apps/web/src/lib/comment-state.ts": "93b72803625ff6033f0778ae3464e5a23181dbd229c21cb7bd77c1ee6692482b",
+    "apps/web/src/lib/protected-drafts.ts": "23f3037b880866a230a54a4a1edb4752b445ba4ecf67401784dfbe55d933920e",
+    "apps/web/src/components/board/card-comments.tsx": "17c622221933391c44491dac5d648f0d0ae4d816ed8e5d41219c76d5b0d23474",
+    "apps/web/src/app/inbox/page.tsx": "0d51c493a9ab20bab519bdea31cb754735d0eb7563f2095ed16294c16317255c",
+    "apps/web/src/lib/notification-link.ts": "68d07b5d7298507ba682af800d7b70dac9ff67265307bc1374cf6f9939392132",
+    "apps/web/src/lib/activity.ts": "0ab8a00fa68cf8dae6b554abd388c3d7d713d0282fcf512a91d365870bc199ff",
+    "apps/web/src/components/board/card-detail-drawer.tsx": "0d2139be4674b8c5a98da7a35fc5b729e69bd7240b158b6e72185f87f567183e",
+    "apps/web/src/components/board/activity-details.tsx": "73095ec700100a73a1b2b3024531a77ef73adc5e9caa724bcfbc1cacd2a2478e",
+    "apps/web/src/components/board/board-view.tsx": "bde0a6ac1406d2af43452940efdd14a48e669bcfc240a54d061c3457bd838ddf",
+    "apps/web/src/app/activity/page.tsx": "401576146fe9cca079f46dd9c122be5449d974f27704d5abff45aaa9c1c5a635",
+    "apps/web/src/lib/session.tsx": "1230e2de12ff353d422e6ae1557dc0c946b8cd129126ac54e713ae2032e6108e",
+    "apps/web/src/lib/cursor-feed.ts": "9c1583117a43684aca24a85aca0f2146535a378f36e722f9d074382317f25043",
+    "apps/web/src/lib/retained-command.ts": "cdebf0df3881f7073ac42cbd8f50497cbee863708a6b28f2c5f0855c0d87f75c",
+    "apps/web/src/components/board/comment-composer.tsx": "fb4d2e86e913e29961d23c2ad2a3741ad2ef85f17f2ab7ed5984dfea233ed471",
+    "apps/api/src/adapters/activity.ts": "339f653e80db629b5cef317ec352681f18e1216fc6fcf361d5bfdcf7f6e0c0a0",
+    "apps/api/src/adapters/comments.ts": "5c7964270a5622386cf4e43ebe77dbf87f97c26c0c049293e61455969205c4fd",
+    "apps/api/src/adapters/notifications.ts": "c52a5d4542c180548c382c4371882444e82b2997b4cb7068ea84fe025c4ff148",
+    "packages/contracts/src/discussion.ts": "cc96e190e2075439f404241c89a96be4322b66160da1b4c76676f0c9bc8115d6",
+    "packages/contracts/src/common.ts": "2318d1c9b82140f9c01b5c6db31a2a10de0a171c175484f58f4d9f0c67e5a059",
+    "apps/api/src/services/activity-people.ts": "1f024faa7ac6a2f968f23068aba86ba7da5d15df8aae844f43adfcacc81289ce",
+    "apps/api/src/services/person-suffix.ts": "cb6fcb4b9d78d9fe262c755b0ba25726971bbe455d60ed30493a9f891296ec6c"
+  },
+  "sourceChanged": [],
+  "finishedAt": "2026-11-03T10:39:50.391Z"
+}

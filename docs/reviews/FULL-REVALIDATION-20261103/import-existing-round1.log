@@ -1,0 +1,81 @@
+✔ B-7 XLSX: a bomb is stopped by the decompressor cap, not after allocation (36.012458ms)
+✔ B-7 XLSX: an honest declared size over the remaining budget is refused before inflation (37.299375ms)
+✔ B-7 XLSX: a garbage payload with an oversize declared size reports the size, not a decode error (0.109791ms)
+✔ B-7 XLSX: a stored (uncompressed) member is capped by the same budget (3.732167ms)
+✔ B-7 XLSX: a corrupt deflate stream still reports DECOMPRESSION_FAILED (1.808958ms)
+▶ B-7 XLSX import: callers without an import right never reach the parser
+  ✔ no grant gets 404 before any parsing (the bytes are not a workbook) (1.84725ms)
+  ✔ a viewer with a grant gets 403 before any parsing (1.090042ms)
+  ✔ a member with a grant gets 403 before any parsing (1.079083ms)
+  ✔ an unknown board gets 404 before any parsing (1.071292ms)
+  ✔ a no-grant caller sending a bomb never inflates it (30.603625ms)
+  ✔ an authorised manager sending a bomb is stopped by the parser cap (33.051542ms)
+  ✔ an authorised manager with a non-workbook reaches the parser and gets its error (2.133ms)
+✔ B-7 XLSX import: callers without an import right never reach the parser (127.226625ms)
+▶ IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite
+  ✔ 0. Setup Workspace, Projects, Members and Boards (192.767625ms)
+  ✔ IMP-01: Download Excel template with versioned 7-column schema (8.247792ms)
+  ✔ IMP-02: Role authorization and target boundaries (Owner/Manager pass, Member/Viewer 403, Outsider 404) (26.850959ms)
+  ✔ IMP-03: Security boundaries: formulas, macros, external links, OLE, XXE, row limits (14.436625ms)
+  ✖ IMP-04: Header validation, leading zeros, numeric rejection, date systems, assignee resolution (29.942959ms)
+  ✔ IMP-05a: a Blocked status maps to the default Blocked column on a new board (case-insensitive) (16.496125ms)
+  ✔ IMP-05: Dry run preview, pagination, unmapped status update, and cancel before commit (35.245958ms)
+  ✔ IMP-06: Atomic confirmation, OCC guards, role re-check, and single transaction commit (58.838917ms)
+  ✔ IMP-07: Duplicate skips unchanged row, conflicts on changed payload, and protects 24-hour trash (25.80025ms)
+  ✖ IMP-09: Safe CSV report download with formula injection neutralization (5.365625ms)
+  ✔ Adversarial: Revoked manager authority race between preview and commit returns 403 FORBIDDEN (14.455458ms)
+  ✔ Adversarial: Removed assignee between preview and commit returns 409 PREVIEW_STALE (20.031542ms)
+  ✔ IMP-11: Batch and card provenance activity log links (0.383083ms)
+✖ IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite (451.810083ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 24
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11045.554333
+
+✖ failing tests:
+
+test at apps/api/test/imp01-imp06.test.ts:674:11
+✖ IMP-04: Header validation, leading zeros, numeric rejection, date systems, assignee resolution (29.942959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + null
+  - '2023-03-15'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/imp01-imp06.test.ts:757:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/imp01-imp06.test.ts:674:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: '2023-03-15',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/imp01-imp06.test.ts:1133:11
+✖ IMP-09: Safe CSV report download with formula injection neutralization (5.365625ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(csv.includes('Row,External ID,Title,Status,Priority,Due Date,Outcome,Errors,Card ID'))
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/imp01-imp06.test.ts:1140:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/imp01-imp06.test.ts:1133:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

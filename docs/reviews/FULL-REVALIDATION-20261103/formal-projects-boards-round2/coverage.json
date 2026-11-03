@@ -1,0 +1,214 @@
+{
+  "sourceDigest": "5c6185a69d2d0fa89a32962b6f672a1bc09877e66592e0b7568f98d35769c3c8",
+  "featureCount": 26,
+  "features": [
+    {
+      "id": "PRJ-01",
+      "backendTrace": "projects.ts own/workspace creation; own-projects.ts; personal-workspace.ts; quotas.ts",
+      "testEvidence": "b18-own-projects; b18-backstops-session; Browser new project/board creation",
+      "uiTrace": "new-project-dialog.tsx; projects/page.tsx",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "PRJ-02",
+      "backendTrace": "projects.ts listings/detail; adapters/projects.ts actor/scope cursors; default-board.ts",
+      "testEvidence": "prj02-prj05; board-access scoped reads; cursor-integrity-repair",
+      "uiTrace": "projects/page.tsx; project-view.tsx; project-switcher; portfolio-state",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "PRJ-03",
+      "backendTrace": "projects PATCH; updateProjectSettings; shared projects schema",
+      "testEvidence": "prj02-prj05 stale/settings/default-board cases; rbac-advanced mounted revoke interleaving",
+      "uiTrace": "settings/page.tsx; brief-card.tsx; expected version/draft conflicts",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "PRJ-04",
+      "backendTrace": "projects archive580-659/reopen695-782 ignore body and version predicate",
+      "testEvidence": "Own project-lifecycle-occ-probe: stale archive200 changes reopened project toarchived/version4; exit1",
+      "uiTrace": "settings/page.tsx sends expectedVersion; API72 documents it;321 contradictory stale note",
+      "round2CriterionOutcome": "fail",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "PRJ-05",
+      "backendTrace": "projects /members+people; getProjectMembers; rbac display actor+lock guard",
+      "testEvidence": "Own people-directory-policy9 and direct-Pool3 pass in39; PB01 repaired",
+      "uiTrace": "people/page.tsx rejects Member/Viewer; member-controls; no directory cache rendering on refusal",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "INV-01",
+      "backendTrace": "invitations POST; createInvitation role/recipient/token/outbox; grant creation acceptance only",
+      "testEvidence": "inv01-inv03; inv04-inv08; b22 quotas; board-access no automatic grants",
+      "uiTrace": "invite-dialog roles/access explanation; accept-screen",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "INV-02",
+      "backendTrace": "invitation-delivery waitUntil/private pool; mailer timeout/error mapping; worker scheduled outbox",
+      "testEvidence": "Own invitation-repair terminal redaction; uat-immediate-invite-send fake provider; outbox recovery",
+      "uiTrace": "invite-dialog delivery summary/retry states; real mail remains UAT pending",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "INV-03",
+      "backendTrace": "accept route actor+token receipt; adapter quota/lifecycle/invitation/membership/email/expiry",
+      "testEvidence": "Own invitation-repair12 pass; inv01-inv03 wrong email/duplicate/expired; b22 accept races",
+      "uiTrace": "accept-screen identity/name/expired token outcomes; real Google UAT pending",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "INV-04",
+      "backendTrace": "resend/revoke route current actor/target role before receipts; token hash rotation",
+      "testEvidence": "inv04-inv08; b22 accept/resend; own invitation-repair archive/receipt",
+      "uiTrace": "invite-dialog retained commands/revoke confirmation; invitation-state role-aware controls",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "INV-05",
+      "backendTrace": "listInvitations signed keyset bound actor/role/project/lifecycle; latest outbox summary",
+      "testEvidence": "Own invitation-repair limits/ties/cursor/delivery pass",
+      "uiTrace": "invite-dialog status filters/load-more/stale reset/error/empty states",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "INV-06",
+      "backendTrace": "members PATCH authorizeMemberMutation before receipt; adapter target role/version checks",
+      "testEvidence": "inv04-inv08; rbac-advanced owner promotion vs Manager removal race",
+      "uiTrace": "people/member-controls owner/Manager target-role matrix",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "INV-07",
+      "backendTrace": "member DELETE/PATCH removal; quota->actor->target; grant-removal trigger; invitation revocation",
+      "testEvidence": "board-access/tests cards/images/imports/trash scopes; own People demotion tests",
+      "uiTrace": "session fingerprint query clearing; board/refused cached rows; browser revocation flows",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "INV-08",
+      "backendTrace": "leave route quota/workspace/current membership->receipt; adapter removal/invite revoke",
+      "testEvidence": "Own invitation-repair archived leave/block ordering pass; inv04-inv08 owner denial",
+      "uiTrace": "settings confirmed leave/cache removal; historical displays use safe identity",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "RBAC-01",
+      "backendTrace": "app mounted route registry; session/PAT auth; origin/body/deadline/rate middleware; rbac helpers",
+      "testEvidence": "route-auth-matrix; cookie-mutation-matrix; identity/runtime tests; own People controls",
+      "uiTrace": "roles.ts/action-specific owner-only metadata/grants; role scoped from selected project",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "RBAC-02",
+      "backendTrace": "project ancestry + board/grant helpers; nested card/comment/file/import handlers",
+      "testEvidence": "board-access-cards-images; boards-imports-trash; route-auth matrix",
+      "uiTrace": "deep link error/refusal state; clear private rows on403/404",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "RBAC-03",
+      "backendTrace": "quota->workspace->membership->grant->project->board locks; transaction receipts",
+      "testEvidence": "rbac-advanced separate connection cases; board-access held delivery; own9People+3Pool",
+      "uiTrace": "expected versions/recovery UI; PB02 lifecycle stale overwrite fails integrity",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "RBAC-04",
+      "backendTrace": "People fixed display directory; scoped assignee/mention; notifications/activity ancestry",
+      "testEvidence": "Own39current scoped tests; safe historical person maps; b9 mention tests",
+      "uiTrace": "people denial; picker eligibility; inbox/refused state; session identity draft redaction",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "RBAC-05",
+      "backendTrace": "Owner implicit board access; nonowner current membership+grant; Owner grants; Manager creator atomic grant",
+      "testEvidence": "board-access comprehensive; b18 own/shared permissions; own scoped cursor role controls",
+      "uiTrace": "People Board access Owner-only; invite disclosure; empty zero-grant board lists",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "BRD-01",
+      "backendTrace": "boards create route quota/receipt; createBoard five columns; creator grant/activity",
+      "testEvidence": "brd01-brd07; b18 permission/quota/atomic create; browser creation",
+      "uiTrace": "new-board-dialog retained command/draft/role guard",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "BRD-02",
+      "backendTrace": "list scope transaction; Owner-only updateBoard expected snapshot version; metadata PAT projection",
+      "testEvidence": "brd01-brd07; identity-repair PAT; own lifecycle PAT/archive discovery controls pass",
+      "uiTrace": "edit-board-dialog/settings owner-only; navigation context source fix and browser observation",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "BRD-03",
+      "backendTrace": "getBoardSnapshot repeatable read+authorization locks; bounded15 first pages; filters/counts",
+      "testEvidence": "brd01-brd07; qry01-qry03; board-access snapshot revocation; own lifecycle cursors",
+      "uiTrace": "board-view server filter generation; total/matching counts; pages explicit",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "BRD-04",
+      "backendTrace": "add/updateColumn structure OCC; normalized unique live names; bounded12; category/color",
+      "testEvidence": "brd01-brd07; own lifecycle name/cap/migration tests",
+      "uiTrace": "columns-dialog add/rename/category/tone retained drafts/stale reapply; browser observation",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "BRD-05",
+      "backendTrace": "reorderColumns exact complete ID set, board lock, structure version/activity/receipt",
+      "testEvidence": "brd01-brd07 duplicate/missing/foreign/stale; browser actual UI reorder",
+      "uiTrace": "columns-dialog earlier/later buttons give pointer/click/tap/keyboard action; board-card Move separate",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "BRD-06",
+      "backendTrace": "deleteColumn soft retirement; final/active/restorable checks; migration0024 triggers",
+      "testEvidence": "Own lifecycle15 includes direct SQL deadlock/RR/upgrade/name conflict/history cases",
+      "uiTrace": "columns-dialog confirmation/error/retained drafts; no implicit card cascade",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "BRD-07",
+      "backendTrace": "listBoardCards actor/accessRevision/snapshot/structure/filter cursors; bounded100",
+      "testEvidence": "Own lifecycle actor/revision/page summary probes; brd01-brd07 pagination",
+      "uiTrace": "board-pages dedupe/version/generation; stale cursors refresh; visible unseen count/load more",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    },
+    {
+      "id": "BRD-08",
+      "backendTrace": "archive/reopen board grant+Manager/project lifecycle+snapshot OCC/receipt; reopen quota",
+      "testEvidence": "Own lifecycle stale/late transition/exact replay pass; lifecycle-undo archived writes/trash deadlines",
+      "uiTrace": "board-lifecycle-dialog retained original body/key; project archived block; browser archive/reopen",
+      "round2CriterionOutcome": "incomplete",
+      "limits": "No whole-domain approval: PB02 open; independent14 executor incomplete/stopped before final proof; UI/browser evidence observed separately, not executed by this reviewer."
+    }
+  ]
+}

@@ -581,7 +581,7 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
     assert.equal(eveMember, undefined, 'Sibling project member Eve must NOT be returned');
   });
 
-  await t.test('PRJ-05.2: Project Manager, Member, and Viewer can all view the project directory', async () => {
+  await t.test('PRJ-05.2: Project Manager sees full directory; Member and Viewer are forbidden without email data', async () => {
     // Bob (PM)
     const bobRes = await app.request(`/api/v1/projects/${projectAlphaId}/members`, {
       headers: { Cookie: bobCookie },
@@ -594,17 +594,19 @@ test('PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory S
     const charlieRes = await app.request(`/api/v1/projects/${projectAlphaId}/members`, {
       headers: { Cookie: charlieCookie },
     });
-    assert.equal(charlieRes.status, 200);
+    assert.equal(charlieRes.status, 403);
     const charlieBody = await charlieRes.json();
-    assert.equal(charlieBody.data.length, 4);
+    assert.equal(charlieBody.data, undefined);
+    assert.equal(JSON.stringify(charlieBody).includes('@flowboard.example'), false);
 
     // Diana (Viewer)
     const dianaRes = await app.request(`/api/v1/projects/${projectAlphaId}/members`, {
       headers: { Cookie: dianaCookie },
     });
-    assert.equal(dianaRes.status, 200);
+    assert.equal(dianaRes.status, 403);
     const dianaBody = await dianaRes.json();
-    assert.equal(dianaBody.data.length, 4);
+    assert.equal(dianaBody.data, undefined);
+    assert.equal(JSON.stringify(dianaBody).includes('@flowboard.example'), false);
   });
 
   await t.test('PRJ-05.3: Sibling project member & outsider get 404 NOT_FOUND on members directory', async () => {

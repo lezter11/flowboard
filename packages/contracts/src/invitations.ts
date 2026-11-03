@@ -53,6 +53,19 @@ export type AcceptInvitationInput = z.infer<typeof acceptInvitationInputSchema>;
 export const invitationStatusSchema = z.enum(['pending', 'accepted', 'revoked', 'expired']);
 export type InvitationStatus = z.infer<typeof invitationStatusSchema>;
 
+export const invitationDeliverySchema = z.object({
+  status: z.enum(['pending', 'retrying', 'delivered', 'failed', 'unknown']),
+  canRetry: z.boolean(),
+});
+export type InvitationDelivery = z.infer<typeof invitationDeliverySchema>;
+
+export const invitationListQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().min(1).max(4096).optional(),
+  status: invitationStatusSchema.optional(),
+});
+export type InvitationListQuery = z.infer<typeof invitationListQuerySchema>;
+
 export const invitationSchema = z.object({
   id: z.string().min(1),
   projectId: z.string().min(1),
@@ -64,6 +77,8 @@ export const invitationSchema = z.object({
   createdAt: utcIsoTimestampSchema,
   updatedAt: utcIsoTimestampSchema,
   token: z.string().optional(),
+  // List-only safe delivery summary; create/resend payloads remain compatible.
+  delivery: invitationDeliverySchema.optional(),
 });
 export type Invitation = z.infer<typeof invitationSchema>;
 

@@ -1,0 +1,159 @@
+✖ identity repair: reactivation at active-seat cap is refused without member/activity/receipt writes (357.7945ms)
+✖ identity repair: reactivation respects pending invitation seat reservations and expired rows release them (192.239292ms)
+✖ identity repair: archived role changes, reinstatement and role-change-with-removal are refused atomically (198.457916ms)
+✖ identity repair: archived pure PATCH/DELETE removal and their replay remain allowed; leave stays possible (220.79ms)
+✔ identity repair: archived replay of an earlier role change fails without new side effects (189.343792ms)
+✖ identity repair: PATCH removal revokes pending invitations and board grants like DELETE and replays once (178.746625ms)
+✔ identity repair: role matrix and replay protect self, peer Manager, Owner, and revoked actor (225.921667ms)
+✖ identity repair: two reinstatements and an invitation compete for one seat on separate connections (2709.257625ms)
+✔ identity repair: a committed actor revocation wins against a mounted role write waiting on its grant (202.253209ms)
+✔ identity repair: failed activity insertion rolls back membership and receipt together (172.480125ms)
+✖ identity repair: exhausted transient invitation delivery strips terminal token, recipient and mail fields (165.566333ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 4
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5055.305042
+
+✖ failing tests:
+
+test at apps/api/test/identity-repair.test.ts:83:1
+✖ identity repair: reactivation at active-seat cap is refused without member/activity/receipt writes (357.7945ms)
+  AssertionError [ERR_ASSERTION]: {"data":{"id":"pm_removedA","projectId":"project_identity","userId":"usr_cb37eace2b3b89ee","role":"member","status":"active","version":2,"createdAt":"2026-11-03T04:56:29.703Z","updatedAt":"2026-11-03T04:56:29.786Z"},"replayed":false}
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:87:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/identity-repair.test.ts:92:1
+✖ identity repair: reactivation respects pending invitation seat reservations and expired rows release them (192.239292ms)
+  AssertionError [ERR_ASSERTION]: {"data":{"id":"pm_removedA","projectId":"project_identity","userId":"usr_57283b251119f547","role":"member","status":"active","version":2,"createdAt":"2026-11-03T04:56:29.998Z","updatedAt":"2026-11-03T04:56:30.004Z"},"replayed":false}
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:97:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/identity-repair.test.ts:103:1
+✖ identity repair: archived role changes, reinstatement and role-change-with-removal are refused atomically (198.457916ms)
+  AssertionError [ERR_ASSERTION]: {"data":{"id":"pm_member","projectId":"project_identity","userId":"usr_23d0df2f9bfcb6d8","role":"viewer","status":"active","version":2,"createdAt":"2026-11-03T04:56:30.186Z","updatedAt":"2026-11-03T04:56:30.193Z"},"replayed":false}
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:113:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/identity-repair.test.ts:119:1
+✖ identity repair: archived pure PATCH/DELETE removal and their replay remain allowed; leave stays possible (220.79ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"READ_ONLY_CONTEXT","message":"Cannot write in an archived project.","requestId":"d4c24bf0-8167-4291-b987-6f46b743e1b2","details":{"reason":"project_archived","contextId":"project_identity"}}}
+  
+  409 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:127:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 409,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/identity-repair.test.ts:153:1
+✖ identity repair: PATCH removal revokes pending invitations and board grants like DELETE and replays once (178.746625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'pending'
+  - 'revoked'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:162:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'pending',
+    expected: 'revoked',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/identity-repair.test.ts:207:1
+✖ identity repair: two reinstatements and an invitation compete for one seat on separate connections (2709.257625ms)
+  AssertionError [ERR_ASSERTION]: Expected 3 requests blocked on held PostgreSQL locks
+      at waitForBlocked (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:204:10)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:216:9)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at apps/api/test/identity-repair.test.ts:256:1
+✖ identity repair: exhausted transient invitation delivery strips terminal token, recipient and mail fields (165.566333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + {
+  +   body: 'Private mail body',
+  +   email: 'private@flowboard.example',
+  +   expiresAt: '2099-01-01T00:00:00.000Z',
+  +   invitationId: 'inv_outbox',
+  +   inviterName: 'Private inviter',
+  +   projectId: 'project_identity',
+  +   projectName: 'Private project name',
+  +   role: 'member',
+  +   token: 'synthetic-raw-invite-token',
+  +   workspaceId: 'ws_identity'
+  + }
+  - {}
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:272:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { body: 'Private mail body', role: 'member', email: 'private@flowboard.example', token: 'synthetic-raw-invite-token', expiresAt: '2099-01-01T00:00:00.000Z', projectId: 'project_identity', inviterName: 'Private inviter', projectName: 'Private project name', workspaceId: 'ws_identity', invitationId: 'inv_outbox' },
+    expected: {},
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

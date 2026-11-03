@@ -1,0 +1,230 @@
+▶ cursor integrity: same-millisecond microseconds and exact ties walk once in both directions
+  ✖ comments (40.803834ms)
+  ✖ trash (7.321375ms)
+  ✔ cardActivity (15.452125ms)
+  ✔ projectActivity (12.182583ms)
+  ✔ workspaceActivity (7.805708ms)
+  ✔ notifications (8.913333ms)
+✖ cursor integrity: same-millisecond microseconds and exact ties walk once in both directions (331.869333ms)
+▶ cursor integrity: forged impossible dates never reach PostgreSQL as500
+  ✖ comments (15.250625ms)
+  ✖ trash (6.077333ms)
+  ✖ cardActivity (6.494917ms)
+  ✖ projectActivity (4.925875ms)
+  ✖ workspaceActivity (3.722458ms)
+  ✖ notifications (4.375416ms)
+✖ cursor integrity: forged impossible dates never reach PostgreSQL as500 (216.679834ms)
+▶ cursor integrity: actor, resource and notification filter scope are bound
+  ✖ /cards/active/comments (12.414125ms)
+  ✖ /projects/prj1/trash (7.282042ms)
+  ✔ /projects/prj1/activity (8.247416ms)
+  ✔ /notifications (5.852542ms)
+✖ cursor integrity: actor, resource and notification filter scope are bound (227.770167ms)
+✖ cursor integrity: lexical projects walk ties and reject malformed/cross-scope cursors (200.653208ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 6
+ℹ fail 14
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1201.683833
+
+✖ failing tests:
+
+test at apps/api/test/cursor-integrity-repair.test.ts:35:80
+✖ comments (40.803834ms)
+  AssertionError [ERR_ASSERTION]: cursor must terminate without repeating rows
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:36:317)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:35:72)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:35:80
+✖ trash (7.321375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'trash_d',
+  -   'trash_c',
+  -   'trash_b',
+  -   'trash_a'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:37:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:35:72)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'trash_d' ],
+    expected: [ 'trash_d', 'trash_c', 'trash_b', 'trash_a' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:41:67
+✖ comments (15.250625ms)
+  AssertionError [ERR_ASSERTION]: comments/2026-02-30T00:00:00.123100Z: 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"a07fb056-bdea-4a36-b89e-de8ed72511a8"}}
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:44:295)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:41:59)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:41:67
+✖ trash (6.077333ms)
+  AssertionError [ERR_ASSERTION]: trash/2026-02-30T00:00:00.123100Z: 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"3da67926-320a-4e35-8e56-b17f0c3001c0"}}
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:44:295)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:41:59)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:41:67
+✖ cardActivity (6.494917ms)
+  AssertionError [ERR_ASSERTION]: cardActivity/2026-02-30T00:00:00.123100Z: 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"55aaa997-e500-42df-a730-36c5419bde4b"}}
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:44:295)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:41:59)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:41:67
+✖ projectActivity (4.925875ms)
+  AssertionError [ERR_ASSERTION]: projectActivity/2026-02-30T00:00:00.123100Z: 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"3892b308-2217-44c8-80cc-eb2f051c127e"}}
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:44:295)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:41:59)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:41:67
+✖ workspaceActivity (3.722458ms)
+  AssertionError [ERR_ASSERTION]: workspaceActivity/2026-02-30T00:00:00.123100Z: 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"47700d88-2828-4028-ac0d-8a1d391accf2"}}
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:44:295)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:41:59)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:41:67
+✖ notifications (4.375416ms)
+  AssertionError [ERR_ASSERTION]: notifications/2026-02-30T00:00:00.123100Z: 500 {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"00377f08-cd92-405e-80b3-f6db30b42bc9"}}
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:44:295)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:41:59)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:49:147
+✖ /cards/active/comments (12.414125ms)
+  AssertionError [ERR_ASSERTION]: {"data":[{"id":"c_a","projectId":"prj1","cardId":"active","authorId":"usr_b523e653aed9e067","body":"c_a","mentions":[],"version":1,"deletedAt":null,"createdAt":"2026-11-03T05:00:00.123Z","updatedAt":"2026-11-03T05:00:00.123Z","author":{"id":"usr_b523e653aed9e067","displayName":"Cursor owner","avatarUrl":null,"activeInProject":true,"scopedRole":"owner","assignable":true,"mentionable":true}}],"nextCursor":"eyJ2IjoxLCJjYXJkSWQiOiJhY3RpdmUiLCJjcmVhdGVkQXQiOiIyMDI2LTExLTAzVDA1OjAwOjAwLjEyM1oiLCJpZCI6ImNfYSJ9"}
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:50:193)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:49:139)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:49:147
+✖ /projects/prj1/trash (7.282042ms)
+  AssertionError [ERR_ASSERTION]: {"data":[],"nextCursor":null,"serverNow":"2026-11-03T06:26:04.956Z"}
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:50:193)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:49:139)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:9:62
+✖ cursor integrity: lexical projects walk ties and reject malformed/cross-scope cursors (200.653208ms)
+  AssertionError [ERR_ASSERTION]: {"data":[{"id":"prj1","workspaceId":"ws","name":"A","description":null,"defaultBoardId":null,"isArchived":false,"version":1,"createdAt":"2026-11-03T06:26:05.155Z","updatedAt":"2026-11-03T06:26:05.155Z","role":"owner"}],"nextCursor":"eyJuYW1lIjoiQSIsImlkIjoicHJqMSJ9"}
+  
+  200 !== 400
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:57:242)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 400,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

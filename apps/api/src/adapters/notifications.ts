@@ -1,3 +1,4 @@
+import { isCursorTimestamp, isCursorText } from '../services/cursor-timestamp.ts';
 import type pg from 'pg';
 import type { Notification, NotificationType } from '@flowboard/contracts';
 import { getPool } from './postgres.ts';
@@ -6,6 +7,7 @@ import { HttpError } from '../http/errors.ts';
 import type { Mailer } from '../services/mailer.ts';
 import { deliverInvitationRow } from './invitation-delivery.ts';
 import { createHash } from 'node:crypto';
+import { sanitizeCommentOutbox } from '../services/comment-retention.ts';
 import { lockBoardAccess } from './board-grants-foundation.ts';
 
 export interface NotificationCursor {
@@ -26,6 +28,7 @@ export function encodeNotificationCursor(cursor: NotificationCursor): string {
 
 export function decodeNotificationCursor(value: string, expectedUserId: string, scopeDigest: string, unreadOnly: boolean): NotificationCursor {
   try {
+    if(value.length>4096) throw new Error('oversized cursor');
     const base64 =
       value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (value.length % 4)) % 4);
     const parsed = JSON.parse(atob(base64)) as Partial<NotificationCursor>;
@@ -34,10 +37,8 @@ export function decodeNotificationCursor(value: string, expectedUserId: string, 
       parsed.userId !== expectedUserId ||
       parsed.scopeDigest !== scopeDigest ||
       parsed.unreadOnly !== unreadOnly ||
-      typeof parsed.createdAt !== 'string' ||
-      Number.isNaN(Date.parse(parsed.createdAt)) ||
-      typeof parsed.id !== 'string' ||
-      parsed.id.length === 0
+      !isCursorTimestamp(parsed.createdAt) ||
+      !isCursorText(parsed.id)
     ) {
       throw new Error('invalid notification cursor');
     }
@@ -284,15 +285,19 @@ export async function processOutboxLease(
     const rows = leaseRes.rows;
     for (const row of rows) {
       processed++;
+      // The lease row locks precede this savepoint. A job-specific SQL error
+      // must undo partial delivery and recover the transaction before retry
+      // bookkeeping; otherwise PostgreSQL rejects that bookkeeping with25P02.
+      await client.query('SAVEPOINT outbox_job');
       try {
         if (row.event_type === 'comment.created') {
-          const payload = typeof row.payload === 'string' ? JSON.parse(row.payload) : row.payload;
+          const payload = await sanitizeCommentOutbox(client, row.id);
           if (!payload || !payload.cardId || payload.forceFailure) {
             throw new Error('Invalid comment.created outbox payload: cardId is required');
           }
           const { commentId, cardId, authorId, mentions } = payload;
 
-          if (Array.isArray(mentions) && cardId) {
+          if (Array.isArray(mentions) && typeof cardId === 'string' && typeof commentId === 'string') {
             // Find card & board context
             const cardRes = await client.query<{ title: string; board_id: string }>(
               `SELECT c.title, c.board_id
@@ -344,17 +349,18 @@ export async function processOutboxLease(
                 // Idempotent delivery check
                 const existingRes = await client.query<{ id: string }>(
                   `SELECT id FROM notifications
-                   WHERE project_id = $1 AND user_id = $2 AND type = 'mention' AND link = $3`,
-                  [row.project_id, targetUserId, notifLink],
+                   WHERE project_id = $1 AND user_id = $2 AND type = 'mention' AND comment_id = $3`,
+                  [row.project_id, targetUserId, commentId],
                 );
 
                 if (existingRes.rows.length === 0) {
                   const notifId = 'ntf_' + crypto.randomUUID();
                   await client.query(
                     `INSERT INTO notifications (
-                       id, workspace_id, project_id, user_id, type, title, body, link, read, created_at, card_id
-                     ) VALUES ($1, $2, $3, $4, 'mention', $5, $6, $7, FALSE, NOW(), $8)`,
-                    [notifId, row.workspace_id, row.project_id, targetUserId, notifTitle, notifBody, notifLink, cardId],
+                       id, workspace_id, project_id, user_id, type, title, body, link, read, created_at, card_id, comment_id
+                     ) VALUES ($1, $2, $3, $4, 'mention', $5, $6, $7, FALSE, NOW(), $8, $9)
+                     ON CONFLICT (comment_id,user_id) WHERE type='mention' AND comment_id IS NOT NULL DO NOTHING`,
+                    [notifId, row.workspace_id, row.project_id, targetUserId, notifTitle, notifBody, notifLink, cardId, commentId],
                   );
                 }
               }
@@ -379,11 +385,24 @@ export async function processOutboxLease(
         );
         delivered++;
       } catch (err) {
+        await client.query('ROLLBACK TO SAVEPOINT outbox_job');
+        // Missing schema/permissions and serialization faults require repairing
+        // or restarting the whole transaction, never quarantining accepted jobs.
+        const sqlState = err && typeof err === 'object' && 'code' in err ? String(err.code) : '';
+        if (/^(42|40)/.test(sqlState)) throw err;
+        // ROLLBACK TO also undoes the first sanitization. Persist the allowlist
+        // again so retry/quarantine cannot resurrect legacy private copies.
+        if(row.event_type==='comment.created')await sanitizeCommentOutbox(client,row.id);
         const nextRetry = row.retry_count + 1;
         if (nextRetry >= maxRetries) {
           // Dead-letter quarantine
           await client.query(
-            `UPDATE outbox SET status = 'failed', settled_at = NOW(), retry_count = $1 WHERE id = $2`,
+            `UPDATE outbox SET status = 'failed', settled_at = NOW(), retry_count = $1,
+                 payload = CASE WHEN event_type = 'invitation.created' THEN
+                   jsonb_strip_nulls(jsonb_build_object('invitationId', (SELECT i.id FROM project_invitations i
+                     WHERE i.id=outbox.payload->>'invitationId' AND i.project_id=outbox.project_id AND i.workspace_id=outbox.workspace_id)))
+                   ELSE payload END
+             WHERE id = $2`,
             [nextRetry, row.id],
           );
           failed++;
@@ -400,6 +419,8 @@ export async function processOutboxLease(
           );
           retried++;
         }
+      } finally {
+        await client.query('RELEASE SAVEPOINT outbox_job');
       }
     }
 

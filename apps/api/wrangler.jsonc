@@ -56,7 +56,8 @@
       "triggers": { "crons": ["*/15 * * * *"] },
       // Private image bucket for UAT only (no public access, no r2.dev, no custom domain).
       // Production has no IMAGES binding yet, so image routes return 503 CONFIG_ERROR there.
-      "r2_buckets": [{ "binding": "IMAGES", "bucket_name": "flowboard-images-uat" }]
+      "r2_buckets": [{ "binding": "IMAGES", "bucket_name": "flowboard-images-uat" }],
+      "images": { "binding": "IMAGE_VERIFIER" }
     }
   }
 }

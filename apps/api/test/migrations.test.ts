@@ -234,13 +234,12 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
     }
   });
 
-  await t.test('4. Negative foreign key test: card with invalid column_id throws error code 23503', async () => {
+  await t.test('4. Negative foreign key test: card with invalid column_id has live-column guard plus independent foreign key23503', async () => {
     const client = await pool.connect();
     const now = new Date().toISOString();
 
     try {
-      await assert.rejects(
-        async () => {
+      const insert = async () => {
           await client.query(
             `INSERT INTO cards (
                id, workspace_id, project_id, board_id, column_id, title, description,
@@ -253,15 +252,31 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
               null, now, now
             ]
           );
-        },
+      };
+      await assert.rejects(insert, (err: unknown) => {
+        const failure = err as { code?: string; constraint?: string };
+        assert.equal(failure.code, '23514');
+        assert.equal(failure.constraint, 'card_requires_live_column');
+        return true;
+      });
+      // The BEFORE trigger now rejects this first. Prove that the original FK
+      // independently remains effective; rollback restores this named trigger.
+      await client.query('BEGIN');
+      await client.query('ALTER TABLE cards DISABLE TRIGGER cards_live_column_guard');
+      await assert.rejects(insert,
         (err: unknown) => {
-          const pgError = err as { code?: string };
+          const pgError = err as { code?: string; constraint?: string };
           assert.equal(pgError.code, '23503', 'Expected foreign key violation code 23503');
+          assert.ok(['cards_column_id_fkey','fk_cards_column_board'].includes(pgError.constraint ?? ''), 'the violated FK must reference the requested column');
           return true;
         }
       );
     } finally {
-      client.release();
+      try {
+        await client.query('ROLLBACK');
+        const trigger = await client.query("SELECT tgenabled FROM pg_trigger WHERE tgrelid='cards'::regclass AND tgname='cards_live_column_guard'");
+        assert.equal(trigger.rows[0]?.tgenabled, 'O', 'rollback restores the live-column guard');
+      } finally { client.release(); }
     }
   });
 
@@ -484,7 +499,7 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
     }
   });
 
-  await t.test('13. Relational integrity: inserting card with mismatched column_id and board_id throws error code 23503', async () => {
+  await t.test('13. Relational integrity: inserting card with mismatched column_id and board_id has live-column guard plus independent foreign key23503', async () => {
     const client = await pool.connect();
     const now = new Date().toISOString();
     try {
@@ -503,8 +518,7 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
       );
 
       // Attempt to insert card on brd_sprint1 referencing col_second_todo (from brd_second)
-      await assert.rejects(
-        async () => {
+      const insert = async () => {
           await client.query(
             `INSERT INTO cards (
                id, workspace_id, project_id, board_id, column_id, title, description,
@@ -517,7 +531,18 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
               null, now, now
             ]
           );
-        },
+      };
+      await assert.rejects(insert, (err: unknown) => {
+        const failure = err as { code?: string; constraint?: string };
+        assert.equal(failure.code, '23514');
+        assert.equal(failure.constraint, 'card_requires_live_column');
+        return true;
+      });
+      // The BEFORE trigger now rejects this first. Prove that the original FK
+      // independently remains effective; rollback restores this named trigger.
+      await client.query('BEGIN');
+      await client.query('ALTER TABLE cards DISABLE TRIGGER cards_live_column_guard');
+      await assert.rejects(insert,
         (err: unknown) => {
           const pgError = err as { code?: string; constraint?: string };
           assert.equal(pgError.code, '23503', 'Expected foreign key violation code 23503');
@@ -526,7 +551,11 @@ test('PostgreSQL Migrations & Relational Integrity Suite', async (t) => {
         }
       );
     } finally {
-      client.release();
+      try {
+        await client.query('ROLLBACK');
+        const trigger = await client.query("SELECT tgenabled FROM pg_trigger WHERE tgrelid='cards'::regclass AND tgname='cards_live_column_guard'");
+        assert.equal(trigger.rows[0]?.tgenabled, 'O', 'rollback restores the live-column guard');
+      } finally { client.release(); }
     }
   });
 

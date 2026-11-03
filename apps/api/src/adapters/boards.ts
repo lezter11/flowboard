@@ -46,11 +46,13 @@ export function getWorkspaceToday(timezone = 'UTC'): string {
     });
     return formatter.format(new Date());
   } catch {
-    return new Date().toISOString().slice(0, 10);
+    throw HttpError.serviceUnavailable('Workspace calendar configuration is unavailable.', 'CONFIG_ERROR');
   }
 }
 
 export interface CardCursorPayload {
+  aId?: string;
+  aRev?: string;
   bId: string;
   fH: string;
   /** Snapshot revision invalidates pages when displayed card data or counts change. */
@@ -82,6 +84,8 @@ export function computeCardFilterHash(filters: {
 }
 
 export function encodeCardCursor(card: {
+  actorId?: string;
+  accessRevision?: string;
   boardId: string;
   filterHash: string;
   snapshotVersion: number;
@@ -91,6 +95,8 @@ export function encodeCardCursor(card: {
 }): string {
   return Buffer.from(
     JSON.stringify({
+      aId: card.actorId,
+      aRev: card.accessRevision,
       bId: card.boardId,
       fH: card.filterHash,
       sV: card.snapshotVersion,
@@ -102,7 +108,7 @@ export function encodeCardCursor(card: {
 }
 
 export function decodeCardCursor(cursor?: string): CardCursorPayload | null {
-  if (!cursor) return null;
+  if (!cursor || cursor.length > 4096) return null;
   try {
     const raw = Buffer.from(cursor, 'base64url').toString('utf8');
     const parsed = JSON.parse(raw);
@@ -111,10 +117,10 @@ export function decodeCardCursor(cursor?: string): CardCursorPayload | null {
       typeof parsed === 'object' &&
       typeof parsed.bId === 'string' &&
       typeof parsed.fH === 'string' &&
-      typeof parsed.sV === 'number' &&
-      typeof parsed.oV === 'number' &&
-      typeof parsed.position === 'number' &&
-      typeof parsed.id === 'string'
+      Number.isSafeInteger(parsed.sV) && parsed.sV >= 0 &&
+      Number.isSafeInteger(parsed.oV) && parsed.oV >= 0 &&
+      Number.isSafeInteger(parsed.position) && parsed.position >= 0 &&
+      typeof parsed.id === 'string' && parsed.id.length > 0
     ) {
       return parsed as CardCursorPayload;
     }
@@ -240,6 +246,7 @@ export async function listProjectBoards(
   projectId: string,
   actorId: string,
   authorizedBoardIds?: string[] | null,
+  includeArchived = false,
 ): Promise<{ data: Board[]; nextCursor: string | null }> {
   const pool = clientOrPool ?? getPool();
 
@@ -248,6 +255,8 @@ export async function listProjectBoards(
   if (!role) {
     throw HttpError.notFound('Project not found.', 'NOT_FOUND');
   }
+
+  if (includeArchived && role !== 'owner' && role !== 'manager') throw HttpError.forbidden('Only the owner or a project manager may discover archived boards.');
 
   let res: pg.QueryResult<{
     id: string;
@@ -267,18 +276,18 @@ export async function listProjectBoards(
       `SELECT b.id, b.workspace_id, b.project_id, b.name, b.description, b.structure_version, b.snapshot_version, b.archived, b.created_at, b.updated_at
        FROM boards b
        JOIN board_grants bg ON bg.board_id = b.id AND bg.project_id = b.project_id AND bg.user_id = $2
-       WHERE b.project_id = $1 AND b.archived = FALSE
+       WHERE b.project_id = $1 AND ($4::boolean OR b.archived = FALSE)
          AND ($3::text[] IS NULL OR b.id = ANY($3::text[]))
        ORDER BY b.created_at ASC, b.id ASC`,
-      [projectId, actorId, authorizedBoardIds ?? null],
+      [projectId, actorId, authorizedBoardIds ?? null, includeArchived],
     );
   } else {
     res = await pool.query(
       `SELECT id, workspace_id, project_id, name, description, structure_version, snapshot_version, archived, created_at, updated_at
        FROM boards
-       WHERE project_id = $1 AND archived = FALSE
+       WHERE project_id = $1 AND ($2::boolean OR archived = FALSE)
        ORDER BY created_at ASC, id ASC`,
-      [projectId],
+      [projectId, includeArchived],
     );
   }
 
@@ -466,7 +475,7 @@ export async function addColumn(
 
   // 4. Bound check: max 12 columns
   const countRes = await client.query<{ count: string }>(
-    `SELECT COUNT(*)::text AS count FROM columns WHERE board_id = $1`,
+    `SELECT COUNT(*)::text AS count FROM columns WHERE board_id = $1 AND deleted_at IS NULL`,
     [boardId],
   );
   if (parseInt(countRes.rows[0]?.count ?? '0', 10) >= 12) {
@@ -476,7 +485,7 @@ export async function addColumn(
   // 5. Duplicate name check (case-insensitive, trimmed)
   const trimmedName = input.name.trim();
   const dupRes = await client.query<{ id: string }>(
-    `SELECT id FROM columns WHERE board_id = $1 AND LOWER(TRIM(name)) = LOWER($2)`,
+    `SELECT id FROM columns WHERE board_id = $1 AND deleted_at IS NULL AND LOWER(TRIM(name)) = LOWER($2)`,
     [boardId, trimmedName],
   );
   if (dupRes.rows.length > 0) {
@@ -485,7 +494,7 @@ export async function addColumn(
 
   // 6. Next position = max(position) + 1
   const posRes = await client.query<{ next_pos: number }>(
-    `SELECT COALESCE(MAX(position), -1) + 1 AS next_pos FROM columns WHERE board_id = $1`,
+    `SELECT COALESCE(MAX(position), -1) + 1 AS next_pos FROM columns WHERE board_id = $1 AND deleted_at IS NULL`,
     [boardId],
   );
   const nextPos = posRes.rows[0]?.next_pos ?? 0;
@@ -603,7 +612,7 @@ export async function updateColumn(
   }>(
     `SELECT id, name, color, category, position
      FROM columns
-     WHERE id = $1 AND board_id = $2
+     WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL
      FOR UPDATE`,
     [columnId, boardId],
   );
@@ -620,7 +629,7 @@ export async function updateColumn(
     newName = input.name.trim();
     const dupRes = await client.query<{ id: string }>(
       `SELECT id FROM columns
-       WHERE board_id = $1 AND LOWER(TRIM(name)) = LOWER($2) AND id != $3`,
+       WHERE board_id = $1 AND deleted_at IS NULL AND LOWER(TRIM(name)) = LOWER($2) AND id != $3`,
       [boardId, newName, columnId],
     );
     if (dupRes.rows.length > 0) {
@@ -746,7 +755,7 @@ export async function reorderColumns(
 
   // 4. Exact column set validation
   const colsRes = await client.query<{ id: string }>(
-    `SELECT id FROM columns WHERE board_id = $1`,
+    `SELECT id FROM columns WHERE board_id = $1 AND deleted_at IS NULL`,
     [boardId],
   );
 
@@ -847,7 +856,7 @@ export async function deleteColumn(
 
   // 4. Lock column
   const colRes = await client.query<{ id: string; name: string }>(
-    `SELECT id, name FROM columns WHERE id = $1 AND board_id = $2 FOR UPDATE`,
+    `SELECT id, name FROM columns WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL FOR UPDATE`,
     [columnId, boardId],
   );
 
@@ -858,7 +867,7 @@ export async function deleteColumn(
 
   // 5. Final column check
   const totalColsRes = await client.query<{ count: string }>(
-    `SELECT COUNT(*)::text AS count FROM columns WHERE board_id = $1`,
+    `SELECT COUNT(*)::text AS count FROM columns WHERE board_id = $1 AND deleted_at IS NULL`,
     [boardId],
   );
   if (parseInt(totalColsRes.rows[0]?.count ?? '0', 10) <= 1) {
@@ -883,12 +892,14 @@ export async function deleteColumn(
     throw HttpError.conflict('Column contains restorable cards and cannot be deleted.', 'COLUMN_HAS_RESTORABLE_CARDS');
   }
 
-  // 8. Delete column
-  await client.query(`DELETE FROM columns WHERE id = $1 AND board_id = $2`, [columnId, boardId]);
+  // Retain column identity for expired/purged cards, imports and historical actions.
+  // Live reads exclude this row; a recreated name gets a distinct ID.
+  await client.query(`UPDATE columns SET deleted_at=NOW(),deleted_by=$3,updated_at=NOW()
+    WHERE id=$1 AND board_id=$2 AND deleted_at IS NULL`, [columnId,boardId,actorId]);
 
   // 9. Recompact remaining columns to position 0..N-1
   const remainingColsRes = await client.query<{ id: string }>(
-    `SELECT id FROM columns WHERE board_id = $1 ORDER BY position ASC, id ASC`,
+    `SELECT id FROM columns WHERE board_id = $1 AND deleted_at IS NULL ORDER BY position ASC, id ASC`,
     [boardId],
   );
   for (let i = 0; i < remainingColsRes.rows.length; i++) {
@@ -952,7 +963,7 @@ export async function getPlacement(
   }>(
     `SELECT b.id, b.project_id, b.workspace_id, b.structure_version
      FROM boards b
-     JOIN columns c ON c.board_id = b.id AND c.id = $2
+     JOIN columns c ON c.board_id = b.id AND c.id = $2 AND c.deleted_at IS NULL
      WHERE b.id = $1`,
     [boardId, columnId],
   );
@@ -995,44 +1006,28 @@ export async function getPlacement(
     throw HttpError.badRequest('Anchor card cannot be the moving card.', 'INVALID_ANCHOR_CARD');
   }
 
-  // 4. Query active cards in destination column excluding movingCardId
-  const cardsRes = await pool.query<{ id: string }>(
-    `SELECT id FROM cards
-     WHERE column_id = $1 AND state = 'active' AND id != $2
-     ORDER BY cards.position ASC, cards.id ASC`,
-    [columnId, movingCardId],
-  );
-
-  const cards = cardsRes.rows;
+  // Point/keyset neighbor reads stay bounded even on a large or filtered destination.
   let previousCardId: string | null = null;
   let nextCardId: string | null = null;
-
-  if (at === 'first') {
-    previousCardId = null;
-    nextCardId = cards[0]?.id ?? null;
-  } else if (at === 'last') {
-    previousCardId = cards.length > 0 ? (cards[cards.length - 1]?.id ?? null) : null;
-    nextCardId = null;
-  } else if (at === 'before') {
-    if (!anchorCardId) {
-      throw HttpError.badRequest('anchorCardId is required for placement before', 'VALIDATION_ERROR');
-    }
-    const idx = cards.findIndex((c) => c.id === anchorCardId);
-    if (idx === -1) {
-      throw HttpError.badRequest('Anchor card not found in destination column.', 'ANCHOR_CARD_NOT_FOUND');
-    }
-    previousCardId = idx > 0 ? (cards[idx - 1]?.id ?? null) : null;
-    nextCardId = anchorCardId;
-  } else if (at === 'after') {
-    if (!anchorCardId) {
-      throw HttpError.badRequest('anchorCardId is required for placement after', 'VALIDATION_ERROR');
-    }
-    const idx = cards.findIndex((c) => c.id === anchorCardId);
-    if (idx === -1) {
-      throw HttpError.badRequest('Anchor card not found in destination column.', 'ANCHOR_CARD_NOT_FOUND');
-    }
-    previousCardId = anchorCardId;
-    nextCardId = idx < cards.length - 1 ? (cards[idx + 1]?.id ?? null) : null;
+  if (at === 'first' || at === 'last') {
+    const order = at === 'first' ? 'ASC' : 'DESC';
+    const edge = await pool.query<{id:string}>(`SELECT id FROM cards
+      WHERE column_id=$1 AND state='active' AND id<>$2
+      ORDER BY position ${order},id ${order} LIMIT 1`,[columnId,movingCardId]);
+    if (at === 'first') nextCardId=edge.rows[0]?.id??null;
+    else previousCardId=edge.rows[0]?.id??null;
+  } else {
+    if (!anchorCardId) throw HttpError.badRequest('anchorCardId is required for relative placement','VALIDATION_ERROR');
+    const anchor=await pool.query<{id:string;position:string}>(`SELECT id,position::text FROM cards
+      WHERE id=$1 AND column_id=$2 AND state='active' AND id<>$3 LIMIT 1`,[anchorCardId,columnId,movingCardId]);
+    if (!anchor.rows[0]) throw HttpError.badRequest('Anchor card not found in destination column.','ANCHOR_CARD_NOT_FOUND');
+    const comparison=at==='before'?'<':'>';
+    const order=at==='before'?'DESC':'ASC';
+    const neighbor=await pool.query<{id:string}>(`SELECT id FROM cards
+      WHERE column_id=$1 AND state='active' AND id<>$2 AND (position,id) ${comparison} ($3::bigint,$4::text)
+      ORDER BY position ${order},id ${order} LIMIT 1`,[columnId,movingCardId,anchor.rows[0].position,anchorCardId]);
+    if(at==='before'){previousCardId=neighbor.rows[0]?.id??null;nextCardId=anchorCardId;}
+    else{previousCardId=anchorCardId;nextCardId=neighbor.rows[0]?.id??null;}
   }
 
   return {
@@ -1132,12 +1127,13 @@ export async function getBoardSnapshot(
       archived: boolean;
       created_at: Date;
       updated_at: Date;
+      access_revision: string;
       timezone: string;
       description: string | null;
     }>(
       `SELECT b.id, b.workspace_id, b.project_id, b.name, b.description,
               b.structure_version, b.snapshot_version, b.archived,
-              b.created_at, b.updated_at, w.timezone
+              b.created_at, b.updated_at, b.access_revision::text, w.timezone
        FROM boards b
        JOIN workspaces w ON w.id = b.workspace_id
        WHERE b.id = $1`,
@@ -1165,7 +1161,7 @@ export async function getBoardSnapshot(
     }>(
       `SELECT id, board_id, name, category, color, tone, position
        FROM columns
-       WHERE board_id = $1
+       WHERE board_id = $1 AND deleted_at IS NULL
        ORDER BY position ASC`,
       [boardId],
     );
@@ -1177,7 +1173,7 @@ export async function getBoardSnapshot(
       `SELECT col.id AS column_id, COUNT(c.id)::text AS count
        FROM columns col
        LEFT JOIN cards c ON c.column_id = col.id AND c.state = 'active'
-       WHERE col.board_id = $1
+       WHERE col.board_id = $1 AND col.deleted_at IS NULL
        GROUP BY col.id`,
       [boardId],
     );
@@ -1203,7 +1199,7 @@ export async function getBoardSnapshot(
        FROM columns col
        LEFT JOIN cards c ON c.column_id = col.id AND c.state = 'active'
        ${filterClauses.sql}
-       WHERE col.board_id = $1
+       WHERE col.board_id = $1 AND col.deleted_at IS NULL
        GROUP BY col.id`,
       [boardId, ...filterClauses.params],
     );
@@ -1218,7 +1214,7 @@ export async function getBoardSnapshot(
          COUNT(*) FILTER (WHERE c.due_date < $2::date)::text AS overdue,
          COUNT(*) FILTER (WHERE c.due_date >= $2::date AND c.due_date <= ($2::date + 7))::text AS due_soon
        FROM cards c
-       JOIN columns col ON col.id = c.column_id
+       JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
        WHERE c.board_id = $1 AND c.state = 'active' AND c.due_date IS NOT NULL AND col.category <> 'done'`,
       [boardId, asOfDate],
     );
@@ -1266,7 +1262,7 @@ export async function getBoardSnapshot(
            COALESCE(assignees.user_ids, ARRAY[]::text[]) AS assignee_ids,
            ROW_NUMBER() OVER (PARTITION BY c.column_id ORDER BY c.position ASC, c.id ASC) AS row_num
          FROM cards c
-         JOIN columns col ON col.id = c.column_id
+         JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
          JOIN projects p ON p.id = c.project_id
          LEFT JOIN (
            SELECT card_id, COUNT(*)::int AS comment_count
@@ -1409,6 +1405,7 @@ export async function getBoardSnapshot(
         hasMore && visibleCards.length > 0
           ? encodeCardCursor({
               boardId,
+              actorId, accessRevision: bRow.access_revision,
               filterHash: colFilterHash,
               snapshotVersion: bRow.snapshot_version,
               structureVersion: bRow.structure_version,
@@ -1491,9 +1488,10 @@ export async function listBoardCards(
     workspace_id: string;
     structure_version: number;
     snapshot_version: number;
+    access_revision: string;
     timezone: string;
   }>(
-    `SELECT b.id, b.project_id, b.workspace_id, b.structure_version, b.snapshot_version, w.timezone
+    `SELECT b.id, b.project_id, b.workspace_id, b.structure_version, b.snapshot_version, b.access_revision::text, w.timezone
      FROM boards b
      JOIN workspaces w ON w.id = b.workspace_id
      WHERE b.id = $1`,
@@ -1507,6 +1505,8 @@ export async function listBoardCards(
   const bRow = bRes.rows[0];
 
   await requireBoardRead(pool, boardId, bRow.project_id, actorId);
+
+  if (query.columnId && !(await pool.query('SELECT id FROM columns WHERE id=$1 AND board_id=$2 AND deleted_at IS NULL',[query.columnId,boardId])).rows[0]) throw HttpError.notFound('Column not found.','NOT_FOUND');
 
   const asOfDate = getWorkspaceToday(bRow.timezone);
   const limit = Math.max(1, Math.min(query.limit ?? 50, 100));
@@ -1540,6 +1540,8 @@ export async function listBoardCards(
     const cursorPayload = decodeCardCursor(query.cursor);
     if (
       !cursorPayload ||
+      cursorPayload.aId !== actorId ||
+      cursorPayload.aRev !== bRow.access_revision ||
       cursorPayload.bId !== boardId ||
       cursorPayload.fH !== currentFilterHash ||
       cursorPayload.sV !== bRow.snapshot_version ||
@@ -1563,6 +1565,8 @@ export async function listBoardCards(
       c.board_id,
       c.column_id,
       c.title,
+      p.key_prefix || '-' || c.card_number::text AS card_key,
+      LEFT(BTRIM(REGEXP_REPLACE(REGEXP_REPLACE(COALESCE(c.description, ''), '<[^>]*>|[#*_\`~>\\[\\]]', ' ', 'g'), '\\s+', ' ', 'g')), 160) AS description_excerpt,
       c.priority,
       TO_CHAR(c.due_date, 'YYYY-MM-DD') AS due_date,
       c.position,
@@ -1573,7 +1577,8 @@ export async function listBoardCards(
       COALESCE(img.image_count, 0)::int AS image_count,
       COALESCE(assignees.user_ids, ARRAY[]::text[]) AS assignee_ids
     FROM cards c
-    JOIN columns col ON col.id = c.column_id
+    JOIN projects p ON p.id=c.project_id
+    JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
     LEFT JOIN (
       SELECT card_id, COUNT(*)::int AS comment_count
       FROM comments
@@ -1602,6 +1607,8 @@ export async function listBoardCards(
     board_id: string;
     column_id: string;
     title: string;
+    card_key: string;
+    description_excerpt: string;
     priority: Priority;
     due_date: string | null;
     position: string;
@@ -1621,6 +1628,8 @@ export async function listBoardCards(
     boardId: c.board_id,
     columnId: c.column_id,
     title: c.title,
+    key: c.card_key,
+    descriptionExcerpt: c.description_excerpt,
     priority: c.priority,
     dueDate: c.due_date,
     assigneeIds: c.assignee_ids,
@@ -1636,6 +1645,7 @@ export async function listBoardCards(
     hasMore && pageRows.length > 0
       ? encodeCardCursor({
           boardId,
+          actorId, accessRevision:bRow.access_revision,
           filterHash: currentFilterHash,
           snapshotVersion: bRow.snapshot_version,
           structureVersion: bRow.structure_version,

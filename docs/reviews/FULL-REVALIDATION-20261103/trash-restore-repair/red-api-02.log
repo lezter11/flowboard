@@ -1,0 +1,71 @@
+✖ restore retains nearest surviving gap after normal moves exhaust rank spacing (553.336833ms)
+✔ restore placement control: both (324.541875ms)
+✔ restore placement control: previous-only (367.672167ms)
+✔ restore placement control: next-only (309.623417ms)
+✔ restore placement control: neither (435.849791ms)
+✔ restore placement control: head (324.869708ms)
+✔ restore placement control: tail (327.672875ms)
+✔ restore placement control: empty (329.528541ms)
+✖ restore preserves head insertion when normal moves exhaust the first rank (285.59825ms)
+✔ restore replay is exactly once and stale/forbidden requests leave order and events unchanged (277.707625ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 8
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3741.546083
+
+✖ failing tests:
+
+test at apps/api/test/trash-restore-placement.test.ts:18:1
+✖ restore retains nearest surviving gap after normal moves exhaust rank spacing (553.336833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    [
+      'card',
+  +   'crd_dc132d46-eb24-4e1a-9f1d-67ba9907cc7c',
+  +   'crd_9015569d-8f73-4e1e-850d-e09b6a178c88',
+  +   'crd_64b13caa-f107-4b54-878e-3864669180c2',
+      'crd_9f141ec3-0039-4d85-a691-b0f582ab7ab4',
+      'crd_620f769f-b0d7-4865-8c32-30d56d43e207',
+      'crd_69d0df95-0bba-42d1-a70a-8169601f81a9',
+      'crd_b5e0d30b-61b4-47a9-b427-84819e29d804',
+      'crd_10835b55-5808-4fd5-8a0f-a93385c22308',
+  ...
+      'crd_3454fc27-4f0c-46c4-85ee-1ec7dd9ea08b',
+  -   'crd_dc132d46-eb24-4e1a-9f1d-67ba9907cc7c',
+  -   'crd_9015569d-8f73-4e1e-850d-e09b6a178c88',
+  -   'crd_64b13caa-f107-4b54-878e-3864669180c2'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/trash-restore-placement.test.ts:34:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'card', 'crd_dc132d46-eb24-4e1a-9f1d-67ba9907cc7c', 'crd_9015569d-8f73-4e1e-850d-e09b6a178c88', 'crd_64b13caa-f107-4b54-878e-3864669180c2', 'crd_9f141ec3-0039-4d85-a691-b0f582ab7ab4', 'crd_620f769f-b0d7-4865-8c32-30d56d43e207', 'crd_69d0df95-0bba-42d1-a70a-8169601f81a9', 'crd_b5e0d30b-61b4-47a9-b427-84819e29d804', 'crd_10835b55-5808-4fd5-8a0f-a93385c22308', 'crd_349885ff-30bc-4862-8bc5-8b392cb96583', 'crd_d996fba0-72b7-4c41-835d-d125b55597ea', 'crd_bf31e1f2-f944-4c5c-9891-cd87869a89d0', 'crd_3454fc27-4f0c-46c4-85ee-1ec7dd9ea08b' ],
+    expected: [ 'card', 'crd_9f141ec3-0039-4d85-a691-b0f582ab7ab4', 'crd_620f769f-b0d7-4865-8c32-30d56d43e207', 'crd_69d0df95-0bba-42d1-a70a-8169601f81a9', 'crd_b5e0d30b-61b4-47a9-b427-84819e29d804', 'crd_10835b55-5808-4fd5-8a0f-a93385c22308', 'crd_349885ff-30bc-4862-8bc5-8b392cb96583', 'crd_d996fba0-72b7-4c41-835d-d125b55597ea', 'crd_bf31e1f2-f944-4c5c-9891-cd87869a89d0', 'crd_3454fc27-4f0c-46c4-85ee-1ec7dd9ea08b', 'crd_dc132d46-eb24-4e1a-9f1d-67ba9907cc7c', 'crd_9015569d-8f73-4e1e-850d-e09b6a178c88', 'crd_64b13caa-f107-4b54-878e-3864669180c2' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/trash-restore-placement.test.ts:65:1
+✖ restore preserves head insertion when normal moves exhaust the first rank (285.59825ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_ERROR","message":"Validation failed: previousCardId: Invalid input: expected string, received undefined","requestId":"ad857c07-7617-4eec-8d7c-0a117becd026","details":{"issues":[{"path":"previousCardId","message":"Invalid input: expected string, received undefined","code":"invalid_type"}]}}}
+      at call (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/trash-restore-placement.test.ts:9:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/trash-restore-placement.test.ts:73:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

@@ -1,0 +1,48 @@
+✖ identity repair: mixed role/removal works while active but its replay cannot edit archived authority (280.237458ms)
+✖ identity repair: legacy unclassified removal receipt replays while active and refuses ambiguous archived replay (191.577125ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 670.603666
+
+✖ failing tests:
+
+test at apps/api/test/identity-repair.test.ts:280:1
+✖ identity repair: mixed role/removal works while active but its replay cannot edit archived authority (280.237458ms)
+  AssertionError [ERR_ASSERTION]: {"data":{"id":"pm_member","version":2,"role":"viewer","projectId":"project_identity","status":"removed"},"replayed":true}
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:292:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/identity-repair.test.ts:297:1
+✖ identity repair: legacy unclassified removal receipt replays while active and refuses ambiguous archived replay (191.577125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:306:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,33 @@
+✖ archived-board admin discovery is explicit and preserves the default list URL (8.520083ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 115.672917
+
+✖ failing tests:
+
+test at apps/web/test/board-api.test.ts:43:1
+✖ archived-board admin discovery is explicit and preserves the default list URL (8.520083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      '/api/v1/projects/project/boards',
+  +   '/api/v1/projects/project/boards'
+  -   '/api/v1/projects/project/boards?includeArchived=true'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/board-api.test.ts:49:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ '/api/v1/projects/project/boards', '/api/v1/projects/project/boards' ],
+    expected: [ '/api/v1/projects/project/boards', '/api/v1/projects/project/boards?includeArchived=true' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

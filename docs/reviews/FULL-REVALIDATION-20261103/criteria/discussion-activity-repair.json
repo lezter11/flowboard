@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "frozenBeforeSourceEdits": true,
+  "date": "2026-11-03",
+  "features": [
+    "COM-03",
+    "AUD-03",
+    "AUD-04"
+  ],
+  "scope": [
+    "packages/contracts/src/discussion.ts",
+    "apps/api/src/adapters/comments.ts",
+    "apps/api/src/http/routes/activity.ts",
+    "new targeted tests"
+  ],
+  "criteria": {
+    "mentions": [
+      "Spans use JavaScript UTF-16 code-unit indices into submitted body; body trim shifts valid spans by removed leading code units. Never silently retain a span crossing trimmed text.",
+      "Reject out of bounds, overlaps and surrogate-pair splits with controlled validation response before comment/audit/outbox/receipt mutation.",
+      "Selected token must equal @ plus eligible current PersonDisplay displayName (including optional duplicate-name suffix) case-insensitively; arbitrary body spans or suffix attached word text cannot notify.",
+      "On edit, already stored @token for the same user may survive a display-name change and move with unchanged token text; newly invented old names are rejected. Current board eligibility always required.",
+      "Editing does not create mention notifications; unknown and inaccessible targets receive identical private validation, no directory/email echo."
+    ],
+    "activity": [
+      "Shared route query schema validates strict real Gregorian YYYY-MM-DD or RFC3339 timestamp; impossible dates, invalid text and reversed inclusive instant ranges return422 rather than SQL500.",
+      "Date-only keeps current UTC-midnight inclusive comparison semantics; no silent end-of-day expansion.",
+      "Project/workspace filters are applied in SQL before LIMIT; page continuation retains filter binding and rejects scope/filter changes.",
+      "Pagination limit defaults50 max100; malformed/out-of-range values reject422; cursor bounded4096; card feed accepts only paging fields.",
+      "Preserve current owner/project/board authorization and current activity response envelope."
+    ]
+  },
+  "verification": [
+    "New mounted handlers against synthetic fresh schema in flowboard_identity_extra_test, failing baseline retained before fix.",
+    "Positive selected names/case/astral prefix/full astral name/trim, renamed historical edit, no-renotify and atomic failure counters.",
+    "Both project/workspace invalid query matrices, valid leap date/timestamp inclusive filters across multiple pages and changed-filter cursor rejection.",
+    "Root typecheck, contracts, relevant legacy discussion/activity suites only after database reservation."
+  ],
+  "limits": [
+    "No feature closure or score; fresh independent review and hosted UAT remain separate.",
+    "OpenAPI/generator currently owned by root; coordinate new named schema bindings."
+  ]
+}

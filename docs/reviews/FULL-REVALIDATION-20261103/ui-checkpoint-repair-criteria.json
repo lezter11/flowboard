@@ -1,0 +1,39 @@
+{
+  "kind": "Frozen FCP-01\u201304 repair criteria before implementation; no approval",
+  "checkpoint": "frontend-checkpoint/findings.json",
+  "scope": [
+    "apps/web/**"
+  ],
+  "criteria": {
+    "FCP-01": [
+      "Foreground Projects polls actual displayed project board lists and board stats",
+      "Fresh canonical empty list removes revoked metadata and prior stats/snapshots, even without session fingerprint change",
+      "Refused reads erase protected content; transport failures remain distinct"
+    ],
+    "FCP-02": [
+      "401/403/404 and session/logout/scope loss sanitize protected module stores as well as QueryClient",
+      "Retain only changed unsent field values and original unresolved command payload/key; erase clean canonical card/settings/brief/workspace baselines",
+      "Reauthorization rehydrates clean fields only; retained edits require review; no cross-account exploit claim"
+    ],
+    "FCP-03": [
+      "Only topmost dialog handles Escape/Tab/backdrop; lower modal layers inert",
+      "One Escape dismisses navigation decision and preserves invitation parent/draft; focus returns to parent",
+      "Drawer/nested modal focus remains trapped and restores safely"
+    ],
+    "FCP-04": [
+      "Confirmed card receipt remains available through Back",
+      "Visible Create another card starts clean form/new command only after definite success",
+      "Unknown create cannot reset; retry preserves original payload/key; two explicit creations produce exactly two cards"
+    ]
+  },
+  "verification": [
+    "Failing regression probes before repairs",
+    "Full web suite/typecheck/optimized build",
+    "Independent fresh runtime replay of checkpoint groups on held repaired source; original checkpoint immutable"
+  ],
+  "limits": [
+    "No self score/feature closure",
+    "No cloud/credentials/deployments",
+    "Root owns final browser integration and independent review"
+  ]
+}

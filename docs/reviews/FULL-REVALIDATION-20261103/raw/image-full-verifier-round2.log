@@ -1,0 +1,30 @@
+✔ Full image verifier: mounted content rejects corrupt entropy even with a valid container envelope (254.157375ms)
+✖ Image integrity: actual workerd validates complete containers and private R2 deliveries (807.672375ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1812.080459
+
+✖ failing tests:
+
+test at apps/api/test/image-integrity-worker.test.ts:11:1
+✖ Image integrity: actual workerd validates complete containers and private R2 deliveries (807.672375ms)
+  AssertionError [ERR_ASSERTION]: webp-corrupt-entropy: {"error":{"code":"SERVICE_UNAVAILABLE","message":"Image verification is unavailable. Try again later.","requestId":"b96a4d5b-8f66-4ea1-b751-47bf2d04a24d"}}
+  
+  503 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-integrity-worker.test.ts:90:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 503,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

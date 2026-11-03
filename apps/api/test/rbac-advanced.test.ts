@@ -732,8 +732,9 @@ test('RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)', async (t) => {
       clientReset.release();
     }
 
-    // Manager starts DELETE. We pause Manager's transaction right after acquiring their grant lock,
-    // before acquiring the target row lock.
+    // Pause Manager's DELETE before the project quota lock. Owner promotion may then win
+    // on a separate connection, and Manager must re-read the promoted target after resuming.
+    // Pausing after the quota lock and awaiting Owner would demand an impossible ordering.
     let enteredSignal: () => void = () => {};
     const entered = new Promise<void>((resolve) => {
       enteredSignal = resolve;
@@ -757,19 +758,15 @@ test('RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)', async (t) => {
 
         client.query = async (...qArgs: any[]) => {
           const queryText = typeof qArgs[0] === 'string' ? qArgs[0] : qArgs[0]?.text ?? '';
-          const res = await (originalQuery as any)(...qArgs);
-
-          // Pause right after acquiring FOR SHARE lock on manager's membership grant
-          if (
-            armed &&
-            queryText.includes('FOR SHARE') &&
-            qArgs[1]?.[1] === probeManager2.user.id
-          ) {
+          // The first request here is Manager DELETE. Stop before its quota query executes;
+          // the resumed request must authorize the target's current (promoted) role.
+          if (armed && queryText.includes('pg_advisory_xact_lock') &&
+              qArgs[1]?.[0] === `fb:quota:project:${probeProjectId2}`) {
             armed = false;
             enteredSignal();
             await release;
           }
-          return res;
+          return (originalQuery as any)(...qArgs);
         };
 
         client.release = (...rArgs: any[]) => {
@@ -791,7 +788,7 @@ test('RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)', async (t) => {
         },
       });
 
-      // Wait until Manager has started DELETE and acquired their grant lock
+      // Wait until Manager has started DELETE but has not acquired the project quota lock
       await entered;
 
       // In parallel on Connection 2, Owner promotes target to manager via mounted handler:
@@ -835,6 +832,7 @@ test('RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)', async (t) => {
         clientVerify.release();
       }
     } finally {
+      releaseSignal();
       pool.connect = originalConnect;
     }
   });
@@ -910,12 +908,17 @@ test('RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)', async (t) => {
     // B-11: mention needs a card or board to scope it. With neither, nobody is listed (no project-wide leak).
     assert.deepEqual(mentionIds, []);
 
-    // 3. Search query filters results
+    // 3. Search cannot turn the directory alias into a Member roster endpoint.
     const searchRes = await app.request(`/api/v1/projects/${prjMainId}/people?purpose=display&query=Charlie`, {
       headers: { Cookie: memberCookie },
     });
-    assert.equal(searchRes.status, 200);
-    const searchJson = (await searchRes.json()) as { data: PersonDisplay[] };
+    assert.equal(searchRes.status, 403);
+    assert.equal(((await searchRes.json()) as { data?: unknown }).data, undefined);
+    const adminSearch = await app.request(`/api/v1/projects/${prjMainId}/people?purpose=display&query=Charlie`, {
+      headers: { Cookie: ownerCookie },
+    });
+    assert.equal(adminSearch.status, 200);
+    const searchJson = (await adminSearch.json()) as { data: PersonDisplay[] };
     assert.equal(searchJson.data.length, 1);
     assert.equal(searchJson.data[0]?.id, memberUserId);
 

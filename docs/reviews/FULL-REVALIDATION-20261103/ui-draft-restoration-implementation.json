@@ -1,0 +1,92 @@
+{
+  "phase": "draft-restoration",
+  "criteria": "ui-draft-restoration-criteria.json",
+  "status": "implemented locally; actual native traversal browser evidence and final independent review pending",
+  "manifest": [
+    {
+      "path": "apps/web/src/lib/memory-drafts.ts",
+      "sha256": "71b4c89ca8a2cd540d55f091b4e08399bb68e99956c2f00cc335afbefd191229"
+    },
+    {
+      "path": "apps/web/src/lib/use-memory-draft.ts",
+      "sha256": "b57ccf72a9a4e9640a8622cb5dff7989085daa544c61416d9fdab7b6ac6d964f"
+    },
+    {
+      "path": "apps/web/src/lib/error-catalogue.ts",
+      "sha256": "4ad8c66bd99cac02e0ba036bed43b45c5ae7242eccfff2367d1ec36a0847e530"
+    },
+    {
+      "path": "apps/web/src/components/navigation-guard.tsx",
+      "sha256": "a320d4c4e694b0263f43bd6b8e62958a6c96be38766c4c54f86df7255491e680"
+    },
+    {
+      "path": "apps/web/src/app/settings/page.tsx",
+      "sha256": "9346cb5e1ec8fe4ffc13ef8042a2c83365501c5e83985753839d8be2fdf1bd6f"
+    },
+    {
+      "path": "apps/web/src/app/import/page.tsx",
+      "sha256": "0461c71357fa1a4610063c6f12bc066a05fd47f9052bcec60cd7461395c8925a"
+    },
+    {
+      "path": "apps/web/src/components/project/brief-card.tsx",
+      "sha256": "e583484a0f62eec895779cbda2579600e6d6b652c759f8594b911f65ee67f1c5"
+    },
+    {
+      "path": "apps/web/src/components/project/new-project-dialog.tsx",
+      "sha256": "dac72506cf84974db917b0755c7d50b372c458b72f727e59d5c1a97e04dc2467"
+    },
+    {
+      "path": "apps/web/src/components/ui/new-board-dialog.tsx",
+      "sha256": "98e637ae501a9fda2f118b248ba5da2a256efbeca1ee8f5d1bec8d4d565f527f"
+    },
+    {
+      "path": "apps/web/src/components/ui/edit-board-dialog.tsx",
+      "sha256": "d8d349085cf09fa4b03834c9016b303d03c59f1982b06c23ca14cb72520aef0c"
+    },
+    {
+      "path": "apps/web/src/components/board/columns-dialog.tsx",
+      "sha256": "bfe974337c381c61bb39c6ad629b796f57333495adf582de8472c5da32232a02"
+    },
+    {
+      "path": "apps/web/test/memory-drafts.test.ts",
+      "sha256": "ea4e7e94ab7a19527bd74c17a6a57716e92e6ebce39f46919c0ad8eb8a4f47d6"
+    }
+  ],
+  "checks": {
+    "web": "300/300 exit0 raw/ui-draft-restoration-web-tests-final-2.log",
+    "typecheck": "exit0 raw/ui-draft-restoration-typecheck-after-build.log",
+    "productionBuild": "19/19 exit0 raw/ui-draft-restoration-build.log"
+  },
+  "changes": [
+    "Actor/context scoped tab-memory values, baseline references and operation controllers survive route remount without browser persistent storage. Markers stay dirty after form unmount and clear on explicit Discard or acknowledged success.",
+    "Settings project/board/profile, selected implicit project/board context, brief/link editing, board creation/editing, project creation and column/new-column forms restore same actor values. Poll hydration keeps edited text; version-conflict review is deliberate. Explicit unavailable project/board never falls back to another context.",
+    "Columns stale catch no longer clears drafts. Stored original structure version blocks blind overwrite; latest-version review keeps values, and no-longer-listed column draft text stays recoverable/discardable.",
+    "Import selected target/default column and actual immutable File restore after native traversal; displayed filename and bytes remain from memory, no input.value fabrication. Existing mapping actor/batch store remains.",
+    "Project/board creation retains original input/key across unknown response/remount; fields lock, same original replay resolves, first definite refusal permits correction. An unknown create that reaches quota does not hide its original replay behind cap-only UI.",
+    "Normal navigation copy now truthfully says drafts/file stay in this tab, pending uploads may stop, reload/close loses memory. No History API interception; native Back/Forward is safe by restoration.",
+    "Added IMAGE_FRAME_LIMIT_EXCEEDED copy per confirmed backend contract; REJECTED_FORMAT explains APNG exclusion; generic503 no longer falsely asserts an uncertain request was not saved."
+  ],
+  "newTests": [
+    "Actual QueryClient cache purge plus scoped form recreation preserves value/baseline and isolates actor/project",
+    "Actual selected File identity/name/bytes restored, another actor no file",
+    "Dirty marker remains after subscriber unmount until explicit clear",
+    "Actual create project lost reply replay key/body/path across recreated controller",
+    "Actual create board lost reply replay key/body/path across recreated controller"
+  ],
+  "retainedFailures": [
+    "raw/ui-draft-restoration-typecheck-3.log: generic test callback inferred union response from two APIs, fixed explicit Promise<unknown>. Earlier targeted/component typecheck rounds passed."
+  ],
+  "browserCases": [
+    "Settings project name/description/default board draft; navigate by Link using Leave this view, then native Back/Forward and return: exact fields restore. Repeat board name/description and Account display-name; a different actor/context gets no prior values.",
+    "Project Brief textarea + pinned link title/address: close/reopen, Link away then native Back; exact unsaved values survive. Poll a teammate edit while away and return; original version retained, deliberate review before Save.",
+    "New project/board dialogs: type values, close, native traversal away/back and reopen; values restore. Drop response after backend create, reopen and Retry original request with identical key/body; no duplicate and no quota-panel hiding replay.",
+    "Columns existing name/category/color + new name/category/color: close/reopen and Back/Forward restores. Force stale board structure; draft retained, explicit latest-version review; removed-column own text recoverable.",
+    "Choose actual synthetic XLSX file with target/default column, navigate away then native Back/Forward: selected name and File bytes retained, Validate workbook posts same File. Another actor/project/board never inherits it. Existing import mapping choices likewise restore batch scope.",
+    "Dirty stored forms still trigger beforeunload after leaving their route; explicit Discard clears relevant marker only. Permission/archive changes disable writes; expired session hides protected query content, safe draft restores after same actor reauthorization."
+  ],
+  "limits": [
+    "No child browser execution; actual component/native traversal/File integration must be run by root with realAPI/PG, plus final immutable independent review. This is an implementation handoff, not automatic UX closure.",
+    "All drafts and File blobs disappear on full reload/tab close; beforeunload warns. No browser persistent storage or credentials/files logged.",
+    "Image full decoder/provider verification and private hosted image flow remain backend/root responsibilities; catalogue copy does not establish those gates."
+  ]
+}

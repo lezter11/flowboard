@@ -1,0 +1,22 @@
+{
+  "status": "frozen_before_implementation_not_approval",
+  "featureIds": [
+    "ATT-01",
+    "ATT-02",
+    "ATT-03"
+  ],
+  "decision": "User2026-11-03 delegated best recommendation after direct CMYK-vs-conversion choice; architect selects supported RGB/grayscale direct JPEG and browser color conversion, no new paid/native service. This does not waive RGB valid maximum, full pixel validation, corruption or private lifecycle checks.",
+  "criteria": [
+    "Small CMYK JPEG cannot bypass encoding through the small-file optimization. Converted bytes and MIME/name/digest describe the real result even when output is not smaller.",
+    "Known unsupported or unknown JPEG color model cannot fall back to original on decoder/encoder failure; explain conversion/export in ordinary language, preserve user file/draft, never stage incompatible original.",
+    "Supported RGB/grayscale small files and animated WebP preservation retain their existing semantics.",
+    "Real Chrome chooses actual generated CMYK JPEG, uploads a converted supported format and verifies actual private gallery/backend bytes; mocked bitmap unit tests alone are not browser proof.",
+    "Shared new JPEG_COLOR_MODEL_UNSUPPORTED is422/no-details with clear UI guidance; source limit/time policy is separately backend-reviewed."
+  ],
+  "requiredCommands": [
+    "node --test apps/web/test/image-prepare.test.ts",
+    "npm test --workspace @flowboard/web",
+    "npm run typecheck:web",
+    "npm run test:browser"
+  ]
+}

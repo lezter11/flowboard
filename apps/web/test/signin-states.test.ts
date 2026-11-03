@@ -43,7 +43,9 @@ test('a session that ends keeps the page while text is unsaved, and offers Sign 
   assert.match(shell, /state\.status === 'signedOut' && unsaved/);
   assert.match(shell, /I’ve signed in/);
   const drawer = readFileSync(new URL('../src/components/board/card-detail-drawer.tsx', import.meta.url), 'utf8');
-  assert.match(drawer, /setUnsaved\(`card:\$\{card\.id\}`, dirty\)/);
+  assert.match(drawer, /cardDraftSessions\.forCard/);
+  const drafts=readFileSync(new URL('../src/lib/card-drafts.ts',import.meta.url),'utf8');
+  assert.match(drafts,/setUnsaved\(key,/);
   const signin = readFileSync(new URL('../src/app/signin/page.tsx', import.meta.url), 'utf8');
   assert.match(signin, /signinNote\(params\.get\('state'\)\)/);
   assert.doesNotMatch(signin, /ask the project owner or manager/i);

@@ -1,0 +1,127 @@
+✖ Image promotion: commit failure preserves one known object and original command retry (350.087125ms)
+✖ Image promotion: abandoned failed finalization expires without an untracked object (299.537292ms)
+✖ Image cleanup: expired staging lifetime cannot expire a finalized receipt or delete its referenced object (421.56875ms)
+✖ Image cleanup: legacy distinct staging key is removed while permanent key and terminal state survive (610.988458ms)
+✖ Image cancellation: deferred commit failure preserves bytes and permits finalize (471.361916ms)
+✖ Image cancellation: committed failure to delete retains durable cleanup key (478.157209ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2954.212375
+
+✖ failing tests:
+
+test at apps/api/test/image-storage-atomicity.test.ts:38:1
+✖ Image promotion: commit failure preserves one known object and original command retry (350.087125ms)
+  AssertionError [ERR_ASSERTION]: rollback must not delete the retry input
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-storage-atomicity.test.ts:43:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/image-storage-atomicity.test.ts:51:1
+✖ Image promotion: abandoned failed finalization expires without an untracked object (299.537292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 0
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-storage-atomicity.test.ts:54:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 0,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/image-storage-atomicity.test.ts:57:1
+✖ Image cleanup: expired staging lifetime cannot expire a finalized receipt or delete its referenced object (421.56875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'expired'
+  - 'finalized'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-storage-atomicity.test.ts:61:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'expired',
+    expected: 'finalized',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/image-storage-atomicity.test.ts:68:1
+✖ Image cleanup: legacy distinct staging key is removed while permanent key and terminal state survive (610.988458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-storage-atomicity.test.ts:72:98)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/image-storage-atomicity.test.ts:76:1
+✖ Image cancellation: deferred commit failure preserves bytes and permits finalize (471.361916ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(await f.storage.get(f.key))
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-storage-atomicity.test.ts:81:96)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/image-storage-atomicity.test.ts:86:1
+✖ Image cancellation: committed failure to delete retains durable cleanup key (478.157209ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   'staging/upl_1ee2d446-d9e4-476b-999c-77127e693c86'
+  - ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-storage-atomicity.test.ts:91:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'staging/upl_1ee2d446-d9e4-476b-999c-77127e693c86' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

@@ -2,10 +2,11 @@ import { lockProjectQuota, countActiveMembers, countPendingInvitations, quotaExc
 import { DEFAULT_LIMITS, type Limits } from '../services/limits.ts';
 import crypto from 'node:crypto';
 import type pg from 'pg';
-import type { Invitation, InvitationStatus, ProjectRole } from '@flowboard/contracts';
+import type { Invitation, InvitationStatus, ProjectRole, InvitationListQuery, InvitationDelivery } from '@flowboard/contracts';
 import { HttpError } from '../http/errors.ts';
 import { saveReceipt } from './idempotency.ts';
 import { recordActivity } from './activity.ts';
+import { acquireWritableProjectContextLock } from './rbac.ts';
 
 /**
  * The outbox payload for an invitation email: the link token, the project name and the inviter's
@@ -293,7 +294,10 @@ export async function acceptInvitation(
 
   // F-04: the project quota lock comes before the invitation row lock, the order create and resend use.
   const owning = await client.query<{ project_id: string }>('SELECT project_id FROM project_invitations WHERE token_hash = $1', [tokenHash]);
-  if (owning.rows[0]) await lockProjectQuota(client, owning.rows[0].project_id);
+  if (owning.rows[0]) {
+    await lockProjectQuota(client, owning.rows[0].project_id);
+    await acquireWritableProjectContextLock(client, owning.rows[0].project_id);
+  }
 
   // 2. Query project_invitations locking the row for update
   const invRes = await client.query<{
@@ -331,14 +335,7 @@ export async function acceptInvitation(
       `UPDATE project_invitations SET status = 'expired', updated_at = NOW() WHERE id = $1`,
       [invitation.id],
     );
-    await client.query('COMMIT').catch(() => {});
     throw HttpError.badRequest('Invitation has expired.', 'INVITATION_EXPIRED');
-  }
-
-  // F-18: an invitation into an archived project is refused, as create, resend and revoke already refuse.
-  const archivedRes = await client.query<{ archived: boolean }>('SELECT archived FROM projects WHERE id = $1', [invitation.project_id]);
-  if (archivedRes.rows[0]?.archived) {
-    throw HttpError.conflict('Project is archived and read-only.', 'READ_ONLY_CONTEXT');
   }
 
   // 4. Email verification
@@ -610,7 +607,7 @@ export async function resendInvitation(
   // invitation carry the previous token, so they are settled without sending and the token is dropped.
   await client.query(
     `UPDATE outbox
-     SET status = 'failed', settled_at = NOW(), payload = '{"superseded":true}'::jsonb
+     SET status = 'failed', settled_at = NOW(), payload = jsonb_build_object('invitationId', $1::text)
      WHERE event_type = 'invitation.created' AND status IN ('pending', 'processing')
        AND payload->>'invitationId' = $1`,
     [updatedRow.id],
@@ -828,99 +825,121 @@ export async function revokeInvitation(
   };
 }
 
-/**
- * Lists all invitations for a project, with past-due pending invitations mapped to expired.
- * Never exposes token_hash.
- */
+interface InvitationCursor {
+  v: 1;
+  scope: string;
+  snapshotAt: string;
+  createdAt: string;
+  id: string;
+}
+
+export interface ListInvitationsOptions extends Partial<InvitationListQuery> {
+  cursorSecret?: string | undefined;
+}
+
+function cursorKey(secret: string | undefined): string {
+  if (!secret || Buffer.byteLength(secret, 'utf8') < 32) {
+    throw new HttpError(503, 'CONFIG_ERROR', 'Invitation history is temporarily unavailable.');
+  }
+  return secret;
+}
+
+function signInvitationCursor(cursor: InvitationCursor, secret: string | undefined): string {
+  const body = Buffer.from(JSON.stringify(cursor)).toString('base64url');
+  return `${body}.${crypto.createHmac('sha256', cursorKey(secret)).update(body).digest('base64url')}`;
+}
+
+function readInvitationCursor(token: string, scope: string, secret: string | undefined): InvitationCursor {
+  const key = cursorKey(secret);
+  try {
+    if (token.length > 4096) throw new Error('cursor too long');
+    const parts = token.split('.');
+    const body = parts[0], signature = parts[1];
+    if (parts.length !== 2 || !body || !signature || !/^[A-Za-z0-9_-]+$/.test(body) || !/^[A-Za-z0-9_-]+$/.test(signature)) throw new Error('invalid encoding');
+    const expected = crypto.createHmac('sha256', key).update(body).digest();
+    const supplied = Buffer.from(signature, 'base64url');
+    if (supplied.toString('base64url') !== signature || supplied.length !== expected.length || !crypto.timingSafeEqual(supplied, expected)) throw new Error('invalid signature');
+    const decoded = Buffer.from(body, 'base64url');
+    if (decoded.toString('base64url') !== body) throw new Error('invalid encoding');
+    const value = JSON.parse(decoded.toString('utf8')) as Partial<InvitationCursor>;
+    if (value.v !== 1 || value.scope !== scope || typeof value.id !== 'string' || !/^[A-Za-z0-9_-]{1,200}$/.test(value.id) ||
+        typeof value.snapshotAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/.test(value.snapshotAt) || !Number.isFinite(Date.parse(value.snapshotAt)) ||
+        typeof value.createdAt !== 'string' || !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/.test(value.createdAt) || !Number.isFinite(Date.parse(value.createdAt))) throw new Error('wrong cursor scope');
+    return value as InvitationCursor;
+  } catch {
+    throw HttpError.conflict('STALE_CURSOR', 'Invitation history changed or the cursor is invalid. Refresh the list.');
+  }
+}
+
+/** Bounded invitation history; no raw token/hash or outbox payload leaves this projection. */
 export async function listInvitations(
   client: pg.ClientBase | pg.Pool,
   actor: { id: string },
   projectId: string,
-): Promise<Invitation[]> {
-  // 1. Resolve project existence and workspace ownership
-  const prjRes = await client.query<{
-    id: string;
-    workspace_id: string;
-    owner_id: string;
-  }>(
-    `SELECT p.id, p.workspace_id, w.owner_id
-     FROM projects p
-     JOIN workspaces w ON p.workspace_id = w.id
-     WHERE p.id = $1
-     FOR SHARE OF w`,
-    [projectId],
-  );
-
-  if (prjRes.rows.length === 0 || !prjRes.rows[0]) {
-    throw HttpError.notFound('Project not found or unauthorized.', 'NOT_FOUND');
+  options: ListInvitationsOptions = {},
+): Promise<{ data: Invitation[]; nextCursor: string | null }> {
+  const context = await client.query<{
+    owner_id: string; project_version: number; archived: boolean; workspace_version: number;
+  }>(`SELECT w.owner_id,p.version AS project_version,p.archived,w.version AS workspace_version
+      FROM projects p JOIN workspaces w ON w.id=p.workspace_id WHERE p.id=$1 FOR SHARE OF w`, [projectId]);
+  const project = context.rows[0];
+  if (!project) throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+  let role: string = 'owner';
+  let memberVersion = 0;
+  if (project.owner_id !== actor.id) {
+    const membership = await client.query<{ role: string; status: string; version: number }>(
+      'SELECT role,status,version FROM project_memberships WHERE project_id=$1 AND user_id=$2 FOR SHARE', [projectId, actor.id]);
+    const member = membership.rows[0];
+    if (!member || member.status !== 'active') throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+    if (member.role !== 'manager') throw HttpError.forbidden('Only workspace owners and project managers can view project invitations.', 'FORBIDDEN');
+    role = member.role; memberVersion = member.version;
   }
-
-  const project = prjRes.rows[0];
-
-  // 2. Resolve actor role
-  let actorRole: 'owner' | 'manager' | 'member' | 'viewer' | null = null;
-  if (project.owner_id === actor.id) {
-    actorRole = 'owner';
-  } else {
-    const memberRes = await client.query<{ role: 'manager' | 'member' | 'viewer'; status: string }>(
-      `SELECT role, status
-       FROM project_memberships
-       WHERE project_id = $1 AND user_id = $2`,
-      [projectId, actor.id],
-    );
-    if (memberRes.rows.length > 0 && memberRes.rows[0]?.status === 'active') {
-      actorRole = memberRes.rows[0].role;
-    }
-  }
-
-  if (!actorRole) {
-    throw HttpError.notFound('Project not found or unauthorized.', 'NOT_FOUND');
-  }
-
-  if (actorRole !== 'owner' && actorRole !== 'manager') {
-    throw HttpError.forbidden(
-      'Only workspace owners and project managers can view project invitations.',
-      'FORBIDDEN',
-    );
-  }
-
-  // 3. Query invitations (never select token_hash)
-  const invRes = await client.query<{
-    id: string;
-    project_id: string;
-    email: string;
-    role: string;
-    invited_by: string;
-    status: string;
-    expires_at: Date;
-    created_at: Date;
-    updated_at: Date;
-  }>(
-    `SELECT id, project_id, email, role, invited_by, status, expires_at, created_at, updated_at
-     FROM project_invitations
-     WHERE project_id = $1
-     ORDER BY created_at DESC, id DESC`,
-    [projectId],
-  );
-
-  const now = Date.now();
-  return invRes.rows.map((row) => {
-    const isPastDue = new Date(row.expires_at).getTime() <= now;
-    const computedStatus: InvitationStatus =
-      row.status === 'pending' && isPastDue ? 'expired' : (row.status as InvitationStatus);
-
-    return {
-      id: row.id,
-      projectId: row.project_id,
-      email: row.email,
-      role: row.role as ProjectRole,
-      status: computedStatus,
-      invitedBy: row.invited_by,
-      expiresAt: new Date(row.expires_at).toISOString(),
-      createdAt: new Date(row.created_at).toISOString(),
-      updatedAt: new Date(row.updated_at).toISOString(),
-    };
+  // Match write authorization order: workspace, membership, then project lifecycle.
+  const lifecycle = await client.query<{ version: number; archived: boolean }>(
+    'SELECT version,archived FROM projects WHERE id=$1 FOR SHARE', [projectId]);
+  const currentProject = lifecycle.rows[0]!;
+  const limit = options.limit ?? 50;
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw HttpError.badRequest('Invalid invitation page limit.', 'INVALID_LIMIT');
+  const scope = crypto.createHash('sha256').update(JSON.stringify({ projectId, actorId: actor.id,
+    status: options.status ?? null, role, memberVersion, ownerId: project.owner_id,
+    projectVersion: currentProject.version, workspaceVersion: project.workspace_version, archived: currentProject.archived })).digest('hex');
+  const secret = options.cursorSecret ?? (typeof process === 'undefined' ? undefined : process.env['CURSOR_SECRET']);
+  const cursor = options.cursor ? readInvitationCursor(options.cursor, scope, secret) : null;
+  const snapshotAt = cursor?.snapshotAt ?? new Date().toISOString();
+  const result = await client.query<{
+    id: string; project_id: string; email: string; role: ProjectRole; status: InvitationStatus;
+    invited_by: string; expires_at: Date; created_at: Date; updated_at: Date; cursor_created_at: string;
+    delivery_status: string | null; delivery_retries: number | null;
+  }>(`WITH page AS (
+      SELECT i.id,i.project_id,i.email,i.role,i.invited_by,i.expires_at,i.created_at,i.updated_at,
+        CASE WHEN i.status='pending' AND i.expires_at<=$2::timestamptz THEN 'expired' ELSE i.status END AS status,
+        to_char(i.created_at AT TIME ZONE 'UTC','YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_created_at
+      FROM project_invitations i WHERE i.project_id=$1 AND i.created_at<=$2::timestamptz
+        AND ($3::text IS NULL OR (CASE WHEN i.status='pending' AND i.expires_at<=$2::timestamptz THEN 'expired' ELSE i.status END)=$3)
+        AND ($4::timestamptz IS NULL OR (i.created_at,i.id)<($4::timestamptz,$5::text))
+      ORDER BY i.created_at DESC,i.id DESC LIMIT $6
+    ) SELECT page.*,delivery.status AS delivery_status,delivery.retry_count AS delivery_retries
+      FROM page LEFT JOIN LATERAL (
+        SELECT o.status,o.retry_count FROM outbox o WHERE o.project_id=page.project_id
+          AND o.event_type='invitation.created' AND o.payload->>'invitationId'=page.id
+        ORDER BY o.created_at DESC,o.id DESC LIMIT 1
+      ) delivery ON TRUE ORDER BY page.created_at DESC,page.id DESC`,
+    [projectId, snapshotAt, options.status ?? null, cursor?.createdAt ?? null, cursor?.id ?? null, limit + 1]);
+  const visible = result.rows.slice(0, limit);
+  const data: Invitation[] = visible.map((row) => {
+    let deliveryStatus: InvitationDelivery['status'] = 'unknown';
+    if (row.delivery_status === 'delivered' || row.delivery_status === 'failed') deliveryStatus = row.delivery_status;
+    else if (row.delivery_status === 'pending' || row.delivery_status === 'processing') deliveryStatus = (row.delivery_retries ?? 0) > 0 ? 'retrying' : 'pending';
+    return { id: row.id, projectId: row.project_id, email: row.email, role: row.role, status: row.status,
+      invitedBy: row.invited_by, expiresAt: new Date(row.expires_at).toISOString(),
+      createdAt: new Date(row.created_at).toISOString(), updatedAt: new Date(row.updated_at).toISOString(),
+      delivery: { status: deliveryStatus, canRetry: deliveryStatus === 'failed' && row.status === 'pending' &&
+        new Date(row.expires_at).getTime() > Date.now() && !currentProject.archived && (role === 'owner' || row.role !== 'manager') } };
   });
+  const last = visible.at(-1);
+  const nextCursor = result.rows.length > limit && last
+    ? signInvitationCursor({ v: 1, scope, snapshotAt, createdAt: last.cursor_created_at, id: last.id }, secret) : null;
+  return { data, nextCursor };
 }
 
 export interface LeaveProjectResult {
@@ -937,6 +956,7 @@ export async function leaveProject(
   projectId: string,
   idempotencyKey: string,
 ): Promise<LeaveProjectResult> {
+  await lockProjectQuota(client, projectId);
   // 1. Resolve project existence and workspace ownership
   const prjRes = await client.query<{
     id: string;

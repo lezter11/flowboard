@@ -1,0 +1,188 @@
+✔ B-23 unique names carry no number (62.366542ms)
+✔ B-23 two, three and four duplicates number in join order, the Owner first (13.611666ms)
+✔ B-23 the Owner is first even when a same-named member joined before the Owner existed (9.491416ms)
+✔ B-23 case and accent insensitive: "José Pérez" collides with "jose perez" (NFKC, accents removed) (14.311167ms)
+✔ B-23 stable when an unrelated person joins; numbers do not move with unrelated members (12.825583ms)
+✔ B-23 the number drops when the first duplicate leaves, and the remaining one is unique again (12.537292ms)
+✔ B-23 a rename that makes two names collide numbers the later member; renaming away removes the number (14.723375ms)
+✔ B-23 people endpoint: the number is project-wide, so a filtered or paged response carries the same numbers (8.970042ms)
+✔ B-23 the board snapshot and the people endpoint agree on the numbers (29.654125ms)
+✔ B-23 no email in any person object, and the contract stays backward compatible (9.55825ms)
+✔ B-23 the helper numbers from the stored rows alone, for any caller (8.068917ms)
+✔ B-7 body caps: the cap depends on the route, the method and the session (0.393333ms)
+▶ B-7 body caps: the boundary is enforced on the wire, with and without a session
+  ✔ a signed-in import at exactly 5 MiB plus envelope is not refused for size (13.366875ms)
+  ✔ a signed-in import one byte over the cap is refused with 413 (1.638292ms)
+  ✔ an anonymous import over 1 MiB is refused with 413 before auth (0.328959ms)
+  ✔ a signed-in image content upload at the envelope size is not refused for size (5.634709ms)
+  ✔ a signed-in image content upload one byte over the cap is refused with 413 (2.240459ms)
+  ✔ a signed-in import body is still capped at 5 MiB, not at the image cap (1.872958ms)
+  ✔ other signed-in routes stay at 1 MiB (0.394959ms)
+✔ B-7 body caps: the boundary is enforced on the wire, with and without a session (43.939042ms)
+▶ B-7 Google token exchange: a failure logs the status only, never the provider body
+  ✔ the response is a 302 to sign-in with state=failed, and the log holds no provider text (2.041042ms)
+✔ B-7 Google token exchange: a failure logs the status only, never the provider body (2.314917ms)
+▶ B-9 mentions: only readers of the card may be mentioned; refusals do not reveal who exists
+  ✔ a viewer with a board grant can be mentioned and is notified (38.625542ms)
+  ✔ refuses a member with no board grant with 422 and writes nothing (11.869167ms)
+  ✔ refuses a removed member who once had a grant with 422 and writes nothing (10.097208ms)
+  ✔ refuses a user of another project with 422 and writes nothing (8.594583ms)
+  ✔ refuses a registered user who is not a member of the project with 422 and writes nothing (8.198125ms)
+  ✔ refuses an id that does not exist with 422 and writes nothing (8.647292ms)
+  ✔ the refusals for an existing non-reader and a missing id are identical (0.367542ms)
+  ✔ a self-mention is accepted and notifies nobody (12.849208ms)
+  ✔ an idempotent replay writes no second comment and no second notification (18.075667ms)
+✔ B-9 mentions: only readers of the card may be mentioned; refusals do not reveal who exists (150.579167ms)
+▶ B-9 mentions: edits do not add notifications (v1 rule, documented)
+  ✔ an edit that adds a mention of a reader does not notify (docs/API.md: edits do not re-notify in v1) (14.572125ms)
+✔ B-9 mentions: edits do not add notifications (v1 rule, documented) (36.589875ms)
+▶ B-9 mentions: a notification is re-authorised at read time, so revoked readers lose the snippet and title
+  ✔ while the grant is held, the viewer sees the notification with the snippet (3.405625ms)
+  ✔ after the board grant is removed the notification disappears from the inbox (2.834958ms)
+  ✔ marking it read after revocation is refused and does not change the row (2.99475ms)
+  ✔ a removed membership hides it too, even with a grant row left behind (5.67175ms)
+  ✔ a trashed card hides the notification from its readers (6.456208ms)
+✔ B-9 mentions: a notification is re-authorised at read time, so revoked readers lose the snippet and title (46.1445ms)
+▶ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite
+  ✔ COM-02: Viewers cannot post comments (403 FORBIDDEN) (137.839375ms)
+  ✔ COM-02: Outsiders receive 404 NOT_FOUND on comment post (3.426166ms)
+  ✔ COM-02: Comment post requires mandatory Idempotency-Key header (4.403083ms)
+  ✔ COM-02: Comment body validation (rejects empty or whitespace-only body) (2.784292ms)
+  ✔ COM-02: Member posts valid comment with outbox and activity_log (38.949291ms)
+  ✔ COM-02: Idempotency replay returns identical comment with replayed=true (9.167208ms)
+  ✔ COM-02: Idempotency conflict on same key with different body (5.172375ms)
+  ✔ COM-03: Rejects overlapping mention spans (1.367333ms)
+  ✔ COM-03: Rejects mentions of sibling project users or non-members (9.4145ms)
+  ✔ COM-03: Valid mentions notify teammates but self-mentions do NOT notify (18.028542ms)
+  ✔ COM-01: GET /cards/:cardId/comments returns chronological comments for readers (7.265209ms)
+  ✔ COM-01: Outsiders receive 404 NOT_FOUND on comment listing (2.243541ms)
+  ✔ COM-01: Comment cursor pages are card-scoped and stable across inserts (32.448458ms)
+  ✔ COM-04: Non-author cannot edit another user comment (403 FORBIDDEN) (5.7195ms)
+  ✔ COM-04: Edit comment OCC conflict returns 409 STALE_VERSION (6.367959ms)
+  ✔ COM-04: Author successfully edits comment and increments version (10.789709ms)
+  ✔ COM-05: Regular member cannot delete another member comment (403 FORBIDDEN) (16.312375ms)
+  ✔ COM-05: Workspace owner moderates and deletes comment (14.2435ms)
+  ✔ COM-05: Author deletes their own comment (9.21925ms)
+  ✔ DEL-01: Regular member/viewer cannot delete card (403 FORBIDDEN) (13.164917ms)
+  ✔ DEL-01: Delete card OCC check returns 409 STALE_VERSION (6.3615ms)
+  ✔ DEL-01: Manager soft-deletes card with 24-hour restore window and board version increment (11.510875ms)
+  ✔ DEL-08: Trashed card returns 404 NOT_FOUND on direct GET /cards/:cardId (1.262167ms)
+  ✔ DEL-08: Trashed card comments return 404 NOT_FOUND on GET /cards/:cardId/comments (2.514416ms)
+  ✔ COM-06: Posting comment on trashed card is rejected with 400 CARD_IS_TRASHED (2.932208ms)
+  ✔ DEL-02: Non-administrators (members/viewers) receive 403 on trash listing (4.481541ms)
+  ✔ DEL-02: Owner and Manager can list trash with canRestore and blockedReason details (17.523833ms)
+  ✔ DEL-03: Non-admin cannot restore card (403 FORBIDDEN) (2.725916ms)
+  ✔ DEL-03: Manager restores card before deadline with OCC checks (12.545459ms)
+  ✔ DEL-04: Destination missing requires explicit toColumnId (34.333542ms)
+  ✔ DEL-05: Expired restore returns HTTP 410 RESTORE_WINDOW_EXPIRED with details (17.972166ms)
+  ✔ Archived project and board reject card and comment writes atomically (30.929416ms)
+  ✔ Comment delete replay rechecks moderator authority after role demotion (22.412042ms)
+  ✔ Comment post retry respects current parent-card trash state (41.636291ms)
+  ✔ DEL-06: Background purge worker, private content redaction, and fenced winner race (68.819417ms)
+✔ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite (630.435541ms)
+✖ ERR-R1 S13 and ERR-R1b: every error code the API throws is in the shared catalog (7.795167ms)
+ℹ scan found 112 codes, 0 unresolved identifiers
+✔ ERR-R1 S13: every catalog entry that carries details has a details schema (0.097375ms)
+▶ FND-04: Observability, Correlation, Limits & Safe Error Baseline
+  ▶ 1. Correlation Middleware & Request IDs
+    ✔ generates a valid UUID request ID when x-request-id header is absent (13.145041ms)
+    ✔ propagates incoming valid ASCII x-request-id header faithfully (1.124667ms)
+    ✔ replaces invalid x-request-id (<8 chars, spaces, non-allowed chars, >64 chars) with a safe UUID (1.502166ms)
+    ✔ guarantees x-request-id header is attached on both success and error responses (1.287042ms)
+  ✔ 1. Correlation Middleware & Request IDs (17.314875ms)
+  ▶ 2. Server-Timing Header
+    ✔ measures request duration and attaches Server-Timing: app;dur=<ms> header on 200 OK (3.189792ms)
+    ✔ attaches Server-Timing header on 404 and error responses (0.747417ms)
+  ✔ 2. Server-Timing Header (3.994667ms)
+  ▶ 3. Not Found Handler (404)
+    ✔ returns standard error envelope with NOT_FOUND code and no-store cache header (1.472666ms)
+  ✔ 3. Not Found Handler (404) (1.538375ms)
+  ▶ 4. Validation Error Formatting (400 and 422)
+    ✔ returns 400 MALFORMED_REQUEST when request body contains invalid JSON syntax (1.112ms)
+    ✔ returns 422 VALIDATION_ERROR with structured issues when @flowboard/contracts validation fails (1.40575ms)
+  ✔ 4. Validation Error Formatting (400 and 422) (2.57075ms)
+  ▶ 5. Safe 500 Handler & Sensitive Internal Error Masking
+    ✔ masks unhandled errors and NEVER leaks database credentials, connection strings, or SQL internals (1.023042ms)
+  ✔ 5. Safe 500 Handler & Sensitive Internal Error Masking (1.046208ms)
+  ▶ 6. Body Size Limits (413 PAYLOAD_TOO_LARGE)
+    ✔ rejects request bodies larger than configured limit with 413 PAYLOAD_TOO_LARGE (2.011875ms)
+    ✔ enforces default 1 MiB (1,048,576 bytes) limit on standard app (0.598666ms)
+  ✔ 6. Body Size Limits (413 PAYLOAD_TOO_LARGE) (2.646792ms)
+  ▶ 7. Request Deadline / Timeout Middleware (504 DEADLINE_EXCEEDED)
+    ✔ aborts long-running requests exceeding deadline with HTTP 504 DEADLINE_EXCEEDED (51.592959ms)
+    ✔ allows fast requests within deadline to succeed normally (1.099459ms)
+  ✔ 7. Request Deadline / Timeout Middleware (504 DEADLINE_EXCEEDED) (52.756875ms)
+  ▶ 8. Custom HTTP Errors and Status Mappings
+    ✔ maps 401 UNAUTHORIZED correctly (0.739042ms)
+    ✔ maps 403 FORBIDDEN correctly (0.664042ms)
+    ✔ maps 409 CONFLICT with domain-specific codes (STALE_VERSION, STALE_CURSOR) (0.688292ms)
+    ✔ maps 410 RESTORE_WINDOW_EXPIRED with details (2.364625ms)
+    ✔ maps 429 RATE_LIMITED and attaches Retry-After: 60 header (0.651375ms)
+    ✔ uses the actual retry interval and the same code for a Hono 429 (0.670333ms)
+    ✔ maps 503 SERVICE_UNAVAILABLE / DATABASE_UNAVAILABLE safely (0.573792ms)
+  ✔ 8. Custom HTTP Errors and Status Mappings (6.435417ms)
+✔ FND-04: Observability, Correlation, Limits & Safe Error Baseline (88.556875ms)
+{"level":"warn","event":"rate_limit_refused","binding":"FB_RL_WRITES"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"error","event":"rate_limit_store_error","bucket":"auth","errorClass":"Error"}
+{"level":"warn","event":"rate_limit_refused","binding":"FB_RL_WRITES"}
+✔ soft limit: a refused general write returns 429 TOO_MANY_REQUESTS with Retry-After 60 (9.902708ms)
+✔ soft limit: a throwing binding fails open and logs the error class only (4.087792ms)
+✔ limits: health probes are never counted by either limiter (1.219417ms)
+✔ limits: the key is the Cloudflare client IP and ignores spoofable forwarding headers (1.106875ms)
+✔ limits: reads outside Google sign-in are not counted (0.751583ms)
+✔ buckets: each sensitive route family maps to its bucket and nothing else (0.082791ms)
+✔ window: a count over the limit returns 429 with Retry-After from the counter (0.795875ms)
+✔ window: a count within the limit reaches the route (2.740542ms)
+✔ window: the invitation route counts in the invite bucket with its 60-second window (0.836708ms)
+✔ window: when the counter throws, the request fails closed with 503 and the route is not reached (0.7435ms)
+✔ window: no database pool on a Worker fails closed; on Node a request without a client address is not counted (1.13125ms)
+✔ window: on the Worker a missing client address uses the shared fallback key and logs it without a value (0.799916ms)
+✔ soft binding: on the Worker an absent binding is logged loudly and the request still passes (0.771708ms)
+✔ soft binding: the default resolver reads the Cloudflare binding from the Worker environment (0.70625ms)
+✔ binding status: booleans for the Cloudflare binding the runtime can see (0.210875ms)
+✔ admin status route reports the binding and needs the admin secret (0.996459ms)
+✔ config: wrangler declares only the soft writes binding, with the documented limit, in production and UAT (0.297625ms)
+▶ RBAC-01: Owner/Manager/Member/Viewer Matrix & Sibling Privacy Suite
+  ✔ 1. Workspace Owner role resolution and workspace inheritance (133.361375ms)
+  ✔ 2. Project Manager permissions in granted project (5.474792ms)
+  ✔ 3. Project Member can write and read, but blocked (403 FORBIDDEN) from manager actions (4.334625ms)
+  ✔ 4. Project Viewer can read, but blocked (403 FORBIDDEN) from member and manager actions (4.605375ms)
+  ✔ 5. Sibling Project Privacy: user granted in Project 1 querying Project 2 gets 404 NOT_FOUND (5.339292ms)
+  ✔ 6. Inactive / removed membership drops permissions immediately and returns 404 NOT_FOUND (2.978292ms)
+✔ RBAC-01: Owner/Manager/Member/Viewer Matrix & Sibling Privacy Suite (158.434125ms)
+ℹ tests 123
+ℹ suites 9
+ℹ pass 122
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 22785.620625
+
+✖ failing tests:
+
+test at apps/api/test/error-catalog-scan.test.ts:133:1
+✖ ERR-R1 S13 and ERR-R1b: every error code the API throws is in the shared catalog (7.795167ms)
+  AssertionError [ERR_ASSERTION]: codes thrown by apps/api/src but missing from packages/contracts ERROR_CATALOG
+  + actual - expected
+  
+  + [
+  +   'CELL_LIMIT_EXCEEDED',
+  +   'INVALID_LIMIT',
+  +   'PARSE_BUDGET_EXCEEDED'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/error-catalog-scan.test.ts:139:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'CELL_LIMIT_EXCEEDED', 'INVALID_LIMIT', 'PARSE_BUDGET_EXCEEDED' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

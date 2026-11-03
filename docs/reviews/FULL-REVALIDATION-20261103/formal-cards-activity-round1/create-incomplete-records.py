@@ -1,0 +1,54 @@
+from pathlib import Path
+import json,hashlib,datetime
+from decimal import Decimal
+base=Path('docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1')
+now=datetime.datetime.now(datetime.timezone.utc).isoformat()
+shared=['AGENTS.md','RULES.md','BACKEND_REVIEW_GATE.md','PRD.md','ARCHITECTURE.md','DESIGN.md','TASKS.md','PROGRESS.md','docs/API.md','docs/FEATURE_SPEC.md','docs/features.tsv','docs/FEATURE_CHECKLIST.md','docs/IMPORT_SPEC.md','docs/ENGINEERING_CHECKLIST.md','docs/references/README.md','docs/handoffs/README.md','docs/reviews/README.md','package.json','package-lock.json','tsconfig.json','apps/api/package.json','apps/api/tsconfig.build.json','apps/api/wrangler.jsonc','apps/web/package.json','apps/web/tsconfig.json','apps/web/next-env.d.ts','apps/web/next.config.ts','apps/web/public/_headers','apps/api/src','apps/api/test','apps/web/src','apps/web/test','packages/contracts/src','packages/contracts/test','database/migrations','scripts/e2e']
+shared += [str(p) for p in sorted(base.rglob('*')) if p.is_file() and not p.name.endswith('-round-1.json')]
+# Existing builder evidence is explicitly attributed, never called reviewer commands.
+shared += ['docs/reviews/FULL-REVALIDATION-20261103/runtime-validation-result.json','docs/reviews/FULL-REVALIDATION-20261103/runtime-validation-result.md','docs/reviews/FULL-REVALIDATION-20261103/raw/browser-product-13-context-fixed/result.json']
+shared=[p for p in dict.fromkeys(shared) if Path(p).exists()]
+findings={
+'F-CA-01':dict(severity='P2',description='Comment edits retain old sensitive snippet in recipient normal inbox, violating NTF-01 no-stale-preview requirement. POST selected mention; author PATCH removes secret; recipient GET notifications still returns removed text. comments.ts:378-389 copies original body, editComment:543-607 never updates existing preview. See own mounted log and report.',rationale='Owner/root independently reproduced. Tombstone redaction and current access filtering are counterevidence for deletion/revocation only, not edits. Update/redact existing copy atomically without sending new notification.'),
+'F-CA-02':dict(severity='P2',description='Unchanged canonical fetched comment remains visible in edit combobox after real comments404. Actual Member opened Edit without typing; Owner mounted board revoke committed; GETcomments404 arrived while other protected GETs were delayed. Comment article vanished but original body remained in composer. comment-state.ts:14-43,50-57 stores full body outside protected-draft registry; CardComments:104-113 continues composer.',rationale='Own actual Chrome156.0.8078.74 unique v2 screenshot/network/source hashes; sourceChanged[]. Root independently confirmed state hooks and source path. Actor keys/full navigation protect another account; own unsent work should remain. Defect is unchanged fetched canonical text after current access denial.'),
+'F-CA-03':dict(severity='P2',description='Public card create/update/move/undo and comment create/edit/delete plus nested mention schemas accept/strip unknown fields despite API.md:30 unknown-field failure contract. Own mounted8operations returned201/200 and8receipts. Search/boardCards shared query and comments query also ignore unknown fields; comment DELETE expectedVersion=1junk is parsed1.',rationale='Root confirmed strict contract remains required and will repair, not weaken docs. No privilege escalation is claimed. Legacy list-limit clamp/fallback is separately documented and is a schema/parity caveat, not silently mislabeled a new authority exploit.'),
+'F-CA-04':dict(severity='P2',description='New assignment can commit to a Viewer after selected Member is demoted and commits first. Own real mounted Owner PATCH assignment paused at actual SQL INSERT after eligibility; concurrent Owner membershipPATCH demoted Member200; release assignment200; final Viewer assigned. cards.ts validateAssigneeIds uses unlocked boardAssigneeIds; role-only demotion does not lock board.',rationale='Root independently reproduced exact real separate-connection schedule with approved55931. Existing assignments may be historical; this concerns new assignment. ARCHITECTURE.md:90 requires target grant eligibility locks before resource rows. Repair lock order/coordinated fence without post-board target-lock deadlock.'),
+'F-CA-05':dict(severity='P2',description='Notification Open card drops target card. Backend comment/consumer stores?cardId=:id; inbox/page.tsx:34 appHref recognizes only?card=. Actual Member Chrome href was /board?id=:board; clicking ends on correct board with0carddialogs.',rationale='Own actual browser-notification-link result/screenshot, sourceChanged[]. Root source confirmation agrees. Authorized board is correct and manual card opening works, but notification deep-link acceptance NTF-02 requires target card.'),
+}
+coverage=json.loads((base/'coverage-pre-freeze.json').read_text())
+for group,scores,relevant in [('cards-comments',['8.4','8.0','7.8','8.0','8.3','8.2'],['F-CA-02','F-CA-03','F-CA-04']),('activity-discovery-ux',['8.4','7.9','8.4','8.0','8.3','8.2'],['F-CA-01','F-CA-02','F-CA-03','F-CA-05'])]:
+ criteriaPath=f'docs/reviews/FULL-REVALIDATION-20261103/criteria/{group}.json';criteria=json.loads(Path(criteriaPath).read_text())
+ roots=list(dict.fromkeys(shared+[criteriaPath]));files={}
+ for root in roots:
+  p=Path(root)
+  for f in sorted(p.rglob('*')) if p.is_dir() else [p]:
+   if f.is_file():files[str(f)]=hashlib.sha256(f.read_bytes()).hexdigest()
+ digest=hashlib.sha256(json.dumps(files,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+ evidence=[str(base/'findings-pre-freeze.md'),str(base/'coverage-pre-freeze.json'),str(base/'diagnostic-executions.json')]
+ reasons={
+ 'security':'Server mounted project/board/actor/auth boundaries have own465cell matrix evidence, but unchanged fetched comment body survives known denial in real browser. Security minimum9.0 is not met.',
+ 'correctness':'Multiple mandatory contract violations are reproduced: unknown fields accepted; activity group also stale preview/deep-link mismatch. No mandatory failures are averaged away.',
+ 'integrity':'Real separate-connection tests show robust OCC/replay/outbox fencing; cards group has confirmed recipient role-demotion/new-assignment race. Global lifecycle/import dependencies changed and require fresh frozen evidence.',
+ 'tests':'Own127+541focusedAPI and318web checks plus targetedPG/Chrome observations exist; no final immutable global target/all14 independently executed commands. Invalid defaultDB attempt excluded in full.',
+ 'maintainability':'Clear route/adapter/contracts boundaries and shared retention/idempotency helpers; parallel comment draft store misses existing protected registry and schema behavior drifts from published contract.',
+ 'operations':'Bounded SQL/pages/outboxbatch/retries/deadlines and actual local Node/Worker workload logs exist, attributed to their executor. No hostedcoldstart/CPU/Hyperdrive/provider claim; final operational checks pending.'}
+ cats={key:{'weight':weight,'score':score,'reason':reasons[key],'evidencePaths':evidence} for key,weight,score in zip(['security','correctness','integrity','tests','maintainability','operations'],[30,25,15,15,10,5],scores)}
+ total=sum(Decimal(c['score'])*c['weight'] for c in cats.values())/100
+ data={
+ 'schemaVersion':1,'featureIds':criteria['featureIds'],'criteriaVersion':'backend-review-v1','criteriaPath':criteriaPath,
+ 'startedAt':'2026-11-03T09:56:00+00:00','completedAt':now,
+ 'implementer':{'actorId':'collaboration:/root','sessionId':'collaboration:/root','model':'Codex root implementer; exact provider model identifier unavailable'},
+ 'reviewer':{'actorId':'collaboration:/root/formal_cards_activity_round1','sessionId':'collaboration:/root/formal_cards_activity_round1','model':'Codex inherited reviewer model; exact provider model identifier unavailable','independent':True,'freshContext':True,'implementedTarget':False,'independenceEvidence':str(base/'independence.md')},
+ 'target':{'kind':'sha256-manifest','scopeRoots':roots,'files':files,'digest':digest},
+ 'targetQualification':'Discovery inventory only. Shared source changed during review; no final global immutablefreeze/all14 exists. Claim-specific browser/source hashes are retained. New builder repairs invalidate any future approval; this record grants none.',
+ 'criteriaResults':{c:'incomplete' for c in criteria['mandatoryCriteria']},
+ 'featureOutcomes':[r for r in coverage['results'] if r['id'] in criteria['featureIds']],
+ 'tests':[{'id':id,'command':command,'exitCode':None,'environment':'Final independent execution against final globalfreeze pending; diagnostic executions are separately attributed','isolatedSynthetic':True,'targetDigest':digest,'evidencePath':str(base/'pending-required-checks.md')} for id,command in criteria['requiredTests'].items()],
+ 'diagnosticEvidencePath':str(base/'diagnostic-executions.json'),
+ 'categories':cats,'weightedScore':str(total),'scoreQualification':'Provisional evidence-backed pre-freeze score, not approval. Fixed weights/minima preserved; unknown final checks are incomplete, never fabricated passes.',
+ 'findings':[dict(id=id,disposition='open',mandatory=True,blocking=True,**findings[id]) for id in relevant],
+ 'hardBlockers':['Open mandatory acceptance defects remain; source notgloballyfrozen; final14requiredcommands unexecuted for this exact inventory'],
+ 'coverageGaps':['Finalglobalfreeze and independent14command logs/exits needed.','Fresh final local browser pass and current backend/UI/integration hashbindings needed; previous builder browser results are attributed historicaldiagnostics.','AUD-01/02 assignment-only UI sentence recognizes assigneeIds but backend emits assignees; referenced assignee-history readability needs final browser verification.','UX-05 local actualNode/workerd first/warm workload exists; hostedcoldstart/CPU/Hyperdrive/R2/provider acceptance remains pendingUAT per explicit localgates->UAT sequence.','Dependency advisory status not checkedonline; not claimed clean.','Shared source/fixtures changed during focuseddiagnostics, listed in source-after-discovery; new repairedsource needs fresh review.'],
+ 'verdict':'incomplete','failureQualification':'Incomplete record also contains confirmed mandatory failures; it cannot be consumed as passinghandoff. Rootrequested preservation before builder repairs and finalfreshreview.',
+ 'rootConfirmation':'Architect/root reported independent reproduction of stalecommentpreview, unchangedcanonicalcommentdraft and actualassigneedemotionrace; separately read actualUI source and reviewed browserdeep-link/retention evidence. Rootexecutor logs are not claimed reviewercommands.'}
+ path=base/f'{group}-{digest}-round-1.json';path.write_text(json.dumps(data,indent=2)+'\n');print(json.dumps({'group':group,'path':str(path),'digest':digest,'score':str(total),'files':len(files),'verdict':'incomplete'}))

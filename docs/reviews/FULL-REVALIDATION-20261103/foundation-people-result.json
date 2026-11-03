@@ -1,0 +1,298 @@
+{
+  "type": "builder_foundation_and_user_policy_handoff_not_acceptance_review",
+  "date": "2026-11-03",
+  "criteria": [
+    "docs/reviews/FULL-REVALIDATION-20261103/criteria/foundation.json",
+    "docs/reviews/FULL-REVALIDATION-20261103/criteria/people-directory-policy.json"
+  ],
+  "feature_ids": [
+    "FND-02",
+    "PRJ-05",
+    "RBAC-01",
+    "RBAC-04"
+  ],
+  "baseline_commit": "917706ae0433df471c72736be4d548eb022236c4",
+  "independent_review": "pending fresh full reachable target review",
+  "score": null,
+  "feature_closure_claimed": false,
+  "owned_changed_files": [
+    "packages/contracts/src/openapi/index.ts",
+    "packages/contracts/src/openapi/schemas.ts",
+    "packages/contracts/test/openapi.test.ts",
+    "scripts/generate-openapi.ts",
+    "docs/openapi.json",
+    "docs/API.md",
+    "package.json",
+    "apps/api/test/openapi-parity.test.ts",
+    "apps/api/src/adapters/projects.ts",
+    "apps/api/src/http/routes/projects.ts",
+    "apps/api/test/prj02-prj05.test.ts",
+    "apps/api/test/board-access.test.ts",
+    "apps/api/test/people-directory-policy.test.ts",
+    "docs/reviews/FULL-REVALIDATION-20261103/criteria/people-directory-policy.json"
+  ],
+  "contribution_limit": "Root package.json edits by this builder add scripts only; root may separately add browser tooling dependencies. API runtime changes are restricted to full directory authorization only; other runtime routes untouched.",
+  "manifest": [
+    {
+      "path": "packages/contracts/src/openapi/index.ts",
+      "sha256": "0dd3532172d284f9d58b996e35d091fd6a8489fe596c2895e2d0b4da18cde75f"
+    },
+    {
+      "path": "packages/contracts/src/openapi/schemas.ts",
+      "sha256": "6ae46d36607e210a4aa57aaedf30da57ebc1f34d253c071ef61c824fc708fd66"
+    },
+    {
+      "path": "packages/contracts/test/openapi.test.ts",
+      "sha256": "11b319cc43f3651fae68ea963f7203cfe23020e952f739e23387199c1ec8dc1b"
+    },
+    {
+      "path": "scripts/generate-openapi.ts",
+      "sha256": "4c3853c9a7c969f046a8c02425ed320ad3d4ce41fb88fcde1a17cd3b9f37547a"
+    },
+    {
+      "path": "docs/openapi.json",
+      "sha256": "9f9dfe0abdd3cf983792f54daac1fab03ebd83888b1fe673e0653cc4d8f54d1e"
+    },
+    {
+      "path": "docs/API.md",
+      "sha256": "d25189ad9deac71e175d6acd5b9c2918f75886702f2f0a82f098d9d2057e21ae"
+    },
+    {
+      "path": "package.json",
+      "sha256": "146915855f784db0d60cb5b994f57d064ec68cf36360f1e013788bc55a06bf80"
+    },
+    {
+      "path": "apps/api/test/openapi-parity.test.ts",
+      "sha256": "fcad7c8935497cf4458663444a8a291400692cb3f6de0957c33cfdb7f2ba303c"
+    },
+    {
+      "path": "apps/api/src/adapters/projects.ts",
+      "sha256": "645a1251fc78dd190125eb63afbadaaf9ed26b7da727cdb7510516f56bd14e9b"
+    },
+    {
+      "path": "apps/api/src/http/routes/projects.ts",
+      "sha256": "e9dbdb22598d396c1f8149a5e5d51b90b90c6723c7b71da285b89c95258b6c71"
+    },
+    {
+      "path": "apps/api/test/prj02-prj05.test.ts",
+      "sha256": "f3e46c9a42b09d20195dc08281d7e5e23df902a2bb6e121b635d0b6f55e098da"
+    },
+    {
+      "path": "apps/api/test/board-access.test.ts",
+      "sha256": "ff9b9c8ae740dd1d9bfa0649a7b2b417925fb8c8aa95c83074fcd7417cc972b3"
+    },
+    {
+      "path": "apps/api/test/people-directory-policy.test.ts",
+      "sha256": "4eb42a105651eebf136630614d239b403ba634e49cd7c6b749fa5f7c7cef3d35"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/criteria/people-directory-policy.json",
+      "sha256": "6fbca851138c8ebcc5e6f42f51296b138856f4c02290de88337ce7aba5023608"
+    }
+  ],
+  "implementation": [
+    "Preserved public OPENAPI_SPEC_METADATA/OPENAPI_ROUTES exports and original OpenApiRouteDefinition consumer interface; rich operation binding extends the interface.",
+    "Build-time native Zod4 JSON Schema generator emits docs/openapi.json; missing operation/schema errors are explicit, no unrestricted fallback. No new dependency or backend import into contracts, no generation in normal product runtime.",
+    "Actual shared Hono registration parity covers103 explicit operations/aliases under test and production registration flags; separate exact parity covers six PAT capabilities. Implicit HEAD/CORS OPTIONS are documented as middleware behavior.",
+    "Request/query/response/error schemas, session/admin/bearer authority, role/scopes/idempotency, retired typed410 exact route, OAuth redirects, 204 empty response, binary XLSX/image and CSV report MIME are explicit.",
+    "Source-grounded wire projections distinguish full session Board list vs strict PAT metadata, minimal retry receipts vs full resources, archive Board projection, nested image gallery and other actual envelope differences.",
+    "Emitted JSON Schema structural validation uses pinned Zod native fromJSONSchema against positive/negative fixtures and actual mounted responses; custom JavaScript semantic refinements are explicitly not claimed fully compiled. Two sibling projects have distinct active members.",
+    "New explicit user policy full People directory Owner/current Project Manager only is canonical in getProjectMembers, with owned transaction for direct pool calls and workspace/member SHARE locks through directory assembly. Member/Viewer403 no data/email, outsider/removed404, archived admin reads allowed. Board-scoped public pickers unchanged.",
+    "Related old directory expectations changed to403/no data. Existing mounted directory revocation race now uses a temporary authorized Manager fixture, retaining real PostgreSQL serialization rather than dropping the race."
+  ],
+  "generated_document_at_handoff": {
+    "path": "docs/openapi.json",
+    "operations": 103,
+    "schemas": 221,
+    "build_commands": [
+      "npm run openapi:generate",
+      "npm run openapi:check"
+    ],
+    "known_reopen": "Root concurrently added MyTasks cursor/due-state shared schemas and is explicitly updating MyTasks OpenAPI bindings after this handoff; current legacy custom MyTasksQuery/MyTasksResponse definitions must be removed in favor of new shared exports."
+  },
+  "verification": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/foundation-openapi-parity-red.log",
+      "exit_code": 1,
+      "totals": {
+        "tests": 2,
+        "pass": 0,
+        "fail": 2,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "f851e465ef6399d528637a91d0ba2fb8d2cf790bd98eae0364d6b06f2df32fc7"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/people-directory-red.log",
+      "exit_code": 1,
+      "totals": {
+        "tests": 4,
+        "pass": 1,
+        "fail": 3,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "96a6682b80752ffe68d775cbd431e170de8c82a2d28d9b69d67e4a32a52ac907"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/foundation-openapi-mounted-first.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 4,
+        "pass": 4,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "438bc7fbaeb960785480c5d64f738dd9c3f598b18ebb04082a9848b15542ee31"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/foundation-people-mounted-green.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 8,
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "e37a9819f86c94d79565b114bdb7d48100c5cc4d6f5d6ce5fde26bb22285d5ba"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/people-directory-legacy.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 45,
+        "pass": 45,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "652d7e183e04711549208e0649281c6dbc37a0997779c20ca545676779ef28a1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/foundation-contracts-final.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 123,
+        "pass": 123,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "250f1288e0262c7334631dc836be7894b4e0bc2f34727acf4c40cccc04a37cbe"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/foundation-openapi-inventory-final.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 3,
+        "pass": 3,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "3918bebb05b2acf7824f7c7599f82a0f9d6b30b650956b5a8925b9caf9cdeb2e"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/foundation-openapi-check-final.log",
+      "exit_code": 0,
+      "totals": {},
+      "sha256": "df3fe229a1ba6dfb07e875d558d7bf1e673affe4106a18d5e3b42c740733664d"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/foundation-openapi-generate-final.log",
+      "exit_code": 0,
+      "totals": {},
+      "sha256": "f244638b7914a1a2a662db589be99795dbbbbae04ac0c21c53adb93bd1455cf9"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/foundation-typecheck-final.log",
+      "exit_code": 1,
+      "totals": {},
+      "sha256": "fe795201afb6d90867e0e00b021ee50235a34a26611209e7a2f1845348824fba"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/foundation-openapi-typecheck-compat.log",
+      "exit_code": 0,
+      "totals": {},
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    }
+  ],
+  "verification_scope": {
+    "mounted_wire_and_people": "8/8,0skip on fresh identity-extra schemas; exercised session/PAT/replay/lifecycle/MIME plus directory role matrix and both read/demotion ordering directions before concurrent Root MyTasks work.",
+    "legacy_directory": "45/45,0skip normal prj02-prj05 +comprehensive board-access suites using root-reserved primary/access DBs; filesystem migrations included lifecycle0024. Databases released afterward.",
+    "contract_suite": "123/123,0skip; includes schema-generated artifact/fixture checks and literalfalse includeArchived query case.",
+    "current_typecheck": "Most recent root typecheck exit1 ONLY on lifecycle owner test UUID template inference at boards-lifecycle-repair.test.ts115-116; owner notified. Earlier same-phase root typechecks passed. No owned FND/People source/test typing error appears in current failure log.",
+    "final_inventory_only": "3/3; optional mounted PG test intentionally not selected in this final name-filter command; separate8-case mounted run was executed with zero skips.",
+    "not_claimed": "No complete API/build/full UI/browser/hosted acceptance or fresh independent review by this builder."
+  },
+  "commands": {
+    "generator": "node scripts/generate-openapi.ts",
+    "staleness": "npm run openapi:check",
+    "contracts": "npm run test --workspace @flowboard/contracts",
+    "typecheck": "npm run typecheck",
+    "extra_database": "node --test-concurrency=1 --test apps/api/test/people-directory-policy.test.ts apps/api/test/openapi-parity.test.ts",
+    "legacy": "node --test-concurrency=1 --test apps/api/test/prj02-prj05.test.ts apps/api/test/board-access.test.ts",
+    "inventory_only": "node --test --test-name-pattern='OpenAPI parity' apps/api/test/openapi-parity.test.ts",
+    "environment": "NODE_ENV=test, WRANGLER_SEND_METRICS=false, temporary HOME; DATABASE_URL=synthetic primary55931/flowboard_harness and FLOWBOARD_ACCESS_TEST_DATABASE_URL=synthetic55931/flowboard_access_test only during root reservation; new tests use FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL=synthetic55931/flowboard_identity_extra_test and fresh generated schemas. No connection passwords printed in evidence."
+  },
+  "failure_history": [
+    "Original metadata route parity0passed2failed before catalogue/schema generation, preserving missing and phantom routes plus missing explicit PAT scope metadata.",
+    "New user-directed People suite baseline1passed3failed before authorization changes; pickers already passed, while Member/Viewer directory and post-demotion disclosure assertions failed.",
+    "Generated native-schema fixtures and mounted wire checks passed once added; they are positive and malformed/private-field negative structural checks, not independent security approval.",
+    "Current final typecheck failure is a concurrently edited lifecycle test helper; recorded by exact path/lines and communicated, not hidden or attributed to passing checks."
+  ],
+  "true_public_schema_wire_differences": [
+    {
+      "shared": "LogoutResponse",
+      "wire": "POST logout204 empty; historical JSON success schema not its response"
+    },
+    {
+      "shared": "BoardResponse",
+      "wire": "archive/reopen omit workspaceId/description; separate BoardLifecycleResponse composed with omitted fields"
+    },
+    {
+      "shared": "FinalizedImageListResponse",
+      "wire": "gallery nested data.items/nextCursor/totalCount"
+    },
+    {
+      "shared": "CardResponse",
+      "wire": "card detail adds data.people and top-level people; separate CardDetailResponse"
+    },
+    {
+      "shared": "CardListResponse",
+      "wire": "project search adds active/matching counts; separate CardSearchResponse"
+    },
+    {
+      "shared": "generic full resource responses",
+      "wire": "receipt replay has only safe whitelist markers, not retained full content"
+    },
+    {
+      "shared": "LastLocationResponse",
+      "wire": "wire permits null when location cannot remain valid"
+    },
+    {
+      "shared": "ErrorEnvelope",
+      "wire": "system/status403 and Worker pre-app missing-binding500 lack requestId; explicitly separate projections"
+    },
+    {
+      "shared": "BoardLifecycleInput/ProjectLifecycleInput",
+      "wire": "current archive/reopen routes do not consume an expectedVersion body"
+    },
+    {
+      "shared": "pre-QRY03 My Tasks convenience wire",
+      "wire": "Root is actively replacing bounded-firstpage no-cursor shape with new shared cursor/filter schema; exact two custom definitions intentionally flagged for Root handoff update, not represented as final agreement"
+    }
+  ],
+  "root_followups": [
+    "Immediately remove custom wire(MyTasksQuery) and wire(MyTasksResponse) in schemas.ts now that Root shared exports use same names; use shared new response, derive workspace query via omit workspaceId, update metadata summary/docs/MyTasks mounted-wire expectation and regenerate. Those two pre-QRY03 wire definitions currently override new auto-registered names.",
+    "Lifecycle continues internal soft-column/history/placement work after released databases; schema generation and tests must run again on final stable source. No claim full BRD06 completed from temporary FK guard.",
+    "Resolve current external lifecycle UUID test typing error, then full final typecheck/build/API/access/UI/integration gates and fresh independent immutable manifest reviews.",
+    "Root documents new user People policy in canonical feature decisions/checklists; UI owner hides/guards full People administration for Member/Viewer while retaining permitted pickers.",
+    "Native JSON Schema structural conversion does not compile arbitrary refinements/transforms or prove all endpoints execute output-schema parsing. Mounted response checks cover a meaningful subset, not success/failure execution of all103 routes.",
+    "Ordinary directory returns nextCursor:null without SQL pagination; current membership cap is not claimed as a measured hard response bound for grandfathered data.",
+    "Real OAuth/mail/deployed privilege/index/provenance and signed-in browser workflow checks stay UAT pending after local gates and direct UAT; no dev/prod/commit/push/cloud changes by this builder."
+  ]
+}

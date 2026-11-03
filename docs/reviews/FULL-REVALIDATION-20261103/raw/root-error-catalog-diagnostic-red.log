@@ -1,0 +1,38 @@
+✖ ERR-R1 S13 and ERR-R1b: every error code the API throws is in the shared catalog (62.235292ms)
+ℹ scan found 116 codes, 0 unresolved identifiers
+✔ ERR-R1 S13: every catalog entry that carries details has a details schema (1.738ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 242.389167
+
+✖ failing tests:
+
+test at apps/api/test/error-catalog-scan.test.ts:133:1
+✖ ERR-R1 S13 and ERR-R1b: every error code the API throws is in the shared catalog (62.235292ms)
+  AssertionError [ERR_ASSERTION]: codes thrown by apps/api/src but missing from packages/contracts ERROR_CATALOG
+  + actual - expected
+  
+  + [
+  +   'MALFORMED_IMAGE',
+  +   'MEGAPIXELS_EXCEEDED',
+  +   'REJECTED_FORMAT'
+  + ]
+  - []
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/error-catalog-scan.test.ts:139:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 'MALFORMED_IMAGE', 'MEGAPIXELS_EXCEEDED', 'REJECTED_FORMAT' ],
+    expected: [],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

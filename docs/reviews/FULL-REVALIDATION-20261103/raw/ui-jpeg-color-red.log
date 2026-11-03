@@ -1,0 +1,77 @@
+✔ small file within limits is kept as it is (2.70775ms)
+✔ exactly 300 KB and 2560 px is still skipped (0.144625ms)
+✔ mid-size file at normal dimensions is re-encoded without resizing (0.113583ms)
+✔ landscape over 2560 is scaled by its longest side, keeping the aspect ratio (0.0805ms)
+✔ tall phone photo is scaled by height (0.078459ms)
+✔ a small file that is over 2560 px is still resized (0.067541ms)
+✔ a small file outside server limits is not skipped (0.077958ms)
+✔ keeps the original unless the result is at least 10% smaller (no resize) (0.095708ms)
+✔ a resized result wins when it is smaller at all (0.075583ms)
+✔ a resized result wins when the original breaks a server limit (0.138375ms)
+✔ a result over 10 MiB is never chosen (0.0745ms)
+✔ file name extension follows the new type (0.224375ms)
+✔ reads PNG dimensions (0.188333ms)
+✔ reads JPEG dimensions after other segments (0.07625ms)
+✔ reads WebP VP8X dimensions (0.075ms)
+✔ unknown bytes give null (0.038833ms)
+✔ photo: resized, converted to WebP, renamed, hashed from the exact bytes (2.467958ms)
+✔ small file is uploaded untouched and never encoded (0.262792ms)
+✔ a result that is not 10% smaller keeps the original (1.305916ms)
+✔ PNG with alpha and no WebP encoder keeps PNG; opaque PNG falls back to JPEG (3.077459ms)
+✔ alpha is only checked for formats that can have it (1.540166ms)
+✔ decode failure falls back to the original with a note, when the server can take it (1.682834ms)
+✔ decode failure on an over-10 MB file is reported, not uploaded (12.78225ms)
+✔ over 20 megapixels is refused from the header, before decoding (0.816084ms)
+✔ over 20 megapixels is also refused when only decoding reveals it (5.271959ms)
+✔ 12 megapixel image is accepted and resized (4.060167ms)
+✔ wrong type and huge input are refused (30.077375ms)
+✔ retries with lower quality when the first result is over 10 MiB (28.417208ms)
+✔ alpha sample never exceeds 256 px a side and keeps the aspect ratio (0.199833ms)
+✔ detects the VP8X animation flag (0.144417ms)
+✔ an animated WebP is uploaded as it is and never decoded or encoded (1.3585ms)
+✔ an animated WebP over 10 MiB is refused with a clear message (4.186042ms)
+✖ CMYK: even a small efficient JPEG is converted before upload (1.212667ms)
+✖ CMYK: decode or encode failure never silently uploads incompatible original bytes (0.513625ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 32
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 275.825125
+
+✖ failing tests:
+
+test at apps/web/test/image-prepare.test.ts:187:1
+✖ CMYK: even a small efficient JPEG is converted before upload (1.212667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'image/jpeg'
+  - 'image/webp'
+           ^
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/image-prepare.test.ts:190:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'image/jpeg',
+    expected: 'image/webp',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/web/test/image-prepare.test.ts:194:1
+✖ CMYK: decode or encode failure never silently uploads incompatible original bytes (0.513625ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/image-prepare.test.ts:198:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }

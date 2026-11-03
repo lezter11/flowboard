@@ -1,0 +1,228 @@
+{
+  "kind": "bounded_cursor_integrity_repair_not_approval",
+  "date": "2026-11-03",
+  "criteria": "docs/reviews/FULL-REVALIDATION-20261103/criteria/cursor-integrity-repair.json",
+  "criteriaVersionsPreserved": [
+    1,
+    2,
+    3,
+    4
+  ],
+  "sourceManifest": [
+    {
+      "path": "apps/api/src/services/cursor-timestamp.ts",
+      "sha256": "6e626095192bb3fce8aded1f06ec7839ade4649cea0046b539b79eea0db94e52"
+    },
+    {
+      "path": "apps/api/src/adapters/comments.ts",
+      "sha256": "f75fd5fc6e6db82b3c3590aac0b4f28a2407d23958946d271d61b755bd60f510"
+    },
+    {
+      "path": "apps/api/src/adapters/trash.ts",
+      "sha256": "af065b61ee0068be64a501f300f13040b43eaaee9c5df0caeca4492ad74f7e87"
+    },
+    {
+      "path": "apps/api/src/adapters/activity.ts",
+      "sha256": "013fc9f4b31332eec7bccc5b741657b68949a85b816c9e71a4d940c85ec98338"
+    },
+    {
+      "path": "apps/api/src/adapters/notifications.ts",
+      "sha256": "af5d1304448f569cffdb1f3a63c0265f99302d29e350eca331fdc8b178a0a465"
+    },
+    {
+      "path": "apps/api/src/adapters/projects.ts",
+      "sha256": "00e962a4f3713113b44b1186a1c3c968d8d8a00bca87fa7db8ead161eb7d9d1b"
+    },
+    {
+      "path": "apps/api/src/http/routes/trash.ts",
+      "sha256": "8abc475bddef983df52f48fe4e871feb6350e9e86ee56f17d4fd88095824836e"
+    },
+    {
+      "path": "apps/api/src/http/routes/notifications.ts",
+      "sha256": "e20a2fece6e3925076984f139cd260edb35b79ecd4e4817c5980ff773d3a2dfc"
+    },
+    {
+      "path": "packages/contracts/src/discussion.ts",
+      "sha256": "5f1dea023fd81e374d4758302c0f235d1e3276953e30bfe1780a74666ac9a28c"
+    },
+    {
+      "path": "apps/api/test/cursor-integrity-repair.test.ts",
+      "sha256": "cc4c89bfe5ac2512f908d1b68f0c8b3a74fcb06c543622b55d4ccbcc1e1aed21"
+    },
+    {
+      "path": "apps/api/test/aud-ntf.test.ts",
+      "sha256": "042dc402e4679f39f3cc92efa87b77ef0545aa9a51542ab2d834771b41eda35f"
+    },
+    {
+      "path": "packages/contracts/test/discussion-activity.test.ts",
+      "sha256": "ddc016945729eb7716ce73a521bbed35ee3fca6fcc270452c337ffec417dabcc"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/criteria/cursor-integrity-repair.json",
+      "sha256": "1fd3f995e78d0820ae3a5338571d06ee9677bd12be7530710bcc00e0c87e108a"
+    }
+  ],
+  "behavior": [
+    "SQLto_char UTC US timestamp remains cursor boundary for ASC comments and DESC trash; display timestamp remains milliseconds.",
+    "Shared private cursor validator rejects impossible Gregorian days/yearzero/invalid clocks/noncanonicaltimestamp text before SQL. Existing activity/notification microsecond boundaries retained, hardened decoding only.",
+    "Comments/trash v2 bind actor and resource/project. Existing activity/notification actor/filter/resource binding preserved. Ambiguous old cursors refresh with409.",
+    "Projects lexical name/id cursor v2 binds actor and workspace or authenticated PAT selected-project scope; malformed/old/scope-mismatched cursor400 INVALID_CURSOR. No all-project hash scan; everypage still authorizes current grants. Session ?projectId is not an invented selector.",
+    "Free cursor id/name text is bounded/nonempty validUnicode withoutNUL before PostgreSQL TEXT encoding.",
+    "Trash query now parseOrThrow rather than discard invalid cursor/limit; cursor1..4096. Shared notificationQuerySchema strict limit1..100/default50,cursor1..4096,literaltruefalse to boolean/defaultfalse; malformedfields422."
+  ],
+  "commands": [
+    {
+      "command": "node --test --test-concurrency=1 apps/api/test/cursor-integrity-repair.test.ts",
+      "environment": "env-i PATH,syntheticHOME,NODE_ENVtest,Wranglermetricsfalse; loopback55931identity-extra DB with fresh schema per test; no cloud/provider",
+      "exitCode": 0,
+      "pass": 38,
+      "fail": 0,
+      "skip": 0,
+      "log": "raw/cursor-integrity-final-v4.log"
+    },
+    {
+      "command": "node --test --test-concurrency=1 apps/api/test/prj02-prj05.test.ts apps/api/test/com-del.test.ts apps/api/test/aud-ntf.test.ts apps/api/test/board-access-activity-notifications.test.ts apps/api/test/board-access.test.ts apps/api/test/b9-mention-access.test.ts",
+      "exitCode": 0,
+      "pass": 115,
+      "fail": 0,
+      "skip": 0,
+      "log": "raw/cursor-integrity-legacy-final-v3.log",
+      "sourceLimit": "Passed onv3before finalNUL/lone-surrogate narrowing. v4mounted38andtypecheck/contracts pass; complete finalAPIgate remainsroot-owned after otherownersfreeze."
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "raw/cursor-integrity-typecheck-v4.log"
+    },
+    {
+      "command": "npm test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "pass": 126,
+      "fail": 0,
+      "skip": 0,
+      "log": "raw/cursor-integrity-contracts.log"
+    },
+    {
+      "command": "git diff --check -- <owned paths>",
+      "exitCode": 0
+    }
+  ],
+  "retainedFailures": [
+    {
+      "path": "raw/cursor-integrity-red.log",
+      "pass": 6,
+      "fail": 14,
+      "description": "Comments repeated firstmicrosecondrow/trash skipped rows; forgedFeb30 gave500all6feeds; crossactorcomment/trashcursoraccepted; malformedprojectcursor silentlyrestarted."
+    },
+    {
+      "path": "raw/cursor-integrity-green.log",
+      "pass": 19,
+      "fail": 1,
+      "description": "One test wrongly treated unsupported session?projectId as realselector. Corrected to actual PAT-boundselectedproject, no APIfeatureinvented."
+    },
+    {
+      "path": "raw/notification-query-red.log",
+      "pass": 0,
+      "fail": 8,
+      "description": "Malformed limit/unreadOnly/cursor/unknown fields accepted200 before authorized strictschema repair."
+    },
+    {
+      "path": "raw/cursor-text-red.log",
+      "pass": 0,
+      "fail": 8,
+      "description": "ForgedNULid reached PostgreSQL500inall7families incllexicalproject, parentcountincluded."
+    },
+    {
+      "path": "raw/cursor-integrity-legacy.log",
+      "pass": 112,
+      "fail": 3,
+      "description": "Obsoleteaud-ntfshort-name mentionfixture vsactualfullnames, withparent/inboxcascade."
+    },
+    {
+      "path": "raw/cursor-integrity-legacy-final.log",
+      "pass": 113,
+      "fail": 2,
+      "description": "LaterreachedshortViewerfixture, correctedtoactualfullselectedname; allauthority/privacyassertionsretained."
+    },
+    {
+      "path": "raw/cursor-integrity-typecheck-final.log",
+      "exitCode": 1,
+      "description": "ExternalimageworkerparameterpropertyTS1294; imageownerfixedbeforefinaltypecheck0."
+    }
+  ],
+  "proofDetails": [
+    "Fourrowswithinone millisecond (100/500/900microseconds, fourthsame900) exerciseexacttimestamp+ID ties. Limit1walk compares everyID once across sixfeeds and bothsortdirections.",
+    "ForgedFeb30/year0000/hour25/garbagetimestamps denied before PG; oversized/legacy/scopemismatch and invalidtrashlimit controlled4xx.",
+    "CurrentOwner/Manager actors, twoprojects/twocards/twoworkspaces, actual PAT projectscope, notificationunreadfilter and lexicalsame-name ties."
+  ],
+  "limits": [
+    "No source score/approval/feature closure. Fresh independent review and full immutable gates remain root-owned.",
+    "No public route-ID hardening beyond cursor text; unrelated malformed URL-ID behavior not claimed.",
+    "Metadata/artifact root-owned; contracts126/126 proves current generatedgolden at commandtime, not everydeployedwire/provider behavior.",
+    "Primary/access reservations released; root uses primary forUndo work."
+  ],
+  "logs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-contracts.log",
+      "sha256": "1bb433729bd4e418eea5a670867eb27f9be2a59522efbd06809f38587babd4d2"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-final-v3.log",
+      "sha256": "9e158b1bb68196c75231d9e128a328698ee05da4c8bf4626cc66aa1f9114be4d"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-final-v4.log",
+      "sha256": "2d9082d18560fafa034468de0dd6ad8e740241dd8e67479d9511b853055e135d"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-final.log",
+      "sha256": "0f07e4a0a8c5863b6a1e22b611c97e3e3583605f08827127c1dbca64696875a1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-green.log",
+      "sha256": "e540157be98e32ccd7197170774cad3212ea44472094a38a06bd4eec4cac03f3"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-legacy-final-v3.log",
+      "sha256": "cd29be57a10fe68310e6f4b353b7a95995a935b8ac85444a34305cbb2856abd2"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-legacy-final.log",
+      "sha256": "7443091f66ead25fd40f921a4bfd9460f3d498244b2235fe6a8adcf0a81959dc"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-legacy.log",
+      "sha256": "eac617bda1ee994795044ac83afe7f154c3b12e8ca3c51cf8bab61f892046e5b"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-red.log",
+      "sha256": "36de532ff120540657542aae3dd7fd7958dd801fe24d015887930408be3b29eb"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-typecheck-final.log",
+      "sha256": "477a6f12cb2dda998b57d72ed867781bfba4eb4d9e74d807c000b01840f406fc"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-typecheck-v3.log",
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-typecheck-v4.log",
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-integrity-typecheck.log",
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/cursor-text-red.log",
+      "sha256": "26044bc3180647d205ba33116797c44a5f2dd6df52f5b275b5bda54bdf87d68e"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/notification-query-red.log",
+      "sha256": "9a18e9a1efe4a489a79578618cb8333360d633c47f47238b0db6ce1f408670d2"
+    }
+  ],
+  "score": null,
+  "approval": null
+}

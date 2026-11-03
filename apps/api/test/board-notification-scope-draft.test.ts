@@ -140,21 +140,24 @@ test('unmounted notification visibility draft on disposable PostgreSQL', { skip:
       );
 
       // Process outbox: member lacks board grant, so notification for member must NOT be created.
-      // Owner is workspace owner, so implicit grant creates notification for owner.
+      // The canonical source author is Owner. A forged copied author in the
+      // legacy payload cannot turn a self-mention into an Owner notification.
       await processOutboxLease(pool, { batchSize: 10 });
 
       const afterOb1MemberCount = Number((await pool.query(`SELECT count(*)::int AS n FROM notifications WHERE user_id = 'member' AND card_id = 'card'`)).rows[0].n);
       assert.equal(afterOb1MemberCount, initialMemberCount);
 
       const afterOb1OwnerCount = Number((await pool.query(`SELECT count(*)::int AS n FROM notifications WHERE user_id = 'owner' AND card_id = 'card'`)).rows[0].n);
-      assert.equal(afterOb1OwnerCount, initialOwnerCount + 1);
+      assert.equal(afterOb1OwnerCount, initialOwnerCount);
 
       // 2. Now grant member access to board 'b'
       await pool.query(`INSERT INTO board_grants(board_id, project_id, workspace_id, user_id, granted_by) VALUES ('b', 'p', 'w', 'member', 'owner')`);
 
       // Create card2 and comment2 on board 'b'
       await pool.query(`INSERT INTO cards(id,workspace_id,project_id,board_id,column_id,title,priority,position,state,created_at,updated_at) VALUES ('card2','w','p','b','col','Card Two','low',200,'active',now(),now())`);
-      await pool.query(`INSERT INTO comments(id,workspace_id,project_id,card_id,author_id,body,created_at,updated_at) VALUES ('comment2','w','p','card2','outside','Hello card2',now(),now())`);
+      await pool.query(`INSERT INTO comments(id,workspace_id,project_id,card_id,author_id,body,created_at,updated_at) VALUES ('comment2','w','p','card2','outside','Hello again @member and @owner',now(),now())`);
+      await pool.query(`INSERT INTO comment_mentions(id,comment_id,user_id,start_offset,end_offset,created_at) VALUES
+        ('mention2-member','comment2','member',12,19,now()),('mention2-owner','comment2','owner',24,30,now())`);
 
       // Queue another outbox job mentioning member on card2
       const payloadWithGrant = JSON.stringify({
@@ -162,8 +165,8 @@ test('unmounted notification visibility draft on disposable PostgreSQL', { skip:
         commentId: 'comment2',
         authorId: 'outside',
         actorDisplayName: 'Outside',
-        commentBody: 'Hello again @member',
-        mentions: ['member'],
+        commentBody: 'Hello again @member and @owner',
+        mentions: ['member', 'owner'],
       });
       await pool.query(
         `INSERT INTO outbox (id, workspace_id, project_id, event_type, payload, status, retry_count, next_retry_at, created_at)
@@ -175,6 +178,8 @@ test('unmounted notification visibility draft on disposable PostgreSQL', { skip:
 
       const notifMemberCard2 = await pool.query(`SELECT * FROM notifications WHERE user_id = 'member' AND card_id = 'card2'`);
       assert.equal(notifMemberCard2.rows.length, 1);
+      const notifOwnerCard2 = await pool.query(`SELECT * FROM notifications WHERE user_id = 'owner' AND card_id = 'card2'`);
+      assert.equal(notifOwnerCard2.rows.length, 1, 'a real other-author mention reaches Owner through implicit board access');
     });
   } finally {await pool.end();await admin.query(`DROP SCHEMA "${schema}" CASCADE`);await admin.end();}
 });

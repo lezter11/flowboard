@@ -1,0 +1,29 @@
+{
+  "version": 1,
+  "date": "2026-11-03",
+  "frozenBeforeProbeCode": true,
+  "mode": "validation only; new tests/helpers/evidence, no runtime edits without root coordination",
+  "criteria": [
+    "Filter actual mounted explicit nonGET resource-ID operations and require exact OpenAPI inventory parity. Every candidate is either given a real typed scenario or explicitly classified retired/own-resource/unscoped/token-bound/deferred with existing test evidence; no missing route silently disappears.",
+    "Each operation uses a fresh identity-extra PostgreSQL schema, genuine existing target resources and two unrelated workspaces. OwnerA/ManagerA/MemberA/ViewerA have actual roles/grants in A and no membership in targetB. All must receive private404 or source-defined403 and no data/persisted effects on B writes.",
+    "For board-derived writes add active B Manager/Member/Viewer lacking the target board grant; deny before mutation. OwnerB implicit board access remains valid. ManagerB may create a new board without an old-board grant and gets only its creator grant; do not call legitimate project-admin capabilities board denials.",
+    "Each covered write must have an authorized OwnerB or appropriate actor positive control with valid current versions, actual shared/wire Zod request fixture and workflow state. Run denials before the one mutating control; never count malformed422/stale409/missing404 as auth proof. If positive control cannot be made valid, mark that operation unproven and report missing fixture/precondition instead of counting its denials.",
+    "Prepare workflow state with real mounted APIs where required: image content/finalize, import preview/mapping/commit/cancel, card moveundo and archived reopen. Use real PNG/XLSX and current versions/digests. No fake decoder/provider/auth. Only limiter ports may be deterministic fakes.",
+    "Compare all app tables, sequence state and storage mutation counters before/after every denial. No private data field or target marker in denial; never persist headers/cookies/tokens/raw credential-bearing responses.",
+    "Add protected project role-target cases: Manager cannot appoint/remove peerManager/Owner or promote self; Member/Viewer cannot administer. Use valid body/current target version and positive Owner/appropriate permitted-role controls or explicit matching nearest realPG tests.",
+    "Retired410, invitation acceptance verified-token workflow, caller-owned global operations and admin/provider endpoints are classified separately; do not invent foreign-resource denial expectations for legitimate own-context behavior.",
+    "Record actual operation/cell/control totals, failures, typed factory coverage and remaining coverage with exact existing test sources. Preserve raw failure logs, typecheck and targeted test results. No builder score, independent approval, hosted or full-role-combination claim."
+  ],
+  "environment": [
+    "Only127.0.0.1:55931/flowboard_identity_extra_test with fresh schemas. No primary/access DB.",
+    "Clean env, synthetic HOME/NODE_ENVtest/CURSOR_SECRET,metricsfalse; synthetic identities only, no live admin/provider credentials."
+  ],
+  "plannedFiles": [
+    "apps/api/test/cookie-mutation-matrix.test.ts",
+    "apps/api/test/support/cookie-mutation-fixture.ts",
+    "docs/reviews/FULL-REVALIDATION-20261103/raw/cookie-mutation-*",
+    "docs/reviews/FULL-REVALIDATION-20261103/cookie-mutation-result.md/.json"
+  ],
+  "approval": null,
+  "score": null
+}

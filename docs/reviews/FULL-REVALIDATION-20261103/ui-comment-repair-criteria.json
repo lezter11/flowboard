@@ -1,0 +1,15 @@
+{
+  "version": "ui-comment-repair-1",
+  "risk": "sensitive",
+  "affectedFeatures": ["CRD-01", "CRD-11", "COM-01", "COM-02", "COM-03", "COM-04", "COM-05", "COM-06", "AUD-01", "UX-01", "UX-02", "UX-04"],
+  "mandatoryCriteria": [
+    "Quick-add and comment creation retain stable operation identity and original semantic input across unknown responses; no automatic new key after transport failure. Explicit user edits/new operations remain distinguishable, and committed lost replies cannot duplicate effects.",
+    "Readers can page the entire permitted comment/activity history using server cursors. Counts and unseen pages are explicit; errors and stale cursors preserve unsaved drafts and offer deliberate recovery.",
+    "Authors can edit their own comments with versions and safe mention validation; author/Owner/Manager can delete according to backend role rules with confirmation. Member/Viewer cannot moderate others; Manager cannot edit another author's text. Tombstones hide bodies; v1 edits do not re-notify.",
+    "Comment create/edit drafts survive field Save, ordinary refetch and recoverable errors. Card or project switching protects unsaved text; Enter in a mention picker cannot post accidentally. Selected UTF-16 mention spans follow the actual draft.",
+    "Loading/pending/forbidden/conflict/expiry/offline states have meaningful recovery and no fake success. Keyboard/focus/screen-reader affordances are implemented and verified, not inferred from a screenshot.",
+    "Use existing backend contracts through typed API helpers with envelopes intact. Do not break API/MCP priority-none compatibility while preserving explicit priority selection in UI creation flows.",
+    "Meaningful unit/integration regressions cover original payload/key after response loss, role controls, pagination and draft transitions. Browser acceptance and independent review of the final immutable full-product target remain required; source/unit evidence alone does not close UI/integration phases."
+  ],
+  "scopeLimits": "First bounded UI repair is comments plus shared quick-add retry identity. Do not concurrently alter backend/contracts, product feature definitions or deployment. Additional board/filter/placement/settings/People gaps are subsequent bounded slices."
+}

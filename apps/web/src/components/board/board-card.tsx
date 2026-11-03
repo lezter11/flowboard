@@ -11,6 +11,7 @@ export type CardStyle = 'focus' | 'glass';
 
 interface Props {
   card: CardSummary;
+  asOfDate?:string|null;
   done: boolean;
   view: 'board' | 'list';
   cardStyle: CardStyle;
@@ -31,10 +32,10 @@ interface Props {
 const cap = (value: string) => value[0]!.toUpperCase() + value.slice(1);
 
 /** One card; markup and classes follow cardHTML() in design/flowboard-ui/board.js. */
-export function BoardCard({ card, done, view, cardStyle, people, canMove, chip = null, draggable, dragging, onOpen, onMove, onDragStart, onDragEnd, preview = false }: Props) {
+export function BoardCard({ card, done, view, cardStyle, people, canMove, chip = null, draggable, dragging, onOpen, onMove, onDragStart, onDragEnd, preview = false, asOfDate = null }: Props) {
   const list = view === 'list';
   const glass = !list && cardStyle === 'glass';
-  const due = dueInfo(card.dueDate, done);
+  const due = dueInfo(card.dueDate, done,asOfDate);
   const names = card.assigneeIds.map((id) => formatPersonName(people.get(id), 'Unknown member'));
 
   const key = card.key ? <span className="card-key">{card.key}</span> : null;
@@ -51,7 +52,7 @@ export function BoardCard({ card, done, view, cardStyle, people, canMove, chip =
   const assignees = card.assigneeIds.length ? (
     <span className="assignee-group" role="group" aria-label={`Assigned to ${names.join(', ')}`}>
       <span className="avatar-stack" aria-hidden="true">
-        {card.assigneeIds.slice(0, 2).map((id) => <Avatar key={id} id={id} name={formatPersonName(people.get(id), 'Unknown member')} />)}
+        {card.assigneeIds.slice(0, 2).map((id) => <Avatar key={id} id={id} name={formatPersonName(people.get(id), 'Unknown member')} avatarUrl={people.get(id)?.avatarUrl} />)}
         {card.assigneeIds.length > 2 && <span className="avatar" title={`${card.assigneeIds.length - 2} more assignees`}>+{card.assigneeIds.length - 2}</span>}
       </span>
       <span className="assignee-names" aria-hidden="true">{names[0]!.split(' ')[0]}{card.assigneeIds.length > 1 ? ` +${card.assigneeIds.length - 1}` : ''}</span>

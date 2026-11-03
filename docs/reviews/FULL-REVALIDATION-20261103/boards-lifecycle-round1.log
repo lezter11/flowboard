@@ -1,0 +1,51 @@
+✖ boards lifecycle: remove an empty column retaining trashed source IDs and import context (339.92225ms)
+✖ boards lifecycle: remove an empty column retaining purged source IDs and import context (254.221833ms)
+✔ boards lifecycle: placement uses bounded actual query results for off-page anchors (222.990542ms)
+✔ boards lifecycle: card-page cursors reject another actor and changed access revision (247.21925ms)
+✔ boards lifecycle: explicit archived discovery is strict and scoped to current session administration (213.437625ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 3
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1530.152417
+
+✖ failing tests:
+
+test at apps/api/test/boards-lifecycle-repair.test.ts:7:41
+✖ boards lifecycle: remove an empty column retaining trashed source IDs and import context (339.92225ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:23:178)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/boards-lifecycle-repair.test.ts:7:41
+✖ boards lifecycle: remove an empty column retaining purged source IDs and import context (254.221833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:23:178)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

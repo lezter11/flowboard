@@ -1,0 +1,23 @@
+{
+  "version": "jpeg-shared-deadline-7",
+  "status": "frozen_before_implementation_not_approval",
+  "featureIds": [
+    "ATT-02"
+  ],
+  "authority": "Root Architect2026-11-03 explicitly authorized assessment and bounded implementation: unify parser with existing8s preflight deadline, no new total latency budget.",
+  "problem": "Current3s parser subdeadline rejects a supported valid maximum under local scheduling contention although the existing8s complete preflight budget remains. Baseline-only pivot had no measured performance benefit.",
+  "acceptance": [
+    "Set one absolute8s deadline before preflight DB/auth/storage/digest/container/entropy/fullpixels; JPEG parser receives that exact deadline and cannot restart8s after earlier phases.",
+    "Standalone JPEG parser remains bounded by8s default; explicit expired/invalid deadlines503 before work; clock may advance past3s and valid bytes succeed while the shared deadline remains.",
+    "Preserve200M work fuel, all cooperative yields/check cadences, <=10MiB presence bits, dimensions/pixel/file caps, admitted lifetime/abort behavior and all original corruption rejection.",
+    "Full pixel decoder receives only remaining shared budget; existing8s verifier ceiling and10s imageHTTP stay unchanged; ordinaryNode5s/Worker25s and bodyread5s stay unchanged.",
+    "Known malformed inputs422; unsupported CMYK422/no provider/effects; valid RGB20MP textured upload/finalize/privateSHA succeeds in Node+actualworkerd.",
+    "Preserve all failed historical rounds and prior v6 max503. This local correction does not establish hosted10ms FreeCPU suitability, account plan/quota, independent acceptance or deployment."
+  ],
+  "requiredCommands": [
+    "node --test apps/api/test/jpeg-deadline.test.ts",
+    "node --test --test-concurrency=1 apps/api/test/jpeg-entropy.test.ts apps/api/test/image-full-verifier.test.ts apps/api/test/image-integrity-repair.test.ts apps/api/test/image-integrity-worker.test.ts",
+    "npm run typecheck"
+  ],
+  "wholeGateOwner": "Root Architect owns full API/contracts/MCP/web/build and fresh independent exact-source review after assembly."
+}

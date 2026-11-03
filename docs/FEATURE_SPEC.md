@@ -82,7 +82,7 @@ Comment creation plus activity/mention intent/receipt commit atomically. Inbox n
 
 ## 7. Image references
 
-In v1, image reference means an uploaded private image attached to a saved card. No remote URL downloading, rich HTML, embedded spreadsheet image import or arbitrary file type is required. Suggested limits: PNG/JPEG/WebP, ≤10 MiB each, ≤10 finalized images/card, decoded ≤20 megapixels and maximum dimension 8192. Server verifies bytes, dimensions and count rather than trusting filename/type. These bounds require actual parser/storage/runtime tests.
+In v1, image reference means an uploaded private image attached to a saved card. No remote URL downloading, rich HTML, embedded spreadsheet image import or arbitrary file type is required. Current candidate limits: still PNG, RGB/grayscale JPEG and WebP (bounded animation), ≤10 MiB each, ≤10 finalized images/card, decoded ≤20 megapixels and maximum dimension8192. Direct CMYK/other JPEG component models return422 JPEG_COLOR_MODEL_UNSUPPORTED before expensive decoding. The browser converts known CMYK images to a supported color format, including small files; failed conversion explains an RGB export instead of uploading the incompatible original. Animated PNG is unsupported. This candidate policy follows the user-delegated best-option decision2026-11-03; it does not establish completed review or hosted acceptance. Server verifies bytes, dimensions and count rather than trusting filename/type. These bounds require actual parser/storage/runtime tests.
 
 Flow: select/drop image in detail → authenticated staging → visible progress/cancel → verification → finalize card association → gallery/preview. Upload pending/failure does not falsely report a saved attachment or undo unrelated saved fields. Uploader or owner/manager may remove, with confirmation and activity. Replacement/annotation/inline description media are later scope.
 
@@ -130,6 +130,10 @@ No automatic adoption of AI agents, financial/vendor analytics, billing, sprints
 
 S0 local runtime/DB/contracts → S1 owner/projects/invites/project RBAC → S2 board/card/movement/details → S3 discussion/activity/inbox → S4 private images/trash/restore/purge → S5 Excel import → S6 hardening/ownership/archive/Undo/benchmarks. Each item is Backend verified before its UI implementation, then integrated. Backend may work ahead on the next item while UI implements a previously handed-off feature. Owner/manager decisions above supersede research alternatives.
 
+
+## People directory visibility — explicit user decision, 2026-11-03
+
+Only the Owner and Project Managers may read the full project People directory, including email addresses. Members and Viewers must receive no directory data through direct API calls or UI caches. This does not remove their permitted board-scoped assignee/mention pickers: those remain limited to the relevant board, eligible roles and safe identity displays. Backend authorization and UI navigation/direct-page states must enforce this distinction. Stable feature ID PRJ-05 records this acceptance; implementation and verification are tracked separately.
 
 ## Frontend creation rule — 2026-10-27
 

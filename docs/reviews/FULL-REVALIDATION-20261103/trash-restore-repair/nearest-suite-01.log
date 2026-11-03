@@ -1,0 +1,67 @@
+{"evidence":"Nearest existing suites use their own disposable primary-database schema; random fixture schemas remain independent","schema":"trash_restore_gate_2a518c9daa494b7e9ccfa47f0a3b1f0c","database":"flowboard_harness","port":"55931"}
+﹣ mounted board, import and trash routes require current board access (0.223542ms) # Set FLOWBOARD_ACCESS_TEST_DATABASE_URL to the disposable local board-access database.
+▶ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite
+  ✔ COM-02: Viewers cannot post comments (403 FORBIDDEN) (177.977375ms)
+  ✔ COM-02: Outsiders receive 404 NOT_FOUND on comment post (2.953833ms)
+  ✔ COM-02: Comment post requires mandatory Idempotency-Key header (1.075625ms)
+  ✔ COM-02: Comment body validation (rejects empty or whitespace-only body) (1.266583ms)
+  ✔ COM-02: Member posts valid comment with outbox and activity_log (15.321083ms)
+  ✔ COM-02: Idempotency replay returns identical comment with replayed=true (7.842709ms)
+  ✔ COM-02: Idempotency conflict on same key with different body (4.358917ms)
+  ✔ COM-03: Rejects overlapping mention spans (1.099333ms)
+  ✔ COM-03: Rejects mentions of sibling project users or non-members (7.341917ms)
+  ✔ COM-03: Valid mentions notify teammates but self-mentions do NOT notify (12.756875ms)
+  ✔ COM-01: GET /cards/:cardId/comments returns chronological comments for readers (6.020667ms)
+  ✔ COM-01: Outsiders receive 404 NOT_FOUND on comment listing (1.90375ms)
+  ✔ COM-01: Comment cursor pages are card-scoped and stable across inserts (32.954667ms)
+  ✔ COM-04: Non-author cannot edit another user comment (403 FORBIDDEN) (5.622584ms)
+  ✔ COM-04: Edit comment OCC conflict returns 409 STALE_VERSION (6.400625ms)
+  ✔ COM-04: Author successfully edits comment and increments version (10.527667ms)
+  ✔ COM-05: Regular member cannot delete another member comment (403 FORBIDDEN) (13.259375ms)
+  ✔ COM-05: Workspace owner moderates and deletes comment (13.619667ms)
+  ✔ COM-05: Author deletes their own comment (8.147875ms)
+  ✔ DEL-01: Regular member/viewer cannot delete card (403 FORBIDDEN) (4.693833ms)
+  ✔ DEL-01: Delete card OCC check returns 409 STALE_VERSION (5.82775ms)
+  ✔ DEL-01: Manager soft-deletes card with 24-hour restore window and board version increment (8.86875ms)
+  ✔ DEL-08: Trashed card returns 404 NOT_FOUND on direct GET /cards/:cardId (1.02625ms)
+  ✔ DEL-08: Trashed card comments return 404 NOT_FOUND on GET /cards/:cardId/comments (2.69575ms)
+  ✔ COM-06: Posting comment on trashed card is rejected with 400 CARD_IS_TRASHED (2.890958ms)
+  ✔ DEL-02: Non-administrators (members/viewers) receive 403 on trash listing (4.303125ms)
+  ✔ DEL-02: Owner and Manager can list trash with canRestore and blockedReason details (17.867167ms)
+  ✔ DEL-03: Non-admin cannot restore card (403 FORBIDDEN) (2.197875ms)
+  ✔ DEL-03: Manager restores card before deadline with OCC checks (10.260583ms)
+  ✔ DEL-04: Destination missing requires explicit toColumnId (27.782667ms)
+  ✔ DEL-05: Expired restore returns HTTP 410 RESTORE_WINDOW_EXPIRED with details (14.600583ms)
+  ✔ Archived project and board reject card and comment writes atomically (30.005625ms)
+  ✔ Comment delete replay rechecks moderator authority after role demotion (18.006167ms)
+  ✔ Comment post retry respects current parent-card trash state (37.084709ms)
+  ✔ DEL-06: Background purge worker, private content redaction, and fenced winner race (64.318083ms)
+✔ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite (587.026792ms)
+✔ lifecycle retention: column with only expired card reference retires live column and preserves tombstone/history (218.942584ms)
+✔ lifecycle retention: column with only purged card reference retires live column and preserves tombstone/history (179.356292ms)
+✔ lifecycle retention: ready import default-column context survives live column retirement (210.781833ms)
+✔ lifecycle retention: terminal import default-column context survives live column retirement (209.988292ms)
+✔ lifecycle retention: tombstoning own and moderated comments removes copied inbox snippets while retaining facts (211.468041ms)
+✔ lifecycle retention: copied legacy comment outbox fields are scrubbed on deletion and recovery cannot recreate them (180.532209ms)
+✔ lifecycle retention: recovery distinguishes two comment events on the same card and repeats neither (199.182541ms)
+✔ lifecycle retention: unreferenced column deletes once while final/active/restorable guards remain (188.374167ms)
+✔ lifecycle retention: concurrent column delete/card create create wins without partial history (190.244375ms)
+✔ lifecycle retention: concurrent column delete/card create delete wins without partial history (181.839584ms)
+✔ lifecycle retention: delete winning comment lock does not deadlock with an in-flight outbox consumer or resurrect text (259.627875ms)
+✔ lifecycle retention: actual consumer holds source share lock and completes before waiting comment deletion (275.5725ms)
+✔ lifecycle retention: failed tombstone commit rolls back comment, inbox redaction, event and receipt (227.925791ms)
+✔ lifecycle retention: legacy migration redacts unknown sources honestly and preserves exact known source/recipient on rerun (218.019083ms)
+▶ PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Suite
+  ✔ CRD-12: Move undo reverts move and respects OCC version conflict (106.579458ms)
+  ✔ BRD-08: Archive and reopen board makes board read-only and resumes writes on reopen (46.061875ms)
+  ✔ PRJ-04: Archive and reopen project makes project read-only and resumes writes on reopen (28.771625ms)
+✔ PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Suite (184.134416ms)
+ℹ tests 55
+ℹ suites 0
+ℹ pass 54
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 1
+ℹ todo 0
+ℹ duration_ms 4593.361209
+EXIT:0

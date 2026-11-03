@@ -1,0 +1,30 @@
+✖ Outbox: a real SQL poison error retries/quarantines without aborting independent accepted work (579.383583ms)
+✔ Outbox: transaction rollback/restart and concurrent consumers produce one logical notification (517.415208ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1473.900166
+
+✖ failing tests:
+
+test at apps/api/test/outbox-recovery.test.ts:6:1
+✖ Outbox: a real SQL poison error retries/quarantines without aborting independent accepted work (579.383583ms)
+  AssertionError [ERR_ASSERTION]: Retry rollback must not resurrect legacy copied body
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/outbox-recovery.test.ts:21:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -3,6 +3,7 @@ import { prioritySchema, type Priority } from './cards.ts';
 import {
   createDataEnvelopeSchema,
   nullableDateOnlySchema,
+  personDisplaySchema,
   utcIsoTimestampSchema,
   type NullableDateOnly,
 } from './common.ts';
@@ -39,18 +40,45 @@ export const importRowErrorSchema = z.object({
 });
 export type ImportRowError = z.infer<typeof importRowErrorSchema>;
 
-export const importRowSchema = z.object({
+const importRowFields = {
   rowNumber: z.number().int().positive(),
-  externalId: z.string().trim().min(1).max(64),
-  title: z.string().trim().min(1).max(200),
   status: z.string().trim().nullable(),
   priority: prioritySchema,
   dueDate: nullableDateOnlySchema,
   assigneeIds: z.array(z.string().min(1)),
-  outcome: importRowOutcomeSchema,
   errors: z.array(importRowErrorSchema),
   cardId: z.string().min(1).nullable(),
+};
+const validatedImportRowSchema = z.object({
+  ...importRowFields,
+  contentRedacted: z.literal(false).optional(),
+  externalId: z.string().trim().min(1).max(64),
+  title: z.string().trim().min(1).max(200),
+  description: z.string().max(20000).optional(),
+  outcome: z.enum(['new','already_imported','created','skipped']),
 });
+// Invalid source rows are evidence for correction, never valid card input. XML
+// text is bounded at65,536 code units; NFC normalization can expand an ID.
+const invalidImportRowSchema = z.object({
+  ...importRowFields,
+  contentRedacted: z.literal(false).optional(),
+  externalId: z.string().max(196608),
+  title: z.string().max(65536),
+  description: z.string().max(65536).optional(),
+  outcome: z.enum(['invalid','conflict']),
+  errors: z.array(importRowErrorSchema).min(1),
+});
+const redactedImportRowSchema = z.object({
+  rowNumber: importRowFields.rowNumber,
+  contentRedacted: z.literal(true),
+  externalId: z.null(), title: z.null(), description: z.null(), status: z.null(),
+  priority: z.null(), dueDate: z.null(),
+  assigneeIds: z.array(z.never()).max(0),
+  outcome: importRowOutcomeSchema,
+  errors: z.array(z.never()).max(0),
+  cardId: importRowFields.cardId,
+}).strict();
+export const importRowSchema = z.union([validatedImportRowSchema,invalidImportRowSchema,redactedImportRowSchema]);
 export type ImportRow = z.infer<typeof importRowSchema>;
 
 export const importCountsSchema = z.object({
@@ -80,6 +108,12 @@ export const importStatusSchema = z.object({
   previewDigest: z.string().min(1).nullable(),
   expiresAt: utcIsoTimestampSchema.nullable(),
   serverNow: utcIsoTimestampSchema,
+  createdAt: utcIsoTimestampSchema.optional(),
+  createdById: z.string().min(1).optional(),
+  createdBy: personDisplaySchema.nullable().optional(),
+  committedAt: utcIsoTimestampSchema.nullable().optional(),
+  committedById: z.string().min(1).nullable().optional(),
+  committedBy: personDisplaySchema.nullable().optional(),
   counts: importCountsSchema,
   canCommit: z.boolean(),
   cancellationAllowed: z.boolean(),
@@ -101,6 +135,15 @@ export type CommitImportInput = z.infer<typeof commitImportInputSchema>;
 
 export const updateImportMappingsInputSchema = z.object({
   mappings: z.record(z.string(), z.string().min(1)),
+  mappingEntries: z.array(z.object({sourceStatus:z.string().min(1),columnId:z.string().min(1)})).max(200).optional(),
   expectedVersion: z.number().int().nonnegative(),
-});
+}).refine(input=>{
+  const labels=[...Object.keys(input.mappings),...(input.mappingEntries??[]).map(entry=>entry.sourceStatus)];
+  return labels.length<=200 && new Set(labels).size===labels.length;
+},{message:'Provide at most200 unique status mappings, without duplicate labels.'});
 export type UpdateImportMappingsInput = z.infer<typeof updateImportMappingsInputSchema>;
+
+export const importPreviewQuerySchema = z.object({
+  limit:z.coerce.number().int().min(1).max(100).default(50),
+  cursor:z.string().regex(/^(?:0|[1-9]\d*)$/).max(16).refine(value=>Number.isSafeInteger(Number(value))).optional(),
+}).strict();

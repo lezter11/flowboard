@@ -2,9 +2,14 @@
 
 import { Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import type { Board, SessionProjectSummary } from '@flowboard/contracts';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useRouter } from '@/lib/guarded-router';
+import type { Board, Project, SessionProjectSummary } from '@flowboard/contracts';
 import { projectMark, projectTone, usePortfolio, type BoardStats } from '@/lib/portfolio';
+import { api } from '@/lib/api';
+import { useCursorFeed } from '@/lib/cursor-feed';
+import { usePollKeys } from '@/components/polling';
+import { FeedControls } from '@/components/ui/feed-controls';
 import { useSession } from '@/lib/session';
 import { Icon } from '@/components/ui/icon';
 import { NewProjectDialog } from '@/components/project/new-project-dialog';
@@ -17,7 +22,8 @@ function ProjectMark({ project }: { project: SessionProjectSummary }) {
   return <span className={`ph-mark tone-${projectTone(project.id)}`} aria-hidden="true">{projectMark(project.name)}</span>;
 }
 
-function projectStats(boards: Board[], stats: Map<string, BoardStats | null>): BoardStats {
+function projectStats(boards: Board[], stats: Map<string, BoardStats | null>,known:boolean|undefined): BoardStats|null {
+  if(!known||boards.some((board)=>!stats.get(board.id)))return null;
   const sum = boards.reduce((acc, b) => {
     const s = stats.get(b.id) ?? NO_STATS;
     return { total: acc.total + s.total, done: acc.done + s.done, open: acc.open + s.open, percent: 0 };
@@ -43,8 +49,15 @@ function ProjectsScreen() {
   const router = useRouter();
   const pathname = usePathname();
   const params = useSearchParams();
-  const { state } = useSession();
-  const { projects, boardsByProject, statsByBoard, loading } = usePortfolio();
+  const { state,refetch } = useSession();
+  const actorId=state.status==='ready'?state.session.actor.id:'';
+  const projectKey=useMemo(()=>['accessible-projects',actorId] as const,[actorId]);
+  const projectFeed=useCursorFeed<Project>(projectKey,(cursor,signal)=>api.listAccessibleProjects({cursor,signal}),!!actorId);
+  usePollKeys([projectKey],!!actorId);
+  const roles=new Map((state.status==='ready'?state.session.accessibleProjects:[]).map((project)=>[project.id,project]));
+  const loadedProjects=projectFeed.items.flatMap((project)=>{const scoped=roles.get(project.id);return scoped?[{...project,role:scoped.role,isOwned:scoped.isOwned}]:[];});
+  const { projects, boardsByProject, statsByBoard,boardListsReady, loading:portfolioLoading } = usePortfolio(loadedProjects);
+  const loading=projectFeed.isPending||portfolioLoading;
   const tab: 'active' | 'archived' = params.get('tab') === 'archived' ? 'archived' : 'active';
   const view: 'map' | 'list' = params.get('view') === 'list' ? 'list' : 'map';
   const [query, setQuery] = useState('');
@@ -73,12 +86,14 @@ function ProjectsScreen() {
 
   const activeProjects = projects.filter((p) => !p.isArchived);
   const summaryBoards = activeProjects.reduce((n, p) => n + (boardsByProject.get(p.id) ?? []).filter((b) => !b.isArchived).length, 0);
-  const summaryCards = activeProjects.reduce((n, p) => n + projectStats(boardsByProject.get(p.id) ?? [], statsByBoard).total, 0);
+  const summaryStats=activeProjects.map((p)=>projectStats(boardsByProject.get(p.id)??[],statsByBoard,boardListsReady.get(p.id)));
+  const summaryCards=summaryStats.some((stats)=>!stats)?null:summaryStats.reduce((sum,stats)=>sum+(stats?.total??0),0);
+  const allBoardsKnown=activeProjects.every((p)=>boardListsReady.get(p.id));
 
   const signedIn = state.status === 'ready';
   const renderProject = (project: SessionProjectSummary) => {
     const boards = (boardsByProject.get(project.id) ?? []).filter((b) => !b.isArchived);
-    const stats = projectStats(boards, statsByBoard);
+    const stats = projectStats(boards, statsByBoard,boardListsReady.get(project.id));
     const href = `/project?id=${encodeURIComponent(project.id)}`;
     const archived = project.isArchived;
     const tone = projectTone(project.id);
@@ -89,10 +104,10 @@ function ProjectsScreen() {
           <div className="pm-row-copy"><h3><Link href={href}>{project.name}</Link></h3><p>{project.description || 'No description added.'}</p></div>
           <div className="pm-row-boards" aria-label={`Boards in ${project.name}`}>
             {boards.slice(0, 4).map((b) => <Link key={b.id} className={`pm-chip tone-${projectTone(b.id)}`} href={`/board?id=${encodeURIComponent(b.id)}`}><i aria-hidden="true" />{b.name}</Link>)}
-            {boards.length === 0 && <span className="pm-chip is-empty">No boards</span>}
+            {boards.length === 0 && <span className="pm-chip is-empty">{boardListsReady.get(project.id)?'No boards':'Boards loading or unavailable'}</span>}
             {boards.length > 4 && <span className="pm-chip is-empty">+{boards.length - 4}</span>}
           </div>
-          <div className="pm-row-stats"><span><strong>{stats.total}</strong> cards</span><span><strong>{stats.open}</strong> open</span></div>
+          <div className="pm-row-stats"><span><strong>{stats?.total??'—'}</strong> cards</span><span><strong>{stats?.open??'—'}</strong> open</span></div>
           <span className={`ph-status ${archived ? 'is-archived' : 'is-active'}`}><i aria-hidden="true" />{archived ? 'Archived' : 'Active'}</span>
           <RoleChip project={project} />
           <Link className="pm-row-open" href={href} aria-label={`Open ${project.name}`}><Icon name="arrow-right" /></Link>
@@ -109,16 +124,16 @@ function ProjectsScreen() {
             <div className="pm-root-copy"><h3><Link href={href}>{project.name}</Link></h3><p>{project.description || 'No description added.'}</p></div>
           </div>
           <div className="pm-root-stats" aria-label="Project totals">
-            <div><strong>{stats.total}</strong><span>cards</span></div>
-            <div><strong>{stats.open}</strong><span>open</span></div>
+            <div><strong>{stats?.total??'—'}</strong><span>cards</span></div>
+            <div><strong>{stats?.open??'—'}</strong><span>open</span></div>
           </div>
-          <div className="pm-meter" role="img" aria-label={`${stats.done} of ${stats.total} cards completed`}><span style={{ width: `${stats.percent}%` }} /></div>
-          <p className="pm-meter-label">{stats.done} of {stats.total} cards completed · {stats.percent}%</p>
+          <div className="pm-meter" role="img" aria-label={`${stats?.done??'—'} of ${stats?.total??'—'} cards completed`}><span style={{ width: `${stats?.percent??'—'}%` }} /></div>
+          <p className="pm-meter-label">{stats?.done??'—'} of {stats?.total??'—'} cards completed · {stats?.percent??'—'}%</p>
           <div className="pm-root-foot">
             <span className={`ph-status ${archived ? 'is-archived' : 'is-active'}`}><i aria-hidden="true" />{archived ? 'Archived' : 'Active'}</span>
             <RoleChip project={project} />
             <span className="pm-separator" aria-hidden="true" />
-            <span className="pm-root-boards">{boards.length} {boards.length === 1 ? 'board' : 'boards'}</span>
+            <span className="pm-root-boards">{boardListsReady.get(project.id)?boards.length:'—'} {boards.length === 1 ? 'board' : 'boards'}</span>
             <span className="spacer" />
           </div>
         </div>
@@ -127,7 +142,7 @@ function ProjectsScreen() {
           {boards.length ? (
             <ul className="pm-branch-list" aria-label={`Boards in ${project.name}`}>
               {shown.map((board) => {
-                const s = statsByBoard.get(board.id) ?? NO_STATS;
+                const s = statsByBoard.get(board.id);
                 const bhref = `/board?id=${encodeURIComponent(board.id)}`;
                 return (
                   <li key={board.id} className={`pm-branch tone-${projectTone(board.id)}`}>
@@ -136,8 +151,8 @@ function ProjectsScreen() {
                       <Link className="pm-branch-name" href={bhref}>{board.name}</Link>
                       <span className="pm-branch-description">No description added.</span>
                     </div>
-                    <span className="pm-branch-count">{s.total} {s.total === 1 ? 'card' : 'cards'}<i aria-hidden="true">·</i>{s.open} open</span>
-                    <span className="pm-branch-bar" role="img" aria-label={`${s.done} of ${s.total} cards completed`}><i style={{ width: `${s.percent}%` }} /></span>
+                    <span className="pm-branch-count">{s?.total??'—'} {s?.total === 1 ? 'card' : 'cards'}<i aria-hidden="true">·</i>{s?.open??'—'} open</span>
+                    <span className="pm-branch-bar" role="img" aria-label={`${s?.done??'—'} of ${s?.total??'—'} cards completed`}><i style={{ width: `${s?.percent??'—'}%` }} /></span>
                     {project.role === 'owner' || project.role === 'manager'
                       ? <span className="pm-branch-access"><Icon name="users" /><span>Full access</span></span>
                       : <span className="pm-branch-access is-grant"><Icon name="lock" /><span>Granted</span></span>}
@@ -148,7 +163,7 @@ function ProjectsScreen() {
               {rest > 0 && <li className="pm-branch-more"><span aria-hidden="true">+</span>{rest} more {rest === 1 ? 'board' : 'boards'}</li>}
             </ul>
           ) : (
-            <div className="pm-branches-empty"><span className="pm-branches-empty-icon" aria-hidden="true"><Icon name="board" /></span><div><strong>No boards available</strong><p>Open the project to add the first board, or ask an owner for board access.</p></div></div>
+            <div className="pm-branches-empty"><span className="pm-branches-empty-icon" aria-hidden="true"><Icon name="board" /></span><div><strong>{boardListsReady.get(project.id)?'No boards available':'Boards loading or unavailable'}</strong><p>Open the project to add the first board, or ask an owner for board access.</p></div></div>
           )}
           <div className="pm-branches-foot"><Link className="pm-link is-strong" href={href}>Open project<span aria-hidden="true">→</span></Link></div>
         </div>
@@ -158,7 +173,7 @@ function ProjectsScreen() {
 
   const { yours, shared } = splitProjects(visible);
   const nothingAtAll = visible.length === 0 && (tab === 'archived' || query !== '' || projects.length === 0);
-  const emptyTitle = query ? 'No matching projects' : tab === 'archived' ? 'No archived projects' : 'Start with your first project';
+  const emptyTitle = query ? 'No matching projects loaded' : tab === 'archived' ? 'No archived projects loaded' : 'Start with your first project';
   const emptyMessage = query ? 'Try another project or board name, or clear your search.' : tab === 'archived' ? 'Archived projects you can access will appear here.' : 'Projects group related boards. Create your own, and projects other people add you to will appear under Shared with you.';
 
   return (
@@ -167,7 +182,7 @@ function ProjectsScreen() {
         <div className="page-head-copy">
           <p className="portfolio-eyebrow">Portfolio</p>
           <h1>Projects</h1>
-          <p className="page-sub">{signedIn ? `${projects.length} accessible ${projects.length === 1 ? 'project' : 'projects'} · ${state.session.actor.displayName}` : 'Projects group related boards. Your list follows your project access.'}</p>
+          <p className="page-sub">{signedIn ? `${projects.length} loaded accessible ${projects.length === 1 ? 'project' : 'projects'} · ${state.session.actor.displayName}` : 'Projects group related boards. Your list follows your project access.'}</p>
         </div>
         <div className="page-actions">
           {signedIn && usage && <span className={`usage-hint${usage.atCap ? ' is-full' : ''}`} id="projectUsage">{usageText(usage)}</span>}
@@ -176,17 +191,17 @@ function ProjectsScreen() {
       </div>
 
       <section className="portfolio-summary" aria-label="Portfolio summary">
-        <div className="pf-summary-card"><span className="pf-summary-icon tone-thistle" aria-hidden="true"><Icon name="folder" /></span><div className="pf-summary-copy"><strong>{activeCount}</strong><span>active projects</span></div></div>
-        <div className="pf-summary-card"><span className="pf-summary-icon tone-icy" aria-hidden="true"><Icon name="board" /></span><div className="pf-summary-copy"><strong>{summaryBoards}</strong><span>boards</span></div></div>
-        <div className="pf-summary-card"><span className="pf-summary-icon tone-petal" aria-hidden="true"><Icon name="list" /></span><div className="pf-summary-copy"><strong>{summaryCards}</strong><span>cards</span></div></div>
-        <p className="pf-summary-note">Counts cover only accessible boards in active projects.</p>
+        <div className="pf-summary-card"><span className="pf-summary-icon tone-thistle" aria-hidden="true"><Icon name="folder" /></span><div className="pf-summary-copy"><strong>{activeCount}</strong><span>loaded active projects</span></div></div>
+        <div className="pf-summary-card"><span className="pf-summary-icon tone-icy" aria-hidden="true"><Icon name="board" /></span><div className="pf-summary-copy"><strong>{allBoardsKnown?summaryBoards:'—'}</strong><span>boards</span></div></div>
+        <div className="pf-summary-card"><span className="pf-summary-icon tone-petal" aria-hidden="true"><Icon name="list" /></span><div className="pf-summary-copy"><strong>{summaryCards??'—'}</strong><span>cards</span></div></div>
+        <p className="pf-summary-note">Counts cover loaded projects and accessible active boards. Missing totals remain unavailable.</p>
       </section>
 
       <section className="portfolio-controls" aria-label="Project browsing controls">
         <div className="portfolio-search">
-          <label className="sr-only" htmlFor="projectSearch">Search accessible projects and boards</label>
+          <label className="sr-only" htmlFor="projectSearch">Search loaded projects and boards</label>
           <span aria-hidden="true" className="portfolio-search-icon"><Icon name="search" /></span>
-          <input id="projectSearch" type="search" autoComplete="off" placeholder="Search projects or boards" value={query} onChange={(event) => setQuery(event.target.value)} />
+          <input id="projectSearch" type="search" autoComplete="off" placeholder="Search loaded projects or boards" value={query} onChange={(event) => setQuery(event.target.value)} />
           <button className="portfolio-clear" type="button" hidden={!query} onClick={() => setQuery('')}>Clear</button>
         </div>
         <div className="portfolio-control-end">
@@ -220,7 +235,7 @@ function ProjectsScreen() {
             <ProjectGroup id="yours" title="Yours" count={yours.length} view={view}>
               {yours.length ? yours.map(renderProject) : !loading && (
                 <div className="ph-empty is-compact">
-                  <h3>{query ? 'No matches in your projects' : tab === 'archived' ? 'No archived projects of yours' : 'You do not own a project yet'}</h3>
+                  <h3>{query ? 'No matches in your projects' : tab === 'archived' ? 'No archived projects loaded of yours' : 'You do not own a project yet'}</h3>
                   <p>{query ? 'Try another name.' : tab === 'archived' ? 'Projects you archive wait here until you reopen them.' : 'Create one of your own to organise your own boards. Projects you are invited to stay under Shared with you.'}</p>
                   {!query && tab === 'active' && signedIn && <button className="btn primary" type="button" onClick={() => setCreating(true)}><Icon name="plus" />New project</button>}
                 </div>
@@ -243,6 +258,8 @@ function ProjectsScreen() {
         <p>Boards stay inside their project. Project access does not reveal sibling projects or automatically grant access to every board.</p>
       </footer>
 
+      {projectFeed.items.length!==projects.length&&<p className="hint">Some project roles are refreshing. <button className="btn sm" type="button" onClick={refetch}>Refresh project access</button></p>}
+      <FeedControls name="projects" queryKey={projectKey} feed={projectFeed} loaded={projectFeed.items.length} />
       <NewProjectDialog open={creating} onClose={() => setCreating(false)} usage={usage} />
     </>
   );

@@ -1,0 +1,262 @@
+{
+  "schemaVersion": 1,
+  "criteriaVersion": "backend-review-v1",
+  "recordKind": "preserved incomplete independent round; not a closure approval",
+  "verdict": "incomplete",
+  "startedAt": "2026-11-03T09:50:32.303Z",
+  "completedAt": "2026-11-03T09:54:48.252654+00:00",
+  "reviewer": {
+    "actorId": "/root/formal_foundation_account_round1",
+    "sessionId": "collaboration:/root/formal_foundation_account_round1",
+    "model": "inherited parent model; exact provider ID not exposed",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/FULL-REVALIDATION-20261103/formal-foundation-account-round2/independence.md"
+  },
+  "sourceDigest": "5c6185a69d2d0fa89a32962b6f672a1bc09877e66592e0b7568f98d35769c3c8",
+  "sourceFileCount": 615,
+  "sourceUnchangedAtStop": true,
+  "criteriaOutcomes": {
+    "foundation": {
+      "featureIds": [
+        "FND-01",
+        "FND-02",
+        "FND-03",
+        "FND-04"
+      ],
+      "criteriaResults": {
+        "FND-01: Pinned Node/Worker entry points and local PostgreSQL query/rollback run reproducibly; no cloud account required.": "incomplete",
+        "FND-02: Validated request/response schemas and generated OpenAPI agree; fixtures include two projects with distinct members.": "incomplete",
+        "FND-03: Clean install and upgrade enforce workspace/project ancestry, versions, uniqueness and receipt/outbox relationships.": "incomplete",
+        "FND-04: Request IDs, safe errors, deadlines, rate/body limits and structured timing work without exposing secrets.": "incomplete",
+        "Mounted operations enforce current identity, role/target authority, project and board grants, resource ancestry, lifecycle and receipt replay boundaries; negative cases cannot expose data or write effects.": "fail",
+        "Applicable writes preserve state/version, minimal receipt, activity and outbox atomically; real separate-connection tests cover the feature races and retention limits.": "fail",
+        "Every listed backend feature requires a fresh independent review of its complete reachable frozen source, fixed weights/category minima, unrounded score strictly greater than8.5, no blocker and actual passing checks. Builders cannot approve their own work.": "incomplete",
+        "Required UI and integration phases need actual test/browser evidence with current backend/UI hash bindings; source or API tests alone cannot prove UI or real-provider/hosted acceptance. Do not relabel missing mandatory behavior deferred to close a feature.": "incomplete"
+      }
+    },
+    "account": {
+      "featureIds": [
+        "ACC-01",
+        "ACC-02",
+        "ACC-03",
+        "ACC-04",
+        "ACC-05",
+        "ACC-06",
+        "ACC-07"
+      ],
+      "criteriaResults": {
+        "ACC-01: Chosen OAuth login creates one identity/session; unsupported callbacks fail closed and private data needs a valid session.": "incomplete",
+        "ACC-02: Logout revokes server session; expired tabs retain safe drafts but cannot keep reading or writing protected data.": "incomplete",
+        "ACC-03: Name/avatar updates display correctly; historical actors remain attributable after grant removal without leaking private account fields.": "incomplete",
+        "ACC-04: First authenticated use ensures one personal workspace and sole owner atomically; concurrent retries cannot create duplicates. Manual workspace creation stays retired with typed 410; project creation uses the ensured owner context.": "incomplete",
+        "ACC-05: Owner sets workspace name/timezone; date-only deadlines retain their selected day and shared overdue semantics.": "incomplete",
+        "ACC-06: Show only owned projects and explicitly granted projects; current context is reauthorized and being owner elsewhere grants no extra rights.": "incomplete",
+        "ACC-07: Ownership transfer stays unavailable in the current beta through every route and UI affordance; direct requests return the documented typed retirement response with no ownership/quota mutation. No transfer capability is claimed.": "incomplete",
+        "Mounted operations enforce current identity, role/target authority, project and board grants, resource ancestry, lifecycle and receipt replay boundaries; negative cases cannot expose data or write effects.": "fail",
+        "Applicable writes preserve state/version, minimal receipt, activity and outbox atomically; real separate-connection tests cover the feature races and retention limits.": "fail",
+        "Every listed backend feature requires a fresh independent review of its complete reachable frozen source, fixed weights/category minima, unrounded score strictly greater than8.5, no blocker and actual passing checks. Builders cannot approve their own work.": "incomplete",
+        "Required UI and integration phases need actual test/browser evidence with current backend/UI hash bindings; source or API tests alone cannot prove UI or real-provider/hosted acceptance. Do not relabel missing mandatory behavior deferred to close a feature.": "incomplete"
+      }
+    }
+  },
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": null,
+      "reason": "Not scored: independent required API gate interrupted on confirmed mandatory shared blocker; remaining four gates not executed."
+    },
+    "correctness": {
+      "weight": 25,
+      "score": null,
+      "reason": "Not scored: independent required API gate interrupted on confirmed mandatory shared blocker; remaining four gates not executed."
+    },
+    "integrity": {
+      "weight": 15,
+      "score": null,
+      "reason": "Not scored: independent required API gate interrupted on confirmed mandatory shared blocker; remaining four gates not executed."
+    },
+    "tests": {
+      "weight": 15,
+      "score": null,
+      "reason": "Not scored: independent required API gate interrupted on confirmed mandatory shared blocker; remaining four gates not executed."
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": null,
+      "reason": "Not scored: independent required API gate interrupted on confirmed mandatory shared blocker; remaining four gates not executed."
+    },
+    "operations": {
+      "weight": 5,
+      "score": null,
+      "reason": "Not scored: independent required API gate interrupted on confirmed mandatory shared blocker; remaining four gates not executed."
+    }
+  },
+  "weightedScore": null,
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "startedAt": "2026-11-03T09:50:32.430Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-foundation-gates-round2/typecheck.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T09:50:34.024Z",
+      "nodeTestCounts": {}
+    },
+    {
+      "id": "typecheck-web",
+      "command": "npm run typecheck:web",
+      "startedAt": "2026-11-03T09:50:34.077Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-foundation-gates-round2/typecheck-web.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T09:50:36.615Z",
+      "nodeTestCounts": {}
+    },
+    {
+      "id": "contracts",
+      "command": "npm test --workspace @flowboard/contracts",
+      "startedAt": "2026-11-03T09:50:36.667Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-foundation-gates-round2/contracts.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T09:50:37.669Z",
+      "nodeTestCounts": {
+        "tests": 126,
+        "pass": 126,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "web",
+      "command": "npm test --workspace @flowboard/web",
+      "startedAt": "2026-11-03T09:50:37.720Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-foundation-gates-round2/web.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T09:50:40.444Z",
+      "nodeTestCounts": {
+        "tests": 317,
+        "pass": 317,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "mcp",
+      "command": "npm test --workspace @flowboard/mcp",
+      "startedAt": "2026-11-03T09:50:40.495Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-foundation-gates-round2/mcp.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T09:50:40.701Z",
+      "nodeTestCounts": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "build-mcp",
+      "command": "npm run build --workspace @flowboard/mcp",
+      "startedAt": "2026-11-03T09:50:40.759Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-foundation-gates-round2/build-mcp.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T09:50:40.951Z",
+      "nodeTestCounts": {}
+    },
+    {
+      "id": "mcp-artifact",
+      "command": "npm run test:artifact --workspace @flowboard/mcp",
+      "startedAt": "2026-11-03T09:50:41.003Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-foundation-gates-round2/mcp-artifact.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T09:50:41.942Z",
+      "nodeTestCounts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "openapi-staleness",
+      "command": "npm run openapi:check",
+      "startedAt": "2026-11-03T09:50:41.999Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-foundation-gates-round2/openapi-staleness.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T09:50:42.165Z",
+      "nodeTestCounts": {}
+    },
+    {
+      "id": "embedded-migration-parity",
+      "command": "npm run migrations:embed:check",
+      "startedAt": "2026-11-03T09:50:42.214Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-foundation-gates-round2/embedded-migration-parity.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T09:50:42.319Z",
+      "nodeTestCounts": {}
+    },
+    {
+      "id": "api",
+      "command": "npm test --workspace @flowboard/api",
+      "startedAt": "2026-11-03T09:50:42.370Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-foundation-gates-round2/api.log",
+      "exitCode": null,
+      "signal": "SIGTERM",
+      "completedAt": "2026-11-03T09:53:37.821Z",
+      "nodeTestCounts": {}
+    }
+  ],
+  "findings": [
+    {
+      "id": "FNDACC-R1-01",
+      "disposition": "resolved on this target by source review; comprehensive independent execution pending",
+      "description": "People omitted/display paths now enforce current Owner/Manager under transaction and FOR SHARE locks; direct Pool adapter requires actor and owns transaction. Existing historical reproduction remains preserved.",
+      "mandatory": true,
+      "blocking": false
+    },
+    {
+      "id": "PB02",
+      "severity": "P1",
+      "disposition": "open",
+      "description": "Project archive/reopen ignore supplied expectedVersion and hash empty receipt body, so delayed stale archive wins after newer reopen; shared lifecycle/version correctness violated. Independently reported by projects reviewer and reproduced by root, not executed by this reviewer.",
+      "mandatory": true,
+      "blocking": true,
+      "sourcePaths": [
+        "apps/api/src/http/routes/projects.ts:588",
+        "apps/api/src/http/routes/projects.ts:626",
+        "apps/api/src/http/routes/projects.ts:705"
+      ],
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/root-project-lifecycle-occ-red.log"
+    }
+  ],
+  "hardBlockers": [
+    "PB02 confirmed mandatory shared lifecycle invariant failure on this frozen target."
+  ],
+  "coverageGaps": [
+    "API command interrupted by authorized SIGTERM after confirmation; no final API counts or exit0 claimed.",
+    "build-worker, build-web, browser-integration and mcp-integration not run in this execution.",
+    "Common final complete acceptance manifest and domain approvals unavailable; imports have additional independent mandatory findings being repaired."
+  ],
+  "hostedPending": [
+    "Actual Google OAuth",
+    "Cloudflare CPU and actual Hyperdrive behavior",
+    "R2 private storage and durability",
+    "Configured mail delivery",
+    "Actual scheduled cron behavior"
+  ],
+  "note": "Null category scores explicitly mean not scored; this preliminary evidence intentionally cannot validate as a passing backend-review-v1 handoff. Required checks were not waived. Root source repair may proceed after recorded source-after. No numeric scoring round claimed."
+}

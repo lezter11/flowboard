@@ -1,0 +1,39 @@
+{
+  "baseline": "917706ae0433df471c72736be4d548eb022236c4",
+  "reason": "Preserve stable98IDs while applying newer accepted personal-workspace retirement, Owner-only board metadata edit and explicit project+board grant decisions; no acceptance score or feature closed.",
+  "sources": [
+    "docs/handoffs/proposals/own-projects-backend-handover-2026-10-31.md",
+    "docs/handoffs/proposals/board-access-decisions-2026-10-27.md",
+    "docs/FEATURE_SPEC.md"
+  ],
+  "changes": {
+    "ACC-04": {
+      "feature": "Personal workspace and owner",
+      "acceptance": "First authenticated use ensures one personal workspace and sole owner atomically; concurrent retries cannot create duplicates. Manual workspace creation stays retired with typed 410; project creation uses the ensured owner context."
+    },
+    "ACC-06": {
+      "feature": "Owned and invited project switcher",
+      "acceptance": "Show only owned projects and explicitly granted projects; current context is reauthorized and being owner elsewhere grants no extra rights."
+    },
+    "ACC-07": {
+      "feature": "Ownership transfer retirement",
+      "acceptance": "Ownership transfer stays unavailable in the current beta through every route and UI affordance; direct requests return the documented typed retirement response with no ownership/quota mutation. No transfer capability is claimed."
+    },
+    "INV-01": {
+      "feature": "Project invitation",
+      "acceptance": "Owner invites manager/member/viewer; manager invites member/viewer only. Invitation grants only exact project membership, never implicit board access; independent board grants are explained."
+    },
+    "RBAC-05": {
+      "feature": "Explicit board access disclosure",
+      "acceptance": "Membership and board access are distinct: non-Owners require both; invitations grant no boards automatically. Owner administers board grants; Manager receives creator access to a board they create. UI and APIs disclose current effective access without hidden-board metadata."
+    },
+    "BRD-02": {
+      "feature": "Board list and settings",
+      "acceptance": "List only currently accessible project boards; Owner alone edits board name/description with expected version without breaking card IDs/links. Metadata-only machine credentials receive only their explicitly allowed fields."
+    },
+    "QRY-03": {
+      "feature": "My assigned tasks in selected project",
+      "acceptance": "Show actor assignments within one selected authorized project and currently granted boards with due-state filters/pagination; no cross-project aggregation or revoked-access content."
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "version": "ui-invitation-repair-1",
+  "features": [
+    "INV-01",
+    "INV-02",
+    "INV-04",
+    "INV-05",
+    "UX-01",
+    "UX-02",
+    "UX-04"
+  ],
+  "mandatoryCriteria": [
+    "Invitation lists preserve actual data+nextCursor envelopes, expose explicit status history and Load more; opaque cursors/status/limit reach backend. Loaded counts are not total counts. Stale cursor resets only list while preserving draft/operation.",
+    "Render delivery pending/retrying/delivered/failed/unknown literally in plain language, treating missing delivery as unknown. Delivery retry appears only when backend canRetry=true; ordinary resend distinguishes rotating an existing link from retrying delivery. Never claim email sent/delivered from create/resend2xx alone.",
+    "Actor/project-scoped in-memory command retains original action,target,payload,key across lost/408/5xx responses, close/reopen and same-tab remount. Unknown outcome locks edits/other commands until successful replay. First definitive4xx permits correction; unknown followed401/403 keeps identity. No token or draft persistent storage.",
+    "Owner can invite/resend manager/member/viewer; Manager only member/viewer rows. Expired/revoked rows offer a new invitation through create endpoint, never a knowingly rejected resend. Revoke is confirmed and invalidates displayed fresh link.",
+    "List requests/rendering require current actor Owner/Manager; hide and remove cached invitation email rows on current permission loss/refusal. Copy link is one-time response data in memory only, clears on close; no provider detail/secret logs.",
+    "Meaningful state+transport tests verify each operation actual original request across lost response, cursor/status encoding and delivery/role logic. Web unit suite,typecheck,production build logged. Browser+realAPI+PG and independent final-target review remain root responsibilities, with hosted UAT pending deployment."
+  ],
+  "contractEvidence": [
+    "packages/contracts/src/invitations.ts invitationListQuerySchema/invitationDeliverySchema/invitationListResponseSchema",
+    "apps/api/src/adapters/invitations.ts resend rejects expired/revoked; list delivery.canRetry is server eligibility hint"
+  ],
+  "scope": "apps/web source/tests only plus review artifacts. No backend/sharedcontract/dependency/deployment edits. Preserve previous comment/quickadd/board behavior. No self approval."
+}

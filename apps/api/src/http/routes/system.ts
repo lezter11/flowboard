@@ -63,12 +63,12 @@ systemRoutes.post('/migrate', async (c) => {
         applied: result.applied,
       },
     });
-  } catch (error) {
+  } catch {
     return c.json(
       {
         error: {
           code: 'MIGRATION_FAILED',
-          message: error instanceof Error ? error.message : String(error),
+          message: 'Database migration failed. Check server deployment configuration.',
           requestId: c.get('requestId'),
         },
       },

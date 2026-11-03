@@ -1,3 +1,4 @@
+import { createEmptyImport } from './support/import-fixture.ts';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import test from 'node:test';
@@ -158,18 +159,13 @@ test('replay after revocation: comment edit, comment delete, card trash and impo
   }, 200, 'card-trash', '"title"'));
 
   await t.test('import commit', () => {
-    let importId: string | undefined;
+    let preview: Awaited<ReturnType<typeof createEmptyImport>> | undefined;
     return replayAfterRevocation(async (s, key, pool) => {
-      if (!importId) {
-        // A ready import with no rows: enough to exercise the commit path's locks and receipt.
-        importId = 'imp_' + crypto.randomUUID();
-        await pool.query(
-          `INSERT INTO card_imports (id, workspace_id, project_id, board_id, default_column_id, uploader_id, version, state, preview_digest, expires_at, created_at, updated_at)
-           VALUES ($1, 'w', 'p', $2, $3, $4, 1, 'ready', 'digest-x', NOW() + INTERVAL '1 day', NOW(), NOW())`,
-          [importId, s.boardId, s.cols[0], s.owner.user.id],
-        );
-      }
-      return s.app.request(`/api/v1/imports/${importId}/commit`, { method: 'POST', headers: { ...s.as(s.manager.session), 'Idempotency-Key': key }, body: JSON.stringify({ previewDigest: 'digest-x', defaultColumnId: s.cols[0], expectedVersion: 1 }) });
+      preview ??= await createEmptyImport(pool, s.boardId, s.cols[0]!, s.owner.user.id);
+      return s.app.request(`/api/v1/imports/${preview.id}/commit`, {
+        method: 'POST', headers: { ...s.as(s.manager.session), 'Idempotency-Key': key },
+        body: JSON.stringify({ previewDigest: preview.previewDigest, defaultColumnId: s.cols[0], expectedVersion: 1 }),
+      });
     }, 200, 'import-commit', 'digest-x');
   });
 });

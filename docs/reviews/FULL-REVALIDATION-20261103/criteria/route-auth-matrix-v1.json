@@ -1,0 +1,31 @@
+{
+  "version": 1,
+  "date": "2026-11-03",
+  "frozenBeforeProbeCode": true,
+  "mode": "validation only; no runtime/source fixes without root coordination",
+  "target": "createApp actual mounted Hono routes with real PostgreSQL isolated identity-extra schema; NODE_ENVtest, synthetic sessions/tokens, no signed-provider calls",
+  "criteria": [
+    "Build operation set from actual mounted explicit method/path registrations and compare exactly with OPENAPI_ROUTES/PATallowlist. Missing/phantom/duplicate operation or unsupported path parameter causes testfailure; no hardcoded operation count.",
+    "Every route annotated session/session-or-token receives anonymous and expired-session cookie request: expect401, no private data and no persisted side effects. Public/local-test/admin-secret cases are explicitly listed with actual expectedauth semantics; do not silently exempt metadata mismatches.",
+    "Every mounted operation receives valid full-scope projectPAT plus currentOwnercookie: exactly six allowlisted capabilities can reach success using valid typed positive fixtures; every other bearer operation403 TOKEN_OPERATION_FORBIDDEN, no private data/effects.",
+    "Every mounted operation receives expiredPAT plus currentOwnercookie:401, no cookie fallback/private data/effects, including public/admin/local routes.",
+    "For all bearer-denied and session-denied cells compare full synthetic application-table fingerprints before/after; count failure if entity/receipt/audit/outbox/session/token state changes. Fake only unrelated limiter ports for isolation, never authentication or database authorization.",
+    "Valid PAT positive POSTcard proves canonical effect/receipt/activity/outbox behavior; positive GETresponses validate expected allowed project/board/card identity and metadata shape. No malformed422 is counted as authorization success/denial proof.",
+    "Add foreign-project and project-member-without-board-grant cookie cases where typed valid request and existing target fixture are available. Record expected404/403 or allowedemptydisclosure behavior peractualscope; list unimplemented factories/cells without calling them covered.",
+    "Validate named JSON request fixtures against actual shared/wire Zod input schema when metadata bindsone; list any factory/schema gap explicitly. Binary fixtures are real local XLSX/PNG bytes. Denial probes do not call OAuth/token providers or sendmail.",
+    "Record actual cell count, operation inventory, public exceptions, schema validity/factory coverage, statuses/no-data/no-effects and source hashes. Preserve failures. Root typecheck and targeted test command; no feature approval/score/fullreview/UATclaim."
+  ],
+  "environment": [
+    "Only localhost55931/flowboard_identity_extra_test, synthetic harness role, fresh schema and deterministic injected limiter ports.",
+    "SyntheticHOME and clean env, NODE_ENVtest, metricsfalse; no realprovider/admin credentials.",
+    "No primary/access DB reservation; root/image/Undo work may proceed independently."
+  ],
+  "plannedFiles": [
+    "apps/api/test/route-auth-matrix.test.ts",
+    "new narrowly named fixture helper if needed",
+    "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-*",
+    "docs/reviews/FULL-REVALIDATION-20261103/route-auth-matrix-result.md/.json"
+  ],
+  "score": null,
+  "approval": null
+}

@@ -1,0 +1,40 @@
+✖ Outbox: a real SQL poison error retries/quarantines without aborting independent accepted work (240.29575ms)
+✔ Outbox: transaction rollback/restart and concurrent consumers produce one logical notification (197.752625ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 602.42975
+
+✖ failing tests:
+
+test at apps/api/test/outbox-recovery.test.ts:6:1
+✖ Outbox: a real SQL poison error retries/quarantines without aborting independent accepted work (240.29575ms)
+  error: current transaction is aborted, commands ignored until end of transaction block
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg/lib/client.js:694:17
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async processOutboxLease (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/adapters/notifications.ts:400:11)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/outbox-recovery.test.ts:17:15)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 145,
+    severity: 'ERROR',
+    code: '25P02',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postgres.c',
+    line: '1499',
+    routine: 'exec_parse_message'
+  }

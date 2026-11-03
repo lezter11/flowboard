@@ -1,13 +1,16 @@
 import { Hono } from 'hono';
-import { z } from 'zod';
 import {
   createCardInputSchema,
   updateCardInputSchema,
   moveCardInputSchema,
+  moveUndoInputSchema,
   cardsQuerySchema,
+  myTasksQuerySchema,
   idempotencyKeySchema,
   parseOrThrow,
 } from '@flowboard/contracts';
+import { acquireWriteGrantLock } from '../../adapters/rbac.ts';
+import { lockSelectedAssignees } from '../../services/assignee-locks.ts';
 import { getPool } from '../../adapters/postgres.ts';
 import { lockProjectBoardReadScope } from '../../adapters/board-grants-foundation.ts';
 import { checkOrReplayProjectWriteReceipt, saveReceipt, sha256 } from '../../adapters/idempotency.ts';
@@ -89,6 +92,8 @@ cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, requireTokenSc
       ? { ...semanticInput, assigneeIds: [...semanticInput.assigneeIds].sort() }
       : rawBody;
 
+    await acquireWriteGrantLock(client, projectId, actor.id, 'member', boardId);
+    const lockedAssignees = await lockSelectedAssignees(client, projectId, boardId, input.assigneeIds);
     const methodPath = `/api/v1/boards/${boardId}/cards`;
     const replay = await checkOrReplayProjectWriteReceipt(
       client,
@@ -113,7 +118,7 @@ cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, requireTokenSc
       type: 'personal_access_token',
       credentialId: tokenId,
       operationIdHash: sha256(idempotencyKey),
-    } : { type: 'session' });
+    } : { type: 'session' }, lockedAssignees);
     const responseBody = { data: card };
 
     await saveReceipt(
@@ -191,6 +196,9 @@ cardsRoutes.patch('/api/v1/cards/:cardId', authMiddleware, async (c) => {
     }
     const { project_id: projectId, board_id: boardId } = cardLookup.rows[0]!;
 
+    await acquireWriteGrantLock(client, projectId, actor.id, 'member', boardId);
+    const lockedAssignees = input.assigneeIds === undefined ? undefined :
+      await lockSelectedAssignees(client, projectId, boardId, input.assigneeIds);
     const methodPath = `/api/v1/cards/${cardId}`;
     const replay = await checkOrReplayProjectWriteReceipt(
       client,
@@ -211,7 +219,7 @@ cardsRoutes.patch('/api/v1/cards/:cardId', authMiddleware, async (c) => {
       );
     }
 
-    const updated = await updateCard(client, cardId, input, actor.id);
+    const updated = await updateCard(client, cardId, input, actor.id, lockedAssignees);
     const responseBody = { data: updated };
 
     await saveReceipt(
@@ -323,10 +331,7 @@ cardsRoutes.post('/api/v1/cards/:cardId/move-undo', authMiddleware, async (c) =>
 
   const rawBody = await c.req.json();
   const input = parseOrThrow(
-    z.object({
-      expectedVersion: z.number().int().nonnegative(),
-      expectedBoardVersion: z.number().int().nonnegative(),
-    }),
+    moveUndoInputSchema,
     rawBody,
   );
 
@@ -374,8 +379,8 @@ cardsRoutes.post('/api/v1/cards/:cardId/move-undo', authMiddleware, async (c) =>
     }
 
     // 2. Find last card_moved activity fact
-    const actRes = await client.query<{ safe_changes: any }>(
-      `SELECT safe_changes
+    const actRes = await client.query<{ id:string; safe_changes: any }>(
+      `SELECT id,safe_changes
        FROM activity_log
        WHERE card_id = $1 AND action = 'card_moved'
        ORDER BY created_at DESC, id DESC
@@ -389,10 +394,15 @@ cardsRoutes.post('/api/v1/cards/:cardId/move-undo', authMiddleware, async (c) =>
     }
 
     const { fromColumnId } = actRes.rows[0].safe_changes;
+    const fact=actRes.rows[0];
+    if(fact.safe_changes.undoOfActivityId || !Object.hasOwn(fact.safe_changes,'fromPreviousCardId') ||
+      !Object.hasOwn(fact.safe_changes,'fromNextCardId')){
+      throw HttpError.conflict('NO_PREVIOUS_MOVE','This move was already undone or lacks a safe original position.');
+    }
 
     // Verify destination column still exists and is on the same board
     const colRes = await client.query<{ id: string }>(
-      `SELECT id FROM columns WHERE id = $1 AND board_id = $2`,
+      `SELECT id FROM columns WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL`,
       [fromColumnId, card.board_id],
     );
     if (colRes.rows.length === 0) {
@@ -401,18 +411,23 @@ cardsRoutes.post('/api/v1/cards/:cardId/move-undo', authMiddleware, async (c) =>
     }
 
     // Perform the move back using moveCard logic
-    const moved = await moveCard(
+    let moved;
+    try { moved = await moveCard(
       client,
       cardId,
       {
         toColumnId: fromColumnId,
-        previousCardId: null,
-        nextCardId: null,
+        previousCardId: fact.safe_changes.fromPreviousCardId,
+        nextCardId: fact.safe_changes.fromNextCardId,
         expectedVersion: input.expectedVersion,
         expectedBoardVersion: input.expectedBoardVersion,
       },
       actor.id,
-    );
+      {undoOfActivityId:fact.id},
+    ); } catch(error) {
+      if(error instanceof HttpError && error.status===422)throw HttpError.conflict('STALE_BOARD_VERSION','The original card position changed. Refresh and move the card manually.');
+      throw error;
+    }
 
     const responsePayload = { data: moved };
     const saved = await saveReceipt(
@@ -452,13 +467,13 @@ cardsRoutes.get('/api/v1/projects/:projectId/cards/search', authMiddleware, asyn
 
   const projectId = c.req.param('projectId');
   const query = c.req.query();
-  const parsed = parseOrThrow(cardsQuerySchema, query);
 
   const pool = getPool();
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const boardIds = await lockProjectBoardReadScope(client, projectId, actor.id);
+    const parsed = parseOrThrow(cardsQuerySchema, query);
     const result = await searchProjectCards(client, projectId, parsed, actor.id, boardIds);
     await client.query('COMMIT');
     return c.json(result, 200);
@@ -477,18 +492,15 @@ cardsRoutes.get('/api/v1/me/tasks', authMiddleware, async (c) => {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
   }
 
-  const limitParam = c.req.query('limit');
-  const limit = limitParam ? parseInt(limitParam, 10) : 50;
-  const workspaceId = c.req.query('workspaceId');
-  const projectId = c.req.query('projectId')?.trim();
-  if (!projectId) throw HttpError.badRequest('projectId is required for My Tasks.');
+  const query = parseOrThrow(myTasksQuerySchema, c.req.query());
+  const { projectId } = query;
 
   const pool = getPool();
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const boardIds = await lockProjectBoardReadScope(client, projectId, actor.id);
-    const result = await getMyTasks(client, actor.id, { limit, workspaceId, projectId, authorizedBoardIds: boardIds });
+    const result = await getMyTasks(client, actor.id, { ...query, authorizedBoardIds: boardIds });
     await client.query('COMMIT');
     return c.json(result, 200);
   } catch (error) {
@@ -507,17 +519,15 @@ cardsRoutes.get('/api/v1/workspaces/:workspaceId/my-tasks', authMiddleware, asyn
   }
 
   const workspaceId = c.req.param('workspaceId');
-  const limitParam = c.req.query('limit');
-  const limit = limitParam ? parseInt(limitParam, 10) : 50;
-  const projectId = c.req.query('projectId')?.trim();
-  if (!projectId) throw HttpError.badRequest('projectId is required for My Tasks.');
+  const query = parseOrThrow(myTasksQuerySchema.omit({ workspaceId: true }), c.req.query());
+  const { projectId } = query;
 
   const pool = getPool();
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
     const boardIds = await lockProjectBoardReadScope(client, projectId, actor.id);
-    const result = await getMyTasks(client, actor.id, { limit, workspaceId, projectId, authorizedBoardIds: boardIds });
+    const result = await getMyTasks(client, actor.id, { ...query, workspaceId, authorizedBoardIds: boardIds });
     await client.query('COMMIT');
     return c.json(result, 200);
   } catch (error) {

@@ -1,0 +1,55 @@
+✖ Full image verifier: mounted content rejects corrupt entropy even with a valid container envelope (294.551834ms)
+✖ Image integrity: actual workerd validates complete containers and private R2 deliveries (809.739917ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1948.044084
+
+✖ failing tests:
+
+test at apps/api/test/image-full-verifier.test.ts:9:1
+✖ Full image verifier: mounted content rejects corrupt entropy even with a valid container envelope (294.551834ms)
+  AssertionError [ERR_ASSERTION]: [{"name":"png-corrupt-deflate","status":422},{"name":"jpeg-corrupt-entropy","status":422},{"name":"webp-corrupt-entropy","status":422},{"name":"jpeg-warning-recovered","status":200}]
+  + actual - expected
+  
+    [
+      422,
+      422,
+      422,
+  +   200
+  -   422
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-full-verifier.test.ts:59:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 422, 422, 422, 200 ],
+    expected: [ 422, 422, 422, 422 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/image-integrity-worker.test.ts:12:1
+✖ Image integrity: actual workerd validates complete containers and private R2 deliveries (809.739917ms)
+  AssertionError [ERR_ASSERTION]: jpeg-warning-recovered: {"data":{"id":"upl_d6eb13be-6944-444b-8398-3ad4bec4220a","projectId":"prj","cardId":"card","version":2,"state":"content_received","expectedBytes":266,"receivedBytes":266,"expiresAt":"2026-11-03T07:55:55.905Z","serverNow":"2026-11-03T06:55:55.936Z","finalizedImageId":null,"error":null}}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-integrity-worker.test.ts:103:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

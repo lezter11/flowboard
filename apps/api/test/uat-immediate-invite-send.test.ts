@@ -100,6 +100,7 @@ test('UAT: the invite route hands the immediate send to waitUntil, and the row i
 
     const res = await app.fetch(inviteRequest(fx), { ...MAIL_ENV, DATABASE_URL: db.schemaUrl }, ctx);
     assert.equal(res.status, 201, await res.clone().text());
+    const invitationId = ((await res.json()) as any).data.id as string;
     assert.equal(pending.length, 1, 'the route called waitUntil exactly once');
 
     await Promise.all(pending);
@@ -109,7 +110,7 @@ test('UAT: the invite route hands the immediate send to waitUntil, and the row i
       [fx.project],
     );
     assert.equal(row.rows[0]!.status, 'delivered');
-    assert.deepEqual(row.rows[0]!.payload, { providerMessageId: '<m-1@brevo>' });
+    assert.deepEqual(row.rows[0]!.payload, { invitationId, providerMessageId: '<m-1@brevo>' });
   } finally {
     await db.close();
   }

@@ -1,0 +1,45 @@
+{
+  "version": "jpeg-entropy-completeness-4",
+  "status": "frozen_before_implementation_not_approval",
+  "featureIds": [
+    "ATT-02"
+  ],
+  "baselineEvidence": "raw/image-warning-recovered-red.log: mountedNode and actualworkerd accept266-byte warning-recovered truncated JPEG as200",
+  "primaryReference": {
+    "repository": "https://github.com/jpeg-js/jpeg-js",
+    "tag": "v0.4.4",
+    "commit": "9ccd35fb5f55a6c4f1902ac5b0f270f675750c27",
+    "file": "lib/decoder.js decodeScan",
+    "sha256": "a3f175fd6f62d142aad94d3bd90f3a30be4e076baf9b6a6fa31c8e84d9d4aa9f",
+    "license": "decoder attribution Copyright2011notmasteryet Apache2.0; package BSD3-Clause notice retained where applicable",
+    "differences": "New validation-only implementation, no IDCT/pixel output/coefficient magnitudes. Do not preserve upstream tolerant decoding, missing-block skips, unchecked trailing entropy or unchecked marker/array access."
+  },
+  "algorithm": [
+    "Parse bounded8-bit Huffman SOF0/SOF1/SOF2,DHT,DRI,SOS; canonical Huffman tables with bounded symbols/lengths and exact segment bounds. Arithmetic/lossless/hierarchical or unsupported precision fail explicit422, never unchecked acceptance.",
+    "Derive interleaved MCU and noninterleaved component-block counts from dimensions/sampling, including padded edge blocks; consume every required block. Respect restart interval and cyclic RST0..7, discard only legal all-one byte-alignment padding, reset scan-local EOB/refinement state at valid restart boundaries.",
+    "Baseline consumes DC category/difference bits and AC run/size/ZRL/EOB with exact coefficient bounds. Progressive DC first/refine consumes correct symbols/bits. Progressive AC first/refine uses persistent nonzero-presence bitsets indexed by block and spectral coefficient; consume refinement bits only for already-nonzero coefficients and mark newly nonzero coefficients. Track spectral successive-approximation sequence without coefficient magnitudes or IDCT.",
+    "Reject entropy exhaustion/marker during a required code or value; invalid Huffman path; invalid categories/runs; restart ordering/count; unexpected trailing entropy; EOB overrun and incomplete refinement state. Require all supported scan structures to finish truthfully; retain full external/native pixel decode after this check.",
+    "EOB-run bulk skipping is permitted only for first AC scans (no refinement bits exist), or a refinement band whose global nonzero-presence mask is empty. It advances exact component block count within current restart group and retains EOB-overrun/alignment checks. Other refinement bands continue exact presence-bit processing. This is an equivalent work reduction, not a file/pixel cap change.",
+    "For AC-refinement EOB runs, build a bounded32-block prefix count of pre-scan nonzero coefficients in the selected spectral band (<=~40KiB). Future blocks in the run introduce no new nonzero coefficients, so the number of refinement bits is the rectangle population count; discard that many bits in original stream order while preserving stuffing/restart/exhaustion checks. Current partial block still uses its exact remaining band. New coefficients introduced in already-processed blocks cannot affect future-range counts."
+  ],
+  "bounds": {
+    "inputBytes": 10485760,
+    "dimension": 8192,
+    "decodedPixels": 20000000,
+    "nonzeroBitsetBytesMax": 10485760,
+    "componentsMax": 4,
+    "huffmanTablesMax": 8,
+    "cooperativeWallBudgetMs": 1000,
+    "budgetCheckCadenceOperations": 4096,
+    "operationFuel": "200,000,000 operations, primary deterministic bound; async yield at <=1,000,000 operations plus at most one bounded MCU; every loop advances input/block/coefficient state or fails. 1ms cooperative timer yields allow request abort/wall deadlines to run. A frozen Worker clock during CPU is never claimed as CPU measurement.",
+    "yieldCadenceOperations": 1000000,
+    "timerSource": "https://developers.cloudflare.com/workers/runtime-apis/performance/",
+    "refinementPrefixBytesMax": 65536
+  },
+  "mandatoryVerification": [
+    "Pinned upstream strict JPEG-js decoder and native full codec oracle for genuine small corpus: baseline/progressive,4:2:0/4:2:2/4:4:4,CMYK,grayscale,odd dimensions,custom spectral scans/restart markers where encoder supports. Verify real20MP baseline/progressive/CMYK maximum cases through actual workerd and mountedNode.",
+    "Known266-byte warning-recovered case must422 in actualmountedNode and actualworkerd. Deliberate DC/AC truncation, invalid Huffman code/run,stuffing,restart/EOB/refinement/table bounds and spectral sequence cases must not pass.",
+    "Bounded deterministic differential byte/scan mutations against strict upstream/native oracle; report decoder disagreement rather than inventing universal equivalence. No new runtime package; reference source is not production pixel decoder.",
+    "Source-specific fresh independent review must examine parser proof,byte/cursor bounds,memory and CPU before closure; hosted CPU/plan/resource acceptance stays UAT pending. If valid required cases cannot fit bounds, report concrete blocker/alternative rather than lowering mandatory policy."
+  ]
+}

@@ -1,0 +1,112 @@
+{
+  "kind": "builder_handoff_not_independent_approval",
+  "baseline": "917706ae0433df471c72736be4d548eb022236c4",
+  "criteria": "import-repair-criteria.json",
+  "changedOwnedFiles": [
+    "apps/api/src/adapters/imports.ts",
+    "apps/api/src/services/excel-parser.ts",
+    "apps/api/src/services/import-retention.ts",
+    "apps/api/src/services/import-template.ts",
+    "apps/api/src/services/trash-purge.ts",
+    "apps/api/src/runtime/worker.ts",
+    "apps/api/src/http/routes/imports.ts",
+    "database/migrations/0021_import_payload_retention.sql",
+    "apps/api/src/adapters/embedded-migrations.ts",
+    "apps/api/test/import-repair.test.ts",
+    "apps/api/test/import-worker-template.test.ts",
+    "apps/api/test/support/import-workbook.ts",
+    "apps/api/test/support/import-database.ts",
+    "apps/api/test/support/import-fixture.ts",
+    "apps/api/test/imp01-imp06.test.ts",
+    "apps/api/test/board-access-boards-imports-trash.test.ts",
+    "apps/api/test/comment-move-replay.test.ts",
+    "apps/api/test/lock-order-interleave.test.ts"
+  ],
+  "sourceHashes": {
+    "apps/api/src/adapters/imports.ts": "260c44e61ecbf82863eea1338897d913830e52ff5cf8d7b64316b9094d38ef68",
+    "apps/api/src/services/excel-parser.ts": "3e1c31e976b190c9dbc79010f3a75b5d76765498d924c338bbfa66562a5b3694",
+    "apps/api/src/services/import-retention.ts": "aa7d4c51f530b47d6007436178dc496d72658cd48c109ffa8fbe01e65b00d1fd",
+    "apps/api/src/services/import-template.ts": "44c09a80134957002f01259769d4970db14ac53223f7ecbd488a0326eadf3017",
+    "apps/api/src/services/trash-purge.ts": "f3fe6b5cf973ab9f7d6df7897b5fda4493b7a2e41f5890664bb6abfb1ab45d6a",
+    "apps/api/src/runtime/worker.ts": "f5d8b451917100b6537016f1e7810b36e63db9c6a3bc3e820acc01eae01694ee",
+    "apps/api/src/http/routes/imports.ts": "57602a2132f3530097d67248554b934796913f54e49c44f60bfebcf45317c686",
+    "database/migrations/0021_import_payload_retention.sql": "869edfe6ea5fc658d04b7e9c16a73286512e13f6c0d0765d702b37b3d8f41123",
+    "apps/api/src/adapters/embedded-migrations.ts": "253da95ffa03593d71f7213c091f2dafbcddf9002273aba1d2cbe12a5b49b361",
+    "apps/api/test/import-repair.test.ts": "d4c66d18545bfd4eefc3c7c08ff560a6aed30ec770ce7dceb7f8ff6dcda1abeb",
+    "apps/api/test/import-worker-template.test.ts": "1360e56ff5a63f86a9e79ebe88e98a8bdb7566329a172b572152dbaf69565f1f",
+    "apps/api/test/support/import-workbook.ts": "ecd514f944378db6009e4539476c22dd72e17efe3e635b3567520bd7db876211",
+    "apps/api/test/support/import-database.ts": "d560475d121f1d44e11240d7a6aa92e0b3796356fb5800849c95f71efe1c2306",
+    "apps/api/test/support/import-fixture.ts": "f5f19b36b6726e223bd83ffb00b89f396898e8fdbda8ccde30793fb3a8d5c243",
+    "apps/api/test/imp01-imp06.test.ts": "a8983a453a0e04bae83d9a36fb2498204fe0160179ff91df1e7baf7d01365287",
+    "apps/api/test/board-access-boards-imports-trash.test.ts": "f65cd57ed9f579c789bc07cf3a2c0396e2a910e85660845e7440ca4c66f478c6",
+    "apps/api/test/comment-move-replay.test.ts": "cb13faadfc18bfde07a9c7bb73ae68c7317336c0a3c6d727c2ebcbc2c01be7cf",
+    "apps/api/test/lock-order-interleave.test.ts": "21df659d98ff8cab56454bc7ce723fc97192db28d326f523bcbecfdfb4d437ad"
+  },
+  "commands": [
+    {
+      "command": "NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test apps/api/test/import-repair.test.ts",
+      "exitCode": 1,
+      "result": "8 tests,0pass,8fail,0skip; valid shared-string synthetic fixtures, mandatory defaultColumnId supplied",
+      "evidence": "import-baseline.log",
+      "source": "917706ae0433df471c72736be4d548eb022236c4 before implementation; regression test later expanded"
+    },
+    {
+      "command": "NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test apps/api/test/import-worker-template.test.ts",
+      "exitCode": 1,
+      "result": "Actual local workerd returned404 Import template file not found;1fail",
+      "evidence": "import-worker-template-baseline.log"
+    },
+    {
+      "command": "DATABASE_URL=<synthetic localhost55931/flowboard_harness> ALLOW_REMOTE_DB=false NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test apps/api/test/imp01-imp06.test.ts apps/api/test/b7-xlsx-budget.test.ts",
+      "exitCode": 0,
+      "result": "27pass,0fail,0skip before final helper/test additions; root fullsuite must cover final complete target",
+      "evidence": "import-existing-round2.log"
+    },
+    {
+      "command": "FLOWBOARD_IMPORT_TEST_DATABASE_URL=<synthetic localhost55931/flowboard_import_test> NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test apps/api/test/import-repair.test.ts apps/api/test/import-worker-template.test.ts",
+      "exitCode": 0,
+      "result": "16pass,0fail,0skip; includes actual workerd200row preview+atomic commit; latest elapsed812.87ms local wall time, no hosted performance claim",
+      "evidence": "import-repair-final.log"
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "result": "API/contracts/root TypeScript and MCP typecheck pass",
+      "evidence": "import-typecheck-final.log"
+    },
+    {
+      "command": "Node assertion compares every EMBEDDED_MIGRATIONS SQL byte/name/count to database/migrations",
+      "exitCode": 0,
+      "result": "22 migrations match byte-for-byte; stdout observed in tool log, repeated by root fullsuite board-concurrency test expected"
+    },
+    {
+      "command": "git diff --check -- <owned tracked paths>",
+      "exitCode": 0,
+      "result": "No whitespace errors"
+    }
+  ],
+  "preservedLogs": {
+    "import-baseline.log": "38345db94f14ac60a57c9a882afb0e198c0d2ba98bf6ac1ed05bcedbaef1b271",
+    "import-worker-template-baseline.log": "b94826ca7d9f45ffa278940d7e0ffbab2e2d398445301e8089290eddb71246d7",
+    "import-existing-round1.log": "ce81680903c95e3cb46f9d923c79512f1dc7b91ada4e2757de39e8eb0115872c",
+    "import-existing-round2.log": "1322c399f78312b918cb43fab079fc12f03ad4edb0771f616c46fc71634a7cde",
+    "import-repair-round1.log": "8b91e45f612c553271d378f68997aba647bed7539f1c5e9aefc3db15bbebf3d7",
+    "import-repair-round2.log": "16522cb9733301127bea841d267fc3683e93bf01da68ec8a829ca4daed43e4af",
+    "import-repair-round3.log": "052a8255616cfab0815456bb13bbbefc42ccf5a198ebc40a145db863bfec8403",
+    "import-repair-round4.log": "501668bf4fa50d0fe6870b8d0542ced141364c43b549ebda70d5c15a754e9e4a",
+    "import-repair-final.log": "fe147fef0494b740283279f827d894d4522c42157a3a5efab2dba37a1e00fd39",
+    "import-typecheck-final.log": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1",
+    "import-fixture-inline-string-failure.log": "02655a8f5d0031d123f7408bdb5fcee98c3a3948c5de1c13594db13ea123d731",
+    "import-fixture-missing-default.log": "5e5a35b5fdea2f037f3ae5152309d6a6fa1b1914aa1fb79b05ef0228ff6bcb09"
+  },
+  "limitations": [
+    "No cloud/UAT/production/real credentials/commits were used",
+    "No full API suite or independent approval from this builder; parent owns full product gate and final manifest",
+    "Scheduled Worker handler tested in Node against real PG plus actual local workerd HTTP import; hosted cron/liveness/backlog/maximum payload performance remain UAT pending",
+    "Legacy uncommitted previews expire; previously lost descriptions in already committed cards cannot be reconstructed safely",
+    "Parser1000ms is cooperative elapsed-time guard, not a hard preemptive CPU bound or proof of hosted capacity",
+    "Root owns optional description contract addition and0022 embedded entry; this builder did not edit identity/UI/contracts",
+    "Source hash map is owned stream snapshot, not complete dependency gate manifest"
+  ],
+  "status": "implemented_and_focused_local_tests_passed_awaiting_full_gate"
+}

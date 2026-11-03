@@ -1,3 +1,4 @@
+import { createEmptyImport } from './support/import-fixture.ts';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import test from 'node:test';
@@ -71,15 +72,7 @@ test('comment PATCH/DELETE, import commit and their controls never return a serv
       }
     }
 
-    async function makeImport(boardId: string, defaultColumnId: string): Promise<string> {
-      const id = 'imp_' + crypto.randomUUID();
-      await pool.query(
-        `INSERT INTO card_imports (id, workspace_id, project_id, board_id, default_column_id, uploader_id, version, state, preview_digest, expires_at, created_at, updated_at)
-         VALUES ($1, 'w', 'p', $2, $3, $4, 1, 'ready', 'digest-x', NOW() + INTERVAL '1 day', NOW(), NOW())`,
-        [id, boardId, defaultColumnId, owner.user.id],
-      );
-      return id;
-    }
+    const makeImport = (boardId: string, defaultColumnId: string) => createEmptyImport(pool, boardId, defaultColumnId, owner.user.id);
 
     const cases: Array<{ name: string; run: (s: Awaited<ReturnType<typeof setupRound>>, i: number) => Promise<number[]> }> = [
       { name: 'P1 move vs comment PATCH', run: async (s, i) => forced(s.boardId,
@@ -89,19 +82,19 @@ test('comment PATCH/DELETE, import commit and their controls never return a serv
         async () => req('POST', `/api/v1/cards/${s.card.id}/move`, { toColumnId: s.cols[1], previousCardId: null, nextCardId: null, expectedVersion: s.card.version, expectedBoardVersion: await s.bv() }),
         async () => req('DELETE', `/api/v1/comments/${s.comment.id}`, { expectedVersion: s.comment.version })) },
       { name: 'P4 import commit vs the same import commit', run: async (s) => {
-        const importId = await makeImport(s.boardId, s.cols[0]!);
-        const body = { previewDigest: 'digest-x', defaultColumnId: s.cols[0], expectedVersion: 1 };
+        const preview = await makeImport(s.boardId, s.cols[0]!);
+        const body = { previewDigest: preview.previewDigest!, defaultColumnId: s.cols[0], expectedVersion: 1 };
         return forced(s.boardId,
-          async () => req('POST', `/api/v1/imports/${importId}/commit`, body),
-          async () => req('POST', `/api/v1/imports/${importId}/commit`, body));
+          async () => req('POST', `/api/v1/imports/${preview.id}/commit`, body),
+          async () => req('POST', `/api/v1/imports/${preview.id}/commit`, body));
       } },
       { name: 'P3 control: move vs card create', run: async (s) => forced(s.boardId,
         async () => req('POST', `/api/v1/cards/${s.card.id}/move`, { toColumnId: s.cols[1], previousCardId: null, nextCardId: null, expectedVersion: s.card.version, expectedBoardVersion: await s.bv() }),
         async () => req('POST', `/api/v1/boards/${s.boardId}/cards`, { title: 'Z', columnId: s.cols[0], expectedBoardVersion: await s.bv() })) },
       { name: 'P5 control: import commit vs card create', run: async (s) => {
-        const importId = await makeImport(s.boardId, s.cols[0]!);
+        const preview = await makeImport(s.boardId, s.cols[0]!);
         return forced(s.boardId,
-          async () => req('POST', `/api/v1/imports/${importId}/commit`, { previewDigest: 'digest-x', defaultColumnId: s.cols[0], expectedVersion: 1 }),
+          async () => req('POST', `/api/v1/imports/${preview.id}/commit`, { previewDigest: preview.previewDigest!, defaultColumnId: s.cols[0], expectedVersion: 1 }),
           async () => req('POST', `/api/v1/boards/${s.boardId}/cards`, { title: 'Q', columnId: s.cols[0], expectedBoardVersion: await s.bv() }));
       } },
       { name: 'P6 control: comment POST vs move', run: async (s, i) => forced(s.boardId,

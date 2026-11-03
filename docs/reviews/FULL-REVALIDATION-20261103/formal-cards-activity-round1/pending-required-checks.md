@@ -1,0 +1,7 @@
+# Final required checks not executed for this global target
+
+The independent reviewer ran focused diagnostic suites and probes only, with execution attribution in diagnostic-executions.json. The14 required commands have not been independently executed against a final immutable global freeze for these two group records. Their exitCode is null, not fabricated0. The required web command did pass318tests before the final global freeze; this is diagnostic evidence, not a fresh frozen global acceptance run. Parent/foundation reviewer will own actual final14 commands after builders finish and source freezes. No global or hosted approval is granted.
+
+Pre-freeze observation inventories record current bytes. Imports/project/test harness dependencies changed during discovery, with source-before.json and source-after-discovery.json preserving the delta. Core claim-specific source was unchanged for retained browser observations. Current source is about to change again for builder-owned repairs, which invalidates any approval anyway. The two records deliberately remain incomplete with open mandatory defects and score/category failures.
+
+Invalid excluded attempt focused-existing-tests.log defaulted to55432 because reviewer omitted DATABASE_URL; it is preserved and never counted. Corrected runs explicitly set all55931 URLs and isolate legacy consumers with a random PGOPTIONS schema. No default database cleanup was attempted outside authorization.

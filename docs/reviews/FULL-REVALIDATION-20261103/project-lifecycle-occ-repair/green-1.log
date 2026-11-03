@@ -1,0 +1,20 @@
+✔ project lifecycle OCC: archive validates actual version after Owner authority (269.581416ms)
+✔ project lifecycle OCC: reopen validates actual version after Owner authority (189.710833ms)
+✔ project lifecycle OCC: stale archive/reopen never overwrites later opposite transitions (214.456375ms)
+✔ project lifecycle OCC: archive receipt binds original version and replays after later transitions (209.909917ms)
+✔ project lifecycle OCC: reopen receipt binds original version and replays after later transitions (188.941042ms)
+✔ project lifecycle OCC: stale reopen refuses before quota checks and preserves the cap (194.806209ms)
+✔ project lifecycle OCC: opposite concurrent writes serialize on distinct connections (active) (197.530541ms)
+ℹ {"blockerPid":11404,"observed":[{"pid":11406,"blockers":[11405]},{"pid":11405,"blockers":[11404]}]}
+✔ project lifecycle OCC: opposite concurrent writes serialize on distinct connections (archived) (217.971167ms)
+ℹ {"blockerPid":11409,"observed":[{"pid":11411,"blockers":[11412]},{"pid":11412,"blockers":[11409]}]}
+{"initial":1,"afterArchive":2,"delayedStatus":409,"state":{"archived":false,"version":3},"payload":{"error":{"code":"STALE_VERSION","message":"Stale project version.","requestId":"c0c1c07d-83d1-4531-8b4a-cf7ce71b5848"}}}
+✔ independent project lifecycle: delayed archive must respect documented expected project version (230.895708ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 9
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2360.803792

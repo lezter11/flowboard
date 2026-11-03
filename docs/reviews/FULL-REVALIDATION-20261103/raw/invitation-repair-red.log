@@ -1,0 +1,183 @@
+✖ invitation repair: expired direct adapter call never commits caller-owned work (283.164666ms)
+✖ invitation repair: accepted receipt is denied after archive or access removal (277.922708ms)
+✖ invitation repair: archive winning its row lock makes concurrent acceptance fail without effects (2248.247333ms)
+✖ invitation repair: acceptance winning lifecycle lock commits before concurrent archive (2281.898ms)
+✖ invitation repair: leave waits for quota before touching grant or receipt; archived leave replays safely (2245.269167ms)
+✖ invitation repair: invitation history defaults50, caps100 and keysets timestamp ties without duplicates (241.627792ms)
+✖ invitation repair: cursor scope, tamper, role revision and lifecycle changes are rejected after authorization (194.27925ms)
+✖ invitation repair: list exposes only safe latest delivery status and role-aware retry hint (204.873ms)
+✖ invitation repair: terminal delivered, permanent failure and exhausted retries retain only safe invitation association (239.2015ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 0
+ℹ fail 9
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8491.432583
+
+✖ failing tests:
+
+test at apps/api/test/invitation-repair.test.ts:17:3
+✖ invitation repair: expired direct adapter call never commits caller-owned work (283.164666ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'caller transaction marker'
+  - null
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:87:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'caller transaction marker',
+    expected: null,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/invitation-repair.test.ts:17:3
+✖ invitation repair: accepted receipt is denied after archive or access removal (277.922708ms)
+  AssertionError [ERR_ASSERTION]: {"data":{"success":true,"role":"member","projectId":"project_invite","workspaceId":"ws_invite"},"replayed":true}
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:95:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/invitation-repair.test.ts:17:3
+✖ invitation repair: archive winning its row lock makes concurrent acceptance fail without effects (2248.247333ms)
+  AssertionError [ERR_ASSERTION]: Expected 1 distinct database connections blocked on held locks
+      at waitBlocked (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:75:10)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:107:9)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at apps/api/test/invitation-repair.test.ts:17:3
+✖ invitation repair: acceptance winning lifecycle lock commits before concurrent archive (2281.898ms)
+  AssertionError [ERR_ASSERTION]: Expected 2 distinct database connections blocked on held locks
+      at waitBlocked (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:75:10)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:129:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at apps/api/test/invitation-repair.test.ts:17:3
+✖ invitation repair: leave waits for quota before touching grant or receipt; archived leave replays safely (2245.269167ms)
+  AssertionError [ERR_ASSERTION]: Expected 1 distinct database connections blocked on held locks
+      at waitBlocked (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:75:10)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:144:9)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at apps/api/test/invitation-repair.test.ts:17:3
+✖ invitation repair: invitation history defaults50, caps100 and keysets timestamp ties without duplicates (241.627792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  105 !== 50
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:158:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 105,
+    expected: 50,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/invitation-repair.test.ts:17:3
+✖ invitation repair: cursor scope, tamper, role revision and lifecycle changes are rejected after authorization (194.27925ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'object' !== 'string'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:174:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'object',
+    expected: 'string',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/invitation-repair.test.ts:17:3
+✖ invitation repair: list exposes only safe latest delivery status and role-aware retry hint (204.873ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + undefined
+  - {
+  -   canRetry: false,
+  -   status: 'pending'
+  - }
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:209:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: { status: 'pending', canRetry: false },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/invitation-repair.test.ts:17:3
+✖ invitation repair: terminal delivered, permanent failure and exhausted retries retain only safe invitation association (239.2015ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  -   invitationId: 'inv_00001',
+      providerMessageId: 'provider_opaque'
+    }
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/invitation-repair.test.ts:232:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { providerMessageId: 'provider_opaque' },
+    expected: { invitationId: 'inv_00001', providerMessageId: 'provider_opaque' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

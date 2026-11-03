@@ -1,0 +1,90 @@
+{
+  "purpose": "Local assessment prototype only; no production source/config/bindings/resources changed. Local Images binding is Miniflare sharp-backed, not hosted backend proof.",
+  "results": [
+    {
+      "name": "png-corrupt-deflate",
+      "inputBytes": 67,
+      "expectedStatus": 422,
+      "status": 422,
+      "output": {
+        "decoded": false,
+        "errorClass": "Error",
+        "code": 9523,
+        "message": "Unexpected error response 500: Error: vipspng: libpng read error\nvips2png: unable to write to target target\n    at Sharp.toBuffer (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/sharp/dist/output.mjs:159:17)\n    at runTransform (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:136065:37)\n    at imagesLocalFetcher (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:135954:14)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async #handleLoopbackCustomFetchService (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:138511:22)\n    at async #handleLoopback (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:138804:20)"
+      },
+      "elapsedMs": 34
+    },
+    {
+      "name": "jpeg-corrupt-entropy",
+      "inputBytes": 267,
+      "expectedStatus": 422,
+      "status": 422,
+      "output": {
+        "decoded": false,
+        "errorClass": "Error",
+        "code": 9523,
+        "message": "Unexpected error response 500: Error: VipsJpeg: Corrupt JPEG data: premature end of data segment\nvips2png: unable to write to target target\n    at Sharp.toBuffer (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/sharp/dist/output.mjs:159:17)\n    at runTransform (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:136065:37)\n    at imagesLocalFetcher (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:135954:14)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async #handleLoopbackCustomFetchService (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:138511:22)\n    at async #handleLoopback (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:138804:20)"
+      },
+      "elapsedMs": 5
+    },
+    {
+      "name": "webp-corrupt-entropy",
+      "inputBytes": 38,
+      "expectedStatus": 422,
+      "status": 422,
+      "output": {
+        "decoded": false,
+        "errorClass": "Error",
+        "code": 9523,
+        "message": "Unexpected error response 500: Error: webp2vips: unable to read pixels\nvips2png: unable to write to target target\n    at Sharp.toBuffer (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/sharp/dist/output.mjs:159:17)\n    at runTransform (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:136065:37)\n    at imagesLocalFetcher (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:135954:14)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async #handleLoopbackCustomFetchService (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:138511:22)\n    at async #handleLoopback (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:138804:20)"
+      },
+      "elapsedMs": 4
+    },
+    {
+      "name": "valid-png",
+      "inputBytes": 95,
+      "expectedStatus": 200,
+      "status": 200,
+      "output": {
+        "decoded": true,
+        "encodedOutputBytes": 95
+      },
+      "elapsedMs": 4
+    },
+    {
+      "name": "corrupt-deflate-valid-envelope",
+      "inputBytes": 67,
+      "expectedStatus": 422,
+      "status": 422,
+      "output": {
+        "decoded": false,
+        "errorClass": "Error",
+        "code": 9523,
+        "message": "Unexpected error response 500: Error: vipspng: libpng read error\nvips2png: unable to write to target target\n    at Sharp.toBuffer (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/sharp/dist/output.mjs:159:17)\n    at runTransform (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:136065:37)\n    at imagesLocalFetcher (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:135954:14)\n    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)\n    at async #handleLoopbackCustomFetchService (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:138511:22)\n    at async #handleLoopback (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/miniflare/dist/src/index.js:138804:20)"
+      },
+      "elapsedMs": 3
+    },
+    {
+      "name": "valid-progressive-jpeg-20MP-444",
+      "inputBytes": 235077,
+      "expectedStatus": 200,
+      "status": 200,
+      "output": {
+        "decoded": true,
+        "encodedOutputBytes": 279251
+      },
+      "elapsedMs": 82
+    },
+    {
+      "name": "valid-animated-webp",
+      "inputBytes": 144,
+      "expectedStatus": 200,
+      "status": 200,
+      "output": {
+        "decoded": true,
+        "encodedOutputBytes": 95
+      },
+      "elapsedMs": 3
+    }
+  ]
+}

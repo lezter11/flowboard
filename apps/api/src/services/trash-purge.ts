@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import { getPool } from '../adapters/postgres.ts';
 import { getStorageDriver } from '../adapters/storage.ts';
 import { recordActivity } from '../adapters/activity.ts';
+import { redactImportRows } from './import-retention.ts';
 import { stagingKeyOf } from '../adapters/images.ts';
 
 export interface PurgeResult {
@@ -204,6 +205,9 @@ export async function purgeExpiredTrash(
          WHERE card_id = $1`,
         [card.id],
       );
+
+      // Imported preview/report rows must not retain another copy of this card's private content.
+      await redactImportRows(client, { cardId: card.id });
 
       // d) Remove card images records and clean storage objects
       const imgKeysRes = await client.query<{ storage_key: string }>(

@@ -7,6 +7,7 @@ on:
       - 'chore/**'
       - 'feat/**'
       - 'codex/**'
+      - uat
   pull_request:
     branches:
       - main
@@ -57,13 +58,22 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Dependency advisory gate
+        run: npm audit --ignore-scripts --audit-level=high
+
       - name: Monorepo Typecheck
         run: |
           npm run typecheck
           npm run typecheck:web
 
       - name: Contracts Tests
-        run: npm test --workspace @flowboard/contracts
+        run: |
+          npm run openapi:check
+          npm run migrations:embed:check
+          npm test --workspace @flowboard/contracts
+
+      - name: Web unit tests
+        run: npm test --workspace @flowboard/web
 
       - name: MCP tests and installed stdio artifact
         run: |
@@ -74,7 +84,7 @@ jobs:
       # The board-access tests use their own fence: a localhost database named
       # flowboard_access_test. Create it next to flowboard_harness, using the pg
       # package already installed by npm ci (no psql client needed on the runner).
-      - name: Create board-access test database
+      - name: Create isolated acceptance test databases
         env:
           ADMIN_DATABASE_URL: postgres://flowboard_harness:flowboard_harness_ci_password@127.0.0.1:5432/flowboard_harness
         run: |
@@ -83,7 +93,9 @@ jobs:
             (async () => {
               const client = new Client({ connectionString: process.env.ADMIN_DATABASE_URL });
               await client.connect();
-              await client.query('CREATE DATABASE flowboard_access_test');
+              for (const name of ['flowboard_access_test','flowboard_identity_extra_test','flowboard_import_test','flowboard_ui_test','flowboard_mcp_probe']) {
+                await client.query('CREATE DATABASE ' + name);
+              }
               await client.end();
             })().catch((error) => { console.error(error.message); process.exit(1); });
           "
@@ -94,11 +106,30 @@ jobs:
         env:
           DATABASE_URL: postgres://flowboard_harness:flowboard_harness_ci_password@127.0.0.1:5432/flowboard_harness
           FLOWBOARD_ACCESS_TEST_DATABASE_URL: postgres://flowboard_harness:flowboard_harness_ci_password@127.0.0.1:5432/flowboard_access_test
+          FLOWBOARD_IMPORT_TEST_DATABASE_URL: postgres://flowboard_harness:flowboard_harness_ci_password@127.0.0.1:5432/flowboard_import_test
+          FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL: postgres://flowboard_harness:flowboard_harness_ci_password@127.0.0.1:5432/flowboard_identity_extra_test
           ALLOW_REMOTE_DB: 'false'
         run: npm test --workspace @flowboard/api
 
+      - name: Mounted MCP and real workerd integration
+        env:
+          FLOWBOARD_MCP_TEST_DATABASE_URL: postgres://flowboard_harness:flowboard_harness_ci_password@127.0.0.1:5432/flowboard_mcp_probe
+        run: npm run test:mcp-integration
+
       - name: Next.js Web Build
+        env:
+          NEXT_EXPORT: 'true'
+          NEXT_TELEMETRY_DISABLED: '1'
         run: npm run build:web
+
+      - name: Install pinned isolated browser
+        run: npx --no-install playwright install --with-deps chromium
+
+      - name: Browser integration with synthetic local accounts
+        env:
+          FLOWBOARD_UI_TEST_DATABASE_URL: postgres://flowboard_harness:flowboard_harness_ci_password@127.0.0.1:5432/flowboard_ui_test
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: npm run test:browser
 
       # Builds the API Worker bundle with a dry-run deploy. Runs without Cloudflare
       # credentials (checked with an empty environment and HOME); it uploads nothing.

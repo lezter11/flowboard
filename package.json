@@ -24,12 +24,23 @@
     "db:up": "docker compose -f database/compose.local.yaml up -d --wait",
     "db:down": "docker compose -f database/compose.local.yaml down",
     "db:migrate": "npm run db:migrate --workspace @flowboard/api",
-    "check": "npm run typecheck && npm run build && npm run build --workspace @flowboard/mcp && npm test && npm run test:artifact --workspace @flowboard/mcp"
+    "check": "npm run typecheck && npm run build && npm run build --workspace @flowboard/mcp && npm test && npm run test:artifact --workspace @flowboard/mcp",
+    "openapi:generate": "node scripts/generate-openapi.ts",
+    "openapi:check": "node scripts/generate-openapi.ts --check",
+    "test:browser": "NODE_ENV=test FLOWBOARD_BROWSER_FLOWS=true FLOWBOARD_BROWSER_BOARD_FLOWS=true FLOWBOARD_BROWSER_ROLE_FLOWS=true FLOWBOARD_BROWSER_EXTENDED=true node scripts/e2e/diagnostic.mjs",
+    "test:mcp-integration": "NODE_ENV=test WRANGLER_SEND_METRICS=false node scripts/e2e/mcp-acceptance.mjs",
+    "migrations:embed": "node scripts/sync-embedded-migrations.ts",
+    "migrations:embed:check": "node scripts/sync-embedded-migrations.ts --check"
   },
   "devDependencies": {
+    "@playwright/test": "1.64.1",
     "@types/node": "24.19.2",
     "@types/pg": "8.23.1",
+    "next": "15.5.28",
     "typescript": "7.0.2"
+  },
+  "overrides": {
+    "postcss": "8.5.23"
   },
   "dependencies": {
     "@neon/config": "^1.9.4",

@@ -181,3 +181,20 @@ test('an animated WebP over 10 MiB is refused with a clear message', async () =>
   const { env } = envFor({ width: 10, height: 10 });
   await assert.rejects(prepareImage(fakeFile('anim.webp', 'image/webp', 12 * MB, webpHeader(0x02)), env), (e: unknown) => e instanceof PrepareError && e.reason === 'still-too-large' && /animated/.test(e.message));
 });
+
+
+const cmykHeader = new Uint8Array([0xff,0xd8,0xff,0xc0,0,20,8,0,100,0,100,4,1,0x11,0,2,0x11,0,3,0x11,0,4,0x11,0,0xff,0xd9]);
+test('CMYK: even a small efficient JPEG is converted before upload', async()=>{
+  const {env,calls}=envFor({width:100,height:100,sizes:{'image/webp':150*KB}});
+  const out=await prepareImage(fakeFile('print.jpg','image/jpeg',100*KB,cmykHeader),env);
+  assert.equal(out.contentType,'image/webp');assert.equal(out.filename,'print.webp');
+  assert.equal(out.outcome,'optimised');assert.equal(out.byteLength,150*KB);
+  assert.ok(calls.some(c=>c.startsWith('encode')));
+});
+test('CMYK: decode or encode failure never silently uploads incompatible original bytes',async()=>{
+  for(const failure of ['decode','encode']as const){
+    const {env}=envFor({width:100,height:100,decodeFails:failure==='decode'});
+    if(failure==='encode')env.encode=async()=>null;
+    await assert.rejects(prepareImage(fakeFile('print.jpg','image/jpeg',100*KB,cmykHeader),env),(error:unknown)=>error instanceof PrepareError && error.reason==='conversion-required' && /RGB|convert/i.test(error.message));
+  }
+});

@@ -1,0 +1,221 @@
+{
+  "purpose": "Native DecompressionStream deflate boundary feasibility only; extra/truncated expanded pixels require PNG row accounting separately.",
+  "rawBytes": 26,
+  "strictNativeFeasible": true,
+  "results": [
+    {
+      "name": "original",
+      "inputBytes": 17,
+      "bytewise": false,
+      "node": {
+        "accepted": true,
+        "expandedBytes": 26
+      },
+      "workerd": {
+        "accepted": true,
+        "expandedBytes": 26
+      }
+    },
+    {
+      "name": "original",
+      "inputBytes": 17,
+      "bytewise": true,
+      "node": {
+        "accepted": true,
+        "expandedBytes": 26
+      },
+      "workerd": {
+        "accepted": true,
+        "expandedBytes": 26
+      }
+    },
+    {
+      "name": "extra-deflated-pixels",
+      "inputBytes": 20,
+      "bytewise": false,
+      "node": {
+        "accepted": true,
+        "expandedBytes": 30
+      },
+      "workerd": {
+        "accepted": true,
+        "expandedBytes": 30
+      }
+    },
+    {
+      "name": "extra-deflated-pixels",
+      "inputBytes": 20,
+      "bytewise": true,
+      "node": {
+        "accepted": true,
+        "expandedBytes": 30
+      },
+      "workerd": {
+        "accepted": true,
+        "expandedBytes": 30
+      }
+    },
+    {
+      "name": "truncated-deflated-pixels",
+      "inputBytes": 17,
+      "bytewise": false,
+      "node": {
+        "accepted": true,
+        "expandedBytes": 25
+      },
+      "workerd": {
+        "accepted": true,
+        "expandedBytes": 25
+      }
+    },
+    {
+      "name": "truncated-deflated-pixels",
+      "inputBytes": 17,
+      "bytewise": true,
+      "node": {
+        "accepted": true,
+        "expandedBytes": 25
+      },
+      "workerd": {
+        "accepted": true,
+        "expandedBytes": 25
+      }
+    },
+    {
+      "name": "trailing-compressed-junk",
+      "inputBytes": 21,
+      "bytewise": false,
+      "node": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": "Trailing junk found after the end of the compressed stream"
+      },
+      "workerd": {
+        "accepted": false,
+        "expandedBytes": 0,
+        "errorName": "TypeError",
+        "message": "Trailing bytes after end of compressed data"
+      }
+    },
+    {
+      "name": "trailing-compressed-junk",
+      "inputBytes": 21,
+      "bytewise": true,
+      "node": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": "Trailing junk found after the end of the compressed stream"
+      },
+      "workerd": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": "Trailing bytes after end of compressed data"
+      }
+    },
+    {
+      "name": "concatenated-zlib-stream",
+      "inputBytes": 34,
+      "bytewise": false,
+      "node": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": "Trailing junk found after the end of the compressed stream"
+      },
+      "workerd": {
+        "accepted": false,
+        "expandedBytes": 0,
+        "errorName": "TypeError",
+        "message": "Trailing bytes after end of compressed data"
+      }
+    },
+    {
+      "name": "concatenated-zlib-stream",
+      "inputBytes": 34,
+      "bytewise": true,
+      "node": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": "Trailing junk found after the end of the compressed stream"
+      },
+      "workerd": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": "Trailing bytes after end of compressed data"
+      }
+    },
+    {
+      "name": "bad-adler",
+      "inputBytes": 17,
+      "bytewise": false,
+      "node": {
+        "accepted": false,
+        "expandedBytes": 0,
+        "errorName": "TypeError",
+        "message": ""
+      },
+      "workerd": {
+        "accepted": false,
+        "expandedBytes": 0,
+        "errorName": "TypeError",
+        "message": "Decompression failed."
+      }
+    },
+    {
+      "name": "bad-adler",
+      "inputBytes": 17,
+      "bytewise": true,
+      "node": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": ""
+      },
+      "workerd": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": "Decompression failed."
+      }
+    },
+    {
+      "name": "truncated-zlib",
+      "inputBytes": 16,
+      "bytewise": false,
+      "node": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": ""
+      },
+      "workerd": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": "Called close() on a decompression stream with incomplete data"
+      }
+    },
+    {
+      "name": "truncated-zlib",
+      "inputBytes": 16,
+      "bytewise": true,
+      "node": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": ""
+      },
+      "workerd": {
+        "accepted": false,
+        "expandedBytes": 26,
+        "errorName": "TypeError",
+        "message": "Called close() on a decompression stream with incomplete data"
+      }
+    }
+  ]
+}

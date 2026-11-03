@@ -1,3 +1,4 @@
+import { versionedBoardLifecycleBody, versionedProjectLifecycleBody } from './support/board-lifecycle-fixture.ts';
 import assert from 'node:assert/strict';
 import { insertWorkspaceForCookie } from './support/workspace-fixture.ts';
 import test, { before, after } from 'node:test';
@@ -241,6 +242,7 @@ test('PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Sui
         'Cookie': member.cookie,
         'Idempotency-Key': nextKey('bad-arch-brd'),
       },
+      body: JSON.stringify(await versionedBoardLifecycleBody(pool, `/api/v1/boards/${boardId}/archive`, {}, undefined)),
     });
     assert.equal(badArchRes.status, 403);
 
@@ -253,6 +255,7 @@ test('PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Sui
         'Cookie': manager.cookie,
         'Idempotency-Key': archKey,
       },
+      body: JSON.stringify(await versionedBoardLifecycleBody(pool, `/api/v1/boards/${boardId}/archive`, {}, archKey)),
     });
     assert.equal(archRes.status, 200);
     const archJson = (await archRes.json()) as any;
@@ -266,6 +269,7 @@ test('PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Sui
         'Cookie': manager.cookie,
         'Idempotency-Key': archKey,
       },
+      body: JSON.stringify(await versionedBoardLifecycleBody(pool, `/api/v1/boards/${boardId}/archive`, {}, archKey)),
     });
     assert.equal(replayArchRes.status, 200);
     const replayArchJson = (await replayArchRes.json()) as any;
@@ -304,6 +308,7 @@ test('PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Sui
         'Cookie': manager.cookie,
         'Idempotency-Key': nextKey('reopen-brd'),
       },
+      body: JSON.stringify(await versionedBoardLifecycleBody(pool, `/api/v1/boards/${boardId}/reopen`, {}, undefined)),
     });
     assert.equal(reopenRes.status, 200);
     const reopenJson = (await reopenRes.json()) as any;
@@ -359,6 +364,7 @@ test('PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Sui
         'Cookie': owner.cookie,
         'Idempotency-Key': prjArchKey,
       },
+      body: JSON.stringify(await versionedProjectLifecycleBody(pool, `/api/v1/projects/${projectId}/archive`, {}, prjArchKey)),
     });
     assert.equal(prjArchRes.status, 200);
     const prjArchJson = (await prjArchRes.json()) as any;
@@ -397,6 +403,7 @@ test('PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Sui
         'Cookie': owner.cookie,
         'Idempotency-Key': nextKey('reopen-prj'),
       },
+      body: JSON.stringify(await versionedProjectLifecycleBody(pool, `/api/v1/projects/${projectId}/reopen`, {})),
     });
     assert.equal(reopenPrjRes.status, 200);
     const reopenPrjJson = (await reopenPrjRes.json()) as any;

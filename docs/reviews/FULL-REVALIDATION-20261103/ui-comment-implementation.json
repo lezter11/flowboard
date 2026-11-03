@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "slice": "ui-comment-repair-1",
+  "criteria": "ui-comment-repair-criteria.json",
+  "base_sha": "917706ae0433df471c72736be4d548eb022236c4",
+  "status": "implemented_local_checks_only",
+  "ui_phase_closed": false,
+  "integration_phase_closed": false,
+  "independent_review": "pending on final immutable full-product target",
+  "browser_acceptance": "pending root-owned local synthetic API/PostgreSQL browser run",
+  "uat_acceptance": "pending after local closure and authorized UAT deployment",
+  "source_manifest": [
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "3ece796280c85682478eddc0b83afe3f7e09ac9de6fbc284efdaa96bd93474f8"
+    },
+    {
+      "path": "apps/web/src/lib/retained-command.ts",
+      "sha256": "14bb4ea8604dbc297b672397988955206b065344ff0c6d50916b234842f738c5"
+    },
+    {
+      "path": "apps/web/src/lib/comment-state.ts",
+      "sha256": "482d5943f9de31ae391e5f89aac189e23eadb827f61663b6bf17add8c57d1ae0"
+    },
+    {
+      "path": "apps/web/src/lib/cursor-feed.ts",
+      "sha256": "d165d869397f9828b277f8780124c1134bc7554d42120e10e88e6bd6dc067bfa"
+    },
+    {
+      "path": "apps/web/src/components/board/card-comments.tsx",
+      "sha256": "0814a28ad819840f3a1a0eff1b7f20b006fec60fdc0300c7fdc8cdf832d31c32"
+    },
+    {
+      "path": "apps/web/src/components/board/comment-composer.tsx",
+      "sha256": "7f5c1ef5d2a59f3d946dbae7139c8daf456d5170023ddafe89f09715bd94fd85"
+    },
+    {
+      "path": "apps/web/src/components/board/card-detail-drawer.tsx",
+      "sha256": "48aa9aac211cfdd9f64cddf1a6d01a88601f4fa487c8366bd74724b2110c0d04"
+    },
+    {
+      "path": "apps/web/src/components/board/board-view.tsx",
+      "sha256": "a7d5bb4280645d75656d7a34a44a3f5bd854c01a943b0f708cd75dac47620904"
+    },
+    {
+      "path": "apps/web/src/components/board/board-column.tsx",
+      "sha256": "9378cb42913707aac759dda0cccaa830d7cc9eebdf3d962123ae090267a44877"
+    },
+    {
+      "path": "apps/web/src/components/providers.tsx",
+      "sha256": "eb2436d4307610ca48094ca6e7586e72ce9ec23538f6c1b3b039f1732a9be8c4"
+    },
+    {
+      "path": "apps/web/test/comment-api.test.ts",
+      "sha256": "a7d70135b6921a37ae2d0bc00f608963040d72937f79c0aea841fb494d9828a1"
+    },
+    {
+      "path": "apps/web/test/comment-state.test.ts",
+      "sha256": "f6dfe256e2d00f8a64dd040e95e31e8bd681664603e68ced7ee8a621baf3528a"
+    },
+    {
+      "path": "apps/web/test/mention-ui.test.ts",
+      "sha256": "228b3b349b98c4d904619c4fef7210b64d80cbc34159cac96cc24dc0d9167bd2"
+    }
+  ],
+  "checks": [
+    {
+      "command": "node --test apps/web/test/comment-api.test.ts",
+      "evidence": "ui-comment-red-api.log",
+      "exit_code": 1,
+      "result": "Expected cursor forwarding assertion failed on original client, after removing unsupported Node parameter-property syntax from ApiError."
+    },
+    {
+      "command": "node --test apps/web/test/comment-state.test.ts",
+      "evidence": "ui-comment-red-state.log",
+      "exit_code": 1,
+      "result": "New helper module initially absent; scaffolding failure, not a behavior assertion. This log is not claimed as full red-phase behavioral proof."
+    },
+    {
+      "command": "node --test apps/web/test/comment-state.test.ts",
+      "evidence": "ui-comment-red-sync.log",
+      "exit_code": 1,
+      "result": "Synchronous callback failure left retained command stuck; regression reproduced and then fixed."
+    },
+    {
+      "command": "node --test apps/web/test/comment-state.test.ts",
+      "evidence": "ui-comment-red-auth-after-unknown.log",
+      "exit_code": 1,
+      "result": "Unknown committed reply followed by later401 incorrectly cleared original command. Behavioral regression failed then passed after retaining original key/input until successful resolution."
+    },
+    {
+      "command": "npm run test --workspace @flowboard/web",
+      "evidence": "ui-comment-web-tests.log",
+      "exit_code": 1,
+      "result": "245/248 passed; three legacy mention source-text assertions referenced former inline component. Equivalent checks were moved to extracted component paths, and full-name tooltip preserved."
+    },
+    {
+      "command": "npm run test --workspace @flowboard/web",
+      "evidence": "ui-comment-web-tests-final.log",
+      "exit_code": 0,
+      "result": "250/250 passed; 11 new regression tests (9 state/command tests and 2 API boundary tests)."
+    },
+    {
+      "command": "NEXT_DIST_DIR=.next-build npm run build:web",
+      "evidence": "ui-comment-build-final.log",
+      "exit_code": 0,
+      "result": "Next.js optimized build, type validity, 19/19 static pages passed."
+    },
+    {
+      "command": "npm run typecheck:web",
+      "evidence": "ui-comment-typecheck-final.log",
+      "exit_code": 0,
+      "result": "Final web tsc --noEmit passed after final helper refinement and cleanup of only our Next-generated configuration changes."
+    },
+    {
+      "command": "git diff --check -- apps/web",
+      "exit_code": 0,
+      "result": "No whitespace errors."
+    }
+  ],
+  "implemented": [
+    "Retained command snapshots original payload and operation key through transport, 408 and 5xx uncertainty; later authorization/validation refusals cannot erase an earlier unknown outcome. In-flight submissions share one request. A definitive refusal on the first attempt permits intentional edit/new operation.",
+    "Quick-add requires explicit priority and resolves original uncertain operation before editing/cancelling or selecting another column; original board version/input retained.",
+    "Comments and card history use opaque cursor envelopes, load-next controls, dedupe and deliberate stale-cursor list reset without deleting drafts.",
+    "Author-only versioned comment edit; author/Owner/Manager delete with confirmation, pending retry and immediate hidden-body tombstone rendering; Viewer and other Member moderation unavailable.",
+    "Comment create/edit drafts and in-flight operation state retained in actor/card-scoped tab memory across tabs, refetch and card/project remount. Before-unload prompts on unsaved text.",
+    "Mentions preserve actual UTF-16 spans for edits; IME key handling avoids accidental picker choice/quick-add. Drawer discussion tab arrow/Home/End handling and one tab stop; mutation errors use focusable accessible notes.",
+    "Typed edit/delete/comment/activity API helpers; API/MCP priority-none contracts untouched."
+  ],
+  "limits": [
+    "API boundary tests replace fetch with a synthetic transport/receipt model. They prove emitted original payload/key and client behavior, not real PostgreSQL receipt correctness.",
+    "Browser keyboard, assistive technology, focus, paging/draft/error transitions, true post-commit response loss and real HTTP permission behavior still require root integrated run.",
+    "Current-tab drafts are intentionally not persisted to localStorage or restored after a confirmed hard reload; before-unload warns. No offline writes.",
+    "No code outside apps/web changed by this agent except role-owned review reports/logs. Root and other agents are concurrently changing backend/contracts/governance.",
+    "Other discovery findings (board/filter/placement/People/archive/import/session and wider accessibility) remain subsequent bounded slices.",
+    "Next rewrote next-env.d.ts and tsconfig during isolated build; only those generated changes were restored to base before final typecheck. Root Next dev may rewrite generated paths again."
+  ],
+  "extra_context_change": "Existing shared card close/delete confirmation now distinguishes retained comment drafts and names card/24h trash window while this shared dialog was touched. No deletion semantics changed."
+}

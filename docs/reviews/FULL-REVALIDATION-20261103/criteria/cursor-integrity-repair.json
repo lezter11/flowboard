@@ -1,0 +1,37 @@
+{
+  "version": 4,
+  "date": "2026-11-03",
+  "frozenBeforeTestsAndSource": true,
+  "authorizedScope": [
+    "apps/api/src/adapters/trash.ts",
+    "apps/api/src/adapters/comments.ts",
+    "apps/api/src/adapters/activity.ts",
+    "apps/api/src/adapters/notifications.ts cursor parts only",
+    "apps/api/src/adapters/projects.ts cursor parts only",
+    "new pure cursor timestamp helper and focused tests",
+    "apps/api/src/http/routes/trash.ts query parsing only",
+    "packages/contracts/src/discussion.ts additive notificationQuerySchema",
+    "apps/api/src/http/routes/notifications.ts query parsing only"
+  ],
+  "criteria": [
+    "Date-based cursor boundaries retain canonical PostgreSQL UTC timestamp text with six fractional digits, not JSDate millisecond truncation. Public displayed timestamps may remain millisecond ISO.",
+    "Mounted real PostgreSQL three-record fixtures with same millisecond/distinct microseconds return each row exactly once across limit1 pages in ASC comment/cardactivity and DESC trash/projectactivity/workspaceactivity/notifications feeds.",
+    "Forged cursor impossible Gregorian dates, zero year, invalid clock, invalid formats/types/oversized text produce controlled400/409 validation before SQL; no generic500 or internal detail.",
+    "Cursor always binds actual actor and resource/filter scope. Current authorization is checked on every page. Reusing another resource/actor/filter cursor returns private controlled4xx; no signature/possession is treated as authority.",
+    "New comments/trash cursor versions may reject ambiguous old cursors with409 refresh. Existing activity/notification v2 shapes stay compatible with valid strict UTC timestamp values.",
+    "Project lists are lexical name/id, not date-based. New cursor binds actor + exact workspace or selected-project scope; malformed/ambiguous old/mismatched cursor returns400 INVALID_CURSOR rather than silently restarting. Do not load all projects to derive a context hash.",
+    "Preserve real query ordering/tiebreaker, bounded LIMIT, role/board locks and response envelopes; no row skipping, dropped assertions, changed trash cutoff or resurrected access.",
+    "Retain failing mounted baselines before edits. Run targeted PG cases, typecheck/contracts and nearest relevant suites after primary reservation; no approval/score/featureclosure.",
+    "notificationQuerySchema strict: unreadOnly accepts only explicit true/false text, defaultsfalse and transforms to actualboolean; limit1..100 defaults50; cursor1..4096; mounted route parseOrThrow rejects malformed/unknown query fields422. Preserve default/read/unread semantics and current cursor filter binding."
+  ],
+  "requiredProof": [
+    "Three microsecond-spaced rows in one millisecond, including tied timestamp+id tiebreak control, walk both sort directions to exhaustion and compare exactIDs.",
+    "At least two actors and two projects/cards; forged cursor parsed from actual priorpage; assert no new data on denial.",
+    "Project same-name/id lexical tie walk, workspace/actor/project scope mismatch and invalid cursor tests."
+  ],
+  "approval": null,
+  "score": null,
+  "clarificationBeforeSource": "Existing shared activity query max4096 returns422 at HTTP input boundary; controlled422 is acceptable for oversized/invalid query fields. Invalid decoded timestamp/scope remains400/409. This follows user controlled4xx requirement and preserves previous activity validation contract.",
+  "additionalRootAuthorizationBeforeEdits": "Root2026-11-03 explicitly requires strict notification query shared validation to remove known FND02 wire mismatch; malformed fields produce422.",
+  "cursorTextClarificationBeforeTestsAndEdits": "Opaque cursor id/name free text must be nonempty, bounded and valid PostgreSQL text: no NUL or unpaired UTF16 surrogate. Forged malformed cursor text returns controlled400/409 before SQL, not500. Do not broaden all public route-ID validation in this slice."
+}

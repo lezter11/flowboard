@@ -1,0 +1,131 @@
+✖ Import response: invalid previews preserve missing/oversized raw fields and still match their response contract (282.230834ms)
+✖ Import response: cleaned committed receipt retains only explicit minimal row/card provenance (221.950208ms)
+✖ Import response: expired and cancelled receipts are schema-valid after immediate redaction (194.075584ms)
+✖ Import response: per-card purge redacts one row without relabeling the remaining live content (216.277083ms)
+✖ Import row contract: invalid raw values remain representable without relaxing valid card fields (1.697667ms)
+✖ Import row contract: redaction is explicit and cannot carry private content (0.114625ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 0
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1270.888416
+
+✖ failing tests:
+
+test at apps/api/test/import-response-contract.test.ts:18:1
+✖ Import response: invalid previews preserve missing/oversized raw fields and still match their response contract (282.230834ms)
+  AssertionError [ERR_ASSERTION]: [{"origin":"string","code":"too_small","minimum":1,"inclusive":true,"path":["data","rows",0,"title"],"message":"Too small: expected string to have >=1 characters"},{"origin":"string","code":"too_small","minimum":1,"inclusive":true,"path":["data","rows",1,"externalId"],"message":"Too small: expected string to have >=1 characters"},{"origin":"string","code":"too_big","maximum":200,"inclusive":true,"path":["data","rows",2,"title"],"message":"Too big: expected string to have <=200 characters"},{"origin":"string","code":"too_big","maximum":20000,"inclusive":true,"path":["data","rows",3,"description"],"message":"Too big: expected string to have <=20000 characters"},{"origin":"string","code":"too_big","maximum":64,"inclusive":true,"path":["data","rows",4,"externalId"],"message":"Too big: expected string to have <=64 characters"}]
+  
+  false !== true
+  
+      at assertContract (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-response-contract.test.ts:15:102)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-response-contract.test.ts:30:90)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-response-contract.test.ts:36:1
+✖ Import response: cleaned committed receipt retains only explicit minimal row/card provenance (221.950208ms)
+  AssertionError [ERR_ASSERTION]: [{"origin":"string","code":"too_small","minimum":1,"inclusive":true,"path":["data","rows",0,"externalId"],"message":"Too small: expected string to have >=1 characters"},{"origin":"string","code":"too_small","minimum":1,"inclusive":true,"path":["data","rows",0,"title"],"message":"Too small: expected string to have >=1 characters"}]
+  
+  false !== true
+  
+      at assertContract (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-response-contract.test.ts:15:102)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-response-contract.test.ts:40:112)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-response-contract.test.ts:50:1
+✖ Import response: expired and cancelled receipts are schema-valid after immediate redaction (194.075584ms)
+  AssertionError [ERR_ASSERTION]: [{"expected":"string","code":"invalid_type","path":["data","projectId"],"message":"Invalid input: expected string, received undefined"},{"expected":"string","code":"invalid_type","path":["data","boardId"],"message":"Invalid input: expected string, received undefined"},{"expected":"string","code":"invalid_type","path":["data","defaultColumnId"],"message":"Invalid input: expected string, received undefined"},{"expected":"number","code":"invalid_type","path":["data","version"],"message":"Invalid input: expected number, received undefined"},{"expected":"string","code":"invalid_type","path":["data","previewDigest"],"message":"Invalid input: expected string, received undefined"},{"expected":"string","code":"invalid_type","path":["data","expiresAt"],"message":"Invalid input: expected string, received undefined"},{"expected":"string","code":"invalid_type","path":["data","serverNow"],"message":"Invalid input: expected string, received undefined"},{"expected":"object","code":"invalid_type","path":["data","counts"],"message":"Invalid input: expected object, received undefined"},{"expected":"boolean","code":"invalid_type","path":["data","canCommit"],"message":"Invalid input: expected boolean, received undefined"},{"expected":"boolean","code":"invalid_type","path":["data","cancellationAllowed"],"message":"Invalid input: expected boolean, received undefined"},{"expected":"array","code":"invalid_type","path":["data","rows"],"message":"Invalid input: expected array, received undefined"},{"expected":"string","code":"invalid_type","path":["data","nextCursor"],"message":"Invalid input: expected string, received undefined"},{"expected":"object","code":"invalid_type","path":["data","error"],"message":"Invalid input: expected object, received undefined"}]
+  
+  false !== true
+  
+      at assertContract (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-response-contract.test.ts:15:102)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-response-contract.test.ts:54:128)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-response-contract.test.ts:60:1
+✖ Import response: per-card purge redacts one row without relabeling the remaining live content (216.277083ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"NOT_FOUND","message":"Route not found.","requestId":"eaec43f1-1353-45f1-bab3-0629aa0f43cc"}}
+  
+  404 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-response-contract.test.ts:63:70)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 404,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at packages/contracts/test/import-row-response.test.ts:5:1
+✖ Import row contract: invalid raw values remain representable without relaxing valid card fields (1.697667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/contracts/test/import-row-response.test.ts:8:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at packages/contracts/test/import-row-response.test.ts:12:1
+✖ Import row contract: redaction is explicit and cannot carry private content (0.114625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/contracts/test/import-row-response.test.ts:14:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

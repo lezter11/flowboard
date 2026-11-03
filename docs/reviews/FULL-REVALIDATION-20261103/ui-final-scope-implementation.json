@@ -1,0 +1,112 @@
+{
+  "phase": "final-scope",
+  "criteria": "ui-final-scope-repair-criteria.json",
+  "status": "implemented locally; final actualbrowser and independentreview pending",
+  "manifest": [
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "7e1c95273648826d6e79ed6323c1c949e2bb48daec0439fabaf85a8def61393d"
+    },
+    {
+      "path": "apps/web/src/lib/dates.ts",
+      "sha256": "1e566235a1a33d77a7ed6a629b483e982ddb1564e438c0271f3edcbdfd934a69"
+    },
+    {
+      "path": "apps/web/src/lib/image-uploads.ts",
+      "sha256": "6f0f49a08e85693333c562bfd6d91411399e860bcc06cce252fdd8a5f9e7bafa"
+    },
+    {
+      "path": "apps/web/src/lib/session-identity.ts",
+      "sha256": "0ab888703ac5b6d79d616fd9e3f573b3a16f573e210a9b4589bd624ebb89ca9c"
+    },
+    {
+      "path": "apps/web/src/lib/session.tsx",
+      "sha256": "e3b5aec01b7ab47388c3a68720315b2b79dd216fd2cd8633b0c9f8b400300a96"
+    },
+    {
+      "path": "apps/web/src/lib/portfolio.ts",
+      "sha256": "e6d3621d222cf436c003d67787af2ae17398e746510867e0d065d14f764be280"
+    },
+    {
+      "path": "apps/web/src/lib/audit-filters.ts",
+      "sha256": "ab8f585049f2792b9faedf1abfc17d5d1348c69c5e21b9cea61fa852016b363c"
+    },
+    {
+      "path": "apps/web/src/components/board/board-card.tsx",
+      "sha256": "f3c34287008acc018c6e6c6630007c34aa59547c989f8fff47fe458cdb4d2cd6"
+    },
+    {
+      "path": "apps/web/src/components/board/board-column.tsx",
+      "sha256": "7be08c95cd717ee1049e37c9fd913c2b699189023278697d411759b9788b77ab"
+    },
+    {
+      "path": "apps/web/src/components/board/board-view.tsx",
+      "sha256": "ed4524606f4c9dcfefde217659b1fc08bb2093a116f7be33a0f5d3b4ff3511f8"
+    },
+    {
+      "path": "apps/web/src/components/board/card-detail-drawer.tsx",
+      "sha256": "43000cff749f8f37f7cbdafd3c500c40e63382b02b2e98654e955636632c10bd"
+    },
+    {
+      "path": "apps/web/src/components/board/card-images.tsx",
+      "sha256": "236949a4d2acaf8942ad67a0f158936aa1ea7b3eb2eefe5f9a971dbc9418a5ed"
+    },
+    {
+      "path": "apps/web/src/components/ui/feed-controls.tsx",
+      "sha256": "c4406526a7fe5447571a91edcdb25eb11e33e617075a581a5f954482f286c967"
+    },
+    {
+      "path": "apps/web/src/app/projects/page.tsx",
+      "sha256": "84a5806fb1cf23a362ad098306c5ebf23c04dc39b061afd4d5f7f80e17136121"
+    },
+    {
+      "path": "apps/web/src/app/activity/page.tsx",
+      "sha256": "58a6a50a8e2824dc5dd3e2b9b43f4d35b348142aca8a7d7af832583b09724409"
+    },
+    {
+      "path": "apps/web/test/image-uploads.test.ts",
+      "sha256": "b70bc0105d9dc34fcdd735e36654af1ff60223472e04d86eccf47e3c291c4f4b"
+    },
+    {
+      "path": "apps/web/test/final-scope.test.ts",
+      "sha256": "c4a06d8f6c5771efdb2293f25c0aab3dd658da33ae1e9e5d3fcd62700061f602"
+    }
+  ],
+  "checks": {
+    "web": "307/307 exit0 raw/ui-final-scope-web-tests-final-2.log",
+    "typecheck": "exit0 raw/ui-final-scope-typecheck-after-build.log",
+    "productionBuild": "19/19 exit0 raw/ui-final-scope-build.log"
+  },
+  "changes": [
+    "Each board source snapshot asOfDate flows through cards and drawer for due labels/colors and aggregate fallback calculations. Canonical date ordinals use UTC calendar days, avoiding browser timezone/DST/skipped-local-date issues. Missing canonical context shows neutral date only.",
+    "Actual shared ImageGalleryResponse data.items/count/nullcursor consumed without array fallback. Actor-scoped gallery/blob queries poll and erase refused metadata/blobs/objectURLs; upload queues are actor scoped and stage writes pause when current verified actor changes.",
+    "Image upload retry retains preparedbytes/createinput/key/uploadId/stage/finalizekey. Unknown finalization never auto-cancels/restarts, cannot dismiss until original outcome checked. Explicit cancellation is disabled while finalization may commit; current role gates Retry. Repeated identical PUT supported by confirmed backend contract.",
+    "Owner workspace cross-project audit uses real endpoint and project/card/actor/action/inclusive UTC date filters before cursor. Manager project feed same supported filters; Member/Viewer no project audit request and guided to granted-card activity. Local free-text search explicitly loaded-only.",
+    "Projects page reads actual GET projects cursor chain, binds role/isOwned to current session metadata rather than guessing. Loaded counts/search explicit; invalidcursor reload reset; missing project/board stats display unavailable, not invented0. Board stats remain at most24 snapshot reads and other boards show unavailable until their project view."
+  ],
+  "newTests": [
+    "Canonical workspace day, neutral missingcontext, skippedlocalday and invaliddate",
+    "Inclusive UTC audit filter projection/range check",
+    "Actual workspace/project audit and projectlist cursor/filter/abort wire",
+    "Actual shared gallery envelope preserved",
+    "Lost image staging reply sameinput/key/prepared-once",
+    "Lost image finalize sameupload/key with no cancellation/newstage, cannotdismissunknown",
+    "Identity loss before stage prevents new protectedwrite"
+  ],
+  "retainedFailures": [
+    "raw/ui-final-scope-web-tests-1.log: generic raw error.message rendering source gate caught local audit validation catch; replaced with fixed safe validation copy.307 final pass.",
+    "Legacy upload failure test deliberately updated: automatic cancellation/restart was unsafe after unknown response; now expects retained original staging until explicit cancel/retry."
+  ],
+  "browserCases": [
+    "Set selected workspace timezone day different from browser, snapshot asOfDate actual; due today/overdue colors match on board and drawer, including two merged sources. DueDate literals unchanged after timezonechange.",
+    "Actual gallery and private blob reads, lost staging/PUT/finalize responses; retry actual original key/body/blob/uploadId, one saved attachment. Unknownfinalize cannotDismiss/Cancel. Switch actor/session expiry and role revocation: no old queue names/blobURL/metadata, no next stage write until same verified actor/currentpermission.",
+    "Owner Activity scope Owned workspace activity: filter across own projects by card/actor/action/from-through UTC date, then Load more. Wire queries preserve all filters; Manager cannot access workspace scope, Member/Viewer project audit request count0 and cardtimeline still works.",
+    "Seed >50 accessible projects, GET projects initial50+Loadmore exactcursor all reachable; local search says loaded. Revocation/sessionchange clears cache. Boardstats beyond24 show unavailable rather than0; loaded project summaries do not claim globaltotals."
+  ],
+  "limits": [
+    "No child realbrowser/localHTTP/PostgreSQL acceptance. Root confirmed backend image response and repeatedPUT semantics; fresh immutable finaltarget browser+independentreview and hostedUAT still pending.",
+    "Project list uses current session role metadata to avoid guessed role from a list schema lacking role. Just-added rows without sessionmetadata show refresh prompt and remain hidden until canonical session refresh. Root notified; no sharedcontract edits by UI.",
+    "Current directory/assignee/board-access list backend returns complete data with nextCursor:null; no invented client continuation for those endpoints. Its bounded database/privacy verification is separate.",
+    "Preview image preparation often produces a static frame; full provider/decoder policies and hostedR2 delivery remain separate backend/root gates."
+  ]
+}

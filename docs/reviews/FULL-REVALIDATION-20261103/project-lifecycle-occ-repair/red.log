@@ -1,0 +1,162 @@
+✖ project lifecycle OCC: archive validates actual version after Owner authority (258.192083ms)
+✖ project lifecycle OCC: reopen validates actual version after Owner authority (193.056125ms)
+✖ project lifecycle OCC: stale archive/reopen never overwrites later opposite transitions (198.916375ms)
+✖ project lifecycle OCC: archive receipt binds original version and replays after later transitions (204.697542ms)
+✖ project lifecycle OCC: reopen receipt binds original version and replays after later transitions (205.568959ms)
+✖ project lifecycle OCC: stale reopen refuses before quota checks and preserves the cap (174.056084ms)
+✖ project lifecycle OCC: opposite concurrent writes serialize on distinct connections (active) (3227.244125ms)
+✖ project lifecycle OCC: opposite concurrent writes serialize on distinct connections (archived) (3221.266125ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 0
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7952.761125
+
+✖ failing tests:
+
+test at apps/api/test/project-lifecycle-occ.test.ts:14:50
+✖ project lifecycle OCC: archive validates actual version after Owner authority (258.192083ms)
+  AssertionError [ERR_ASSERTION]: {"data":{"id":"prj","workspaceId":"ws","name":"Retention","description":null,"isArchived":true,"version":2,"createdAt":"2026-11-03T10:00:31.101Z","updatedAt":"2026-11-03T10:00:31.120Z"},"replayed":false}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/project-lifecycle-occ.test.ts:17:79)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/project-lifecycle-occ.test.ts:14:50
+✖ project lifecycle OCC: reopen validates actual version after Owner authority (193.056125ms)
+  AssertionError [ERR_ASSERTION]: {"data":{"id":"prj","workspaceId":"ws","name":"Retention","description":null,"isArchived":false,"version":2,"createdAt":"2026-11-03T10:00:31.295Z","updatedAt":"2026-11-03T10:00:31.311Z"},"replayed":false}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/project-lifecycle-occ.test.ts:17:79)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/project-lifecycle-occ.test.ts:26:1
+✖ project lifecycle OCC: stale archive/reopen never overwrites later opposite transitions (198.916375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/project-lifecycle-occ.test.ts:32:85)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/project-lifecycle-occ.test.ts:38:50
+✖ project lifecycle OCC: archive receipt binds original version and replays after later transitions (204.697542ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/project-lifecycle-occ.test.ts:46:88)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/project-lifecycle-occ.test.ts:38:50
+✖ project lifecycle OCC: reopen receipt binds original version and replays after later transitions (205.568959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/project-lifecycle-occ.test.ts:46:88)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/project-lifecycle-occ.test.ts:53:1
+✖ project lifecycle OCC: stale reopen refuses before quota checks and preserves the cap (174.056084ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'QUOTA_EXCEEDED'
+  - 'STALE_VERSION'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/project-lifecycle-occ.test.ts:56:139)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'QUOTA_EXCEEDED',
+    expected: 'STALE_VERSION',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/project-lifecycle-occ.test.ts:60:45
+✖ project lifecycle OCC: opposite concurrent writes serialize on distinct connections (active) (3227.244125ms)
+  AssertionError [ERR_ASSERTION]: Both mounted transactions must be observed blocked on separate backend connections
+  
+  1 !== 2
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/project-lifecycle-occ.test.ts:70:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/project-lifecycle-occ.test.ts:60:45
+✖ project lifecycle OCC: opposite concurrent writes serialize on distinct connections (archived) (3221.266125ms)
+  AssertionError [ERR_ASSERTION]: Both mounted transactions must be observed blocked on separate backend connections
+  
+  1 !== 2
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/project-lifecycle-occ.test.ts:70:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

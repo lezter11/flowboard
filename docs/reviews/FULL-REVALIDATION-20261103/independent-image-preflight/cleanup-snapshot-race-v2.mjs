@@ -1,0 +1,35 @@
+import crypto from 'node:crypto';
+import { lifecycleFixture } from '../../../../apps/api/test/support/lifecycle-fixture.ts';
+import { createApp } from '../../../../apps/api/src/http/app.ts';
+import { MemoryStorageDriver,runWithStorageDriver } from '../../../../apps/api/src/adapters/storage.ts';
+import { SharpImageVerifier } from '../../../../apps/api/src/services/image-verifier-node.ts';
+import { imageFixture } from '../../../../apps/api/test/support/image-fixtures.ts';
+import { cleanupOrphanUploads } from '../../../../apps/api/src/adapters/images.ts';
+import fs from 'node:fs/promises';
+const cleanups=[];let lockClient;
+const sha=async()=>crypto.createHash('sha256').update(await fs.readFile('apps/api/src/adapters/images.ts')).digest('hex');
+const before=await sha();
+try{
+ const f=await lifecycleFixture({after:fn=>cleanups.push(fn)}),storage=new MemoryStorageDriver();
+ const app=createApp(async()=>{},{pool:f.pool,storage,imageVerifier:new SharpImageVerifier(),rateLimiter:()=>({limit:async()=>({success:true})}),windowCounter:()=>({consume:async()=>({count:1,retryAfterSeconds:60})})});
+ const headers={cookie:`flowboard_session=${f.actors.owner.session.id}`,origin:'http://localhost','content-type':'application/json'};
+ const row=imageFixture('png');const stage=await app.request('http://localhost/api/v1/cards/card/image-uploads',{method:'POST',headers:{...headers,'idempotency-key':crypto.randomUUID()},body:JSON.stringify({filename:'synthetic.png',byteLength:row.bytes.length,contentType:row.contentType,sha256:crypto.createHash('sha256').update(row.bytes).digest('hex')})});const id=(await stage.json()).data.id;
+ const put=await app.request(`http://localhost/api/v1/image-uploads/${id}/content`,{method:'PUT',headers,body:row.bytes});
+ const gateCommit=crypto.randomInt(100000,1000000000),gateProjection=crypto.randomInt(1000000001,2000000000);
+ lockClient=await f.pool.connect();await lockClient.query('SELECT pg_advisory_lock($1),pg_advisory_lock($2)',[gateCommit,gateProjection]);
+ await f.pool.query(`CREATE FUNCTION hold_finalize_commit() RETURNS trigger AS $$ BEGIN PERFORM pg_advisory_xact_lock(${gateCommit}); RETURN NEW; END $$ LANGUAGE plpgsql`);
+ await f.pool.query(`CREATE CONSTRAINT TRIGGER hold_finalize_commit_trigger AFTER INSERT ON card_images DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION hold_finalize_commit()`);
+ await f.pool.query(`CREATE FUNCTION hold_cleanup_id(value text) RETURNS text AS $$ BEGIN PERFORM pg_advisory_xact_lock(${gateProjection}); RETURN value; END $$ LANGUAGE plpgsql VOLATILE`);
+ await f.pool.query("UPDATE card_image_uploads SET expires_at=clock_timestamp()+INTERVAL '500 milliseconds' WHERE id=$1",[id]);
+ const finalize=app.request(`http://localhost/api/v1/image-uploads/${id}/finalize`,{method:'POST',headers:{...headers,'idempotency-key':crypto.randomUUID()}});
+ const waitFor=async predicate=>{const stop=Date.now()+2500;while(Date.now()<stop){if(await predicate())return;await new Promise(r=>setTimeout(r,10))}throw new Error('barrier not reached')};
+ await waitFor(async()=>Number((await f.pool.query("SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND objid=$1 AND granted=FALSE",[gateCommit])).rows[0].count)>0);
+ await waitFor(async()=>(await f.pool.query('SELECT expires_at<=clock_timestamp() AS due FROM card_image_uploads WHERE id=$1',[id])).rows[0].due);
+ let injected=false;
+ const wrappingPool={connect:async()=>{const client=await f.pool.connect();return {query:async(sql,args)=>{if(typeof sql==='string'&&sql.includes('FROM card_image_uploads u')&&sql.includes('FOR UPDATE OF u SKIP LOCKED')){injected=true;sql=sql.replace('SELECT u.id,','SELECT hold_cleanup_id(u.id) AS id,')}return client.query(sql,args)},release:()=>client.release()}}};
+ const cleaning=runWithStorageDriver(storage,()=>cleanupOrphanUploads(wrappingPool));
+ await waitFor(async()=>Number((await f.pool.query("SELECT count(*) FROM pg_locks WHERE locktype='advisory' AND objid=$1 AND granted=FALSE",[gateProjection])).rows[0].count)>0);
+ await lockClient.query('SELECT pg_advisory_unlock($1)',[gateCommit]);const finalized=await finalize;const finalBody=await finalized.json();
+ await lockClient.query('SELECT pg_advisory_unlock($1)',[gateProjection]);const cleaned=await cleaning;
+ const image=finalBody.data;console.log(JSON.stringify({before,after:await sha(),note:'Instrumented actual cleanup SELECT only with volatile identity function around u.id to schedule projection before LockRows; no mocked reference answer or altered predicate.',stage:stage.status,put:put.status,finalize:finalized.status,injected,cleaned,liveImageRows:(await f.pool.query('SELECT count(*) FROM card_images')).rows[0].count,upload:(await f.pool.query('SELECT state,staging_cleaned FROM card_image_uploads WHERE id=$1',[id])).rows[0],storedObjectPresent:image?!!await storage.get((await f.pool.query('SELECT storage_key FROM card_images WHERE id=$1',[image.id])).rows[0].storage_key):null,storedObjects:storage.size()},null,2));
+}finally{if(lockClient){await lockClient.query('SELECT pg_advisory_unlock_all()').catch(()=>{});lockClient.release()}for(const fn of cleanups.reverse())await fn()}

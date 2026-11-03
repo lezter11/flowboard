@@ -1,0 +1,143 @@
+✖ lifecycle retention: column with only expired card reference returns safe409 and preserves tombstone/history (239.469791ms)
+✖ lifecycle retention: column with only purged card reference returns safe409 and preserves tombstone/history (175.15075ms)
+✖ lifecycle retention: ready import default-column reference is an explicit safe409 (198.345334ms)
+✖ lifecycle retention: terminal import default-column reference is an explicit safe409 (192.614166ms)
+✖ lifecycle retention: tombstoning own and moderated comments removes copied inbox snippets while retaining facts (195.877875ms)
+✖ lifecycle retention: copied legacy comment outbox fields are scrubbed on deletion and recovery cannot recreate them (201.738167ms)
+✖ lifecycle retention: recovery distinguishes two comment events on the same card and repeats neither (211.597458ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 0
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1641.509875
+
+✖ failing tests:
+
+test at apps/api/test/lifecycle-retention-repair.test.ts:43:49
+✖ lifecycle retention: column with only expired card reference returns safe409 and preserves tombstone/history (239.469791ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"25db1f8f-e734-432f-a23c-76a273b002a2"}}
+  
+  500 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/lifecycle-retention-repair.test.ts:48:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 500,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/lifecycle-retention-repair.test.ts:43:49
+✖ lifecycle retention: column with only purged card reference returns safe409 and preserves tombstone/history (175.15075ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"d98f2dc8-0330-4776-950b-9966ff0f59d6"}}
+  
+  500 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/lifecycle-retention-repair.test.ts:48:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 500,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/lifecycle-retention-repair.test.ts:54:36
+✖ lifecycle retention: ready import default-column reference is an explicit safe409 (198.345334ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"8c765a4c-b123-41cf-b731-4b7df7d3ab5b"}}
+  
+  500 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/lifecycle-retention-repair.test.ts:57:48)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 500,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/lifecycle-retention-repair.test.ts:54:36
+✖ lifecycle retention: terminal import default-column reference is an explicit safe409 (192.614166ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"fd1332b2-6d96-4ce3-baa4-e4e14df07ce7"}}
+  
+  500 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/lifecycle-retention-repair.test.ts:57:48)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 500,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/lifecycle-retention-repair.test.ts:61:1
+✖ lifecycle retention: tombstoning own and moderated comments removes copied inbox snippets while retaining facts (195.877875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/lifecycle-retention-repair.test.ts:67:74)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/lifecycle-retention-repair.test.ts:73:1
+✖ lifecycle retention: copied legacy comment outbox fields are scrubbed on deletion and recovery cannot recreate them (201.738167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/lifecycle-retention-repair.test.ts:77:97)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/lifecycle-retention-repair.test.ts:82:1
+✖ lifecycle retention: recovery distinguishes two comment events on the same card and repeats neither (211.597458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  1 !== 2
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/lifecycle-retention-repair.test.ts:87:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 1,
+    expected: 2,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

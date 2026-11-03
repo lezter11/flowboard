@@ -8,7 +8,7 @@ import { mailerFromEnv, type MailEnv, type Mailer } from '../services/mailer.ts'
  * Invitation email delivery from the outbox (B-10). The raw token and the recipient stay in the outbox
  * payload only while a retry may still need them. When a row settles (a send succeeds, or fails
  * permanently) the payload is replaced in the same statement that sets the status: a minimal receipt
- * with the provider message id, and nothing else (B-14, FB-AUD-09, FB-AUD-11). Logs carry reason codes only.
+ * with the provider message id and trusted opaque invitation id only (B-14, FB-AUD-09, FB-AUD-11). Logs carry reason codes only.
  */
 
 export interface InvitationOutboxRow {
@@ -68,7 +68,7 @@ export async function deliverInvitationRow(
 
 /**
  * Sets the final status and time, and replaces the payload with a receipt that holds only the
- * provider message id (none for a permanent failure). The recipient, role, project and inviter names
+ * provider message id (none for a permanent failure) and the opaque invitation association. The recipient, role, project and inviter names
  * and the token are all dropped.
  */
 async function settle(client: pg.ClientBase, id: string, status: 'delivered' | 'failed', providerMessageId: string | undefined): Promise<void> {
@@ -76,7 +76,9 @@ async function settle(client: pg.ClientBase, id: string, status: 'delivered' | '
     `UPDATE outbox
      SET status = $2,
          settled_at = NOW(),
-         payload = jsonb_strip_nulls(jsonb_build_object('providerMessageId', $3::text))
+         payload = jsonb_strip_nulls(jsonb_build_object('providerMessageId', $3::text,
+           'invitationId', (SELECT i.id FROM project_invitations i
+             WHERE i.id=outbox.payload->>'invitationId' AND i.project_id=outbox.project_id AND i.workspace_id=outbox.workspace_id)))
      WHERE id = $1`,
     [id, status, providerMessageId ?? null],
   );

@@ -1,0 +1,54 @@
+{
+  "version": "image-full-verifier-6",
+  "featureIds": [
+    "ATT-02",
+    "ATT-04"
+  ],
+  "status": "frozen_before_implementation_builder_not_approval",
+  "supersedesLimit": "Container-only repair cannot close ATT02; valid-envelope corrupt entropy must fail.",
+  "mandatoryCriteria": [
+    "Keep existing10MiB input,8192 dimension and20MP decoded-pixel caps and strict container/digest/MIME/markup checks; run full compressed-pixel verification before accepting content and again at finalization before permanent attachment effects.",
+    "Inject a portable verifier into createApp/request context. Worker uses raw private bytes through distinct IMAGE_VERIFIER Images binding; Node uses explicit sharp0.35.5 native driver in Node-only graph. Do not import native dependency into Worker bundle, fetch image URLs, publish bytes, cache transformed bytes or weaken existing delivery grants/headers.",
+    "Worker drains bounded transformed output as a stream, never arrayBuffer/toBuffer full pixel output; close/cancel on error and enforce deadline/output bound. No decoded image buffer is allocated in Worker. Node performs strict native full decode with failOn warning and explicit input limits, draining output stream with no huge pixel buffer returned to JS.",
+    "Total decoded pixel work across supported animation frame rectangles is <=20,000,000, maximum100 frames. WebP frames are extracted/wrapped as independent complete images and verified sequentially because local binding ignores later frames. PNG APNG acTL/fcTL/fdAT is explicitly rejected as unsupported until complete all-frame reconstruction is implemented; ordinary PNG palette/Adam7/16-bit continue. Never accept unchecked later frames or silently validate only a thumbnail.",
+    "Missing verifier/config, provider unavailable/deadline/quota errors fail safely503; malformed or corrupt decoded image fails422. Preserve original stored bytes/hash/metadata and normal projection. Missing verifier does not block reading/deleting already verified private images. New content/finalization cannot fall back to container-only acceptance.",
+    "Keep existing authorization/lock ordering and attachment/card/storage/version/event/receipt atomic effects. A verification error or cancelled/deadline provider operation creates no saved attachment or permanent object; current access and staging state are rechecked at final effects. Do not log bytes or secrets.",
+    "Real mounted PostgreSQL Node and actual workerd/local Images+R2 tests cover valid20MP images (including4:4:4 progressive JPEG), valid PNG/JPEG/WebP variants, corrupt entropy with valid containers/CRCs, later corrupted WebP frames, APNG explicit refusal, byte/pixel/frame/output bounds, missing verifier with existing private delivery, provider failure/quota/deadline/cancel classification and cleanup. Preserve old red boundary, exact commands/counts and nearest existing suite results; no independent/self closure inferred.",
+    "Root owns direct dependency/lock and UAT-only binding declaration. No paid-plan enablement, prod config/cloud mutation/deployment/commit. Hosted provider strictness/all-frame/resource/binding acceptance remains UAT pending after full local gate and fresh independent review."
+  ],
+  "ownedPaths": [
+    "apps/api/src/services/image-validator.ts",
+    "apps/api/src/services/image-verifier*.ts",
+    "apps/api/src/adapters/images.ts",
+    "apps/api/src/http/app.ts narrow verifier injection",
+    "apps/api/src/runtime/node.ts narrow verifier injection",
+    "apps/api/src/runtime/worker.ts narrow verifier injection",
+    "relevant image tests/fixtures"
+  ],
+  "coordinatedRootPaths": [
+    "apps/api/package.json",
+    "package-lock.json",
+    "apps/api/wrangler.jsonc env.uat images binding only"
+  ],
+  "research": "../image-full-decoder-options.md",
+  "boundedBudgetRevision": {
+    "criterion": "jpeg-entropy-completeness-5",
+    "rationale": "Actualgenuine20MPcomplexity distinguishes arbitrary1simplementationbudget fromproductcaps; parentauthorizes3schecker/8soverallpreflight/10sselectedimageHTTP before freshreview.",
+    "verificationDeadlineMs": 8000,
+    "imageHttpDeadlineMs": 10000,
+    "bodyReadDeadlineMs": 5000,
+    "ordinaryNodeDefaultDeadlineMs": 5000,
+    "ordinaryWorkerExplicitDeadlineMs": 25000,
+    "unchanged": "Input10MiB,8192dimension,20MPaggregateframes,100frames,bitset10MiB,deterministic200Mfuel,providerfailure503,corruption422; no plan upgrade."
+  },
+  "v6PolicyDecision": {
+    "authority": "User delegated best recommendation; root architect selected RGB/grayscale direct JPEG admission and browser CMYK conversion, no new hosting service.",
+    "rationale": "Actualv4/v5max diagnostics demonstrated complex4componentJPEG resource failure and disproportionate disposablePNG encoding cost. This is an explicit support policy before independent review, not hidden503 acceptance or cap reduction.",
+    "directJpeg": "Only1or3SOFcomponents; othercomponentcounts includingCMYK4 return422JPEG_COLOR_MODEL_UNSUPPORTED beforeentropy/providerwork. UI CMYK conversion mustfail visibly ratherthan fallingback to original.",
+    "disposableOutput": "Full native/Images decode toJPEGquality1, no resize/shrink; drain/discard output, neverstore it. Sourcebytes/hash/type/metadata remainunchanged. Alpha/PNG16/WebPframe decode muststill be validated adversarially.",
+    "budgets": "Unchanged3schecker,8spreflight+fullverification,10sselectedimageHTTP,5sbodyread;200Mfuel and10MiBbitset unchanged; ordinarydeadlinesunchanged.",
+    "mandatory": "Textured20MPRGB upload/finalize/privatebyteidentity mustpass mountedNode+actualworkerd. CMYK musttyped422/noeffects/zeroprovidercalls; allknowncorruptentropy includingJPEGwarningcase still422; fullPNG16/alpha/laterWebPframe coverage.",
+    "evidence": "raw/root-image-output-benchmark.json measuresRGB157756446operations/1348ms checker,3559ms58MBPNG vs912ms0.76MBJPEG; CMYK3scheckerfailure preserved.",
+    "limits": "No paidplanchange, no deployment/closure/selfscore. HostedCPU/plan/memory andhighindependentreview remainpending."
+  }
+}

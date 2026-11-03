@@ -1,0 +1,27 @@
+✖ Independent import review: valid-ZIP literal and package adversarial probes through mounted HTTP and real PostgreSQL (1.960916ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 249.142583
+
+✖ failing tests:
+
+test at docs/reviews/FULL-REVALIDATION-20261103/formal-import-round1/mounted-probes.test.ts:7:1
+✖ Independent import review: valid-ZIP literal and package adversarial probes through mounted HTTP and real PostgreSQL (1.960916ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async lifecycleFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/lifecycle-fixture.ts:16:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/formal-import-round1/mounted-probes.test.ts:8:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }

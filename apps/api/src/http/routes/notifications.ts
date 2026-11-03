@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { notificationQuerySchema, parseOrThrow } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
 import {
   listNotifications,
@@ -10,13 +11,6 @@ import { authMiddleware } from '../middleware/auth.ts';
 
 export const notificationsRoutes = new Hono();
 
-function parseLimit(limitParam?: string): number {
-  if (!limitParam) return 50;
-  const parsed = parseInt(limitParam, 10);
-  if (Number.isNaN(parsed) || parsed < 1) return 50;
-  return Math.min(parsed, 100);
-}
-
 // Health check
 notificationsRoutes.get('/notifications/health', (c) => c.json({ data: { status: 'ok' } }));
 
@@ -27,9 +21,7 @@ notificationsRoutes.get('/notifications', authMiddleware, async (c) => {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
   }
 
-  const limit = parseLimit(c.req.query('limit'));
-  const cursor = c.req.query('cursor') || undefined;
-  const unreadOnly = c.req.query('unreadOnly') === 'true';
+  const {limit, cursor, unreadOnly} = parseOrThrow(notificationQuerySchema, c.req.query());
 
   const pool = getPool();
   const result = await listNotifications(pool, actor.id, { limit, cursor, unreadOnly });

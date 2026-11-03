@@ -1,0 +1,29 @@
+✖ Move ranks: first and last use numeric order across different digit lengths (250.61575ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 479.341
+
+✖ failing tests:
+
+test at apps/api/test/move-undo-repair.test.ts:66:1
+✖ Move ranks: first and last use numeric order across different digit lengths (250.61575ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_ERROR","message":"previousCardId must be the last card in destination column.","requestId":"df3cc531-d11a-4737-ba2c-ee88c3adf4a8","details":{"issues":[{"path":"previousCardId","message":"previousCardId must be the last card in destination column."}]}}}
+  
+  422 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/move-undo-repair.test.ts:69:55)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

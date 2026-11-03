@@ -1,0 +1,204 @@
+{
+  "evidence": "Local real Chrome against fresh static export and mounted synthetic Node API; legacy random-schema fixture, no hosted UAT approval",
+  "before": {
+    "apps/api/src/adapters/trash.ts": "2a65a8ced09fa39e144cfeb93b7889d7b70308b7fd1547cf2a95b0beb707522c",
+    "apps/web/src/app/trash/page.tsx": "e24dbaf9d699ed0527d8af0c84c01f5c880f25ea2a95c6299c79ba563c564ff6",
+    "apps/web/src/lib/trash-restore.ts": "d2d85bf5158a101174b1ae0df4924faca59f31f238aa64093d9eabfe6982bafa"
+  },
+  "after": {
+    "apps/api/src/adapters/trash.ts": "2a65a8ced09fa39e144cfeb93b7889d7b70308b7fd1547cf2a95b0beb707522c",
+    "apps/web/src/app/trash/page.tsx": "e24dbaf9d699ed0527d8af0c84c01f5c880f25ea2a95c6299c79ba563c564ff6",
+    "apps/web/src/lib/trash-restore.ts": "d2d85bf5158a101174b1ae0df4924faca59f31f238aa64093d9eabfe6982bafa"
+  },
+  "staticTrashSHA256": "2b47d83ef8d608aa7cc59e254df4fbab4234574f0318cc6fc08e8b9ad05767ca",
+  "results": [
+    {
+      "role": "owner",
+      "mountedRow": {
+        "canRestore": false,
+        "blockedReason": "destination_missing"
+      },
+      "actualClicks": [
+        "Restore",
+        "Select explicit active second column",
+        "Restore card"
+      ],
+      "pickerExcludesRetiredColumn": true,
+      "expiredRestoreDisabled": true,
+      "restores": [
+        {
+          "status": 409,
+          "input": {
+            "expectedVersion": 2,
+            "expectedBoardVersion": 29
+          },
+          "result": {
+            "error": {
+              "code": "RESTORE_DESTINATION_REQUIRED",
+              "message": "Original column was deleted; explicit destination column is required.",
+              "requestId": "e4ea4954-d587-4a88-8e7a-4a91b5a057b4",
+              "details": {
+                "reason": "destination_missing",
+                "boardId": "brd_eb9b3947-c7a1-44ab-8b65-a8e1bd801cdc",
+                "columns": [
+                  {
+                    "id": "col_2da5fc9f-f9bd-480b-8717-3bc9bf0263a7",
+                    "name": "Not started"
+                  },
+                  {
+                    "id": "col_c01d6adf-7f84-4d1e-ad5a-9a203adbada5",
+                    "name": "In progress"
+                  },
+                  {
+                    "id": "col_92f12ab4-2e51-4c86-9a25-e11589aad1bd",
+                    "name": "Blocked"
+                  },
+                  {
+                    "id": "col_522a3a5d-c1d4-48f1-b3f6-488f0838987b",
+                    "name": "Completed"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "status": 200,
+          "input": {
+            "expectedVersion": 2,
+            "expectedBoardVersion": 29,
+            "toColumnId": "col_c01d6adf-7f84-4d1e-ad5a-9a203adbada5"
+          },
+          "result": {
+            "data": {
+              "id": "crd_0591533e-00a5-4243-854f-bbb9d763edd3",
+              "workspaceId": "ws_af75b87c-603d-4b9c-a99b-10c2941c6a6b",
+              "projectId": "prj_3f69cbe4-531d-42bb-bde5-87fd4adfb3bb",
+              "boardId": "brd_eb9b3947-c7a1-44ab-8b65-a8e1bd801cdc",
+              "columnId": "col_c01d6adf-7f84-4d1e-ad5a-9a203adbada5",
+              "title": "Legacy restore owner destination sentinel",
+              "description": "Retain same owner card content",
+              "priority": "high",
+              "dueDate": null,
+              "assigneeIds": [],
+              "position": 1000,
+              "version": 3,
+              "state": "active",
+              "deletedAt": null,
+              "deletedBy": null,
+              "restoreUntil": null,
+              "commentCount": 0,
+              "imageCount": 0,
+              "createdAt": "2026-11-03T10:32:17.974Z",
+              "updatedAt": "2026-11-03T10:32:21.063Z"
+            },
+            "replayed": false
+          }
+        }
+      ],
+      "canonicalRestored": {
+        "id": "crd_0591533e-00a5-4243-854f-bbb9d763edd3",
+        "title": "Legacy restore owner destination sentinel",
+        "description": "Retain same owner card content",
+        "columnId": "col_c01d6adf-7f84-4d1e-ad5a-9a203adbada5",
+        "state": "active"
+      },
+      "errors": [],
+      "retirementTriggerEnabled": true
+    },
+    {
+      "role": "manager",
+      "mountedRow": {
+        "canRestore": false,
+        "blockedReason": "destination_missing"
+      },
+      "actualClicks": [
+        "Restore",
+        "Select explicit active second column",
+        "Restore card"
+      ],
+      "pickerExcludesRetiredColumn": true,
+      "expiredRestoreDisabled": true,
+      "restores": [
+        {
+          "status": 409,
+          "input": {
+            "expectedVersion": 2,
+            "expectedBoardVersion": 29
+          },
+          "result": {
+            "error": {
+              "code": "RESTORE_DESTINATION_REQUIRED",
+              "message": "Original column was deleted; explicit destination column is required.",
+              "requestId": "de711601-980f-4ff6-b69d-2c4a89503130",
+              "details": {
+                "reason": "destination_missing",
+                "boardId": "brd_eed19b77-44a8-4ebb-9e2f-263c38569e74",
+                "columns": [
+                  {
+                    "id": "col_c903c498-489f-43b4-a07c-40861735ac56",
+                    "name": "Not started"
+                  },
+                  {
+                    "id": "col_2b40d94c-82dc-4815-848f-4ee7f08c2707",
+                    "name": "In progress"
+                  },
+                  {
+                    "id": "col_af263b29-a6c6-4ee3-9672-020c4058b7be",
+                    "name": "Blocked"
+                  },
+                  {
+                    "id": "col_ac901315-b5e6-4a4c-b36b-e8f36df40069",
+                    "name": "Completed"
+                  }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "status": 200,
+          "input": {
+            "expectedVersion": 2,
+            "expectedBoardVersion": 29,
+            "toColumnId": "col_2b40d94c-82dc-4815-848f-4ee7f08c2707"
+          },
+          "result": {
+            "data": {
+              "id": "crd_146d7fec-61a8-459a-bc4d-2f586eda3d95",
+              "workspaceId": "ws_e8673eba-b7a0-40f5-bd40-5fbf7e158963",
+              "projectId": "prj_b052ac66-e2a4-440e-9f90-d8e7c0f5c379",
+              "boardId": "brd_eed19b77-44a8-4ebb-9e2f-263c38569e74",
+              "columnId": "col_2b40d94c-82dc-4815-848f-4ee7f08c2707",
+              "title": "Legacy restore manager destination sentinel",
+              "description": "Retain same manager card content",
+              "priority": "high",
+              "dueDate": null,
+              "assigneeIds": [],
+              "position": 1000,
+              "version": 3,
+              "state": "active",
+              "deletedAt": null,
+              "deletedBy": null,
+              "restoreUntil": null,
+              "commentCount": 0,
+              "imageCount": 0,
+              "createdAt": "2026-11-03T10:32:22.847Z",
+              "updatedAt": "2026-11-03T10:32:25.240Z"
+            },
+            "replayed": false
+          }
+        }
+      ],
+      "canonicalRestored": {
+        "id": "crd_146d7fec-61a8-459a-bc4d-2f586eda3d95",
+        "title": "Legacy restore manager destination sentinel",
+        "description": "Retain same manager card content",
+        "columnId": "col_2b40d94c-82dc-4815-848f-4ee7f08c2707",
+        "state": "active"
+      },
+      "errors": [],
+      "retirementTriggerEnabled": true
+    }
+  ]
+}

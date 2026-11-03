@@ -1,0 +1,68 @@
+{"executor":"Architect builder","port":"55931","database":"flowboard_harness","schema":"activity_reference_af1cda0dfa204978838dacf11453104f","files":["apps/api/test/activity-reference-people.test.ts","apps/api/test/activity-coverage-b5.test.ts","apps/api/test/aud-ntf.test.ts","apps/api/test/discussion-activity-repair.test.ts","apps/api/test/b23-same-name.test.ts","apps/api/test/board-access-activity-notifications.test.ts"]}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ B-5 activity coverage: writes, atomicity, replay, visibility and leaks
+  ✔ flow: each write records exactly one row with the expected action (215.974458ms)
+  ✔ every written action name is in ACTIVITY_ACTIONS (0.497291ms)
+  ✔ safe_changes carry ids and roles only: no token, no invitee email, no description, no brief text (0.519167ms)
+  ✔ a failed write records nothing: stale board version and duplicate column name (10.339708ms)
+  ✔ idempotent replay writes no duplicate row (9.32225ms)
+  ✔ visibility: owner reads board and project rows in the project feed (4.686167ms)
+  ✔ visibility: manager without a grant sees project rows and no board rows (3.792708ms)
+  ✔ visibility: manager with a grant on b1 sees b1 rows but not b2 rows (4.689542ms)
+  ✔ visibility: member with a grant gets 403 on the project feed and sees b1 rows, no project rows, in overview (275.377666ms)
+  ✔ visibility: member with no grant sees nothing; stranger gets 404 (9.387875ms)
+  ✔ overview (B-6): owner and manager see project rows; member, viewer and no-grant member do not (21.727459ms)
+  ✔ overview (B-6): no token or invitee email in any overview body (12.229459ms)
+  ✔ leak: the owner feed JSON never contains a token or an invitee email (3.755667ms)
+  ✔ removing a member also revokes their pending invitation and logs that revoke once (6.726583ms)
+✔ B-5 activity coverage: writes, atomicity, replay, visibility and leaks (848.285333ms)
+✔ Activity reference identities: exact changed people only, safe historical names and no directory bypass (703.351209ms)
+{"measurement":"mounted activity query count","oneActor":10,"twelveActors":10}
+✔ Activity identity lookup: mounted query count stays constant from1to12distinct actors (434.3945ms)
+▶ AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite
+  ✔ 0. Setup Workspace, Projects, Members and Initial Board Structure (189.317958ms)
+  ✔ AUD-01 & AUD-02: Card Activity Timeline and Movement History (122.306875ms)
+  ✔ AUD-03: Workspace Owner Cross-Project Activity & Sibling Privacy (60.695625ms)
+  ✔ AUD-04: Manager vs Member vs Viewer Audit Scopes (34.11075ms)
+  ✔ AUD-06: Append-only Immutability and Retention Redaction (14.420042ms)
+  ✔ NTF-01: Durable In-App Mention Inbox & Self-Mention Omission (78.590959ms)
+  ✔ NTF-02: Inbox Read State & Access Revocation Redaction (102.949417ms)
+  ✔ NTF-03: Outbox Leased Worker Processing, Idempotency & Quarantine (80.287583ms)
+  ✔ AUD-05: Lifecycle import and image events (71.430083ms)
+✔ AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite (759.995291ms)
+✔ B-23 unique names carry no number (163.08175ms)
+✔ B-23 two, three and four duplicates number in join order, the Owner first (34.837584ms)
+✔ B-23 the Owner is first even when a same-named member joined before the Owner existed (31.005417ms)
+✔ B-23 case and accent insensitive: "José Pérez" collides with "jose perez" (NFKC, accents removed) (36.178708ms)
+✔ B-23 stable when an unrelated person joins; numbers do not move with unrelated members (61.021458ms)
+✔ B-23 the number drops when the first duplicate leaves, and the remaining one is unique again (59.933292ms)
+✔ B-23 a rename that makes two names collide numbers the later member; renaming away removes the number (45.06ms)
+✔ B-23 people endpoint: the number is project-wide, so a filtered or paged response carries the same numbers (21.342542ms)
+✔ B-23 the board snapshot and the people endpoint agree on the numbers (55.771333ms)
+✔ B-23 no email in any person object, and the contract stays backward compatible (22.60475ms)
+✔ B-23 the helper numbers from the stored rows alone, for any caller (21.103666ms)
+▶ mounted activity and notifications enforce board access
+  ✔ project and card activity hide hidden boards and unknown events before pagination (88.231833ms)
+  ✔ inbox hides hidden and legacy rows, and mark operations respect board access (38.064541ms)
+  ✔ revocation invalidates cursors and blocks reads and marks (34.775292ms)
+  ✔ notification read and grant revocation serialize (68.32025ms)
+  ✔ batch read commits before a waiting revocation, then later marks are denied (63.88825ms)
+✔ mounted activity and notifications enforce board access (866.521167ms)
+✔ COM03 rejects arbitrary text, partial tokens and surrogate splits atomically (587.556375ms)
+✔ COM03 selected UTF16 tokens, case, trim and historical renamed edits remain valid without renotifying (622.186542ms)
+✔ COM03 unknown and ungranted targets have same private failure and Viewer cannot write (461.8825ms)
+✔ AUD03/04 reject invalid dates, reversed ranges and malformed bounds as controlled422 (550.743041ms)
+✔ AUD03/04 valid date filters precede pagination and cursors bind the filter (450.854458ms)
+✔ COM03 duplicate-name suffix is part of selection and edited invalid spans roll back (536.190875ms)
+ℹ tests 50
+ℹ suites 0
+ℹ pass 50
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 20430.040958
+{"exitCode":0,"signal":null}
+{"cleanup":"own schema dropped"}

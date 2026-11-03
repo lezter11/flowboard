@@ -1,0 +1,9 @@
+# Import row and retained receipt contract — acceptance before implementation
+
+Independent import round2 found that invalid preview rows with missing required title and cleaned terminal receipts do not conform to the current shared response schema. Cleanup intentionally removes copied private content; restoring original content to satisfy the old schema is forbidden. The browser receipt link must have an accessible, truthful label after redaction.
+
+- Distinguish validated content, invalid preview/raw row values and cleaned minimal provenance in the shared API contract. Every actual preview/commit/status response must parse, including missing/invalid/long row fields and cleaned/cancelled/expired/failed receipts. Do not weaken normal valid-card validators or guess invalid values.
+- Redacted rows explicitly declare redaction, retain only row number/outcome/authorized card reference, and expose null/empty safe values for removed content. They cannot silently present removed title/ExternalID/assignees/date/priority as original content. Partial per-card cleanup and full batch cleanup both work without restoring private data.
+- UI renders a safe explanatory label and nonempty accessible card link (for example “Open card from row2”) using minimal authorized provenance, never original private fields. Existing preview corrections, mapping, pagination and report flows still work.
+- Mounted real PostgreSQL tests run actual import, commit, cleanup and GET, checking shared schemas before/after and copied-content absence. Invalid source rows retain controlled row/field errors and cannot commit. Add meaningful contract and real-browser retained-receipt link assertions.
+- Preserve independent round2 failures and original fixtures. No backend/UI/feature closure until new frozen full gates and independent review pass; provider/hosted checks stay UAT pending.

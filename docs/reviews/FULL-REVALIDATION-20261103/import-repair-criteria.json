@@ -1,0 +1,17 @@
+{
+  "version": "import-repair-1",
+  "risk": "high",
+  "baseline": "917706ae0433df471c72736be4d548eb022236c4",
+  "affectedFeatures": ["IMP-01", "IMP-02", "IMP-03", "IMP-04", "IMP-05", "IMP-06", "IMP-07", "IMP-08", "IMP-09", "IMP-10", "IMP-11", "DEL-07", "AUD-06", "CRD-06"],
+  "mandatoryCriteria": [
+    "Descriptions and every normalized import field survive parser, preview persistence, mapping, commit and duplicate hashing without silent data loss. Existing accepted API/MCP priority compatibility remains separate from UI explicit selection.",
+    "Separately previewed copies of one external ID cannot create duplicate logical cards. Commit atomically rechecks/claims durable board/external-ID identity before card effects; identical content yields safe existing outcome, changed content conflicts, failures roll back marker/card/activity/receipt together.",
+    "Import assignee eligibility intersects active writable project role with current target board grant (Owner inheritance allowed). Preview and commit reject hidden/removed/ineligible accounts without leaking unrelated identities; revocation serializes with commit.",
+    "Preview mapping and commit bind actual normalized row hashes, assignments, exact board/column context and structural revision. No placeholder digest or unpreviewed commit-time override can silently change the authorized preview.",
+    "Accept genuine supported Excel dates and strict Gregorian text only. Arbitrary general numeric cells cannot become dates merely because their values look like serials. Macro/formula/link/ZIP/decompression/image safety remains enforced.",
+    "Cancel/expiry/purge safely remove private staged row descriptions/titles/emails and copied report data within the specified retention window while preserving minimal retry/audit/duplicate facts. Scheduled cleanup is wired, bounded, retryable and cannot scrub another project's still-authorized active operation.",
+    "Any new migration is additive and tested for clean/upgrade/idempotent behavior; Worker embedded SQL matches exact filesystem bytes. Legacy records are handled conservatively without inventing lost content or silently overwriting existing cards.",
+    "Mounted PostgreSQL tests exercise nonempty descriptions, identical/different external-ID separate previews and real competing connections, grant changes, stale previews/overrides, numeric/date styles and cleanup boundaries. Historical failed reproductions are preserved. Fresh independent review on the final full-product target is required before any feature closes."
+  ],
+  "scopeLimits": "Synthetic disposable PostgreSQL on localhost55931 only. No production/cloud/credentials/deployment. Builder owns imports/excel parser/import retention and necessary migrations, not identity notifications/member files or UI. This bounded repair is not full-product approval."
+}

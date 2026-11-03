@@ -1,0 +1,28 @@
+{
+  "sourceDigest": "27db43d94d3a45bfea41b6d8e3cffba3e07bb6118e0c0b08437ab5b7c011910b",
+  "findings": [
+    {
+      "id": "FNDACC-R1-01",
+      "severity": "P1",
+      "title": "Unscoped display picker bypasses Owner/Manager People-directory boundary",
+      "status": "confirmed by independent synthetic actual-route probe; awaiting Architect second reader",
+      "sourceLocations": [
+        "apps/api/src/http/routes/projects.ts:480",
+        "apps/api/src/http/routes/projects.ts:506",
+        "apps/api/src/adapters/rbac.ts:572"
+      ],
+      "acceptance": "docs/FEATURE_SPEC.md:136; shared mandatory criteria: mounted operations enforce current role/target authority and privacy",
+      "reproduction": "In disposable loopback PostgreSQL, create Owner, Member, Viewer and another Member in one project; create no boards/grants. With Member or Viewer session, GET /api/v1/projects/prj/members returns403. GET /api/v1/projects/prj/people and ?purpose=display return200 and all active project user IDs/display names/avatars/roles. GET ?purpose=mention correctly returns empty data.",
+      "impact": "Any active Member/Viewer can enumerate project identities despite being denied the full directory; no board eligibility is required. Email addresses are not exposed by this path, but the user decision prohibits directory data and allows only scoped assignee/mention pickers for these roles.",
+      "counterevidence": "/members uses correct Owner/Manager enforcement and existing People policy tests pass10/10 with runtime checks; scoped mention/assignee checks are not sufficient because purpose defaults to display. API.md74 still documents the older behavior; FEATURE_SPEC latest explicit user decision supersedes it.",
+      "suggestedFix": "Gate display/default directory access to current Owner/Manager using the same transaction/lock authority as /members, or retire display if no accepted consumer needs it. Preserve board-scoped assignee/mention behavior. Add explicit omitted/display/boardId+display negative tests for Member/Viewer and role demotion races.",
+      "evidencePaths": [
+        "docs/reviews/FULL-REVALIDATION-20261103/formal-foundation-account-round1/people-display-probe.ts",
+        "docs/reviews/FULL-REVALIDATION-20261103/formal-foundation-account-round1/people-display-probe.log",
+        "docs/reviews/FULL-REVALIDATION-20261103/formal-foundation-account-round1/focused-people-runtime-authorized.log"
+      ]
+    }
+  ],
+  "verdict": "fail",
+  "formalRecordStatus": "Awaiting supplied complete target manifest; no scores assigned while required gates incomplete."
+}

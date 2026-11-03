@@ -1,0 +1,100 @@
+▶ ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Suite
+  ✔ 0. Setup Workspace, Projects, Members and Initial Card (169.518791ms)
+  ✔ ATT-01: Stage upload authorization and bounds (32.349292ms)
+  ✔ ATT-02: Binary upload, validation, spoofing rejection, and finalization (185.918834ms)
+  ✔ ATT-03: Gallery listing shows finalized images only (14.6245ms)
+  ✔ ATT-04: Authenticated proxy delivery and security headers (15.77625ms)
+  ✔ ATT-05: Remove attached image with OCC, role check, and activity (30.434084ms)
+  ✔ ATT-06: Quota enforcement (max 10) and orphan upload cleanup (239.994875ms)
+  ✔ ATT-07: Attachment preservation in trash, restore, and purge (91.70075ms)
+✔ ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Suite (783.264ms)
+▶ B-11 orphan uploads: expired staging bytes are removed once, and a failed delete is retried
+  ✔ the sweep removes the expired staged bytes and leaves a live upload alone (2.709083ms)
+  ✔ a second sweep does not revisit a settled row (1.125791ms)
+{"event":"scheduled_job_failed","jobs":["first","third"]}
+  ✔ a failing delete stays queued and is retried by the pending-deletion job (3.045125ms)
+✔ B-11 orphan uploads: expired staging bytes are removed once, and a failed delete is retried (36.455792ms)
+✔ B-11 scheduled jobs: one failing job does not stop the others, and the failure is still reported (0.55925ms)
+▶ B-11 image cap: staged uploads count, expired ones do not, and two concurrent stages cannot both pass
+  ✔ nine images plus one live staged upload refuse a further stage (30.995792ms)
+  ✔ an expired staged upload does not count toward the cap (18.052875ms)
+  ✔ a stage waits for an in-flight stage on the same card, then counts its staged upload (319.790167ms)
+✔ B-11 image cap: staged uploads count, expired ones do not, and two concurrent stages cannot both pass (369.190458ms)
+▶ B-11 mention people: only people who can read the card's board
+  ✔ by card: the viewer with a board grant and the manager are listed; the member without a grant is not (16.782166ms)
+  ✔ by board: the same answer (17.982084ms)
+  ✔ with neither card nor board, mention lists nobody (backward compatible, no leak) (3.286417ms)
+  ✔ a member without the board grant cannot list mentionees for the card (404, no list) (4.535875ms)
+  ✔ an unknown card and an unreadable card give the same 404 (7.856916ms)
+  ✔ the display purpose is unchanged: project members are still listed (4.406166ms)
+  ✔ no email field is returned to anyone (7.592917ms)
+✔ B-11 mention people: only people who can read the card's board (78.878625ms)
+✔ B-7 body caps: the cap depends on the route, the method and the session (0.392667ms)
+▶ B-7 body caps: the boundary is enforced on the wire, with and without a session
+  ✔ a signed-in import at exactly 5 MiB plus envelope is not refused for size (15.375208ms)
+  ✔ a signed-in import one byte over the cap is refused with 413 (2.157167ms)
+  ✔ an anonymous import over 1 MiB is refused with 413 before auth (0.359167ms)
+  ✔ a signed-in image content upload at the envelope size is not refused for size (7.186166ms)
+  ✔ a signed-in image content upload one byte over the cap is refused with 413 (3.813458ms)
+  ✔ a signed-in import body is still capped at 5 MiB, not at the image cap (2.794833ms)
+  ✔ other signed-in routes stay at 1 MiB (0.348166ms)
+✔ B-7 body caps: the boundary is enforced on the wire, with and without a session (60.835292ms)
+▶ B-7 Google token exchange: a failure logs the status only, never the provider body
+  ✔ the response is a 302 to sign-in with state=failed, and the log holds no provider text (1.598792ms)
+✔ B-7 Google token exchange: a failure logs the status only, never the provider body (1.818417ms)
+✔ B-7 images: R2 driver round-trips bytes and content type, and tolerates repeat deletes (0.518833ms)
+✔ B-7 images: with no bucket bound, image routes fail closed before any database write (59.631208ms)
+✔ B-7 images: the Worker without an IMAGES binding answers 503 CONFIG_ERROR on image routes (13.24675ms)
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"warn","event":"rate_limit_client_ip_missing"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"warn","event":"rate_limit_client_ip_missing"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+✔ B-7 images: upload, finalize, read and delete through the Worker, across separate isolates (102.687125ms)
+✔ B-7 images: cancelling a staged upload removes its staged object (39.687959ms)
+✔ B-7 images: the default driver is not used when a scope binds none (0.20875ms)
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+✔ B-14 images: storage keys carry no user filename, and filenames with separators or control characters are refused (88.388ms)
+✔ B-8 image delete: a failed commit keeps the row and the bytes (57.9565ms)
+✔ B-8 image delete: a storage failure after commit leaves a retryable pending row (17.801ms)
+✔ B-8 image delete: a successful delete removes the bytes at once and leaves no pending row (16.435458ms)
+✔ mounted card discovery and image routes require a current board grant (351.606292ms)
+{"level":"warn","event":"rate_limit_refused","binding":"FB_RL_WRITES"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"error","event":"rate_limit_store_error","bucket":"auth","errorClass":"Error"}
+{"level":"warn","event":"rate_limit_refused","binding":"FB_RL_WRITES"}
+✔ soft limit: a refused general write returns 429 TOO_MANY_REQUESTS with Retry-After 60 (10.144542ms)
+✔ soft limit: a throwing binding fails open and logs the error class only (3.785792ms)
+✔ limits: health probes are never counted by either limiter (0.963708ms)
+✔ limits: the key is the Cloudflare client IP and ignores spoofable forwarding headers (1.186667ms)
+✔ limits: reads outside Google sign-in are not counted (0.751792ms)
+✔ buckets: each sensitive route family maps to its bucket and nothing else (0.088167ms)
+✔ window: a count over the limit returns 429 with Retry-After from the counter (0.846167ms)
+✔ window: a count within the limit reaches the route (0.655209ms)
+✔ window: the invitation route counts in the invite bucket with its 60-second window (2.211125ms)
+✔ window: when the counter throws, the request fails closed with 503 and the route is not reached (0.669042ms)
+✔ window: no database pool on a Worker fails closed; on Node a request without a client address is not counted (1.114208ms)
+✔ window: on the Worker a missing client address uses the shared fallback key and logs it without a value (0.543375ms)
+✔ soft binding: on the Worker an absent binding is logged loudly and the request still passes (0.528917ms)
+✔ soft binding: the default resolver reads the Cloudflare binding from the Worker environment (0.557625ms)
+✔ binding status: booleans for the Cloudflare binding the runtime can see (0.147375ms)
+✔ admin status route reports the binding and needs the admin secret (2.437209ms)
+✔ config: wrangler declares only the soft writes binding, with the documented limit, in production and UAT (0.231292ms)
+﹣ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation (0.248583ms) # Set isolated identity-extra URL
+﹣ FND04 genuine PostgreSQL slow query records HTTP deadline without assuming cancellation (0.039708ms) # SKIP
+﹣ FND04 actual unavailable-DB and Worker missing-binding health/privacy controls (0.039917ms) # SKIP
+ℹ tests 68
+ℹ suites 0
+ℹ pass 65
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 3
+ℹ todo 0
+ℹ duration_ms 44003.646417

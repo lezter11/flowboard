@@ -1,0 +1,31 @@
+✖ Image migration: legacy finalized references repair terminal state exactly once (274.047333ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 522.14725
+
+✖ failing tests:
+
+test at apps/api/test/image-storage-atomicity.test.ts:96:1
+✖ Image migration: legacy finalized references repair terminal state exactly once (274.047333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'expired'
+  - 'finalized'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-storage-atomicity.test.ts:102:118)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'expired',
+    expected: 'finalized',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

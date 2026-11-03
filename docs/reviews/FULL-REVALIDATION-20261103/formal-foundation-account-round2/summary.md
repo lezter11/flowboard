@@ -1,0 +1,9 @@
+# Foundation/account round2: incomplete, no approval
+
+Actions: independently issued the reviewed14-gate runner against source615files, digest5c6185a69d2d0fa89a32962b6f672a1bc09877e66592e0b7568f98d35769c3c8. First9commands exited0: typecheck/typecheck-web; contracts126; web317; MCP17; MCPbuild; artifact1; OpenAPIparity; embedded-migrationparity. API was explicitly stopped withSIGTERM after confirmed mandatory PB02; remaining4commands were not executed. Runner exited1 and preserved source-after with sourceUnchanged:true. No category scores or approval issued.
+
+Why and options: the reproduced stale archive request can overwrite a newer project reopen because archive/reopen do not check expectedVersion. Finishing unrelated tests cannot make that version invariant true. The independent project reviewer discovered it and root reproduced it; this reviewer inspected the missing body/version handling and accurately attributes the execution evidence.
+
+Evidence and limits: interruption.json records actual child process termination and runner result. No remaining gate descendants were observed after stop. Source hashes were unchanged at stop. The first-round People display blocker has current route/adapter authority guards and directPool transaction lifetime, but a complete gate run on the repaired global source remains required. Root additionally reports two independent import XML/cleaned-receipt blockers under repair; those reports are not claimed as this reviewer's executions.
+
+Next: root repairs known blockers, freezes the complete corrected code/config/tests, then requests a complete independent14run and full affected acceptance review. Current outcome remains incomplete, with the shared confirmed lifecycle failure preserved. Real Google/Cloudflare/Hyperdrive/R2/mail/cron remain UATpending; no hosted feature closure or dev/production approval.

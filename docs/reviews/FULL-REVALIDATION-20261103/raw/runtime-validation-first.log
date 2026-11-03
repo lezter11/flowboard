@@ -1,0 +1,68 @@
+✖ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation (257.960084ms)
+✖ FND04 genuine PostgreSQL slow query records HTTP deadline without assuming cancellation (216.349334ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1057.058917
+
+✖ failing tests:
+
+test at apps/api/test/runtime-validation.test.ts:53:1
+✖ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation (257.960084ms)
+  error: column "assigned_at" of relation "card_assignees" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async setup (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:39:40)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:54:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 138,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '44',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_target.c',
+    line: '1065',
+    routine: 'checkInsertTargets'
+  }
+
+test at apps/api/test/runtime-validation.test.ts:99:1
+✖ FND04 genuine PostgreSQL slow query records HTTP deadline without assuming cancellation (216.349334ms)
+  error: column "assigned_at" of relation "card_assignees" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async setup (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:39:40)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:100:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    length: 138,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '44',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_target.c',
+    line: '1065',
+    routine: 'checkInsertTargets'
+  }

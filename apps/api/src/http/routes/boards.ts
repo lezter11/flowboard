@@ -1,6 +1,8 @@
 import { Hono } from 'hono';
 import {
   createBoardInputSchema,
+  projectBoardsListQuerySchema,
+  boardLifecycleInputSchema,
   updateBoardInputSchema,
   createColumnInputSchema,
   updateColumnInputSchema,
@@ -144,6 +146,8 @@ boardsRoutes.post('/api/v1/projects/:projectId/boards', authMiddleware, async (c
 boardsRoutes.get('/api/v1/projects/:projectId/boards', authMiddleware, requireTokenScope('boards:read'), async (c) => {
   const actor = getActorOrThrow(c);
   const projectId = c.req.param('projectId');
+  const query = parseOrThrow(projectBoardsListQuerySchema,c.req.query());
+  if (query.includeArchived && c.get('authType') === 'token') throw HttpError.forbidden('Personal access tokens cannot administer archived boards.','TOKEN_OPERATION_FORBIDDEN');
 
   const tokenProjectId = c.get('tokenProjectId');
   if (tokenProjectId && tokenProjectId !== projectId) {
@@ -155,7 +159,7 @@ boardsRoutes.get('/api/v1/projects/:projectId/boards', authMiddleware, requireTo
   try {
     await client.query('BEGIN');
     const boardIds = await lockProjectBoardReadScope(client, projectId, actor.id);
-    const result = await listProjectBoards(client, projectId, actor.id, boardIds);
+    const result = await listProjectBoards(client, projectId, actor.id, boardIds, query.includeArchived);
     await client.query('COMMIT');
     if (c.get('authType') === 'token') {
       // A direct API caller must receive the same narrow discovery boundary as
@@ -186,7 +190,7 @@ boardsRoutes.get('/api/v1/boards/:boardId/metadata', authMiddleware, requireToke
     );
     if (!board.rows[0]) throw HttpError.notFound('Board not found.', 'NOT_FOUND');
     const columns = await client.query<{ id: string; name: string; category: string; position: number }>(
-      'SELECT id, name, category, position FROM columns WHERE board_id = $1 ORDER BY position, id LIMIT 100', [boardId],
+      'SELECT id, name, category, position FROM columns WHERE board_id = $1 AND deleted_at IS NULL ORDER BY position, id LIMIT 100', [boardId],
     );
     const row = board.rows[0];
     const data = {
@@ -713,7 +717,6 @@ boardsRoutes.get('/api/v1/boards/:boardId/cards', authMiddleware, async (c) => {
   const boardId = c.req.param('boardId');
 
   const queryParams = c.req.query();
-  const parsed = parseOrThrow(cardsQuerySchema, queryParams);
 
   const pool = getPool();
   const client = await pool.connect();
@@ -722,6 +725,7 @@ boardsRoutes.get('/api/v1/boards/:boardId/cards', authMiddleware, async (c) => {
     // Keep the grant read lock through card delivery, serializing this read
     // with Owner revocation of the same board grant.
     await lockBoardAccess(client, boardId, actor.id);
+    const parsed = parseOrThrow(cardsQuerySchema, queryParams);
     const result = await listBoardCards(client, boardId, parsed, actor.id);
     await client.query('COMMIT');
     return c.json(result, 200);
@@ -752,6 +756,7 @@ boardsRoutes.post('/api/v1/boards/:boardId/archive', authMiddleware, async (c) =
     await client.query('BEGIN');
     const access = await lockBoardAccess(client, boardId, actor.id);
     await acquireWriteGrantLock(client, access.projectId, actor.id, 'manager', boardId);
+    const body = parseOrThrow(boardLifecycleInputSchema, await c.req.json().catch(() => ({})));
     // F-30: archiving a board inside an archived project is refused as a write (READ_ONLY_CONTEXT).
     await acquireWritableProjectContextLock(client, access.projectId);
 
@@ -773,7 +778,7 @@ boardsRoutes.post('/api/v1/boards/:boardId/archive', authMiddleware, async (c) =
       bRow.project_id,
       idempotencyKey,
       methodPath,
-      {},
+      body,
     );
 
     if (replay) {
@@ -783,6 +788,8 @@ boardsRoutes.post('/api/v1/boards/:boardId/archive', authMiddleware, async (c) =
         replay.statusCode as any,
       );
     }
+
+    if (bRow.snapshot_version !== body.expectedVersion) throw HttpError.conflict('Stale board snapshot version.','STALE_VERSION');
 
     const updateRes = await client.query<{
       id: string;
@@ -831,7 +838,7 @@ boardsRoutes.post('/api/v1/boards/:boardId/archive', authMiddleware, async (c) =
       bRow.project_id,
       idempotencyKey,
       methodPath,
-      {},
+      body,
       200,
       responsePayload,
     );
@@ -874,6 +881,8 @@ boardsRoutes.post('/api/v1/boards/:boardId/reopen', authMiddleware, async (c) =>
     if (owningProject.rows[0]) await lockProjectQuota(client, owningProject.rows[0].project_id);
     const access = await lockBoardAccess(client, boardId, actor.id);
     await acquireWriteGrantLock(client, access.projectId, actor.id, 'manager', boardId);
+    await acquireWritableProjectContextLock(client, access.projectId);
+    const body = parseOrThrow(boardLifecycleInputSchema, await c.req.json().catch(() => ({})));
 
     // 1. Fetch board to get project_id
     const bCheck = await client.query<{ id: string; project_id: string; archived: boolean; snapshot_version: number; structure_version: number }>(
@@ -893,7 +902,7 @@ boardsRoutes.post('/api/v1/boards/:boardId/reopen', authMiddleware, async (c) =>
       bRow.project_id,
       idempotencyKey,
       methodPath,
-      {},
+      body,
     );
 
     if (replay) {
@@ -904,8 +913,9 @@ boardsRoutes.post('/api/v1/boards/:boardId/reopen', authMiddleware, async (c) =>
       );
     }
 
+    if (bRow.snapshot_version !== body.expectedVersion) throw HttpError.conflict('Stale board snapshot version.','STALE_VERSION');
+
     // A reopen that brings a board back counts against the cap (B-18, F-09). The count is the Owner's view only.
-    await acquireWritableProjectContextLock(client, bRow.project_id);
     if (bRow.archived) {
       const reopenRole = await resolveProjectRole(bRow.project_id, actor.id, client);
       const reopenUsed = await countActiveBoards(client, bRow.project_id);
@@ -962,7 +972,7 @@ boardsRoutes.post('/api/v1/boards/:boardId/reopen', authMiddleware, async (c) =>
       bRow.project_id,
       idempotencyKey,
       methodPath,
-      {},
+      body,
       200,
       responsePayload,
     );

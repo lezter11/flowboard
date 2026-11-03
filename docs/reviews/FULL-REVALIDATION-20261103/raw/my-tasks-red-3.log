@@ -1,0 +1,98 @@
+✖ My Tasks: both routes traverse tied/null dates with bounded pages and no duplication (230.343ms)
+✖ My Tasks: due-state and priority are SQL filters; done is never overdue (181.230792ms)
+✖ My Tasks: invalid queries, altered context and grant revocation fail closed (189.1925ms)
+✖ My Tasks: archive lifecycle hides assignments and invalidates a prior cursor (184.88425ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1006.807083
+
+✖ failing tests:
+
+test at apps/api/test/my-tasks-repair.test.ts:17:1
+✖ My Tasks: both routes traverse tied/null dates with bounded pages and no duplication (230.343ms)
+  AssertionError [ERR_ASSERTION]: pagination envelope is required
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:26:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/my-tasks-repair.test.ts:33:1
+✖ My Tasks: due-state and priority are SQL filters; done is never overdue (181.230792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   'task_2',
+      'task_1',
+  +   'task_0',
+  +   'task_4',
+  +   'task_3',
+  +   'task_6',
+  +   'task_5',
+  +   'task_8',
+  +   'task_7'
+  -   'task_2'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:37:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [
+      'task_2', 'task_1',
+      'task_0', 'task_4',
+      'task_3', 'task_6',
+      'task_5', 'task_8',
+      'task_7'
+    ],
+    expected: [ 'task_1', 'task_2' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/my-tasks-repair.test.ts:42:1
+✖ My Tasks: invalid queries, altered context and grant revocation fail closed (189.1925ms)
+  AssertionError [ERR_ASSERTION]: projectId=prj&limit=2junk returned 200
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:45:71)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/my-tasks-repair.test.ts:56:1
+✖ My Tasks: archive lifecycle hides assignments and invalidates a prior cursor (184.88425ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:59:125)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

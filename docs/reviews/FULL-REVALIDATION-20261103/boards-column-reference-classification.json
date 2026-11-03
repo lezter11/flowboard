@@ -1,0 +1,11 @@
+{
+  "scan": "boards-column-reference-scan.txt",
+  "command": "rg -n '(FROM|JOIN|INTO|UPDATE|DELETE FROM) columns\\b' apps/api/src",
+  "classifications": {
+    "live operational read/write": "boards metadata/snapshot/card-list/counts/placement; add/update/delete/reorder active columns; create/move card destinations; import preview/map/confirm; trash current column/restore targets; undo destination; search/mytasks/project overview active joins. SQL filters deleted_at IS NULL or uses an already validated active ID under board lock. New inserts default to active.",
+    "historical source lookup": "cards.ts SELECT id,name WHERE id IN(from,to) intentionally includes retired rows so activity keeps original movement names. rbac.ts column ancestry intentionally resolves physical source identity; later operation enforces live status. Expired/purged card.column_id and import default_column_id are retained.",
+    "database enforcement": "0024 retains ancestry FKs, rejects active card destinations in retired columns, final/active/restorable retirement, revival and normalized live-name duplicates. Direct SQL must lock board before column; inversion returns55P03 NOWAIT. A board MVCC touch makes stale repeatable-read writers fail40001. Application owns public version/event/receipt increments.",
+    "migration source": "embedded-migrations is a generated copy, root owns synchronization; filesystem SQL stable. Parent must prove final byte parity at frozen gate."
+  },
+  "warning": "Scan includes embedded SQL and live source line numbers may shift during other owners work. No blind history filtering."
+}

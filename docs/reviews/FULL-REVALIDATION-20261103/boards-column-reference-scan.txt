@@ -1,0 +1,41 @@
+apps/api/src/http/routes/cards.ts:396:      `SELECT id FROM columns WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL`,
+apps/api/src/http/routes/boards.ts:193:      'SELECT id, name, category, position FROM columns WHERE board_id = $1 AND deleted_at IS NULL ORDER BY position, id LIMIT 100', [boardId],
+apps/api/src/adapters/cards.ts:303:     FROM columns
+apps/api/src/adapters/cards.ts:807:    `SELECT id, board_id FROM columns WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL`,
+apps/api/src/adapters/cards.ts:973:    `SELECT id, name FROM columns WHERE id IN ($1, $2)`,
+apps/api/src/adapters/cards.ts:1135:    JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
+apps/api/src/adapters/cards.ts:1165:    JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
+apps/api/src/adapters/cards.ts:1315:     JOIN columns col ON c.column_id = col.id AND col.deleted_at IS NULL
+apps/api/src/adapters/rbac.ts:259:     SELECT 'column'::TEXT AS res_type, workspace_id, project_id FROM columns WHERE id = $1
+apps/api/src/adapters/boards.ts:206:      `INSERT INTO columns (
+apps/api/src/adapters/boards.ts:478:    `SELECT COUNT(*)::text AS count FROM columns WHERE board_id = $1 AND deleted_at IS NULL`,
+apps/api/src/adapters/boards.ts:488:    `SELECT id FROM columns WHERE board_id = $1 AND deleted_at IS NULL AND LOWER(TRIM(name)) = LOWER($2)`,
+apps/api/src/adapters/boards.ts:497:    `SELECT COALESCE(MAX(position), -1) + 1 AS next_pos FROM columns WHERE board_id = $1 AND deleted_at IS NULL`,
+apps/api/src/adapters/boards.ts:516:    `INSERT INTO columns (
+apps/api/src/adapters/boards.ts:614:     FROM columns
+apps/api/src/adapters/boards.ts:631:      `SELECT id FROM columns
+apps/api/src/adapters/boards.ts:654:    `UPDATE columns
+apps/api/src/adapters/boards.ts:758:    `SELECT id FROM columns WHERE board_id = $1 AND deleted_at IS NULL`,
+apps/api/src/adapters/boards.ts:779:      `UPDATE columns SET position = $1, updated_at = NOW() WHERE id = $2 AND board_id = $3`,
+apps/api/src/adapters/boards.ts:859:    `SELECT id, name FROM columns WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL FOR UPDATE`,
+apps/api/src/adapters/boards.ts:870:    `SELECT COUNT(*)::text AS count FROM columns WHERE board_id = $1 AND deleted_at IS NULL`,
+apps/api/src/adapters/boards.ts:897:  await client.query(`UPDATE columns SET deleted_at=NOW(),deleted_by=$3,updated_at=NOW()
+apps/api/src/adapters/boards.ts:902:    `SELECT id FROM columns WHERE board_id = $1 AND deleted_at IS NULL ORDER BY position ASC, id ASC`,
+apps/api/src/adapters/boards.ts:907:      `UPDATE columns SET position = $1, updated_at = NOW() WHERE id = $2 AND board_id = $3`,
+apps/api/src/adapters/boards.ts:966:     JOIN columns c ON c.board_id = b.id AND c.id = $2 AND c.deleted_at IS NULL
+apps/api/src/adapters/boards.ts:1163:       FROM columns
+apps/api/src/adapters/boards.ts:1174:       FROM columns col
+apps/api/src/adapters/boards.ts:1199:       FROM columns col
+apps/api/src/adapters/boards.ts:1217:       JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
+apps/api/src/adapters/boards.ts:1265:         JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
+apps/api/src/adapters/boards.ts:1509:  if (query.columnId && !(await pool.query('SELECT id FROM columns WHERE id=$1 AND board_id=$2 AND deleted_at IS NULL',[query.columnId,boardId])).rows[0]) throw HttpError.notFound('Column not found.','NOT_FOUND');
+apps/api/src/adapters/boards.ts:1581:    JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
+apps/api/src/adapters/project-overview.ts:100:       JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
+apps/api/src/adapters/project-overview.ts:131:       JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL AND col.category <> 'done'
+apps/api/src/adapters/imports.ts:229:  }>('SELECT id,name FROM columns WHERE board_id=$1 AND deleted_at IS NULL ORDER BY position,id', [boardId])).rows;
+apps/api/src/adapters/imports.ts:402:  }>('SELECT id,name FROM columns WHERE board_id=$1 AND deleted_at IS NULL', [imp.board_id])).rows;
+apps/api/src/adapters/imports.ts:481:    const col = await client.query('SELECT id FROM columns WHERE id=$1 AND board_id=$2 AND deleted_at IS NULL', [r.target_column_id, imp.board_id]);
+apps/api/src/adapters/trash.ts:416:     LEFT JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL AND col.board_id = c.board_id
+apps/api/src/adapters/trash.ts:592:      `SELECT id FROM columns WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL`,
+apps/api/src/adapters/trash.ts:605:      `SELECT id FROM columns WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL`,
+apps/api/src/adapters/trash.ts:611:        'SELECT id, name FROM columns WHERE board_id = $1 AND deleted_at IS NULL ORDER BY position ASC, id ASC',

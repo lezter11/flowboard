@@ -1,0 +1,208 @@
+{
+  "kind": "bounded_builder_handoff_not_independent_review",
+  "status": "held_for_fresh_independent_review",
+  "actor": "/root/whole_suite_regressions",
+  "completedAt": "2026-11-03T10:15:15.415477+00:00",
+  "featureIds": [
+    "PRJ-04",
+    "RBAC-01",
+    "RBAC-03",
+    "FND-02"
+  ],
+  "approval": false,
+  "score": null,
+  "criteriaPath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/criteria.md",
+  "manifestPath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/manifest.json",
+  "manifestSHA256": "5190be86aec756dd4ccc27f9435f50b5ed362f4f1ae08e0c330370a5a3734c09",
+  "ownedFiles": [
+    "apps/api/src/http/routes/projects.ts",
+    "apps/api/test/project-lifecycle-occ.test.ts",
+    "apps/api/test/support/board-lifecycle-fixture.ts",
+    "apps/api/test/b18-own-projects.test.ts",
+    "apps/api/test/b18-backstops-session.test.ts",
+    "apps/api/test/lifecycle-undo.test.ts",
+    "apps/api/test/invitation-repair.test.ts",
+    "apps/api/test/board-access.test.ts",
+    "apps/api/test/support/route-auth-fixture.ts",
+    "apps/api/test/support/cookie-mutation-fixture.ts",
+    "docs/API.md"
+  ],
+  "environment": {
+    "node": "24.15.0",
+    "npm": "11.12.1",
+    "image": "postgres:17.11-alpine",
+    "imageId": "sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b",
+    "port": 55931,
+    "explicitDatabaseEnvironmentNames": [
+      "DATABASE_URL",
+      "FLOWBOARD_ACCESS_TEST_DATABASE_URL",
+      "FLOWBOARD_IMPORT_TEST_DATABASE_URL",
+      "FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL",
+      "FLOWBOARD_UI_TEST_DATABASE_URL",
+      "FLOWBOARD_MCP_TEST_DATABASE_URL"
+    ],
+    "dataScope": "Disposable owned local databases only; new tests use random schemas in flowboard_import_test. No UAT/production/cloud mutation or real credentials. All own lifecycle runs explicitly supplied the IMPORT55931URL."
+  },
+  "commands": [
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/project-lifecycle-occ.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/red.log",
+      "sha256": "69c8be8a4d8fcf8b9296e4b1ec2936aac6da464fb20af1b95ec190eb0a303636",
+      "exitCode": 1,
+      "counts": {
+        "tests": 8,
+        "pass": 0,
+        "fail": 8,
+        "skipped": 0
+      },
+      "interpretation": "First8-testbefore-fixrun; concurrency observer incorrectly counted only direct blockers, so its race failures are fixture failures."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/project-lifecycle-occ.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/red-2.log",
+      "sha256": "2a740f7e5fde214a2e74f40e24cee6703fd817865cdd0132fc3bf2410cfea685",
+      "exitCode": 1,
+      "counts": {
+        "tests": 8,
+        "pass": 0,
+        "fail": 8,
+        "skipped": 0
+      },
+      "interpretation": "Corrected transitive-lock observer:8realtestsfailed ontheunrepairedhandler, explicit55931."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/project-lifecycle-occ.test.ts docs/reviews/FULL-REVALIDATION-20261103/formal-projects-boards-round2/project-lifecycle-occ-probe.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/green-1.log",
+      "sha256": "c5b787d77509c82d3fd185d0d23b728160cef789ec5e0ed18d49bb417e8e8f21",
+      "exitCode": 0,
+      "counts": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "skipped": 0
+      },
+      "interpretation": "First8newtestsplusunchangedindependentprobe:9pass."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/project-lifecycle-occ.test.ts apps/api/test/lifecycle-undo.test.ts apps/api/test/b18-own-projects.test.ts apps/api/test/b18-backstops-session.test.ts apps/api/test/board-access.test.ts apps/api/test/invitation-repair.test.ts apps/api/test/cookie-mutation-matrix.test.ts apps/api/test/route-auth-matrix.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/legacy-green-1.log",
+      "sha256": "5ec129f998da34ee4dd0f85325daeebe63bd5506bacb18a300ab1d8c714c2e8b",
+      "exitCode": 1,
+      "counts": {
+        "tests": 591,
+        "pass": 589,
+        "fail": 2,
+        "skipped": 0
+      },
+      "interpretation": "591tests589pass2fail(parent+one People barrier leaf); privacy policy required a Manager positive fixture."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/project-lifecycle-occ.test.ts apps/api/test/lifecycle-undo.test.ts apps/api/test/b18-own-projects.test.ts apps/api/test/b18-backstops-session.test.ts apps/api/test/board-access.test.ts apps/api/test/invitation-repair.test.ts apps/api/test/cookie-mutation-matrix.test.ts apps/api/test/route-auth-matrix.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/legacy-green-2.log",
+      "sha256": "de397e151d1e22ed67e4918cb4d1ac50d5b196348657d5e57d1a750541fa3d03",
+      "exitCode": 1,
+      "counts": {
+        "tests": 592,
+        "pass": 591,
+        "fail": 1,
+        "skipped": 0
+      },
+      "interpretation": "592tests591pass1fail(new pending-input observer reused the observed pool client)."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/project-lifecycle-occ.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/green-2.log",
+      "sha256": "e430d23fd87a9f3a5dc1fec4b95c60f8b21eb23647b2d263d39cdd123e64b7b2",
+      "exitCode": 0,
+      "counts": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "skipped": 0
+      },
+      "interpretation": "9newtests pass after reserving a separate real observer connection."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/project-lifecycle-occ.test.ts apps/api/test/lifecycle-undo.test.ts apps/api/test/b18-own-projects.test.ts apps/api/test/b18-backstops-session.test.ts apps/api/test/board-access.test.ts apps/api/test/invitation-repair.test.ts apps/api/test/cookie-mutation-matrix.test.ts apps/api/test/route-auth-matrix.test.ts docs/reviews/FULL-REVALIDATION-20261103/formal-projects-boards-round2/project-lifecycle-occ-probe.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/legacy-final.log",
+      "sha256": "68a72c7bf6fc2a1896553d759b26ffc08e44f6e94597a5b766f3fa4034ef3274",
+      "exitCode": 0,
+      "counts": {
+        "tests": 593,
+        "pass": 593,
+        "fail": 0,
+        "skipped": 0
+      },
+      "interpretation": "Final593tests pass,0skip; both auth matrices and unchanged independent probe included."
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/typecheck-1.log",
+      "sha256": "a416465c0c39c155447aa1838f3398ca0fbd11ffed39916962594005fa3f1f06",
+      "exitCode": 1,
+      "interpretation": "New test helper initially exposed Hono Response|Promise<Response> typing; repaired with async transition wrapper."
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/typecheck-2.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exitCode": 0,
+      "interpretation": "Passing compiler after fixture typing fix."
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/typecheck-3.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exitCode": 0,
+      "interpretation": "Passing compiler after new body-arrival test."
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/typecheck-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exitCode": 0,
+      "interpretation": "Final compiler exit0."
+    },
+    {
+      "command": "npm run build --workspace @flowboard/api",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/build-1.log",
+      "sha256": "a6c7f781e5667de97cf7f68438c7d472145a588779c371f8a98c9cc027b3f5a4",
+      "exitCode": 0,
+      "interpretation": "Node TypeScript build and local Worker bundle dry-run only."
+    },
+    {
+      "command": "npm run build --workspace @flowboard/api",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/project-lifecycle-occ-repair/build-final.log",
+      "sha256": "50af3cccfa346abc735e9ab1440b449c6afd533a64d825513afe52a8a399e3eb",
+      "exitCode": 0,
+      "interpretation": "Final Node TypeScript build and local Worker bundle dry-run; no deployment."
+    }
+  ],
+  "repairs": [
+    "Owner authority checked before parsing request input without holding SQL locks; transaction reauthorizes under existing workspace guard.",
+    "Shared projectLifecycleInputSchema is used strictly; missing/invalid versions422, malformedJSON400, no implicit current-version lookup in application.",
+    "Reopen preserves user-quota\u2192workspace\u2192receipt\u2192project lock order. Both operations hash normalized body for receipt identity, authorize current Owner before replay, and compare locked current project version before quota/read/write effects.",
+    "UPDATE contains id+version backstop; stale409 STALE_VERSION and changed same-key payload409 IDEMPOTENCY_CONFLICT cannot mutate state or create receipts.",
+    "New tests cover stale opposite cycles, exact retries after subsequent transitions, changed body identity, current Owner loss, quota ordering, distinct real connections with transitive lock queues, and real Owner change while a body is still pending.",
+    "Legacy helper only supplies observed versions for omitted fixture input and retains original keyed payload; explicit stale inputs stay unchanged. Cookie/route matrix use the actual project version and named ProjectLifecycleInput.",
+    "Privileged People read race now explicitly denies Member403, temporarily uses permitted Manager for positive membership-removal interleaving, and restores fixture role in finally; no People application guard weakened.",
+    "Only API lifecycle correction row321 was changed by this task; root owns other simultaneous API-document changes and shared OpenAPI metadata regeneration."
+  ],
+  "authEvidence": {
+    "routeOperations": 103,
+    "routeHTTPCells": 465,
+    "routeFailures": 0,
+    "cookieDenials": 295,
+    "cookiePositiveControls": 53,
+    "cookieHTTPRequests": 348,
+    "cookieFailures": 0
+  },
+  "limits": [
+    "Fresh independent project-group review, final full frozen gates and hosted checks remain mandatory. No score or feature closure from builder.",
+    "Root original PB02 red command that fell back to55432 is excluded as invalid port evidence per Architect. My red/red-2 and all later lifecycle runs explicitly used55931; root/import fence now rejects implicit shared-port fallback.",
+    "Old lifecycle receipts hashed an empty body; this repair cannot invent which expected version those historical commands supplied. Legacy receipt/key conflicts fail safely rather than silently mutating/replaying an unverifiable command. No data migration added.",
+    "Current same-state lifecycle commands retain existing accepted-command behavior: a matching fresh version increments once; no new no-op semantics were introduced.",
+    "The full593 check is local PostgreSQL/mounted-handler evidence, not real OAuth, R2, Cloudflare CPU or UAT acceptance.",
+    "No full-codebase task closure, push or deployment was performed. Root will regenerate shared OpenAPI and freeze the whole candidate after other repairs."
+  ]
+}

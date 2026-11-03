@@ -1,3 +1,4 @@
+import { isCursorText } from '../services/cursor-timestamp.ts';
 import type pg from 'pg';
 import { HttpError } from '../http/errors.ts';
 import type {
@@ -30,21 +31,25 @@ export interface PaginatedResult<T> {
 }
 
 interface ProjectCursorPayload {
+  v: 2;
+  actorId: string;
   name: string;
   id: string;
   scope?: string;
 }
 
-export function encodeProjectCursor(item: { name: string; id: string }, scope?: string): string {
-  return Buffer.from(JSON.stringify({ name: item.name, id: item.id, ...(scope ? { scope } : {}) })).toString('base64url');
+export function encodeProjectCursor(item: { name: string; id: string }, scope?: string, actorId?: string): string {
+  return Buffer.from(JSON.stringify({ v: 2, actorId, name: item.name, id: item.id, scope })).toString('base64url');
 }
 
-export function decodeProjectCursor(cursor?: string): ProjectCursorPayload | null {
+export function decodeProjectCursor(cursor?: string, actorId?: string, scope?: string): ProjectCursorPayload | null {
   if (!cursor) return null;
   try {
+    if(cursor.length>4096)return null;
     const raw = Buffer.from(cursor, 'base64url').toString('utf8');
     const parsed = JSON.parse(raw);
-    if (parsed && typeof parsed.name === 'string' && typeof parsed.id === 'string') {
+    if (parsed && parsed.v===2 && typeof parsed.actorId==='string' && parsed.actorId===actorId &&
+        parsed.scope===scope && isCursorText(parsed.name) && isCursorText(parsed.id)) {
       return parsed;
     }
     return null;
@@ -94,7 +99,9 @@ export async function getWorkspaceProjects(
       ? options.limit
       : 50;
   const limit = Math.min(rawLimit, 100);
-  const cursorPayload = decodeProjectCursor(options.cursor);
+  const cursorScope = `workspace:${workspaceId}`;
+  const cursorPayload = decodeProjectCursor(options.cursor, actor.id, cursorScope);
+  if(options.cursor && !cursorPayload) throw HttpError.badRequest('Stale or malformed project cursor. Refresh the list.', 'INVALID_CURSOR');
 
   let query: string;
   let params: unknown[];
@@ -152,7 +159,7 @@ export async function getWorkspaceProjects(
   }));
 
   const nextCursor = hasMore && pageRows.length > 0
-    ? encodeProjectCursor(pageRows[pageRows.length - 1]!)
+    ? encodeProjectCursor(pageRows[pageRows.length - 1]!, cursorScope, actor.id)
     : null;
 
   return {
@@ -179,9 +186,10 @@ export async function getAllAccessibleProjects(
       ? options.limit
       : 50;
   const limit = Math.min(rawLimit, 100);
-  const cursorPayload = decodeProjectCursor(options.cursor);
-  if (options.projectId && options.cursor && cursorPayload?.scope !== options.projectId) {
-    throw HttpError.badRequest('Cursor does not belong to this project scope.', 'INVALID_CURSOR');
+  const cursorScope = `accessible:${options.projectId ?? '*'}`;
+  const cursorPayload = decodeProjectCursor(options.cursor, actor.id, cursorScope);
+  if (options.cursor && !cursorPayload) {
+    throw HttpError.badRequest('Cursor does not belong to this project scope or is stale. Refresh the list.', 'INVALID_CURSOR');
   }
 
   const query = `
@@ -241,7 +249,7 @@ export async function getAllAccessibleProjects(
   }));
 
   const nextCursor = hasMore && pageRows.length > 0
-    ? encodeProjectCursor(pageRows[pageRows.length - 1]!, options.projectId)
+    ? encodeProjectCursor(pageRows[pageRows.length - 1]!, cursorScope, actor.id)
     : null;
 
   return {
@@ -455,7 +463,7 @@ export async function updateProjectSettings(
 
 /**
  * PRJ-05: Project people directory.
- * - Accessible by Workspace Owner and all project members (manager, member, viewer).
+ * - Full email-bearing directory is accessible only by current Workspace Owner or active Project Manager.
  * - Outsiders get 404 NOT_FOUND.
  * - Returns active project members with user info, plus workspace owner if not explicitly in membership table.
  * - Sibling project members who are not in this project are NEVER returned.
@@ -466,23 +474,31 @@ export async function getProjectMembers(
   projectId: string,
 ): Promise<PaginatedResult<ProjectDirectoryMember>> {
   const pool = clientOrPool ?? getPool();
+  // The same guard protects direct adapter callers; locks live through directory assembly.
+  if (isPool(pool)) {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      const result = await getProjectMembers(client, actor, projectId);
+      await client.query('COMMIT');
+      return result;
+    } catch (error) {
+      await client.query('ROLLBACK').catch(() => {});
+      throw error;
+    } finally { client.release(); }
+  }
 
   const res = await pool.query<{
     id: string;
     workspace_id: string;
     workspace_owner_id: string;
-    member_role: string | null;
-    member_status: string | null;
   }>(
     `SELECT p.id, p.workspace_id,
-            w.owner_id AS workspace_owner_id,
-            pm.role AS member_role,
-            pm.status AS member_status
+            w.owner_id AS workspace_owner_id
      FROM projects p
      JOIN workspaces w ON w.id = p.workspace_id
-     LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $2
-     WHERE p.id = $1`,
-    [projectId, actor.id],
+     WHERE p.id = $1 FOR SHARE OF w`,
+    [projectId],
   );
 
   const row = res.rows[0];
@@ -493,8 +509,14 @@ export async function getProjectMembers(
   const isWorkspaceOwner = row.workspace_owner_id === actor.id;
 
   if (!isWorkspaceOwner) {
-    if (!row.member_role || row.member_status !== 'active') {
-      throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+    const membership = await pool.query<{ role: string; status: string }>(
+      'SELECT role,status FROM project_memberships WHERE project_id=$1 AND user_id=$2 FOR SHARE',
+      [projectId, actor.id],
+    );
+    const current = membership.rows[0];
+    if (!current || current.status !== 'active') throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+    if (current.role !== 'manager') {
+      throw HttpError.forbidden('Only the Owner or a Project Manager can view the full People directory.', 'FORBIDDEN');
     }
   }
 

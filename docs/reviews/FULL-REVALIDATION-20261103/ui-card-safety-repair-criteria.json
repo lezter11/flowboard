@@ -1,0 +1,25 @@
+{
+  "version": "ui-card-safety-repair-1",
+  "features": [
+    "CRD-10",
+    "CRD-12",
+    "ACC-02",
+    "UX-01",
+    "UX-02",
+    "UX-04",
+    "CRD-01",
+    "CRD-11",
+    "DEL-08",
+    "UX-03"
+  ],
+  "mandatoryCriteria": [
+    "Undo move calls dedicated move-undo endpoint with expectedVersion returned by that original move, never latest observed cardversion or ordinarymove. Expectedboard version may be currentcanonical board structure; retained original undo key/body on unknownreply. Interveningcard edits/moves cause409 and no overwrite.",
+    "Card field Save is an explicit field-only PATCH, status movement a separate explicit canonicalplacement+move operation with its own outcome. Editing status cannot be silently mixed into a two-request Save that partly commits. Distinct failures/success/pending UI; field draft remains on failed/unknown request; no false allsaved.",
+    "Actor/card-scoped memory retains field drafts and original field/move request identities through close/remount, polling, navigation/sessionexpiry. Actual401/403/404 clears protected cached card data and disables read/write while preserving only the user unsent draft. No oldactor draft rendered to anotheractor; no persistent private storage.",
+    "Normal in-app crossnavigation checks global unsaved state before leaving; local draft-preserving card/filter navigation allowed intentionally. beforeunload covers reload/externalnavigation. Explicit choice to leave without losing tab-memory drafts, while unavoidable fullreload loss explained. Sessionexpiry sign-in recovery retains safe drafts and refusesprotectedreads/writes.",
+    "Drawer background is actually inert, nesteddialogs cooperate, focus trap/return keyboard consistent, proper tab stops/arrow keys; safe narrow viewport scrolling and labels. No fake aria-modal while outside controls remain operable.",
+    "Meaningful payload/state tests cover originalmoveversionundo/interveningconflict, field-onlysave + separatestatus, original command retries, actor isolation/draftreconcile and navigation decision. Fullwebsuite/typecheck/build; root actualbrowser/API/PG and final immutable independent review plus hostedUAT remain separate."
+  ],
+  "scope": "apps/web only plus evidence. No backend/sharedcontracts/dependency/deploy changes. Rootcoordinates exactmove-undo backendcontract; fieldSave splitting chosen to remove unavoidable non-atomic twoendpoint partialsuccess rather than invent atomic backend.",
+  "preImplementationAmendment": "Full /add-card discovery during this phase: existing fixed key permits edited payload after unknown response and treats receipt+subsequent cardread as one mutation. Add explicit criterion before editing: actor/board memory retains original create input/key, locks editing after unknown, separates known created receipt from currentcardread failure, explicit UI priority selection preserved. Existing project/board/profile Settings forms must register unsaved while active; crosscontext leave warns those forms may be discarded."
+}

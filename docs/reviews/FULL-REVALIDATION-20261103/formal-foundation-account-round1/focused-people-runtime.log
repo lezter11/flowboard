@@ -1,0 +1,180 @@
+✖ People policy: only inherited Owner/current Manager read emails; Member/Viewer deny without directory data (1.955833ms)
+✖ People policy: Member/Viewer board-scoped pickers remain available and contain no emails (0.5685ms)
+✖ People policy: demotion winning membership lock prevents an in-flight directory disclosure (0.229083ms)
+✖ People policy: authorized directory assembly serializes before concurrent Manager demotion (0.253209ms)
+✖ runtime safety: searchable eligible mention beyond100 is accepted, inaccessible identities remain private (2.018083ms)
+✖ runtime safety: committed target revocation wins before comment board lock and cannot notify (0.577458ms)
+✖ runtime safety: comment winning board lock commits before removal; delayed consumer cannot renotify removed target (0.263917ms)
+✖ runtime safety: admin migration exception masks internal details and unauthorized calls remain403 (0.2335ms)
+✖ runtime safety: unexpected library503/504 error messages/details are masked (0.211042ms)
+✖ runtime safety: selected lookup is independent of page window and refuses grantless/removed targets (0.208625ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 0
+ℹ fail 10
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 320.921458
+
+✖ failing tests:
+
+test at apps/api/test/people-directory-policy.test.ts:10:67
+✖ People policy: only inherited Owner/current Manager read emails; Member/Viewer deny without directory data (1.955833ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:14:57)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:34:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/people-directory-policy.test.ts:10:67
+✖ People policy: Member/Viewer board-scoped pickers remain available and contain no emails (0.5685ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:14:57)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:46:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/people-directory-policy.test.ts:10:67
+✖ People policy: demotion winning membership lock prevents an in-flight directory disclosure (0.229083ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:14:57)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:53:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/people-directory-policy.test.ts:10:67
+✖ People policy: authorized directory assembly serializes before concurrent Manager demotion (0.253209ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:14:57)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:60:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/runtime-safety-repair.test.ts:11:63
+✖ runtime safety: searchable eligible mention beyond100 is accepted, inaccessible identities remain private (2.018083ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:15:127)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:40:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/runtime-safety-repair.test.ts:11:63
+✖ runtime safety: committed target revocation wins before comment board lock and cannot notify (0.577458ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:15:127)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:44:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/runtime-safety-repair.test.ts:11:63
+✖ runtime safety: comment winning board lock commits before removal; delayed consumer cannot renotify removed target (0.263917ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:15:127)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:49:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/runtime-safety-repair.test.ts:11:63
+✖ runtime safety: admin migration exception masks internal details and unauthorized calls remain403 (0.2335ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:15:127)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:56:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/runtime-safety-repair.test.ts:11:63
+✖ runtime safety: unexpected library503/504 error messages/details are masked (0.211042ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:15:127)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:62:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/runtime-safety-repair.test.ts:11:63
+✖ runtime safety: selected lookup is independent of page window and refuses grantless/removed targets (0.208625ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:15:127)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:67:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }

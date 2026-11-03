@@ -45,7 +45,14 @@ export async function projectNameSuffixes(db: pg.Pool | pg.ClientBase, projectId
      WHERE pm.project_id = $1 AND pm.status = 'active' AND pm.user_id <> w.owner_id`,
     [projectId],
   );
-  const ordered = [...res.rows].sort((a, b) => {
+  return computeNameSuffixes(res.rows);
+}
+
+/** Shared deterministic ordering for one project, including batched history reads. */
+export function computeNameSuffixes(rows: readonly {
+  user_id: string; display_name: string; is_owner: boolean; joined_at: Date | string;
+}[]): Map<string, number> {
+  const ordered = [...rows].sort((a, b) => {
     if (a.is_owner !== b.is_owner) return a.is_owner ? -1 : 1;
     const byTime = new Date(a.joined_at).getTime() - new Date(b.joined_at).getTime();
     if (byTime !== 0) return byTime;

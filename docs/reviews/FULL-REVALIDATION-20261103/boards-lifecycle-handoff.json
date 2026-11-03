@@ -1,0 +1,81 @@
+{
+  "kind": "builder_handoff_not_independent_approval",
+  "baseline": "917706ae0433df471c72736be4d548eb022236c4",
+  "criteria": "boards-lifecycle-repair-criteria.json",
+  "sourceHashes": {
+    "apps/api/src/adapters/boards.ts": "87686764733692f24fcc213bb1e800da60d62c4e3aa9bd2fc6d3aa98751b75d5",
+    "apps/api/src/http/routes/boards.ts": "1e444d9b794b4096f7f64a2fd17694b889174bab5db9b001bda170a3083c9cbb",
+    "apps/api/src/adapters/cards.ts": "8f03ad02398574edd5f91870b90ed621234e01a0cd70ee0e987d409b5b4c2581",
+    "apps/api/src/http/routes/cards.ts": "9cccaf507b1cf38f1dcb2f73993fee5bce9107494865d148696eee64d2bf84fe",
+    "apps/api/src/adapters/imports.ts": "3bba9ade103c583168376252e0cc3db56b893551d7b63b7093c0b7821454b64c",
+    "apps/api/src/adapters/trash.ts": "ea716a6ee6255a3638166257ad8fa27478ef62af2f82e8c1337d89b6ddc09f68",
+    "apps/api/src/adapters/project-overview.ts": "b9424f3d7503593c7fa396d1aaaa1b661538921f7341b8c3da1ac6729596432f",
+    "database/migrations/0024_soft_columns.sql": "980ec98edbfa3e071690454d1042bc56f2e28aad154e364d78c5ecb62a9474f8",
+    "apps/api/test/boards-lifecycle-repair.test.ts": "1dbae3e4a3c085042d63217afa6abac9682dab6cf9735b4be02b09651c3556bd",
+    "apps/api/test/import-worker-template.test.ts": "e020ea5c95c1d6da333c5414feeab83c4997a3a6522e4b2445b07a17b041d260",
+    "apps/api/test/lifecycle-retention-repair.test.ts": "b3c0773b76eef5407204b3a25321f241f3c85a3b6139b9a8b8cde76be0d3f2bc",
+    "apps/api/test/support/lifecycle-fixture.ts": "14cfb4027eef4b6fe5ba3be331a575d09d89a0471d615bd72cf7547176be30e3",
+    "apps/api/test/support/board-lifecycle-fixture.ts": "4636fc17574b4670623c84973a864ab36d7aeecfcaa14926e7a3d7df37f40bcd",
+    "apps/api/test/brd01-brd07.test.ts": "00448eabbb22f599ce9ef2bb2211915819ba83a7da5ea69bb58b427379c068ed",
+    "apps/api/test/b18-own-projects.test.ts": "80cc666352578838560dc8e7ebd5d224f7f9af8446943a5b959df05a653bdeed",
+    "apps/api/test/b18-backstops-session.test.ts": "101834406b32ac6a97b272ca5b2932073e477c566ae1cc0d7b3bf41e2b393ff2",
+    "apps/api/test/activity-coverage-b5.test.ts": "f7643c46f37f927fb42f7effff976868fa5f8274bc1bf3ab9836bb6ff0a18167",
+    "apps/api/test/board-access-boards-imports-trash.test.ts": "ccd1ebe77137eed306e77a92c7bbe47311f5d8d4ffbc355d9010ad4011bbd9b0",
+    "apps/api/test/lifecycle-undo.test.ts": "c322024ab373b5cd02c89ec9e4cf1edcc7a1b7391017ebbab4235cdc2e61d62f"
+  },
+  "changes": [
+    "Soft column retirement hides live operational paths without deleting expired/purged/import source IDs; reusing a name creates a new identity. Max12/final/active/restorable guards count live rows.",
+    "Placement uses LIMIT1 canonical neighbor reads. Actual card-choice pages use bounded SQL LIMIT<=100; cursor binds actor, access revision, snapshot/order/filter and rejects malformed or stale scope. Subsequent pages now preserve key and description excerpt.",
+    "Strict optional includeArchived literaltrue/false query; defaultfalse unchanged. true requires current Owner/Manager session administration plus current grants/project, PAT403. Existing default session/PAT projections preserved.",
+    "Archive/reopen parses expectedVersion against snapshotVersion, hashes parsed body into receipt. Current authority before replay; exact stable lostresponse replay before OCC; fresh stale transition409 and no effects. UI/OpenAPI owners informed.",
+    "0024 diagnostic preflight prevents normalized duplicate legacy names from being silently renamed. Separate-connection direct SQL lock inversion and repeatable-read stale writers have explicit safe errors instead of deadlock/write-skew."
+  ],
+  "commands": [
+    {
+      "command": "FLOWBOARD_IMPORT_TEST_DATABASE_URL=<synthetic localhost55931/flowboard_import_test> NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test apps/api/test/boards-lifecycle-repair.test.ts apps/api/test/import-repair.test.ts apps/api/test/import-worker-template.test.ts apps/api/test/lifecycle-retention-repair.test.ts",
+      "exitCode": 0,
+      "tests": 45,
+      "pass": 45,
+      "fail": 0,
+      "skipped": 0,
+      "log": "boards-lifecycle-round4.log",
+      "details": "15 boards +15 imports +14 retention +1 actual local workerd; workerd also exercises retired metadata, card pagination, archive discovery and OCC reopen."
+    },
+    {
+      "command": "DATABASE_URL=<synthetic localhost55931/flowboard_harness> ALLOW_REMOTE_DB=false NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test apps/api/test/brd01-brd07.test.ts apps/api/test/crd01-crd11.test.ts apps/api/test/lifecycle-undo.test.ts apps/api/test/imp01-imp06.test.ts apps/api/test/b18-own-projects.test.ts apps/api/test/b18-backstops-session.test.ts apps/api/test/activity-coverage-b5.test.ts",
+      "exitCode": 0,
+      "tests": 83,
+      "pass": 83,
+      "fail": 0,
+      "skipped": 0,
+      "log": "boards-lifecycle-existing-round1.log"
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "boards-lifecycle-typecheck-final.log"
+    }
+  ],
+  "preservedBaselines": [
+    "boards-lifecycle-baseline.log",
+    "boards-lifecycle-baseline.test.ts.txt",
+    "boards-lifecycle-round1.log",
+    "boards-archive-occ-baseline.log",
+    "boards-guards-baseline.log",
+    "0024-soft-columns-before-concurrency-fix.sql.txt"
+  ],
+  "columnClassification": "boards-column-reference-classification.json",
+  "limits": [
+    "Builder handoff only; no independent review score or feature closure. Root must run complete frozen gate and synchronize exact embedded0024 SQL before runtime artifact.",
+    "Actual workerd200row preview+commit527.55ms is one local synthetic wall-time sample, not a hosted capacity or CPU benchmark.",
+    "Column create/delete both winners are mounted separate-connection tests; directSQL inversion and repeatable-read stale retirement are actual separate connections. The suite is not an exhaustive scheduler/model-check proof for all possible combinations.",
+    "No hosted/UAT signed-in/storage/cron or restore cutoff evidence claimed; no deployment or commit from this stream.",
+    "Cross-owned files are hashed as current slice observation, not exclusive ownership; root QRY03 and identity COM03 changes require root final manifest."
+  ],
+  "pending": [
+    "Parent full source freeze/check/build/full API/contracts/MCP/browser gate",
+    "Exact embedded migration24 parity",
+    "Fresh independent full-feature review against current acceptances",
+    "UAT-only deployed and hosted acceptance after local gate"
+  ]
+}

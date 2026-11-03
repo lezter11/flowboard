@@ -1,0 +1,49 @@
+▶ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation
+  ✔ node:1000-card first and warm snapshots are correct/bounded and isolated (327.062042ms)
+  ✔ node:MyTasks1000-row cursor walk, tied/NULL dates, filters and actual query growth (424.000167ms)
+  ✔ node:health,correlation,timing,HEAD,OPTIONS and safe malformed errors (19.356291ms)
+  ✔ node:actual wire body-cap boundaries (107.036833ms)
+  ✔ node:single keepalive connection survives an early413 then a legitimate upload (12.281333ms)
+{"level":"warn","event":"rate_limit_window_refused","bucket":"import"}
+  ✖ node:early401 and role403 retain complete private error responses and allow the next upload (40.288833ms)
+  ✔ node:an incomplete refused upload times out without blocking healthy requests (1004.093791ms)
+  ✔ node:real SQL lock deadline has safe retryable response and atomic rollback (3058.0745ms)
+  ✔ worker:1000-card first and warm snapshots are correct/bounded and isolated (439.653625ms)
+  ✔ worker:MyTasks1000-row cursor walk, tied/NULL dates, filters and actual query growth (674.736667ms)
+  ✔ worker:health,correlation,timing,HEAD,OPTIONS and safe malformed errors (52.675166ms)
+  ✔ worker:test-only shared middleware masks faults and records genuine SQL continuation (163.788458ms)
+  ✔ worker:actual wire body-cap boundaries (188.997417ms)
+  ✔ worker:real SQL lock deadline has safe retryable response and atomic rollback (3080.006375ms)
+✖ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation (10763.386334ms)
+✔ FND04 genuine PostgreSQL slow query records HTTP deadline without assuming cancellation (741.042292ms)
+✔ FND04 actual unavailable-DB and Worker missing-binding health/privacy controls (1301.889292ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 15
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 13744.885959
+
+✖ failing tests:
+
+test at apps/api/test/runtime-validation.test.ts:213:32
+✖ node:early401 and role403 retain complete private error responses and allow the next upload (40.288833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  429 !== 400
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:223:20)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:213:24)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 429,
+    expected: 400,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

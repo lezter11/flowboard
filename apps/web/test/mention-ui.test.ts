@@ -12,8 +12,8 @@ const noGrant = { id: 'ng', displayName: 'Nina NoGrant', activeInProject: true, 
 const left = { id: 'lf', displayName: 'Lou Left', activeInProject: false, mentionable: true, scopedRole: 'member' };
 
 test('the mention query sends the card id, keyed by card, and the client method puts it in the URL', () => {
-  const drawer = src('../src/components/board/card-detail-drawer.tsx');
-  assert.match(drawer, /queryKey: \['project-people', projectId, 'mention', cardId\]/);
+  const drawer = src('../src/components/board/comment-composer.tsx');
+  assert.match(drawer, /queryKey: \['project-people', projectId, 'mention', cardId, actorId\]/);
   assert.match(drawer, /listProjectPeople\(projectId, 'mention', \{ cardId \}\)/);
   assert.match(src('../src/lib/api.ts'), /q\.set\('cardId', opts\.cardId\)/);
 });
@@ -37,14 +37,14 @@ test('empty wording: loading, failed, only you, no match', () => {
 });
 
 test('listbox pattern: combobox textarea, listbox, options named "Name, Role", polite result count', () => {
-  const d = src('../src/components/board/card-detail-drawer.tsx');
+  const d = src('../src/components/board/comment-composer.tsx');
   assert.match(d, /role="combobox" aria-autocomplete="list"/);
   assert.match(d, /role="listbox"/);
   assert.match(d, /role="option" aria-label=\{personAria\(person, roleLabel\)\}/);
-  assert.match(d, /aria-live="polite">\{picker && matches\.length > 0 \? `\$\{matches\.length\}/);
+  assert.match(d, /aria-live="polite">\{picker && matches\.length \? `\$\{matches\.length\}/);
 });
 
 test('saved mentions show the current full name on hover, not the stored text', () => {
-  const d = src('../src/components/board/card-detail-drawer.tsx');
+  const d = src('../src/components/board/card-comments.tsx');
   assert.match(d, /title=\{formatPersonName\(names\.get\(part\.userId\), 'Former member'\)\}/);
 });

@@ -1,5 +1,11 @@
 import { REFUSED_NAME_CHARACTERS, REFUSED_NAME_MESSAGE } from './common.ts';
 import { z } from 'zod';
+
+/** Explicit query strings: the literal "false" must never enable archive administration. */
+export const projectBoardsListQuerySchema = z.object({
+  includeArchived: z.enum(['true', 'false']).optional().default('false').transform((value) => value === 'true'),
+}).strict();
+export type ProjectBoardsListQuery = z.infer<typeof projectBoardsListQuerySchema>;
 import {
   cardSummarySchema,
   prioritySchema,

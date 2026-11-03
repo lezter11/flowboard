@@ -1,0 +1,65 @@
+✔ People policy: only inherited Owner/current Manager read emails; Member/Viewer deny without directory data (234.50825ms)
+✔ People policy: Member/Viewer board-scoped pickers remain available and contain no emails (189.41725ms)
+✖ People policy: default/display aliases never expose the project roster to Member/Viewer (162.591625ms)
+✔ People policy: display administrators retain search/page/archive reads without a board grant (211.054083ms)
+✖ People policy: direct display adapter requires a current directory administrator (173.826041ms)
+✖ People policy: default/display read waits for demotion and denies the newly demoted Manager (208.319167ms)
+✔ People policy: demotion winning membership lock prevents an in-flight directory disclosure (195.108416ms)
+✔ People policy: authorized directory assembly serializes before concurrent Manager demotion (202.582292ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 5
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3673.690541
+
+✖ failing tests:
+
+test at apps/api/test/people-directory-policy.test.ts:10:67
+✖ People policy: default/display aliases never expose the project roster to Member/Viewer (162.591625ms)
+  AssertionError [ERR_ASSERTION]: member/true/: 200
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:58:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/people-directory-policy.test.ts:10:67
+✖ People policy: direct display adapter requires a current directory administrator (173.826041ms)
+  AssertionError [ERR_ASSERTION]: Missing expected rejection.
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:82:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'rejects',
+    diff: 'simple'
+  }
+
+test at apps/api/test/people-directory-policy.test.ts:10:67
+✖ People policy: default/display read waits for demotion and denies the newly demoted Manager (208.319167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 403
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:92:36)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 403,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,29 @@
+✔ independent authority: private image fetch, uploader authority, sibling/revoked/session boundaries (413.23725ms)
+✔ independent quota: parallel stage count stops at10 and refusal preserves saved fields (411.591958ms)
+✖ independent trash/restore: preserved image/comment identity and cutoff, role gates, no in-trash writes (660.738583ms)
+✔ independent exact cutoff and purge: at cutoff410, retryable private cleanup, minimal receipts/events (375.752167ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 3
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2301.228209
+
+✖ failing tests:
+
+test at docs/reviews/FULL-REVALIDATION-20261103/formal-images-trash-round1/lifecycle-adversarial.test.ts:38:1
+✖ independent trash/restore: preserved image/comment identity and cutoff, role gates, no in-trash writes (660.738583ms)
+  AssertionError [ERR_ASSERTION]: 400
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/formal-images-trash-round1/lifecycle-adversarial.test.ts:45:53)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

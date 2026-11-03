@@ -2,7 +2,8 @@
 
 import { Suspense, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from '@/lib/guarded-router';
 
 /** Prototype screens/all-work.html: project work now opens in Board. Old links with ?board= or ?project= are forwarded. */
 function AllWork() {

@@ -1,0 +1,166 @@
+✖ import repair: description survives mapping and commit; original row reimport skips after card edit (251.019375ms)
+✖ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (197.316916ms)
+✖ import repair: changed duplicate in a separately ready preview rolls back its whole batch (182.40475ms)
+✖ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (157.101959ms)
+✖ import repair: commit cannot override preview default column and stale board structure rejects confirmation (176.559709ms)
+✖ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (207.100125ms)
+✖ import repair: cancel and expired status remove staged titles/emails and prevent commit (166.283542ms)
+✖ import repair: purge removes imported card title/email copies but keeps duplicate identity (209.216625ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 0
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1743.764708
+
+✖ failing tests:
+
+test at apps/api/test/import-repair.test.ts:85:1
+✖ import repair: description survives mapping and commit; original row reimport skips after card edit (251.019375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + ''
+  - 'Original\nUnicode सादा'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:91:89)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '',
+    expected: 'Original\nUnicode सादा',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:97:1
+✖ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (197.316916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  2 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:102:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 2,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:106:1
+✖ import repair: changed duplicate in a separately ready preview rolls back its whole batch (182.40475ms)
+  AssertionError [ERR_ASSERTION]: {"data":{"id":"imp_0f867a08-60e5-43e7-818a-319cb4caf532","projectId":"prj","boardId":"brd","defaultColumnId":"col","version":2,"state":"committed","previewDigest":"8f538ec6f7ab4c776bac19ba14cc644b08ed3517663fe5d6be84115e1d0cfdb9","expiresAt":"2026-11-03T05:29:32.817Z","serverNow":"2026-11-03T04:59:32.841Z","counts":{"total":2,"new":0,"existing":0,"invalid":0,"conflict":0,"created":2,"skipped":0},"canCommit":false,"cancellationAllowed":false,"rows":[{"rowNumber":2,"externalId":"other","title":"Must not partly save","status":null,"priority":"none","dueDate":null,"assigneeIds":[],"outcome":"created","errors":[],"cardId":"crd_88f99f94-dfde-4e8c-80c1-082f0acf5c2b"},{"rowNumber":3,"externalId":"same","title":"Changed","status":null,"priority":"none","dueDate":null,"assigneeIds":[],"outcome":"created","errors":[],"cardId":"crd_974c4812-d1ed-4cdb-982b-9185f9a15d83"}],"nextCursor":null,"error":null}}
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:111:44)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:115:1
+✖ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (157.101959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:117:49)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:125:1
+✖ import repair: commit cannot override preview default column and stale board structure rejects confirmation (176.559709ms)
+  AssertionError [ERR_ASSERTION]: {"data":{"id":"imp_4c9f8d9f-c4d8-4ca3-94b4-be64056d0b33","projectId":"prj","boardId":"brd","defaultColumnId":"col","version":2,"state":"committed","previewDigest":"87614a8e68ad3538fda3b8b15b7146d2b33f70bf1dae250aa47feed3c1bd36ba","expiresAt":"2026-11-03T05:29:33.153Z","serverNow":"2026-11-03T04:59:33.167Z","counts":{"total":1,"new":0,"existing":0,"invalid":0,"conflict":0,"created":1,"skipped":0},"canCommit":false,"cancellationAllowed":false,"rows":[{"rowNumber":2,"externalId":"target","title":"Bound target","status":null,"priority":"none","dueDate":null,"assigneeIds":[],"outcome":"created","errors":[],"cardId":"crd_74f0ccba-5e08-433a-bf7d-a861e1cc20a9"}],"nextCursor":null,"error":null}}
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:127:75)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:133:1
+✖ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (207.100125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:135:109)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:141:1
+✖ import repair: cancel and expired status remove staged titles/emails and prevent commit (166.283542ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Private staged title'
+  - ''
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:145:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Private staged title',
+    expected: '',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:153:1
+✖ import repair: purge removes imported card title/email copies but keeps duplicate identity (209.216625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  'Purge me' !== ''
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:159:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Purge me',
+    expected: '',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

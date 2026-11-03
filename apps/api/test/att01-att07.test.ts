@@ -1,3 +1,4 @@
+import { SharpImageVerifier } from '../src/services/image-verifier-node.ts';
 import assert from 'node:assert/strict';
 import { insertWorkspaceForCookie } from './support/workspace-fixture.ts';
 import crypto from 'node:crypto';
@@ -10,59 +11,10 @@ import { getStorageDriver, MemoryStorageDriver, setStorageDriver } from '../src/
 import { cleanupOrphanUploads } from '../src/adapters/images.ts';
 import { purgeExpiredTrash } from '../src/services/trash-purge.ts';
 
-// Binary test payloads
-function createMinimalPng(width = 1, height = 1): Buffer {
-  const header = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]); // PNG magic
-  const ihdr = Buffer.alloc(13 + 12);
-  ihdr.writeUInt32BE(13, 0); // length
-  ihdr.write('IHDR', 4, 'ascii'); // type
-  ihdr.writeUInt32BE(width, 8); // width
-  ihdr.writeUInt32BE(height, 12); // height
-  ihdr[16] = 8; // bit depth
-  ihdr[17] = 2; // color type (RGB)
-  ihdr[18] = 0; // compression
-  ihdr[19] = 0; // filter
-  ihdr[20] = 0; // interlace
-  ihdr.writeUInt32BE(0x12345678, 21); // dummy CRC
-  const iend = Buffer.from([0, 0, 0, 0, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82]);
-  return Buffer.concat([header, ihdr, iend]);
-}
-
-function createMinimalJpeg(width = 1, height = 1): Buffer {
-  const soi = Buffer.from([0xff, 0xd8]);
-  const sof0 = Buffer.alloc(19);
-  sof0[0] = 0xff;
-  sof0[1] = 0xc0; // SOF0 marker
-  sof0.writeUInt16BE(17, 2); // segment length (17)
-  sof0[4] = 8; // precision
-  sof0.writeUInt16BE(height, 5); // height
-  sof0.writeUInt16BE(width, 7); // width
-  sof0[9] = 3; // components
-  const eoi = Buffer.from([0xff, 0xd9]);
-  return Buffer.concat([soi, sof0, eoi]);
-}
-
-function createMinimalWebp(width = 1, height = 1): Buffer {
-  // VP8X extended WebP canvas
-  const header = Buffer.alloc(30);
-  header.write('RIFF', 0, 'ascii');
-  header.writeUInt32LE(22, 4); // file size - 8
-  header.write('WEBP', 8, 'ascii');
-  header.write('VP8X', 12, 'ascii');
-  header.writeUInt32LE(10, 16); // chunk size
-  header.writeUInt32LE(0, 20); // flags
-  // 24-bit width - 1
-  const w = width - 1;
-  header[24] = w & 0xff;
-  header[25] = (w >> 8) & 0xff;
-  header[26] = (w >> 16) & 0xff;
-  // 24-bit height - 1
-  const h = height - 1;
-  header[27] = h & 0xff;
-  header[28] = (h >> 8) & 0xff;
-  header[29] = (h >> 16) & 0xff;
-  return header;
-}
+// Genuine complete images; over-limit PNG dimensions are negative cap fixtures only.
+import { validPng as createMinimalPng, imageFixture } from './support/image-fixtures.ts';
+const createMinimalJpeg = (_width = 300, _height = 150) => Buffer.from(imageFixture('jpeg-legacy').bytes);
+const createMinimalWebp = (_width = 400, _height = 250) => Buffer.from(imageFixture('webp-legacy').bytes);
 
 function sha256Hex(buf: Buffer | Uint8Array): string {
   return crypto.createHash('sha256').update(buf).digest('hex');
@@ -81,7 +33,7 @@ test('ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Su
     connectionTimeoutMillis: 5_000,
   });
 
-  const app = createApp(async () => { await pool.query('SELECT 1'); }, { pool });
+  const app = createApp(async () => { await pool.query('SELECT 1'); }, { pool, imageVerifier:new SharpImageVerifier() });
   let memoryStorage: MemoryStorageDriver;
 
   before(async () => {

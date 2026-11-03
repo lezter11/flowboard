@@ -1,0 +1,37 @@
+✔ new assignment serializes demotion: assignment wins first (221.874166ms)
+✔ new assignment serializes demotion: eligibility wins first (188.072334ms)
+✔ new assignment serializes revocation: assignment wins first (182.763417ms)
+✔ new assignment serializes revocation: eligibility wins first (197.34675ms)
+✔ create locks selected recipients; title-only edit preserves historical assignees and replay still checks the actor (174.834459ms)
+✔ strict command boundaries reject unknown fields without writes or receipts (192.669167ms)
+✔ strict card and comment query boundaries reject malformed and ignored values (206.765833ms)
+✖ comment edit redacts exact notification copies and legacy outbox payload without creating new delivery intentions (215.4865ms)
+✔ failed comment edit rolls source and copied previews back together; a later committed edit sanitizes busy outbox on retry (179.319792ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2341.141417
+
+✖ failing tests:
+
+test at apps/api/test/comment-edit-retention.test.ts:8:1
+✖ comment edit redacts exact notification copies and legacy outbox payload without creating new delivery intentions (215.4865ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  404 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/comment-edit-retention.test.ts:24:74)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 404,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

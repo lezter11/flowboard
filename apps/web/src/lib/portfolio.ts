@@ -1,8 +1,11 @@
 'use client';
 
-import { useQueries, useQuery } from '@tanstack/react-query';
+import { useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Board, BoardSnapshotData, SessionProjectSummary } from '@flowboard/contracts';
 import { api } from '@/lib/api';
+import { usePollKeys } from '@/components/polling';
+import { readPortfolioBoards, portfolioPollKeys } from './portfolio-state';
+import { discardRefusedRows } from './feed-state';
 import { useSession } from '@/lib/session';
 
 export const PROJECT_TONES = ['thistle', 'petal', 'pink', 'icy', 'sky', 'slate'] as const;
@@ -27,36 +30,41 @@ export function statsFromSnapshot(snapshot: BoardSnapshotData | undefined): Boar
 }
 
 /** Projects the actor can open, with their boards, and a card snapshot (1 card per column) per board for the counts. */
-export function usePortfolio() {
+export function usePortfolio(loadedProjects:SessionProjectSummary[]) {
   const { state } = useSession();
-  const projects: SessionProjectSummary[] = state.status === 'ready' ? state.session.accessibleProjects : [];
+  const client=useQueryClient();
+  const projects: SessionProjectSummary[] = state.status === 'ready' ? loadedProjects : [];
   const boardQueries = useQueries({
     queries: projects.map((project) => ({
       queryKey: ['boards', project.id],
-      queryFn: async () => (await api.listProjectBoards(project.id)).data,
+      queryFn: () => readPortfolioBoards(client,project.id,()=>api.listProjectBoards(project.id)),
       enabled: state.status === 'ready',
     })),
   });
   const boardsByProject = new Map<string, Board[]>();
-  projects.forEach((project, index) => boardsByProject.set(project.id, boardQueries[index]?.data ?? []));
+  projects.forEach((project,index)=>{if(boardQueries[index]?.isSuccess)boardsByProject.set(project.id,boardQueries[index]?.data??[]);});
+  const boardListsReady=new Map(projects.map((project,index)=>[project.id,!!boardQueries[index]?.isSuccess]));
   const allBoards = projects.flatMap((project) => boardsByProject.get(project.id) ?? []).filter((b) => !b.isArchived).slice(0, 24);
   const snapshotQueries = useQueries({
     queries: allBoards.map((board) => ({
       queryKey: ['board-stats', board.id],
-      queryFn: async () => (await api.getBoardSnapshot(board.id, { cardLimitPerColumn: 1 })).data,
+      queryFn: async ({signal}) => {try{return (await api.getBoardSnapshot(board.id, { cardLimitPerColumn: 1 },signal)).data;}catch(error){discardRefusedRows(client,['board-stats',board.id],error);throw error;}},
       staleTime: 30_000,
     })),
   });
+  usePollKeys(portfolioPollKeys(projects.map((p)=>p.id),allBoards.map((b)=>b.id)),state.status==='ready');
   const statsByBoard = new Map<string, BoardStats | null>();
-  allBoards.forEach((board, index) => statsByBoard.set(board.id, statsFromSnapshot(snapshotQueries[index]?.data)));
+  allBoards.forEach((board, index) => statsByBoard.set(board.id, snapshotQueries[index]?.isSuccess?statsFromSnapshot(snapshotQueries[index]?.data):null));
   const loading = state.status === 'loading' || boardQueries.some((q) => q.isPending);
-  return { projects, boardsByProject, statsByBoard, loading };
+  return { projects, boardsByProject, statsByBoard, boardListsReady, loading };
 }
 
-export function useProjectBoards(projectId: string | null) {
+export function useProjectBoards(projectId: string | null, includeArchived = false) {
+  const client=useQueryClient();
+  const key=includeArchived ? ['boards', projectId, 'include-archived'] : ['boards', projectId];
   return useQuery({
-    queryKey: ['boards', projectId],
-    queryFn: async () => (await api.listProjectBoards(projectId!)).data,
+    queryKey:key,
+    queryFn: () => readPortfolioBoards(client,projectId!,()=>api.listProjectBoards(projectId!, { includeArchived }),key),
     enabled: !!projectId,
   });
 }

@@ -1,0 +1,68 @@
+✔ COM03 rejects arbitrary text, partial tokens and surrogate splits atomically (228.160875ms)
+✔ COM03 selected UTF16 tokens, case, trim and historical renamed edits remain valid without renotifying (206.628959ms)
+✔ COM03 unknown and ungranted targets have same private failure and Viewer cannot write (165.594583ms)
+✔ AUD03/04 reject invalid dates, reversed ranges and malformed bounds as controlled422 (175.938333ms)
+✔ AUD03/04 valid date filters precede pagination and cursors bind the filter (179.703542ms)
+✔ COM03 duplicate-name suffix is part of selection and edited invalid spans roll back (195.590833ms)
+✔ runtime safety: searchable eligible mention beyond100 is accepted, inaccessible identities remain private (216.160209ms)
+✔ runtime safety: committed target revocation wins before comment board lock and cannot notify (181.721333ms)
+✔ runtime safety: comment winning board lock commits before removal; delayed consumer cannot renotify removed target (210.96075ms)
+✔ runtime safety: admin migration exception masks internal details and unauthorized calls remain403 (160.922334ms)
+✔ runtime safety: unexpected library503/504 error messages/details are masked (161.625416ms)
+✔ runtime safety: selected lookup is independent of page window and refuses grantless/removed targets (201.982875ms)
+▶ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation
+  ✔ node:1000-card first and warm snapshots are correct/bounded and isolated (157.858833ms)
+  ✔ node:MyTasks1000-row cursor walk, tied/NULL dates, filters and actual query growth (211.256666ms)
+  ✔ node:health,correlation,timing,HEAD,OPTIONS and safe malformed errors (17.485625ms)
+  ✖ node:actual wire body-cap boundaries (515.323958ms)
+  ✔ node:real SQL lock deadline has safe retryable response and atomic rollback (3049.627792ms)
+  ✔ worker:1000-card first and warm snapshots are correct/bounded and isolated (229.377292ms)
+  ✔ worker:MyTasks1000-row cursor walk, tied/NULL dates, filters and actual query growth (325.894125ms)
+  ✔ worker:health,correlation,timing,HEAD,OPTIONS and safe malformed errors (29.324792ms)
+  ✔ worker:test-only shared middleware masks faults and records genuine SQL continuation (159.879084ms)
+  ✔ worker:actual wire body-cap boundaries (103.063333ms)
+  ✖ worker:real SQL lock deadline has safe retryable response and atomic rollback (3051.756667ms)
+✖ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation (8552.872916ms)
+✔ FND04 genuine PostgreSQL slow query records HTTP deadline without assuming cancellation (447.4215ms)
+✔ FND04 actual unavailable-DB and Worker missing-binding health/privacy controls (622.196875ms)
+ℹ tests 26
+ℹ suites 0
+ℹ pass 23
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14652.18075
+
+✖ failing tests:
+
+test at apps/api/test/runtime-validation.test.ts:132:15
+✖ node:actual wire body-cap boundaries (515.323958ms)
+  [TypeError: fetch failed] {
+    [cause]: Error: read ECONNRESET
+        at TCP.onStreamRead (node:internal/stream_base_commons:216:20) {
+      errno: -54,
+      code: 'ECONNRESET',
+      syscall: 'read'
+    }
+  }
+
+test at apps/api/test/runtime-validation.test.ts:139:15
+✖ worker:real SQL lock deadline has safe retryable response and atomic rollback (3051.756667ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"STALE_BOARD_VERSION","message":"Stale board structure version.","requestId":"2d96015c-fa86-49ac-acc7-b148effa31fd","details":{"currentBoardVersion":2,"expectedBoardVersion":1}}}
+  
+  409 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:147:301)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-validation.test.ts:139:7)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 409,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

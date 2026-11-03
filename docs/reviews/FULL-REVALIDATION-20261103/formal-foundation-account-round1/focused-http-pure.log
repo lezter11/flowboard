@@ -1,0 +1,79 @@
+✔ CORS: credentialed access is limited to localhost and CORS_ORIGIN (9.533334ms)
+✔ session cookies stay SameSite=Lax and are Secure off localhost (0.268125ms)
+▶ FND-04: Observability, Correlation, Limits & Safe Error Baseline
+  ▶ 1. Correlation Middleware & Request IDs
+    ✔ generates a valid UUID request ID when x-request-id header is absent (9.75625ms)
+    ✔ propagates incoming valid ASCII x-request-id header faithfully (1.0945ms)
+    ✔ replaces invalid x-request-id (<8 chars, spaces, non-allowed chars, >64 chars) with a safe UUID (1.527375ms)
+    ✔ guarantees x-request-id header is attached on both success and error responses (5.581375ms)
+  ✔ 1. Correlation Middleware & Request IDs (18.220958ms)
+  ▶ 2. Server-Timing Header
+    ✔ measures request duration and attaches Server-Timing: app;dur=<ms> header on 200 OK (0.751208ms)
+    ✔ attaches Server-Timing header on 404 and error responses (0.719ms)
+  ✔ 2. Server-Timing Header (1.530125ms)
+  ▶ 3. Not Found Handler (404)
+    ✔ returns standard error envelope with NOT_FOUND code and no-store cache header (1.364ms)
+  ✔ 3. Not Found Handler (404) (1.420208ms)
+  ▶ 4. Validation Error Formatting (400 and 422)
+    ✔ returns 400 MALFORMED_REQUEST when request body contains invalid JSON syntax (1.317417ms)
+    ✔ returns 422 VALIDATION_ERROR with structured issues when @flowboard/contracts validation fails (1.460625ms)
+  ✔ 4. Validation Error Formatting (400 and 422) (2.832209ms)
+  ▶ 5. Safe 500 Handler & Sensitive Internal Error Masking
+    ✔ masks unhandled errors and NEVER leaks database credentials, connection strings, or SQL internals (2.47975ms)
+  ✔ 5. Safe 500 Handler & Sensitive Internal Error Masking (2.508417ms)
+  ▶ 6. Body Size Limits (413 PAYLOAD_TOO_LARGE)
+    ✔ rejects request bodies larger than configured limit with 413 PAYLOAD_TOO_LARGE (1.053583ms)
+    ✔ enforces default 1 MiB (1,048,576 bytes) limit on standard app (0.618375ms)
+  ✔ 6. Body Size Limits (413 PAYLOAD_TOO_LARGE) (1.701084ms)
+  ▶ 7. Request Deadline / Timeout Middleware (504 DEADLINE_EXCEEDED)
+    ✔ aborts long-running requests exceeding deadline with HTTP 504 DEADLINE_EXCEEDED (51.580916ms)
+    ✔ allows fast requests within deadline to succeed normally (1.004459ms)
+  ✔ 7. Request Deadline / Timeout Middleware (504 DEADLINE_EXCEEDED) (52.626875ms)
+  ▶ 8. Custom HTTP Errors and Status Mappings
+    ✔ maps 401 UNAUTHORIZED correctly (0.75ms)
+    ✔ maps 403 FORBIDDEN correctly (0.730625ms)
+    ✔ maps 409 CONFLICT with domain-specific codes (STALE_VERSION, STALE_CURSOR) (2.42875ms)
+    ✔ maps 410 RESTORE_WINDOW_EXPIRED with details (0.630083ms)
+    ✔ maps 429 RATE_LIMITED and attaches Retry-After: 60 header (0.583709ms)
+    ✔ uses the actual retry interval and the same code for a Hono 429 (0.688667ms)
+    ✔ maps 503 SERVICE_UNAVAILABLE / DATABASE_UNAVAILABLE safely (0.5735ms)
+  ✔ 8. Custom HTTP Errors and Status Mappings (6.458083ms)
+✔ FND-04: Observability, Correlation, Limits & Safe Error Baseline (87.546334ms)
+✔ cookie-authenticated state changes require a same-site Origin or Referer (17.874542ms)
+✔ Pages-proxied requests keep the user-facing URL, so same-origin Origin passes without CORS_ORIGIN (1.060667ms)
+{"level":"warn","event":"rate_limit_refused","binding":"FB_RL_WRITES"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"error","event":"rate_limit_store_error","bucket":"auth","errorClass":"Error"}
+{"level":"warn","event":"rate_limit_refused","binding":"FB_RL_WRITES"}
+✔ soft limit: a refused general write returns 429 TOO_MANY_REQUESTS with Retry-After 60 (10.311792ms)
+✔ soft limit: a throwing binding fails open and logs the error class only (3.789166ms)
+✔ limits: health probes are never counted by either limiter (1.109791ms)
+✔ limits: the key is the Cloudflare client IP and ignores spoofable forwarding headers (1.139542ms)
+✔ limits: reads outside Google sign-in are not counted (0.777208ms)
+✔ buckets: each sensitive route family maps to its bucket and nothing else (0.086667ms)
+✔ window: a count over the limit returns 429 with Retry-After from the counter (0.797209ms)
+✔ window: a count within the limit reaches the route (2.220458ms)
+✔ window: the invitation route counts in the invite bucket with its 60-second window (0.85475ms)
+✔ window: when the counter throws, the request fails closed with 503 and the route is not reached (0.688458ms)
+✔ window: no database pool on a Worker fails closed; on Node a request without a client address is not counted (1.050334ms)
+✔ window: on the Worker a missing client address uses the shared fallback key and logs it without a value (0.566709ms)
+✔ soft binding: on the Worker an absent binding is logged loudly and the request still passes (0.582875ms)
+✔ soft binding: the default resolver reads the Cloudflare binding from the Worker environment (2.873667ms)
+✔ binding status: booleans for the Cloudflare binding the runtime can see (0.181167ms)
+✔ admin status route reports the binding and needs the admin secret (0.911291ms)
+✔ config: wrangler declares only the soft writes binding, with the documented limit, in production and UAT (0.28975ms)
+﹣ FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQL deadline validation (0.255375ms) # Set isolated identity-extra URL
+﹣ FND04 genuine PostgreSQL slow query records HTTP deadline without assuming cancellation (0.041292ms) # SKIP
+﹣ FND04 actual unavailable-DB and Worker missing-binding health/privacy controls (0.036083ms) # SKIP
+✔ rejects open-redirect and scheme payloads (0.363875ms)
+✔ rejects unknown paths and prefix lookalikes (0.057375ms)
+✔ rejects overlong input and non-string values (0.040792ms)
+✔ accepts allowlisted app paths, with a query in the allowed characters (0.037917ms)
+ℹ tests 49
+ℹ suites 9
+ℹ pass 46
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 3
+ℹ todo 0
+ℹ duration_ms 1534.931084

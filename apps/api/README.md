@@ -1,5 +1,9 @@
 # FND-01 local backend harness
 
+The setup below is historical FND-01 guidance. Current product routes, PostgreSQL migrations and Node/Worker implementations exist; see [the current API contract](../../docs/API.md) and [architecture](../../ARCHITECTURE.md).
+
+Tests require explicit disposable database URLs and an explicit isolated port. The import helper and global test pool refuse implicit defaults and shared development ports55432/55479; the test preflight rejects unsafe configured URLs before connecting. Use the six databases required by the full-gate runner in `docs/reviews/FULL-REVALIDATION-20261103/probes/run-local-gates.mjs`. Port55931 belongs to this release's throwaway container; CI uses its own isolated5432 service. Development Compose is not a disposable audit target. A disposable database is a throwaway copy: destructive tests cannot affect your working data.
+
 Local infrastructure only. Product API v0.3 remains specified in `../../docs/API.md`; no session, project, card or permission implementation exists here yet.
 
 Use Node **24.15.0**, npm **11.12.1** and a running Docker engine with Compose. From the repository root:

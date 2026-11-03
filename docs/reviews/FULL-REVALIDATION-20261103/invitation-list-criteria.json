@@ -1,0 +1,20 @@
+{
+  "version": "invitation-list-1",
+  "frozenBeforeImplementation": true,
+  "baselineCommit": "917706ae0433df471c72736be4d548eb022236c4",
+  "risk": "sensitive",
+  "features": ["INV-02", "INV-04", "INV-05", "FND-02", "FND-04", "RBAC-04"],
+  "criteria": [
+    "GET invitation list retains {data:Invitation[],nextCursor:string|null}. Query supports limit default50 maximum100, optional cursor, and optional invitation status filter pending/accepted/revoked/expired. Invalid input fails validation; no existing invitation-create/accept/resend/revoke body fields or statuses change.",
+    "Descending created_at/id keyset pagination is deterministic even for timestamp ties and PostgreSQL sub-millisecond precision. Page size is bounded; nextCursor exists only when another row exists. A new row after page one does not shift earlier page boundaries.",
+    "Signed bounded cursor binds project, actor, status filter, current role/membership version and owner/project lifecycle version; tampering, wrong scope or stale authority/lifecycle returns stable private error after current authorization. Revoked/outsider remains private404 and ordinary Member/Viewer403. CURSOR_SECRET supplies existing runtime signing configuration; no hardcoded production fallback.",
+    "Invitation list row adds optional delivery:{status:pending|retrying|delivered|failed|unknown,canRetry:boolean}. New fields expose no token/token hash/email/name/body/provider message/reason/error internals. Existing authorized invitation email field is unchanged. canRetry only true for failed delivery of an unexpired pending invitation in active project when current actor could resend that invitation role.",
+    "Latest associated outbox attempt supplies delivery outcome via one bounded SQL page plus indexed/batched lookup, without application N+1 reads. Disabled mailer remains pending; queued retry maps retrying; terminal success/failure map delivered/failed. Legacy settled rows whose association was already erased map unknown honestly, never invented delivered.",
+    "Trusted server-derived opaque invitationId is retained in terminal minimal outbox receipt alongside optional providerMessageId; token, recipient, role, template/name/body fields remain removed for delivered, permanent failed, exhausted retry and superseded states. IDs are allowlisted, not arbitrary copied payloads. Legacy rows need no fabricated association.",
+    "Matching invitation page/order and latest-outbox association indexes are assessed; any migration uses reserved0022 coordinated with Architect, clean/upgrade tests and embedded parity. Query plans may support access-path claims but do not establish measured production latency.",
+    "Mounted synthetic real-PostgreSQL tests verify default/max limits, tie boundaries, no duplicate pages, cursor tampering/scope/role/lifecycle changes, role privacy, each delivery state and retry eligibility; actual request/response schema parsing remains compatible. No scores/feature closure or hosted acceptance from this bounded builder pass."
+  ],
+  "authorizationProvenance": "Root approved narrow invitationId terminal receipt retention, legacy unknown, invitation-delivery/notifications/privacy-test ownership before implementation. Root and UI were notified of additive list fields before code.",
+  "dependencies": "invitation-race-criteria.json; Backend independent review gate on final full-product target",
+  "scope": "Only isolated flowboard_identity_extra_test on loopback55931; primary harness reserved for another agent. No cloud, credentials, live mail/OAuth, UI edits, commits or deployment."
+}

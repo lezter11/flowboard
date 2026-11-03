@@ -1,0 +1,125 @@
+{
+  "status": "builder_implementation_not_independent_approval",
+  "baseCommit": "917706ae0433df471c72736be4d548eb022236c4",
+  "scope": "Bounded admission source snapshot only. Complete transitive frozen review remains root responsibility; image agent owns ongoing JPEG work.",
+  "sourceManifest": [
+    {
+      "path": "apps/api/src/services/image-admission.ts",
+      "sha256": "c3aa254728e598fc6049486db063010d30a025a1d9b753b083b1d460f1cd05bd"
+    },
+    {
+      "path": "apps/api/src/http/middleware/image-admission.ts",
+      "sha256": "5ce74e93c6d85ca33e08f522e8c54f339d67a2fe9dc3148c8635e91361f6c625"
+    },
+    {
+      "path": "apps/api/src/http/app.ts",
+      "sha256": "108a11dc7e0b938050e94a142eafa64f35b8c14acaf5a07f0164e3ea1b70f035"
+    },
+    {
+      "path": "apps/api/src/services/image-verifier.ts",
+      "sha256": "53bc57e1826829da5a14e247a998ad64d39f7ef8e9852f135244217c8d0a9410"
+    },
+    {
+      "path": "apps/api/src/adapters/images.ts",
+      "sha256": "ec52c41ba4d78c06df84a9e00b37f7ee15b9e91baaf7eb19e1845f5dacc73c7c"
+    },
+    {
+      "path": "apps/api/src/http/routes/images.ts",
+      "sha256": "51ecae7b4a3de1644cd498f36f5a6dd08c9c432e321f7b95e81845e0bb694043"
+    },
+    {
+      "path": "apps/api/src/runtime/worker.ts",
+      "sha256": "7f94a51b22670d66be1f3dc17295e42bc148296f15c994d7f29e5d1e611ab002"
+    },
+    {
+      "path": "apps/api/src/http/middleware/limits.ts",
+      "sha256": "1ffd30bff85f6c4bd2e9b901a6e656eb9625f03b4e60522697da4eefe9ae4911"
+    },
+    {
+      "path": "apps/api/test/image-admission.test.ts",
+      "sha256": "677d9d24f542c44b0051282c92c0af69e2cc84b264890f0fd270a892d0edac05"
+    },
+    {
+      "path": "apps/api/test/image-admission-worker.test.ts",
+      "sha256": "0ed26cb369af414d2aed119807278b97b2608890057416e25669f34245d00658"
+    },
+    {
+      "path": "apps/api/test/image-admission-worker-probe.ts",
+      "sha256": "f0e166dd735c23b4b5e72006b55a2e6108bd1cf2318a1ce88da2728f90a1f081"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/criteria/image-admission.json",
+      "sha256": "982e05740f583bf888de5a9a974530d7e2487d2a783a39f1486d5ad7923f5bb0"
+    }
+  ],
+  "database": {
+    "image": "postgres:17.11-alpine",
+    "imageId": "sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b",
+    "port": 55931,
+    "database": "flowboard_import_test",
+    "isolation": "per-test random schemas, fixture cleanup"
+  },
+  "checks": [
+    {
+      "command": "NODE_ENV=test WRANGLER_SEND_METRICS=false FLOWBOARD_IMPORT_TEST_DATABASE_URL=<synthetic-loopback55931-import-URL> node --test --test-concurrency=1 apps/api/test/image-admission.test.ts apps/api/test/image-admission-worker.test.ts",
+      "exitCode": 0,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "skip": 0,
+      "log": "raw/image-admission-final-3.log"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "exitCode": 0,
+      "log": "raw/image-admission-typecheck-final-3.log"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0
+    }
+  ],
+  "earlierAttempts": [
+    {
+      "log": "raw/image-admission-red.log",
+      "exitCode": 1,
+      "pass": 0,
+      "fail": 2
+    },
+    {
+      "log": "raw/image-admission-green-initial.log",
+      "exitCode": 1,
+      "pass": 4,
+      "fail": 1
+    },
+    {
+      "log": "raw/image-admission-worker.log",
+      "exitCode": 1,
+      "note": "Initial probe omitted explicit ExecutionContext; corrected probe also reproduced."
+    },
+    {
+      "log": "raw/image-admission-worker-context-red.log",
+      "exitCode": 1,
+      "pass": 0,
+      "fail": 1
+    },
+    {
+      "log": "raw/image-admission-worker-context-green-attempt.log",
+      "exitCode": 1,
+      "note": "Overly short80ms setup deadline, not product failure; only deliberate held content is now short250ms."
+    },
+    {
+      "log": "raw/image-admission-worker-context-green-2.log",
+      "exitCode": 0,
+      "pass": 1,
+      "fail": 0
+    }
+  ],
+  "limits": [
+    "No independent approval or all-feature closure.",
+    "No hosted requests or exact peak memory/CPU assertion.",
+    "Unsettled work fails closed by retaining isolate image capacity; hosted lifecycle remains UAT pending.",
+    "JPEG checker/full decoder acceptance is separate lifecycle-agent work."
+  ],
+  "handoff": "image-admission-implementation.md"
+}

@@ -1,0 +1,782 @@
+
+> @flowboard/web@0.1.0 test
+> node --test --test-concurrency=1 test/*.test.ts
+
+✔ fresh board: the Owner is offered even though the snapshot has nobody (0.548625ms)
+✔ Viewers and people who left are never offered, owner first then managers then members (0.0565ms)
+✔ a server that forgets to flag a viewer is still filtered (0.040375ms)
+✔ picker states: loading, error, empty, ready (0.048458ms)
+✔ chip names keep people already on cards from the snapshot, and current project people win (0.053959ms)
+✔ can’t-be-assigned: judged against the project list once loaded, against the snapshot before that (0.065125ms)
+✔ the 20-assignee cap (0.032667ms)
+✔ the assignee query carries the card board, and the project-wide query does not (0.551917ms)
+✔ people without a grant are not selectable: only the board list is offered, the rest are listed as blocked (0.127083ms)
+✔ a 422 names the people: by new code, by today’s details, and not for other failures (0.148833ms)
+✔ error text names people with and, and falls back to the server sentence (0.069458ms)
+✖ the save bar never sits on "Unsaved changes" after a failed save (0.81775ms)
+✔ BOARD_REQUIRED means reload, and a new-contract 422 names people by ineligibleUserIds (0.046583ms)
+✔ column continuation sends exact opaque cursor plus the original server filters (8.235292ms)
+✔ canonical placement forwards actual first/last/before/after intent and anchor IDs (0.432417ms)
+✔ filtered snapshots forward priority-none and AbortSignal instead of filtering a cached page (0.188125ms)
+✔ archived-board admin discovery is explicit and preserves the default list URL (0.166042ms)
+✔ merges columns by trimmed, case-insensitive name; first board order, then extras (0.517209ms)
+✔ counts add up across boards and cards sort by board then position (0.083ms)
+✔ one board is returned untouched (single-board parity) (0.04825ms)
+✔ a drop maps to the card’s own board column of the same name (0.097958ms)
+✔ a board without that column refuses the drop with a hint (0.072625ms)
+✔ reordering inside a merged column only among the same board’s cards (0.057625ms)
+✔ add card: same-named column, else the board’s first column with fallback flagged (0.333833ms)
+✔ add card board choice lists only boards the person can create in, default first (0.049625ms)
+✔ permission gating per card’s board (0.0515ms)
+✔ actual server filter translation preserves supported priority-none, assignee, date and title semantics (0.567875ms)
+✔ continued pages expose card24 without duplicating a boundary or replacing full counts by loaded length (0.162875ms)
+✔ a real15-card first page continues through card31 with stable ID order and no duplicate boundary (0.096917ms)
+✔ a changed snapshot, calendar day or filter never combines old continuation cards/cursors (0.054583ms)
+✔ dropping after the last loaded card asks after that anchor rather than pretending the full column ended (0.071417ms)
+✔ Manager controls cannot promote or change self, peer Manager or Owner, while Owner can administer others (0.07225ms)
+✔ full directory remains Owner/Manager only and stale cached emails disappear on role loss or refused read (0.058167ms)
+✔ parses ?boards= with trimming, empties and duplicates (0.491792ms)
+✔ drops stale, archived and no-access ids quietly (0.05625ms)
+✔ single board parity: ?id= alone, with or without the board list, gives exactly that board (0.063125ms)
+✔ ?boards= wins; a lone survivor becomes a single board; none left falls back to default then first (0.074416ms)
+✔ remembered selection restores only when it contains the board being opened (0.051917ms)
+✔ cap of 6: URL list, toggling and select all (0.079167ms)
+✔ the switcher needs two or more boards the user can see (0.038667ms)
+✔ per-section permissions: viewer cannot edit, archived board freezes only its section (0.049917ms)
+✔ memory is per project and survives broken storage (0.456208ms)
+✔ field Save excludes status, and acknowledging fields preserves a separate pending status choice (0.419084ms)
+✔ actor/card draft survives remount/poll and requires deliberate conflict review (0.114375ms)
+✔ undo transport retains original move result version even when another read is newer (7.964292ms)
+✔ lost field save reply keeps original payload/key across remount and prohibits discard (0.682667ms)
+✔ comment and card activity reads forward opaque cursors and preserve the next page envelope (8.597ms)
+✔ versioned comment edit and delete send exact IDs, mention spans and retained operation keys (0.416042ms)
+✔ committed lost reply retries the original comment payload/key through the real API client (8.45775ms)
+✔ quick-add retains expected board version and original explicit priority after an unknown 503 (0.325834ms)
+✔ definitive validation refusal permits a new edited intent, in-flight submissions share one request (0.118792ms)
+✔ a synchronous validation failure does not leave the next operation stuck on a rejected request (0.230542ms)
+✔ a later authorization refusal cannot erase an earlier unknown committed operation (0.151625ms)
+✔ cursor pages keep order, replace edited/deleted duplicates and reject cursor loops (0.188875ms)
+✔ roles distinguish author editing from moderation and never grant Viewer write controls (0.068083ms)
+✔ comment create/edit drafts remain actor/card-scoped through remount and clearing one draft keeps the other (0.138125ms)
+✔ edit restores actual UTF-16 spans, leaves malformed spans literal, and IME Enter is ignored (0.123958ms)
+✔ retained column history refuses without a fake remedy or hidden counts (0.411792ms)
+✖ every code the contract lists has a catalogue entry (0.246875ms)
+✔ every entry reads like the style guide, for every role (1.705458ms)
+✔ the server message is never shown, for every code, every class and an unknown code (1.144833ms)
+✔ unknown codes fall back by status class (0.059917ms)
+✔ request id shows only for server faults and unknown codes (0.425ms)
+✔ assignee refusal by role: Owner gets Open People, Manager and Member get the ask line and no button (0.068958ms)
+✔ assignee refusal by reason: viewer and left-the-project (0.054ms)
+✔ read-only by reason and role (0.066875ms)
+✔ 403 on a hidden resource reads like 404; quota without current has no digits except the limit (0.310333ms)
+✔ offline keeps the work: status 0 says changes are still here and offers retry (0.042583ms)
+✔ rate limit: seconds, minutes, and the Retry-After header as a fallback (0.055ms)
+✔ read-only without a reason does not guess between project and board (0.049417ms)
+✔ quota copy always names the limit and only shows a count the server sent (0.090292ms)
+✖ every code in the shared ERROR_CATALOG has its own catalogue entry, and reads well at its listed status (0.181584ms)
+✔ codes with two statuses read the same at either (0.070083ms)
+✔ client-caused 400s do not blame the server, and no note promises a reference that is not shown (0.073375ms)
+✔ "the reference below" is promised only when a reference is shown (0.238375ms)
+✔ a plain 403 never tells an Owner to ask an Owner, and small file limits never read "0 MB" (0.03125ms)
+✔ every stale-write code is recognised, including a moved board structure (0.259166ms)
+✔ a fetch TypeError is a network failure; an abort or an API error is not (0.087041ms)
+✔ session access: role change, archive and removal are all visible (0.25825ms)
+✔ the banner shows when offline or after two failed polls, not after one (0.03625ms)
+✔ no screen renders an ApiError message: only the catalogue speaks (12.189792ms)
+✔ ErrorNote is an alert, takes catalogue text, and shows a reference only when the note carries one (0.115583ms)
+✔ dialogs and forms show failures through ErrorNote (0.130042ms)
+✔ MyTasks sends exactly one project plus server filters/cursor and preserves calendar envelope (8.403292ms)
+✔ all remaining feed APIs preserve exact continuation and AbortSignal (0.377083ms)
+✔ explicit unauthorized task scope never falls back, current authorized scope wins default (0.062042ms)
+✔ session401 overrides stale actor data; access fingerprint ignores display edits and catches scope changes (3.80275ms)
+✔ real query client continuation preserves server order, and refresh replaces the entire loaded cursor chain (1.818458ms)
+✔ access refusal clears protected cached row bodies and leaves the actual error status intact (0.179375ms)
+✔ small file within limits is kept as it is (0.588375ms)
+✔ exactly 300 KB and 2560 px is still skipped (0.061209ms)
+✔ mid-size file at normal dimensions is re-encoded without resizing (0.050417ms)
+✔ landscape over 2560 is scaled by its longest side, keeping the aspect ratio (0.035125ms)
+✔ tall phone photo is scaled by height (0.033916ms)
+✔ a small file that is over 2560 px is still resized (0.030083ms)
+✔ a small file outside server limits is not skipped (0.032125ms)
+✔ keeps the original unless the result is at least 10% smaller (no resize) (0.040875ms)
+✔ a resized result wins when it is smaller at all (0.034708ms)
+✔ a resized result wins when the original breaks a server limit (0.063791ms)
+✔ a result over 10 MiB is never chosen (0.046875ms)
+✔ file name extension follows the new type (0.111167ms)
+✔ reads PNG dimensions (0.093083ms)
+✔ reads JPEG dimensions after other segments (0.043458ms)
+✔ reads WebP VP8X dimensions (0.034417ms)
+✔ unknown bytes give null (0.029625ms)
+✔ photo: resized, converted to WebP, renamed, hashed from the exact bytes (0.948875ms)
+✔ small file is uploaded untouched and never encoded (0.109ms)
+✔ a result that is not 10% smaller keeps the original (0.563833ms)
+✔ PNG with alpha and no WebP encoder keeps PNG; opaque PNG falls back to JPEG (1.411666ms)
+✔ alpha is only checked for formats that can have it (0.989583ms)
+✔ decode failure falls back to the original with a note, when the server can take it (1.142875ms)
+✔ decode failure on an over-10 MB file is reported, not uploaded (2.298708ms)
+✔ over 20 megapixels is refused from the header, before decoding (0.396083ms)
+✔ over 20 megapixels is also refused when only decoding reveals it (6.160875ms)
+✔ 12 megapixel image is accepted and resized (3.358833ms)
+✔ wrong type and huge input are refused (22.472708ms)
+✔ retries with lower quality when the first result is over 10 MiB (21.808042ms)
+✔ alpha sample never exceeds 256 px a side and keeps the aspect ratio (0.100667ms)
+✔ detects the VP8X animation flag (0.064ms)
+✔ an animated WebP is uploaded as it is and never decoded or encoded (0.944792ms)
+✔ an animated WebP over 10 MiB is refused with a clear message (3.262708ms)
+✔ one file goes prepare, create, put, finalize and then leaves the list (6.55775ms)
+✔ several files are handled one at a time, in order (10.53275ms)
+✔ the item says validating, not saved, while finalize is pending (11.42175ms)
+✔ a failure keeps the item with a message, cancels the staged upload and can be retried (10.531917ms)
+✔ cancel during upload aborts the transfer, cancels the staged upload and never finalizes (11.575125ms)
+✔ cancel of a waiting file removes it before any work starts (17.169583ms)
+✔ uploads of different cards do not mix (5.270583ms)
+✔ preview page retains row-number cursor and refuses a mixed generation (0.611084ms)
+✔ only committed state says committed; processing and failures are distinct (0.091209ms)
+✔ status cursor and mappings send exact current backend contracts (8.02ms)
+✔ lost commit reply survives remount and retries original digest/default/version/key (0.588625ms)
+✔ CSV report downloads server bytes with same-origin credentials and refuses HTML success (0.470834ms)
+✔ workbook status labels cannot select inherited object keys as mappings (0.044834ms)
+✔ region is inert while a dialog is open and restored on close (0.31575ms)
+✔ nested dialogs keep it inert until the last one closes (0.045958ms)
+✔ releasing twice (unmount after close) does not unbalance the count (0.039625ms)
+✔ an already-inert region is left as it was (0.03425ms)
+✔ a missing region is a no-op (0.036833ms)
+✔ focus goes to the remembered trigger, then the card button, then the board heading (0.059292ms)
+✔ invitation history forwards opaque cursor, limit, status and cancellation (8.344583ms)
+✔ create invitation lost reply retries the actual original request identity (0.457083ms)
+✔ resend invitation lost reply retries the actual original request identity (0.219875ms)
+✔ revoke invitation lost reply retries the actual original request identity (0.193709ms)
+✔ signed-in-as line shows the viewer own address, and nothing when unknown (0.2765ms)
+✔ easter eggs and motion are off under reduced motion (0.042042ms)
+✔ tap counter fires on the 5th quick tap, not on slow taps (0.299125ms)
+✔ greeting is always one of the list, even for bad input (0.049125ms)
+✔ sign-in returns to the same invitation link (0.066958ms)
+✔ all invitation animation sits inside no-preference, with a reduce fallback (0.204375ms)
+✔ the role reads with the right article (0.062042ms)
+✔ post-accept copy by role names no project and drops the pre-accept footer (0.060458ms)
+✔ delivery labels never infer delivery from absent or queued summaries (0.253166ms)
+✔ row actions honor manager targets, failed retry hints, expiry and archive (0.076792ms)
+✔ same actor/project remount retains unknown request; another actor/project sees no draft (0.903917ms)
+✔ accepts: plain (0.721125ms)
+✔ accepts: trims and lowercases (0.101209ms)
+✔ accepts: plus tag (0.041708ms)
+✔ accepts: dot inside local (0.034667ms)
+✔ accepts: rfc atext symbols (0.03425ms)
+✔ accepts: 64 char local (0.034125ms)
+✔ accepts: 254 chars total (0.035542ms)
+✔ rejects with a specific message: empty (0.066709ms)
+✔ rejects with a specific message: only spaces (0.043875ms)
+✔ rejects with a specific message: CR (0.058167ms)
+✔ rejects with a specific message: LF in the middle (0.034708ms)
+✔ rejects with a specific message: tab (0.023333ms)
+✔ rejects with a specific message: NUL (0.017917ms)
+✔ rejects with a specific message: space inside (0.022833ms)
+✔ rejects with a specific message: display name (0.019375ms)
+✔ rejects with a specific message: quoted local (0.021583ms)
+✔ rejects with a specific message: non-ASCII local (0.015ms)
+✔ rejects with a specific message: non-ASCII domain (0.016875ms)
+✔ rejects with a specific message: no @ (0.014166ms)
+✔ rejects with a specific message: two @ (0.024125ms)
+✔ rejects with a specific message: empty local (0.025166ms)
+✔ rejects with a specific message: empty domain (0.017083ms)
+✔ rejects with a specific message: local over 64 (0.016583ms)
+✔ rejects with a specific message: domain over 255 (0.02725ms)
+✔ rejects with a specific message: over 254 total (0.014334ms)
+✔ rejects with a specific message: leading dot local (0.013583ms)
+✔ rejects with a specific message: trailing dot local (0.015542ms)
+✔ rejects with a specific message: double dot local (0.0125ms)
+✔ rejects with a specific message: leading dot domain (0.013042ms)
+✔ rejects with a specific message: trailing dot domain (0.012083ms)
+✔ rejects with a specific message: double dot domain (0.011ms)
+✔ rejects with a specific message: domain without dot (0.012ms)
+✔ rejects with a specific message: numeric tld (0.020166ms)
+✔ rejects with a specific message: one-letter tld (0.02225ms)
+✔ rejects with a specific message: hyphen-led label (0.017041ms)
+✔ rejects with a specific message: comma (0.015209ms)
+✔ the client verdict always equals the contract schema the server runs (0.84575ms)
+✔ aria attributes link the input to its message only while there is an error (0.039083ms)
+✔ landing: nobody, nothing (0.49025ms)
+✔ landing: remembered board wins (0.038666ms)
+✔ landing: remembered project wins (0.035458ms)
+✔ landing: shared only, first run: hub with Create visible (0.033958ms)
+✔ landing: shared only, several: hub (0.028084ms)
+✔ landing: one own project: straight in (0.028584ms)
+✔ landing: own plus shared: hub (0.029834ms)
+✔ landing: two own: hub (0.023917ms)
+✔ landing: archived own is not an open project (0.040792ms)
+✔ landing: old server without isOwned falls back to the role (0.361375ms)
+✔ the Pages middleware and the client both use the shared rule, not a copy (0.174333ms)
+✔ only people in someone else project can leave (0.250084ms)
+✔ confirm copy names the project, says what is lost and what is not (0.099625ms)
+✔ server refusals are rewritten without the word workspace (0.062084ms)
+✔ the mention query sends the card id, keyed by card, and the client method puts it in the URL (0.396ms)
+✔ with a second member, candidates appear and are searchable (0.419417ms)
+✔ a Viewer with board access can be mentioned; someone without a grant or who left cannot (0.044708ms)
+✔ empty wording: loading, failed, only you, no match (0.068792ms)
+✔ listbox pattern: combobox textarea, listbox, options named "Name, Role", polite result count (0.079208ms)
+✔ saved mentions show the current full name on hover, not the stored text (0.36625ms)
+✔ trigger is found after @ at the start or after whitespace (0.593792ms)
+✔ no trigger inside an email address, after a space, or without @ (0.183583ms)
+✔ applyMention writes @Name plus a space and spans exactly @Name (0.389375ms)
+✔ offsets are UTF-16 code units, so emoji and accents before a mention count correctly (0.062292ms)
+✔ typing before a mention moves it; typing after leaves it (0.109917ms)
+✔ editing inside a mention removes it; deleting before shifts left (0.067417ms)
+✔ pasting over a selection that covers a mention removes it (0.046667ms)
+✔ finalize keeps matching spans, sorted, with exact offsets (0.259292ms)
+✔ finalize shifts offsets when the body is trimmed (0.045166ms)
+✔ finalize drops spans whose text changed, overlaps and ones glued to a word (0.076125ms)
+✔ finalize caps at 20 mentions (0.08675ms)
+✔ segments split a stored comment and ignore bad spans (0.06975ms)
+✔ match any word start, ignoring case and accents (2.248208ms)
+✔ a first name, a space and part of the last name narrows to one person (3.90225ms)
+✔ ranking: full-name prefix, then other word starts, then A to Z (0.066ms)
+✔ matched characters are emphasised on the original spelling (0.052958ms)
+✔ numbered duplicates: "@shubham" finds both, "@shubham singh (2)" narrows to one, order is by number (0.087291ms)
+✔ a multi-word query keeps the trigger open while it can match, and closes when it cannot (0.063083ms)
+✔ inserting a full name writes "@First Last " and keeps the caret after the space (0.029334ms)
+✔ backspace deletes a whole mention at once, and ignores plain text (0.041458ms)
+✔ ranges still shift after edits with full-name mentions (0.031917ms)
+✔ a valid name is normalised the same way the API does (0.439292ms)
+✔ empty and whitespace-only parts give a plain "enter" message per field (0.08475ms)
+✔ over 60 characters is refused with the limit named (0.044333ms)
+✔ exactly 60 characters is accepted (0.032791ms)
+✔ zero-width, bidi and control characters are refused (0.144709ms)
+✔ suggestions prefill, and nothing else does (0.25225ms)
+✔ name step animation sits inside no-preference (0.214917ms)
+✔ name errors are announced: both inline error paragraphs are alerts and stay tied to their inputs (0.085ms)
+✔ a suffix of 2 or more is shown; absent, null and bad values show the plain name (0.259959ms)
+✔ screen readers hear "Shubham Singh, number 2, Member" (0.045917ms)
+✔ every screen that names a person goes through the one helper (0.398ms)
+✔ delay is 15 s +-20% jitter, doubling per failure up to 2 min (0.337166ms)
+✔ polls on the interval and records the last success (0.684959ms)
+✔ a hidden tab does not poll; becoming visible polls straight away (0.113709ms)
+✔ failures back off x2 and success resets (0.485667ms)
+✔ a signed-out result stops polling for good (0.084ms)
+✔ poke after the user's own save waits ~1 s, and bursts share one run (0.122917ms)
+✔ a held tick (drag in progress) is retried instead of run (0.100875ms)
+✔ age text (0.038416ms)
+✔ untouched fields follow the server (0.266625ms)
+✔ an edited field keeps the user's text and flags a conflict when the server changed it too (0.103917ms)
+✔ no conflict when the server changed a different field than the one being edited (0.044667ms)
+✔ no conflict when the server arrived at the same text the user typed (0.029417ms)
+✔ assignee lists compare by content (0.028916ms)
+✔ avatar accepts only credential-free HTTPS Google-managed image origins (2.426208ms)
+✔ workspace timezone validates supported calendar context without browser fallback (20.443042ms)
+✔ workspace draft keeps baseline version and text on poll conflict; explicit latest-version recovery retains values (0.15925ms)
+✔ workspace PATCH sends original expectedVersion and explicit name/timezone only (8.142666ms)
+✔ groups: Yours and Shared with you, open only, sorted by name (4.329459ms)
+✔ a viewer-only person has no manage role, even though they own a hidden container (0.074917ms)
+✔ label inside a shared project is the project and the role, never someone else workspace (0.074ms)
+✔ owned-project cap: calm advice with the archive way out, the limit named, no workspace (0.514458ms)
+✔ a Manager at the board cap sees the limit but never the hidden count, and is told whom to ask (0.338375ms)
+✔ an Owner at the board cap gets the way out (0.059792ms)
+✔ member and invitation caps: Owner and Manager get a way out, others are told to ask (0.061458ms)
+✔ unknown future scopes and the remedy "none" still give a safe message (0.053542ms)
+✔ non-quota failures and malformed details are not quota advice (0.038584ms)
+✔ 429 wait: seconds, minutes, and no number when the server gave none (0.0925ms)
+✔ Yours and Shared with you use isOwned, and fall back to the role (0.061333ms)
+✔ usage comes from session.limits only (0.072667ms)
+✔ friendly sentences for the new server refusals (0.147958ms)
+✔ the server column list wins; otherwise the board columns, in order (0.549417ms)
+✔ the first column is preselected, and an empty list selects nothing (0.0605ms)
+✔ empty states: no projects, a Member with projects, and the normal case (0.050875ms)
+✔ restore refusals read as next steps, naming the card (0.112041ms)
+✔ the Trash page retries with the chosen column and shows the right empty states (0.178875ms)
+✔ every new sign-in state has plain copy that follows the style guide (0.424584ms)
+✔ unknown or crafted states show nothing, so a link cannot put words on the page (0.053042ms)
+✔ unsaved text is tracked and announced to subscribers (0.067ms)
+✖ a session that ends keeps the page while text is unsaved, and offers Sign in (1.120709ms)
+✔ a failed save with an ended session offers Sign in and keeps the draft in place (2.294875ms)
+✔ failures and toasts with a remedy never time out; success keeps 4.5 s; undo 8 s (0.308959ms)
+✔ failures are announced assertively, the rest politely (0.049708ms)
+✔ the toast pauses on focus as well as hover, and has a separate alert region (0.1795ms)
+✔ every danger toast goes through the catalogue helper, so none shows server text (0.291ms)
+ℹ tests 289
+ℹ suites 0
+ℹ pass 285
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2412.302375
+
+✖ failing tests:
+
+test at test/assignees.test.ts:86:1
+✖ the save bar never sits on "Unsaved changes" after a failed save (0.81775ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /saveBarText\(\{ saving: save\.isPending, failed: save\.isError && dirty, dirty, reason:/. Input:
+  
+  "'use client';\n" +
+    '\n' +
+    "import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';\n" +
+    "import Link from 'next/link';\n" +
+    "import { createPortal } from 'react-dom';\n" +
+    "import { cardDraftSessions, cardFieldsDirty, cardFieldsInput } from '@/lib/card-drafts';\n" +
+    "import { discardRefusedRows } from '@/lib/feed-state';\n" +
+    "import { pageInertLock, pickFocusTarget } from '@/lib/inert-lock';\n" +
+    "import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';\n" +
+    "import type { ActivityItem, Card, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';\n" +
+    "import { api, ApiError } from '@/lib/api';\n" +
+    "import { toastFailure } from '@/lib/toast-failure';\n" +
+    "import { describeError, describeFailure, isStale } from '@/lib/errors';\n" +
+    "import { setUnsaved } from '@/lib/unsaved';\n" +
+    "import { ErrorNote } from '@/components/ui/error-note';\n" +
+    "import { reconcileDraft } from '@/lib/draft-sync';\n" +
+    "import { usePollKeys } from '@/components/polling';\n" +
+    "import { dueInfo, relativeTime } from '@/lib/dates';\n" +
+    "import { neighbours } from '@/lib/board-model';\n" +
+    "import { describeActivity } from '@/lib/activity';\n" +
+    "import { can, ROLE_META, normalizeRole, type Role } from '@/lib/roles';\n" +
+    "import { useAssignablePeople, useProjectPeople } from '@/lib/assignee-people';\n" +
+    "import { EMPTY_ASSIGNEES, MAX_ASSIGNEES, NO_ACCESS_HINT, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, peopleLoadError, ineligibleIds, namesFor, noBoardAccess, pickerState, saveBarText } from '@/lib/assignees';\n" +
+    "import { Icon } from '@/components/ui/icon';\n" +
+    "import { CardImages } from './card-images';\n" +
+    "import { formatPersonName } from '@/lib/person-name';\n" +
+    "import { useSession } from '@/lib/session';\n" +
+    "import { Avatar } from '@/components/ui/avatar';\n" +
+    "import { CardComments } from './card-comments';\n" +
+    "import { commentSessions } from '@/lib/comment-state';\n" +
+    "import { useCursorFeed } from '@/lib/cursor-feed';\n" +
+    "import { DialogLayer } from '@/components/ui/dialog-layer';\n" +
+    "import { useToast } from '@/components/ui/toasts';\n" +
+    '\n' +
+    'interface Props {\n' +
+    '  cardId: string;\n' +
+    '  summary: CardSummary | null;\n' +
+    '  columns: ColumnSummary[];\n' +
+    '  people: Map<string, PersonDisplay>;\n' +
+    '  role: Role;\n' +
+    '  boardName: string;\n' +
+    '  structureVersion: number;\n' +
+    '  onClose: () => void;\n' +
+    '  onChanged: () => void;\n' +
+    '  onRequestMove: (card: CardSummary) => void;\n' +
+    '}\n' +
+    '\n' +
+    "interface Draft { title: string; description: string; priority: Card['priority']; dueDate: string; assigneeIds: string[]; columnId: string }\n" +
+    '\n' +
+    `const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';\n` +
+    '\n' +
+    'function toDraft(card: Card): Draft {\n' +
+    "  return { title: card.title, description: card.description, priority: card.priority, dueDate: card.dueDate ?? '', assigneeIds: card.assigneeIds, columnId: card.columnId };\n" +
+    '}\n' +
+    '\n' +
+    '/** Card detail drawer; markup follows index.html #cardDrawer and detail.js. */\n' +
+    'export function CardDetailDrawer(props: Props) {\n' +
+    '  const { cardId, columns, people, role, boardName, structureVersion, onClose, onChanged } = props;\n' +
+    '  const { state: sessionState } = useSession();\n' +
+    "  const draftActorId = sessionState.status === 'ready' ? sessionState.session.actor.id : '';\n" +
+    "  const cardKey=useMemo(()=>['card',cardId,draftActorId] as const,[cardId,draftActorId]);\n" +
+    '  const client=useQueryClient();\n' +
+    '  const cardQuery = useQuery({\n' +
+    '    queryKey: cardKey,\n' +
+    '    queryFn: async ({signal}) => (await api.getCard(cardId,signal)).data,\n' +
+    '    enabled:!!draftActorId,\n' +
+    '    retry: (count, error) => !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 1,\n' +
+    '  });\n' +
+    '  usePollKeys([cardKey],!!draftActorId);\n' +
+    '  useEffect(()=>{discardRefusedRows(client,cardKey,cardQuery.error);},[client,cardKey,cardQuery.error]);\n' +
+    '  const panelRef = useRef<HTMLElement>(null);\n' +
+    '  const [open, setOpen] = useState(false);\n' +
+    '  const dirtyRef = useRef(false);\n' +
+    '  const commentSession = useMemo(() => commentSessions.forCard(draftActorId, cardId), [draftActorId, cardId]);\n' +
+    '  const commentDrafts = useSyncExternalStore(commentSession.subscribe, commentSession.get, commentSession.get);\n' +
+    '  const commentDirty = !!commentDrafts.create.body || !!commentDrafts.edit || !!commentDrafts.remove;\n' +
+    "  const [confirm, setConfirm] = useState<null | 'discard' | 'delete'>(null);\n" +
+    '\n' +
+    '  useEffect(() => {\n' +
+    '    const remembered=document.activeElement instanceof HTMLElement?document.activeElement:null;\n' +
+    "    const release=pageInertLock.acquire(document.querySelector('.app'));\n" +
+    '    const raf = requestAnimationFrame(() => { setOpen(true); panelRef.current?.focus({ preventScroll: true }); });\n' +
+    "    document.body.style.overflow = 'hidden';\n" +
+    '    return () => { cancelAnimationFrame(raf); document.body.style.overflow = \'\'; release(); requestAnimationFrame(()=>pickFocusTarget(remembered,()=>document.querySelector<HTMLElement>(`.card[data-card-id="${CSS.escape(cardId)}"] .card-open`),()=>document.getElementById(\'boardTitle\'))?.focus({preventScroll:true})); };\n' +
+    '  }, []);\n' +
+    '\n' +
+    '  const finishClose = useCallback(() => {\n' +
+    '    setOpen(false);\n' +
+    '    window.setTimeout(onClose, 200);\n' +
+    '  }, [onClose]);\n' +
+    "  const requestClose = useCallback(() => { if (dirtyRef.current || commentDirty) setConfirm('discard'); else finishClose(); }, [finishClose, commentDirty]);\n" +
+    '\n' +
+    '  const onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {\n' +
+    "    if (event.key === 'Escape' && !confirm && !event.defaultPrevented) { event.preventDefault(); requestClose(); return; }\n" +
+    "    if (event.key !== 'Tab') return;\n" +
+    '    const panel = panelRef.current;\n' +
+    '    if (!panel) return;\n' +
+    '    const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => el.getClientRects().length > 0);\n' +
+    '    const first = items[0];\n' +
+    '    const last = items[items.length - 1];\n' +
+    '    if (!first || !last) return;\n' +
+    '    if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) { event.preventDefault(); last.focus(); }\n' +
+    '    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }\n' +
+    '  };\n' +
+    '\n' +
+    '  const denied=cardQuery.error instanceof ApiError&&[401,403,404].includes(cardQuery.error.status);\n' +
+    '  const card = draftActorId&&!denied?cardQuery.data:undefined;\n' +
+    '  // Trashed or no longer visible while open: say so and close, instead of leaving a stale or blank drawer.\n' +
+    '  const goneStatus = cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status) ? cardQuery.error.status : 0;\n' +
+    "  const trashed = !!card && (card.state !== 'active' || card.deletedAt !== null);\n" +
+    '  const toast = useToast();\n' +
+    '  const leftRef = useRef(false);\n' +
+    '  useEffect(() => {\n' +
+    '    if (leftRef.current || !card || !(goneStatus || trashed)) return;\n' +
+    '    leftRef.current = true;\n' +
+    "    toast(trashed ? 'This card was moved to the trash.' : 'This card was removed or you no longer have access to it.', { icon: 'alert' });\n" +
+    '    dirtyRef.current = false;\n' +
+    '    onChanged();\n' +
+    '    finishClose();\n' +
+    '  }, [card, goneStatus, trashed, toast, onChanged, finishClose]);\n' +
+    '\n' +
+    "  if(typeof document==='undefined')return null;\n" +
+    '  return createPortal(\n' +
+    '    <>\n' +
+    '      <div className={`scrim${open ? \' is-open\' : \'\'}`} id="drawerScrim" onClick={requestClose} />\n' +
+    '      <aside\n' +
+    '        ref={panelRef}\n' +
+    "        className={`drawer${open ? ' is-open' : ''}`}\n" +
+    '        id="cardDrawer"\n' +
+    '        role="dialog"\n' +
+    '        aria-modal="true"\n' +
+    "        aria-label={`Card details: ${card?.title ?? props.summary?.title ?? ''}`}\n" +
+    '        aria-hidden={!open}\n' +
+    '        tabIndex={-1}\n' +
+    '        onKeyDown={onKeyDown}\n' +
+    '      >\n' +
+    '        {card ? (\n' +
+    '          <DrawerBody\n' +
+    '            key={card.id}\n' +
+    '            card={card}\n' +
+    '            columns={columns}\n' +
+    '            people={people}\n' +
+    '            role={role}\n' +
+    '            boardName={boardName}\n' +
+    '            structureVersion={structureVersion}\n' +
+    '            dirtyRef={dirtyRef}\n' +
+    '            requestClose={requestClose}\n' +
+    "            requestDelete={() => setConfirm('delete')}\n" +
+    '            onRequestMove={() => props.onRequestMove(props.summary ?? card)}\n' +
+    '            onSaved={() => { void cardQuery.refetch(); onChanged(); }}\n' +
+    '          />\n' +
+    '        ) : (\n' +
+    '          <>\n' +
+    '            <header className="drawer-head">\n' +
+    '              <div className="drawer-crumb"><strong>{boardName}</strong></div>\n' +
+    '              <div className="drawer-head-actions">\n' +
+    '                <button className="drawer-close" type="button" onClick={requestClose} aria-label="Close card details"><Icon name="x" className="icon-lg" /></button>\n' +
+    '              </div>\n' +
+    '            </header>\n' +
+    '            <div className="drawer-scroll">\n' +
+    '              {cardQuery.isPending && <p role="status" className="hint">Loading card…</p>}\n' +
+    `              {cardQuery.isError && <p role="alert" className="field-error">{cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status) ? 'This card does not exist or you cannot open it.' : describeError(cardQuery.error)}</p>}\n` +
+    '            </div>\n' +
+    '          </>\n' +
+    '        )}\n' +
+    '      </aside>\n' +
+    '\n' +
+    '      <DiscardDeleteDialog\n' +
+    '        kind={confirm}\n' +
+    '        onCancel={() => setConfirm(null)}\n' +
+    '        card={card ?? null}\n' +
+    '        structureVersion={structureVersion}\n' +
+    '        onDiscard={() => { dirtyRef.current = false; setConfirm(null); finishClose(); }}\n' +
+    '        onDeleted={() => { setConfirm(null); dirtyRef.current = false; onChanged(); finishClose(); }}\n' +
+    '      />\n' +
+    '    </>, document.body\n' +
+    '  );\n' +
+    '}\n' +
+    '\n' +
+    'function DiscardDeleteDialog({ kind, onCancel, card, structureVersion, onDiscard, onDeleted }: {\n' +
+    "  kind: null | 'discard' | 'delete'; onCancel: () => void; card: Card | null; structureVersion: number; onDiscard: () => void; onDeleted: () => void;\n" +
+    '}) {\n' +
+    '  const toast = useToast();\n' +
+    '  const [busy, setBusy] = useState(false);\n' +
+    '  const remove = async () => {\n' +
+    '    if (!card) return;\n' +
+    '    setBusy(true);\n' +
+    '    try {\n' +
+    '      await api.softDeleteCard(card.id, { expectedVersion: card.version, expectedBoardVersion: structureVersion });\n' +
+    "      toast('Card moved to trash.', { icon: 'trash' });\n" +
+    '      onDeleted();\n' +
+    '    } catch (error) {\n' +
+    '      toastFailure(toast, error);\n' +
+    '    } finally { setBusy(false); }\n' +
+    '  };\n' +
+    "  const isDelete = kind === 'delete';\n" +
+    '  return (\n' +
+    '    <DialogLayer open={kind !== n'... 24009 more characters
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/assignees.test.ts:94:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '\'use client\';\n\nimport { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from \'react\';\nimport Link from \'next/link\';\nimport { createPortal } from \'react-dom\';\nimport { cardDraftSessions, cardFieldsDirty, cardFieldsInput } from \'@/lib/card-drafts\';\nimport { discardRefusedRows } from \'@/lib/feed-state\';\nimport { pageInertLock, pickFocusTarget } from \'@/lib/inert-lock\';\nimport { useMutation, useQuery, useQueryClient } from \'@tanstack/react-query\';\nimport type { ActivityItem, Card, CardSummary, ColumnSummary, PersonDisplay } from \'@flowboard/contracts\';\nimport { api, ApiError } from \'@/lib/api\';\nimport { toastFailure } from \'@/lib/toast-failure\';\nimport { describeError, describeFailure, isStale } from \'@/lib/errors\';\nimport { setUnsaved } from \'@/lib/unsaved\';\nimport { ErrorNote } from \'@/components/ui/error-note\';\nimport { reconcileDraft } from \'@/lib/draft-sync\';\nimport { usePollKeys } from \'@/components/polling\';\nimport { dueInfo, relativeTime } from \'@/lib/dates\';\nimport { neighbours } from \'@/lib/board-model\';\nimport { describeActivity } from \'@/lib/activity\';\nimport { can, ROLE_META, normalizeRole, type Role } from \'@/lib/roles\';\nimport { useAssignablePeople, useProjectPeople } from \'@/lib/assignee-people\';\nimport { EMPTY_ASSIGNEES, MAX_ASSIGNEES, NO_ACCESS_HINT, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, peopleLoadError, ineligibleIds, namesFor, noBoardAccess, pickerState, saveBarText } from \'@/lib/assignees\';\nimport { Icon } from \'@/components/ui/icon\';\nimport { CardImages } from \'./card-images\';\nimport { formatPersonName } from \'@/lib/person-name\';\nimport { useSession } from \'@/lib/session\';\nimport { Avatar } from \'@/components/ui/avatar\';\nimport { CardComments } from \'./card-comments\';\nimport { commentSessions } from \'@/lib/comment-state\';\nimport { useCursorFeed } from \'@/lib/cursor-feed\';\nimport { DialogLayer } from \'@/components/ui/dialog-layer\';\nimport { useToast } from \'@/components/ui/toasts\';\n\ninterface Props {\n  cardId: string;\n  summary: CardSummary | null;\n  columns: ColumnSummary[];\n  people: Map<string, PersonDisplay>;\n  role: Role;\n  boardName: string;\n  structureVersion: number;\n  onClose: () => void;\n  onChanged: () => void;\n  onRequestMove: (card: CardSummary) => void;\n}\n\ninterface Draft { title: string; description: string; priority: Card[\'priority\']; dueDate: string; assigneeIds: string[]; columnId: string }\n\nconst FOCUSABLE = \'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])\';\n\nfunction toDraft(card: Card): Draft {\n  return { title: card.title, description: card.description, priority: card.priority, dueDate: card.dueDate ?? \'\', assigneeIds: card.assigneeIds, columnId: card.columnId };\n}\n\n/** Card detail drawer; markup follows index.html #cardDrawer and detail.js. */\nexport function CardDetailDrawer(props: Props) {\n  const { cardId, columns, people, role, boardName, structureVersion, onClose, onChanged } = props;\n  const { state: sessionState } = useSession();\n  const draftActorId = sessionState.status === \'ready\' ? sessionState.session.actor.id : \'\';\n  const cardKey=useMemo(()=>[\'card\',cardId,draftActorId] as const,[cardId,draftActorId]);\n  const client=useQueryClient();\n  const cardQuery = useQuery({\n    queryKey: cardKey,\n    queryFn: async ({signal}) => (await api.getCard(cardId,signal)).data,\n    enabled:!!draftActorId,\n    retry: (count, error) => !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 1,\n  });\n  usePollKeys([cardKey],!!draftActorId);\n  useEffect(()=>{discardRefusedRows(client,cardKey,cardQuery.error);},[client,cardKey,cardQuery.error]);\n  const panelRef = useRef<HTMLElement>(null);\n  const [open, setOpen] = useState(false);\n  const dirtyRef = useRef(false);\n  const commentSession = useMemo(() => commentSessions.forCard(draftActorId, cardId), [draftActorId, cardId]);\n  const commentDrafts = useSyncExternalStore(commentSession.subscribe, commentSession.get, commentSession.get);\n  const commentDirty = !!commentDrafts.create.body || !!commentDrafts.edit || !!commentDrafts.remove;\n  const [confirm, setConfirm] = useState<null | \'discard\' | \'delete\'>(null);\n\n  useEffect(() => {\n    const remembered=document.activeElement instanceof HTMLElement?document.activeElement:null;\n    const release=pageInertLock.acquire(document.querySelector(\'.app\'));\n    const raf = requestAnimationFrame(() => { setOpen(true); panelRef.current?.focus({ preventScroll: true }); });\n    document.body.style.overflow = \'hidden\';\n    return () => { cancelAnimationFrame(raf); document.body.style.overflow = \'\'; release(); requestAnimationFrame(()=>pickFocusTarget(remembered,()=>document.querySelector<HTMLElement>(`.card[data-card-id="${CSS.escape(cardId)}"] .card-open`),()=>document.getElementById(\'boardTitle\'))?.focus({preventScroll:true})); };\n  }, []);\n\n  const finishClose = useCallback(() => {\n    setOpen(false);\n    window.setTimeout(onClose, 200);\n  }, [onClose]);\n  const requestClose = useCallback(() => { if (dirtyRef.current || commentDirty) setConfirm(\'discard\'); else finishClose(); }, [finishClose, commentDirty]);\n\n  const onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {\n    if (event.key === \'Escape\' && !confirm && !event.defaultPrevented) { event.preventDefault(); requestClose(); return; }\n    if (event.key !== \'Tab\') return;\n    const panel = panelRef.current;\n    if (!panel) return;\n    const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => el.getClientRects().length > 0);\n    const first = items[0];\n    const last = items[items.length - 1];\n    if (!first || !last) return;\n    if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) { event.preventDefault(); last.focus(); }\n    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }\n  };\n\n  const denied=cardQuery.error instanceof ApiError&&[401,403,404].includes(cardQuery.error.status);\n  const card = draftActorId&&!denied?cardQuery.data:undefined;\n  // Trashed or no longer visible while open: say so and close, instead of leaving a stale or blank drawer.\n  const goneStatus = cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status) ? cardQuery.error.status : 0;\n  const trashed = !!card && (card.state !== \'active\' || card.deletedAt !== null);\n  const toast = useToast();\n  const leftRef = useRef(false);\n  useEffect(() => {\n    if (leftRef.current || !card || !(goneStatus || trashed)) return;\n    leftRef.current = true;\n    toast(trashed ? \'This card was moved to the trash.\' : \'This card was removed or you no longer have access to it.\', { icon: \'alert\' });\n    dirtyRef.current = false;\n    onChanged();\n    finishClose();\n  }, [card, goneStatus, trashed, toast, onChanged, finishClose]);\n\n  if(typeof document===\'undefined\')return null;\n  return createPortal(\n    <>\n      <div className={`scrim${open ? \' is-open\' : \'\'}`} id="drawerScrim" onClick={requestClose} />\n      <aside\n        ref={panelRef}\n        className={`drawer${open ? \' is-open\' : \'\'}`}\n        id="cardDrawer"\n        role="dialog"\n        aria-modal="true"\n        aria-label={`Card details: ${card?.title ?? props.summary?.title ?? \'\'}`}\n        aria-hidden={!open}\n        tabIndex={-1}\n        onKeyDown={onKeyDown}\n      >\n        {card ? (\n          <DrawerBody\n            key={card.id}\n            card={card}\n            columns={columns}\n            people={people}\n            role={role}\n            boardName={boardName}\n            structureVersion={structureVersion}\n            dirtyRef={dirtyRef}\n            requestClose={requestClose}\n            requestDelete={() => setConfirm(\'delete\')}\n            onRequestMove={() => props.onRequestMove(props.summary ?? card)}\n            onSaved={() => { void cardQuery.refetch(); onChanged(); }}\n          />\n        ) : (\n          <>\n            <header className="drawer-head">\n              <div className="drawer-crumb"><strong>{boardName}</strong></div>\n              <div className="drawer-head-actions">\n                <button className="drawer-close" type="button" onClick={requestClose} aria-label="Close card details"><Icon name="x" className="icon-lg" /></button>\n              </div>\n            </header>\n            <div className="drawer-scroll">\n              {cardQuery.isPending && <p role="status" className="hint">Loading card…</p>}\n              {cardQuery.isError && <p role="alert" className="field-error">{cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status) ? \'This card does not exist or you cannot open it.\' : describeError(cardQuery.error)}</p>}\n            </div>\n          </>\n        )}\n      </aside>\n\n      <DiscardDeleteDialog\n        kind={confirm}\n        onCancel={() => setConfirm(null)}\n        card={card ?? null}\n        structureVersion={structureVersion}\n        onDiscard={() => { dirtyRef.current = false; setConfirm(null); finishClose(); }}\n        onDeleted={() => { setConfirm(null); dirtyRef.current = false; onChanged(); finishClose(); }}\n      />\n    </>, document.body\n  );\n}\n\nfunction DiscardDeleteDialog({ kind, onCancel, card, structureVersion, onDiscard, onDeleted }: {\n  kind: null | \'discard\' | \'delete\'; onCancel: () => void; card: Card | null; structureVersion: number; onDiscard: () => void; onDeleted: () => void;\n}) {\n  const toast = useToast();\n  const [busy, setBusy] = useState(false);\n  const remove = async () => {\n    if (!card) return;\n    setBusy(true);\n    try {\n      await api.softDeleteCard(card.id, { expectedVersion: card.version, expectedBoardVersion: structureVersion });\n      toast(\'Card moved to trash.\', { icon: \'trash\' });\n      onDeleted();\n    } catch (error) {\n      toastFailure(toast, error);\n    } finally { setBusy(false); }\n  };\n  const isDelete = kind === \'delete\';\n  return (\n    <DialogLayer open={kind !== n'... 24009 more characters,
+    expected: /saveBarText\(\{ saving: save\.isPending, failed: save\.isError && dirty, dirty, reason:/,
+    operator: 'match',
+    diff: 'simple'
+  }
+
+test at test/error-catalogue.test.ts:19:1
+✖ every code the contract lists has a catalogue entry (0.246875ms)
+  AssertionError [ERR_ASSERTION]: no entry for CELL_LIMIT_EXCEEDED
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/error-catalogue.test.ts:20:51)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/error-catalogue.test.ts:130:1
+✖ every code in the shared ERROR_CATALOG has its own catalogue entry, and reads well at its listed status (0.181584ms)
+  AssertionError [ERR_ASSERTION]: CELL_LIMIT_EXCEEDED: no catalogue entry (a class default is not enough for a listed code)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/error-catalogue.test.ts:134:12)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at test/signin-states.test.ts:39:1
+✖ a session that ends keeps the page while text is unsaved, and offers Sign in (1.120709ms)
+  AssertionError [ERR_ASSERTION]: The input did not match the regular expression /setUnsaved\(`card:\$\{card\.id\}`, dirty\)/. Input:
+  
+  "'use client';\n" +
+    '\n' +
+    "import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';\n" +
+    "import Link from 'next/link';\n" +
+    "import { createPortal } from 'react-dom';\n" +
+    "import { cardDraftSessions, cardFieldsDirty, cardFieldsInput } from '@/lib/card-drafts';\n" +
+    "import { discardRefusedRows } from '@/lib/feed-state';\n" +
+    "import { pageInertLock, pickFocusTarget } from '@/lib/inert-lock';\n" +
+    "import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';\n" +
+    "import type { ActivityItem, Card, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';\n" +
+    "import { api, ApiError } from '@/lib/api';\n" +
+    "import { toastFailure } from '@/lib/toast-failure';\n" +
+    "import { describeError, describeFailure, isStale } from '@/lib/errors';\n" +
+    "import { setUnsaved } from '@/lib/unsaved';\n" +
+    "import { ErrorNote } from '@/components/ui/error-note';\n" +
+    "import { reconcileDraft } from '@/lib/draft-sync';\n" +
+    "import { usePollKeys } from '@/components/polling';\n" +
+    "import { dueInfo, relativeTime } from '@/lib/dates';\n" +
+    "import { neighbours } from '@/lib/board-model';\n" +
+    "import { describeActivity } from '@/lib/activity';\n" +
+    "import { can, ROLE_META, normalizeRole, type Role } from '@/lib/roles';\n" +
+    "import { useAssignablePeople, useProjectPeople } from '@/lib/assignee-people';\n" +
+    "import { EMPTY_ASSIGNEES, MAX_ASSIGNEES, NO_ACCESS_HINT, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, peopleLoadError, ineligibleIds, namesFor, noBoardAccess, pickerState, saveBarText } from '@/lib/assignees';\n" +
+    "import { Icon } from '@/components/ui/icon';\n" +
+    "import { CardImages } from './card-images';\n" +
+    "import { formatPersonName } from '@/lib/person-name';\n" +
+    "import { useSession } from '@/lib/session';\n" +
+    "import { Avatar } from '@/components/ui/avatar';\n" +
+    "import { CardComments } from './card-comments';\n" +
+    "import { commentSessions } from '@/lib/comment-state';\n" +
+    "import { useCursorFeed } from '@/lib/cursor-feed';\n" +
+    "import { DialogLayer } from '@/components/ui/dialog-layer';\n" +
+    "import { useToast } from '@/components/ui/toasts';\n" +
+    '\n' +
+    'interface Props {\n' +
+    '  cardId: string;\n' +
+    '  summary: CardSummary | null;\n' +
+    '  columns: ColumnSummary[];\n' +
+    '  people: Map<string, PersonDisplay>;\n' +
+    '  role: Role;\n' +
+    '  boardName: string;\n' +
+    '  structureVersion: number;\n' +
+    '  onClose: () => void;\n' +
+    '  onChanged: () => void;\n' +
+    '  onRequestMove: (card: CardSummary) => void;\n' +
+    '}\n' +
+    '\n' +
+    "interface Draft { title: string; description: string; priority: Card['priority']; dueDate: string; assigneeIds: string[]; columnId: string }\n" +
+    '\n' +
+    `const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';\n` +
+    '\n' +
+    'function toDraft(card: Card): Draft {\n' +
+    "  return { title: card.title, description: card.description, priority: card.priority, dueDate: card.dueDate ?? '', assigneeIds: card.assigneeIds, columnId: card.columnId };\n" +
+    '}\n' +
+    '\n' +
+    '/** Card detail drawer; markup follows index.html #cardDrawer and detail.js. */\n' +
+    'export function CardDetailDrawer(props: Props) {\n' +
+    '  const { cardId, columns, people, role, boardName, structureVersion, onClose, onChanged } = props;\n' +
+    '  const { state: sessionState } = useSession();\n' +
+    "  const draftActorId = sessionState.status === 'ready' ? sessionState.session.actor.id : '';\n" +
+    "  const cardKey=useMemo(()=>['card',cardId,draftActorId] as const,[cardId,draftActorId]);\n" +
+    '  const client=useQueryClient();\n' +
+    '  const cardQuery = useQuery({\n' +
+    '    queryKey: cardKey,\n' +
+    '    queryFn: async ({signal}) => (await api.getCard(cardId,signal)).data,\n' +
+    '    enabled:!!draftActorId,\n' +
+    '    retry: (count, error) => !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 1,\n' +
+    '  });\n' +
+    '  usePollKeys([cardKey],!!draftActorId);\n' +
+    '  useEffect(()=>{discardRefusedRows(client,cardKey,cardQuery.error);},[client,cardKey,cardQuery.error]);\n' +
+    '  const panelRef = useRef<HTMLElement>(null);\n' +
+    '  const [open, setOpen] = useState(false);\n' +
+    '  const dirtyRef = useRef(false);\n' +
+    '  const commentSession = useMemo(() => commentSessions.forCard(draftActorId, cardId), [draftActorId, cardId]);\n' +
+    '  const commentDrafts = useSyncExternalStore(commentSession.subscribe, commentSession.get, commentSession.get);\n' +
+    '  const commentDirty = !!commentDrafts.create.body || !!commentDrafts.edit || !!commentDrafts.remove;\n' +
+    "  const [confirm, setConfirm] = useState<null | 'discard' | 'delete'>(null);\n" +
+    '\n' +
+    '  useEffect(() => {\n' +
+    '    const remembered=document.activeElement instanceof HTMLElement?document.activeElement:null;\n' +
+    "    const release=pageInertLock.acquire(document.querySelector('.app'));\n" +
+    '    const raf = requestAnimationFrame(() => { setOpen(true); panelRef.current?.focus({ preventScroll: true }); });\n' +
+    "    document.body.style.overflow = 'hidden';\n" +
+    '    return () => { cancelAnimationFrame(raf); document.body.style.overflow = \'\'; release(); requestAnimationFrame(()=>pickFocusTarget(remembered,()=>document.querySelector<HTMLElement>(`.card[data-card-id="${CSS.escape(cardId)}"] .card-open`),()=>document.getElementById(\'boardTitle\'))?.focus({preventScroll:true})); };\n' +
+    '  }, []);\n' +
+    '\n' +
+    '  const finishClose = useCallback(() => {\n' +
+    '    setOpen(false);\n' +
+    '    window.setTimeout(onClose, 200);\n' +
+    '  }, [onClose]);\n' +
+    "  const requestClose = useCallback(() => { if (dirtyRef.current || commentDirty) setConfirm('discard'); else finishClose(); }, [finishClose, commentDirty]);\n" +
+    '\n' +
+    '  const onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {\n' +
+    "    if (event.key === 'Escape' && !confirm && !event.defaultPrevented) { event.preventDefault(); requestClose(); return; }\n" +
+    "    if (event.key !== 'Tab') return;\n" +
+    '    const panel = panelRef.current;\n' +
+    '    if (!panel) return;\n' +
+    '    const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => el.getClientRects().length > 0);\n' +
+    '    const first = items[0];\n' +
+    '    const last = items[items.length - 1];\n' +
+    '    if (!first || !last) return;\n' +
+    '    if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) { event.preventDefault(); last.focus(); }\n' +
+    '    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }\n' +
+    '  };\n' +
+    '\n' +
+    '  const denied=cardQuery.error instanceof ApiError&&[401,403,404].includes(cardQuery.error.status);\n' +
+    '  const card = draftActorId&&!denied?cardQuery.data:undefined;\n' +
+    '  // Trashed or no longer visible while open: say so and close, instead of leaving a stale or blank drawer.\n' +
+    '  const goneStatus = cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status) ? cardQuery.error.status : 0;\n' +
+    "  const trashed = !!card && (card.state !== 'active' || card.deletedAt !== null);\n" +
+    '  const toast = useToast();\n' +
+    '  const leftRef = useRef(false);\n' +
+    '  useEffect(() => {\n' +
+    '    if (leftRef.current || !card || !(goneStatus || trashed)) return;\n' +
+    '    leftRef.current = true;\n' +
+    "    toast(trashed ? 'This card was moved to the trash.' : 'This card was removed or you no longer have access to it.', { icon: 'alert' });\n" +
+    '    dirtyRef.current = false;\n' +
+    '    onChanged();\n' +
+    '    finishClose();\n' +
+    '  }, [card, goneStatus, trashed, toast, onChanged, finishClose]);\n' +
+    '\n' +
+    "  if(typeof document==='undefined')return null;\n" +
+    '  return createPortal(\n' +
+    '    <>\n' +
+    '      <div className={`scrim${open ? \' is-open\' : \'\'}`} id="drawerScrim" onClick={requestClose} />\n' +
+    '      <aside\n' +
+    '        ref={panelRef}\n' +
+    "        className={`drawer${open ? ' is-open' : ''}`}\n" +
+    '        id="cardDrawer"\n' +
+    '        role="dialog"\n' +
+    '        aria-modal="true"\n' +
+    "        aria-label={`Card details: ${card?.title ?? props.summary?.title ?? ''}`}\n" +
+    '        aria-hidden={!open}\n' +
+    '        tabIndex={-1}\n' +
+    '        onKeyDown={onKeyDown}\n' +
+    '      >\n' +
+    '        {card ? (\n' +
+    '          <DrawerBody\n' +
+    '            key={card.id}\n' +
+    '            card={card}\n' +
+    '            columns={columns}\n' +
+    '            people={people}\n' +
+    '            role={role}\n' +
+    '            boardName={boardName}\n' +
+    '            structureVersion={structureVersion}\n' +
+    '            dirtyRef={dirtyRef}\n' +
+    '            requestClose={requestClose}\n' +
+    "            requestDelete={() => setConfirm('delete')}\n" +
+    '            onRequestMove={() => props.onRequestMove(props.summary ?? card)}\n' +
+    '            onSaved={() => { void cardQuery.refetch(); onChanged(); }}\n' +
+    '          />\n' +
+    '        ) : (\n' +
+    '          <>\n' +
+    '            <header className="drawer-head">\n' +
+    '              <div className="drawer-crumb"><strong>{boardName}</strong></div>\n' +
+    '              <div className="drawer-head-actions">\n' +
+    '                <button className="drawer-close" type="button" onClick={requestClose} aria-label="Close card details"><Icon name="x" className="icon-lg" /></button>\n' +
+    '              </div>\n' +
+    '            </header>\n' +
+    '            <div className="drawer-scroll">\n' +
+    '              {cardQuery.isPending && <p role="status" className="hint">Loading card…</p>}\n' +
+    `              {cardQuery.isError && <p role="alert" className="field-error">{cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status) ? 'This card does not exist or you cannot open it.' : describeError(cardQuery.error)}</p>}\n` +
+    '            </div>\n' +
+    '          </>\n' +
+    '        )}\n' +
+    '      </aside>\n' +
+    '\n' +
+    '      <DiscardDeleteDialog\n' +
+    '        kind={confirm}\n' +
+    '        onCancel={() => setConfirm(null)}\n' +
+    '        card={card ?? null}\n' +
+    '        structureVersion={structureVersion}\n' +
+    '        onDiscard={() => { dirtyRef.current = false; setConfirm(null); finishClose(); }}\n' +
+    '        onDeleted={() => { setConfirm(null); dirtyRef.current = false; onChanged(); finishClose(); }}\n' +
+    '      />\n' +
+    '    </>, document.body\n' +
+    '  );\n' +
+    '}\n' +
+    '\n' +
+    'function DiscardDeleteDialog({ kind, onCancel, card, structureVersion, onDiscard, onDeleted }: {\n' +
+    "  kind: null | 'discard' | 'delete'; onCancel: () => void; card: Card | null; structureVersion: number; onDiscard: () => void; onDeleted: () => void;\n" +
+    '}) {\n' +
+    '  const toast = useToast();\n' +
+    '  const [busy, setBusy] = useState(false);\n' +
+    '  const remove = async () => {\n' +
+    '    if (!card) return;\n' +
+    '    setBusy(true);\n' +
+    '    try {\n' +
+    '      await api.softDeleteCard(card.id, { expectedVersion: card.version, expectedBoardVersion: structureVersion });\n' +
+    "      toast('Card moved to trash.', { icon: 'trash' });\n" +
+    '      onDeleted();\n' +
+    '    } catch (error) {\n' +
+    '      toastFailure(toast, error);\n' +
+    '    } finally { setBusy(false); }\n' +
+    '  };\n' +
+    "  const isDelete = kind === 'delete';\n" +
+    '  return (\n' +
+    '    <DialogLayer open={kind !== n'... 24009 more characters
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/signin-states.test.ts:46:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '\'use client\';\n\nimport { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from \'react\';\nimport Link from \'next/link\';\nimport { createPortal } from \'react-dom\';\nimport { cardDraftSessions, cardFieldsDirty, cardFieldsInput } from \'@/lib/card-drafts\';\nimport { discardRefusedRows } from \'@/lib/feed-state\';\nimport { pageInertLock, pickFocusTarget } from \'@/lib/inert-lock\';\nimport { useMutation, useQuery, useQueryClient } from \'@tanstack/react-query\';\nimport type { ActivityItem, Card, CardSummary, ColumnSummary, PersonDisplay } from \'@flowboard/contracts\';\nimport { api, ApiError } from \'@/lib/api\';\nimport { toastFailure } from \'@/lib/toast-failure\';\nimport { describeError, describeFailure, isStale } from \'@/lib/errors\';\nimport { setUnsaved } from \'@/lib/unsaved\';\nimport { ErrorNote } from \'@/components/ui/error-note\';\nimport { reconcileDraft } from \'@/lib/draft-sync\';\nimport { usePollKeys } from \'@/components/polling\';\nimport { dueInfo, relativeTime } from \'@/lib/dates\';\nimport { neighbours } from \'@/lib/board-model\';\nimport { describeActivity } from \'@/lib/activity\';\nimport { can, ROLE_META, normalizeRole, type Role } from \'@/lib/roles\';\nimport { useAssignablePeople, useProjectPeople } from \'@/lib/assignee-people\';\nimport { EMPTY_ASSIGNEES, MAX_ASSIGNEES, NO_ACCESS_HINT, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, peopleLoadError, ineligibleIds, namesFor, noBoardAccess, pickerState, saveBarText } from \'@/lib/assignees\';\nimport { Icon } from \'@/components/ui/icon\';\nimport { CardImages } from \'./card-images\';\nimport { formatPersonName } from \'@/lib/person-name\';\nimport { useSession } from \'@/lib/session\';\nimport { Avatar } from \'@/components/ui/avatar\';\nimport { CardComments } from \'./card-comments\';\nimport { commentSessions } from \'@/lib/comment-state\';\nimport { useCursorFeed } from \'@/lib/cursor-feed\';\nimport { DialogLayer } from \'@/components/ui/dialog-layer\';\nimport { useToast } from \'@/components/ui/toasts\';\n\ninterface Props {\n  cardId: string;\n  summary: CardSummary | null;\n  columns: ColumnSummary[];\n  people: Map<string, PersonDisplay>;\n  role: Role;\n  boardName: string;\n  structureVersion: number;\n  onClose: () => void;\n  onChanged: () => void;\n  onRequestMove: (card: CardSummary) => void;\n}\n\ninterface Draft { title: string; description: string; priority: Card[\'priority\']; dueDate: string; assigneeIds: string[]; columnId: string }\n\nconst FOCUSABLE = \'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])\';\n\nfunction toDraft(card: Card): Draft {\n  return { title: card.title, description: card.description, priority: card.priority, dueDate: card.dueDate ?? \'\', assigneeIds: card.assigneeIds, columnId: card.columnId };\n}\n\n/** Card detail drawer; markup follows index.html #cardDrawer and detail.js. */\nexport function CardDetailDrawer(props: Props) {\n  const { cardId, columns, people, role, boardName, structureVersion, onClose, onChanged } = props;\n  const { state: sessionState } = useSession();\n  const draftActorId = sessionState.status === \'ready\' ? sessionState.session.actor.id : \'\';\n  const cardKey=useMemo(()=>[\'card\',cardId,draftActorId] as const,[cardId,draftActorId]);\n  const client=useQueryClient();\n  const cardQuery = useQuery({\n    queryKey: cardKey,\n    queryFn: async ({signal}) => (await api.getCard(cardId,signal)).data,\n    enabled:!!draftActorId,\n    retry: (count, error) => !(error instanceof ApiError && [401, 403, 404].includes(error.status)) && count < 1,\n  });\n  usePollKeys([cardKey],!!draftActorId);\n  useEffect(()=>{discardRefusedRows(client,cardKey,cardQuery.error);},[client,cardKey,cardQuery.error]);\n  const panelRef = useRef<HTMLElement>(null);\n  const [open, setOpen] = useState(false);\n  const dirtyRef = useRef(false);\n  const commentSession = useMemo(() => commentSessions.forCard(draftActorId, cardId), [draftActorId, cardId]);\n  const commentDrafts = useSyncExternalStore(commentSession.subscribe, commentSession.get, commentSession.get);\n  const commentDirty = !!commentDrafts.create.body || !!commentDrafts.edit || !!commentDrafts.remove;\n  const [confirm, setConfirm] = useState<null | \'discard\' | \'delete\'>(null);\n\n  useEffect(() => {\n    const remembered=document.activeElement instanceof HTMLElement?document.activeElement:null;\n    const release=pageInertLock.acquire(document.querySelector(\'.app\'));\n    const raf = requestAnimationFrame(() => { setOpen(true); panelRef.current?.focus({ preventScroll: true }); });\n    document.body.style.overflow = \'hidden\';\n    return () => { cancelAnimationFrame(raf); document.body.style.overflow = \'\'; release(); requestAnimationFrame(()=>pickFocusTarget(remembered,()=>document.querySelector<HTMLElement>(`.card[data-card-id="${CSS.escape(cardId)}"] .card-open`),()=>document.getElementById(\'boardTitle\'))?.focus({preventScroll:true})); };\n  }, []);\n\n  const finishClose = useCallback(() => {\n    setOpen(false);\n    window.setTimeout(onClose, 200);\n  }, [onClose]);\n  const requestClose = useCallback(() => { if (dirtyRef.current || commentDirty) setConfirm(\'discard\'); else finishClose(); }, [finishClose, commentDirty]);\n\n  const onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {\n    if (event.key === \'Escape\' && !confirm && !event.defaultPrevented) { event.preventDefault(); requestClose(); return; }\n    if (event.key !== \'Tab\') return;\n    const panel = panelRef.current;\n    if (!panel) return;\n    const items = Array.from(panel.querySelectorAll<HTMLElement>(FOCUSABLE)).filter((el) => el.getClientRects().length > 0);\n    const first = items[0];\n    const last = items[items.length - 1];\n    if (!first || !last) return;\n    if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) { event.preventDefault(); last.focus(); }\n    else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }\n  };\n\n  const denied=cardQuery.error instanceof ApiError&&[401,403,404].includes(cardQuery.error.status);\n  const card = draftActorId&&!denied?cardQuery.data:undefined;\n  // Trashed or no longer visible while open: say so and close, instead of leaving a stale or blank drawer.\n  const goneStatus = cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status) ? cardQuery.error.status : 0;\n  const trashed = !!card && (card.state !== \'active\' || card.deletedAt !== null);\n  const toast = useToast();\n  const leftRef = useRef(false);\n  useEffect(() => {\n    if (leftRef.current || !card || !(goneStatus || trashed)) return;\n    leftRef.current = true;\n    toast(trashed ? \'This card was moved to the trash.\' : \'This card was removed or you no longer have access to it.\', { icon: \'alert\' });\n    dirtyRef.current = false;\n    onChanged();\n    finishClose();\n  }, [card, goneStatus, trashed, toast, onChanged, finishClose]);\n\n  if(typeof document===\'undefined\')return null;\n  return createPortal(\n    <>\n      <div className={`scrim${open ? \' is-open\' : \'\'}`} id="drawerScrim" onClick={requestClose} />\n      <aside\n        ref={panelRef}\n        className={`drawer${open ? \' is-open\' : \'\'}`}\n        id="cardDrawer"\n        role="dialog"\n        aria-modal="true"\n        aria-label={`Card details: ${card?.title ?? props.summary?.title ?? \'\'}`}\n        aria-hidden={!open}\n        tabIndex={-1}\n        onKeyDown={onKeyDown}\n      >\n        {card ? (\n          <DrawerBody\n            key={card.id}\n            card={card}\n            columns={columns}\n            people={people}\n            role={role}\n            boardName={boardName}\n            structureVersion={structureVersion}\n            dirtyRef={dirtyRef}\n            requestClose={requestClose}\n            requestDelete={() => setConfirm(\'delete\')}\n            onRequestMove={() => props.onRequestMove(props.summary ?? card)}\n            onSaved={() => { void cardQuery.refetch(); onChanged(); }}\n          />\n        ) : (\n          <>\n            <header className="drawer-head">\n              <div className="drawer-crumb"><strong>{boardName}</strong></div>\n              <div className="drawer-head-actions">\n                <button className="drawer-close" type="button" onClick={requestClose} aria-label="Close card details"><Icon name="x" className="icon-lg" /></button>\n              </div>\n            </header>\n            <div className="drawer-scroll">\n              {cardQuery.isPending && <p role="status" className="hint">Loading card…</p>}\n              {cardQuery.isError && <p role="alert" className="field-error">{cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status) ? \'This card does not exist or you cannot open it.\' : describeError(cardQuery.error)}</p>}\n            </div>\n          </>\n        )}\n      </aside>\n\n      <DiscardDeleteDialog\n        kind={confirm}\n        onCancel={() => setConfirm(null)}\n        card={card ?? null}\n        structureVersion={structureVersion}\n        onDiscard={() => { dirtyRef.current = false; setConfirm(null); finishClose(); }}\n        onDeleted={() => { setConfirm(null); dirtyRef.current = false; onChanged(); finishClose(); }}\n      />\n    </>, document.body\n  );\n}\n\nfunction DiscardDeleteDialog({ kind, onCancel, card, structureVersion, onDiscard, onDeleted }: {\n  kind: null | \'discard\' | \'delete\'; onCancel: () => void; card: Card | null; structureVersion: number; onDiscard: () => void; onDeleted: () => void;\n}) {\n  const toast = useToast();\n  const [busy, setBusy] = useState(false);\n  const remove = async () => {\n    if (!card) return;\n    setBusy(true);\n    try {\n      await api.softDeleteCard(card.id, { expectedVersion: card.version, expectedBoardVersion: structureVersion });\n      toast(\'Card moved to trash.\', { icon: \'trash\' });\n      onDeleted();\n    } catch (error) {\n      toastFailure(toast, error);\n    } finally { setBusy(false); }\n  };\n  const isDelete = kind === \'delete\';\n  return (\n    <DialogLayer open={kind !== n'... 24009 more characters,
+    expected: /setUnsaved\(`card:\$\{card\.id\}`, dirty\)/,
+    operator: 'match',
+    diff: 'simple'
+  }
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web
+npm error workspace @flowboard/web@0.1.0
+npm error location /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web
+npm error command failed
+npm error command sh -c node --test --test-concurrency=1 test/*.test.ts

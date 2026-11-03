@@ -1,0 +1,26 @@
+{
+  "version": "lifecycle-retention-repair-1",
+  "risk": "high",
+  "baseline": "917706ae0433df471c72736be4d548eb022236c4 plus current uncommitted import/identity repairs; final manifest pending",
+  "affectedFeatures": [
+    "BRD-06",
+    "COM-05",
+    "AUD-06",
+    "NTF-01",
+    "NTF-02",
+    "NTF-03",
+    "DEL-07"
+  ],
+  "mandatoryCriteria": [
+    "Column deletion keeps final-column, active-card and restorable-trash guards. Expired/purged card and import-default FK references produce an explicit stable409 retained-reference conflict instead of a500, silent delete, implicit move, or discarded history. Truly unreferenced nonfinal column still deletes and compacts atomically with versions/activity/receipt. This bounded policy does not introduce soft column deletion or relax PostgreSQL ancestry constraints.",
+    "Column delete checks exact board/column ancestry, current Manager/Owner authority and expected structure revision. Revocation, new card/restore/import versus delete use actual mounted transactions and separate connections; one winner or safe conflict, no partial state/history/receipt.",
+    "Tombstoning an authorized own or moderated comment immediately hides original body and mention spans and removes copied body from normal inbox/read responses. Notification source fact, recipient/read state/card relationship and safe actor/action/time remain truthful; no fabricated association to another comment.",
+    "New mention deliveries have a durable logical comment/event identity per recipient. Synchronous comment notification and outbox retry refer to the same identity; two different comments on one card each deliver once, retries/overlap cannot create duplicate or collapse separate events. Current project/board access continues to govern visibility.",
+    "Deleted-comment outbox work does not retain arbitrary body/title/raw payload forever or recreate original snippets. Redaction preserves minimal source IDs/event fact and accepted nondeleted event intent. Deletion/consumer races and delayed/crash/retry behavior avoid deadlocks and deleted-body resurrection; busy rows must have a documented guaranteed follow-up sanitization path.",
+    "Legacy notifications with unverifiable source association are conservatively redacted without inventing exact comment IDs or deleting safe history. If0023 is needed it is additive, idempotent, preserves existing invitation-delivery association and ancestry, and upgrade/clean install plus embedded parity are tested locally. No unrelated notifications/invitation code changes.",
+    "Mounted local PostgreSQL regressions prove expired/purged/default-import reference handling, existing active/restorable/final guards, own/moderator deletion, copied snippet absence, source identity/dedupe, current access, failure rollback and forced consumer/delete interleaving. Preserve real baseline failures and command exit/count logs. Full-product independent review remains required; builder does not self-score.",
+    "Inventory remaining mandatory current behavior against the69 lifecycle matrix and latest definition decisions. Distinguish verified implementation, unexecuted verification, hosted-dependent acceptance, UI-only priority/focus/polling requirements and actual source gaps. Do not revive retired workspace inheritance, cross-project combined boards or Manager board-name rights."
+  ],
+  "scopeLimits": "Only owned boards delete-column paths, comments, a content-redaction helper, relevant tests and coordinated0023. notifications.ts comment consumer requires explicit root ownership first. No UI/shared-contract/deploy/commit/cloud credentials or self-approval. Synthetic local PostgreSQL55931 only; own importDB schemas preferred.",
+  "columnPolicyLimit": "Root accepted typed409 only as interim integrity repair. BRD-06 remains OPEN: current user expects empty-column removal after restore expiry. Proper soft-column/history-preserving lifecycle needs separately frozen criteria/migration; this guard must not be used as feature closure."
+}

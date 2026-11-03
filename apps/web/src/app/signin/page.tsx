@@ -1,7 +1,8 @@
 'use client';
 
 import { Suspense, useEffect, useState, type FormEvent } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from '@/lib/guarded-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { signinNote } from '@/lib/signin-states';
 import { Wordmark } from '@/components/ui/wordmark';

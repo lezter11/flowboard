@@ -1,0 +1,18 @@
+{
+  "version": "ui-preferences-repair-1",
+  "features": [
+    "ACC-03",
+    "ACC-05",
+    "UX-01",
+    "UX-02",
+    "UX-04"
+  ],
+  "mandatoryCriteria": [
+    "Settings exposes owner workspace name/timezone preferences using only session ownedWorkspaces; no retired workspace creation/ownership transfer UI. PATCH actual expectedVersion, current response/version and honest conflict recovery; preserve local values through poll/conflict, no auto-overwrite. Validate name and supported IANA timezone before submit while backend remains authoritative.",
+    "Explain timezone changes affect Today/overdue interpretation while date-only dueDate values retain their selected day. Refetch session and relevant board/tasks/feed caches after success, never rewrite card due dates client-side. Owner-only control independent of being Manager on someone else project.",
+    "Google-owned avatar renders safe supplied PersonDisplay/SessionActor avatarUrl wherever available with initials fallback on missing/blocked/error; no manual public upload or email/avatar editing. Restrict remote URL to HTTPS approved Google image origins, no credentials/customport, use no-referrer/lazy loading. CSP allow only those origins.",
+    "Sensitive/no URL avatars do not fetch a remote fallback; src is omitted on invalid origin. Current names/fullname tooltip and decorative semantics remain; image error fallback stays stable and reacts to changed supplied URL.",
+    "New settings fields/drafts mark unsaved; save errors focus and preserve input; permission/session expiry disables submissions. Meaningful URL/validation/wire/OCC tests plus fullwebsuite/typecheck/build; root realbrowser/localAPI/PG and immutable review remain required."
+  ],
+  "scope": "apps/web only plus evidence; root owns shared timezone schema/backend checks. Preserve previous slices and current public headers except narrow img-src allowlist. Do not invent upload feature or expose shared workspace admin data."
+}

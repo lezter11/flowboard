@@ -1290,7 +1290,12 @@ test('board access comprehensive integration on isolated PostgreSQL', {
         assert.equal((await req('GET', '/projects/p1/people?boardId=b_visible&purpose=mention', member.session.id)).status, 404);
         await restoreMember();
 
-        // Project picker: removal waits for the picker query, then fresh access is hidden.
+        // The unscoped People roster is a privileged directory, not a board picker.
+        const deniedMemberDirectory = await req('GET', '/projects/p1/people', member.session.id);
+        assert.equal(deniedMemberDirectory.status, 403);
+        assert.equal((await deniedMemberDirectory.json()).data, undefined);
+        await pool.query("UPDATE project_memberships SET role='manager' WHERE id='pm_mbr'");
+        // A permitted Manager read still fences concurrent membership removal.
         const projectPeopleRace = await pauseBeforeQuery(
           '/projects/p1/people', member.session.id, sql => sql.includes('WITH project_context AS'),
         );
@@ -1307,7 +1312,9 @@ test('board access comprehensive integration on isolated PostgreSQL', {
         assert.equal((await req('GET', '/projects/p1/people', member.session.id)).status, 404);
         await restoreMember();
 
-        // Directory: removal cannot invalidate the actor between authorization and data collection.
+        // Directory now requires Manager. Preserve the same real revocation/read race using a
+        // temporary authorized Manager fixture, then return it to Member for later picker checks.
+        await pool.query("UPDATE project_memberships SET role='manager' WHERE id='pm_mbr'");
         const directoryRace = await pauseBeforeQuery(
           '/projects/p1/members', member.session.id, sql => sql.includes('pm.id AS membership_id'),
         );
@@ -1323,6 +1330,7 @@ test('board access comprehensive integration on isolated PostgreSQL', {
         assert.equal((await removalAfterDirectoryStart).status, 200);
         assert.equal((await req('GET', '/projects/p1/members', member.session.id)).status, 404);
         await restoreMember();
+        await pool.query("UPDATE project_memberships SET role='member' WHERE id='pm_mbr'");
 
         // Workspace project list: transfer waits for the Owner-scoped project query.
         const nextOwner = await createDevUserAndSession('next-owner-project-list-race@test.invalid', 'Next Owner', pool);
@@ -1348,6 +1356,7 @@ test('board access comprehensive integration on isolated PostgreSQL', {
       } finally {
         restoreQuery();
         await restoreMember();
+        await pool.query("UPDATE project_memberships SET role='member' WHERE id='pm_mbr'");
         await pool.query(`UPDATE workspaces SET owner_id = $1, version = version + 1 WHERE id = 'w1'`, [owner.user.id]);
       }
     });

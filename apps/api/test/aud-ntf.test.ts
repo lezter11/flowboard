@@ -488,7 +488,9 @@ test('AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite',
     const testCardId = c2Json.data.id;
 
     // 2. Member posts comment mentioning Manager AND Member (self-mention)
-    const commentBody = 'Hey @Manager please review, and @Member check this';
+    const managerToken = '@' + manager.user.displayName;
+    const memberToken = '@' + member.user.displayName;
+    const commentBody = `Hey ${managerToken} please review, and ${memberToken} check this`;
     const commentRes = await app.request(`/api/v1/cards/${testCardId}/comments`, {
       method: 'POST',
       headers: {
@@ -499,8 +501,8 @@ test('AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite',
       body: JSON.stringify({
         body: commentBody,
         mentions: [
-          { userId: manager.user.id, start: 4, end: 12 },
-          { userId: member.user.id, start: 31, end: 38 }, // Self-mention
+          { userId: manager.user.id, start: commentBody.indexOf(managerToken), end: commentBody.indexOf(managerToken) + managerToken.length },
+          { userId: member.user.id, start: commentBody.indexOf(memberToken), end: commentBody.indexOf(memberToken) + memberToken.length }, // Self-mention
         ],
       }),
     });
@@ -593,8 +595,8 @@ test('AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite',
         'Idempotency-Key': nextKey('mention-viewer'),
       },
       body: JSON.stringify({
-        body: 'Hello @Viewer checking in',
-        mentions: [{ userId: viewer.user.id, start: 6, end: 13 }],
+        body: `Hello @${viewer.user.displayName} checking in`,
+        mentions: [{ userId: viewer.user.id, start: 6, end: 7 + viewer.user.displayName.length }],
       }),
     });
     assert.equal(vCommentRes.status, 201);

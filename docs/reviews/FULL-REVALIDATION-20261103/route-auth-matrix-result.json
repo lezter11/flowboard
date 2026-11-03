@@ -1,0 +1,1169 @@
+{
+  "kind": "generated_route_auth_behavior_matrix_not_independent_review",
+  "date": "2026-11-03",
+  "capturedAt": "2026-11-03T07:15:11.107571+00:00",
+  "criteria": "docs/reviews/FULL-REVALIDATION-20261103/criteria/route-auth-matrix.json",
+  "sourceOwnership": "Only two new test/helper files and evidence/criteria; no runtime source changes. Root corrected optional-session logout metadata. Generator artifact regenerated under explicitly released ownership.",
+  "totals": {
+    "operations": 103,
+    "cells": 465,
+    "expectedDenials": 432,
+    "positivePatCells": 6,
+    "publicCookieExemptions": 9,
+    "additionalCookieOperations": 23,
+    "failures": 0
+  },
+  "variantCounts": {
+    "valid_pat_with_owner_cookie": 103,
+    "expired_pat_with_owner_cookie": 103,
+    "anonymous": 92,
+    "expired_session": 92,
+    "anonymous_optional_logout": 1,
+    "expired_session_optional_logout": 1,
+    "anonymous_admin": 2,
+    "expired_session_admin": 2,
+    "owner_cookie": 23,
+    "foreign_cookie": 23,
+    "grantless_cookie": 23
+  },
+  "sourceManifest": [
+    {
+      "path": "apps/api/test/route-auth-matrix.test.ts",
+      "sha256": "85f82cdfc590087ec0ae1ee3172b32d9a410b1c3277d134a96945d5ded35fef7"
+    },
+    {
+      "path": "apps/api/test/support/route-auth-fixture.ts",
+      "sha256": "dbf09b27c4962f78f5a84215019da2a65ad51f36753de9d7037de44afd268b95"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/criteria/route-auth-matrix.json",
+      "sha256": "3a34677205584b2c512e7d0710dbb392cab18de69af916bf7377855cfb49eb30"
+    }
+  ],
+  "reachableHandoffFingerprints": [
+    {
+      "path": "apps/api/package.json",
+      "sha256": "2233ec7a5670dec65e39180388ee1e51c76a5052720aa9f69e6180125e1a08b0"
+    },
+    {
+      "path": "apps/api/src/adapters/activity.ts",
+      "sha256": "013fc9f4b31332eec7bccc5b741657b68949a85b816c9e71a4d940c85ec98338"
+    },
+    {
+      "path": "apps/api/src/adapters/board-activity-scope-draft.ts",
+      "sha256": "aaf617b2513daba0560b1d10a204b91a9e35b8955584fc40d879335c09676917"
+    },
+    {
+      "path": "apps/api/src/adapters/board-grants-foundation.ts",
+      "sha256": "ec155f25fffa890dcacbdcf7541f78b25f35a13fe414653175941103c4feef38"
+    },
+    {
+      "path": "apps/api/src/adapters/board-notification-scope-draft.ts",
+      "sha256": "b327c1860ae3c94fd86ae2e2ef71c031499fe5aa4f998cf3f3ad9a0f68a96753"
+    },
+    {
+      "path": "apps/api/src/adapters/boards.ts",
+      "sha256": "e6ae8db01bd8fd2ccb96d7556d9c6e186cdd80ab0d8a365873d951bad1cf122c"
+    },
+    {
+      "path": "apps/api/src/adapters/cards.ts",
+      "sha256": "a707344d61f6fc07f6fc06e177682e28861c640843cda97b964cfbe2d2f43ea7"
+    },
+    {
+      "path": "apps/api/src/adapters/comments.ts",
+      "sha256": "f75fd5fc6e6db82b3c3590aac0b4f28a2407d23958946d271d61b755bd60f510"
+    },
+    {
+      "path": "apps/api/src/adapters/default-board.ts",
+      "sha256": "f6a9270a0ae483af4abbdbeb99332609f996c8c48869dd5b709ee43d35e49989"
+    },
+    {
+      "path": "apps/api/src/adapters/embedded-migrations.ts",
+      "sha256": "cc6a75b21f3857bfe23cf96c0b7aab190cd28d9d60874793a67cf16108c2a4e7"
+    },
+    {
+      "path": "apps/api/src/adapters/idempotency.ts",
+      "sha256": "fa5b99fe0c7c5a1f112571a531f6dfac0e9f4de553c4e700f94b87cdc8630897"
+    },
+    {
+      "path": "apps/api/src/adapters/images.ts",
+      "sha256": "74ee3dbfb149f48392aa4042eee2cdec929202a9e8ae8d74007ce83ab8abbe1d"
+    },
+    {
+      "path": "apps/api/src/adapters/imports.ts",
+      "sha256": "e22ba320f7156996782e4bb6f952e004f551e811b136b535028b1dbbe4d41b02"
+    },
+    {
+      "path": "apps/api/src/adapters/invitation-delivery.ts",
+      "sha256": "ae4e83a6c81db4224d8070a1d03c9e085ef0b393b13edb56ea212372461ed16d"
+    },
+    {
+      "path": "apps/api/src/adapters/invitations.ts",
+      "sha256": "ea24d483b4a7fe04ccf7d7c880411c2fc340841d48c7f23bd494a3e3d431a41b"
+    },
+    {
+      "path": "apps/api/src/adapters/last-location.ts",
+      "sha256": "9228c6b119255357e658140d7075c692717e02ccfab96004cbd098ebc4700645"
+    },
+    {
+      "path": "apps/api/src/adapters/members.ts",
+      "sha256": "8342f0dda52624002d791f2afb1126dabfcd0e7e9263b7f28bcf0b26c0810088"
+    },
+    {
+      "path": "apps/api/src/adapters/migrations.ts",
+      "sha256": "712e4719767819f3306f835cc26c23bfa06b9cb702fc8e0a1ba01e51f1612bf4"
+    },
+    {
+      "path": "apps/api/src/adapters/notifications.ts",
+      "sha256": "af5d1304448f569cffdb1f3a63c0265f99302d29e350eca331fdc8b178a0a465"
+    },
+    {
+      "path": "apps/api/src/adapters/own-projects.ts",
+      "sha256": "1233425055257a39fe299eb037b369bb131246e410c7ed87c88d06bdffe738ab"
+    },
+    {
+      "path": "apps/api/src/adapters/personal-workspace.ts",
+      "sha256": "311ea8cccb039029c337339a39741bb7100972d47b026bbcdf5ff44f532db412"
+    },
+    {
+      "path": "apps/api/src/adapters/postgres.ts",
+      "sha256": "ab4ae6a28487307757cd7008378fc7bf2c07c96d15bd81bc0d41da78eafa6cec"
+    },
+    {
+      "path": "apps/api/src/adapters/project-overview.ts",
+      "sha256": "b9424f3d7503593c7fa396d1aaaa1b661538921f7341b8c3da1ac6729596432f"
+    },
+    {
+      "path": "apps/api/src/adapters/projects.ts",
+      "sha256": "00e962a4f3713113b44b1186a1c3c968d8d8a00bca87fa7db8ead161eb7d9d1b"
+    },
+    {
+      "path": "apps/api/src/adapters/quotas.ts",
+      "sha256": "1a08a88b64579e673b37865785b0e17017c471f0144830dd6228ee7377b9a284"
+    },
+    {
+      "path": "apps/api/src/adapters/rate-limit-cloudflare.ts",
+      "sha256": "b1132070da4114873f9eead234fc8895a445d1e0dd93bde7d4fef909240ab1e7"
+    },
+    {
+      "path": "apps/api/src/adapters/rate-limit-postgres.ts",
+      "sha256": "e39e804219d9526a0874e7a12ab7b1981d01b0eed7488767da02c7e6b8626de1"
+    },
+    {
+      "path": "apps/api/src/adapters/rbac.ts",
+      "sha256": "49dfa19076ca3c18ec091978af265776eb2d4ede39b609220148acb02a6d246e"
+    },
+    {
+      "path": "apps/api/src/adapters/session.ts",
+      "sha256": "de60c43e273aedd0b44e8dcc3ef58a5ee6558f2fdaf7eadbed8f33d0077659da"
+    },
+    {
+      "path": "apps/api/src/adapters/storage.ts",
+      "sha256": "f3dd234d3b1ff60b11e2d9101a860eb515398084caf37f95b9cb1414e593d0e8"
+    },
+    {
+      "path": "apps/api/src/adapters/tokens.ts",
+      "sha256": "1d469207dd4e28454d7a4209373ea3f957bae136aa0ca7df83c37b9600666fab"
+    },
+    {
+      "path": "apps/api/src/adapters/trash.ts",
+      "sha256": "af065b61ee0068be64a501f300f13040b43eaaee9c5df0caeca4492ad74f7e87"
+    },
+    {
+      "path": "apps/api/src/http/admin-secret.ts",
+      "sha256": "4f510da9b9210c2b15d9ab4c91173f2365d45439152cd983a5f12ba608f088e3"
+    },
+    {
+      "path": "apps/api/src/http/app.ts",
+      "sha256": "c6c9b6cefeb6c5de2f7ebb66c7f3e88cfe1baf5f1002261b0db58f7b02bf36db"
+    },
+    {
+      "path": "apps/api/src/http/errors.ts",
+      "sha256": "71437b074f1483cce3b04d4c8eae04e621bae3e34f1db7415ace176a5c257515"
+    },
+    {
+      "path": "apps/api/src/http/middleware/auth.ts",
+      "sha256": "59a56bb4a726ae9a99811bce387fd4be5692758ebd7aad5ba864ed7021a1feb8"
+    },
+    {
+      "path": "apps/api/src/http/middleware/correlation.ts",
+      "sha256": "9eb238a9152ba474f7b306181d1fb815c95d5e09d0dbf6d496b736a1fd2f4ebd"
+    },
+    {
+      "path": "apps/api/src/http/middleware/error-handler.ts",
+      "sha256": "8aea9ad935f7efb675079bb3ed0f89ef3dcce827a1a591bde26dd5b9e543cbc2"
+    },
+    {
+      "path": "apps/api/src/http/middleware/index.ts",
+      "sha256": "a55e956dbf0495b2d1fe4dfa9f06b6b522a3dcc87babd8d253cc3e5df976b212"
+    },
+    {
+      "path": "apps/api/src/http/middleware/limits.ts",
+      "sha256": "1ffd30bff85f6c4bd2e9b901a6e656eb9625f03b4e60522697da4eefe9ae4911"
+    },
+    {
+      "path": "apps/api/src/http/middleware/origin.ts",
+      "sha256": "70aaeabc8bdd82cb4f4f6329ac2e4899bd160c4b5d640883b34d6c258e13a8d8"
+    },
+    {
+      "path": "apps/api/src/http/middleware/rate-limit.ts",
+      "sha256": "9f4f8afa98c1c891c488c1aedbd4e1c077b51d435705e54c5980e333eb67bf20"
+    },
+    {
+      "path": "apps/api/src/http/middleware/rbac.ts",
+      "sha256": "1a17510b23563e086bb15fc3a6b403103736b37c821b293f87470660ad2e0a37"
+    },
+    {
+      "path": "apps/api/src/http/middleware/timing.ts",
+      "sha256": "8a184c4c9fe23c88aab20bb1d552da8f3c2add506262d58b03b002de49833672"
+    },
+    {
+      "path": "apps/api/src/http/middleware/token-policy.ts",
+      "sha256": "8c3a8a6d816d3d532e9b282c8a438277cfa33f49cd40e3b5c71e7b688f5814f9"
+    },
+    {
+      "path": "apps/api/src/http/routes/activity.ts",
+      "sha256": "390806dbff3c062cdfa03d9658f8cfb03a8f466aa10bab0684603ea61a5b5cdb"
+    },
+    {
+      "path": "apps/api/src/http/routes/board-grants-draft.ts",
+      "sha256": "b31e8937bf296aa5dad097467de78e2487970409b70baf7d580a4490b35a168a"
+    },
+    {
+      "path": "apps/api/src/http/routes/board-grants.ts",
+      "sha256": "c9db140bab6483a58f959c7ce1f4e51c8007a64d5877aefbad0f048b107464f4"
+    },
+    {
+      "path": "apps/api/src/http/routes/boards.ts",
+      "sha256": "1e444d9b794b4096f7f64a2fd17694b889174bab5db9b001bda170a3083c9cbb"
+    },
+    {
+      "path": "apps/api/src/http/routes/cards.ts",
+      "sha256": "12bf7d77561c5bfa9514ecc4f218e3cb89f625118a33e2963df69af1124c0372"
+    },
+    {
+      "path": "apps/api/src/http/routes/comments.ts",
+      "sha256": "7cf2450d54915ed6d1d9292a2f2c0bd46fea1d7c0675f09964ba7b70a5b316c1"
+    },
+    {
+      "path": "apps/api/src/http/routes/google-auth.ts",
+      "sha256": "363e3ac2f5f3cb4741943399b12780022305d17bb5b8658a9a3fa64cf1019ffb"
+    },
+    {
+      "path": "apps/api/src/http/routes/images.ts",
+      "sha256": "91d7ae77244b9192030ba0ef0d4be075ff993f15113a84b24d9a013cfc2c30b6"
+    },
+    {
+      "path": "apps/api/src/http/routes/imports.ts",
+      "sha256": "ce86e651b12a03df615b27ac6b0ad502b22f2adce52352e00418842691f10930"
+    },
+    {
+      "path": "apps/api/src/http/routes/invitations.ts",
+      "sha256": "7bc11c0bfabaa5c1157a0a460001c837431d125b87dc59c3a10fb984a7da54e3"
+    },
+    {
+      "path": "apps/api/src/http/routes/members.ts",
+      "sha256": "c303cefa137522c5564660625de099d2af334b5941da3a3e00665b11333bbe4f"
+    },
+    {
+      "path": "apps/api/src/http/routes/notifications.ts",
+      "sha256": "e20a2fece6e3925076984f139cd260edb35b79ecd4e4817c5980ff773d3a2dfc"
+    },
+    {
+      "path": "apps/api/src/http/routes/projects.ts",
+      "sha256": "e9dbdb22598d396c1f8149a5e5d51b90b90c6723c7b71da285b89c95258b6c71"
+    },
+    {
+      "path": "apps/api/src/http/routes/session.ts",
+      "sha256": "53135aa33995191adeb63ba1a74299404487c3544b3aba7e89e24fddc1394688"
+    },
+    {
+      "path": "apps/api/src/http/routes/system.ts",
+      "sha256": "414f01e12297ca5a88d80796b4c1593340f68698c08d0e3168f26020f7d5fa6d"
+    },
+    {
+      "path": "apps/api/src/http/routes/tokens.ts",
+      "sha256": "6cc232bb09457555fe91e2b16b59302ad8c701e12f18e59f021b2a7cf596205b"
+    },
+    {
+      "path": "apps/api/src/http/routes/trash.ts",
+      "sha256": "8abc475bddef983df52f48fe4e871feb6350e9e86ee56f17d4fd88095824836e"
+    },
+    {
+      "path": "apps/api/src/http/routes/workspaces.ts",
+      "sha256": "834d7e84e27dde2dd163ae7e98c2f9bd978753787e3d81e48d68c2f9d204ba48"
+    },
+    {
+      "path": "apps/api/src/http/safe-next.ts",
+      "sha256": "62f5f36c5cdb289369f353bb8968bbb04043a0a48f549885ef5f65846e173aa7"
+    },
+    {
+      "path": "apps/api/src/runtime/local-config.ts",
+      "sha256": "aef9204af0f4cdaadf1e86b3d9e9772375ce4e9bb845c42573c006ef3a2e389c"
+    },
+    {
+      "path": "apps/api/src/runtime/migrate.ts",
+      "sha256": "5ae1a784d65f1cbb45a427935f1466ecb9726f79bf5f722e98ff0c19bed2cc6d"
+    },
+    {
+      "path": "apps/api/src/runtime/node.ts",
+      "sha256": "ebc861aa2b6f14951ff3c0d021dbc81afc56924fe51068f0a07a1197e21ffb96"
+    },
+    {
+      "path": "apps/api/src/runtime/worker.ts",
+      "sha256": "d89c6d315a8a6b9155072656f0d004b6ed5b326d4f60f2c504596b922ea1294e"
+    },
+    {
+      "path": "apps/api/src/services/board-access-cursor-draft.ts",
+      "sha256": "c70eec9dafb62f13782d63fe17ea00a515c5a3f59ee256ae07c90dece86489fd"
+    },
+    {
+      "path": "apps/api/src/services/board-assignees.ts",
+      "sha256": "e6d9d875e22285060710d2e63ffd0e43d0daa33f2b8af46c867099a475dd2205"
+    },
+    {
+      "path": "apps/api/src/services/comment-retention.ts",
+      "sha256": "a9525d2f7e7ee30b8e5929115a609040a4dd3683dcf5842d6a6394a8a71ab822"
+    },
+    {
+      "path": "apps/api/src/services/cursor-timestamp.ts",
+      "sha256": "6e626095192bb3fce8aded1f06ec7839ade4649cea0046b539b79eea0db94e52"
+    },
+    {
+      "path": "apps/api/src/services/excel-parser.ts",
+      "sha256": "3e1c31e976b190c9dbc79010f3a75b5d76765498d924c338bbfa66562a5b3694"
+    },
+    {
+      "path": "apps/api/src/services/image-validator.ts",
+      "sha256": "413a0efe59bff2049b9cd1d66013035a7e7287bba0ecf2de2bb53dd3b9308e24"
+    },
+    {
+      "path": "apps/api/src/services/image-verifier-node.ts",
+      "sha256": "596b610e99e917601701a3e57faaf63711ddf287f70c8ffab8ed83cee1abd740"
+    },
+    {
+      "path": "apps/api/src/services/image-verifier-worker.ts",
+      "sha256": "4be41954cf5f69e82120dc0d193177835fa02771ca36c235128211d9eaded633"
+    },
+    {
+      "path": "apps/api/src/services/image-verifier.ts",
+      "sha256": "9164315d86cb2a47ddee0bc813b4c1697597c31e3c574e34e1d6303c4e79c807"
+    },
+    {
+      "path": "apps/api/src/services/import-retention.ts",
+      "sha256": "aa7d4c51f530b47d6007436178dc496d72658cd48c109ffa8fbe01e65b00d1fd"
+    },
+    {
+      "path": "apps/api/src/services/import-template.ts",
+      "sha256": "44c09a80134957002f01259769d4970db14ac53223f7ecbd488a0326eadf3017"
+    },
+    {
+      "path": "apps/api/src/services/invitation-email.ts",
+      "sha256": "d7c8339c64e1ad0a05525a9d3b782ea2f600d26f3236830a83300ad8f20fec41"
+    },
+    {
+      "path": "apps/api/src/services/jpeg-entropy.ts",
+      "sha256": "55dc5cb0c9c05e2e01979df09dc1984d25a2b9c6d7e55a43339221069bb0ac13"
+    },
+    {
+      "path": "apps/api/src/services/limits.ts",
+      "sha256": "a896396169192508875fa112aa98244f3db1e29463fb8e74358b5b55512ac8f0"
+    },
+    {
+      "path": "apps/api/src/services/mailer.ts",
+      "sha256": "68aa7a3babdff5f752c469aea1172f13ee2dc8d2e7b8c766c1e602d472853dcf"
+    },
+    {
+      "path": "apps/api/src/services/outbox-retention.ts",
+      "sha256": "496809cdb3835b50661699307fbbd3ffff8214a8c8b2bb68eb1ecfa2357d4f65"
+    },
+    {
+      "path": "apps/api/src/services/person-suffix.ts",
+      "sha256": "7d136f4baf96478a45c3fb2a1b85ddfe520c24f4a3cc55efa517f823bdca4bea"
+    },
+    {
+      "path": "apps/api/src/services/rate-limit.ts",
+      "sha256": "0cb8e0a9d01e37b3d803237ac5b24126f66ab8f18649476ee5a20da0205d7a7b"
+    },
+    {
+      "path": "apps/api/src/services/trash-purge.ts",
+      "sha256": "f3fe6b5cf973ab9f7d6df7897b5fda4493b7a2e41f5890664bb6abfb1ab45d6a"
+    },
+    {
+      "path": "apps/api/test/support/image-fixtures.json",
+      "sha256": "e450af08ea82dd72a3018415dd5a2a6eda5d3dd039bced3d6ffacac2235f24fe"
+    },
+    {
+      "path": "apps/api/test/support/image-fixtures.ts",
+      "sha256": "b20f0b07ae1f4aa1522d44ab953448dac34f82d436ec26b8a798b51e1d1988f9"
+    },
+    {
+      "path": "database/migrations/0001_initial.sql",
+      "sha256": "31f1e2e889951dc35e1dd141b91c3a357ebee22043916d9c08b601b3c9d40293"
+    },
+    {
+      "path": "database/migrations/0002_sessions.sql",
+      "sha256": "9fc47e82a74928ea9fa52cb2e9f7403f823874bc5b4d0ec5b7b1ccb338c63405"
+    },
+    {
+      "path": "database/migrations/0003_constraints.sql",
+      "sha256": "84278975a601c45573f61cfbf70a2018bc18e89b9f10c63132f94b6a0fc5ef97"
+    },
+    {
+      "path": "database/migrations/0004_minimal_idempotency_receipts.sql",
+      "sha256": "d13a2d85264d76cf49ad9b9351e6cbdfeb792afdce6c4a423f48f2c6149bfbf9"
+    },
+    {
+      "path": "database/migrations/0005_card_images.sql",
+      "sha256": "983a46376d7fb68243629deff8b5230835a6f1b98268870badb81f6a26b80546"
+    },
+    {
+      "path": "database/migrations/0006_retryable_storage_cleanup.sql",
+      "sha256": "f40d3369ef3748c1ec37310f601e4c4995b76b9ad1d83cb08311a2e2a4bff2e8"
+    },
+    {
+      "path": "database/migrations/0007_board_grants.sql",
+      "sha256": "affe269525fd76557447d8b688515d4c992bb655930abd4c9c4e1b52d3bc95a9"
+    },
+    {
+      "path": "database/migrations/0008_board_activity_scope.sql",
+      "sha256": "267937f35457a9a6a75bd7a1c5547d4a2a369fba7362c1d119a3863f8d869335"
+    },
+    {
+      "path": "database/migrations/0009_card_keys_and_key_prefix.sql",
+      "sha256": "e4f47bbc9048740c0770618f27ea7861a7448d91bf8363bd34541e075ddda37e"
+    },
+    {
+      "path": "database/migrations/0010_column_tone.sql",
+      "sha256": "cbbc147db850dfb1cd284f9a8c9eff5707241ec1b99909970cef709bdb7152a5"
+    },
+    {
+      "path": "database/migrations/0011_rate_limit_windows.sql",
+      "sha256": "5bd04d028c0079ed91e051eece8b0b75eeba652e63f5db854514da2d07048292"
+    },
+    {
+      "path": "database/migrations/0012_user_last_location.sql",
+      "sha256": "c529ba1c52c1c2d4df87aecf1b6d91caca9298ac0b15def306c451d28489a898"
+    },
+    {
+      "path": "database/migrations/0013_board_description_default_board.sql",
+      "sha256": "ac03d154d2101d4334c903f9e4011ffeb169afa2b00619eabc606309953db963"
+    },
+    {
+      "path": "database/migrations/0014_project_brief_links.sql",
+      "sha256": "134c772c1d13ed05647e22472f984fefabc8f19c18219c6de1ab1dffde8e0ce1"
+    },
+    {
+      "path": "database/migrations/0015_project_links_workspace_fk.sql",
+      "sha256": "3e6d54ba08b17561f93fe37b03fdf395345c48e2b44c4fc2d97e3f4508660e19"
+    },
+    {
+      "path": "database/migrations/0016_staged_upload_cleanup.sql",
+      "sha256": "f83d98233093803513480aa5fb2ae8da01857187103da3a4401f0b7fceb7b4b2"
+    },
+    {
+      "path": "database/migrations/0017_audit_round_b14.sql",
+      "sha256": "ef2c1468e4c3a9c5d29eef5a575903ab1dc7050e2f75c65875075aa03fe6d663"
+    },
+    {
+      "path": "database/migrations/0018_user_names.sql",
+      "sha256": "887f41636de9c879fbd989d8280969be237daef599dbb45cc9a569e82e1e06a1"
+    },
+    {
+      "path": "database/migrations/0019_personal_workspace_backfill.sql",
+      "sha256": "05f450ad0f197a4c54a270d01da14e7dc1a96037652ae1968cee4b58d3ea8430"
+    },
+    {
+      "path": "database/migrations/0020_personal_access_tokens.sql",
+      "sha256": "ea31e73a873ce56f38954c45f498c2e9d2dc888f4ca97a4efce4d7c1d1c4f488"
+    },
+    {
+      "path": "database/migrations/0021_import_payload_retention.sql",
+      "sha256": "869edfe6ea5fc658d04b7e9c16a73286512e13f6c0d0765d702b37b3d8f41123"
+    },
+    {
+      "path": "database/migrations/0022_invitation_history_indexes.sql",
+      "sha256": "cc8c0ea88e27514dbd2c6bce8faf1de0c381c1177ca692298eaa9994e84535a8"
+    },
+    {
+      "path": "database/migrations/0023_comment_notification_sources.sql",
+      "sha256": "6c34b5f1103c1728d23f51d5b38485d47d667d83c5b166349ef88fd2f9cc1aa1"
+    },
+    {
+      "path": "database/migrations/0024_soft_columns.sql",
+      "sha256": "980ec98edbfa3e071690454d1042bc56f2e28aad154e364d78c5ecb62a9474f8"
+    },
+    {
+      "path": "database/migrations/0025_import_activity_receipt.sql",
+      "sha256": "1888665559aa7d2369f8a50021cab5c441ed2f356be2aa679e5838063e4bcf46"
+    },
+    {
+      "path": "docs/openapi.json",
+      "sha256": "c91c427efa755a6ddee057821eb595b36338296db285782c3cdd624b9a32bf37"
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "8d81d715fb70cd5ac69e79cbf1f7ee1d5042a4e383ce465eda00df0c548a5efa"
+    },
+    {
+      "path": "package.json",
+      "sha256": "67081e6d15f2dbf54102a1aca56b116210da156b38fe046868bacbe3e8daadfb"
+    },
+    {
+      "path": "packages/contracts/src/activity-actions.ts",
+      "sha256": "f156b631331dd918379eaf6b4e3dc3c68f7a485dfa51b8f16ae33abc22ce4b8b"
+    },
+    {
+      "path": "packages/contracts/src/auth.ts",
+      "sha256": "fefc39aa9d11862d854d0abdc8190c964ec51802b493492dacf8f6aca2cf78d3"
+    },
+    {
+      "path": "packages/contracts/src/boards.ts",
+      "sha256": "47ae235deffaa065600fb21b9cca15141f064c7447e319c0c1052e98421e4716"
+    },
+    {
+      "path": "packages/contracts/src/cards.ts",
+      "sha256": "71d5dc143fba1753f58a97705f135e865f49a45d396a969ef0d0619addf0361e"
+    },
+    {
+      "path": "packages/contracts/src/comments.ts",
+      "sha256": "3d0061e48b153cf4fb5efded44e8aca9826b10d20f66490e69e2862aa4b44189"
+    },
+    {
+      "path": "packages/contracts/src/common.ts",
+      "sha256": "242d4512606d14e8eb60584b8bfd9559bd2fcc225d89ad946b93f343a728b403"
+    },
+    {
+      "path": "packages/contracts/src/discussion.ts",
+      "sha256": "5f1dea023fd81e374d4758302c0f235d1e3276953e30bfe1780a74666ac9a28c"
+    },
+    {
+      "path": "packages/contracts/src/fixtures/index.ts",
+      "sha256": "b067ff72bfd110d2b8accf46519dc6fd8e42a49f7669d2e5eaea1b3e2c4177f1"
+    },
+    {
+      "path": "packages/contracts/src/images.ts",
+      "sha256": "1643d7aab72154729b23f21f573f19781d116d2ce4b0a15130b27dddd7c2baa3"
+    },
+    {
+      "path": "packages/contracts/src/imports.ts",
+      "sha256": "1e75925ae2acf5b07735e713ea1ed92c65748c5402f65b10f5d7a06af40a8538"
+    },
+    {
+      "path": "packages/contracts/src/index.ts",
+      "sha256": "d73715196a2dd40736ad08ea2f831055b7efa64d66596f6e3796f775b58e2c91"
+    },
+    {
+      "path": "packages/contracts/src/invitations.ts",
+      "sha256": "a460156fe5dc50e932ad45dda98e916ac4ecbbcbd40e61085a552114e094ca8c"
+    },
+    {
+      "path": "packages/contracts/src/openapi/index.ts",
+      "sha256": "4b6bea6cd4d9c6f994d230934cfb1be6bbb98b3588d3ffdff00dacb98a98adbc"
+    },
+    {
+      "path": "packages/contracts/src/openapi/schemas.ts",
+      "sha256": "7c990e40c83372487ce5c0a5bbb0c1cc2e0ded107e102a2900b36f2ff8acbce8"
+    },
+    {
+      "path": "packages/contracts/src/projects.ts",
+      "sha256": "e5719a7fa53baa178e4f97e816af96c43f8d2981a52c1da57bcd977a6acad83a"
+    },
+    {
+      "path": "packages/contracts/src/tokens.ts",
+      "sha256": "a5dce907f43d98e430c045d3df69bfd17b6819bd93eeb2120199e8fe50ef1818"
+    },
+    {
+      "path": "packages/contracts/src/trash.ts",
+      "sha256": "c3b3151187edb8d2ec21e4a260be27f8f04af853c29234bd8088f3872893625d"
+    },
+    {
+      "path": "packages/contracts/src/workspaces.ts",
+      "sha256": "3db2b6eb356da1ae60f25298e6f5fe74a988b6df693b0e9094d2fcf94102c7d6"
+    },
+    {
+      "path": "scripts/generate-openapi.ts",
+      "sha256": "7043d185e065b8b85572ff573f0876e6e1074a65df7985004a7aa240019ed3d0"
+    }
+  ],
+  "mutableSourceLimit": "Root JPEG/image/Undo work remains active outside this auth matrix; these handoff fingerprints are not an immutable independent-review target. Complete finalAPI gate/freeze remainsroot-owned.",
+  "fixtureValidity": [
+    "Real disposable PostgreSQL with isolated schema; Owner/current/foreign/grantless identities and real application tables.",
+    "Expired Owner cookie updates actual stored session hash, assertrowCount1. ExpiredPAT first verifiesvalid, actual stored token row expiry assertrowCount1, then verifiesinvalid. No invalid/missing random token is mislabeled expired.",
+    "Named JSON body/query factories validated with actual shared/wire Zod schemas, real local XLSX/PNG fixtures; all route parameter names require existing known fixture.",
+    "Each of23additional private read operations first gets successfulOwner200 control before foreign/grantless cells, including existing images/staging/imports/comments/trash resources.",
+    "Every denial compares all synthetic application-table fingerprints, sequence state and storage mutation count. Limiter ports alone are deterministic fakes to avoid rate-window cross-test interference; auth/role/DB checks are real."
+  ],
+  "matrixLimits": [
+    "465cells, not930andnotallpossible role/state/body combinations.",
+    "92required-session operations each testedanonymous+expiredcookie;2admin-secret operations each403withoutsecret/expiredcookie;103operations eachvalidPAT+Ownercookie andexpiredPAT+Ownercookie;2optional-cookie logout204controls;69extra Owner/foreign/grantlessreadcells.",
+    "Six PAT positive capabilities only: projectlist, projectboardmetadata discovery, boardmetadata, projectcardsearch, carddetail, cardcreate. Other97operations deny validbearer403; all103deny expiredBearer401 evenwithOwnercookie.",
+    "23selected private read operations get additionalcookie controls.80operations list no additional foreign/grantless workflow-validfactory in raw notCovered; do not label those cookie-role combinations tested.",
+    "Public health/OAuth/localtest endpoints are exempt from requiredcookie401 by metadata; bothbearer cells still run. No signedOAuth/provider/email/admin-key/livecloudcalls. Localdevlogin not invoked anonymously.",
+    "HTTPheaders/cookies: optional logout intentionally204empty/clearedcookie without DBmutation. Owner/grantless permitted disclosure cases200are not misclassified as failures.",
+    "Early bearer403/401 responses have correlation/cache but no Server-Timing because timingmiddleware mountsafter bearerpolicy; recorded diagnostic, not claimed timingcoverage on those paths.",
+    "Node mounted Hono requests with real PostgreSQL; this matrix does not itself assert TCP/workerd/hosted/browser/providerbehavior. Prior runtime records remain separate."
+  ],
+  "commands": [
+    {
+      "command": "node --test --test-concurrency=1 apps/api/test/route-auth-matrix.test.ts",
+      "environment": "env-i PATH,syntheticHOME,NODE_ENVtest,WRANGLER_SEND_METRICSfalse,CURSOR_SECRETsynthetic,identity-extra URLloopback55931; optional evidenceoutput path",
+      "exitCode": 0,
+      "pass": 466,
+      "fail": 0,
+      "skip": 0,
+      "cells": 465,
+      "log": "raw/route-auth-matrix-locked-fixtures.log",
+      "data": "raw/route-auth-matrix-locked-fixtures.json"
+    },
+    {
+      "command": "npm run openapi:generate",
+      "exitCode": 0,
+      "operations": 103,
+      "schemas": 223,
+      "log": "raw/route-auth-matrix-openapi-generate.log"
+    },
+    {
+      "command": "npm test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "pass": 126,
+      "fail": 0,
+      "skip": 0,
+      "log": "raw/route-auth-matrix-contracts-final.log"
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "raw/route-auth-matrix-typecheck-locked.log"
+    },
+    {
+      "command": "git diff --check -- apps/api/test/route-auth-matrix.test.ts apps/api/test/support/route-auth-fixture.ts",
+      "exitCode": 0
+    }
+  ],
+  "retainedFailures": [
+    {
+      "path": "raw/route-auth-matrix-first.log",
+      "tests": 443,
+      "pass": 435,
+      "fail": 8,
+      "reason": "Root metadata falsely required cookie for optional logout (2cells), fixtureexpiryUPDATE used raw cookie not storedhash (4sessioncells), positive create expected nonexistent project_card_counters table (1case), plusparentcount. No confirmed runtimeauthdefect; fixed probehash/rowcount and correctglobal sequenceproof; root corrected metadata without changinglogoutbehavior."
+    },
+    {
+      "path": "raw/route-auth-matrix-contracts.log",
+      "tests": 126,
+      "pass": 125,
+      "fail": 1,
+      "reason": "Known stale generatedgolden after root BoardLifecycleInput binding; root released generator ownership, artifact regenerated before final126/126."
+    }
+  ],
+  "exemptions": [
+    {
+      "operation": "GET /health/live",
+      "auth": "public",
+      "note": "Public path exempt only from cookie-required401 cells; both bearer+Ownercookie cells still run."
+    },
+    {
+      "operation": "GET /api/v1/activity/health",
+      "auth": "public",
+      "note": "Public path exempt only from cookie-required401 cells; both bearer+Ownercookie cells still run."
+    },
+    {
+      "operation": "GET /api/v1/notifications/health",
+      "auth": "public",
+      "note": "Public path exempt only from cookie-required401 cells; both bearer+Ownercookie cells still run."
+    },
+    {
+      "operation": "GET /health/ready",
+      "auth": "public",
+      "note": "Public path exempt only from cookie-required401 cells; both bearer+Ownercookie cells still run."
+    },
+    {
+      "operation": "POST /api/v1/session/logout",
+      "auth": "optional-session",
+      "note": "Optional logout has explicit anon/expired204 clear-cookie cells; bearer boundary still enforced."
+    },
+    {
+      "operation": "POST /api/v1/session/dev-login",
+      "auth": "local-test",
+      "note": "Synthetic dev-login not invoked anonymously; no new identities/providers from this matrix."
+    },
+    {
+      "operation": "GET /api/v1/auth/google",
+      "auth": "public",
+      "note": "Public path exempt only from cookie-required401 cells; both bearer+Ownercookie cells still run."
+    },
+    {
+      "operation": "GET /api/v1/auth/google/start",
+      "auth": "public",
+      "note": "Public path exempt only from cookie-required401 cells; both bearer+Ownercookie cells still run."
+    },
+    {
+      "operation": "GET /api/v1/auth/google/callback",
+      "auth": "public",
+      "note": "Public path exempt only from cookie-required401 cells; both bearer+Ownercookie cells still run."
+    }
+  ],
+  "notCovered": [
+    {
+      "operation": "GET /health/live",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/activity/health",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/notifications/health",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /health/ready",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/session",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PATCH /api/v1/session/profile",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PATCH /api/v1/session/name",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PUT /api/v1/session/last-location",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/session/logout",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/session/dev-login",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/auth/google",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/auth/google/start",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/auth/google/callback",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/workspaces",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/workspaces",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PATCH /api/v1/workspaces/{workspaceId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/workspaces/{workspaceId}/transfer-ownership",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/projects",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/projects",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/workspaces/{workspaceId}/projects",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/workspaces/{workspaceId}/projects",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PATCH /api/v1/projects/{projectId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/overview",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/access-summary",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PATCH /api/v1/projects/{projectId}/members/{userId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "DELETE /api/v1/projects/{projectId}/members/{userId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/archive",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/reopen",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/leave",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/invitations",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/invitations/accept",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/invitations/{invitationId}/resend",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/invitations/{invitationId}/revoke",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/boards",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PATCH /api/v1/boards/{boardId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/archive",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/reopen",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PUT /api/v1/boards/{boardId}/grants/{userId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "DELETE /api/v1/boards/{boardId}/grants/{userId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/columns",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PATCH /api/v1/boards/{boardId}/columns/{columnId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/columns/reorder",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "DELETE /api/v1/boards/{boardId}/columns/{columnId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/boards/{boardId}/columns/{columnId}/placement",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/cards",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PATCH /api/v1/cards/{cardId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/move",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/move-undo",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/cards/search",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/me/tasks",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/workspaces/{workspaceId}/my-tasks",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/comments",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PATCH /api/v1/comments/{commentId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "DELETE /api/v1/comments/{commentId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/notifications",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PATCH /api/v1/notifications/{id}/read",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/notifications/mark-all-read",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/image-uploads",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "PUT /api/v1/image-uploads/{uploadId}/content",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/image-uploads/{uploadId}/finalize",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "DELETE /api/v1/image-uploads/{uploadId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "DELETE /api/v1/images/{imageId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/delete",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/restore",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/import/template",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/imports",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/card-imports",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/imports/{importId}/mappings",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/imports/{importId}/commit",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "DELETE /api/v1/imports/{importId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/imports/{importId}/report",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/card-imports/{importId}/mappings",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/card-imports/{importId}/commit",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "DELETE /api/v1/card-imports/{importId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/card-imports/{importId}/report",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/tokens",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/tokens",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "DELETE /api/v1/tokens/{tokenId}",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "GET /api/v1/system/status",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    },
+    {
+      "operation": "POST /api/v1/system/migrate",
+      "cellFamily": "foreign/grantlesscookie",
+      "reason": "No additional workflow-valid existing-target factory/expectation in this bounded matrix; anonymous/expired and both bearer boundaries above remain covered."
+    }
+  ],
+  "logs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-contracts-final.log",
+      "sha256": "133a4dacec00b9adbd362b2d9f74fe0c8020f85a7f1ead94a77b3af307f52aee"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-contracts.log",
+      "sha256": "cd57eec5f044dc9f54eade541c8a082ad81e138ad359beb8995b4b89e1cddf7a"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-final-bindings.json",
+      "sha256": "b13a9dcbf520781328a38ab84eb42bb3b7c7afed612e1c3a65e005b5d84baa9a"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-final-bindings.log",
+      "sha256": "d4d0b58b65e9b446e07c719d814faa8a022f100e94ef997fe61582ff21a0e122"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-final.json",
+      "sha256": "c2b7bae796a7c3a539d6c35be7ef0ee853349559a703cf5bc06e3686a52c187d"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-final.log",
+      "sha256": "1afb2333bcfdec4292a53e3670bb9c6f0c2efbd3972777b0bf81b359015ca48b"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-first.json",
+      "sha256": "bf0eaf84fe7e148eaf653739f32016836fff47e6b84ac47ecf1a18d515c428a5"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-first.log",
+      "sha256": "5576009ff9b0d772af62c442f21ddd3943732dba98bee78574cdd46ecbe9283e"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-locked-fixtures.json",
+      "sha256": "b13a9dcbf520781328a38ab84eb42bb3b7c7afed612e1c3a65e005b5d84baa9a"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-locked-fixtures.log",
+      "sha256": "b99c572a1e867fa704063b156824188a192c1dc3300cd6d8c1c8d6e67fd70c80"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-openapi-generate.log",
+      "sha256": "1f8e2db00cd9e40757469b5f66884b979086d1aebed52a168a8b57c990bf406d"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-typecheck-final.log",
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-typecheck-locked.log",
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/route-auth-matrix-typecheck.log",
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    }
+  ],
+  "approval": null,
+  "score": null
+}

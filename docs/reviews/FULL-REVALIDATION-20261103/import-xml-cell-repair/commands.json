@@ -1,0 +1,43 @@
+{
+  "commands": [
+    {
+      "command": "NODE_ENV=test node --test --test-concurrency=1 apps/api/test/import-xml-parser.test.ts apps/api/test/import-xml-cell-parser.test.ts",
+      "log": "parser-green.log",
+      "exitCode": 0,
+      "tests": 119,
+      "passed": 119
+    },
+    {
+      "command": "FLOWBOARD_IMPORT_TEST_DATABASE_URL=synthetic_loopback55931 NODE_ENV=test node --test --test-concurrency=1 apps/api/test/import-xml-mounted.test.ts apps/api/test/import-repair.test.ts",
+      "log": "mounted-green.log",
+      "exitCode": 0,
+      "tests": 19,
+      "passed": 19,
+      "negativeUploads": 147
+    },
+    {
+      "command": "FLOWBOARD_IMPORT_TEST_DATABASE_URL=synthetic_loopback55931 NODE_ENV=test WRANGLER_SEND_METRICS=false node --test apps/api/test/import-worker-template.test.ts",
+      "log": "worker-green.log",
+      "exitCode": 0,
+      "tests": 1,
+      "passed": 1
+    },
+    {
+      "command": "npm run typecheck",
+      "log": "typecheck.log",
+      "exitCode": 0
+    },
+    {
+      "command": "npm run build --workspace=@flowboard/api",
+      "log": "build.log",
+      "exitCode": 0
+    }
+  ],
+  "preservedRedEvidence": {
+    "baseline": "red-baseline.log",
+    "tests": "red-tests.log",
+    "testsRun": 79,
+    "passed": 26,
+    "failed": 53
+  }
+}

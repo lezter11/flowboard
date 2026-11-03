@@ -1,0 +1,215 @@
+{
+  "kind": "bounded_builder_handoff_not_independent_approval",
+  "status": "source_held_for_root_freeze_and_independent_review",
+  "completedAt": "2026-11-03T08:51:12.125094+00:00",
+  "actor": "/root/whole_suite_regressions",
+  "baseRevision": "917706ae0433df471c72736be4d548eb022236c4",
+  "approval": false,
+  "score": null,
+  "featureIds": [
+    "FND-01",
+    "FND-02",
+    "FND-03",
+    "FND-04",
+    "ACC-02",
+    "BRD-08",
+    "RBAC-01",
+    "RBAC-02",
+    "QRY-03",
+    "UX-05"
+  ],
+  "ownedFiles": [
+    "apps/api/src/runtime/node.ts",
+    "apps/api/test/migrations.test.ts",
+    "apps/api/test/openapi-parity.test.ts",
+    "apps/api/test/qry01-qry03.test.ts",
+    "apps/api/test/runtime-validation.test.ts",
+    "apps/api/test/support/route-auth-fixture.ts"
+  ],
+  "snapshot": {
+    "scope": "Owned files plus listed direct dependencies only; this is not a complete reachable-source review manifest. Root must freeze the full candidate after all concurrent work.",
+    "files": {
+      "apps/api/src/runtime/node.ts": "920386d02ec47b9e5f75f185882b3e8631758c94113da928258588fd09e7dac1",
+      "apps/api/test/migrations.test.ts": "ae08293854ec83f65181fdc385d43cbcd030d953d6c31fa2475c4ffc8458a6fa",
+      "apps/api/test/openapi-parity.test.ts": "3fc854bf0f85a9de2eb0933e273c08b76777748d5dd8a13aa860d0e3644282bd",
+      "apps/api/test/qry01-qry03.test.ts": "75eda4d9d1abc7cd365360b9afea052fbca6e37593b2ed291ce8d4202d8c6703",
+      "apps/api/test/runtime-validation.test.ts": "45933dbfb38b09e0b414c60f6b22015d99c58a5ee1232c4b4168325aca60223c",
+      "apps/api/test/support/route-auth-fixture.ts": "8b88e0ba497fefca7fc6447a2dc05337950c234490bd229d69685fa0f3c75243",
+      "apps/api/src/runtime/local-config.ts": "aef9204af0f4cdaadf1e86b3d9e9772375ce4e9bb845c42573c006ef3a2e389c",
+      "apps/api/src/http/middleware/limits.ts": "1ffd30bff85f6c4bd2e9b901a6e656eb9625f03b4e60522697da4eefe9ae4911",
+      "apps/api/src/http/routes/board-grants.ts": "c9db140bab6483a58f959c7ce1f4e51c8007a64d5877aefbad0f048b107464f4",
+      "apps/api/src/services/board-access-cursor-draft.ts": "c70eec9dafb62f13782d63fe17ea00a515c5a3f59ee256ae07c90dece86489fd",
+      "apps/api/test/route-auth-matrix.test.ts": "85f82cdfc590087ec0ae1ee3172b32d9a410b1c3277d134a96945d5ded35fef7",
+      "apps/api/test/support/cookie-mutation-fixture.ts": "5ee092b44f52177f7d453bcd2eaf854ceee4d81335bb19ab4a674ada77bea28b",
+      "database/migrations/0024_soft_columns.sql": "980ec98edbfa3e071690454d1042bc56f2e28aad154e364d78c5ecb62a9474f8",
+      "packages/contracts/src/cards.ts": "71d5dc143fba1753f58a97705f135e865f49a45d396a969ef0d0619addf0361e",
+      "packages/contracts/src/boards.ts": "47ae235deffaa065600fb21b9cca15141f064c7447e319c0c1052e98421e4716",
+      "packages/contracts/src/common.ts": "dad87e441ce6d1cae091a90ae93a4c4c3d84838176c87c7adde845b73d3e972f"
+    }
+  },
+  "environment": {
+    "node": "v24.15.0",
+    "npm": "11.12.1",
+    "postgresImage": "postgres:17.11-alpine",
+    "postgresImageId": "sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b",
+    "port": 55931,
+    "databases": [
+      "flowboard_harness",
+      "flowboard_identity_extra_test"
+    ],
+    "scope": "Parent-owned disposable local container; random fixture schemas except existing migration-suite public reset on explicitly reserved disposable primary. No UAT, production, real credentials or cloud calls.",
+    "envNames": [
+      "NODE_ENV=test",
+      "WRANGLER_SEND_METRICS=false",
+      "DATABASE_URL",
+      "FLOWBOARD_ACCESS_TEST_DATABASE_URL",
+      "FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL",
+      "FLOWBOARD_RUNTIME_EVIDENCE_PATH",
+      "FLOWBOARD_AUTH_MATRIX_EVIDENCE_PATH"
+    ]
+  },
+  "criteriaPaths": [
+    "docs/reviews/FULL-REVALIDATION-20261103/criteria/whole-suite-regression-fixtures.json",
+    "docs/reviews/FULL-REVALIDATION-20261103/criteria/node-rejected-body-transport.json"
+  ],
+  "repairs": [
+    "Exact23514 live-column guard assertions plus transactionally disabled named trigger prove underlying original23503 column ancestry FKs independently; rollback verifies guard reenabled.",
+    "Archive OpenAPI fixture now uses actual data.board.snapshotVersion; missing-project MyTasks expects exact strict422.",
+    "Generated route fixture supplies fresh process-only signing key with restoration; validates exact dedicated DB/user, loopback and explicit nonforbidden port so CI5432 is allowed.",
+    "Runtime fixture no longer uses ALLOW_REMOTE_DB: setup/runtime/cleanup share own random schema on legitimate primary DB, using supported pg Pool onConnect initialization and actual startNode.",
+    "Node early unread framed error responses discard only known canonical safe-length bodies <=IMAGE_BODY_LIMIT_BYTES+1 via the cached Web Request stream, with1s deadline/abort/error cleanup and no body accumulation; then Connection:close. Existing adapter cleanup remains on. All>=400 unread framed errors share the policy; ordinary successful/bodyless responses retain keepalive.",
+    "Original global-Fetch Node/workerd body boundaries stay mandatory. Added actual single-connection normal200 reuse, early413 then next5MiB, early401 and Owner-forbidden403 with no data/effects, and incomplete upload deadline/healthy controls. Separate protocol groups reset only their own fixture limiter windows to avoid accidentally testing a sixth/minute import; real limiter enforcement was preserved."
+  ],
+  "commands": [
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/migrations.test.ts apps/api/test/openapi-parity.test.ts apps/api/test/qry01-qry03.test.ts apps/api/test/route-auth-matrix.test.ts apps/api/test/runtime-validation.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/whole-suite-reconciliation-1.log",
+      "sha256": "0bbca5d4fa998889856f16c436219bc251f6566fa3ce6116384ca3beb00360a0",
+      "exitCode": 1,
+      "counts": {
+        "tests": 505,
+        "pass": 503,
+        "fail": 2,
+        "skipped": 0
+      },
+      "interpretation": "Initial fixture repairs; original Node transport still fails."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/runtime-validation.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/whole-suite-runtime-2.log",
+      "sha256": "0805a3302c9039abf06412bcf9ecc9657385f7b6e3e9cb247357dd9b9bed36b1",
+      "exitCode": 1,
+      "counts": {
+        "tests": 14,
+        "pass": 12,
+        "fail": 2,
+        "skipped": 0
+      },
+      "interpretation": "Native HTTP also fails; transport error is not counted as HTTP success."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/runtime-validation.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/whole-suite-runtime-3.log",
+      "sha256": "2ff9ad1ec0c91b18729ccb2197b4708106d6ea1da557df5416af17f891861820",
+      "exitCode": 1,
+      "counts": {
+        "tests": 14,
+        "pass": 12,
+        "fail": 2,
+        "skipped": 0
+      },
+      "interpretation": "Fresh-socket control still fails; no fresh-socket waiver."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/migrations.test.ts apps/api/test/openapi-parity.test.ts apps/api/test/qry01-qry03.test.ts apps/api/test/route-auth-matrix.test.ts apps/api/test/runtime-validation.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/whole-suite-reconciliation-final.log",
+      "sha256": "50f4d9640d41d0b70d33bc2eadbbdcf1b084496c34fd6bf25684b01554e8acf6",
+      "exitCode": 1,
+      "counts": {
+        "tests": 507,
+        "pass": 505,
+        "fail": 2,
+        "skipped": 0
+      },
+      "interpretation": "Four non-runtime files pass; new Node source needs EOF cleanup correction. This507-test command did not pass."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/runtime-validation.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/whole-suite-runtime-final-2.log",
+      "sha256": "aad1396254e45170a1aab8df30acce68cef770bb8f97a742c7c9c7f558be2158",
+      "exitCode": 0,
+      "counts": {
+        "tests": 16,
+        "pass": 16,
+        "fail": 0,
+        "skipped": 0
+      },
+      "interpretation": "Sixteen runtime checks pass after EOF repair; before later401 scope expansion."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/runtime-validation.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/whole-suite-runtime-expanded.log",
+      "sha256": "baa962fc8cc6dcc1d7e90ce6471f16a3503cfba898305ae17d229a9e6a946911",
+      "exitCode": 1,
+      "counts": {
+        "tests": 17,
+        "pass": 15,
+        "fail": 2,
+        "skipped": 0
+      },
+      "interpretation": "Seventeen-check attempt hits real sixth-import429; fixture phase isolation corrected, application limiter unchanged."
+    },
+    {
+      "command": "node --test-concurrency=1 --test apps/api/test/runtime-validation.test.ts",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/whole-suite-runtime-expanded-final.log",
+      "sha256": "27d680bf6f6166a580e602e3d8fa13fb7af748e479a35154ea4a4bd396b4e9cd",
+      "exitCode": 0,
+      "counts": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "skipped": 0
+      },
+      "interpretation": "Final seventeen runtime checks pass, including original Fetch boundaries, actual keepalive/401/403/413, slow upload and both runtimes."
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/whole-suite-typecheck-3.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exitCode": 0,
+      "interpretation": "Whole compiler pass before concurrent PNG work."
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/whole-suite-typecheck-expanded.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "exitCode": 0,
+      "interpretation": "Expanded Node source/test compile before final framing predicate."
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/whole-suite-typecheck-expanded-final.log",
+      "sha256": "6446991f5ab245d9dc76ace13967b66bffb15c184273d6cbd4552513b9707b63",
+      "exitCode": 1,
+      "interpretation": "Current whole-tree compiler blocked by concurrent png-stream.ts77 generic and png-stream-fixtures.ts21 undefined errors; no passing current whole-tree claim."
+    }
+  ],
+  "authMatrix": {
+    "operations": 103,
+    "cells": 465,
+    "expectedDenials": 432,
+    "positivePatCells": 6,
+    "additionalCookieReadOperations": 23,
+    "failures": 0,
+    "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/whole-suite-auth-final.json",
+    "sha256": "b13a9dcbf520781328a38ab84eb42bb3b7c7afed612e1c3a65e005b5d84baa9a"
+  },
+  "limits": [
+    "No final whole API run or independent score/approval from this subagent. Final runtime17 passed separately after the legacy507 command failed; never relabel that507 command green.",
+    "Current whole-tree typecheck failed only in concurrently edited PNG files; root must rerun it after those repairs.",
+    "Unknown/chunked/locked/over-budget/aborted malicious inputs are not promised complete HTTP error delivery; no unbounded discard is attempted and adapter cleanup remains enabled.",
+    "Local workerd/body/SQL samples are not hosted CPU, latency, Cloudflare resource, Google, R2 or provider acceptance.",
+    "Unchanged localDatabaseUrl guard still restricts the Node bootstrap; no remote/prod/bypass mode was enabled.",
+    "Primary/access/CPU reservation released after final runtime run; own servers/workerd/random schemas cleaned. Source held until parent follow-up."
+  ]
+}

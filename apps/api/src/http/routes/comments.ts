@@ -4,6 +4,8 @@ import {
   postCommentInputSchema,
   editCommentInputSchema,
   deleteCommentInputSchema,
+  commentsQuerySchema,
+  deleteCommentQuerySchema,
   parseOrThrow,
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
@@ -21,13 +23,6 @@ import { acquireWriteGrantLock, acquireWritableProjectContextLock } from '../../
 
 export const commentsRoutes = new Hono();
 
-function parseLimit(limitParam?: string): number {
-  if (!limitParam) return 50;
-  const parsed = parseInt(limitParam, 10);
-  if (Number.isNaN(parsed) || parsed < 1) return 50;
-  return Math.min(parsed, 100);
-}
-
 // 1. GET /cards/:cardId/comments: List comments for card readers
 commentsRoutes.get('/cards/:cardId/comments', authMiddleware, async (c) => {
   const actor = c.get('actor');
@@ -37,8 +32,6 @@ commentsRoutes.get('/cards/:cardId/comments', authMiddleware, async (c) => {
 
   const cardId = c.req.param('cardId');
   const queryParams = c.req.query();
-  const limit = parseLimit(queryParams.limit);
-  const cursor = queryParams.cursor;
 
   const pool = getPool();
   const client = await pool.connect();
@@ -49,10 +42,8 @@ commentsRoutes.get('/cards/:cardId/comments', authMiddleware, async (c) => {
     );
     if (!cardContext.rows[0]) throw HttpError.notFound('Card not found.', 'NOT_FOUND');
     await lockBoardAccess(client, cardContext.rows[0].board_id, actor.id);
-    const result = await listCardComments(client, cardId, actor.id, {
-      limit,
-      cursor: cursor !== undefined ? cursor : undefined,
-    });
+    const query = parseOrThrow(commentsQuerySchema, queryParams);
+    const result = await listCardComments(client, cardId, actor.id, query);
     await client.query('COMMIT');
     return c.json(result, 200);
   } catch (error) {
@@ -297,17 +288,7 @@ commentsRoutes.delete('/comments/:commentId', authMiddleware, async (c) => {
     );
   }
 
-  let rawBody: unknown;
-  try {
-    rawBody = await c.req.json();
-  } catch {
-    const vParam = c.req.query('expectedVersion');
-    if (vParam) {
-      rawBody = { expectedVersion: parseInt(vParam, 10) };
-    }
-  }
-
-  const body = parseOrThrow(deleteCommentInputSchema, rawBody ?? {});
+  const rawText = await c.req.text();
 
   const pool = getPool();
   const client = await pool.connect();
@@ -329,6 +310,18 @@ commentsRoutes.delete('/comments/:commentId', authMiddleware, async (c) => {
     }
     await acquireWriteGrantLock(client, scope.rows[0].project_id, actor.id, 'member', scope.rows[0].board_id);
     await acquireWritableProjectContextLock(client, scope.rows[0].project_id, scope.rows[0].board_id);
+
+    const query = parseOrThrow(deleteCommentQuerySchema, c.req.query());
+    let rawBody: unknown;
+    if (rawText.trim()) {
+      rawBody = JSON.parse(rawText);
+    } else {
+      rawBody = query.expectedVersion === undefined ? {} : { expectedVersion: query.expectedVersion };
+    }
+    const body = parseOrThrow(deleteCommentInputSchema, rawBody);
+    if (query.expectedVersion !== undefined && query.expectedVersion !== body.expectedVersion) {
+      throw new HttpError(422, 'VALIDATION_ERROR', 'Body and query expectedVersion must agree.');
+    }
 
     const cmtRes = await client.query<{
       project_id: string;

@@ -1,0 +1,37 @@
+{
+  purpose: 'Local assessment prototype only; no production source/config/bindings/resources changed. Local Images binding is Miniflare sharp-backed, not hosted backend proof.',
+  results: [
+    {
+      name: 'valid-png',
+      inputBytes: 95,
+      expectedStatus: 200,
+      status: 200,
+      output: [Object],
+      elapsedMs: 25
+    },
+    {
+      name: 'corrupt-deflate-valid-envelope',
+      inputBytes: 67,
+      expectedStatus: 422,
+      status: 422,
+      output: [Object],
+      elapsedMs: 9
+    },
+    {
+      name: 'valid-progressive-jpeg-20MP-444',
+      inputBytes: 235077,
+      expectedStatus: 200,
+      status: 200,
+      output: [Object],
+      elapsedMs: 86
+    },
+    {
+      name: 'valid-animated-webp',
+      inputBytes: 144,
+      expectedStatus: 200,
+      status: 200,
+      output: [Object],
+      elapsedMs: 5
+    }
+  ]
+}

@@ -5,16 +5,21 @@ import {
   utcIsoTimestampSchema,
 } from './common.ts';
 
+export const workspaceTimezoneSchema = z.string().trim().min(1).max(100).refine((value) => {
+  try { new Intl.DateTimeFormat('en-US', { timeZone: value }).format(); return true; }
+  catch { return false; }
+}, { message: 'Choose a supported timezone, for example UTC or Asia/Kolkata.' });
+
 export const createWorkspaceInputSchema = z.object({
   name: z.string().trim().min(1, 'Workspace name cannot be empty').max(100, 'Workspace name cannot exceed 100 characters'),
-  timezone: z.string().trim().min(1, 'Timezone cannot be empty').max(100, 'Timezone cannot exceed 100 characters'),
+  timezone: workspaceTimezoneSchema,
 });
 export type CreateWorkspaceInput = z.infer<typeof createWorkspaceInputSchema>;
 
 export const updateWorkspaceInputSchema = z
   .object({
     name: z.string().trim().min(1).max(100).optional(),
-    timezone: z.string().trim().min(1).max(100).optional(),
+    timezone: workspaceTimezoneSchema.optional(),
     expectedVersion: z.number().int().nonnegative(),
   })
   .refine((data) => data.name !== undefined || data.timezone !== undefined, {

@@ -1,7 +1,8 @@
+import { isCursorTimestamp, isCursorText } from '../services/cursor-timestamp.ts';
 import type pg from 'pg';
-import type { ActivityItem, PersonDisplay } from '@flowboard/contracts';
+import type { ActivityItem } from '@flowboard/contracts';
 import { getPool } from './postgres.ts';
-import { getHistoricalPersonDisplay } from './rbac.ts';
+import { loadActivityPeople } from '../services/activity-people.ts';
 import { HttpError } from '../http/errors.ts';
 import { createHash } from 'node:crypto';
 import { lockBoardAccess } from './board-grants-foundation.ts';
@@ -31,6 +32,7 @@ export function decodeActivityCursor(
   scopeDigest: string,
 ): ActivityCursor {
   try {
+    if(value.length>4096) throw new Error('oversized cursor');
     const base64 =
       value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (value.length % 4)) % 4);
     const parsed = JSON.parse(atob(base64)) as Partial<ActivityCursor>;
@@ -40,10 +42,8 @@ export function decodeActivityCursor(
       parsed.scopeId !== expectedScopeId ||
       parsed.actorId !== actorId ||
       parsed.scopeDigest !== scopeDigest ||
-      typeof parsed.createdAt !== 'string' ||
-      Number.isNaN(Date.parse(parsed.createdAt)) ||
-      typeof parsed.id !== 'string' ||
-      parsed.id.length === 0
+      !isCursorTimestamp(parsed.createdAt) ||
+      !isCursorText(parsed.id)
     ) {
       throw new Error('invalid activity cursor');
     }
@@ -205,35 +205,7 @@ export async function listCardActivity(
         })
       : null;
 
-  // 4. Batch-load actor PersonDisplay identities
-  const actorIds = Array.from(new Set(pageRows.map((r) => r.actor_id)));
-  const actorsMap = new Map<string, PersonDisplay>();
-
-  await Promise.all(
-    actorIds.map(async (actId) => {
-      const display = await getHistoricalPersonDisplay(pool, card.project_id, actId);
-      if (display) {
-        actorsMap.set(actId, display);
-      } else {
-        const userRes = await pool.query<{ id: string; display_name: string; avatar_url: string | null }>(
-          'SELECT id, display_name, avatar_url FROM users WHERE id = $1',
-          [actId],
-        );
-        if (userRes.rows.length > 0) {
-          const u = userRes.rows[0]!;
-          actorsMap.set(actId, {
-            id: u.id,
-            displayName: u.display_name,
-            avatarUrl: u.avatar_url,
-            activeInProject: false,
-            scopedRole: 'viewer',
-            assignable: false,
-            mentionable: false,
-          });
-        }
-      }
-    }),
-  );
+  const identities = await loadActivityPeople(pool, pageRows);
 
   const data: ActivityItem[] = pageRows.map((row) => ({
     id: row.id,
@@ -243,7 +215,8 @@ export async function listCardActivity(
     action: row.action,
     safeChanges: (row.safe_changes as Record<string, unknown>) ?? {},
     createdAt: new Date(row.created_at).toISOString(),
-    actor: actorsMap.get(row.actor_id),
+    actor: identities.actor(row.project_id, row.actor_id),
+    referencedPeople: identities.references(row),
     // Card title and key are shown only because this feed is already scoped to one card the actor passed.
     boardId: card.board_id,
     cardKey: card.card_key,
@@ -379,35 +352,7 @@ export async function listProjectActivity(
         })
       : null;
 
-  // Batch-load actor PersonDisplay identities
-  const actorIds = Array.from(new Set(pageRows.map((r) => r.actor_id)));
-  const actorsMap = new Map<string, PersonDisplay>();
-
-  await Promise.all(
-    actorIds.map(async (actId) => {
-      const display = await getHistoricalPersonDisplay(pool, projectId, actId);
-      if (display) {
-        actorsMap.set(actId, display);
-      } else {
-        const userRes = await pool.query<{ id: string; display_name: string; avatar_url: string | null }>(
-          'SELECT id, display_name, avatar_url FROM users WHERE id = $1',
-          [actId],
-        );
-        if (userRes.rows.length > 0) {
-          const u = userRes.rows[0]!;
-          actorsMap.set(actId, {
-            id: u.id,
-            displayName: u.display_name,
-            avatarUrl: u.avatar_url,
-            activeInProject: false,
-            scopedRole: 'viewer',
-            assignable: false,
-            mentionable: false,
-          });
-        }
-      }
-    }),
-  );
+  const identities = await loadActivityPeople(pool, pageRows);
 
   const data: ActivityItem[] = pageRows.map((row) => ({
     id: row.id,
@@ -417,7 +362,8 @@ export async function listProjectActivity(
     action: row.action,
     safeChanges: (row.safe_changes as Record<string, unknown>) ?? {},
     createdAt: new Date(row.created_at).toISOString(),
-    actor: actorsMap.get(row.actor_id),
+    actor: identities.actor(row.project_id, row.actor_id),
+    referencedPeople: identities.references(row),
   }));
 
   return { data, nextCursor };
@@ -561,31 +507,7 @@ export async function listWorkspaceActivity(
         })
       : null;
 
-  // Batch-load actor PersonDisplay identities
-  const actorIds = Array.from(new Set(pageRows.map((r) => r.actor_id)));
-  const actorsMap = new Map<string, PersonDisplay>();
-
-  await Promise.all(
-    actorIds.map(async (actId) => {
-      const userRes = await pool.query<{ id: string; display_name: string; avatar_url: string | null }>(
-        'SELECT id, display_name, avatar_url FROM users WHERE id = $1',
-        [actId],
-      );
-      if (userRes.rows.length > 0) {
-        const u = userRes.rows[0]!;
-        const isOwner = ws.owner_id === actId;
-        actorsMap.set(actId, {
-          id: u.id,
-          displayName: u.display_name,
-          avatarUrl: u.avatar_url,
-          activeInProject: true,
-          scopedRole: isOwner ? 'owner' : 'member',
-          assignable: true,
-          mentionable: true,
-        });
-      }
-    }),
-  );
+  const identities = await loadActivityPeople(pool, pageRows);
 
   const data: ActivityItem[] = pageRows.map((row) => ({
     id: row.id,
@@ -595,7 +517,8 @@ export async function listWorkspaceActivity(
     action: row.action,
     safeChanges: (row.safe_changes as Record<string, unknown>) ?? {},
     createdAt: new Date(row.created_at).toISOString(),
-    actor: actorsMap.get(row.actor_id),
+    actor: identities.actor(row.project_id, row.actor_id, false),
+    referencedPeople: identities.references(row),
   }));
 
   return { data, nextCursor };

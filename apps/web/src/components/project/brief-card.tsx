@@ -3,6 +3,9 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import type { Project, ProjectLink } from '@flowboard/contracts';
+import { useSession } from '@/lib/session';
+import { memoryDrafts } from '@/lib/memory-drafts';
+import { useMemoryValue, useMemoryRef, useMemoryDirty } from '@/lib/use-memory-draft';
 import { api } from '@/lib/api';
 import { describeError, isStale } from '@/lib/errors';
 import { isSafeHttpsUrl, LINKS_MAX } from '@/lib/links';
@@ -19,34 +22,39 @@ export function BriefCard({ project, canEdit }: { project: Project; canEdit: boo
   const toast = useToast();
   const links: ProjectLink[] = project.links ?? [];
   const [open, setOpen] = useState(false);
-  const [brief, setBrief] = useState('');
-  const [drafts, setDrafts] = useState<Draft[]>([]);
+  const {state}=useSession();const actorId=state.status==='ready'?state.session.actor.id:'';const scope=['brief',actorId,project.id];
+  const [brief,setBrief]=useMemoryValue([...scope,'text'],project.brief??'');
+  const [drafts,setDrafts]=useMemoryValue<Draft[]>([...scope,'links'],()=>links.map((link,index)=>({key:index,title:link.title,url:link.url})));
+  const [version,setVersion]=useMemoryValue([...scope,'version'],project.version);
+  const [conflict,setConflict]=useMemoryValue([...scope,'conflict'],false);
+  const baseline=useMemoryRef([...scope,'baseline'],()=>({brief:project.brief??'',links:JSON.stringify(links.map(({title,url})=>({title,url}))),version:project.version}));
+  const normalized=JSON.stringify(drafts.map(({title,url})=>({title:title.trim(),url:url.trim()})));
+  const dirty=brief.trim()!==baseline.current.brief||normalized!==baseline.current.links;
+  const clearDirty=useMemoryDirty([...scope,'dirty'],dirty);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
 
-  useEffect(() => {
-    if (!open) return;
-    setBrief(project.brief ?? '');
-    setDrafts(links.map((link, index) => ({ key: index, title: link.title, url: link.url })));
-    setError('');
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
-
+  const protection=memoryDrafts.protectFields(scope,{actorId,projectId:project.id},{brief:{scope:[...scope,'text'],base:()=>baseline.current.brief,empty:''},links:{scope:[...scope,'links'],base:()=>JSON.parse(baseline.current.links).map((link:ProjectLink,key:number)=>({key,title:link.title,url:link.url})),empty:[]}},()=>{baseline.current={brief:'',links:'[]',version:0};setVersion(0);setConflict(true);});
+  useEffect(()=>{const next={brief:project.brief??'',links:JSON.stringify(links.map(({title,url})=>({title,url}))),version:project.version};
+    const restored=protection.restore({brief:next.brief,links:links.map((link,key)=>({key,title:link.title,url:link.url}))});if(restored){baseline.current=next;setVersion(project.version);setConflict(restored.retained);return;}
+    if(!dirty||(brief.trim()===next.brief&&normalized===next.links)){setBrief(next.brief);setDrafts(links.map((link,index)=>({key:index,title:link.title,url:link.url})));setVersion(project.version);setConflict(false);baseline.current=next;clearDirty();}
+    else if(project.version!==version)setConflict(true);
+  },[project.version,project.brief,project.links]);
   const setDraft = (key: number, patch: Partial<Draft>) => { setError(''); setDrafts((all) => all.map((d) => (d.key === key ? { ...d, ...patch } : d))); };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
-    if (busy) return;
+    if (busy||!canEdit||project.isArchived||!actorId||conflict) return;
     const cleaned = drafts.map((d) => ({ title: d.title.trim(), url: d.url.trim() }));
     const bad = cleaned.findIndex((d) => !d.title || !isSafeHttpsUrl(d.url));
     if (bad >= 0) { setError(`Link ${bad + 1}: enter a title and an https:// address without a username or password.`); return; }
     setBusy(true);
     setError('');
     try {
-      await api.updateProject(project.id, { brief: brief.trim() || null, links: cleaned, expectedVersion: project.version });
+      await api.updateProject(project.id, { brief: brief.trim() || null, links: cleaned, expectedVersion: version });
       await Promise.all([queryClient.invalidateQueries({ queryKey: ['project', project.id] }), queryClient.invalidateQueries({ queryKey: ['session'] })]);
       toast('Brief saved', { icon: 'check' });
-      setOpen(false);
+      clearDirty();setOpen(false);
     } catch (err) {
       if (isStale(err)) { await queryClient.invalidateQueries({ queryKey: ['project', project.id] }); setError('Someone else changed this project. The latest brief is loaded; check it and save again.'); }
       else setError(describeError(err));
@@ -87,9 +95,9 @@ export function BriefCard({ project, canEdit }: { project: Project; canEdit: boo
           <div className="dialog-body">
             <div className="dialog-field">
               <label htmlFor="briefText">Brief</label>
-              <textarea className="control textarea" id="briefText" rows={5} maxLength={BRIEF_MAX} data-autofocus placeholder="What is this project about, and what does done look like?" value={brief} onChange={(event) => { setError(''); setBrief(event.target.value); }} />
+              <textarea className="control textarea" id="briefText" rows={5} maxLength={BRIEF_MAX} data-autofocus placeholder="What is this project about, and what does done look like?" value={brief} readOnly={!canEdit||project.isArchived||busy} onChange={(event) => { setError(''); setBrief(event.target.value); }} />
             </div>
-            <fieldset className="ov-link-edit">
+            <fieldset className="ov-link-edit" disabled={!canEdit||project.isArchived||busy}>
               <legend>Pinned links <span className="field-optional">({drafts.length} of {LINKS_MAX})</span></legend>
               {drafts.map((d, index) => (
                 <div className="ov-link-row" key={d.key}>
@@ -100,12 +108,14 @@ export function BriefCard({ project, canEdit }: { project: Project; canEdit: boo
               ))}
               <button className="btn sm" type="button" disabled={drafts.length >= LINKS_MAX} onClick={() => setDrafts((all) => [...all, { key: Math.max(-1, ...all.map((x) => x.key)) + 1, title: '', url: '' }])}><Icon name="plus" />Add link</button>
             </fieldset>
+            {conflict&&<div className="note warn"><p>The project changed. Your brief and links are kept. Current brief: {project.brief||'No brief'}</p><button className="btn sm" type="button" onClick={()=>{setVersion(project.version);setConflict(false);baseline.current={brief:project.brief??'',links:JSON.stringify(links.map(({title,url})=>({title,url}))),version:project.version};}}>Use latest version, keep my brief</button></div>}
+            <p className="field-help">Closing keeps this draft in this tab.</p>
             {error && <p className="form-error" role="alert">{error}</p>}
           </div>
           <footer className="dialog-foot">
             <span className="spacer" />
-            <button className="btn" type="button" onClick={() => setOpen(false)}>Cancel</button>
-            <button className="btn primary" type="submit" disabled={busy}>{busy ? 'Saving…' : 'Save brief'}</button>
+            <button className="btn" type="button" onClick={() => setOpen(false)}>Close and keep draft</button><button className="btn" type="button" disabled={busy} onClick={()=>{setBrief(project.brief??'');setDrafts(links.map((link,key)=>({key,title:link.title,url:link.url})));setVersion(project.version);setConflict(false);baseline.current={brief:project.brief??'',links:JSON.stringify(links.map(({title,url})=>({title,url}))),version:project.version};clearDirty();}}>Discard draft</button>
+            <button className="btn primary" type="submit" disabled={busy||!canEdit||project.isArchived||conflict}>{busy ? 'Saving…' : 'Save brief'}</button>
           </footer>
         </form>
       </DialogLayer>

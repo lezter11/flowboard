@@ -1,0 +1,45 @@
+{
+  "kind": "focused-independent-repair-validation",
+  "finding": "PB-01",
+  "result": "reproduction-cleared-on-held-people-bytes",
+  "wholeDomainApproval": false,
+  "globalRound2Approval": false,
+  "releaseApproval": false,
+  "at": "2026-11-03T09:44:52.217496+00:00",
+  "reviewerTask": "/root/formal_projects_boards_round1",
+  "implementedRepair": false,
+  "providerSessionUUID": "not exposed; no UUID invented",
+  "heldFiles": {
+    "apps/api/src/adapters/rbac.ts": "67797726c7ade25b8e3e58c25af8d0b87fe4391ccb8c9a18495c2874003d8359",
+    "apps/api/src/http/routes/projects.ts": "b5041a619744429ea307137776c9eeb49415d13fd6a32179c22786f2e178dd61",
+    "apps/api/test/people-directory-policy.test.ts": "48f35f3e6335e711b2caf39adc18f22ae965095ac3247d4defeb3c9ae11e4d0e",
+    "apps/api/test/rbac-advanced.test.ts": "77495d30d1df3cc373450ef8c355e351cefd49cd2603efa5eafe03b120c23a5d",
+    "docs/API.md": "c9ced0453f2bdaf2d3cc9d2d7bb5aaa1e821f466f88c9e4bd12752ecec44fbca"
+  },
+  "heldChanges": [],
+  "tests": [
+    {
+      "command": "NODE_ENV=test node --test --test-concurrency=1 docs/reviews/FULL-REVALIDATION-20261103/formal-projects-boards-round1/unscoped-people-probe.test.ts docs/reviews/FULL-REVALIDATION-20261103/formal-projects-boards-round1/display-scope-probe.test.ts apps/api/test/people-directory-policy.test.ts",
+      "passed": 12,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/people-display-retest-round1/exact-probes-and-policy.log"
+    },
+    {
+      "command": "NODE_ENV=test node --test --test-concurrency=1 docs/reviews/FULL-REVALIDATION-20261103/people-display-retest-round1/direct-pool-controls.test.ts",
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/people-display-retest-round1/direct-pool-controls.log"
+    }
+  ],
+  "environment": "Owned disposable local PostgreSQL17.11 127.0.0.1:55931; flowboard_import_test/flowboard_identity_extra_test; random synthetic schemas; no remote network",
+  "limits": [
+    "Only five held People files, not a globally frozen target",
+    "No full mandatory14 gate execution or score",
+    "No UI/browser/hosted acceptance",
+    "Prior formal failed records remain preserved"
+  ]
+}

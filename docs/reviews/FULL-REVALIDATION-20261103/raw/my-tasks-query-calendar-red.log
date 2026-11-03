@@ -1,0 +1,54 @@
+✔ My Tasks: both routes traverse tied/null dates with bounded pages and no duplication (278.716333ms)
+✔ My Tasks: due-state and priority are SQL filters; done is never overdue (187.040583ms)
+✔ My Tasks: invalid queries, altered context and grant revocation fail closed (199.354125ms)
+✔ My Tasks: archive lifecycle hides assignments and invalidates a prior cursor (183.092667ms)
+✔ My Tasks: shared project receives its workspace calendar date and timezone changes stale the cursor (179.118167ms)
+{"myTasksQueryCounts":{"oneBoard":7,"threeBoards":9}}
+✖ My Tasks: query count stays constant when returned cards span more granted boards (170.933958ms)
+✖ Workspace calendar: invalid timezone is422 with no version/state change; valid owner update preserves date-only deadlines (170.495875ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 5
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1577.313667
+
+✖ failing tests:
+
+test at apps/api/test/my-tasks-repair.test.ts:75:1
+✖ My Tasks: query count stays constant when returned cards span more granted boards (170.933958ms)
+  AssertionError [ERR_ASSERTION]: Board authorization rechecks must be one bounded batch, not one query per board
+  
+  9 !== 7
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:92:64)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 9,
+    expected: 7,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/my-tasks-repair.test.ts:95:1
+✖ Workspace calendar: invalid timezone is422 with no version/state change; valid owner update preserves date-only deadlines (170.495875ms)
+  AssertionError [ERR_ASSERTION]: {"data":{"id":"ws","name":"Retention","timezone":"Definitely/Not_A_Zone","ownerId":"usr_0f606936de67dc70","version":2,"createdAt":"2026-11-03T06:12:57.355Z","updatedAt":"2026-11-03T06:12:57.372Z"}}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:98:113)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

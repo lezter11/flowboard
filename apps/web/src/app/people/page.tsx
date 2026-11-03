@@ -1,8 +1,12 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useProjectBoards } from '@/lib/portfolio';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
+import { useRouter } from '@/lib/guarded-router';
+import { canViewPeopleDirectory, directoryRows, memberControls } from '@/lib/member-controls';
+import { ApiError } from '@/lib/api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { describeError } from '@/lib/errors';
@@ -15,11 +19,15 @@ import { InviteDialog } from '@/components/ui/invite-dialog';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { useToast } from '@/components/ui/toasts';
 
-export default function PeoplePage() {
+function PeopleScreen() {
   const { state } = useSession();
-  const projects = useMemo(() => (state.status === 'ready' ? state.session.accessibleProjects : []).filter((p) => can(normalizeRole(p.role), 'manageBoard')), [state]);
+  const params = useSearchParams(); const router = useRouter();
+  const allProjects = state.status === 'ready' ? state.session.accessibleProjects : [];
+  const projects = useMemo(() => allProjects.filter((project) => canViewPeopleDirectory(project.role)), [allProjects]);
   const [projectId, setProjectId] = useState('');
-  const project = projects.find((p) => p.id === projectId) ?? projects[0];
+  const selectedId = params.get('project') ?? projectId;
+  const project = selectedId ? allProjects.find((project) => project.id === selectedId) : projects[0];
+  const directoryAllowed = state.status === 'ready' && canViewPeopleDirectory(project?.role);
   const [q, setQ] = useState('');
   const [role, setRole] = useState('');
   const actorId = state.status === 'ready' ? state.session.actor.id : '';
@@ -30,12 +38,12 @@ export default function PeoplePage() {
   const [accessOpen, setAccessOpen] = useState(false);
   const [accessBoardId, setAccessBoardId] = useState('');
   const [accessError, setAccessError] = useState('');
-  const boards = useProjectBoards(project?.id ?? null);
+  const boards = useProjectBoards(directoryAllowed ? project?.id ?? null : null);
   const boardList = (boards.data ?? []).filter((b) => !b.isArchived);
   const accessBoard = boardList.find((b) => b.id === accessBoardId) ?? boardList[0];
-  usePollKeys([['board-access', accessBoard?.id]], accessOpen && !!accessBoard);
-  usePollKeys([['boards', project?.id], ['project', project?.id]], !!project);
-  const access = useQuery({ queryKey: ['board-access', accessBoard?.id], queryFn: async () => (await api.getBoardAccess(accessBoard!.id)).data, enabled: accessOpen && !!accessBoard });
+  usePollKeys([['board-access', accessBoard?.id]], accessOpen && !!accessBoard && directoryAllowed && project?.role === 'owner');
+  usePollKeys([['boards', project?.id], ['project', project?.id]], directoryAllowed);
+  const access = useQuery({ queryKey: ['board-access', accessBoard?.id], queryFn: async () => (await api.getBoardAccess(accessBoard!.id)).data, enabled: accessOpen && !!accessBoard && directoryAllowed && project?.role === 'owner' });
   const setGrant = useMutation({
     mutationFn: (v: { userId: string; allow: boolean }) => api.setBoardGrant(accessBoard!.id, v.userId, v.allow, access.data!.accessRevision),
     onSuccess: () => { setAccessError(''); void queryClient.invalidateQueries({ queryKey: ['board-access', accessBoard?.id] }); },
@@ -58,22 +66,23 @@ export default function PeoplePage() {
   const directory = useQuery({
     queryKey: ['members', project?.id],
     queryFn: async () => (await api.listProjectMembers(project!.id)).data,
-    enabled: !!project,
+    enabled: directoryAllowed,
   });
-  usePollKeys([['members', project?.id]], !!project);
-  const list = (directory.data ?? []).filter((m) => m.status === 'active');
+  usePollKeys([['members', project?.id]], directoryAllowed);
+  useEffect(() => { if (!directoryAllowed && project?.id) queryClient.removeQueries({ queryKey: ['members', project.id] }); }, [directoryAllowed, project?.id, queryClient]);
+  const list = directoryRows(project?.role, directory.data, directory.isError || !directoryAllowed).filter((member) => member.status === 'active');
   const nameOf = (m: (typeof list)[number]) => m.displayName ?? m.name;
   const needle = q.trim().toLowerCase();
   const filtered = list.filter((m) => (!role || m.role === role) && (!needle || nameOf(m).toLowerCase().includes(needle) || m.email.toLowerCase().includes(needle)));
   const count = (r: string) => list.filter((m) => m.role === r).length;
   const active = !!(q || role);
 
-  if (state.status === 'ready' && projects.length === 0) {
+  if (state.status === 'ready' && (!directoryAllowed || (directory.error instanceof ApiError && [401, 403, 404].includes(directory.error.status)))) {
     return (
       <div id="peopleUnavailable" className="people-unavailable">
         <span className="empty-symbol"><Icon name="lock" /></span>
         <h2>People unavailable</h2>
-        <p>Choose a project where you can manage people.</p>
+        <p>The full People directory is for the project Owner and Project Manager. Board-scoped assignee and mention pickers remain available where you have permission.</p>
         <Link className="btn" href="/projects">Browse projects</Link>
       </div>
     );
@@ -104,7 +113,7 @@ export default function PeoplePage() {
           <div className="directory-toolbar">
             <label className="people-search" htmlFor="peopleSearch"><Icon name="search" /><span className="sr-only">Search people</span><input id="peopleSearch" type="search" placeholder="Search people" autoComplete="off" value={q} onChange={(event) => setQ(event.target.value)} /></label>
             <label className="people-filter"><span className="sr-only">Project</span>
-              <select id="peopleProject" aria-label="Select project" value={project?.id ?? ''} onChange={(event) => { setProjectId(event.target.value); setQ(''); setRole(''); }}>
+              <select id="peopleProject" aria-label="Select project" value={project?.id ?? ''} onChange={(event) => { setProjectId(event.target.value); router.replace(`/people?project=${encodeURIComponent(event.target.value)}`); setQ(''); setRole(''); }}>
                 {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
               </select><Icon name="chevron-down" />
             </label>
@@ -124,7 +133,7 @@ export default function PeoplePage() {
             )}
             {filtered.map((m) => (
               <article key={m.id} className="team-row">
-                <span className="person-avatar"><Avatar id={m.userId ?? m.id} name={nameOf(m)} className="lg" /></span>
+                <span className="person-avatar"><Avatar id={m.userId ?? m.id} name={nameOf(m)} avatarUrl={m.avatarUrl} className="lg" /></span>
                 <div className="member-name"><strong>{nameOf(m)}</strong>{(m.userId ?? m.id) === actorId && <span className="you-label">You</span>}</div>
                 <span className={`member-role role-${m.role}`}><span aria-hidden="true" className="role-dot" />{ROLE_META[m.role].label}</span>
                 <span className="member-icon" aria-hidden="true"><Icon name="user-check" /></span>
@@ -134,8 +143,8 @@ export default function PeoplePage() {
         </section>
         <p className="people-foot"><Icon name="info" />Roles come from project membership. Invite people by email; they see no boards until the Owner gives them board access.</p>
       </div>
-      {project && <InviteDialog projectId={project.id} projectName={project.name} actorRole={normalizeRole(project.role)} open={inviteOpen} onClose={() => setInviteOpen(false)} />}
-      <DialogLayer open={accessOpen} onClose={() => setAccessOpen(false)} labelledBy="boardAccessTitle" describedBy="boardAccessHelp" className="wide">
+      {project && <InviteDialog projectId={project.id} projectName={project.name} actorRole={normalizeRole(project.role)} archived={!!project.isArchived} open={inviteOpen} onClose={() => setInviteOpen(false)} />}
+      <DialogLayer open={accessOpen && isOwnerOfProject && directoryAllowed} onClose={() => setAccessOpen(false)} labelledBy="boardAccessTitle" describedBy="boardAccessHelp" className="wide">
         <div className="dialog-head"><div><h2 id="boardAccessTitle">Board access</h2><p>{project?.name}</p></div><button className="dialog-close" type="button" data-autofocus onClick={() => setAccessOpen(false)} aria-label="Close"><Icon name="x" /></button></div>
         <div className="dialog-body people-manage-body">
           <p id="boardAccessHelp" className="people-manage-help">Choose which project members can open this board. Project roles and board access are separate. Owners always have access.</p>
@@ -163,7 +172,7 @@ export default function PeoplePage() {
         </div>
         <footer className="dialog-foot"><span className="spacer" /><button className="btn primary" type="button" onClick={() => setAccessOpen(false)}>Done</button></footer>
       </DialogLayer>
-      <DialogLayer open={manageOpen} onClose={() => setManageOpen(false)} labelledBy="peopleManageTitle" describedBy="peopleManageHelp" className="wide">
+      <DialogLayer open={manageOpen && directoryAllowed} onClose={() => setManageOpen(false)} labelledBy="peopleManageTitle" describedBy="peopleManageHelp" className="wide">
         <div className="dialog-head"><div><h2 id="peopleManageTitle">Manage people</h2><p>{project?.name}</p></div><button className="dialog-close" type="button" data-autofocus onClick={() => setManageOpen(false)} aria-label="Close"><Icon name="x" /></button></div>
         <div className="dialog-body people-manage-body">
           <p id="peopleManageHelp" className="people-manage-help">Change a member&apos;s project role or remove them. Project roles and board access are separate; removing someone also removes their board access. Use Invite people to add someone new.</p>
@@ -172,16 +181,17 @@ export default function PeoplePage() {
               {list.map((m) => {
                 const uid = m.userId ?? m.id;
                 const isOwner = m.role === 'owner';
+                const controls = memberControls(normalizeRole(project?.role), actorId, normalizeRole(m.role), uid, !!project?.isArchived);
                 return (
                   <div key={m.id} className="people-manage-person" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                     <span style={{ flex: 1, minWidth: 0 }}><strong>{nameOf(m)}</strong>{isOwner && <small style={{ display: 'block' }}>Owner · always has access</small>}{uid === actorId && !isOwner && <small style={{ display: 'block' }}>You</small>}</span>
-                    {isOwner ? <span className="badge">Owner</span> : (
+                    {!controls.edit ? <span className="badge" title={controls.reason}>{ROLE_META[m.role].label} · protected</span> : (
                       <>
                         <label className="sr-only" htmlFor={`role-${m.id}`}>Role for {nameOf(m)}</label>
-                        <select className="control" id={`role-${m.id}`} style={{ width: 'auto' }} value={m.role} disabled={changeRole.isPending || uid === actorId} onChange={(event) => changeRole.mutate({ userId: uid, role: event.target.value as 'manager' | 'member' | 'viewer', version: m.version })}>
-                          <option value="manager">Manager</option><option value="member">Member</option><option value="viewer">Viewer</option>
+                        <select className="control" id={`role-${m.id}`} style={{ width: 'auto' }} value={m.role} disabled={changeRole.isPending || !controls.edit} onChange={(event) => changeRole.mutate({ userId: uid, role: event.target.value as 'manager' | 'member' | 'viewer', version: m.version })}>
+                          {controls.roles.map((role) => <option key={role} value={role}>{ROLE_META[role].label}</option>)}
                         </select>
-                        <button className="btn sm" type="button" disabled={removeMember.isPending || uid === actorId} aria-label={`Remove ${nameOf(m)}`} onClick={() => removeMember.mutate(uid)}>Remove</button>
+                        <button className="btn sm" type="button" disabled={removeMember.isPending || !controls.remove} aria-label={`Remove ${nameOf(m)}`} onClick={() => removeMember.mutate(uid)}>Remove</button>
                       </>
                     )}
                   </div>
@@ -196,3 +206,5 @@ export default function PeoplePage() {
     </>
   );
 }
+
+export default function PeoplePage() { return <Suspense fallback={<p role="status">Loading People…</p>}><PeopleScreen /></Suspense>; }

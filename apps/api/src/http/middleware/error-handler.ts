@@ -114,16 +114,16 @@ export const errorHandler: ErrorHandler<{ Variables: { requestId: string } }> = 
     if (status === 429) {
       c.header('Retry-After', '60');
     }
-    if (status >= 500 && status !== 503 && status !== 504) {
+    if (status >= 500) {
       return c.json(
         {
           error: {
-            code: 'INTERNAL_ERROR',
-            message: 'Internal server error.',
+            code: status === 503 ? 'SERVICE_UNAVAILABLE' : status === 504 ? 'DEADLINE_EXCEEDED' : 'INTERNAL_ERROR',
+            message: status === 503 ? 'Service is temporarily unavailable.' : status === 504 ? 'The request took too long. Try again.' : 'Internal server error.',
             requestId,
           },
         },
-        500,
+        status === 503 || status === 504 ? status : 500,
       );
     }
     const message = (err as { message?: string }).message || 'Request failed.';
@@ -145,6 +145,14 @@ export const errorHandler: ErrorHandler<{ Variables: { requestId: string } }> = 
 
   // 5b. PostgreSQL deadlock/serialization failures are transient: ask the client to retry.
   const pgCode = typeof err === 'object' && err !== null && 'code' in err ? (err as { code: unknown }).code : undefined;
+  //57014 is PostgreSQL's statement cancellation, including configured statement_timeout.
+  // The transaction is rolled back by the route; return a retryable safe error, not SQL details.
+  if (pgCode === '57014') {
+    c.header('Retry-After', '1');
+    return c.json({ error: {
+      code: 'SERVICE_UNAVAILABLE', message: 'The database request took too long. Retry shortly.', requestId,
+    } }, 503);
+  }
   if (pgCode === '40P01' || pgCode === '40001') {
     c.header('Retry-After', '1');
     return c.json(

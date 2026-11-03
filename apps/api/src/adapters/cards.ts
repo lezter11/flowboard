@@ -1,4 +1,4 @@
-import { assigneeIneligibilityReasons, boardAssigneeIds } from '../services/board-assignees.ts';
+import { lockSelectedAssignees, validateLockedAssignees, type LockedAssignees } from '../services/assignee-locks.ts';
 import { projectNameSuffixes, withNameSuffix } from '../services/person-suffix.ts';
 import crypto from 'node:crypto';
 import type pg from 'pg';
@@ -13,6 +13,7 @@ import {
   type PersonDisplay,
   type Priority,
   type CardState,
+  type MyTasksQuery,
   isValidGregorianDate,
   ValidationError,
 } from '@flowboard/contracts';
@@ -132,55 +133,6 @@ export function toCardSummary(
 }
 
 /**
- * Validates that all assignees are active project members or the workspace owner for this project.
- * Throws 422 VALIDATION_ERROR on any invalid, outsider, removed, or sibling user ID.
- */
-async function validateAssigneeIds(
-  clientOrPool: pg.ClientBase | pg.Pool,
-  projectId: string,
-  workspaceId: string,
-  boardId: string,
-  assigneeIds: string[],
-): Promise<void> {
-  if (assigneeIds.length === 0) return;
-
-  if (assigneeIds.length > 20) {
-    throw validationError('At most 20 assignees can be assigned to a card.', {
-      issues: [{ path: 'assigneeIds', message: 'At most 20 assignees can be assigned' }],
-    });
-  }
-
-  const uniqueAssigneeIds = Array.from(new Set(assigneeIds));
-  if (uniqueAssigneeIds.length !== assigneeIds.length) {
-    throw validationError('Assignee IDs must be unique.', {
-      issues: [{ path: 'assigneeIds', message: 'Assignee IDs must be unique' }],
-    });
-  }
-
-  // Assignees are the workspace owner or an active manager or member with a board grant. A viewer
-  // reads cards but cannot be assigned work (docs/FEATURE_SPEC.md: assignees active owner/manager/member).
-  // The shared rule (services/board-assignees.ts), also used by the assignee picker (B-24).
-  const validSet = await boardAssigneeIds(clientOrPool, projectId, boardId);
-  const invalidUsers = assigneeIds.filter((id) => !validSet.has(id));
-
-  if (invalidUsers.length > 0) {
-    const reasons = await assigneeIneligibilityReasons(clientOrPool, projectId, boardId, invalidUsers);
-    throw new HttpError(422, 'ASSIGNEE_NOT_ELIGIBLE', 'All assignees must be active owners, managers or members with access to this board.', {
-      boardId,
-      reasons,
-      ineligibleUserIds: invalidUsers,
-      invalidAssigneeIds: invalidUsers, // kept for clients that read the earlier key
-      issues: [
-        {
-          path: 'assigneeIds',
-          message: `Users are not eligible assignees (active owner, manager or member with board access): ${invalidUsers.join(', ')}`,
-        },
-      ],
-    });
-  }
-}
-
-/**
  * Fetch counts of active comments and images for a list of card IDs.
  */
 async function fetchCardCounts(
@@ -257,12 +209,14 @@ export async function createCard(
   input: CreateCardAdapterInput,
   actorId: string,
   source?: ActivitySource,
+  lockedAssignees?: LockedAssignees,
 ): Promise<Card> {
   const accessBoard = await client.query<{ project_id: string }>(
     'SELECT project_id FROM boards WHERE id = $1', [boardId],
   );
   if (!accessBoard.rows[0]) throw HttpError.notFound('Board not found.', 'NOT_FOUND');
   await acquireWriteGrantLock(client, accessBoard.rows[0].project_id, actorId, 'member', boardId);
+  const assigneeSelection = lockedAssignees ?? await lockSelectedAssignees(client, accessBoard.rows[0].project_id, boardId, input.assigneeIds ?? []);
   await acquireWritableProjectContextLock(client, accessBoard.rows[0].project_id, boardId);
   // 1. Lock and fetch board
   const boardRes = await client.query<{
@@ -300,7 +254,7 @@ export async function createCard(
   const columnRes = await client.query<{ id: string; workspace_id: string; project_id: string }>(
     `SELECT id, workspace_id, project_id
      FROM columns
-     WHERE id = $1 AND board_id = $2`,
+     WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL`,
     [input.columnId, boardId],
   );
 
@@ -329,7 +283,7 @@ export async function createCard(
 
   // 7. Validate assignees
   const assigneeIds = input.assigneeIds ?? [];
-  await validateAssigneeIds(client, board.project_id, board.workspace_id, boardId, assigneeIds);
+  validateLockedAssignees(assigneeSelection, client, board.project_id, boardId, assigneeIds);
 
   // 8. Position rank allocation: position = (max(position) in column for active cards || 0) + 1000
   const posRes = await client.query<{ max_pos: string | null }>(
@@ -529,12 +483,15 @@ export async function updateCard(
   cardId: string,
   input: UpdateCardInput,
   actorId: string,
+  lockedAssignees?: LockedAssignees,
 ): Promise<Card> {
   const accessCard = await client.query<{ project_id: string; board_id: string }>(
     'SELECT project_id, board_id FROM cards WHERE id = $1', [cardId],
   );
   if (!accessCard.rows[0]) throw HttpError.notFound('Card not found.', 'NOT_FOUND');
   await acquireWriteGrantLock(client, accessCard.rows[0].project_id, actorId, 'member', accessCard.rows[0].board_id);
+  const assigneeSelection = input.assigneeIds === undefined ? undefined : lockedAssignees ??
+    await lockSelectedAssignees(client, accessCard.rows[0].project_id, accessCard.rows[0].board_id, input.assigneeIds);
   await acquireWritableProjectContextLock(client, accessCard.rows[0].project_id, accessCard.rows[0].board_id);
   // 1. Lock and fetch active card
   const cardRes = await client.query<CardRow>(
@@ -606,7 +563,7 @@ export async function updateCard(
   const changes: Record<string, { old?: unknown; new?: unknown; added?: string[]; removed?: string[] }> = {};
   let nextAssigneeIds: string[];
   if (input.assigneeIds !== undefined) {
-    await validateAssigneeIds(client, card.project_id, card.workspace_id, card.board_id, input.assigneeIds);
+    validateLockedAssignees(assigneeSelection!, client, card.project_id, card.board_id, input.assigneeIds);
     nextAssigneeIds = input.assigneeIds;
 
     let oldAssigneeIds: string[] = [];
@@ -711,20 +668,12 @@ async function recompactColumnPositions(
   columnId: string,
   excludedCardId?: string,
 ): Promise<void> {
-  const cardsRes = await client.query<{ id: string }>(
-    `SELECT id
-     FROM cards
-     WHERE column_id = $1 AND state = 'active' AND ($2::TEXT IS NULL OR id != $2)
-     ORDER BY cards.position ASC, cards.id ASC
-     FOR UPDATE`,
-    [columnId, excludedCardId ?? null],
-  );
-
-  for (let i = 0; i < cardsRes.rows.length; i++) {
-    const cId = cardsRes.rows[i]!.id;
-    const newPos = (i + 1) * 1000;
-    await client.query('UPDATE cards SET position = $1 WHERE id = $2', [newPos, cId]);
-  }
+  // The board write lock serializes ordinary ranks. Rare compaction stays in SQL;
+  // never load/issue one UPDATE per destination card in the Worker.
+  await client.query(`WITH ranked AS (
+    SELECT id,(row_number() OVER (ORDER BY position,id)*1000)::bigint AS new_position
+    FROM cards WHERE column_id=$1 AND state='active' AND ($2::text IS NULL OR id<>$2)
+  ) UPDATE cards c SET position=r.new_position FROM ranked r WHERE c.id=r.id`,[columnId,excludedCardId??null]);
 }
 
 /**
@@ -735,6 +684,7 @@ export async function moveCard(
   cardId: string,
   input: MoveCardInput,
   actorId: string,
+  metadata?: { undoOfActivityId: string },
 ): Promise<Card> {
   const accessCard = await client.query<{ project_id: string; board_id: string }>(
     'SELECT project_id, board_id FROM cards WHERE id = $1', [cardId],
@@ -803,7 +753,7 @@ export async function moveCard(
 
   // 6. Verify destination column belongs to the same board
   const colRes = await client.query<{ id: string; board_id: string }>(
-    `SELECT id, board_id FROM columns WHERE id = $1 AND board_id = $2`,
+    `SELECT id, board_id FROM columns WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL`,
     [input.toColumnId, card.board_id],
   );
 
@@ -813,132 +763,59 @@ export async function moveCard(
     });
   }
 
-  // 7. Calculate new position rank
-  let calculatedPosition: number;
+  // Preserve original identities before same-column rank compaction changes numbers.
+  const sourceNeighbors=await client.query<{side:string;id:string}>(`(
+    SELECT 'previous' AS side,id FROM cards WHERE column_id=$1 AND state='active'
+      AND (position,id)<($2::bigint,$3::text) ORDER BY position DESC,id DESC LIMIT 1
+  ) UNION ALL (
+    SELECT 'next' AS side,id FROM cards WHERE column_id=$1 AND state='active'
+      AND (position,id)>($2::bigint,$3::text) ORDER BY position,id LIMIT 1
+  )`,[card.column_id,String(card.position),cardId]);
+  const fromPreviousCardId=sourceNeighbors.rows.find(row=>row.side==='previous')?.id??null;
+  const fromNextCardId=sourceNeighbors.rows.find(row=>row.side==='next')?.id??null;
 
-  // Fetch all other active cards in destination column (locked FOR UPDATE to serialize positions)
-  const destCardsRes = await client.query<{ id: string; position: number }>(
-    `SELECT id, position
-     FROM cards
-     WHERE column_id = $1 AND state = 'active' AND id != $2
-     ORDER BY cards.position ASC, cards.id ASC
-     FOR UPDATE`,
-    [input.toColumnId, cardId],
-  );
-  const destCards = destCardsRes.rows.map((r) => ({
-    id: r.id,
-    position: Number(r.position),
-  }));
-  destCards.sort((a, b) => a.position - b.position || a.id.localeCompare(b.id));
-
-  if (destCards.length === 0) {
-    // Column is currently empty (excluding moving card)
-    if (input.previousCardId !== null || input.nextCardId !== null) {
-      throw validationError('Destination column is empty; both previousCardId and nextCardId must be null.', {
-        issues: [{ path: 'previousCardId', message: 'Destination column is empty; neighbors must be null' }],
-      });
+  // Normal moves read only endpoints/the supplied pair. The held board lock
+  // prevents another application write from changing adjacency before commit.
+  type Rank={id:string;position:string};
+  const readEdge=async(last:boolean)=>(await client.query<Rank>(`SELECT id,position::text FROM cards
+    WHERE column_id=$1 AND state='active' AND id<>$2 ORDER BY cards.position ${last?'DESC':'ASC'},cards.id ${last?'DESC':'ASC'} LIMIT 1`,[input.toColumnId,cardId])).rows[0];
+  const readPair=async()=>(await client.query<Rank>(`SELECT id,position::text FROM cards
+    WHERE column_id=$1 AND state='active' AND id<>$2 AND id=ANY($3::text[]) LIMIT 2`,
+    [input.toColumnId,cardId,[input.previousCardId,input.nextCardId].filter(Boolean)])).rows;
+  let calculatedPosition:number;
+  const invalid=(message:string,path='previousCardId')=>validationError(message,{issues:[{path,message}]});
+  if(input.previousCardId===null && input.nextCardId===null){
+    if(await readEdge(false))throw invalid('Neighbors cannot both be null in a non-empty column.');
+    calculatedPosition=1000;
+  }else if(input.previousCardId===null){
+    let next=await readEdge(false);
+    if(!next || next.id!==input.nextCardId)throw invalid('nextCardId must be the first card in destination column.','nextCardId');
+    if(BigInt(next.position)<=1n || BigInt(next.position)>BigInt(Number.MAX_SAFE_INTEGER)){
+      await recompactColumnPositions(client,input.toColumnId,cardId);next=(await readEdge(false))!;
     }
-    calculatedPosition = 1000;
-  } else if (input.previousCardId === null && input.nextCardId !== null) {
-    // Insert at top before nextCard: nextCardId MUST be the first card in destination column!
-    if (destCards[0]!.id !== input.nextCardId) {
-      throw validationError('nextCardId is not the first card in destination column.', {
-        issues: [{ path: 'nextCardId', message: 'nextCardId must be the first card when previousCardId is null' }],
-      });
+    calculatedPosition=Number(BigInt(next.position)/2n);
+  }else if(input.nextCardId===null){
+    let previous=await readEdge(true);
+    if(!previous || previous.id!==input.previousCardId)throw invalid('previousCardId must be the last card in destination column.');
+    if(BigInt(previous.position)+1000n>BigInt(Number.MAX_SAFE_INTEGER)){
+      await recompactColumnPositions(client,input.toColumnId,cardId);previous=(await readEdge(true))!;
     }
-    let nextPos = destCards[0]!.position;
-    if (nextPos <= 1) {
-      await recompactColumnPositions(client, input.toColumnId, cardId);
-      const rechecked = await client.query<{ position: string }>(
-        `SELECT position::TEXT FROM cards WHERE id = $1`,
-        [input.nextCardId],
-      );
-      nextPos = parseInt(rechecked.rows[0]!.position, 10);
+    calculatedPosition=Number(BigInt(previous.position)+1000n);
+  }else{
+    let pair=await readPair();
+    let previous=pair.find(row=>row.id===input.previousCardId),next=pair.find(row=>row.id===input.nextCardId);
+    if(!previous)throw invalid('Previous card not found in destination column.');
+    if(!next)throw invalid('Next card not found in destination column.','nextCardId');
+    const intervening=await client.query<{present:boolean;ordered:boolean}>(`SELECT (($3::bigint,$4::text)<($5::bigint,$6::text)) AS ordered,EXISTS(SELECT 1 FROM cards
+      WHERE column_id=$1 AND state='active' AND id<>$2
+        AND (position,id)>($3::bigint,$4::text) AND (position,id)<($5::bigint,$6::text)) AS present`,
+      [input.toColumnId,cardId,previous.position,previous.id,next.position,next.id]);
+    if(!intervening.rows[0]?.ordered || intervening.rows[0]?.present)throw invalid('Supplied neighbors must be consecutive cards with no intervening cards.','nextCardId');
+    if(BigInt(next.position)-BigInt(previous.position)<=1n || BigInt(next.position)>BigInt(Number.MAX_SAFE_INTEGER)){
+      await recompactColumnPositions(client,input.toColumnId,cardId);pair=await readPair();
+      previous=pair.find(row=>row.id===input.previousCardId)!;next=pair.find(row=>row.id===input.nextCardId)!;
     }
-    calculatedPosition = Math.max(1, Math.floor(nextPos / 2));
-    if (calculatedPosition === nextPos) {
-      await recompactColumnPositions(client, input.toColumnId, cardId);
-      const rechecked = await client.query<{ position: string }>(
-        `SELECT position::TEXT FROM cards WHERE id = $1`,
-        [input.nextCardId],
-      );
-      nextPos = parseInt(rechecked.rows[0]!.position, 10);
-      calculatedPosition = Math.max(1, Math.floor(nextPos / 2));
-    }
-  } else if (input.previousCardId !== null && input.nextCardId === null) {
-    // Insert at bottom after previousCard: previousCardId MUST be the last card in destination column!
-    if (destCards[destCards.length - 1]!.id !== input.previousCardId) {
-      throw validationError('previousCardId is not the last card in destination column.', {
-        issues: [{ path: 'previousCardId', message: 'previousCardId must be the last card when nextCardId is null' }],
-      });
-    }
-    const prevPos = destCards[destCards.length - 1]!.position;
-    calculatedPosition = prevPos + 1000;
-  } else if (input.previousCardId !== null && input.nextCardId !== null) {
-    // Both previousCardId and nextCardId provided: they MUST be strictly adjacent!
-    const prevIdx = destCards.findIndex((c) => c.id === input.previousCardId);
-    const nextIdx = destCards.findIndex((c) => c.id === input.nextCardId);
-
-    if (prevIdx === -1) {
-      throw validationError('Previous card not found in destination column.', {
-        issues: [{ path: 'previousCardId', message: 'Previous card not found in destination column' }],
-      });
-    }
-    if (nextIdx === -1) {
-      throw validationError('Next card not found in destination column.', {
-        issues: [{ path: 'nextCardId', message: 'Next card not found in destination column' }],
-      });
-    }
-    if (nextIdx !== prevIdx + 1) {
-      throw validationError('Supplied neighbors are not adjacent in destination column.', {
-        issues: [
-          {
-            path: 'nextCardId',
-            message: 'previousCardId and nextCardId must be consecutive cards with no intervening cards',
-          },
-        ],
-      });
-    }
-
-    let prevPos = destCards[prevIdx]!.position;
-    let nextPos = destCards[nextIdx]!.position;
-    let gap = nextPos - prevPos;
-
-    if (gap <= 1) {
-      await recompactColumnPositions(client, input.toColumnId, cardId);
-      const prevRechecked = await client.query<{ position: string }>(
-        `SELECT position::TEXT FROM cards WHERE id = $1`,
-        [input.previousCardId],
-      );
-      const nextRechecked = await client.query<{ position: string }>(
-        `SELECT position::TEXT FROM cards WHERE id = $1`,
-        [input.nextCardId],
-      );
-      prevPos = parseInt(prevRechecked.rows[0]!.position, 10);
-      nextPos = parseInt(nextRechecked.rows[0]!.position, 10);
-      gap = nextPos - prevPos;
-    }
-
-    calculatedPosition = Math.floor((prevPos + nextPos) / 2);
-    if (calculatedPosition === prevPos || calculatedPosition === nextPos) {
-      await recompactColumnPositions(client, input.toColumnId, cardId);
-      const prevRechecked = await client.query<{ position: string }>(
-        `SELECT position::TEXT FROM cards WHERE id = $1`,
-        [input.previousCardId],
-      );
-      const nextRechecked = await client.query<{ position: string }>(
-        `SELECT position::TEXT FROM cards WHERE id = $1`,
-        [input.nextCardId],
-      );
-      prevPos = parseInt(prevRechecked.rows[0]!.position, 10);
-      nextPos = parseInt(nextRechecked.rows[0]!.position, 10);
-      calculatedPosition = Math.floor((prevPos + nextPos) / 2);
-    }
-  } else {
-    // Both null on non-empty column
-    throw validationError('Cannot move with both null neighbors into non-empty column.', {
-      issues: [{ path: 'previousCardId', message: 'Neighbors cannot both be null in non-empty column' }],
-    });
+    calculatedPosition=Number((BigInt(previous.position)+BigInt(next.position))/2n);
   }
 
   // 8. Update card column_id, position, and increment version
@@ -980,6 +857,9 @@ export async function moveCard(
     toColumnTitle: colMap.get(input.toColumnId) ?? null,
     fromPosition: Number(card.position),
     toPosition: Number(calculatedPosition),
+    fromPreviousCardId,
+    fromNextCardId,
+    ...(metadata?{undoOfActivityId:metadata.undoOfActivityId}:{}),
   };
   await recordActivity(client, {
     workspaceId: card.workspace_id,
@@ -1131,7 +1011,7 @@ export async function searchProjectCards(
          ${authorizedBoardIds ? 'AND counted.board_id = ANY($3::text[])' : ''}) AS active_count,
       COUNT(*)::INT AS matching_count
     FROM cards c
-    JOIN columns col ON col.id = c.column_id
+    JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
     JOIN projects p ON p.id = c.project_id
     JOIN workspaces w ON w.id = p.workspace_id
     WHERE ${conditions.join(' AND ')}
@@ -1161,7 +1041,7 @@ export async function searchProjectCards(
       to_char(c.due_date, 'YYYY-MM-DD') AS due_date, c.position::TEXT,
       c.version, c.created_at, c.updated_at
     FROM cards c
-    JOIN columns col ON col.id = c.column_id
+    JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
     JOIN projects p ON p.id = c.project_id
     JOIN workspaces w ON w.id = p.workspace_id
     WHERE ${conditions.join(' AND ')}
@@ -1215,12 +1095,40 @@ export async function searchProjectCards(
 export async function getMyTasks(
   poolOrClient: pg.Pool | pg.ClientBase,
   actorId: string,
-  options: { projectId: string; limit?: number | undefined; workspaceId?: string | undefined; authorizedBoardIds?: string[] | null },
-): Promise<{ data: (CardSummary & { projectName?: string; boardName?: string; columnTitle?: string })[] }> {
+  options: Omit<MyTasksQuery, 'limit'> & { limit?: number | undefined; authorizedBoardIds?: string[] | null },
+): Promise<{ data: (CardSummary & { projectName?: string; boardName?: string; columnTitle?: string })[]; nextCursor: string | null; asOfDate: string; timezone: string }> {
   const limit = Math.min(Math.max(options?.limit ?? 50, 1), 100);
+
+  const project = await poolOrClient.query<{ timezone: string; archived: boolean }>(
+    `SELECT w.timezone,p.archived FROM projects p JOIN workspaces w ON w.id=p.workspace_id
+     WHERE p.id=$1 AND (w.owner_id=$2 OR EXISTS (SELECT 1 FROM project_memberships pm
+       WHERE pm.project_id=p.id AND pm.user_id=$2 AND pm.status='active'))`, [options.projectId, actorId]);
+  if (!project.rows[0] || project.rows[0].archived) throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+  const today = getWorkspaceToday(project.rows[0].timezone);
+  const visible = await poolOrClient.query(
+    `SELECT b.id,b.snapshot_version,b.access_revision::text,b.archived FROM boards b
+     JOIN workspaces w ON w.id=b.workspace_id WHERE b.project_id=$1 AND
+     (w.owner_id=$2 OR EXISTS (SELECT 1 FROM project_memberships pm JOIN board_grants bg
+       ON bg.project_id=pm.project_id AND bg.user_id=pm.user_id
+       WHERE pm.project_id=b.project_id AND pm.user_id=$2 AND pm.status='active' AND bg.board_id=b.id))
+     ORDER BY b.id`, [options.projectId, actorId]);
+  const context = crypto.createHash('sha256').update(JSON.stringify([
+    actorId,options.projectId,options.workspaceId??'',options.due??'',options.priority??'',limit,today,project.rows[0].timezone,
+    options.authorizedBoardIds??null,visible.rows,
+  ])).digest('hex');
+  let after: { due: string | null; id: string } | undefined;
+  if (options.cursor) {
+    try {
+      const value = JSON.parse(Buffer.from(options.cursor,'base64url').toString('utf8'));
+      if (value.v!==1 || value.context!==context || typeof value.id!=='string' || !value.id ||
+          !(value.due===null || (typeof value.due==='string' && isValidGregorianDate(value.due)))) throw new Error('invalid');
+      after={due:value.due,id:value.id};
+    } catch { throw HttpError.conflict('Stale or malformed pagination cursor.', 'STALE_CURSOR'); }
+  }
 
   const conditions = [
     `c.state = 'active'`,
+    `p.archived = FALSE AND b.archived = FALSE`,
     `ca.user_id = $1`,
     `c.project_id = $2`,
     `(w.owner_id = $1 OR pm.id IS NOT NULL)`,
@@ -1241,7 +1149,21 @@ export async function getMyTasks(
     params.push(options.workspaceId);
   }
 
-  params.push(limit);
+  if (options.priority) { conditions.push(`c.priority=$${pIdx++}`); params.push(options.priority); }
+  if (options.due === 'none') conditions.push('c.due_date IS NULL');
+  else if (options.due) {
+    const operator = options.due==='overdue'?'<':options.due==='today'?'=':'>';
+    conditions.push(`c.due_date ${operator} $${pIdx++}::date`);params.push(today);
+    if (options.due==='overdue') conditions.push("col.category <> 'done'");
+  }
+  if (after) {
+    if (after.due===null) { conditions.push(`c.due_date IS NULL AND c.id>$${pIdx++}`);params.push(after.id); }
+    else {
+      conditions.push(`(c.due_date>$${pIdx}::date OR c.due_date IS NULL OR (c.due_date=$${pIdx}::date AND c.id>$${pIdx+1}))`);
+      params.push(after.due,after.id);pIdx+=2;
+    }
+  }
+  params.push(limit+1);
 
   const res = await poolOrClient.query<{
     id: string;
@@ -1269,19 +1191,20 @@ export async function getMyTasks(
      JOIN card_assignees ca ON ca.card_id = c.id
      JOIN projects p ON c.project_id = p.id
      JOIN boards b ON c.board_id = b.id
-     JOIN columns col ON c.column_id = col.id
+     JOIN columns col ON c.column_id = col.id AND col.deleted_at IS NULL
      JOIN workspaces w ON p.workspace_id = w.id
      LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $1 AND pm.status = 'active'
      WHERE ${conditions.join(' AND ')}
-     ORDER BY c.due_date ASC NULLS LAST, c.updated_at DESC
+     ORDER BY c.due_date ASC NULLS LAST, c.id ASC
      LIMIT $${pIdx}`,
     params,
   );
 
-  const cardIds = res.rows.map((r) => r.id);
+  const pageRows=res.rows.slice(0,limit);
+  const cardIds = pageRows.map((r) => r.id);
   const { commentCounts, imageCounts, assigneesMap } = await fetchCardCounts(poolOrClient, cardIds);
 
-  const summaries = res.rows.map((r) => ({
+  const summaries = pageRows.map((r) => ({
     ...toCardSummary(
       r,
       assigneesMap.get(r.id) ?? [],
@@ -1294,24 +1217,27 @@ export async function getMyTasks(
     columnTitle: r.column_title,
   }));
 
-  // The list query filters before its LIMIT. Recheck every returned board so a
-  // grant removed during enrichment cannot disclose card or count metadata.
-  for (const boardId of new Set(res.rows.map((row) => row.board_id))) {
-    const allowed = await poolOrClient.query<{ allowed: boolean }>(
-      `SELECT EXISTS (
-         SELECT 1 FROM boards b JOIN projects p ON p.id = b.project_id
+  // Reauthorize the bounded returned board set in one query after enrichment.
+  // Mounted callers retain read authorization locks through response assembly.
+  const returnedBoardIds=[...new Set(pageRows.map(row=>row.board_id))];
+  if(returnedBoardIds.length) {
+    const allowed = await poolOrClient.query<{ id: string }>(
+      `SELECT b.id FROM boards b JOIN projects p ON p.id = b.project_id
          JOIN workspaces w ON w.id = p.workspace_id
-         WHERE b.id = $1 AND (w.owner_id = $2 OR EXISTS (
+         WHERE b.id = ANY($1::text[]) AND b.project_id=$3 AND p.archived=FALSE AND b.archived=FALSE
+         AND (w.owner_id = $2 OR EXISTS (
            SELECT 1 FROM project_memberships pm JOIN board_grants bg
              ON bg.project_id = p.id AND bg.board_id = b.id AND bg.user_id = pm.user_id
-           WHERE pm.project_id = p.id AND pm.user_id = $2 AND pm.status = 'active'))
-       ) AS allowed`,
-      [boardId, actorId],
+           WHERE pm.project_id = p.id AND pm.user_id = $2 AND pm.status = 'active'))`,
+      [returnedBoardIds, actorId, options.projectId],
     );
-    if (!allowed.rows[0]?.allowed) {
+    if (allowed.rows.length!==returnedBoardIds.length) {
       throw HttpError.notFound('Board not found.', 'NOT_FOUND');
     }
   }
 
-  return { data: summaries };
+  const last=pageRows.at(-1);
+  const nextCursor=res.rows.length>limit && last
+    ? Buffer.from(JSON.stringify({v:1,context,due:last.due_date,id:last.id})).toString('base64url') : null;
+  return { data: summaries, nextCursor, asOfDate: today, timezone: project.rows[0].timezone };
 }

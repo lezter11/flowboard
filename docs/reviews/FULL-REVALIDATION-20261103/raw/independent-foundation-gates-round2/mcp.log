@@ -1,0 +1,29 @@
+
+> @flowboard/mcp@0.2.0 test
+> node --test --test-concurrency=1 test/*.test.ts
+
+✔ create uses metadata, resolves a unique name and sends caller operationId (13.774959ms)
+✔ metadata projection strips accidental cards, counts and other fields at runtime (0.278125ms)
+✔ metadata must identify the requested board and an exact column ID wins over a colliding label (0.686083ms)
+✔ lost response: new client retry preserves key and accepts minimal replay with a newer metadata revision (1.381417ms)
+✔ only STALE_BOARD_VERSION retries, once, with unchanged key and semantic input (0.876875ms)
+✔ a second stale-version conflict is returned without a third POST (2.110792ms)
+✔ generic 409 and idempotency conflict never retry (1.000458ms)
+✔ missing or ambiguous target column causes no POST (0.216458ms)
+✔ stale recovery refuses a deleted column and never changes requested column (0.282292ms)
+✔ search uses query and explicit pagination, returning only the bounded safe projection (1.020542ms)
+✔ list projects exposes the cursor and never silently follows extra pages (0.832167ms)
+✔ configuration rejects missing tokens, credential URLs, insecure remote HTTP and non-origin URLs (0.225417ms)
+✔ input validation rejects impossible dates, oversized text, path-like IDs and absent operation IDs before fetch (1.598375ms)
+✔ real leap-day date is accepted (0.303208ms)
+✔ non-JSON and JSON server errors are consumed once and do not echo bodies, tokens or messages (0.355666ms)
+✔ oversized responses fail safely and are not retried (0.181875ms)
+✔ HTTP timeout aborts the request and reports unknown create outcome without secrets (10.169042ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 104.477209

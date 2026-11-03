@@ -45,13 +45,13 @@ test('the item says validating, not saved, while finalize is pending', async () 
   release(); await tick();
   assert.equal(store.get('c1').length, 0);
 });
-test('a failure keeps the item with a message, cancels the staged upload and can be retried', async () => {
+test('a failed transfer keeps its original staging and prepared bytes until retry or explicit cancellation', async () => {
   let fail = true;
   const { store, log } = setup({ putContent: async () => { if (fail) throw new Error('boom'); } });
   store.add('c1', [file('a.png')]);
   await tick();
   const failed = store.get('c1')[0]!;
-  assert.equal(failed.status, 'failed'); assert.equal(failed.error, 'boom'); assert.ok(log.includes('cancel up_a.webp'));
+  assert.equal(failed.status, 'failed'); assert.equal(failed.error, 'boom'); assert.ok(!log.includes('cancel up_a.webp'));
   fail = false; store.retry('c1', failed.id); await tick();
   assert.equal(store.get('c1').length, 0); assert.ok(log.includes('finalize up_a.webp'));
 });
@@ -77,3 +77,7 @@ test('uploads of different cards do not mix', async () => {
   await tick();
   assert.equal(store.get('c1').length, 1); assert.equal(store.get('c2').length, 1); assert.equal(store.get('c1')[0]?.name, 'a.webp'); assert.equal(store.get('c2')[0]?.name, 'b.png');
 });
+
+test('lost staging reply retries the same original key/input and prepares only once',async()=>{let calls=0,prepares=0;const requests:Array<{input:unknown;key:string}>=[];const {store}=setup({prepare:async()=>{prepares++;return prepared('same.webp');},createUpload:async(_card,input,key)=>{requests.push({input,key});if(++calls===1)throw new TypeError('lost staging response');return{id:'original-upload'};}});store.add('c',[file('a.png')]);await tick();const failed=store.get('c')[0]!;store.retry('c',failed.id);await tick();assert.equal(prepares,1);assert.deepEqual(requests[1],requests[0]);assert.equal(store.get('c').length,0);});
+test('unknown finalize never cancels/restarts and keeps original finalize key across retry',async()=>{let calls=0;const requests:Array<{id:string;key:string}>=[];const {store,log}=setup({finalize:async(id,key)=>{requests.push({id,key});if(++calls===1)throw new TypeError('lost finalize response');}});store.add('c',[file('a.png')]);await tick();const failed=store.get('c')[0]!;assert.equal(failed.needsConfirmation,true);assert.equal(failed.canCancel,false);store.cancel('c',failed.id);assert.equal(store.get('c').length,1);assert.equal(log.filter((entry)=>entry.startsWith('cancel')).length,0);store.retry('c',failed.id);await tick();assert.deepEqual(requests[1],requests[0]);assert.equal(log.filter((entry)=>entry.startsWith('create')).length,1);assert.equal(log.filter((entry)=>entry.startsWith('put')).length,1);assert.equal(store.get('c').length,0);});
+test('identity loss between prepare and staging prevents another protected request',async()=>{let active=true,release!:()=>void;const {store,log}=setup({isActive:()=>active,prepare:()=>new Promise((resolve)=>{release=()=>resolve(prepared('a.webp'));})});store.add('c',[file('a.png')]);await tick();active=false;release();await tick();assert.equal(log.filter((entry)=>entry.startsWith('create')).length,0);assert.equal(store.get('c')[0]?.status,'failed');});

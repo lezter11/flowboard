@@ -1,15 +1,18 @@
 'use client';
 
-import { useMemo, type KeyboardEvent, type ReactNode } from 'react';
+import { type KeyboardEvent, type ReactNode } from 'react';
 import { m } from 'motion/react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import type { Notification } from '@flowboard/contracts';
+import { usePathname } from 'next/navigation';
+import { useRouter } from '@/lib/guarded-router';
 import { Icon } from '@/components/ui/icon';
 import { Wordmark } from '@/components/ui/wordmark';
 import { Avatar } from '@/components/ui/avatar';
 import { UserMenu } from './user-menu';
-import { useQueries, useQuery } from '@tanstack/react-query';
+
 import { api } from '@/lib/api';
+import { useCursorFeed } from '@/lib/cursor-feed';
 import { useBoardHref } from '@/lib/board-target';
 import { useActiveProject } from '@/lib/active-project';
 import { can, ROLE_META } from '@/lib/roles';
@@ -59,18 +62,17 @@ export function Rail() {
   const shell = useShell();
   const { project, projects, projectId, role, boardId } = useActiveProject();
   const actor = state.status === 'ready' ? state.session.actor : null;
-  const unreadQuery = useQuery({ queryKey: ['notifications'], queryFn: async () => (await api.listNotifications()).data, enabled: state.status === 'ready', staleTime: 30_000 });
-  usePollKeys([['notifications']], state.status === 'ready');
-  const unread = (unreadQuery.data ?? []).filter((n) => !n.read).length;
+  const notificationKey = ['notifications',actor?.id];
+  const unreadQuery = useCursorFeed<Notification>(notificationKey,(cursor,signal)=>api.listNotifications({cursor,signal}),state.status==='ready');
+  usePollKeys([notificationKey], state.status === 'ready');
+  // Without a server total, only advertise an exact badge when the whole chain is loaded.
+  const unread = unreadQuery.isSuccess && !unreadQuery.hasNextPage ? unreadQuery.items.filter((n) => !n.read).length : undefined;
   const boardHref = useBoardHref(projectId, boardId);
   const router = useRouter();
   const [mini, toggleMini] = useRailMini();
   const [closedGroups, toggleGroup] = useRailGroups();
   const compact = mini && !shell.overlay;
   const live = state.status === 'ready';
-  const openProjects = useMemo(() => (live ? state.session.accessibleProjects : []).filter((p) => !p.isArchived), [live, state]);
-  const taskQueries = useQueries({ queries: openProjects.map((p) => ({ queryKey: ['my-tasks', p.id], queryFn: async () => (await api.listMyTasks(p.id)).data, enabled: live, staleTime: 60_000 })) });
-  const taskCount = taskQueries.every((q) => q.isSuccess) ? taskQueries.reduce((sum, q) => sum + (q.data?.length ?? 0), 0) : 0;
   const openSearch = () => {
     close();
     if (pathname === '/board') { const input = document.getElementById('searchInput'); input?.focus(); return; }
@@ -132,16 +134,16 @@ export function Rail() {
         <NavGroup id="workspace" label="Navigate" count={5} closed={!!closedGroups.workspace && !compact} onToggle={toggleGroup}>
           <NavLink href={boardHref} icon="board" label="Board" tone="thistle" active={pathname === '/board'} onNavigate={close} />
           <NavLink href="/projects" icon="folder" label="Projects" tone="icy" active={pathname === '/projects' || pathname === '/project'} onNavigate={close} />
-          <NavLink href="/my-tasks" icon="list" label="My tasks" tone="petal" active={pathname === '/my-tasks'} badge={taskCount} onNavigate={close} />
+          <NavLink href={projectId ? `/my-tasks?project=${encodeURIComponent(projectId)}` : '/my-tasks'} icon="list" label="My tasks" tone="petal" active={pathname === '/my-tasks'} onNavigate={close} />
           <NavLink href="/inbox" icon="inbox" label="Inbox" tone="sky" active={pathname === '/inbox'} badge={unread} onNavigate={close} />
           <NavLink href="/activity" icon="activity" label="Activity" tone="green" active={pathname === '/activity'} onNavigate={close} />
         </NavGroup>
         {manage && (
           <NavGroup id="manage" label="Manage" count={4} closed={!!closedGroups.manage && !compact} onToggle={toggleGroup}>
             <NavLink href="/trash" icon="trash" label="Trash" tone="pink" active={pathname === '/trash'} onNavigate={close} />
-            <NavLink href="/people" icon="users" label="People" tone="icy" active={pathname === '/people'} onNavigate={close} />
+            <NavLink href={projectId ? `/people?project=${encodeURIComponent(projectId)}` : '/people'} icon="users" label="People" tone="icy" active={pathname === '/people'} onNavigate={close} />
             <NavLink href="/import" icon="upload" label="Import" tone="green" active={pathname === '/import'} onNavigate={close} />
-            <NavLink href="/settings" icon="settings" label="Settings" tone="thistle" active={pathname === '/settings'} onNavigate={close} />
+            <NavLink href={projectId ? `/settings?project=${encodeURIComponent(projectId)}${boardId ? `&board=${encodeURIComponent(boardId)}` : ''}` : '/settings'} icon="settings" label="Settings" tone="thistle" active={pathname === '/settings'} onNavigate={close} />
           </NavGroup>
         )}
         <div className="rail-note">
@@ -153,7 +155,7 @@ export function Rail() {
       {actor && (
         <div className="rail-user-wrap" data-tip={actor.displayName}>
           <UserMenu placement="rail" className="rail-user" label={`Account menu for ${actor.displayName}`}>
-            <Avatar id={actor.id} name={actor.displayName} />
+            <Avatar id={actor.id} name={actor.displayName} avatarUrl={actor.avatarUrl} />
             <span className="rail-user-copy">
               <strong>{actor.displayName}</strong>
               {project && role && <span>{ROLE_META[role].label}</span>}

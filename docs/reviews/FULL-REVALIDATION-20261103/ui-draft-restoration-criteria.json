@@ -1,0 +1,27 @@
+{
+  "version": "ui-draft-restoration-1",
+  "features": [
+    "CRD-11",
+    "ACC-02",
+    "ACC-03",
+    "PRJ-01",
+    "PRJ-04",
+    "BRD-01",
+    "BRD-02",
+    "BRD-04",
+    "BRD-05",
+    "IMP-02",
+    "IMP-04",
+    "UX-01",
+    "UX-04"
+  ],
+  "mandatoryCriteria": [
+    "All relevant plain-field forms retain actor/route/project/board-scoped tab-memory values through close/remount/native Back/Forward: Settings project/board/profile, project brief/create, board create/edit, column edits/new column, import target/defaultcolumn/mapping and selected File blob. Another actor/context never receives those drafts. No browser persistent storage or logging files/private text.",
+    "Polling/hydration/reopening must not reset dirty values. Preserve baseline refs across remount; stale board/column writes keep drafts and require deliberate current-version review before reapplying. Deleted-column draft text remains recoverable rather than silently dropped.",
+    "Create project/board original request/payload/key persist after uncertain reply, close/remount and permission refusal following unknown. Lock edits until successful original replay. First definitive refusal permits correction. Success clears consumed creation drafts and dirty marker.",
+    "Normal Link/programmatic navigation choice accurately describes retained drafts; native Back/Forward may proceed because own drafts restore. beforeunload still warns reload/close memory loss. Dirty markers remain registered while stored draft exists, not only while its form is mounted. Explicit Discard clears only relevant draft.",
+    "Use only authorized current query data/options; draft memory never authorizes writes or protected reads, and role/archive changes disable controls. File memory stores actual immutable selected File in tab only and restores selected name; no unsupported input.value assignment.",
+    "Meaningful pure store/scope/file/ref/baseline/unknowncommand tests plus actual QueryClient cache-purge + remount recreation; websuite/typecheck/build logs/exactmanifest. Root realbrowser native traversal cases and fresh immutable review required; no feature closure/score."
+  ],
+  "scope": "apps/web and role-owned evidence only. No backend/sharedcontracts/dependency/deploy or History API monkeypatch. Prior native traversal waiver replaced by actual mandatory draft restoration."
+}

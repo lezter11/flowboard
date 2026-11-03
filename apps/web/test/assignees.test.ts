@@ -91,8 +91,8 @@ test('the save bar never sits on "Unsaved changes" after a failed save', () => {
   assert.equal(saveBarText({ saving: false, failed: false, dirty: false }), 'All changes saved');
   const drawer = readFileSync(new URL('../src/components/board/card-detail-drawer.tsx', import.meta.url), 'utf8');
   assert.match(drawer, /Remove them and save/);
-  assert.match(drawer, /saveBarText\(\{ saving: save\.isPending, failed: save\.isError && dirty, dirty, reason:/);
-  assert.match(drawer, /save\.isError && dirty \? 'Try again' : 'Save changes'/);
+  assert.match(drawer, /saveBarText\(\{ saving: save\.isPending, failed: save\.isError && fieldsDirty, dirty:fieldsDirty, reason:/);
+  assert.match(drawer, /save\.isError&&fieldsDirty\?'Try again':'Save changes'/);
   assert.match(drawer, /<ErrorNote error=\{saveFailure\} ctx=\{noteCtx\} focusOnMount/);
 });
 

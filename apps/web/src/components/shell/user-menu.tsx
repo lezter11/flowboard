@@ -65,7 +65,7 @@ export function UserMenu({ placement, className, label, children }: { placement:
       {open && (
         <div className="user-menu-list" id={id} role="menu" aria-label="Account" style={pos} onKeyDown={onKeyDown}>
           <div className="user-menu-who" role="presentation">
-            <Avatar id={actor.id} name={actor.displayName} />
+            <Avatar id={actor.id} name={actor.displayName} avatarUrl={actor.avatarUrl} />
             <span><strong>{actor.displayName}</strong><small>{actor.email}</small></span>
           </div>
           <Link className="action-menu-item" role="menuitem" href="/settings?tab=account" onClick={() => setOpen(false)}><Icon name="settings" /><span>Settings</span></Link>

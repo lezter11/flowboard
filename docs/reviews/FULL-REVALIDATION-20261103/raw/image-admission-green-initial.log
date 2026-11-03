@@ -1,0 +1,22 @@
+✔ Image admission: concurrent apps refuse a second image before its body is pulled; status/cancel/stage stay available (277.332208ms)
+✖ Image admission: response timeout retains underlying verifier lease, blocks finalize, then releases after actual settlement (1877.861375ms)
+✔ Image admission: invalid cookies are refused before body pull and do not reserve the image lease (209.545792ms)
+✔ Image admission: actual bytes enforce cap even with a forged small Content-Length (212.493167ms)
+✔ Image admission: slow body read is bounded, cancelled and releases capacity without accepting content (258.877791ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 4
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3071.313875
+
+✖ failing tests:
+
+test at apps/api/test/image-admission.test.ts:40:1
+✖ Image admission: response timeout retains underlying verifier lease, blocks finalize, then releases after actual settlement (1877.861375ms)
+  Error: Expected bounded test barrier
+      at Timeout.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-admission.test.ts:12:184)
+      at listOnTimeout (node:internal/timers:605:17)
+      at process.processTimers (node:internal/timers:541:7)

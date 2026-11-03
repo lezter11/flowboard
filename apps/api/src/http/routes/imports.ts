@@ -1,19 +1,20 @@
-import fs from 'node:fs';
+import { getImportTemplateBytes } from '../../services/import-template.ts';
 import { Hono } from 'hono';
 import {
   idempotencyKeySchema,
   commitImportInputSchema,
   updateImportMappingsInputSchema,
+  importPreviewQuerySchema,
   parseOrThrow,
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
 import { checkOrReplayProjectWriteReceipt, saveReceipt } from '../../adapters/idempotency.ts';
 import {
-  getImportTemplatePath,
   createCardImport,
   getCardImportStatus,
   updateImportMappings,
   commitCardImport,
+  prepareImportCommitAccess,
   cancelCardImport,
   getImportReport,
 } from '../../adapters/imports.ts';
@@ -56,12 +57,7 @@ const handleDownloadTemplate = async (c: any) => {
     }
   }
 
-  const templatePath = getImportTemplatePath();
-  if (!fs.existsSync(templatePath)) {
-    throw HttpError.notFound('Import template file not found.', 'NOT_FOUND');
-  }
-
-  const fileBuffer = fs.readFileSync(templatePath);
+  const fileBuffer = getImportTemplateBytes();
   return new Response(fileBuffer, {
     status: 200,
     headers: {
@@ -149,15 +145,13 @@ const handleGetImport = async (c: any) => {
   }
 
   const importId = c.req.param('importId');
-  const rawLimit = c.req.query('limit');
-  const limit = rawLimit ? parseInt(rawLimit, 10) : undefined;
-  const cursor = c.req.query('cursor') || undefined;
+  const pagination=parseOrThrow(importPreviewQuerySchema,c.req.query());
 
   const pool = getPool();
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    const status = await getCardImportStatus(client, importId, actor.id, { limit, cursor });
+    const status = await getCardImportStatus(client, importId, actor.id, pagination);
     await client.query('COMMIT');
     return c.json({ data: status }, 200);
   } catch (error) {
@@ -229,6 +223,7 @@ const handleCommitImport = async (c: any) => {
       await client.query('ROLLBACK');
       throw HttpError.notFound('Import session not found.', 'NOT_FOUND');
     }
+    await prepareImportCommitAccess(client, importId, actor.id);
     await acquireWriteGrantLock(client, scope.rows[0]!.project_id, actor.id, 'manager', scope.rows[0]!.board_id);
     await acquireWritableProjectContextLock(client, scope.rows[0]!.project_id, scope.rows[0]!.board_id);
     const impRes = await client.query<{ project_id: string; board_id: string }>(

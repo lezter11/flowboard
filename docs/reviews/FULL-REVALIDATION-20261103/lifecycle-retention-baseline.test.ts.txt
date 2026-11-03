@@ -1,0 +1,90 @@
+import assert from 'node:assert/strict';
+import crypto from 'node:crypto';
+import test, {type TestContext} from 'node:test';
+import pg from 'pg';
+import {createApp} from '../src/http/app.ts';
+import {runMigrations} from '../src/adapters/migrations.ts';
+import {createDevUserAndSession} from '../src/adapters/session.ts';
+import {processOutboxLease} from '../src/adapters/notifications.ts';
+import {importTestDatabaseUrl} from './support/import-database.ts';
+import {createEmptyImport} from './support/import-fixture.ts';
+
+// Catch raw FK failures/history loss and deleted text surviving copied mention notifications.
+const connectionString=importTestDatabaseUrl();
+async function fixture(t:TestContext){
+  const schema='lifecycle_retention_'+crypto.randomUUID().replaceAll('-','');
+  const admin=new pg.Pool({connectionString,max:1});await admin.query(`CREATE SCHEMA "${schema}"`);
+  const pool=new pg.Pool({connectionString,max:12,options:`-c search_path=${schema}`,statement_timeout:5000});
+  t.after(async()=>{await pool.end();await admin.query(`DROP SCHEMA "${schema}" CASCADE`);await admin.end();});
+  await runMigrations(pool);
+  const actors:Record<string,Awaited<ReturnType<typeof createDevUserAndSession>>>={};
+  for(const name of ['owner','manager','member','viewer','outsider'])actors[name]=await createDevUserAndSession(`retention-${name}@flowboard.example`,`Retention ${name}`,pool);
+  await pool.query(`INSERT INTO workspaces(id,name,timezone,owner_id,created_at,updated_at) VALUES('ws','Retention','UTC',$1,NOW(),NOW())`,[actors.owner!.user.id]);
+  await pool.query(`INSERT INTO projects(id,workspace_id,name,created_at,updated_at) VALUES('prj','ws','Retention',NOW(),NOW())`);
+  await pool.query(`INSERT INTO boards(id,workspace_id,project_id,name,created_at,updated_at) VALUES('brd','ws','prj','Retention',NOW(),NOW())`);
+  for(const [id,name,pos]of[['col','Old column',0],['col2','Current column',1]]as const)await pool.query(`INSERT INTO columns(id,workspace_id,project_id,board_id,name,color,category,position,created_at,updated_at) VALUES($1,'ws','prj','brd',$2,'#64748b','todo',$3,NOW(),NOW())`,[id,name,pos]);
+  for(const name of ['manager','member','viewer']){
+    await pool.query(`INSERT INTO project_memberships(id,project_id,workspace_id,user_id,role,status,created_at,updated_at) VALUES($1,'prj','ws',$2,$3,'active',NOW(),NOW())`,['pm_'+name,actors[name]!.user.id,name]);
+    await pool.query(`INSERT INTO board_grants(board_id,project_id,workspace_id,user_id,granted_by) VALUES('brd','prj','ws',$1,$2)`,[actors[name]!.user.id,actors.owner!.user.id]);
+  }
+  await pool.query(`INSERT INTO cards(id,workspace_id,project_id,board_id,column_id,title,priority,position,state,created_at,updated_at) VALUES('card','ws','prj','brd','col2','Discussion','medium',1000,'active',NOW(),NOW())`);
+  const app=createApp(async()=>{},{pool,rateLimiter:()=>({limit:async()=>({success:true})}),windowCounter:()=>({consume:async()=>({count:1,retryAfterSeconds:60})})});
+  const request=(method:string,path:string,actor='owner',body?:object,key=crypto.randomUUID())=>app.request('http://localhost/api/v1'+path,{method,headers:{cookie:`flowboard_session=${actors[actor]!.session.id}`,origin:'http://localhost','content-type':'application/json','idempotency-key':key},...(body?{body:JSON.stringify(body)}:{})});
+  const version=async()=>Number((await pool.query("SELECT structure_version FROM boards WHERE id='brd'")).rows[0].structure_version);
+  const removeColumn=async()=>request('DELETE',`/boards/brd/columns/col?expectedBoardVersion=${await version()}`);
+  const post=async(secret='Private deleted comment')=>{
+    const body=secret+' @Member';
+    const r=await request('POST','/cards/card/comments','member',{body,mentions:[{userId:actors.manager!.user.id,start:body.indexOf('@Member'),end:body.length}]});
+    assert.equal(r.status,201,await r.clone().text());return(await r.json()as any).data;
+  };
+  return{pool,app,actors,request,version,removeColumn,post};
+}
+
+for(const state of ['expired','purged']as const)test(`lifecycle retention: column with only ${state} card reference returns safe409 and preserves tombstone/history`,async t=>{
+  const f=await fixture(t);
+  await f.pool.query(`INSERT INTO cards(id,workspace_id,project_id,board_id,column_id,title,description,priority,position,state,deleted_by,deleted_at,restore_until,created_at,updated_at)
+    VALUES('historical','ws','prj','brd','col','Historical',NULL,'none',1000,$1,$2,NOW()-INTERVAL '25 hours',NOW()-INTERVAL '1 hour',NOW(),NOW())`,[state==='expired'?'trashed':'purged',f.actors.owner!.user.id]);
+  const before=await f.version();const response=await f.removeColumn();
+  assert.equal(response.status,409,await response.clone().text());assert.equal((await response.json()as any).error.code,'COLUMN_HAS_RETAINED_REFERENCES');
+  assert.equal((await f.pool.query("SELECT column_id FROM cards WHERE id='historical'")).rows[0].column_id,'col');
+  assert.equal((await f.pool.query("SELECT id FROM columns WHERE id='col'")).rowCount,1);assert.equal(await f.version(),before);
+  assert.equal((await f.pool.query("SELECT id FROM activity_log WHERE action='column_deleted'")).rowCount,0);
+});
+
+for(const terminal of [false,true])test(`lifecycle retention: ${terminal?'terminal':'ready'} import default-column reference is an explicit safe409`,async t=>{
+  const f=await fixture(t);const preview=await createEmptyImport(f.pool,'brd','col',f.actors.owner!.user.id);
+  if(terminal)assert.equal((await f.request('DELETE',`/imports/${preview.id}`)).status,200);
+  const response=await f.removeColumn();assert.equal(response.status,409,await response.clone().text());assert.equal((await response.json()as any).error.code,'COLUMN_HAS_RETAINED_REFERENCES');
+  assert.equal((await f.pool.query('SELECT default_column_id FROM card_imports WHERE id=$1',[preview.id])).rows[0].default_column_id,'col');
+});
+
+test('lifecycle retention: tombstoning own and moderated comments removes copied inbox snippets while retaining facts',async t=>{
+  const f=await fixture(t);
+  for(const moderator of ['member','owner']){
+    const secret=`Private retained text ${moderator}`;const c=await f.post(secret);
+    const before=await f.request('GET','/notifications','manager');assert.ok((await before.text()).includes(secret));
+    const r=await f.request('DELETE',`/comments/${c.id}`,moderator,{expectedVersion:c.version});assert.equal(r.status,200,await r.clone().text());
+    const inbox=await f.request('GET','/notifications','manager');assert.equal((await inbox.text()).includes(secret),false);
+    const stored=(await f.pool.query('SELECT body,deleted_at FROM comments WHERE id=$1',[c.id])).rows[0];assert.equal(stored.body,'');assert.ok(stored.deleted_at);
+    assert.equal((await f.pool.query("SELECT id FROM activity_log WHERE action='comment_deleted' AND safe_changes->>'commentId'=$1",[c.id])).rowCount,1);
+  }
+});
+
+test('lifecycle retention: copied legacy comment outbox fields are scrubbed on deletion and recovery cannot recreate them',async t=>{
+  const f=await fixture(t);const secret='Legacy private comment payload';const c=await f.post(secret);
+  await f.pool.query("UPDATE outbox SET payload=payload || jsonb_build_object('body',$2::text,'raw',jsonb_build_object('content',$2::text)) WHERE payload->>'commentId'=$1",[c.id,secret]);
+  const r=await f.request('DELETE',`/comments/${c.id}`,'owner',{expectedVersion:c.version});assert.equal(r.status,200);
+  const payloads=JSON.stringify((await f.pool.query('SELECT payload FROM outbox')).rows);assert.equal(payloads.includes(secret),false);
+  await processOutboxLease(f.pool);
+  const inbox=await f.request('GET','/notifications','manager');assert.equal((await inbox.text()).includes(secret),false);
+});
+
+test('lifecycle retention: recovery distinguishes two comment events on the same card and repeats neither',async t=>{
+  const f=await fixture(t);await f.post('First event');await f.post('Second event');
+  // Exercise durable recovery intent independently of the normal transaction's direct inbox rows.
+  await f.pool.query('DELETE FROM notifications');await processOutboxLease(f.pool,{batchSize:50});
+  const count=async()=>Number((await f.pool.query('SELECT COUNT(*) AS n FROM notifications')).rows[0].n);
+  assert.equal(await count(),2);
+  await f.pool.query("UPDATE outbox SET status='pending',next_retry_at=NOW() WHERE event_type='comment.created'");
+  await processOutboxLease(f.pool,{batchSize:50});assert.equal(await count(),2);
+});

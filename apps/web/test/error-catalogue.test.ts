@@ -9,6 +9,13 @@ const sentences = (t: string) => t.split(/(?<=[.?])\s+/).filter(Boolean);
 const variants: Ctx[] = [{}, { role: 'owner' }, { role: 'manager', ownerName: 'Olivia Owner' }, { role: 'member' }, { role: 'viewer', boardName: 'Chat', projectName: 'Mention Test', names: ['Sam Lee'], item: 'Fix login' }];
 const f = (code: string, status = 409, extra: Partial<Failure> = {}): Failure => ({ status, code, ...extra });
 
+test('retained column history refuses without a fake remedy or hidden counts', () => {
+  const note = describeFailureOf(f('COLUMN_HAS_RETAINED_REFERENCES', 409, { details: { count: 999, message: SECRET } }), { role: 'owner' });
+  assert.match(note.body, /saved history/);
+  assert.equal(note.action, null);
+  assert.doesNotMatch(JSON.stringify(note), /999|SECRET-SERVER-TEXT/);
+});
+
 test('every code the contract lists has a catalogue entry', () => {
   for (const code of STANDARD_ERROR_CODES) assert.ok(CATALOGUE[code] || ['INTERNAL_ERROR'].includes(code), `no entry for ${code}`);
 });

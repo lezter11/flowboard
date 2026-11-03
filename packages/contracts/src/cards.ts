@@ -2,6 +2,7 @@ import { z } from 'zod';
 import {
   createDataEnvelopeSchema,
   createPaginatedEnvelopeSchema,
+  dateOnlySchema,
   nullableDateOnlySchema,
   personDisplaySchema,
   utcIsoTimestampSchema,
@@ -34,7 +35,7 @@ export const createCardInputSchema = z.object({
     .optional()
     .default([]),
   expectedBoardVersion: z.number().int().nonnegative(),
-});
+}).strict();
 export type CreateCardInput = z.infer<typeof createCardInputSchema>;
 
 export const updateCardInputSchema = z
@@ -57,6 +58,7 @@ export const updateCardInputSchema = z
       .optional(),
     expectedVersion: z.number().int().nonnegative(),
   })
+  .strict()
   .refine(
     (data) =>
       data.title !== undefined ||
@@ -74,8 +76,15 @@ export const moveCardInputSchema = z.object({
   nextCardId: z.string().min(1).nullable(),
   expectedVersion: z.number().int().nonnegative(),
   expectedBoardVersion: z.number().int().nonnegative(),
-});
+}).strict();
 export type MoveCardInput = z.infer<typeof moveCardInputSchema>;
+
+/** Undo is a versioned command, with the same strict boundary as move. */
+export const moveUndoInputSchema = z.object({
+  expectedVersion: z.number().int().nonnegative(),
+  expectedBoardVersion: z.number().int().nonnegative(),
+}).strict();
+export type MoveUndoInput = z.infer<typeof moveUndoInputSchema>;
 
 export const cardSummarySchema = z.object({
   id: z.string().min(1),
@@ -135,11 +144,31 @@ export type CardDueFilter = z.infer<typeof cardDueFilterSchema>;
 
 export const cardsQuerySchema = z.object({
   columnId: z.string().min(1).optional(),
-  query: z.string().trim().max(100).optional(),
+  query: z.string().trim().min(1).max(100).optional(),
   priority: prioritySchema.optional(),
   assigneeId: z.string().min(1).optional(),
   due: cardDueFilterSchema.optional(),
-  cursor: z.string().min(1).optional(),
-  limit: z.coerce.number().int().min(1).max(100).default(50).optional(),
-});
+  cursor: z.string().min(1).max(4096).optional(),
+  limit: z.string().regex(/^[1-9][0-9]*$/).transform(Number).pipe(z.number().int().min(1).max(100)).optional(),
+}).strict();
 export type CardsQuery = z.infer<typeof cardsQuerySchema>;
+
+/** My Tasks is always scoped to one explicitly selected project. */
+export const myTasksQuerySchema = z.object({
+  projectId: z.string().trim().min(1),
+  workspaceId: z.string().min(1).optional(),
+  due: cardDueFilterSchema.optional(),
+  priority: prioritySchema.optional(),
+  cursor: z.string().min(1).max(4096).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+}).strict();
+export type MyTasksQuery = z.infer<typeof myTasksQuerySchema>;
+export const myTaskSummarySchema = cardSummarySchema.extend({
+  projectName: z.string().optional(),
+  boardName: z.string().optional(),
+  columnTitle: z.string().optional(),
+});
+export const myTasksResponseSchema = createPaginatedEnvelopeSchema(myTaskSummarySchema).extend({
+  asOfDate: dateOnlySchema,
+  timezone: z.string().min(1).max(100),
+});

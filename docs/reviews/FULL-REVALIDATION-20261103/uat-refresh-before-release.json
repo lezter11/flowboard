@@ -1,0 +1,69 @@
+{
+  "observedAt": "2026-11-03T09:51:22.334Z",
+  "account": "6592b59b0da4771dc346b96c6fdc65fd",
+  "bucket": "flowboard-images-uat",
+  "lifecycle": {
+    "rules": [
+      {
+        "id": "Default Multipart Abort Rule",
+        "enabled": true,
+        "conditions": {},
+        "abortMultipartUploadsTransition": {
+          "condition": {
+            "type": "Age",
+            "maxAge": 604800
+          }
+        }
+      },
+      {
+        "id": "staging-expire",
+        "enabled": true,
+        "conditions": {
+          "prefix": "staging/"
+        },
+        "deleteObjectsTransition": {
+          "condition": {
+            "type": "Age",
+            "maxAge": 86400
+          }
+        }
+      }
+    ]
+  },
+  "pages": {
+    "name": "flowboard-app-uat",
+    "productionBranch": "main",
+    "subdomain": "flowboard-app-uat.pages.dev",
+    "deployment": {
+      "id": "35af3b28-20d8-4932-870e-f32278b927af",
+      "url": "https://35af3b28.flowboard-app-uat.pages.dev",
+      "created_on": "2026-10-31T14:24:16.531319Z",
+      "metadata": {
+        "branch": "main",
+        "commit_hash": "3a82b24",
+        "commit_message": "D-24 3a82b24",
+        "commit_dirty": false
+      }
+    }
+  },
+  "worker": {
+    "deployments": [
+      {
+        "id": "a65dec22-324a-4967-8f2f-6c6666a2ec7d",
+        "source": "wrangler",
+        "strategy": "percentage",
+        "author_email": "shubhamsinghlez@gmail.com",
+        "annotations": {
+          "workers/triggered_by": "deployment"
+        },
+        "versions": [
+          {
+            "version_id": "41559e81-1e69-483b-a9f8-e7d08e103a11",
+            "percentage": 100
+          }
+        ],
+        "created_on": "2026-10-31T14:23:43.438335Z"
+      }
+    ]
+  }
+}

@@ -1,0 +1,294 @@
+{
+  "reviewer": "collaboration:/root/formal_cards_activity_round1",
+  "status": "pre-freeze discovery, no approval",
+  "generatedAt": "2026-11-03T10:12:25.960233+00:00",
+  "ownedCount": 35,
+  "results": [
+    {
+      "id": "CRD-01",
+      "acceptance": "CRD-01: Member/manager/owner creates title in an active authorized column; required field and retry failures retain draft and create once.",
+      "sourceTrace": "cards.ts:createCard; routes/cards.ts POST; board-column/board-view quick-add",
+      "evidence": "crd01-crd11; comment-move-replay idempotency; web create-card-state",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-03: unknown request field accepted; final global freeze pending"
+    },
+    {
+      "id": "CRD-02",
+      "acceptance": "CRD-02: Show title, priority, due date, assignees and accurate comment/image counts without loading full descriptions/history.",
+      "sourceTrace": "boards.ts bounded card projection; cards.ts fetchCardCounts/toCardSummary; board-card.tsx",
+      "evidence": "card-key-counts-creator; crd01-crd11; browser integration attributed",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final target/required suite evidence pending"
+    },
+    {
+      "id": "CRD-03",
+      "acceptance": "CRD-03: Card link loads an authorized popup/drawer or direct-page view with focus restoration and recoverable missing/loading states.",
+      "sourceTrace": "routes/cards.ts GET; cards.ts:getCard; card-detail-drawer portal/focus/loading/error",
+      "evidence": "board-access-cards-images; crd01-crd11; existing builder browser focus/narrow flow attributed",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final browser run and exact downstream bindings pending"
+    },
+    {
+      "id": "CRD-04",
+      "acceptance": "CRD-04: Explicit Save validates plain text and expected card version; Cancel/discard never overwrites saved state.",
+      "sourceTrace": "routes/cards.ts PATCH; cards.ts:updateCard; card-drafts fields/save/discard",
+      "evidence": "crd01-crd11; web card-drafts/checkpoint regressions; builder browser Save attributed",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-03: unknown update field accepted"
+    },
+    {
+      "id": "CRD-05",
+      "acceptance": "CRD-05: Five priority values and optional date-only deadline save/reset consistently; invalid calendar dates fail and overdue excludes done cards.",
+      "sourceTrace": "contracts/cards+common date validation; cards.ts update; dueInfo/detail field reset",
+      "evidence": "crd01-crd11; qry01-qry03; my-tasks-repair; web dates",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final freeze/14commands pending"
+    },
+    {
+      "id": "CRD-06",
+      "acceptance": "CRD-06: Assign zero/multiple active eligible project users or owner; removed identities stay labeled historical and cannot be newly assigned.",
+      "sourceTrace": "cards.ts:validateAssigneeIds; board-assignees.ts; historical rbac; assignee picker",
+      "evidence": "own assignee-race-probe actual separate SQL connections; card lifecycle matrices",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-04 candidate: Member demotion commits before new assignment to Viewer commits"
+    },
+    {
+      "id": "CRD-07",
+      "acceptance": "CRD-07: Server validates neighbors and versions, changes rank/history atomically and returns canonical position; failure restores server order.",
+      "sourceTrace": "cards.ts:moveCard bounded rank/adjacency/recompact; board-view move optimistic reconciliation",
+      "evidence": "crd01-crd11; move-undo-repair numeric/rank tests; lock-order-interleave",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-03: unknown move field accepted"
+    },
+    {
+      "id": "CRD-08",
+      "acceptance": "CRD-08: Visible Move chooses column plus first/last/before/after via bounded placement read; equivalent outcome without dragging.",
+      "sourceTrace": "boards.ts:getPlacement/listBoardCards; MoveDialog bounded paged reference choices",
+      "evidence": "move-undo-repair1000card bound; builder actual Move browser flow attributed",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final current browser+suite binding pending"
+    },
+    {
+      "id": "CRD-09",
+      "acceptance": "CRD-09: Explain disabled ambiguous drag while filters apply; Move uses full destination order rather than renumbering visible cards only.",
+      "sourceTrace": "board-view filtering/drag guards; MoveDialog unfiltered server placement",
+      "evidence": "web board-pages; builder browser server-filter+Move flows attributed",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final current browser+suite binding pending"
+    },
+    {
+      "id": "CRD-10",
+      "acceptance": "CRD-10: Stale field/order version returns 409 without partial side effects; preserve draft and allow deliberate refresh/reapply.",
+      "sourceTrace": "cards.ts expectedVersion/structure_version guards under board+card locks; card-drafts reconciliation",
+      "evidence": "crd01-crd11; move-undo-repair changed gap; lock-order-interleave",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final freeze/14commands pending"
+    },
+    {
+      "id": "CRD-11",
+      "acceptance": "CRD-11: Save affects fields only; comment/upload actions are independent; retries keep command identity and closing protects unsaved work.",
+      "sourceTrace": "card-detail-drawer separate fields/status/comment/upload; retained-command identity; beforeunload guard",
+      "evidence": "web card-drafts/comment-state; existing builder lost-response browser flow attributed",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-02: canonical comment edit survives current access refusal"
+    },
+    {
+      "id": "CRD-12",
+      "acceptance": "CRD-12: Undo is a new authorized versioned move; it succeeds once or explains conflict without overwriting intervening work.",
+      "sourceTrace": "routes/cards.ts move-undo latest safe move fact; moveCard metadata and version/neighbor guards",
+      "evidence": "move-undo-repair cross/same-column, replay, intervening edits, separate-connection competing undo",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-03: unknown undo field accepted"
+    },
+    {
+      "id": "COM-01",
+      "acceptance": "COM-01: Project readers see chronological comments with author displays; stable cursors do not expose other project content.",
+      "sourceTrace": "routes/comments.ts GET board grant transaction; comments.ts stable microsecond keyset and tombstones",
+      "evidence": "com-del; discussion-activity-repair; own query-contract controls",
+      "outcome": "fail_or_incomplete",
+      "remaining": "Unknown query fields stripped; legacy malformed bounds need Architect parity decision"
+    },
+    {
+      "id": "COM-02",
+      "acceptance": "COM-02: Member/manager/owner posts plain text independently of card Save; atomic event/outbox/receipt and lost-response retry create one comment.",
+      "sourceTrace": "routes/comments.ts POST current grant+lifecycle before replay; postComment activity/outbox/notification/receipt transaction",
+      "evidence": "com-del; comment-move-replay; lock-order-interleave; own retention probe",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-03: unknown create field accepted"
+    },
+    {
+      "id": "COM-03",
+      "acceptance": "COM-03: Accessible picker resolves active project identities; validated UTF-16 spans produce mentions and literal at-name text does not notify.",
+      "sourceTrace": "discussion.ts trim/UTF16/surrogate/nonoverlap; comments.ts validate complete selected token; board-scoped picker",
+      "evidence": "discussion-activity-repair valid+invalidUTF16/names/suffixes; b9-mention-access",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-03: nested mention unknown field accepted"
+    },
+    {
+      "id": "COM-04",
+      "acceptance": "COM-04: Author updates with expected version; edit activity persists and v1 edits do not resend mention notifications.",
+      "sourceTrace": "comments.ts editComment author guard/version/body/mentions/audit; no new notification",
+      "evidence": "com-del; b9-mention-access; own source-vs-inbox retention observation",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-01: old notification preview retains removed text; F-CA-03 unknown edit field"
+    },
+    {
+      "id": "COM-05",
+      "acceptance": "COM-05: Author or owner/manager tombstones a comment, records action and hides body from normal reads; other members cannot moderate.",
+      "sourceTrace": "deleteComment moderator/author authority+tombstone+retention; routes recheck action-specific replay",
+      "evidence": "com-del; comment-move-replay; outbox-recovery",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-03 unknown delete field; malformed expectedVersion query accepted"
+    },
+    {
+      "id": "COM-06",
+      "acceptance": "COM-06: Typing, mention selection and post error survive field saves/refetch; no comment posts accidentally through Enter in a picker.",
+      "sourceTrace": "CardComments separate external actor/card sessions; CommentComposer Enter selects/IME guard",
+      "evidence": "web comment-state/mention-ui; own actual browser denial observation",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-02: unchanged canonical fetched edit remains visible after actual comments404"
+    },
+    {
+      "id": "AUD-01",
+      "acceptance": "AUD-01: Owner sees create, field change, assignment, move, comment and actor/server timestamp chronologically with stable pagination.",
+      "sourceTrace": "activity.ts listCardActivity chronological microsecond cursor, all mutation recordActivity paths",
+      "evidence": "aud-ntf; activity-coverage-b5; discussion-activity-repair",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final freeze/14commands pending"
+    },
+    {
+      "id": "AUD-02",
+      "acceptance": "AUD-02: Record safe before/after field values and from/to columns; historical name changes and removed people remain understandable.",
+      "sourceTrace": "cards.ts before/after fields and move columns/source neighbors; activity/rbac historical displays",
+      "evidence": "aud-ntf; card-key-counts-creator; activity-coverage-b5",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final freeze/14commands pending"
+    },
+    {
+      "id": "AUD-03",
+      "acceptance": "AUD-03: Owner filters owned workspace activity by project/card/actor/action/date; invited users cannot access sibling-project audit data.",
+      "sourceTrace": "routes/activity.ts strict filter schema; activity.ts listWorkspaceActivity owner lock/filter SQL",
+      "evidence": "discussion-activity-repair date filters/cursor; aud-ntf owner/sibling; own strict unknown control",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final current UI server-filter browser+bindings pending"
+    },
+    {
+      "id": "AUD-04",
+      "acceptance": "AUD-04: Manager sees project activity/access changes; member/viewer sees card activity only for granted project; workspace security log is owner-only.",
+      "sourceTrace": "activity.ts lockProjectActivityAccess current Manager+granted board set; project/board/unknown visibility",
+      "evidence": "board-access-activity-notifications; activity-coverage-b5 role matrix; aud-ntf",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final freeze/14commands pending"
+    },
+    {
+      "id": "AUD-05",
+      "acceptance": "AUD-05: Trash/restore/purge/import/image events are traceable; no secret token or raw file appears in audit payloads.",
+      "sourceTrace": "recordActivity shared writer and trash/purge/import/image/adapters reached event calls",
+      "evidence": "aud-ntf lifecycle/import/image synthetic flow; activity-coverage-b5 secrets checks",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Import/project source changed during discovery; fresh global review needed"
+    },
+    {
+      "id": "AUD-06",
+      "acceptance": "AUD-06: No user edits audit facts; sensitive/deleted bodies are redacted under retention rules while actor/action/time facts persist.",
+      "sourceTrace": "no audit edit route; redactCardActivity purge; tombstone retention and minimal receipts",
+      "evidence": "aud-ntf append-only/redaction; com-del purge; outbox-recovery legacy sanitization",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final retention exact target+shared lifecycle independent evidence pending"
+    },
+    {
+      "id": "NTF-01",
+      "acceptance": "NTF-01: One event/recipient notification appears after commit; no self-mention or duplicate logical delivery and no stale private preview leak.",
+      "sourceTrace": "postComment notification/outbox same tx; unique comment/user index0023; notification current visible SQL",
+      "evidence": "b9-mention-access; outbox-recovery; own edit stale preview repro",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-01: removed comment text remains in normal recipient inbox"
+    },
+    {
+      "id": "NTF-02",
+      "acceptance": "NTF-02: Actor opens accessible project/card and marks read; removed-access notifications are redacted/hidden and never reveal content.",
+      "sourceTrace": "notification read markers lock grants; actor-scoped list/mark SQL; Inbox appHref",
+      "evidence": "board-access-activity-notifications true read/revoke races; own actual Chrome Open card",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-05: backend?cardId link becomes board-only href and opens0card dialogs"
+    },
+    {
+      "id": "NTF-03",
+      "acceptance": "NTF-03: Lease/fenced consumer retries bounded jobs and quarantines failures; restart/duplicate handling does not lose accepted notification intent.",
+      "sourceTrace": "processOutboxLease real SKIP LOCKED transaction fence/savepoints/backoff/quarantine; sanitizeCommentOutbox",
+      "evidence": "outbox-recovery SQL poison/restart/concurrent consumers; aud-ntf",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final required full suite/current Worker scheduled wiring evidence pending; hosted scheduling pendingUAT"
+    },
+    {
+      "id": "QRY-01",
+      "acceptance": "QRY-01: Title search returns authorized active cards only with pagination and safe historical people mapping.",
+      "sourceTrace": "routes/cards.ts project scope transaction; searchProjectCards authorized board set and active cards",
+      "evidence": "qry01-qry03; board-access-cards-images; own query schema controls",
+      "outcome": "fail_or_incomplete",
+      "remaining": "Unknown search query fields silently stripped; final global freeze pending"
+    },
+    {
+      "id": "QRY-02",
+      "acceptance": "QRY-02: Filters combine predictably, distinguish total/matching counts and exclude trash; no global project discovery through query parameters.",
+      "sourceTrace": "searchProjectCards SQL combined facets/counts; board snapshot filters+pagination",
+      "evidence": "qry01-qry03; crd01-crd11; builder browser server title search reaches offpage card attributed",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final bound current browser+suite evidence pending"
+    },
+    {
+      "id": "QRY-03",
+      "acceptance": "QRY-03: Show actor assignments within one selected authorized project and currently granted boards with due-state filters/pagination; no cross-project aggregation or revoked-access content.",
+      "sourceTrace": "cards.ts:getMyTasks required one project/current board grants/calendar/cursor; my-tasks selectedTaskProject",
+      "evidence": "my-tasks-repair bounded pages, due filters, revision/date change, constant query count; builder61task browser attributed",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Final global freeze/suite+current backend/UI bindings pending"
+    },
+    {
+      "id": "UX-01",
+      "acceptance": "UX-01: First project/empty board/no matches/loading/offline/validation/permission errors have accurate actions and preserve relevant drafts.",
+      "sourceTrace": "ErrorNote/error catalogue/feed controls/draft stores/empty/loading screens",
+      "evidence": "own318web tests; own actual comments404 browser; builder product flows attributed",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-02 canonical text retained; final full workflow browser pending"
+    },
+    {
+      "id": "UX-02",
+      "acceptance": "UX-02: Keyboard and click/tap complete all essential operations; focus, announcements, labels and color-independent cues are verified in browser.",
+      "sourceTrace": "DialogLayer/drawer portal/focus trap/inert/return; click Move/keyboard mention/labels/live regions",
+      "evidence": "own318web tests; builder diagnostic focus loop+360px+Move browser attributed",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Fresh final actual browser keyboard/zoom and exact downstream bindings pending"
+    },
+    {
+      "id": "UX-03",
+      "acceptance": "UX-03: Board scroll and detail layout work at narrow width/zoom; long titles, many assignees and image/comment lists remain usable.",
+      "sourceTrace": "globals.css/drawer scroll/comments wrapping/board overflow/responsive controls",
+      "evidence": "own318web tests; builder360px screenshot+real browser bounds attributed",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Fresh final long text/many assignees/images/comments+narrow/zoom acceptance binding pending"
+    },
+    {
+      "id": "UX-04",
+      "acceptance": "UX-04: Pause hidden-tab polling, refresh on focus and reconcile versions; no optimistic duplicate/older response overwrites newer data.",
+      "sourceTrace": "PollingProvider visible/focus pause; query cancellation; cursor-feed dedupe+version merge; card-drafts reconciliation",
+      "evidence": "own318web tests; own comments denial ordering; builder cached-description/image revoke flows attributed",
+      "outcome": "fail_or_incomplete",
+      "remaining": "F-CA-02 separate external canonical comment edit escapes refusal redaction"
+    },
+    {
+      "id": "UX-05",
+      "acceptance": "UX-05: Representative Worker/Node warm/cold benchmarks, project isolation, exact restore boundary and repeated import pass documented gates.",
+      "sourceTrace": "actual Node/Worker runtime probes,1000card workload, warm/first request, exact restore/import duplicate gates",
+      "evidence": "runtime-validation-result raw evidence attributed; focused com-del restore/purge and MyTasks fixtures ownrun",
+      "outcome": "local_evidence_pending_frozen_acceptance",
+      "remaining": "Global final14commands/current freeze pending; hosted coldstart/CPU/Hyperdrive/R2/provider pendingUAT by explicit sequence"
+    }
+  ],
+  "crossCutting": [
+    "All mounted auth enters actual Hono createApp; cookie origin/CSRF and PAT allowlist delegated/shared source reviewed, current independent foundation full14 executor pending.",
+    "State/version/history/outbox/receipt transaction and real separate-connection matrices exist; target assignee role race remains under independent confirmation.",
+    "No final >8.5 score/approval before full frozen required14 and resolution of all mandatory defects.",
+    "Downstream UI/integration handoff hash bindings still require exact final independent backend records; prior local screenshot/test logs are not hosted/Google/R2/email acceptance."
+  ]
+}

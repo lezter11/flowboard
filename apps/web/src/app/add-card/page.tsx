@@ -1,15 +1,15 @@
 'use client';
 
-import { Suspense, useEffect, useState, type FormEvent } from 'react';
+import { Suspense, useEffect, useMemo, useState, useSyncExternalStore, type FormEvent } from 'react';
 import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { Card } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { boardQueryOptions } from '@/lib/queries';
-import { setUnsaved } from '@/lib/unsaved';
+import { cardForms } from '@/lib/create-card-state';
 import { ErrorNote } from '@/components/ui/error-note';
 import { useAssignablePeople } from '@/lib/assignee-people';
 import { EMPTY_ASSIGNEES, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, peopleLoadError, pickerState } from '@/lib/assignees';
@@ -19,12 +19,12 @@ import { Icon } from '@/components/ui/icon';
 import { Avatar } from '@/components/ui/avatar';
 
 function AddCardScreen() {
-  const router = useRouter();
   const params = useSearchParams();
   const queryClient = useQueryClient();
   const { state } = useSession();
   const boardId = params.get('board');
-  const board = useQuery(boardQueryOptions(boardId));
+  const actorId=state.status==='ready'?state.session.actor.id:'';
+  const board = useQuery({...boardQueryOptions(boardId),enabled:!!boardId&&!!actorId});
   const snapshot = board.data;
   const project = state.status === 'ready' ? state.session.accessibleProjects.find((p) => p.id === snapshot?.board.projectId) : undefined;
   const role = normalizeRole(project?.role);
@@ -34,40 +34,45 @@ function AddCardScreen() {
   const assignable = assignableList(projectPeople.data);
   const picker = pickerState(projectPeople, assignable);
 
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [columnId, setColumnId] = useState(params.get('column') ?? '');
-  const [priority, setPriority] = useState('');
-  const [due, setDue] = useState('');
-  const [assignees, setAssignees] = useState<string[]>([]);
+  const form=useMemo(()=>cardForms.forBoard(actorId,boardId??'',params.get('column')??''),[actorId,boardId]);
+  const formState=useSyncExternalStore(form.subscribe,form.get,form.get);
+  const {title,description,columnId,priority,due,assignees}=formState.draft;
+  const setTitle=(title:string)=>form.edit({title});const setDescription=(description:string)=>form.edit({description});
+  const setColumnId=(columnId:string)=>form.edit({columnId});const setPriority=(priority:string)=>form.edit({priority});const setDue=(due:string)=>form.edit({due});
+  const setAssignees=(next:string[]|((old:string[])=>string[]))=>form.edit({assignees:typeof next==='function'?next(form.get().draft.assignees):next});
   const [errors, setErrors] = useState<{ title?: string; priority?: string; form?: string }>({});
   const [busy, setBusy] = useState(false);
   const [refused, setRefused] = useState<{ ids: string[]; error: unknown } | null>(null);
   const [formFailure, setFormFailure] = useState<unknown>(null);
-  const [saved, setSaved] = useState<Card | null>(null);
-  const key = useState(() => crypto.randomUUID())[0];
+  const created=useQuery({queryKey:['card',formState.createdId,actorId],queryFn:({signal})=>api.getCard(formState.createdId!,signal).then((r)=>r.data),enabled:!!formState.createdId&&!!actorId,retry:false});
+  const saved=formState.createdId?created.data:undefined;
+  const startAnother=()=>{if(form.startAnother()){setErrors({});setFormFailure(null);setRefused(null);}};
+  const locked=busy||form.command.unresolved();
   const dirty = !!(title || description || priority || due || assignees.length);
-  useEffect(() => { setUnsaved('add-card', dirty && !saved); return () => setUnsaved('add-card', false); }, [dirty, saved]);
+
   const column = columns.find((c) => c.id === columnId) ?? columns[0];
   const backHref = boardId ? `/board?id=${encodeURIComponent(boardId)}` : '/projects';
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
+    if(busy||formState.createdId||!actorId)return;
     const next: typeof errors = {};
-    if (!title.trim()) next.title = 'Enter a title with 1 to 200 characters.';
-    if (!priority) next.priority = 'Choose a priority before saving the card.';
+    if (!form.command.unresolved()&&!title.trim()) next.title = 'Enter a title with 1 to 200 characters.';
+    if (!form.command.unresolved()&&!priority) next.priority = 'Choose a priority before saving the card.';
     setErrors(next); setRefused(null); setFormFailure(null);
     if (next.title || next.priority || !snapshot || !column) return;
     setBusy(true);
     try {
-      const res = await api.createCard(snapshot.board.id, {
+      const original=form.get().request??{boardId:snapshot.board.id,input:{
         title: title.trim(), description: description.trim(), priority: priority as Card['priority'], columnId: column.id,
         dueDate: due || null, assigneeIds: assignees, expectedBoardVersion: snapshot.board.structureVersion,
-      }, key);
-      const created = await api.getCard(res.data.id);
-      setSaved(created.data);
+      }};
+      form.request(original);
+      const res=await form.command.run(original,(request,key)=>api.createCard(request.boardId,request.input,key));
+      form.created(res.data.id);
       void queryClient.invalidateQueries({ queryKey: ['board', boardId] });
     } catch (error) {
+      if(!form.command.unresolved())form.request(null);
       const ids = error instanceof ApiError ? ineligibleFromFailure(error) : null;
       if (ids) { setRefused({ ids: ids.length ? ids : assignees, error }); setFormFailure(null); setErrors({}); }
       else { setRefused(null); setFormFailure(error); setErrors({}); }
@@ -81,6 +86,7 @@ function AddCardScreen() {
     return <section className="state-note"><h1>You cannot create cards here</h1><p>Viewers, archived boards and archived projects are read-only.</p><Link className="btn" href={backHref}>Back to board</Link></section>;
   }
 
+  if(formState.createdId&&!saved)return <section className="panel"><div className="panel-body stack"><h1>Card created</h1><p>The server confirmed this card. Its current details {created.isPending?'are loading.':'could not be loaded.'} Saving again will not create another card.</p>{created.error&&<ErrorNote error={created.error} onRetry={()=>void created.refetch()} />}<Link className="btn primary" href={`/board?id=${encodeURIComponent(boardId)}&card=${encodeURIComponent(formState.createdId)}`}>Open created card</Link><Link className="btn" href={backHref}>Back to board</Link><button className="btn primary" type="button" onClick={startAnother}>Create another card</button></div></section>;
   return (
     <div id="addContent">
       <div className="page-head">
@@ -122,13 +128,16 @@ function AddCardScreen() {
             <div className="form-actions" style={{ padding: 14 }}>
               <Link className="btn primary" href={`/board?id=${encodeURIComponent(boardId)}&card=${encodeURIComponent(saved.id)}`}><Icon name="board" />Open card</Link>
               <Link className="btn" href={backHref}>Back to board</Link>
-              <button className="btn ghost" type="button" onClick={() => router.refresh()} hidden>New card</button>
+              <button className="btn primary" type="button" onClick={startAnother}>Create another card</button>
             </div>
             <div className="note" style={{ margin: 14 }}><Icon name="image" /><span>Add images and the first comment in the card drawer.</span></div>
           </div>
         </section>
       ) : (
         <form id="addCardForm" noValidate onSubmit={submit}>
+          {formState.receipts.length>0&&<p className="note">Previously created: {formState.receipts.map((id,index)=><Link key={id} href={`/board?id=${encodeURIComponent(boardId??'')}&card=${encodeURIComponent(id)}`}>Card {index+1}{index<formState.receipts.length-1?', ':''}</Link>)}</p>}
+          {form.command.unresolved()&&<p className="note" role="status">The card may already exist. Retry the original request; fields stay locked until its outcome is confirmed.</p>}
+          <fieldset disabled={locked} style={{border:0,padding:0,margin:0,minWidth:0}}>
           <div className="split-layout">
             <div className="stack">
               <section className="form-section" aria-labelledby="detailsTitle">
@@ -176,7 +185,7 @@ function AddCardScreen() {
                   {assignable.map((person) => (
                     <label key={person.id} className="check-row">
                       <input type="checkbox" checked={assignees.includes(person.id)} disabled={!assignees.includes(person.id) && !canAddAssignee(assignees.length)} onChange={(event) => setAssignees((prev) => event.target.checked ? [...prev, person.id] : prev.filter((id) => id !== person.id))} />
-                      <Avatar id={person.id} name={formatPersonName(person)} />
+                      <Avatar id={person.id} name={formatPersonName(person)} avatarUrl={person.avatarUrl} />
                       <span>{formatPersonName(person)}</span>
                       {person.scopedRole && <span className="role-mini">{ROLE_META[person.scopedRole].label}</span>}
                     </label>
@@ -210,13 +219,14 @@ function AddCardScreen() {
               </section>
             </aside>
           </div>
+          </fieldset>
           {errors.form && <ErrorNote text={errors.form} />}
           {formFailure != null && <ErrorNote error={formFailure} ctx={{ role, boardName: snapshot.board.name }} focusOnMount onRetry={() => void submit({ preventDefault() {} } as FormEvent)} />}
           <div className="sticky-actions">
             <span className={`dirty-note${dirty ? ' is-dirty' : ''}`}><span className="dot" />{dirty ? 'Unsaved changes' : 'No unsaved changes'}</span>
             <span className="spacer" />
             <Link className="btn" href={backHref}>Cancel</Link>
-            <button className="btn primary" type="submit" disabled={busy}><Icon name="plus" />{busy ? 'Saving…' : 'Save card'}</button>
+            <button className="btn primary" type="submit" disabled={busy}><Icon name="plus" />{busy ? 'Saving…' : form.command.unresolved()?'Retry original card request':'Save card'}</button>
           </div>
         </form>
       )}

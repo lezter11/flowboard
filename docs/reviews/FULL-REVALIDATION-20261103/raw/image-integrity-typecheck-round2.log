@@ -1,0 +1,14 @@
+
+> typecheck
+> tsc --noEmit && npm run typecheck --workspace @flowboard/mcp
+
+apps/api/test/runtime-validation.test.ts(60,174): error TS2322: Type 'Promise<Response_2>' is not assignable to type 'Promise<Response>'.
+  Type 'Response_2' is not assignable to type 'Response'.
+    The types of 'headers[Symbol.iterator]()' are incompatible between these types.
+      Property '[Symbol.dispose]' is missing in type 'SpecIterableIterator<[string, string]>' but required in type 'HeadersIterator<[string, string]>'.
+apps/api/test/runtime-validation.test.ts(60,191): error TS2345: Argument of type 'RequestInit | undefined' is not assignable to parameter of type 'RequestInit_2<IncomingRequestCfProperties_2> | undefined'.
+  Type 'RequestInit' is not assignable to type 'RequestInit_2<IncomingRequestCfProperties_2>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Types of property 'body' are incompatible.
+      Type 'BodyInit | null' is not assignable to type 'BodyInit'.
+        Type 'ArrayBufferView<ArrayBuffer>' is not assignable to type 'BodyInit'.
+          Type 'ArrayBufferView<ArrayBuffer>' is missing the following properties from type 'Uint8ClampedArray<ArrayBufferLike>': BYTES_PER_ELEMENT, copyWithin, every, fill, and 29 more.

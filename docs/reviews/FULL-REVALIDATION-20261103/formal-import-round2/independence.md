@@ -1,0 +1,11 @@
+# Independent import reviewer, round 2
+
+Allocated canonical reviewer task: `/root/formal_import_round1`, resumed for independent import round 2. Reviewer actor: `formal-import-independent-reviewer`; reviewer session boundary: `collaboration:/root/formal_import_round1`. This context contains my previous independent review, not builder implementation participation. I did not implement the target or the subsequent repairs. The inherited parent model and opaque provider UUID are not separately exposed; no provider identity is invented.
+
+Builder actor: `/root`; builder session: `collaboration:/root`. The independent full-gate executor is the separate reviewer task `/root/formal_foundation_account_round1`. Its commands are attributed to that executor, not to me. I wrote only new files inside this review directory. Application, database, contracts, package/configuration, criteria, existing tests and prior failed review bytes were not edited.
+
+I verified all 615 held source hashes and manifest digest `5c6185a69d2d0fa89a32962b6f672a1bc09877e66592e0b7568f98d35769c3c8` before and after my focused checks. Both checks found zero mismatches. The root subsequently plans repairs; this failed record concerns only those held bytes. TASKS.md and PROGRESS.md were checked as run metadata and are excluded from direct approval scope. The source manifest still records their observed hashes; the review does not approve future dynamic status assertions.
+
+I applied the read-only code-review-and-quality workflow, reran every original adversarial XLSX without editing its bytes, and generated additional CRC-valid fixtures in this directory. Mounted checks used only synthetic identities and a randomly named, automatically dropped schema in the authorized disposable PostgreSQL17.11 loopback55931 database. No hosted request, real account, mail, OAuth, storage mutation, deployment or network fetch was performed. Inert external URLs in ZIP fixtures are attack data.
+
+This failed review is not local acceptance, feature closure, UAT approval or real-provider verification. The original six findings now have passing focused regression evidence; new mandatory defects and an interrupted required gate still veto acceptance.

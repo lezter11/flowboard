@@ -1,0 +1,91 @@
+✖ FCP-02 refused read erases clean server fields from external draft store while keeping only edited values (1.142459ms)
+✖ FCP-04 confirmed receipt permits explicit fresh operation and preserves receipt history (0.191125ms)
+✖ FCP-03 dialog stack routes a key to top only and restores lower inert state (0.669584ms)
+✖ FCP-01 fresh canonical empty board list erases former board stats and snapshot caches (0.199208ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 131.141334
+
+✖ failing tests:
+
+test at apps/web/test/checkpoint-regressions.test.ts:11:1
+✖ FCP-02 refused read erases clean server fields from external draft store while keeping only edited values (1.142459ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Private untouched server description'
+  - ''
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/checkpoint-regressions.test.ts:14:25)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Private untouched server description',
+    expected: '',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/web/test/checkpoint-regressions.test.ts:18:1
+✖ FCP-04 confirmed receipt permits explicit fresh operation and preserves receipt history (0.191125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/checkpoint-regressions.test.ts:20:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/web/test/checkpoint-regressions.test.ts:24:1
+✖ FCP-03 dialog stack routes a key to top only and restores lower inert state (0.669584ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/checkpoint-regressions.test.ts:25:64)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/web/test/checkpoint-regressions.test.ts:29:1
+✖ FCP-01 fresh canonical empty board list erases former board stats and snapshot caches (0.199208ms)
+  AssertionError [ERR_ASSERTION]: actual shared portfolio read is available
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/checkpoint-regressions.test.ts:30:85)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

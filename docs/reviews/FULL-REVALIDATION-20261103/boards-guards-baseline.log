@@ -1,0 +1,99 @@
+✖ boards lifecycle: paged summaries preserve human keys and bounded description excerpts (227.605458ms)
+✖ boards lifecycle: direct retirement uses a nonwaiting board guard rather than column-to-board deadlock (1188.032541ms)
+✖ boards lifecycle: repeatable-read direct writers cannot retire both final columns from stale snapshots (207.443875ms)
+✖ boards lifecycle: normalized legacy name conflicts abort migration diagnostically without dropping rows (184.631333ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1980.456292
+
+✖ failing tests:
+
+test at apps/api/test/boards-lifecycle-repair.test.ts:121:1
+✖ boards lifecycle: paged summaries preserve human keys and bounded description excerpts (227.605458ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'string'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:124:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'string',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/boards-lifecycle-repair.test.ts:127:1
+✖ boards lifecycle: direct retirement uses a nonwaiting board guard rather than column-to-board deadlock (1188.032541ms)
+  AssertionError [ERR_ASSERTION]: direct operator must prelock board or receive an immediate retryable lock refusal
+  
+  '40P01' !== '55P03'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:139:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '40P01',
+    expected: '55P03',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/boards-lifecycle-repair.test.ts:144:1
+✖ boards lifecycle: repeatable-read direct writers cannot retire both final columns from stale snapshots (207.443875ms)
+  AssertionError [ERR_ASSERTION]: stale repeatable snapshot must serialize-fail after another retirement
+  + actual - expected
+  
+  + undefined
+  - '40001'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:150:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: '40001',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/boards-lifecycle-repair.test.ts:155:1
+✖ boards lifecycle: normalized legacy name conflicts abort migration diagnostically without dropping rows (184.631333ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  error: could not create unique index "uq_live_column_normalized_name"
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:158:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: error: could not create unique index "uq_live_column_normalized_name"
+        at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg/lib/client.js:694:17
+        at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+        at async executeMigrationsWithClient (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/adapters/migrations.ts:107:9)
+        at async runMigrations (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/adapters/migrations.ts:142:14)
+        at async waitForActual (node:assert:646:5)
+        at async strict.rejects (node:assert:769:25)
+        at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/boards-lifecycle-repair.test.ts:158:3)
+        at async Test.run (node:internal/test_runner/test:1208:7)
+        at async Test.processPendingSubtests (node:internal/test_runner/test:831:7),
+    operator: 'rejects',
+    diff: 'simple'
+  }

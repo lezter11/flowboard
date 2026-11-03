@@ -1,0 +1,199 @@
+{
+  "type": "builder_implementation_handoff_not_acceptance_review",
+  "date": "2026-11-03",
+  "baseline_commit": "917706ae0433df471c72736be4d548eb022236c4",
+  "criteria": "docs/reviews/FULL-REVALIDATION-20261103/identity-repair-criteria.json",
+  "criteria_version": "identity-repair-2",
+  "score": null,
+  "independent_review": "pending_full_product_frozen_target",
+  "feature_closure_claimed": false,
+  "changed_files": [
+    "apps/api/src/adapters/members.ts",
+    "apps/api/src/http/routes/members.ts",
+    "apps/api/src/adapters/notifications.ts",
+    "apps/api/test/identity-repair.test.ts",
+    "apps/api/test/rbac-advanced.test.ts"
+  ],
+  "bounded_file_manifest": [
+    {
+      "path": "apps/api/src/adapters/members.ts",
+      "sha256": "8342f0dda52624002d791f2afb1126dabfcd0e7e9263b7f28bcf0b26c0810088"
+    },
+    {
+      "path": "apps/api/src/http/routes/members.ts",
+      "sha256": "c303cefa137522c5564660625de099d2af334b5941da3a3e00665b11333bbe4f"
+    },
+    {
+      "path": "apps/api/src/adapters/notifications.ts",
+      "sha256": "c410f15d1e94c637b2de2ec2d24003c464ed5e6772e62871ecf9e58f29d6e4ba"
+    },
+    {
+      "path": "apps/api/test/identity-repair.test.ts",
+      "sha256": "a4b90a86faeb96654c41259c838236b76f6bb67e1c948592a94b4f92bd2c7a5f"
+    },
+    {
+      "path": "apps/api/test/rbac-advanced.test.ts",
+      "sha256": "6ea58acc6cc47c314edba8f30e5aafa8474f7590bd3ea22b961368372a8df099"
+    }
+  ],
+  "changes": [
+    "Member PATCH and DELETE take project quota lock before actor/target/receipt locks; current grant and protected target checks precede receipt disclosure.",
+    "Inactive-to-active member transitions use effective request limits and count active members excluding Owner plus unexpired pending reservations. Normal seated role changes and receipt replay do not consume another seat.",
+    "Role changes/reinstatement require writable project context. Pure authorized removal remains possible while archived, including its replay; leave behavior is preserved and exercised.",
+    "Safe server-derived receipt state marker classifies original pure removal vs role/access change; strips marker from public response. Active mixed role+removal remains supported; archived mixed/reinstatement and ambiguous legacy replay fail closed.",
+    "PATCH removal and DELETE share transactional pending-invitation invalidation and audit helper; existing database trigger clears board grants. Activity/receipt failure rolls back related mutation and invalidation.",
+    "Exhausted transient invitation retries now replace terminal invitation outbox payload with empty JSON; other event payload behavior is preserved.",
+    "Legacy mounted role-promotion/removal test pauses Manager before project quota, so Owner can win on separate connection and Manager subsequently refuses protected target; barrier is released even on failure."
+  ],
+  "verification": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/identity-repair-red-sandbox-refusal.log",
+      "exit_code": 1,
+      "totals": {
+        "tests": 11,
+        "pass": 0,
+        "fail": 11,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "1581cf65b5c1f75fe60c4aa049a0a1f957f3970dfbdc84017e9aaad3a8026038"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/identity-repair-red.log",
+      "exit_code": 1,
+      "totals": {
+        "tests": 11,
+        "pass": 4,
+        "fail": 7,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "65f4437be2643edbf831b4d4266079d3d1d03fbc6bae5f4e272825c8a74c0856"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/identity-repair-replay-red.log",
+      "exit_code": 1,
+      "totals": {
+        "tests": 2,
+        "pass": 0,
+        "fail": 2,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "da5cd4b0ba67e792d0b91dc706460174b8771ec2a5a38c1043b917c33c624824"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/identity-repair-typecheck-first.log",
+      "exit_code": 1,
+      "totals": {},
+      "sha256": "2fb24d9a136a24f84bf34015201a0e7a7b70ea8242874cfeb9239742e4d1ea27"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/identity-repair-typecheck.log",
+      "exit_code": 1,
+      "totals": {},
+      "sha256": "f1f26b42cf2c72f3caa0bbfa02c3b9c24cdfbf433245bbf258157e50c9dc1fc4"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/identity-repair-typecheck-final.log",
+      "exit_code": 0,
+      "totals": {},
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/identity-repair-green-first.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 13,
+        "pass": 13,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "85b3a4c4046b3a5202aa1e3e643e6509f76ef356562e48f45a69471eec569874"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/identity-repair-targeted.log",
+      "exit_code": 1,
+      "totals": {
+        "tests": 126,
+        "pass": 124,
+        "fail": 2,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "2af4c42256e0930a798602e2159d01201df89686554e39320501dd7151f77db4"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/identity-repair-targeted-final.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 126,
+        "pass": 126,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "0e5d2fe658fde340d13be1a7a3c9193c694176fd64f1cefdc2db57cdcb41a006"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/identity-repair-new-regressions-final.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 16,
+        "pass": 16,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "620be1a4f90f2720f231407b6ded4f276ae9649187972c70b7a78736821148a1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/identity-repair-contracts.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 117,
+        "pass": 117,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "c5bc910beec7a3627e985953af0c127b48203b9e98b20f6b9a3cb0e5a840121a"
+    }
+  ],
+  "environment": {
+    "postgres": "17.11, root-provisioned disposable instance",
+    "host": "127.0.0.1",
+    "port": 55931,
+    "database": "flowboard_harness",
+    "dataset": "synthetic only; new regression uses fresh schema per test and removes only its own generated schemas",
+    "node": "24.15.0",
+    "home": "/tmp/flowboard-identity-home",
+    "network": "Only local PostgreSQL and local workerd test traffic; mail adapters are synthetic; no live OAuth, real email, cloud or deployment"
+  },
+  "commands": {
+    "targeted": "node --test-concurrency=1 --test apps/api/test/identity-repair.test.ts apps/api/test/inv06-inv07.test.ts apps/api/test/inv04-inv08.test.ts apps/api/test/b22-invitation-caps.test.ts apps/api/test/b10-invitation-email.test.ts apps/api/test/b14-outbox-privacy.test.ts apps/api/test/uat-immediate-invite-send.test.ts apps/api/test/rbac-advanced.test.ts apps/api/test/acc-lifecycle.test.ts apps/api/test/node.test.ts apps/api/test/worker.test.ts",
+    "new_regression": "node --test-concurrency=1 --test apps/api/test/identity-repair.test.ts",
+    "typecheck": "npm run typecheck",
+    "contracts": "npm run test --workspace @flowboard/contracts",
+    "environment_prefix": "env -i PATH=<existing runtime PATH> HOME=/tmp/flowboard-identity-home NODE_ENV=test WRANGLER_SEND_METRICS=false DATABASE_URL=<synthetic loopback55931/flowboard_harness target constructed locally>",
+    "red_replay": "node --test-concurrency=1 --test --test-name-pattern='mixed role/removal|legacy unclassified' apps/api/test/identity-repair.test.ts",
+    "diff_hygiene": "git diff --check -- apps/api/src/adapters/members.ts apps/api/src/http/routes/members.ts apps/api/src/adapters/notifications.ts apps/api/test/rbac-advanced.test.ts apps/api/test/identity-repair.test.ts"
+  },
+  "failure_history": [
+    "First sandboxed local PG connection was refused with EPERM. Retained refusal log; reran with authorized loopback escalation. It is not counted as a defect reproduction.",
+    "Original 11-case regression suite: 4 pass,7 fail,exit1. Failures prove missing cap/reservations/archive guards, archived removal replay rejection, PATCH pending-invite parity, missing quota serialization and retained terminal token/email/body.",
+    "Two additional mixed/legacy receipt tests failed 0pass2fail before classification implementation; HTTP200 replay was incorrectly allowed after archive.",
+    "First typecheck failed only new test helper key inference; fixed explicit string typing. Next typecheck caught concurrently edited import-repair Buffer BodyInit issue; other owner fixed it. Final root typecheck exits0.",
+    "First nearest-suite run:124pass2fail exit1. Legacy rbac test paused after holding project quota then awaited Owner acquisition of same lock; that schedule was impossible. Owner timed out; missing failure cleanup hung test child. Root authorized correction. Only this agent child PID89386 was terminated, shared servers untouched. Log preserves failed subtest and failed child suite.",
+    "Corrected nearest-suite run:126pass0fail0skip exit0. Additional three new regression cases were appended after that run; final new-file run16pass0fail0skip exit0. These counts are separate runs, not a combined129/142 claim."
+  ],
+  "remaining_known_items": [
+    "Full API/access-database suite, complete build and fresh independent review remain root/release gates. This repair does not close any of the 98 features by itself.",
+    "Root owns invitation accept/archive race, initial leave quota/receipt lock ordering and other invitation lifecycle paths. This agent changed no invitations.ts/projects.ts lines; archived leave test confirms existing behavior only.",
+    "Invitation delivery status remains internal-only; inviter-visible delivery failures, bounded invitation history and member-directory email/role policy are broader discovery gaps not solved here.",
+    "Architect owns stable feature retirement/inheritance reconciliation, OpenAPI agreement, role handoff reviewPath/checklist generation and final immutable full-product manifest.",
+    "All exact sampled discovery hashes describe the original source survey, not this repair. The bounded repair manifest is current for these five owned files only and is not a full review dependency manifest.",
+    "No commit, push, cloud mutation, dev-stage deployment, production operation, UAT deployment or signed-in hosted acceptance occurred."
+  ]
+}

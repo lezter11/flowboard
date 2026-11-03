@@ -1,0 +1,94 @@
+[
+  {
+    "name": "corrected external relationship",
+    "status": 422,
+    "body": {
+      "error": {
+        "code": "EXTERNAL_LINKS_REJECTED",
+        "message": "External or invalid package relationships are disallowed.",
+        "requestId": "a7f2467a-6062-4ae3-8961-a3987ce72e56"
+      }
+    }
+  },
+  {
+    "name": "invalid preview shared contract",
+    "status": 201,
+    "body": {
+      "data": {
+        "id": "imp_7a8ab2b2-8c6f-4200-b39b-0ae738b6af14",
+        "projectId": "prj",
+        "boardId": "brd",
+        "defaultColumnId": "col2",
+        "version": 1,
+        "state": "invalid",
+        "previewDigest": "2025a944e9c2772258ea5e74c7e9dcf519fadd4ad0efc6a534f1fa6fdec0c36b",
+        "expiresAt": "2026-11-03T10:24:28.782Z",
+        "serverNow": "2026-11-03T09:54:28.813Z",
+        "createdAt": "2026-11-03T09:54:28.782Z",
+        "createdById": "usr_e4e5f96efc1e7739",
+        "createdBy": {
+          "id": "usr_e4e5f96efc1e7739",
+          "displayName": "Retention owner",
+          "avatarUrl": null,
+          "activeInProject": true,
+          "scopedRole": "owner",
+          "assignable": true,
+          "mentionable": true
+        },
+        "committedAt": null,
+        "committedById": null,
+        "committedBy": null,
+        "counts": {
+          "total": 1,
+          "new": 0,
+          "existing": 0,
+          "invalid": 1,
+          "conflict": 0,
+          "created": 0,
+          "skipped": 0
+        },
+        "canCommit": false,
+        "cancellationAllowed": true,
+        "nextCursor": null,
+        "error": null,
+        "rows": [
+          {
+            "rowNumber": 2,
+            "externalId": "0001",
+            "title": "",
+            "description": "Synthetic official workbook row",
+            "status": "Current column",
+            "priority": "high",
+            "dueDate": "2026-12-15",
+            "assigneeIds": [],
+            "outcome": "invalid",
+            "errors": [
+              {
+                "code": "REQUIRED",
+                "field": "title",
+                "message": "Title is required."
+              }
+            ],
+            "cardId": null
+          }
+        ]
+      }
+    },
+    "contractValid": false,
+    "issues": [
+      {
+        "origin": "string",
+        "code": "too_small",
+        "minimum": 1,
+        "inclusive": true,
+        "path": [
+          "data",
+          "rows",
+          0,
+          "title"
+        ],
+        "message": "Too small: expected string to have >=1 characters"
+      }
+    ]
+  }
+]

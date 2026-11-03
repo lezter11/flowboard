@@ -1,0 +1,182 @@
+{
+  "date": "2026-11-03",
+  "scope": [
+    "COM-03 selected mention token/UTF16/trim",
+    "AUD-03/AUD-04 invalid date/range queries"
+  ],
+  "criteria": "docs/reviews/FULL-REVALIDATION-20261103/criteria/discussion-activity-repair.json",
+  "implementationStatus": "bounded repairs implemented; independent review and hosted UAT pending",
+  "approval": null,
+  "score": null,
+  "sourceManifest": [
+    {
+      "path": "packages/contracts/src/discussion.ts",
+      "sha256": "790445ee8c83842b7ea5f882ccb3676da6b7cd2be9ef9f4567c3b0c9aa45d64a"
+    },
+    {
+      "path": "apps/api/src/adapters/comments.ts",
+      "sha256": "08d62af73feb0ae21313a92eb0b93057beafb3e2f1581ffc0ba041c70e5034cc"
+    },
+    {
+      "path": "apps/api/src/http/routes/activity.ts",
+      "sha256": "390806dbff3c062cdfa03d9658f8cfb03a8f466aa10bab0684603ea61a5b5cdb"
+    },
+    {
+      "path": "apps/api/test/discussion-activity-repair.test.ts",
+      "sha256": "eeb6c0cddbe8f058c5fd73f49edc9a108eba4957b7b7a10d91c4453aed4c8079"
+    },
+    {
+      "path": "packages/contracts/test/discussion-activity.test.ts",
+      "sha256": "92004aaa309fdc739e86e2049638e9d14a5a6e2a94156df143a8e9bd634b0e55"
+    },
+    {
+      "path": "apps/api/test/b9-mention-access.test.ts",
+      "sha256": "a73de5956148d9bdb9ea7db8ff291dcb48add6994387e53a1585bcdbb87f4ca7"
+    },
+    {
+      "path": "apps/api/test/com-del.test.ts",
+      "sha256": "f8d55a3ac5e0848c4abe71025131409b6557ac8ca52bb6487ba3bca99253710f"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/criteria/discussion-activity-repair.json",
+      "sha256": "68c0e7770cc8b62233cf57bacaa0dc9caba08ecc0c737b6215951a3f519a02d3"
+    }
+  ],
+  "commands": [
+    {
+      "command": "node --test --test-concurrency=1 apps/api/test/discussion-activity-repair.test.ts packages/contracts/test/discussion-activity.test.ts",
+      "environment": "env -i, inherited PATH only, HOME=/tmp/flowboard-identity-home, NODE_ENV=test, synthetic CURSOR_SECRET, explicit loopback FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL; fresh schema for each mounted case",
+      "exitCode": 0,
+      "tests": 8,
+      "pass": 8,
+      "fail": 0,
+      "skip": 0,
+      "log": "raw/discussion-activity-targeted-final.log"
+    },
+    {
+      "command": "node --test --test-concurrency=1 apps/api/test/com-del.test.ts apps/api/test/b9-mention-access.test.ts apps/api/test/activity-coverage-b5.test.ts apps/api/test/board-access-activity-notifications.test.ts apps/api/test/board-activity-scope-draft.test.ts apps/api/test/comment-move-replay.test.ts",
+      "environment": "same sanitized HOME/NODE_ENV; synthetic primary+access URLs and CURSOR_SECRET; exclusive reservation then released",
+      "exitCode": 0,
+      "tests": 89,
+      "pass": 89,
+      "fail": 0,
+      "skip": 0,
+      "log": "raw/discussion-activity-legacy-final.log"
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "raw/discussion-activity-typecheck-final.log"
+    },
+    {
+      "command": "npm test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "tests": 125,
+      "pass": 125,
+      "fail": 0,
+      "skip": 0,
+      "log": "raw/discussion-activity-contracts-final.log"
+    },
+    {
+      "command": "git diff --check -- <bounded owned paths>",
+      "exitCode": 0
+    }
+  ],
+  "retainedFailures": [
+    {
+      "log": "raw/discussion-activity-red.log",
+      "exitCode": 1,
+      "pass": 0,
+      "fail": 5,
+      "confirmedBehavior": [
+        "arbitrary hello span201 and notification persisted",
+        "valid submitted leading-whitespace mention400 due trim drift",
+        "fromDate=garbage PostgreSQL500"
+      ],
+      "testFixtureErrors": [
+        "privacy result compared per-request requestId; corrected to compare all stable fields",
+        "activity fixture omitted visibility_scope while board_id present; corrected to board scope"
+      ]
+    },
+    {
+      "log": "raw/discussion-activity-legacy-first.log",
+      "exitCode": 1,
+      "pass": 73,
+      "fail": 11,
+      "cause": "obsolete test mention spans used ordinary Secret text or abbreviated names instead of actual selected full names; parent/cascade failures included",
+      "resolution": "updated only fixtures in b9-mention-access and com-del, retaining all authorization/replay/privacy assertions; later notification subtests reached, giving89 rather than84 total"
+    },
+    {
+      "log": "raw/discussion-activity-contracts-first.log",
+      "exitCode": 1,
+      "pass": 122,
+      "fail": 1,
+      "cause": "generated OpenAPI golden stale after shared schema updates; root regenerated under exclusive ownership before final125/125"
+    },
+    {
+      "log": "raw/discussion-activity-openapi-check.log",
+      "exitCode": 1,
+      "cause": "same known temporary stale generated artifact before root regeneration"
+    }
+  ],
+  "decisions": [
+    "UTF16 offsets refer to submitted text; shared normalization trims body and rebases spans once, rejecting trimmed/cross-surrogate bounds. Double route/adapter validation remains idempotent.",
+    "Selected token matches eligible PersonDisplay @displayName plus server-supplied duplicate suffix, case-insensitively. Word-attached/partial/arbitrary tokens cannot notify.",
+    "Existing persisted @token for same user may be retained/moved on edit after rename; current eligibility remains mandatory. Newly invented former-name tokens cannot create mentions. Edits create no notifications.",
+    "Shared strict activityFeedQuerySchema/projectActivityQuerySchema/cardActivityQuerySchema validate actual Gregorian dates, timestamps and range before SQL; timestamps normalize to UTC; date-only remains inclusive midnight. Existing SQL filter-before-LIMIT preserved and exercised across pages.",
+    "Project query cannot supply ignored projectId; root coordinated schema split before range refinement."
+  ],
+  "evidenceLimits": [
+    "No full API suite/build/browser/deployed/UAT verification by this slice. No independent review/feature closure/score.",
+    "comments.ts full-file hash includes another owner's preserved retention import/comment_id/redaction edits; our hunks are mention validation/history only.",
+    "Date-only toDate is midnight, not entire day; semantic compatibility retained and documented to root.",
+    "OpenAPI native JSON Schema cannot express trimmed-length, rebased UTF16 spans, selected-person eligibility or cross-field range rules; root notified, semantic fixtures supplement structural schema.",
+    "Only synthetic local PostgreSQL; separate fresh schemas for mounted repair tests, exclusive primary/access legacy reservation released. No cloud/credentials/commits/deploys."
+  ],
+  "logs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/discussion-activity-contracts-final.log",
+      "sha256": "906c446459407f88fabc89a87835d383fe88a8854d94b12c4d276d1d0ed5332f"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/discussion-activity-contracts-first.log",
+      "sha256": "060c29a2cbb9f7356cd0ae2a93e5d1cdc81a39281b402d6ba27d34023ebdaf8b"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/discussion-activity-green-final.log",
+      "sha256": "b84a3ae851aff0d2c9865e4c42a2675552ca0063b47b875ccca218e126ce3bb2"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/discussion-activity-green-first.log",
+      "sha256": "2ab15e78f9146fc8133c5f28974a0296a22847c15ebcb978b14035d5123bf968"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/discussion-activity-legacy-final.log",
+      "sha256": "2c0897262e686b237136b55a4eeeda482f9c4a2f522537bc5639d2fef6c9a7a5"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/discussion-activity-legacy-first.log",
+      "sha256": "f78cfbf6db0b27f21f0d2faa8c339fccdefcd7d9f17d12e07394cfd2432072c9"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/discussion-activity-openapi-check.log",
+      "sha256": "c2ba2cc152bf28fbe45869271512e5bee9c73be4f879647cc2697e5cf8254a92"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/discussion-activity-red.log",
+      "sha256": "176cfb3b6b395e4d83af87e55aab48a247b8a13381a9caab4e7904fee714db5b"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/discussion-activity-targeted-final.log",
+      "sha256": "b388656d5015c81b1e974a4bb7b9b07ad9c5cf83b8a831adc3c8db6a0d7c7745"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/discussion-activity-typecheck-final.log",
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/discussion-activity-typecheck.log",
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    }
+  ]
+}

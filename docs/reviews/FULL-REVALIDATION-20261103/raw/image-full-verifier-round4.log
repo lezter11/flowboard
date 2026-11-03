@@ -1,0 +1,56 @@
+✔ Full image verifier: mounted content rejects corrupt entropy even with a valid container envelope (266.6165ms)
+✔ Full image verifier: a deadline cannot turn an abort-resolving provider into accepted content (4252.19725ms)
+✔ Full image verifier: native decoder accepts genuine20MP PNG16,progressive444 JPEG and lossless WebP (1798.453042ms)
+✔ Full image verifier: later WebP entropy is decoded and unsupported APNG is refused explicitly (203.061791ms)
+✔ Full image verifier: frame count and total pixel budget fail before any provider operation (291.763791ms)
+✔ Full image verifier: missing provider blocks new effects while existing private images remain readable (258.2595ms)
+✔ Full image verifier: quota,unavailable,timeout and unknown failures are503 while identified decode failures are422 (0.566625ms)
+✔ Full image verifier: bounded output cancels provider stream and a late aborted result is discarded (1.194042ms)
+✔ Full image verifier: mounted cancellation wins while decoding without waiting for a DB transaction (184.038166ms)
+✔ Full image verifier: current grant revocation wins during decoder work and no staged bytes are stored (204.1315ms)
+✔ Full image verifier: cancelling content-received upload during finalize decoding creates no permanent image (214.747708ms)
+✔ Full image verifier: storage bytes replaced after decode fail the locked digest recheck (190.34875ms)
+✖ Full image verifier: trash winning while content decodes leaves no new staged object (188.392708ms)
+✔ Full image verifier: authorized content holding effect locks wins before a waiting mounted grant revocation (204.864333ms)
+✔ Full image verifier: a caller abort during full verification cannot produce a verified mutation ticket (169.386458ms)
+{"syntheticHeaderBytes":24,"uploadStatus":422,"finalizedStatus":null,"savedImages":0}
+✔ Image integrity: header-only PNG must not reach verified saved gallery (227.183625ms)
+✔ Image integrity: mounted upload rejects malformed complete-container candidates image/png (232.300125ms)
+✔ Image integrity: mounted upload rejects malformed complete-container candidates image/jpeg (252.378167ms)
+✔ Image integrity: mounted upload rejects malformed complete-container candidates image/webp (213.063125ms)
+✔ Image integrity: genuine PNG variants, baseline/progressive JPEG and lossless/lossy WebP save with private delivery (550.50575ms)
+✔ Image integrity: every truncation of genuine containers is rejected without generic runtime errors (9.780625ms)
+✔ Image integrity: finalization rechecks old staged malformed bytes as422 without attachment/version/event effects (167.745ms)
+✔ Image integrity: actual workerd validates complete containers and private R2 deliveries (3182.273375ms)
+ℹ 20MP-png16 actual workerd upload+fullverify+finalize+delete local elapsed_ms=191; not hosted CPU/memory proof
+ℹ 20MP-jpeg444progressive actual workerd upload+fullverify+finalize+delete local elapsed_ms=265; not hosted CPU/memory proof
+ℹ 20MP-webplossless actual workerd upload+fullverify+finalize+delete local elapsed_ms=224; not hosted CPU/memory proof
+ℹ Actual local workerd + local R2 emulator + real isolated PostgreSQL; no hosted storage/durability claim.
+ℹ tests 23
+ℹ suites 0
+ℹ pass 22
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 18902.451542
+
+✖ failing tests:
+
+test at apps/api/test/image-full-verifier.test.ts:127:1
+✖ Full image verifier: trash winning while content decodes leaves no new staged object (188.392708ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_ERROR","message":"Validation failed: expectedBoardVersion: Invalid input: expected number, received undefined","requestId":"1aa1b4c5-d81b-48dd-be0c-2e423adad310","details":{"issues":[{"path":"expectedBoardVersion","message":"Invalid input: expected number, received undefined","code":"invalid_type"}]}}}
+  
+  422 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-full-verifier.test.ts:129:190)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

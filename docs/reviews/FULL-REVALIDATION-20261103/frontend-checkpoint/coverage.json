@@ -1,0 +1,1391 @@
+{
+  "purpose": "Preserves all98 feature IDs without turning partial source inspection, unit tests or selected browser probes into closure.",
+  "counts": {
+    "features": 98,
+    "ui_required": 74,
+    "independently_closed": 0
+  },
+  "scopeTraced": [
+    "session/provider/fingerprint/query clearing and polling",
+    "board snapshots, continuations/filter generation, canonical placement, optimistic move and original-version undo",
+    "drawer field-only save/status move, retained commands, scoped draft stores",
+    "comment post/edit/delete and mention-picker transport/state",
+    "private-image blob URLs/gallery/refusal and retained stage/finalization queues",
+    "project/board creation/edit/lifecycle; settings/profile/workspace form scope and date-only helpers",
+    "People role/board-grant administration and invitation history/create/retry states",
+    "actual seven-column import target/preview/mapping/commit/status/report transport and UI",
+    "project paging and portfolio counts; MyTasks/inbox/activity/trash cursor feeds",
+    "Pages entry middleware/same-origin API proxy/static CSP"
+  ],
+  "independentBrowserGroups": [
+    "FCP-04 full creation receipt/reentry lifecycle",
+    "FCP-01 Member hub board-grant revocation",
+    "FCP-03 nested navigation Escape"
+  ],
+  "explicitNotCovered": [
+    "Complete per-role matrix at every form/action and role change mid-operation",
+    "Complete lost/unknown response browser coverage of every retained command including401/403 afterunknown and subsequent relogin",
+    "Every pagination cursor/filter/count/optimistic move and undo variant through browser",
+    "Full keyboard-only and320px/zoom/reduced-motion acceptance across every route and nested dialog",
+    "Fresh independent genuine-template/workbook200-row/statuspagination/report/download/replay cases",
+    "Google OAuth/provider email delivery/R2 policy durability/hosted Pages proxy headers",
+    "Backend image decoder changes/Worker behavior/concurrency/performance; backend reviewer owns those",
+    "Any whole-product final score or closure"
+  ],
+  "features": [
+    {
+      "id": "FND-01",
+      "ui_required": false,
+      "acceptance": "Pinned Node/Worker entry points and local PostgreSQL query/rollback run reproducibly; no cloud account required.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "FND-02",
+      "ui_required": false,
+      "acceptance": "Validated request/response schemas and generated OpenAPI agree; fixtures include two projects with distinct members.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "FND-03",
+      "ui_required": false,
+      "acceptance": "Clean install and upgrade enforce workspace/project ancestry, versions, uniqueness and receipt/outbox relationships.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "FND-04",
+      "ui_required": false,
+      "acceptance": "Request IDs, safe errors, deadlines, rate/body limits and structured timing work without exposing secrets.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ACC-01",
+      "ui_required": true,
+      "acceptance": "Chosen OAuth login creates one identity/session; unsupported callbacks fail closed and private data needs a valid session.",
+      "entrypoints": [
+        "/signin"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ACC-02",
+      "ui_required": true,
+      "acceptance": "Logout revokes server session; expired tabs retain safe drafts but cannot keep reading or writing protected data.",
+      "entrypoints": [
+        "User menu > Sign out; session expiry"
+      ],
+      "implementation_phases": [
+        "card-safety",
+        "contract-followup",
+        "draft-restoration"
+      ],
+      "checkpoint_findings": [
+        "FCP-02"
+      ],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ACC-03",
+      "ui_required": true,
+      "acceptance": "Name/avatar updates display correctly; historical actors remain attributable after grant removal without leaking private account fields.",
+      "entrypoints": [
+        "/settings?tab=account"
+      ],
+      "implementation_phases": [
+        "preferences",
+        "draft-restoration"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ACC-04",
+      "ui_required": true,
+      "acceptance": "First authenticated use ensures one personal workspace and sole owner atomically; concurrent retries cannot create duplicates. Manual workspace creation stays retired with typed 410; project creation uses the ensured owner context.",
+      "entrypoints": [],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ACC-05",
+      "ui_required": true,
+      "acceptance": "Owner sets workspace name/timezone; date-only deadlines retain their selected day and shared overdue semantics.",
+      "entrypoints": [],
+      "implementation_phases": [
+        "preferences",
+        "final-scope"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ACC-06",
+      "ui_required": true,
+      "acceptance": "Show only owned projects and explicitly granted projects; current context is reauthorized and being owner elsewhere grants no extra rights.",
+      "entrypoints": [
+        "Sidebar project switcher; /projects"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [
+        "FCP-01"
+      ],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ACC-07",
+      "ui_required": true,
+      "acceptance": "Ownership transfer stays unavailable in the current beta through every route and UI affordance; direct requests return the documented typed retirement response with no ownership/quota mutation. No transfer capability is claimed.",
+      "entrypoints": [],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "PRJ-01",
+      "ui_required": true,
+      "acceptance": "Owner creates named projects inside their workspace; each has independent membership and boards.",
+      "entrypoints": [
+        "/projects > Create a project"
+      ],
+      "implementation_phases": [
+        "draft-restoration"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "PRJ-02",
+      "ui_required": true,
+      "acceptance": "Owned projects and invited projects are paginated and scoped; hidden projects leak no name, count or existence.",
+      "entrypoints": [
+        "/projects; /project?id=\u2026"
+      ],
+      "implementation_phases": [
+        "final-scope"
+      ],
+      "checkpoint_findings": [
+        "FCP-01"
+      ],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "PRJ-03",
+      "ui_required": true,
+      "acceptance": "Owner/manager updates project name/description using expected version; managers cannot alter workspace ownership.",
+      "entrypoints": [
+        "/settings?project=\u2026; project brief"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "PRJ-04",
+      "ui_required": true,
+      "acceptance": "Owner archives project as read-only and can reopen; data/history remain, trash deadlines continue and new imports/writes stop.",
+      "entrypoints": [
+        "/settings?project=\u2026 > Archive/Reopen"
+      ],
+      "implementation_phases": [
+        "draft-restoration"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "PRJ-05",
+      "ui_required": true,
+      "acceptance": "Only Owner/Project Manager can read the full project People directory including emails; Member/Viewer direct requests expose no directory data. Authorized board-scoped assignee/mention pickers remain available with eligible identities only and no unrelated-project enumeration.",
+      "entrypoints": [
+        "/people; card/add-card assignee picker"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "INV-01",
+      "ui_required": true,
+      "acceptance": "Owner invites manager/member/viewer; manager invites member/viewer only. Invitation grants only exact project membership, never implicit board access; independent board grants are explained.",
+      "entrypoints": [
+        "Board/People > Invite people"
+      ],
+      "implementation_phases": [
+        "invitation"
+      ],
+      "checkpoint_findings": [
+        "FCP-03"
+      ],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "INV-02",
+      "ui_required": true,
+      "acceptance": "Durable invite delivery uses a configured email adapter; failure is visible and retryable without logging the secret link.",
+      "entrypoints": [
+        "Board/People > Invite people"
+      ],
+      "implementation_phases": [
+        "invitation",
+        "contract-followup"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "INV-03",
+      "ui_required": true,
+      "acceptance": "Signed-in verified email must match unexpired, hashed, single-use project token; wrong email grants nothing.",
+      "entrypoints": [
+        "/invitation?token=\u2026; /invitations/accept"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "INV-04",
+      "ui_required": true,
+      "acceptance": "Authorized resend rotates token; revoke invalidates it; races create at most one grant and invitation outcome.",
+      "entrypoints": [
+        "Board/People > Invite people"
+      ],
+      "implementation_phases": [
+        "invitation"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "INV-05",
+      "ui_required": true,
+      "acceptance": "Owner sees all own projects; manager sees own project invitations; expired/accepted/revoked states and next actions are clear.",
+      "entrypoints": [
+        "Board/People > Invite people"
+      ],
+      "implementation_phases": [
+        "invitation",
+        "contract-followup"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "INV-06",
+      "ui_required": true,
+      "acceptance": "Owner appoints/removes managers; manager changes member/viewer roles only and cannot promote self or a peer manager.",
+      "entrypoints": [
+        "/people > Manage members"
+      ],
+      "implementation_phases": [
+        "board"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "INV-07",
+      "ui_required": true,
+      "acceptance": "Owner removes any grant; manager removes member/viewer in own project; next API/file/import/replay access fails after revocation.",
+      "entrypoints": [
+        "/people > Manage members"
+      ],
+      "implementation_phases": [
+        "board"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "INV-08",
+      "ui_required": true,
+      "acceptance": "Invitee can leave their own grant with confirmation; owner cannot leave ownership and historical authorship remains.",
+      "entrypoints": [
+        "/settings?project=\u2026 > Leave project"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "RBAC-01",
+      "ui_required": false,
+      "acceptance": "Every endpoint derives active ownership/project grant from session; manager authority is project-scoped and member/viewer cannot administer.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "RBAC-02",
+      "ui_required": false,
+      "acceptance": "Guessing sibling board/card/comment/file/import IDs returns a consistent private not-found response with no metadata leakage.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "RBAC-03",
+      "ui_required": false,
+      "acceptance": "Grant/owner lock protocol serializes a write against role removal; no write commits after a preceding revocation wins.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "RBAC-04",
+      "ui_required": false,
+      "acceptance": "Search, people, assignees, mentions, inbox and historical identity responses expose only the actor's authorized project context.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "RBAC-05",
+      "ui_required": true,
+      "acceptance": "Membership and board access are distinct: non-Owners require both; invitations grant no boards automatically. Owner administers board grants; Manager receives creator access to a board they create. UI and APIs disclose current effective access without hidden-board metadata.",
+      "entrypoints": [
+        "Invite dialog; /people > Board access"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [
+        "FCP-01"
+      ],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "BRD-01",
+      "ui_required": true,
+      "acceptance": "Owner/manager creates a board with default columns atomically inside an authorized project.",
+      "entrypoints": [
+        "Project/board > New board"
+      ],
+      "implementation_phases": [
+        "draft-restoration"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "BRD-02",
+      "ui_required": true,
+      "acceptance": "List only currently accessible project boards; Owner alone edits board name/description with expected version without breaking card IDs/links. Metadata-only machine credentials receive only their explicitly allowed fields.",
+      "entrypoints": [
+        "Project board list; board title edit; Settings > Board"
+      ],
+      "implementation_phases": [
+        "board",
+        "draft-restoration"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "BRD-03",
+      "ui_required": true,
+      "acceptance": "Metadata, counts and first column pages share one snapshot; caps/cursors are explicit and all filters count beyond the visible page.",
+      "entrypoints": [
+        "/board?id=\u2026"
+      ],
+      "implementation_phases": [
+        "board"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "BRD-04",
+      "ui_required": true,
+      "acceptance": "Owner/manager configures unique normalized names, colors and todo/active/done categories with expected board version.",
+      "entrypoints": [
+        "Board actions / Settings > Edit columns"
+      ],
+      "implementation_phases": [
+        "board",
+        "draft-restoration"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "BRD-05",
+      "ui_required": true,
+      "acceptance": "Pointer and click/tap/keyboard ordering persist atomically; missing/duplicate/foreign IDs and stale revisions fail clearly.",
+      "entrypoints": [
+        "Board actions / Settings > Edit columns"
+      ],
+      "implementation_phases": [
+        "board",
+        "draft-restoration"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "BRD-06",
+      "ui_required": true,
+      "acceptance": "Owner/manager cannot remove final column or any column referenced by active/restorable cards; no silent card deletion/move occurs.",
+      "entrypoints": [
+        "Board actions / Settings > Edit columns"
+      ],
+      "implementation_phases": [
+        "board"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "BRD-07",
+      "ui_required": true,
+      "acceptance": "Load more retains canonical order without duplicates; empty column and empty filtered column are distinct and stale cursors refresh.",
+      "entrypoints": [
+        "Board column footer"
+      ],
+      "implementation_phases": [
+        "board"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "BRD-08",
+      "ui_required": true,
+      "acceptance": "Owner/manager makes board read-only or reopens it; no card is deleted and pending trash deadlines continue.",
+      "entrypoints": [],
+      "implementation_phases": [
+        "board"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-01",
+      "ui_required": true,
+      "acceptance": "Member/manager/owner creates title in an active authorized column; required field and retry failures retain draft and create once.",
+      "entrypoints": [
+        "Board > Add card; /add-card?board=\u2026"
+      ],
+      "implementation_phases": [
+        "comment",
+        "card-safety"
+      ],
+      "checkpoint_findings": [
+        "FCP-04"
+      ],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-02",
+      "ui_required": true,
+      "acceptance": "Show title, priority, due date, assignees and accurate comment/image counts without loading full descriptions/history.",
+      "entrypoints": [
+        "Board/list card"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-03",
+      "ui_required": true,
+      "acceptance": "Card link loads an authorized popup/drawer or direct-page view with focus restoration and recoverable missing/loading states.",
+      "entrypoints": [
+        "/board?id=\u2026&card=\u2026"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-04",
+      "ui_required": true,
+      "acceptance": "Explicit Save validates plain text and expected card version; Cancel/discard never overwrites saved state.",
+      "entrypoints": [
+        "Card drawer > Save changes"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-05",
+      "ui_required": true,
+      "acceptance": "Five priority values and optional date-only deadline save/reset consistently; invalid calendar dates fail and overdue excludes done cards.",
+      "entrypoints": [
+        "Card drawer > Save changes"
+      ],
+      "implementation_phases": [
+        "final-scope"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-06",
+      "ui_required": true,
+      "acceptance": "Assign zero/multiple active eligible project users or owner; removed identities stay labeled historical and cannot be newly assigned.",
+      "entrypoints": [
+        "Card drawer > Save changes"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-07",
+      "ui_required": true,
+      "acceptance": "Server validates neighbors and versions, changes rank/history atomically and returns canonical position; failure restores server order.",
+      "entrypoints": [
+        "Board pointer/touch drag"
+      ],
+      "implementation_phases": [
+        "board"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-08",
+      "ui_required": true,
+      "acceptance": "Visible Move chooses column plus first/last/before/after via bounded placement read; equivalent outcome without dragging.",
+      "entrypoints": [
+        "Card > Move; filtered board > Move"
+      ],
+      "implementation_phases": [
+        "board"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-09",
+      "ui_required": true,
+      "acceptance": "Explain disabled ambiguous drag while filters apply; Move uses full destination order rather than renumbering visible cards only.",
+      "entrypoints": [
+        "Card > Move; filtered board > Move"
+      ],
+      "implementation_phases": [
+        "board"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-10",
+      "ui_required": true,
+      "acceptance": "Stale field/order version returns 409 without partial side effects; preserve draft and allow deliberate refresh/reapply.",
+      "entrypoints": [
+        "Card drawer save/conflict/discard"
+      ],
+      "implementation_phases": [
+        "board",
+        "card-safety"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-11",
+      "ui_required": true,
+      "acceptance": "Save affects fields only; comment/upload actions are independent; retries keep command identity and closing protects unsaved work.",
+      "entrypoints": [
+        "Card drawer save/conflict/discard"
+      ],
+      "implementation_phases": [
+        "comment",
+        "card-safety",
+        "draft-restoration"
+      ],
+      "checkpoint_findings": [
+        "FCP-02",
+        "FCP-03",
+        "FCP-04"
+      ],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "CRD-12",
+      "ui_required": true,
+      "acceptance": "Undo is a new authorized versioned move; it succeeds once or explains conflict without overwriting intervening work.",
+      "entrypoints": [
+        "Move success toast > Undo"
+      ],
+      "implementation_phases": [
+        "card-safety"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "COM-01",
+      "ui_required": true,
+      "acceptance": "Project readers see chronological comments with author displays; stable cursors do not expose other project content.",
+      "entrypoints": [
+        "Card drawer > Comments"
+      ],
+      "implementation_phases": [
+        "comment"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "COM-02",
+      "ui_required": true,
+      "acceptance": "Member/manager/owner posts plain text independently of card Save; atomic event/outbox/receipt and lost-response retry create one comment.",
+      "entrypoints": [
+        "Card drawer > Post comment"
+      ],
+      "implementation_phases": [
+        "comment"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "COM-03",
+      "ui_required": true,
+      "acceptance": "Accessible picker resolves active project identities; validated UTF-16 spans produce mentions and literal at-name text does not notify.",
+      "entrypoints": [
+        "Comment > Mention / type @"
+      ],
+      "implementation_phases": [
+        "comment"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "COM-04",
+      "ui_required": true,
+      "acceptance": "Author updates with expected version; edit activity persists and v1 edits do not resend mention notifications.",
+      "entrypoints": [],
+      "implementation_phases": [
+        "comment"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "COM-05",
+      "ui_required": true,
+      "acceptance": "Author or owner/manager tombstones a comment, records action and hides body from normal reads; other members cannot moderate.",
+      "entrypoints": [],
+      "implementation_phases": [
+        "comment"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "COM-06",
+      "ui_required": true,
+      "acceptance": "Typing, mention selection and post error survive field saves/refetch; no comment posts accidentally through Enter in a picker.",
+      "entrypoints": [
+        "Comment composer while editing/saving fields"
+      ],
+      "implementation_phases": [
+        "comment"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ATT-01",
+      "ui_required": true,
+      "acceptance": "Authorized editor requests bounded upload and sees progress/cancel; private staging cannot attach files across projects.",
+      "entrypoints": [
+        "Card drawer > Choose/drop/paste images"
+      ],
+      "implementation_phases": [
+        "final-scope"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ATT-02",
+      "ui_required": false,
+      "acceptance": "Accept validated PNG/JPEG/WebP bytes with size/dimension/count caps; reject SVG/HTML/spoofed MIME and finalize only after verification.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ATT-03",
+      "ui_required": true,
+      "acceptance": "Finalized images show filename/size/thumbnail and preview; failed or pending upload is not shown as a saved attachment.",
+      "entrypoints": [
+        "Card drawer gallery > image viewer"
+      ],
+      "implementation_phases": [
+        "final-scope"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ATT-04",
+      "ui_required": false,
+      "acceptance": "Authenticated proxy checks current project access on every fetch; no public bucket/long-lived URL or project-revocation bypass.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ATT-05",
+      "ui_required": true,
+      "acceptance": "Uploader or owner/manager removes image with confirmation/history; removed images are absent from active card and cleanup is retryable.",
+      "entrypoints": [
+        "Gallery remove image > confirmation"
+      ],
+      "implementation_phases": [
+        "final-scope"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ATT-06",
+      "ui_required": false,
+      "acceptance": "Expired uploads/unreferenced objects are cleaned safely; quotas fail visibly without breaking existing saved card fields.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "ATT-07",
+      "ui_required": false,
+      "acceptance": "Trashing card preserves finalized files until restore cutoff; restore recovers them and purge never destroys a successfully restored card's images.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "AUD-01",
+      "ui_required": true,
+      "acceptance": "Owner sees create, field change, assignment, move, comment and actor/server timestamp chronologically with stable pagination.",
+      "entrypoints": [
+        "Card drawer > Activity"
+      ],
+      "implementation_phases": [
+        "comment"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "AUD-02",
+      "ui_required": false,
+      "acceptance": "Record safe before/after field values and from/to columns; historical name changes and removed people remain understandable.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "AUD-03",
+      "ui_required": true,
+      "acceptance": "Owner filters owned workspace activity by project/card/actor/action/date; invited users cannot access sibling-project audit data.",
+      "entrypoints": [
+        "/activity"
+      ],
+      "implementation_phases": [
+        "final-scope"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "AUD-04",
+      "ui_required": true,
+      "acceptance": "Manager sees project activity/access changes; member/viewer sees card activity only for granted project; workspace security log is owner-only.",
+      "entrypoints": [
+        "/activity"
+      ],
+      "implementation_phases": [
+        "final-scope"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "AUD-05",
+      "ui_required": false,
+      "acceptance": "Trash/restore/purge/import/image events are traceable; no secret token or raw file appears in audit payloads.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "AUD-06",
+      "ui_required": false,
+      "acceptance": "No user edits audit facts; sensitive/deleted bodies are redacted under retention rules while actor/action/time facts persist.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "DEL-01",
+      "ui_required": true,
+      "acceptance": "Owner/manager confirms Delete, moves card to trash with server deletedAt/restoreUntil and immediately excludes it from active counts/search.",
+      "entrypoints": [
+        "Owner/Manager card > Delete"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "DEL-02",
+      "ui_required": true,
+      "acceptance": "Owner/manager lists trashed cards with actor/deadline and restore action; member/viewer cannot browse trash.",
+      "entrypoints": [
+        "/trash > Restore"
+      ],
+      "implementation_phases": [
+        "feed"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "DEL-03",
+      "ui_required": true,
+      "acceptance": "Owner/manager restores same ID/content/comments/finalized images strictly before server cutoff; no-op repeats do not extend deadline.",
+      "entrypoints": [
+        "/trash > Restore"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "DEL-04",
+      "ui_required": true,
+      "acceptance": "Original valid column/nearest surviving position is default; absent/read-only destination requires explicit authorized active target or reopening board.",
+      "entrypoints": [
+        "/trash > Restore"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "DEL-05",
+      "ui_required": false,
+      "acceptance": "At or after deletedAt plus exactly 24 hours restore returns stable expired response even if cleanup has not run.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "DEL-06",
+      "ui_required": false,
+      "acceptance": "Conditional state/version and job fencing allow one winner; cleanup cannot purge restored data or files.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "DEL-07",
+      "ui_required": false,
+      "acceptance": "After cutoff remove recoverable content/files via retryable cleanup; retain minimal audit/duplicate tombstones with no deleted body.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "DEL-08",
+      "ui_required": true,
+      "acceptance": "Trashed/expired cards reject edits/moves/comments/new uploads; UI explains disappearance while retaining safe unsent drafts.",
+      "entrypoints": [
+        "Open card after trash/revocation"
+      ],
+      "implementation_phases": [
+        "card-safety"
+      ],
+      "checkpoint_findings": [
+        "FCP-02"
+      ],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "IMP-01",
+      "ui_required": true,
+      "acceptance": "Versioned seven-column Cards template plus Instructions downloads without example rows in the import sheet.",
+      "entrypoints": [
+        "/import > Download template"
+      ],
+      "implementation_phases": [
+        "import"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "IMP-02",
+      "ui_required": true,
+      "acceptance": "Owner/manager chooses one project/board and default column; upload cannot create projects/users/grants or override destination.",
+      "entrypoints": [
+        "/import target selectors"
+      ],
+      "implementation_phases": [
+        "import",
+        "draft-restoration"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "IMP-03",
+      "ui_required": false,
+      "acceptance": "Accept supported XLSX only, enforce compressed/expanded/cell/row limits and reject formulas/macros/external package links without evaluating them.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [
+        "import"
+      ],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "IMP-04",
+      "ui_required": true,
+      "acceptance": "Exact seven headers map shared card validators; status/date/email errors name row/field and no invalid value is silently guessed.",
+      "entrypoints": [
+        "/import > Validate workbook > Preview"
+      ],
+      "implementation_phases": [
+        "import",
+        "contract-followup",
+        "draft-restoration"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "IMP-05",
+      "ui_required": true,
+      "acceptance": "Preview counts new/already-imported/conflicting/invalid rows, displays mapping and writes no cards; user corrects errors before confirming.",
+      "entrypoints": [
+        "/import > Validate workbook > Preview"
+      ],
+      "implementation_phases": [
+        "import"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "IMP-06",
+      "ui_required": true,
+      "acceptance": "Bind preview to actor/target/digest/expiry; revalidate grant/columns/assignees and create all new rows in one bounded transaction or none.",
+      "entrypoints": [
+        "/import > Confirm import"
+      ],
+      "implementation_phases": [
+        "import"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "IMP-07",
+      "ui_required": false,
+      "acceptance": "Board-scoped text External ID preserves zeros; duplicate upload/race creates once, changed ID payload conflicts and deleted imports never resurrect silently.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [
+        "import"
+      ],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "IMP-08",
+      "ui_required": false,
+      "acceptance": "Real 1900/1904 Excel dates or strict ISO map to date-only values; semicolon emails resolve active eligible project users only.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [
+        "import"
+      ],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "IMP-09",
+      "ui_required": true,
+      "acceptance": "Result links created cards and row outcomes; safe report cannot execute spreadsheet formulas or leak another project's data.",
+      "entrypoints": [
+        "/import > Result; card Activity"
+      ],
+      "implementation_phases": [
+        "import",
+        "contract-followup"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "IMP-10",
+      "ui_required": true,
+      "acceptance": "Cancel before commit/expiry cleans temporary content; once transaction begins show actual final result rather than promise cancellation.",
+      "entrypoints": [
+        "/import > reset/back/cancel"
+      ],
+      "implementation_phases": [
+        "import"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "IMP-11",
+      "ui_required": true,
+      "acceptance": "Import receipt links actor/batch/rows/created cards, while each card behaves like a normal card with a creation activity event.",
+      "entrypoints": [
+        "/import > Result; card Activity"
+      ],
+      "implementation_phases": [
+        "import",
+        "contract-followup"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "NTF-01",
+      "ui_required": false,
+      "acceptance": "One event/recipient notification appears after commit; no self-mention or duplicate logical delivery and no stale private preview leak.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [
+        "feed"
+      ],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "NTF-02",
+      "ui_required": true,
+      "acceptance": "Actor opens accessible project/card and marks read; removed-access notifications are redacted/hidden and never reveal content.",
+      "entrypoints": [
+        "/inbox"
+      ],
+      "implementation_phases": [
+        "feed"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "NTF-03",
+      "ui_required": false,
+      "acceptance": "Lease/fenced consumer retries bounded jobs and quarantines failures; restart/duplicate handling does not lose accepted notification intent.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "QRY-01",
+      "ui_required": true,
+      "acceptance": "Title search returns authorized active cards only with pagination and safe historical people mapping.",
+      "entrypoints": [
+        "Board > Search/Assignee/Due filters"
+      ],
+      "implementation_phases": [
+        "board"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "QRY-02",
+      "ui_required": true,
+      "acceptance": "Filters combine predictably, distinguish total/matching counts and exclude trash; no global project discovery through query parameters.",
+      "entrypoints": [
+        "Board > Search/Assignee/Due filters"
+      ],
+      "implementation_phases": [
+        "board"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "QRY-03",
+      "ui_required": true,
+      "acceptance": "Show actor assignments within one selected authorized project and currently granted boards with due-state filters/pagination; no cross-project aggregation or revoked-access content.",
+      "entrypoints": [
+        "/my-tasks"
+      ],
+      "implementation_phases": [
+        "feed",
+        "final-scope"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "UX-01",
+      "ui_required": true,
+      "acceptance": "First project/empty board/no matches/loading/offline/validation/permission errors have accurate actions and preserve relevant drafts.",
+      "entrypoints": [
+        "All pages; error notes and shell banners"
+      ],
+      "implementation_phases": [
+        "comment",
+        "board",
+        "invitation",
+        "feed",
+        "import",
+        "preferences",
+        "card-safety",
+        "draft-restoration",
+        "final-scope"
+      ],
+      "checkpoint_findings": [
+        "FCP-04"
+      ],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "UX-02",
+      "ui_required": true,
+      "acceptance": "Keyboard and click/tap complete all essential operations; focus, announcements, labels and color-independent cues are verified in browser.",
+      "entrypoints": [
+        "Card drawer/Move/columns/dialogs"
+      ],
+      "implementation_phases": [
+        "comment",
+        "board",
+        "invitation",
+        "feed",
+        "import",
+        "preferences",
+        "card-safety"
+      ],
+      "checkpoint_findings": [
+        "FCP-03"
+      ],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "UX-03",
+      "ui_required": true,
+      "acceptance": "Board scroll and detail layout work at narrow width/zoom; long titles, many assignees and image/comment lists remain usable.",
+      "entrypoints": [
+        "Board/list/detail at narrow width/zoom"
+      ],
+      "implementation_phases": [
+        "card-safety"
+      ],
+      "checkpoint_findings": [],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "UX-04",
+      "ui_required": true,
+      "acceptance": "Pause hidden-tab polling, refresh on focus and reconcile versions; no optimistic duplicate/older response overwrites newer data.",
+      "entrypoints": [
+        "Foreground board refresh; reconnect"
+      ],
+      "implementation_phases": [
+        "comment",
+        "board",
+        "invitation",
+        "feed",
+        "import",
+        "preferences",
+        "card-safety",
+        "draft-restoration",
+        "final-scope"
+      ],
+      "checkpoint_findings": [
+        "FCP-01",
+        "FCP-02"
+      ],
+      "status": "partial source/state/browser checkpoint only; final acceptance open",
+      "independent_all_reachable_acceptance_complete": false
+    },
+    {
+      "id": "UX-05",
+      "ui_required": false,
+      "acceptance": "Representative Worker/Node warm/cold benchmarks, project isolation, exact restore boundary and repeated import pass documented gates.",
+      "entrypoints": [
+        "n/a: backend-only feature; exercise through related integrated UI flows where applicable"
+      ],
+      "implementation_phases": [],
+      "checkpoint_findings": [],
+      "status": "backend-only: no standalone UI approval",
+      "independent_all_reachable_acceptance_complete": false
+    }
+  ]
+}

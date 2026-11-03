@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import {QueryClient} from '@tanstack/react-query';
+import {createCardDraftSessions} from '../../../../../apps/web/src/lib/card-drafts.ts';
+import {ApiError} from '../../../../../apps/web/src/lib/api.ts';
+import {discardRefusedRows} from '../../../../../apps/web/src/lib/feed-state.ts';
+const sessions=createCardDraftSessions(),client=new QueryClient();
+const card={id:'synthetic-card',title:'Synthetic server-owned title',description:'Synthetic server-owned private description; never typed by this viewer',priority:'high',dueDate:null,assigneeIds:['synthetic-assignee'],columnId:'synthetic-column',version:1};
+const session=sessions.forCard('synthetic-actor',card),key=['card',card.id,'synthetic-actor'];client.setQueryData(key,card);
+assert.equal(discardRefusedRows(client,key,new ApiError(403,'FORBIDDEN','Synthetic access loss')),true);
+assert.equal(client.getQueryData(key),undefined);
+assert.equal(session.get().draft.description,card.description);assert.equal(session.get().base.description,card.description);
+client.clear();assert.equal(sessions.forCard('synthetic-actor',{...card,description:'replacement'}).get().draft.description,card.description);
+assert.equal(sessions.forCard('different-actor',{...card,description:'different actor record'}).get().draft.description,'different actor record');
+const report={kind:'Source-wired memory-store diagnostic; no browser or remote exploit claim',checks:6,queryClearedOn403:true,serverBaselineRetainedOutsideQueryClient:true,unmodifiedServerDraftRetained:true,queryClientClearLeavesModuleStore:true,differentActorGetsSeparateState:true,impact:'A clean card with no user edits remains in the module store after the protected query is refused and erased. Module API provides no auth-loss or project-revoke invalidation.'};await fs.writeFile(new URL('../raw/private-draft-retention.json',import.meta.url),JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify(report));client.clear();

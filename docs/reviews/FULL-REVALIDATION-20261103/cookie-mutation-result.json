@@ -1,0 +1,1403 @@
+{
+  "kind": "bounded_cookie_resource_mutation_matrix_not_independent_review",
+  "date": "2026-11-03",
+  "capturedAt": "2026-11-03T07:39:54.425005+00:00",
+  "criteria": "docs/reviews/FULL-REVALIDATION-20261103/criteria/cookie-mutation-matrix.json",
+  "changedFiles": [
+    "apps/api/test/cookie-mutation-matrix.test.ts",
+    "apps/api/test/support/cookie-mutation-fixture.ts"
+  ],
+  "sourceOwnership": "New test/helper and criteria/evidence only. No runtime/contract/OpenAPI/UI changes.",
+  "totals": {
+    "mountedOperations": 103,
+    "selectedOperations": 48,
+    "liveOperationsWithPositiveControl": 47,
+    "retiredOperations": 1,
+    "negativeCells": 295,
+    "positiveControls": 53,
+    "totalCells": 348,
+    "tests": 55,
+    "passed": 55,
+    "failed": 0,
+    "skipped": 0,
+    "exitCode": 0
+  },
+  "negativeBreakdown": {
+    "foreignOwnerManagerMemberViewer": 192,
+    "sameProjectManagerMemberViewerWithoutBoardGrant": 96,
+    "protectedRoleTargets": 6,
+    "retiredOwner": 1
+  },
+  "controls": [
+    {
+      "operation": "PUT /api/v1/session/last-location",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "users"
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/workspaces/{workspaceId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "workspaces"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/workspaces/{workspaceId}/projects",
+      "actor": "ownerB",
+      "expected": 201,
+      "actual": 201,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "idempotency_receipts",
+        "projects",
+        "rate_limit_windows"
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/projects/{projectId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "idempotency_receipts",
+        "projects"
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/projects/{projectId}/members/{userId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "idempotency_receipts",
+        "project_memberships"
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/projects/{projectId}/members/{userId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "idempotency_receipts",
+        "project_invitations",
+        "project_memberships"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/archive",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "idempotency_receipts",
+        "projects"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/reopen",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "idempotency_receipts",
+        "projects"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/leave",
+      "actor": "memberB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "idempotency_receipts",
+        "project_memberships"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/invitations",
+      "actor": "ownerB",
+      "expected": 201,
+      "actual": 201,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "idempotency_receipts",
+        "outbox",
+        "project_invitations",
+        "rate_limit_windows"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/invitations/{invitationId}/resend",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "idempotency_receipts",
+        "outbox",
+        "project_invitations",
+        "rate_limit_windows"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/invitations/{invitationId}/revoke",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "idempotency_receipts",
+        "project_invitations"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/boards",
+      "actor": "managerB",
+      "expected": 201,
+      "actual": 201,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "board_grants",
+        "boards",
+        "columns",
+        "idempotency_receipts",
+        "rate_limit_windows"
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/boards/{boardId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/archive",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/reopen",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "PUT /api/v1/boards/{boardId}/grants/{userId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "board_grants",
+        "boards"
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/boards/{boardId}/grants/{userId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "board_grants",
+        "boards"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/columns",
+      "actor": "ownerB",
+      "expected": 201,
+      "actual": 201,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "columns",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/boards/{boardId}/columns/{columnId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "columns",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/columns/reorder",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "columns",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/boards/{boardId}/columns/{columnId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "columns",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/cards",
+      "actor": "ownerB",
+      "expected": 201,
+      "actual": 201,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "cards",
+        "idempotency_receipts",
+        "__sequence_card_key_seq"
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/cards/{cardId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "cards",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/move",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "cards",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/move-undo",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "cards",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/comments",
+      "actor": "ownerB",
+      "expected": 201,
+      "actual": 201,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "comments",
+        "idempotency_receipts",
+        "outbox"
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/comments/{commentId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "comments",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/comments/{commentId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "comments",
+        "idempotency_receipts",
+        "notifications"
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/notifications/{id}/read",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "notifications"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/image-uploads",
+      "actor": "ownerB",
+      "expected": 201,
+      "actual": 201,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "card_image_uploads",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "PUT /api/v1/image-uploads/{uploadId}/content",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "card_image_uploads",
+        "__cookieStorageMutations"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/image-uploads/{uploadId}/finalize",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "card_image_uploads",
+        "card_images",
+        "idempotency_receipts",
+        "__cookieStorageMutations"
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/image-uploads/{uploadId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "card_image_uploads",
+        "__cookieStorageMutations"
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/images/{imageId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "card_images",
+        "idempotency_receipts",
+        "__cookieStorageMutations"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/delete",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "cards",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/restore",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "cards",
+        "idempotency_receipts"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/imports",
+      "actor": "ownerB",
+      "expected": 201,
+      "actual": 201,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "card_imports"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/card-imports",
+      "actor": "ownerB",
+      "expected": 201,
+      "actual": 201,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "card_imports"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/imports/{importId}/mappings",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "card_import_rows",
+        "card_imports"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/imports/{importId}/commit",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "card_import_duplicates",
+        "card_import_rows",
+        "card_imports",
+        "cards",
+        "idempotency_receipts",
+        "__sequence_card_key_seq"
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/imports/{importId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "card_import_rows",
+        "card_imports"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/card-imports/{importId}/mappings",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "card_import_rows",
+        "card_imports"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/card-imports/{importId}/commit",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "activity_log",
+        "boards",
+        "card_import_duplicates",
+        "card_import_rows",
+        "card_imports",
+        "cards",
+        "idempotency_receipts",
+        "__sequence_card_key_seq"
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/card-imports/{importId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "card_import_rows",
+        "card_imports"
+      ]
+    },
+    {
+      "operation": "POST /api/v1/tokens",
+      "actor": "ownerB",
+      "expected": 201,
+      "actual": 201,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "personal_access_tokens"
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/tokens/{tokenId}",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "code": null,
+      "passed": true,
+      "effects": [
+        "personal_access_tokens"
+      ]
+    },
+    {
+      "operation": "manager cannot demote peer manager",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "manager cannot remove peer manager",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "manager cannot promote viewer to manager",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "manager cannot change own role",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "member cannot administer project roles",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "passed": true
+    },
+    {
+      "operation": "viewer cannot administer project roles",
+      "actor": "ownerB",
+      "expected": 200,
+      "actual": 200,
+      "passed": true
+    }
+  ],
+  "inventory": [
+    {
+      "operation": "PUT /api/v1/session/last-location",
+      "requestSchema": "UpdateLastLocationInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/workspaces/{workspaceId}",
+      "requestSchema": "UpdateWorkspaceInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/workspaces/{workspaceId}/transfer-ownership",
+      "requestSchema": null,
+      "classification": "retired410",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/workspaces/{workspaceId}/projects",
+      "requestSchema": "CreateProjectInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/projects/{projectId}",
+      "requestSchema": "UpdateProjectInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/projects/{projectId}/members/{userId}",
+      "requestSchema": "UpdateProjectMemberInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/projects/{projectId}/members/{userId}",
+      "requestSchema": null,
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/archive",
+      "requestSchema": null,
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/reopen",
+      "requestSchema": null,
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/leave",
+      "requestSchema": null,
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/invitations",
+      "requestSchema": "CreateInvitationInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/invitations/{invitationId}/resend",
+      "requestSchema": null,
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/invitations/{invitationId}/revoke",
+      "requestSchema": null,
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/projects/{projectId}/boards",
+      "requestSchema": "CreateBoardInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/boards/{boardId}",
+      "requestSchema": "UpdateBoardInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/archive",
+      "requestSchema": "BoardLifecycleInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/reopen",
+      "requestSchema": "BoardLifecycleInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "PUT /api/v1/boards/{boardId}/grants/{userId}",
+      "requestSchema": "BoardGrantInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/boards/{boardId}/grants/{userId}",
+      "requestSchema": "BoardGrantInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/columns",
+      "requestSchema": "CreateColumnInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/boards/{boardId}/columns/{columnId}",
+      "requestSchema": "UpdateColumnInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/columns/reorder",
+      "requestSchema": "ReorderColumnsInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/boards/{boardId}/columns/{columnId}",
+      "requestSchema": "DeleteColumnInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/cards",
+      "requestSchema": "CreateCardInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/cards/{cardId}",
+      "requestSchema": "UpdateCardInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/move",
+      "requestSchema": "MoveCardInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/move-undo",
+      "requestSchema": "MoveUndoInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board.",
+        "Real mounted prior move200 creates undo activity/version state."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/comments",
+      "requestSchema": "PostCommentInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/comments/{commentId}",
+      "requestSchema": "EditCommentInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/comments/{commentId}",
+      "requestSchema": "DeleteCommentInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "PATCH /api/v1/notifications/{id}/read",
+      "requestSchema": null,
+      "classification": "actor-owned-target",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/image-uploads",
+      "requestSchema": "CreateImageUploadInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "PUT /api/v1/image-uploads/{uploadId}/content",
+      "requestSchema": "image",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/image-uploads/{uploadId}/finalize",
+      "requestSchema": null,
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board.",
+        "Real mounted image content PUT200 before full Sharp verification."
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/image-uploads/{uploadId}",
+      "requestSchema": null,
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/images/{imageId}",
+      "requestSchema": "DeleteImageInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/delete",
+      "requestSchema": "SoftDeleteCardInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/cards/{cardId}/restore",
+      "requestSchema": "RestoreCardInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/imports",
+      "requestSchema": "xlsx",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/boards/{boardId}/card-imports",
+      "requestSchema": "xlsx",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/imports/{importId}/mappings",
+      "requestSchema": "UpdateImportMappingsInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board.",
+        "Real mounted XLSX preview201 binds digest, actor, target and row state."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/imports/{importId}/commit",
+      "requestSchema": "CommitImportInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board.",
+        "Real mounted XLSX preview201 binds digest, actor, target and row state."
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/imports/{importId}",
+      "requestSchema": null,
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board.",
+        "Real mounted XLSX preview201 binds digest, actor, target and row state."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/card-imports/{importId}/mappings",
+      "requestSchema": "UpdateImportMappingsInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board.",
+        "Real mounted XLSX preview201 binds digest, actor, target and row state."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/card-imports/{importId}/commit",
+      "requestSchema": "CommitImportInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board.",
+        "Real mounted XLSX preview201 binds digest, actor, target and row state."
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/card-imports/{importId}",
+      "requestSchema": null,
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board.",
+        "Real mounted XLSX preview201 binds digest, actor, target and row state."
+      ]
+    },
+    {
+      "operation": "POST /api/v1/tokens",
+      "requestSchema": "CreateTokenInput",
+      "classification": "resource-scoped",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    },
+    {
+      "operation": "DELETE /api/v1/tokens/{tokenId}",
+      "requestSchema": null,
+      "classification": "actor-owned-target",
+      "setupProof": [
+        "All four tenant-A roles successfully read their own granted board."
+      ]
+    }
+  ],
+  "unselectedClassification": [
+    {
+      "operation": "GET /health/live",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/activity/health",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/notifications/health",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /health/ready",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/session",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "PATCH /api/v1/session/profile",
+      "reason": "Account/global/create-own-resource operation: no selected foreign resource ID. Existing full functional suites remain necessary."
+    },
+    {
+      "operation": "PATCH /api/v1/session/name",
+      "reason": "Account/global/create-own-resource operation: no selected foreign resource ID. Existing full functional suites remain necessary."
+    },
+    {
+      "operation": "POST /api/v1/session/logout",
+      "reason": "Account/global/create-own-resource operation: no selected foreign resource ID. Existing full functional suites remain necessary."
+    },
+    {
+      "operation": "POST /api/v1/session/dev-login",
+      "reason": "Account/global/create-own-resource operation: no selected foreign resource ID. Existing full functional suites remain necessary."
+    },
+    {
+      "operation": "GET /api/v1/auth/google",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/auth/google/start",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/auth/google/callback",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/workspaces",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "POST /api/v1/workspaces",
+      "reason": "Account/global/create-own-resource operation: no selected foreign resource ID. Existing full functional suites remain necessary."
+    },
+    {
+      "operation": "GET /api/v1/projects",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "POST /api/v1/projects",
+      "reason": "Account/global/create-own-resource operation: no selected foreign resource ID. Existing full functional suites remain necessary."
+    },
+    {
+      "operation": "GET /api/v1/workspaces/{workspaceId}/projects",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/overview",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/people",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/members",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/access-summary",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/invitations",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "POST /api/v1/invitations/accept",
+      "reason": "Opaque-token redemption identity workflow: mounted invitation-repair and inv01-inv03 race/lifecycle suites; not a foreign resource ID command."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/boards",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/boards/{boardId}/metadata",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/boards/{boardId}",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/boards/{boardId}/access",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/boards/{boardId}/columns/{columnId}/placement",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/boards/{boardId}/cards",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/cards/{cardId}",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/cards/search",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/me/tasks",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/workspaces/{workspaceId}/my-tasks",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/cards/{cardId}/comments",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/cards/{cardId}/activity",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/activity",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/workspaces/{workspaceId}/activity",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/notifications",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "POST /api/v1/notifications/mark-all-read",
+      "reason": "Account/global/create-own-resource operation: no selected foreign resource ID. Existing full functional suites remain necessary."
+    },
+    {
+      "operation": "GET /api/v1/image-uploads/{uploadId}",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/cards/{cardId}/images",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/images/{imageId}/content",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/images/{imageId}/thumbnail",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/projects/{projectId}/trash",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/import/template",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/boards/{boardId}/card-import-template",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/boards/{boardId}/import-template",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/imports/{importId}",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/imports/{importId}/report",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/card-imports/{importId}",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/card-imports/{importId}/report",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/tokens",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "GET /api/v1/system/status",
+      "reason": "Read operation: 23 private reads covered separately in route-auth-matrix; not a mutation."
+    },
+    {
+      "operation": "POST /api/v1/system/migrate",
+      "reason": "Account/global/create-own-resource operation: no selected foreign resource ID. Existing full functional suites remain necessary."
+    },
+    {
+      "operation": "POST /api/v1/workspaces/{workspaceId}/transfer-ownership",
+      "reason": "Retired410 is deliberate for all signed-in roles; no success control exists or is claimed."
+    }
+  ],
+  "evidence": {
+    "finalLog": "docs/reviews/FULL-REVALIDATION-20261103/raw/cookie-mutation-typed.log",
+    "finalCells": "docs/reviews/FULL-REVALIDATION-20261103/raw/cookie-mutation-typed.json",
+    "initialFailedLog": "docs/reviews/FULL-REVALIDATION-20261103/raw/cookie-mutation-first.log",
+    "initialFailedCells": "docs/reviews/FULL-REVALIDATION-20261103/raw/cookie-mutation-first.json",
+    "latestTypecheckLog": "docs/reviews/FULL-REVALIDATION-20261103/raw/cookie-mutation-typecheck-latest.log"
+  },
+  "commands": [
+    {
+      "command": "env -i PATH=<inherited> HOME=/tmp/flowboard-identity-home NODE_ENV=test WRANGLER_SEND_METRICS=false CURSOR_SECRET=<synthetic> FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL=<isolated-loopback-identity-extra> FLOWBOARD_COOKIE_MATRIX_EVIDENCE_PATH=docs/reviews/FULL-REVALIDATION-20261103/raw/cookie-mutation-first.json node --test --test-concurrency=1 apps/api/test/cookie-mutation-matrix.test.ts",
+      "exitCode": 1,
+      "tests": 55,
+      "pass": 49,
+      "fail": 6,
+      "note": "Five malformed additional PATCH fixtures omitted required status; parent failure sixth. All48 operation workflows passed. Probe defect only; fixed bodies and explicit shared-schema guard."
+    },
+    {
+      "command": "Same sanitized environment, FLOWBOARD_COOKIE_MATRIX_EVIDENCE_PATH=docs/reviews/FULL-REVALIDATION-20261103/raw/cookie-mutation-typed.json node --test --test-concurrency=1 apps/api/test/cookie-mutation-matrix.test.ts",
+      "exitCode": 0,
+      "tests": 55,
+      "pass": 55,
+      "fail": 0,
+      "skip": 0,
+      "durationMs": 45092.935834
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 1,
+      "note": "Latest run has only other-owner apps/api/test/jpeg-entropy.test.ts TS2783 duplicate contentType lines18/52. No remaining error in owned tests. Root notified; full-tree typecheck must be rerun after owner fix."
+    }
+  ],
+  "environment": {
+    "database": "127.0.0.1:55931/flowboard_identity_extra_test",
+    "isolation": "One fresh migrated/dropped PostgreSQL schema per operation/protected-role scenario; no primary/access DB. Synthetic accounts, local full Sharp PNG verifier, MemoryStorageDriver; only limiter ports deterministic. No mail/provider configured.",
+    "schemaCount": 54,
+    "node": "24.15.0"
+  },
+  "coverageDetails": [
+    "Four A roles each successfully read their own granted board before attempting unrelated tenant B targets. Active B Manager/Member/Viewer have no target-board grant; Owner B has inherited access without explicit membership.",
+    "Actual body/query Zod bindings validate each generated fixture; additional role PATCH bodies explicitly validate updateProjectMemberInputSchema. Current board/card/import revisions are used.",
+    "Real mounted move prepares undo; real PNG content PUT prepares full Sharp finalize; real XLSX previews prepare both aliases mappings/commit/cancel with actual digests. Reopen cases seed existing archived flags directly; the tested reopen command and current-version control are mounted.",
+    "All application-table hashes, sequence states and storage mutation counters compared before/after each denial. Evidence stores only statuses/codes/effect table names; no credential responses/cookies/headers/tokens.",
+    "Manager without an existing board grant creates a new board201 and creator grant; Member leave200 is used instead of invalid Owner leave. Notification/token operations use real recipient/owner targets. Transfer retirement returns410 for all four A roles and OwnerB."
+  ],
+  "knownLimitsAndRemainingCoverage": [
+    "No newly confirmed runtime defect. First-run malformed fixtures are not authorization proof and are excluded from passing evidence.",
+    "This is 348 cells, separate from prior465 authentication/read matrix; do not multiply into all role/state combinations or call either independent approval.",
+    "46 GET operations and9 unselected non-resource mutations are classified; prior route-auth-matrix has23 private-read operations but not four-role read combinations on all46 GET routes.",
+    "POST /workspaces is intentionally retired410 (unscoped, not a foreign resource target); POST /projects creates caller-owned context. Profile/name/logout/devlogin/mark-all-read/admin migrate do not take another resource ID and remain outside this mutation isolation matrix.",
+    "Invitation acceptance relies on existing mounted invitation-repair.test.ts:78-151 and inv01-inv03.test.ts token identity/archive/expiry/race evidence. Tokens remain in memory; no acceptance fixture synthesized here.",
+    "Explicit Owner target and concurrency protected-role cases remain identity-repair.test.ts:172 and rbac-advanced.test.ts:668; not rerun by this matrix. Existing nearest records are supporting evidence, not fresh independent approval.",
+    "No fresh concurrent privilege-change, every role allowed mutation, idempotent replay, database timeout, actual storage/provider durability or hosted checks in this matrix. Those require respective targeted suites/full final gates.",
+    "Source remains mutable while JPEG/browser owners finish. New-file fingerprints below identify handoff bytes; they are not an exact final release manifest. No primary/access DB used or reserved."
+  ],
+  "sourceManifest": [
+    {
+      "path": "apps/api/test/cookie-mutation-matrix.test.ts",
+      "sha256": "43186132bc3ca7689f18838025d2407489601c05a426a8654f27ce11bf92a5fd"
+    },
+    {
+      "path": "apps/api/test/support/cookie-mutation-fixture.ts",
+      "sha256": "5ee092b44f52177f7d453bcd2eaf854ceee4d81335bb19ab4a674ada77bea28b"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/criteria/cookie-mutation-matrix.json",
+      "sha256": "93f45082b3f86365c70af27e95e757a84e20309130fa523e3da78979141c3130"
+    },
+    {
+      "path": "apps/api/test/support/route-auth-fixture.ts",
+      "sha256": "dbf09b27c4962f78f5a84215019da2a65ad51f36753de9d7037de44afd268b95"
+    },
+    {
+      "path": "packages/contracts/src/openapi/index.ts",
+      "sha256": "4b6bea6cd4d9c6f994d230934cfb1be6bbb98b3588d3ffdff00dacb98a98adbc"
+    },
+    {
+      "path": "packages/contracts/src/openapi/schemas.ts",
+      "sha256": "7c990e40c83372487ce5c0a5bbb0c1cc2e0ded107e102a2900b36f2ff8acbce8"
+    }
+  ],
+  "approval": null,
+  "score": null
+}

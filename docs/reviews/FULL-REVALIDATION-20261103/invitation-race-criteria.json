@@ -1,0 +1,12 @@
+{
+  "version": "invitation-race-1",
+  "risk": "high",
+  "features": ["INV-03", "INV-07", "INV-08", "PRJ-04", "RBAC-03"],
+  "criteria": [
+    "Accept and leave take project quota serialization before receipt, invitation, membership and lifecycle row locks, including direct adapter callers where transaction ownership is already established.",
+    "Invitation acceptance holds the writable project lifecycle boundary through grant and receipt commit. When archive wins first, acceptance fails with no membership/grant/activity/outbox/receipt effect; when acceptance wins its authorized transaction may finish before archive. Same source must enforce replay lifecycle policy.",
+    "Authorized leave/pure revocation remains possible on archived projects, revokes effective board access and outstanding stale invitations, and is idempotent without a new grant. Owner cannot leave; nonmembers cannot disclose another project.",
+    "Use actual mounted routes, real separate PostgreSQL connections and observed lock waits for both race orderings. Preserve failed baseline evidence and add regression tests without score tuning. No real users/credentials/hosted data.",
+    "Full current independent feature review on final immutable source remains mandatory; this bounded repair alone cannot close all listed features."
+  ]
+}

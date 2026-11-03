@@ -32,9 +32,9 @@ export function toneFor(column: Pick<ColumnSummary, 'name' | 'category'> & { ton
   return column.category === 'todo' ? 'backlog' : 'progress';
 }
 
-export interface Filters { q: string; assignees: string[]; due: 'any' | 'overdue' | 'soon' | 'none' }
-export const EMPTY_FILTERS: Filters = { q: '', assignees: [], due: 'any' };
-export const filtersActive = (f: Filters) => Boolean(f.q || f.assignees.length || f.due !== 'any');
+export interface Filters { q: string; assignees: string[]; due: 'any' | 'overdue' | 'today' | 'upcoming' | 'none'; priority: 'any' | CardSummary['priority']; column: string }
+export const EMPTY_FILTERS: Filters = { q: '', assignees: [], due: 'any', priority: 'any', column: '' };
+export const filtersActive = (f: Filters) => Boolean(f.q || f.assignees.length || f.due !== 'any' || f.priority !== 'any' || f.column);
 
 export function sortedCards(column: ColumnSummary): CardSummary[] {
   return [...column.cards].sort((a, b) => a.position - b.position);

@@ -1,0 +1,64 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import pg from 'pg';
+import { lifecycleFixture as fixture } from './support/lifecycle-fixture.ts';
+import { createEmptyImport } from './support/import-fixture.ts';
+
+for(const state of ['trashed','purged'])test(`boards lifecycle: remove an empty column retaining ${state} source IDs and import context`,async t=>{
+  const f=await fixture(t);
+  await f.pool.query(`INSERT INTO cards(id,workspace_id,project_id,board_id,column_id,title,priority,position,state,deleted_by,deleted_at,restore_until,created_at,updated_at)
+    VALUES('historical','ws','prj','brd','col','Historical source','none',1000,$1,$2,NOW()-INTERVAL '25 hours',NOW()-INTERVAL '1 hour',NOW(),NOW())`,[state,f.actors.owner!.user.id]);
+  const preview=await createEmptyImport(f.pool,'brd','col',f.actors.owner!.user.id);
+  const deleted=await f.removeColumn();assert.equal(deleted.status,200,await deleted.clone().text());
+  const row=(await f.pool.query("SELECT deleted_at,name FROM columns WHERE id='col'")).rows[0];assert.ok(row.deleted_at);assert.equal(row.name,'Old column');
+  assert.equal((await f.pool.query("SELECT column_id FROM cards WHERE id='historical'")).rows[0].column_id,'col');
+  assert.equal((await f.pool.query('SELECT default_column_id FROM card_imports WHERE id=$1',[preview.id])).rows[0].default_column_id,'col');
+  for(const route of ['/boards/brd','/boards/brd/metadata']){const r=await f.request('GET',route);assert.equal(r.status,200);assert.equal(JSON.stringify((await r.json()as any).data.columns).includes('Old column'),false);}
+  const add=await f.request('POST','/boards/brd/columns','owner',{name:'Old column',color:'#64748b',category:'todo',expectedBoardVersion:await f.version()});assert.equal(add.status,201,await add.clone().text());
+  const newColumn=(await add.json()as any).data.id;assert.notEqual(newColumn,'col');
+  const edit=await f.request('PATCH','/boards/brd/columns/col','owner',{name:'Revive old',expectedBoardVersion:await f.version()});assert.equal(edit.status,404);
+  const create=await f.request('POST','/boards/brd/cards','owner',{title:'Cannot target retired',columnId:'col',expectedBoardVersion:await f.version()});assert.equal(create.status,422,await create.clone().text());
+  const move=await f.request('POST','/cards/card/move','owner',{toColumnId:'col',previousCardId:null,nextCardId:null,expectedVersion:1,expectedBoardVersion:await f.version()});assert.equal(move.status,422,await move.clone().text());
+  const placement=await f.request('GET','/boards/brd/columns/col/placement?movingCardId=card&at=first');assert.equal(placement.status,404);
+  const stale=await f.request('POST',`/imports/${preview.id}/commit`,'owner',{expectedVersion:preview.version,previewDigest:preview.previewDigest,defaultColumnId:'col'});assert.equal(stale.status,409);
+  const reordered=await f.request('POST','/boards/brd/columns/reorder','owner',{columnIds:[newColumn,'col2'],expectedBoardVersion:await f.version()});assert.equal(reordered.status,200);
+});
+
+test('boards lifecycle: placement uses bounded actual query results for off-page anchors',async t=>{
+  const f=await fixture(t);
+  await f.pool.query(`INSERT INTO cards(id,workspace_id,project_id,board_id,column_id,title,priority,position,state,created_at,updated_at)
+    SELECT 'x'||lpad(i::text,4,'0'),'ws','prj','brd','col2','Task '||i,'none',i*10,'active',NOW(),NOW() FROM generate_series(1,500) i`);
+  const original=pg.Client.prototype.query;let maxRows=0,observed=0;
+  t.mock.method(pg.Client.prototype,'query',function(this:pg.Client,...args:any[]){
+    const result=(original as any).apply(this,args);const sql=typeof args[0]==='string'?args[0]:args[0]?.text??'';
+    if(/^\s*SELECT\s+id\b/i.test(sql)&&/FROM cards\s+WHERE column_id/i.test(sql)&&result?.then)return result.then((r:any)=>{maxRows=Math.max(maxRows,r.rows.length);observed++;return r;});
+    return result;
+  });
+  for(const [at,previous,next]of[['first',null,'x0001'],['last','x0500',null],['before','x0399','x0400'],['after','x0400','x0401']]as const){
+    const r=await f.request('GET',`/boards/brd/columns/col2/placement?movingCardId=card&at=${at}${at==='before'||at==='after'?'&anchorCardId=x0400':''}`);
+    assert.equal(r.status,200,await r.clone().text());const data=(await r.json()as any).data;assert.equal(data.previousCardId,previous);assert.equal(data.nextCardId,next);
+  }
+  assert.ok(observed>0);assert.ok(maxRows<=2,`placement query returned ${maxRows} rows for a single neighbor read`);
+});
+
+test('boards lifecycle: card-page cursors reject another actor and changed access revision',async t=>{
+  const f=await fixture(t);await f.pool.query(`INSERT INTO cards(id,workspace_id,project_id,board_id,column_id,title,priority,position,state,created_at,updated_at) SELECT 'p'||i,'ws','prj','brd','col2','Paged','none',i*10,'active',NOW(),NOW() FROM generate_series(1,15)i`);
+  const get=async(actor:string)=>{const r=await f.request('GET','/boards/brd/cards?columnId=col2&limit=5',actor);assert.equal(r.status,200);return(await r.json()as any).nextCursor as string;};
+  const ownerCursor=await get('owner');assert.ok(ownerCursor);
+  const copied=await f.request('GET','/boards/brd/cards?columnId=col2&limit=5&cursor='+encodeURIComponent(ownerCursor),'manager');assert.equal(copied.status,409,await copied.clone().text());
+  const own=await get('manager');const revision=async()=>String((await f.pool.query("SELECT access_revision FROM boards WHERE id='brd'")).rows[0].access_revision);
+  assert.equal((await f.request('DELETE',`/boards/brd/grants/${f.actors.manager!.user.id}`,'owner',{expectedAccessRevision:await revision()})).status,200);
+  assert.equal((await f.request('PUT',`/boards/brd/grants/${f.actors.manager!.user.id}`,'owner',{expectedAccessRevision:await revision()})).status,200);
+  const stale=await f.request('GET','/boards/brd/cards?columnId=col2&limit=5&cursor='+encodeURIComponent(own),'manager');assert.equal(stale.status,409,await stale.clone().text());
+});
+
+test('boards lifecycle: explicit archived discovery is strict and scoped to current session administration',async t=>{
+  const f=await fixture(t);await f.pool.query("UPDATE boards SET archived=TRUE WHERE id='brd'");
+  const ordinary=await f.request('GET','/projects/prj/boards');assert.deepEqual((await ordinary.json()as any).data,[]);
+  for(const actor of ['owner','manager']){const r=await f.request('GET','/projects/prj/boards?includeArchived=true',actor);assert.equal(r.status,200);const data=(await r.json()as any).data;assert.equal(data.length,1);assert.equal(data[0].isArchived,true);}
+  for(const actor of ['member','viewer'])assert.equal((await f.request('GET','/projects/prj/boards?includeArchived=true',actor)).status,403);
+  assert.equal((await f.request('GET','/projects/prj/boards?includeArchived=true','outsider')).status,404);
+  for(const query of ['includeArchived=1','includeArchived=FALSE','includeArchived=true&extra=x'])assert.equal((await f.request('GET','/projects/prj/boards?'+query)).status,422);
+  await f.pool.query('DELETE FROM board_grants WHERE user_id=$1',[f.actors.manager!.user.id]);
+  const hidden=await f.request('GET','/projects/prj/boards?includeArchived=true','manager');assert.deepEqual((await hidden.json()as any).data,[]);
+});

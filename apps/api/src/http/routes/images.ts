@@ -1,15 +1,18 @@
-import { Hono } from 'hono';
+import { Hono, type Handler } from 'hono';
+import { retainImageWork } from '../../services/image-admission.ts';
 import {
   idempotencyKeySchema,
   createImageUploadInputSchema,
   deleteImageInputSchema,
   parseOrThrow,
+  type ImageGalleryResponse,
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
 import { checkOrReplayProjectWriteReceipt, saveReceipt } from '../../adapters/idempotency.ts';
 import {
   createImageUpload,
   receiveImageContent,
+  prepareImageVerification,
   finalizeImageUpload,
   getImageUpload,
   cancelImageUpload,
@@ -17,11 +20,12 @@ import {
   getImageContent,
   deleteCardImage,
   deleteStorageAfterCommit,
+  stagingKeyOf,
 } from '../../adapters/images.ts';
 import { HttpError } from '../errors.ts';
 import { getStorageDriver } from '../../adapters/storage.ts';
 import { authMiddleware } from '../middleware/auth.ts';
-import { acquireWriteGrantLock } from '../../adapters/rbac.ts';
+import { acquireWriteGrantLock, acquireWritableProjectContextLock } from '../../adapters/rbac.ts';
 import { lockBoardAccess } from '../../adapters/board-grants-foundation.ts';
 
 export const imagesRoutes = new Hono();
@@ -73,6 +77,16 @@ function requireIdempotencyKey(keyHeader: string | undefined): string {
     );
   }
   return keyHeader;
+}
+
+// A request deadline may return while an awaited storage/DB operation continues.
+// Keep the admission slot until the real handler, including rollback, settles.
+function retainedImageWrite(handler: Handler): Handler {
+  return async (c, next) => {
+    const release = retainImageWork();
+    try { return await handler(c, next); }
+    finally { release(); }
+  };
 }
 
 // 1. POST /api/v1/cards/:cardId/image-uploads: Stage image upload (ATT-01)
@@ -154,17 +168,18 @@ imagesRoutes.post('/api/v1/cards/:cardId/image-uploads', authMiddleware, require
 });
 
 // 2. PUT /api/v1/image-uploads/:uploadId/content: Upload raw binary bytes (ATT-01, ATT-02)
-imagesRoutes.put('/api/v1/image-uploads/:uploadId/content', authMiddleware, requireImageStorage, async (c) => {
+imagesRoutes.put('/api/v1/image-uploads/:uploadId/content', authMiddleware, requireImageStorage, retainedImageWrite(async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
   }
 
-  const uploadId = c.req.param('uploadId');
+  const uploadId = c.req.param('uploadId')!;
   const arrayBuffer = await c.req.arrayBuffer();
   const rawBytes = new Uint8Array(arrayBuffer);
 
   const pool = getPool();
+  const verification = await prepareImageVerification(pool, actor.id, uploadId, rawBytes, c.req.raw.signal);
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -174,7 +189,8 @@ imagesRoutes.put('/api/v1/image-uploads/:uploadId/content', authMiddleware, requ
     );
     if (!scope.rows[0]) throw HttpError.notFound('Upload staging record not found.', 'NOT_FOUND');
     await acquireWriteGrantLock(client, scope.rows[0].project_id, actor.id, 'member', scope.rows[0].board_id);
-    const upload = await receiveImageContent(client, actor.id, uploadId, rawBytes);
+    await acquireWritableProjectContextLock(client,scope.rows[0].project_id,scope.rows[0].board_id);
+    const upload = await receiveImageContent(client, actor.id, uploadId, rawBytes, verification);
     await client.query('COMMIT');
     return c.json({ data: upload }, 200);
   } catch (error) {
@@ -183,19 +199,20 @@ imagesRoutes.put('/api/v1/image-uploads/:uploadId/content', authMiddleware, requ
   } finally {
     client.release();
   }
-});
+}));
 
 // 3. POST /api/v1/image-uploads/:uploadId/finalize: Finalize attachment to card (ATT-02)
-imagesRoutes.post('/api/v1/image-uploads/:uploadId/finalize', authMiddleware, requireImageStorage, async (c) => {
+imagesRoutes.post('/api/v1/image-uploads/:uploadId/finalize', authMiddleware, requireImageStorage, retainedImageWrite(async (c) => {
   const actor = c.get('actor');
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
   }
 
-  const uploadId = c.req.param('uploadId');
+  const uploadId = c.req.param('uploadId')!;
   const idempotencyKey = requireIdempotencyKey(c.req.header('idempotency-key'));
 
   const pool = getPool();
+  const verification = await prepareImageVerification(pool, actor.id, uploadId, undefined, c.req.raw.signal);
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
@@ -239,7 +256,7 @@ imagesRoutes.post('/api/v1/image-uploads/:uploadId/finalize', authMiddleware, re
       );
     }
 
-    const finalized = await finalizeImageUpload(client, actor.id, uploadId);
+    const finalized = await finalizeImageUpload(client, actor.id, uploadId, verification);
     const responsePayload = { data: finalized };
     await saveReceipt(client, actor.id, 'project', uploadRecord.project_id,
       idempotencyKey, methodPath, {}, 200, responsePayload);
@@ -252,7 +269,7 @@ imagesRoutes.post('/api/v1/image-uploads/:uploadId/finalize', authMiddleware, re
   } finally {
     client.release();
   }
-});
+}));
 
 // 4. GET /api/v1/image-uploads/:uploadId: Progress & status inspect (ATT-01)
 imagesRoutes.get('/api/v1/image-uploads/:uploadId', authMiddleware, requireImageStorage, async (c) => {
@@ -287,7 +304,11 @@ imagesRoutes.delete('/api/v1/image-uploads/:uploadId', authMiddleware, requireIm
     if (!scope.rows[0]) throw HttpError.notFound('Upload staging record not found.', 'NOT_FOUND');
     await acquireWriteGrantLock(client, scope.rows[0].project_id, actor.id, 'member', scope.rows[0].board_id);
     const upload = await cancelImageUpload(client, actor.id, uploadId);
+    const storedKey = await client.query<{ id:string; filename:string; staging_storage_key:string|null }>(
+      'SELECT id,filename,staging_storage_key FROM card_image_uploads WHERE id=$1', [uploadId],
+    );
     await client.query('COMMIT');
+    if (storedKey.rows[0]) await deleteStorageAfterCommit(client, stagingKeyOf(storedKey.rows[0]));
     return c.json({ data: upload }, 200);
   } catch (error) {
     await client.query('ROLLBACK').catch(() => {});
@@ -322,16 +343,10 @@ imagesRoutes.get('/api/v1/cards/:cardId/images', authMiddleware, requireImageSto
     client.release();
   }
 
-  return c.json(
-    {
-      data: {
-        items: result.items,
-        nextCursor: null,
-        totalCount: result.totalCount,
-      },
-    },
-    200,
-  );
+  const response: ImageGalleryResponse = {
+    data: {items: result.items,nextCursor: null,totalCount: result.totalCount},
+  };
+  return c.json(response,200);
 });
 
 // 7. GET /api/v1/images/:imageId/content: Authenticated proxy content download (ATT-04)

@@ -1,0 +1,126 @@
+✖ COM03 rejects arbitrary text, partial tokens and surrogate splits atomically (244.941584ms)
+✖ COM03 selected UTF16 tokens, case, trim and historical renamed edits remain valid without renotifying (167.53725ms)
+✖ COM03 unknown and ungranted targets have same private failure and Viewer cannot write (194.255792ms)
+✖ AUD03/04 reject invalid dates, reversed ranges and malformed bounds as controlled422 (187.710959ms)
+✖ AUD03/04 valid date filters precede pagination and cursors bind the filter (172.115084ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1163.511125
+
+✖ failing tests:
+
+test at apps/api/test/discussion-activity-repair.test.ts:9:64
+✖ COM03 rejects arbitrary text, partial tokens and surrogate splits atomically (244.941584ms)
+  AssertionError [ERR_ASSERTION]: ["hello there",0,5]: {"data":{"id":"cmt_0dd753d3-f204-4038-9ea1-cc6336d7c029","projectId":"prj","cardId":"card","authorId":"usr_fa74397c983496f7","body":"hello there","mentions":[{"userId":"usr_0b0845e15efc72e0","start":0,"end":5}],"version":1,"deletedAt":null,"createdAt":"2026-11-03T05:52:23.045Z","updatedAt":"2026-11-03T05:52:23.045Z","author":{"id":"usr_fa74397c983496f7","displayName":"Owner","avatarUrl":null,"activeInProject":true,"scopedRole":"owner","assignable":true,"mentionable":true}},"replayed":false}
+  
+  201 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/discussion-activity-repair.test.ts:35:49)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 201,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/discussion-activity-repair.test.ts:9:64
+✖ COM03 selected UTF16 tokens, case, trim and historical renamed edits remain valid without renotifying (167.53725ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_ERROR","message":"Mention span [5, 12] is out of bounds for body length 10.","requestId":"40e13f49-34c2-4d32-9a3b-eb52887f7777"}}
+  
+  400 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/discussion-activity-repair.test.ts:41:115)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 400,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/discussion-activity-repair.test.ts:9:64
+✖ COM03 unknown and ungranted targets have same private failure and Viewer cannot write (194.255792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    {
+      error: {
+        code: 'VALIDATION_ERROR',
+        details: {
+          issues: [
+  ...
+        message: 'A mentioned user cannot be mentioned on this card.',
+  +     requestId: '49315ea4-764d-40fe-8f1d-ee3f33b9a06b'
+  -     requestId: '8f50803d-348c-41fa-8929-61876d9ac112'
+      }
+    }
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/discussion-activity-repair.test.ts:52:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { error: { code: 'VALIDATION_ERROR', message: 'A mentioned user cannot be mentioned on this card.', requestId: '49315ea4-764d-40fe-8f1d-ee3f33b9a06b', details: [Object] } },
+    expected: { error: { code: 'VALIDATION_ERROR', message: 'A mentioned user cannot be mentioned on this card.', requestId: '8f50803d-348c-41fa-8929-61876d9ac112', details: [Object] } },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/discussion-activity-repair.test.ts:9:64
+✖ AUD03/04 reject invalid dates, reversed ranges and malformed bounds as controlled422 (187.710959ms)
+  AssertionError [ERR_ASSERTION]: /projects/prj/activity?fromDate=garbage: {"error":{"code":"INTERNAL_ERROR","message":"Internal server error.","requestId":"71c74c57-0293-4695-975e-b34af6a2da00"}}
+  
+  500 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/discussion-activity-repair.test.ts:58:49)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 500,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/discussion-activity-repair.test.ts:9:64
+✖ AUD03/04 valid date filters precede pagination and cursors bind the filter (172.115084ms)
+  error: new row for relation "activity_log" violates check constraint "activity_scope_shape"
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/discussion-activity-repair.test.ts:63:276)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    length: 363,
+    severity: 'ERROR',
+    code: '23514',
+    detail: 'Failing row contains (outside, ws, prj, card, usr_47a41742d2e02fda, card_created, {}, 2024-02-28 10:00:00+00, brd, unknown).',
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: 'discussion_activity_c5a4a1b4b58a4aa5af08cf8c79c4659b',
+    table: 'activity_log',
+    column: undefined,
+    dataType: undefined,
+    constraint: 'activity_scope_shape',
+    file: 'execMain.c',
+    line: '2074',
+    routine: 'ExecConstraints'
+  }

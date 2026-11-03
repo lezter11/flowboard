@@ -1,0 +1,54 @@
+▶ B-11 orphan uploads: expired staging bytes are removed once, and a failed delete is retried
+  ✔ the sweep removes the expired staged bytes and leaves a live upload alone (4.181083ms)
+  ✔ a second sweep does not revisit a settled row (1.405208ms)
+{"event":"scheduled_job_failed","jobs":["first","third"]}
+  ✔ a failing delete stays queued and is retried by the pending-deletion job (4.143667ms)
+✔ B-11 orphan uploads: expired staging bytes are removed once, and a failed delete is retried (68.121167ms)
+✔ B-11 scheduled jobs: one failing job does not stop the others, and the failure is still reported (0.544375ms)
+▶ B-11 image cap: staged uploads count, expired ones do not, and two concurrent stages cannot both pass
+  ✔ nine images plus one live staged upload refuse a further stage (34.27125ms)
+  ✔ an expired staged upload does not count toward the cap (20.528125ms)
+  ✔ a stage waits for an in-flight stage on the same card, then counts its staged upload (330.732542ms)
+✔ B-11 image cap: staged uploads count, expired ones do not, and two concurrent stages cannot both pass (385.963125ms)
+▶ B-11 mention people: only people who can read the card's board
+  ✔ by card: the viewer with a board grant and the manager are listed; the member without a grant is not (24.026167ms)
+  ✔ by board: the same answer (26.746667ms)
+  ✔ with neither card nor board, mention lists nobody (backward compatible, no leak) (5.113333ms)
+  ✔ a member without the board grant cannot list mentionees for the card (404, no list) (5.717583ms)
+  ✔ an unknown card and an unreadable card give the same 404 (10.242291ms)
+  ✔ the display purpose is unchanged: project members are still listed (7.223208ms)
+  ✔ no email field is returned to anyone (9.657333ms)
+✔ B-11 mention people: only people who can read the card's board (110.191209ms)
+✔ People policy: only inherited Owner/current Manager read emails; Member/Viewer deny without directory data (226.017834ms)
+✔ People policy: Member/Viewer board-scoped pickers remain available and contain no emails (192.299917ms)
+✔ People policy: default/display aliases never expose the project roster to Member/Viewer (257.990666ms)
+✔ People policy: display administrators retain search/page/archive reads without a board grant (186.025125ms)
+✔ People policy: direct display adapter requires a current directory administrator (185.706834ms)
+✔ People policy: default/display read waits for demotion and denies the newly demoted Manager (206.208458ms)
+✔ People policy: display assembly finishes before a concurrent Manager demotion (237.837792ms)
+✔ People policy: demotion winning membership lock prevents an in-flight directory disclosure (228.703416ms)
+✔ People policy: authorized directory assembly serializes before concurrent Manager demotion (187.790958ms)
+▶ RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)
+  ✔ RBAC-02: verifyProjectAncestry succeeds for valid project and resources (101.5785ms)
+  ✔ RBAC-02: Guessing sibling project or resources returns consistent 404 NOT_FOUND without metadata leakage (2.909083ms)
+  ✔ RBAC-02: requireProjectAncestry HTTP middleware enforces boundary (15.42425ms)
+  ✔ RBAC-03: acquireWriteGrantLock validates role hierarchy and removed status (4.461042ms)
+  ✔ RBAC-03: Concurrency: In-flight write transaction aborts when concurrent role revocation wins (4.252542ms)
+  ✔ RBAC-03: Concurrency: Writer holding grant lock blocks concurrent revocation until write commits (61.807625ms)
+  ✔ RBAC-03: Concurrency Probe 1: Mounted updateProjectSettings serializes with concurrent actor revocation (77.470459ms)
+  ✔ RBAC-03: Concurrency Probe 2: Manager starts removeProjectMember while Owner concurrently promotes target; deletion rejected with 403 FORBIDDEN (24.588ms)
+  ✔ RBAC-04: getEligibleAssignees and getEligibleMentionees enforce role and sibling privacy (6.482458ms)
+  ✔ RBAC-04: HTTP GET /api/v1/projects/:projectId/people enforces privacy and purpose filtering (19.060833ms)
+  ✔ RBAC-05: GET /api/v1/projects/:projectId/access-summary discloses explicit board grants without hidden counts (4.413458ms)
+  ✔ RBAC-05: Workspace owner requests access summary -> actor role is owner inherited from workspace (3.044917ms)
+  ✔ RBAC-05: Sibling project member or outsider access-summary returns 404 NOT_FOUND (1.881208ms)
+  ✔ RBAC-05: Unauthenticated request returns 401 UNAUTHORIZED (0.341875ms)
+✔ RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05) (331.377167ms)
+ℹ tests 41
+ℹ suites 0
+ℹ pass 41
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 15369.800583

@@ -1,0 +1,29 @@
+{"observation":"canonical-comment-edit-retention","editBody":"SYNTHETIC_FETCHED_CANONICAL_BODY","ownChangesMade":false}
+✖ observation: edit comment source and read recipient notification after removing sensitive original body (1.919708ms)
+✔ observation: copied fetched comment edit survives all protected-draft refusal hooks (0.359959ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 185.989
+
+✖ failing tests:
+
+test at docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1/retention-probe.test.ts:7:1
+✖ observation: edit comment source and read recipient notification after removing sensitive original body (1.919708ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async lifecycleFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/lifecycle-fixture.ts:16:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1/retention-probe.test.ts:8:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }

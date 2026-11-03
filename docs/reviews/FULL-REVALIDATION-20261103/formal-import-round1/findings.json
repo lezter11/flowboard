@@ -1,0 +1,133 @@
+[
+  {
+    "id": "IMP-R1-01",
+    "severity": "high",
+    "description": "XML entity decoding silently changes literal title/description/external-ID content and hashes.",
+    "disposition": "open",
+    "rationale": "Reproduced through mounted real HTTP handlers and isolated real PostgreSQL; conflicts with frozen mandatory import acceptance.",
+    "mandatory": true,
+    "blocking": true,
+    "sourcePath": "apps/api/src/services/excel-parser.ts",
+    "sourceLines": [
+      226,
+      234
+    ],
+    "fixtures": [
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round1/double-entity.xlsx"
+    ],
+    "expected": "Literal &#x41; and &#65; preserved after one XML decode",
+    "actual": "201ready/200commit/persistedTitle Literal A and A",
+    "fix": "Decode XML entities once, validate scalar values and regress all text fields through real commit.",
+    "counterevidence": "Baseline control201; ordinary UTF8 formulas and XXE are rejected422. No expression execution, network fetch, or cross-project bypass is claimed."
+  },
+  {
+    "id": "IMP-R1-02",
+    "severity": "high",
+    "description": "Legal inline rich-text cell loses every run after the first.",
+    "disposition": "open",
+    "rationale": "Reproduced through mounted real HTTP handlers and isolated real PostgreSQL; conflicts with frozen mandatory import acceptance.",
+    "mandatory": true,
+    "blocking": true,
+    "sourcePath": "apps/api/src/services/excel-parser.ts",
+    "sourceLines": [
+      506,
+      508
+    ],
+    "fixtures": [
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round1/rich-inline-unique.xlsx"
+    ],
+    "expected": "First Second persisted",
+    "actual": "201ready/200commit/persistedTitle First",
+    "fix": "Collect all literal text runs in inlineStr with proper XML semantics; retain spaces and all supported content.",
+    "counterevidence": "Baseline control201; ordinary UTF8 formulas and XXE are rejected422. No expression execution, network fetch, or cross-project bypass is claimed."
+  },
+  {
+    "id": "IMP-R1-03",
+    "severity": "high",
+    "description": "UTF16 XML silently loses nonempty rows and evades mandatory formula rejection.",
+    "disposition": "open",
+    "rationale": "Reproduced through mounted real HTTP handlers and isolated real PostgreSQL; conflicts with frozen mandatory import acceptance.",
+    "mandatory": true,
+    "blocking": true,
+    "sourcePath": "apps/api/src/services/excel-parser.ts",
+    "sourceLines": [
+      448,
+      452,
+      803,
+      808
+    ],
+    "fixtures": [
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round1/utf16-worksheet.xlsx",
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round1/utf16-formula.xlsx"
+    ],
+    "expected": "One literal row imported correctly; formula workbook422rejected, or unsupported encoding safely422",
+    "actual": "Both201ready/count0and200commit/count0",
+    "fix": "Decode/validate permitted XML encodings before scanning; require a recognized valid Cards header/structure before ready, never treat unparsed content as blank.",
+    "counterevidence": "Baseline control201; ordinary UTF8 formulas and XXE are rejected422. No expression execution, network fetch, or cross-project bypass is claimed."
+  },
+  {
+    "id": "IMP-R1-04",
+    "severity": "high",
+    "description": "Filename blacklist does not enforce actual XLSX package type, embedded-image or external-relationship rejection.",
+    "disposition": "open",
+    "rationale": "Reproduced through mounted real HTTP handlers and isolated real PostgreSQL; conflicts with frozen mandatory import acceptance.",
+    "mandatory": true,
+    "blocking": true,
+    "sourcePath": "apps/api/src/services/excel-parser.ts",
+    "sourceLines": [
+      114,
+      145
+    ],
+    "fixtures": [
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round1/macro-content-type.xlsx",
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round1/external-relationship.xlsx",
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round1/actual-image-package.xlsx"
+    ],
+    "expected": "Reject macroEnabled actual package, external workbook links and embedded image parts per IMPORT_SPEC:21",
+    "actual": "All201ready; actual-image-package200commit",
+    "fix": "Validate Content_Types, all relationship targets/modes and allowed package parts before parsing; add positive officialtemplate and negative package controls.",
+    "counterevidence": "Baseline control201; ordinary UTF8 formulas and XXE are rejected422. No expression execution, network fetch, or cross-project bypass is claimed."
+  },
+  {
+    "id": "IMP-R1-05",
+    "severity": "medium",
+    "description": "Invalid XML numeric entity escapes validation as INTERNAL_ERROR500.",
+    "disposition": "open",
+    "rationale": "Reproduced through mounted real HTTP handlers and isolated real PostgreSQL; conflicts with frozen mandatory import acceptance.",
+    "mandatory": true,
+    "blocking": true,
+    "sourcePath": "apps/api/src/services/excel-parser.ts",
+    "sourceLines": [
+      233,
+      234
+    ],
+    "fixtures": [
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round1/invalid-numeric-entity.xlsx"
+    ],
+    "expected": "422invalid workbook without server exception",
+    "actual": "HTTP500 INTERNAL_ERROR from String.fromCodePoint on0x110000",
+    "fix": "Validate UnicodeXMLscalar range and safely reject malformed/unknown entities with422.",
+    "counterevidence": "Baseline control201; ordinary UTF8 formulas and XXE are rejected422. No expression execution, network fetch, or cross-project bypass is claimed."
+  },
+  {
+    "id": "IMP-R1-06",
+    "severity": "medium",
+    "description": "Merged Cards table cells are accepted contrary to frozen import structure requirements.",
+    "disposition": "open",
+    "rationale": "Reproduced through mounted real HTTP handlers and isolated real PostgreSQL; conflicts with frozen mandatory import acceptance.",
+    "mandatory": true,
+    "blocking": true,
+    "sourcePath": "apps/api/src/services/excel-parser.ts",
+    "sourceLines": [
+      448,
+      470
+    ],
+    "fixtures": [
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round1/merged-data.xlsx"
+    ],
+    "expected": "422reject merged data cells per IMPORT_SPEC:19",
+    "actual": "201ready and200commit",
+    "fix": "Validate disallowed merged cells before normalizing rows and regress with actual supplied-template XML.",
+    "counterevidence": "Baseline control201; ordinary UTF8 formulas and XXE are rejected422. No expression execution, network fetch, or cross-project bypass is claimed."
+  }
+]

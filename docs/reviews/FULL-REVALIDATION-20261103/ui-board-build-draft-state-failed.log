@@ -1,0 +1,33 @@
+
+> build:web
+> npm run build --workspace @flowboard/web
+
+
+> @flowboard/web@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.28
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 2.4s
+   Linting and checking validity of types ...
+Failed to compile.
+
+./src/components/board/board-view.tsx:736:91
+Type error: 'title' is specified more than once, so this usage will be overwritten.
+
+[0m [90m 734 |[39m             quickAddError[33m=[39m{composerColumn [33m===[39m column[33m.[39mid [33m?[39m quickAddError [33m:[39m [32m''[39m}
+ [90m 735 |[39m             quickAddDraft[33m=[39m{quickDrafts[column[33m.[39mid] [33m?[39m[33m?[39m { title[33m:[39m [32m''[39m[33m,[39m priority[33m:[39m [32m''[39m }}
+[31m[1m>[22m[39m[90m 736 |[39m             onQuickAddDraft[33m=[39m{(patch) [33m=>[39m setQuickDrafts((all) [33m=>[39m ({ [33m...[39mall[33m,[39m [column[33m.[39mid][33m:[39m { title[33m:[39m [32m''[39m[33m,[39m priority[33m:[39m [32m''[39m[33m,[39m [33m...[39mall[column[33m.[39mid][33m,[39m [33m...[39mpatch } }))}
+ [90m     |[39m                                                                                           [31m[1m^[22m[39m
+ [90m 737 |[39m             onOpenComposer[33m=[39m{openComposer}
+ [90m 738 |[39m             onCloseComposer[33m=[39m{() [33m=>[39m { setComposerColumn([36mnull[39m)[33m;[39m [36mconst[39m t [33m=[39m returnFocus[33m.[39mcurrent[33m;[39m requestAnimationFrame(() [33m=>[39m t[33m?[39m[33m.[39misConnected [33m&&[39m t[33m.[39mfocus({ preventScroll[33m:[39m [36mtrue[39m }))[33m;[39m }}
+ [90m 739 |[39m             onQuickAdd[33m=[39m{(columnId[33m,[39m title[33m,[39m priority) [33m=>[39m [36mvoid[39m addCard(columnId[33m,[39m title[33m,[39m priority)}[0m
+Next.js build worker exited with code: 1 and signal: null
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web
+npm error workspace @flowboard/web@0.1.0
+npm error location /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web
+npm error command failed
+npm error command sh -c next build

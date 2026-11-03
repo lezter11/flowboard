@@ -1,0 +1,28 @@
+✖ Full image verifier: a deadline cannot turn an abort-resolving provider into accepted content (5284.68625ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 10474.765875
+
+✖ failing tests:
+
+test at apps/api/test/image-full-verifier.test.ts:41:1
+✖ Full image verifier: a deadline cannot turn an abort-resolving provider into accepted content (5284.68625ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"DEADLINE_EXCEEDED","message":"The request took too long. Try again.","requestId":"67fc7d38-b3d6-4b87-b445-ab7d2fdcd8af"}}
+  
+  504 !== 503
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-full-verifier.test.ts:44:39)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 504,
+    expected: 503,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,62 @@
+▶ ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Suite
+  ✔ 0. Setup Workspace, Projects, Members and Initial Card (120.964458ms)
+  ✔ ATT-01: Stage upload authorization and bounds (31.1765ms)
+  ✔ ATT-02: Binary upload, validation, spoofing rejection, and finalization (128.767125ms)
+  ✔ ATT-03: Gallery listing shows finalized images only (14.4665ms)
+  ✔ ATT-04: Authenticated proxy delivery and security headers (14.514083ms)
+  ✔ ATT-05: Remove attached image with OCC, role check, and activity (36.556791ms)
+  ✔ ATT-06: Quota enforcement (max 10) and orphan upload cleanup (172.428166ms)
+  ✔ ATT-07: Attachment preservation in trash, restore, and purge (82.939958ms)
+✔ ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Suite (604.9025ms)
+✔ B-7 images: R2 driver round-trips bytes and content type, and tolerates repeat deletes (0.596167ms)
+✔ B-7 images: with no bucket bound, image routes fail closed before any database write (48.395292ms)
+✔ B-7 images: the Worker without an IMAGES binding answers 503 CONFIG_ERROR on image routes (15.76325ms)
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"warn","event":"rate_limit_client_ip_missing"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"warn","event":"rate_limit_client_ip_missing"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+✔ B-7 images: upload, finalize, read and delete through the Worker, across separate isolates (92.492833ms)
+✔ B-7 images: cancelling a staged upload removes its staged object (34.088917ms)
+✔ B-7 images: the default driver is not used when a scope binds none (0.250667ms)
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+✔ B-14 images: storage keys carry no user filename, and filenames with separators or control characters are refused (98.507042ms)
+✔ B-8 image delete: a failed commit keeps the row and the bytes (59.116666ms)
+✔ B-8 image delete: a storage failure after commit leaves a retryable pending row (19.064458ms)
+✔ B-8 image delete: a successful delete removes the bytes at once and leaves no pending row (16.977208ms)
+✖ mounted card discovery and image routes require a current board grant (235.750166ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 19
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 21930.659291
+
+✖ failing tests:
+
+test at apps/api/test/board-access-cards-images.test.ts:15:1
+✖ mounted card discovery and image routes require a current board grant (235.750166ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 400
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/board-access-cards-images.test.ts:100:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 400,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

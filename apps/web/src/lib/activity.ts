@@ -1,10 +1,11 @@
-import type { ActivityItem } from '@flowboard/contracts';
-import { ROLE_META } from '@/lib/roles';
+import type { ActivityItem, PersonDisplay } from '@flowboard/contracts';
+import { ROLE_META } from './roles.ts';
+import { formatPersonName } from './person-name.ts';
 
 export interface ActivityView { icon: string; text: string; category: string }
 
 const FIELD_LABELS: Record<string, string> = {
-  title: 'the title', description: 'the description', priority: 'the priority', dueDate: 'the due date', assigneeIds: 'the assignees',
+  title: 'the title', description: 'the description', priority: 'the priority', dueDate: 'the due date', assigneeIds: 'the assignees', assignees: 'the assignees',
 };
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null);
@@ -15,7 +16,8 @@ const asRole = (v: unknown): string => { const r = roleLabel(v); return r ? ` as
 
 /** Turns an activity record (action code + safe changes) into a sentence in the prototype's wording. */
 export function describeActivity(item: Pick<ActivityItem, 'action' | 'safeChanges'>, subject: 'this card' | 'a card' = 'this card'): ActivityView {
-  const c = (item.safeChanges ?? {}) as Record<string, unknown>;
+  const raw = (item.safeChanges ?? {}) as Record<string, unknown>;
+  const c = raw.purged === true || raw.redacted === true ? {} : raw;
   switch (item.action) {
     case 'card_created': return { icon: 'plus', category: 'Cards', text: `created ${subject}` };
     case 'card_moved': {
@@ -71,4 +73,45 @@ export function describeActivity(item: Pick<ActivityItem, 'action' | 'safeChange
     // Unknown future actions: readable text, never a crash.
     default: return { icon: 'activity', category: 'Other', text: item.action.replace(/[_-]+/g, ' ').trim() || 'made a change' };
   }
+}
+
+export interface ActivityDetail { label: string; before?: string; after?: string; value?: string }
+type DetailedActivity = Pick<ActivityItem, 'action' | 'safeChanges'> & { referencedPeople?: PersonDisplay[] };
+const record = (value: unknown): Record<string, unknown> | null => value !== null && typeof value === 'object' && !Array.isArray(value) ? value as Record<string, unknown> : null;
+const historyValue = (value: unknown): string | undefined => value === null ? 'None' : typeof value === 'string' ? (value.length > 20000 ? `${value.slice(0,20000)}…` : value || 'Empty') : undefined;
+
+/** Render only the documented safe field deltas. Never recover history from a card,
+ * a full people directory, or arbitrary JSON keys (including comment body copies). */
+export function activityDetails(item: DetailedActivity): ActivityDetail[] {
+  const changes = item.safeChanges ?? {};
+  if (changes.purged === true || changes.redacted === true) return [];
+  if (item.action === 'card_moved') {
+    const before = historyValue(changes.fromColumnTitle), after = historyValue(changes.toColumnTitle);
+    return before !== undefined && after !== undefined ? [{ label:'Column',before,after }] : [];
+  }
+  if (item.action !== 'card_updated') return [];
+  const rows: ActivityDetail[] = [];
+  for (const [field,label] of [['title','Title'],['description','Description'],['priority','Priority'],['dueDate','Due date']] as const) {
+    const delta = record(changes[field]); if (!delta) continue;
+    const before = historyValue(delta.old), after = historyValue(delta.new);
+    if (before !== undefined && after !== undefined) rows.push({label,before,after});
+  }
+  // Only the event's additive, server-scoped identity projection can name an
+  // assignee. Historical unresolved IDs deliberately stay generic.
+  const people = new Map((item.referencedPeople ?? []).map(person => [person.id,person]));
+  const assignees = (value: unknown): string | undefined => Array.isArray(value) ? value.filter((id): id is string => typeof id === 'string').slice(0,20).map(id => formatPersonName(people.get(id),'Former project member')).join(', ') || 'None' : undefined;
+  const delta = record(changes.assignees);
+  if (delta) {
+    for (const [field,label] of [['added','Assigned'],['removed','Unassigned']] as const) {
+      const ids = delta[field]; const value = assignees(ids);
+      if (Array.isArray(ids) && ids.length && value !== undefined) rows.push({label,value});
+    }
+  } else {
+    if (Array.isArray(changes.assigneeIds)) rows.push({label:'Assignees',value:assignees(changes.assigneeIds)!});
+    else {
+      const legacy = record(changes.assigneeIds);
+      if (legacy) { const before=assignees(legacy.old),after=assignees(legacy.new); if(before!==undefined&&after!==undefined)rows.push({label:'Assignees',before,after}); }
+    }
+  }
+  return rows;
 }

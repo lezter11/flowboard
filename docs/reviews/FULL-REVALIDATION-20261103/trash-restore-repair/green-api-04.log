@@ -1,0 +1,70 @@
+✔ restore retains nearest surviving gap after normal moves exhaust rank spacing (419.404959ms)
+✔ restore placement control: both (210.567708ms)
+✔ restore placement control: previous-only (222.85025ms)
+✔ restore placement control: next-only (196.271833ms)
+✔ restore placement control: neither (237.431458ms)
+✔ restore placement control: head (207.259875ms)
+✔ restore placement control: tail (204.656625ms)
+✔ restore placement control: empty (235.363291ms)
+✔ restore preserves head insertion when normal moves exhaust the first rank (361.620792ms)
+✔ restore replay is exactly once and stale/forbidden requests leave order and events unchanged (205.856792ms)
+✔ legacy missing destination requires explicit active same-board choice and retains the same card content (214.055291ms)
+✔ legacy destination cannot bypass project context (175.779209ms)
+✔ legacy destination cannot bypass board context (189.312708ms)
+✔ legacy destination cannot bypass revoked context (198.739042ms)
+✔ restore exact cutoff control at deadline -1ms (187.573125ms)
+✔ restore exact cutoff control at deadline 0ms (185.855417ms)
+✔ real mounted restore and purge overlap: restore wins the card lock (199.534375ms)
+✖ real mounted restore and purge overlap: purge wins the card lock (1237.162541ms)
+✖ failed restore commit rolls back compaction, lifecycle, board version, receipt and activity together (386.460916ms)
+ℹ tests 19
+ℹ suites 0
+ℹ pass 17
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 5725.426625
+
+✖ failing tests:
+
+test at apps/api/test/trash-restore-placement.test.ts:199:53
+✖ real mounted restore and purge overlap: purge wins the card lock (1237.162541ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  503 !== 404
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/trash-restore-placement.test.ts:231:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 503,
+    expected: 404,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/trash-restore-placement.test.ts:241:1
+✖ failed restore commit rolls back compaction, lifecycle, board version, receipt and activity together (386.460916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      '1000',
+  +   '1500'
+  -   '1001'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/trash-restore-placement.test.ts:251:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ '1000', '1500' ],
+    expected: [ '1000', '1001' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

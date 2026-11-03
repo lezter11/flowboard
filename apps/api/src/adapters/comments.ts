@@ -19,7 +19,9 @@ import {
   getEligibleMentionees,
   getHistoricalPersonDisplay,
 } from './rbac.ts';
+import { redactCommentCopies, redactEditedCommentCopies } from '../services/comment-retention.ts';
 import { recordActivity } from './activity.ts';
+import { isCursorTimestamp, isCursorText } from '../services/cursor-timestamp.ts';
 
 export interface ListCardCommentsOptions {
   limit?: number | undefined;
@@ -32,7 +34,8 @@ export interface ListCardCommentsResult {
 }
 
 interface CommentCursor {
-  v: 1;
+  v: 2;
+  actorId: string;
   cardId: string;
   createdAt: string;
   id: string;
@@ -42,17 +45,17 @@ function encodeCommentCursor(cursor: CommentCursor): string {
   return btoa(JSON.stringify(cursor)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
 }
 
-function decodeCommentCursor(value: string, cardId: string): CommentCursor {
+function decodeCommentCursor(value: string, cardId: string, actorId: string): CommentCursor {
   try {
+    if(value.length>4096) throw new Error('oversized comment cursor');
     const base64 = value.replace(/-/g, '+').replace(/_/g, '/') + '='.repeat((4 - (value.length % 4)) % 4);
     const parsed = JSON.parse(atob(base64)) as Partial<CommentCursor>;
     if (
-      parsed.v !== 1 ||
+      parsed.v !== 2 ||
+      parsed.actorId !== actorId ||
       parsed.cardId !== cardId ||
-      typeof parsed.createdAt !== 'string' ||
-      Number.isNaN(Date.parse(parsed.createdAt)) ||
-      typeof parsed.id !== 'string' ||
-      parsed.id.length === 0
+      !isCursorTimestamp(parsed.createdAt) ||
+      !isCursorText(parsed.id)
     ) {
       throw new Error('invalid comment cursor');
     }
@@ -121,7 +124,7 @@ export async function listCardComments(
   }
 
   const limit = Math.min(Math.max(options?.limit ?? 50, 1), 100);
-  const cursor = options?.cursor ? decodeCommentCursor(options.cursor, cardId) : undefined;
+  const cursor = options?.cursor ? decodeCommentCursor(options.cursor, cardId, actorId) : undefined;
 
   // 3. Query comments for the card ordered chronologically (created_at ASC, id ASC)
   const commentsRes = await pool.query<{
@@ -135,8 +138,10 @@ export async function listCardComments(
     deleted_at: Date | null;
     created_at: Date;
     updated_at: Date;
+    cursor_time: string;
   }>(
-    `SELECT id, workspace_id, project_id, card_id, author_id, body, version, deleted_at, created_at, updated_at
+    `SELECT id, workspace_id, project_id, card_id, author_id, body, version, deleted_at, created_at, updated_at,
+       to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time
      FROM comments
      WHERE card_id = $1
        AND ($2::timestamptz IS NULL OR (created_at, id) > ($2::timestamptz, $3::text))
@@ -150,7 +155,7 @@ export async function listCardComments(
   const pageRows = hasMore ? rawRows.slice(0, limit) : rawRows;
   const lastRow = pageRows[pageRows.length - 1];
   const nextCursor = hasMore && lastRow
-    ? encodeCommentCursor({ v: 1, cardId, createdAt: new Date(lastRow.created_at).toISOString(), id: lastRow.id })
+    ? encodeCommentCursor({ v: 2, actorId, cardId, createdAt: lastRow.cursor_time, id: lastRow.id })
     : null;
 
   if (pageRows.length === 0) {
@@ -234,30 +239,32 @@ async function validateMentions(
   boardId: string,
   body: string,
   mentions: MentionSpan[],
+  historicalTokens: ReadonlyMap<string, ReadonlySet<string>> = new Map(),
 ): Promise<void> {
   if (mentions.length === 0) return;
 
-  // UTF-16 code unit length check
-  const bodyLen = body.length;
-  for (const m of mentions) {
-    if (m.start < 0 || m.end > bodyLen || m.start >= m.end) {
-      throw HttpError.badRequest(
-        'VALIDATION_ERROR',
-        `Mention span [${m.start}, ${m.end}] is out of bounds for body length ${bodyLen}.`,
-      );
-    }
-  }
-
-  // A mention must reach someone who can actually open this board. Otherwise
-  // the UI would suggest a recipient but the outbox would silently omit them.
-  const eligible = await getEligibleMentionees(client, projectId, undefined, boardId);
-  const eligibleIds = new Set(eligible.map((p) => p.id));
-
-  for (const m of mentions) {
-    if (!eligibleIds.has(m.userId)) {
-      // Same answer for a missing user and a user who cannot read this board, and the id is not echoed.
+  // Eligibility is checked before token text so inaccessible and nonexistent IDs have
+  // the same private error; names from other projects never enter the response.
+  const eligible = await getEligibleMentionees(client, projectId, undefined, boardId, mentions.map((mention) => mention.userId));
+  const people = new Map(eligible.map((person) => [person.id, person]));
+  for (const mention of mentions) {
+    const person = people.get(mention.userId);
+    if (!person) {
       throw validationError('A mentioned user cannot be mentioned on this card.', {
         issues: [{ path: 'mentions', message: 'Mentioned user cannot access this board' }],
+      });
+    }
+    const token = body.slice(mention.start, mention.end);
+    const suffix = person.nameSuffix && person.nameSuffix > 1 ? ` (${person.nameSuffix})` : '';
+    const selected = `@${person.displayName}${suffix}`;
+    const before = Array.from(body.slice(0, mention.start)).at(-1);
+    const after = Array.from(body.slice(mention.end))[0];
+    const word = /[\p{L}\p{N}\p{M}_]/u;
+    if ((!historicalTokens.get(mention.userId)?.has(token) && token.toLowerCase() !== selected.toLowerCase()) ||
+        !token.startsWith('@') || token.length < 2 ||
+        (before && word.test(before)) || (after && word.test(after))) {
+      throw validationError('Mention text must match a selected person.', {
+        issues: [{ path: 'mentions', message: 'Mention span must contain the complete selected @name token' }],
       });
     }
   }
@@ -377,9 +384,9 @@ export async function postComment(
 
     await client.query(
       `INSERT INTO notifications (
-         id, workspace_id, project_id, user_id, type, title, body, link, read, created_at, card_id
-       ) VALUES ($1, $2, $3, $4, 'mention', $5, $6, $7, FALSE, $8, $9)`,
-      [notifId, card.workspace_id, card.project_id, targetUserId, notifTitle, notifBody, notifLink, nowIso, card.id],
+         id, workspace_id, project_id, user_id, type, title, body, link, read, created_at, card_id, comment_id
+       ) VALUES ($1, $2, $3, $4, 'mention', $5, $6, $7, FALSE, $8, $9, $10)`,
+      [notifId, card.workspace_id, card.project_id, targetUserId, notifTitle, notifBody, notifLink, nowIso, card.id, commentId],
     );
   }
 
@@ -441,6 +448,20 @@ export async function postComment(
   };
 }
 
+/** All entry points take board → card SHARE → comment UPDATE before changing source text. */
+async function lockWritableCommentContext(client: pg.ClientBase, commentId: string, actorId: string): Promise<void> {
+  const scope = await client.query<{ project_id: string; board_id: string; card_id: string }>(
+    `SELECT c.project_id,cd.board_id,c.card_id FROM comments c JOIN cards cd ON cd.id=c.card_id
+     WHERE c.id=$1`, [commentId],
+  );
+  if (!scope.rows[0]) throw HttpError.notFound('Comment not found.', 'NOT_FOUND');
+  const row = scope.rows[0];
+  await acquireWriteGrantLock(client,row.project_id,actorId,'member',row.board_id);
+  await acquireWritableProjectContextLock(client,row.project_id,row.board_id);
+  await client.query('SELECT id FROM cards WHERE id=$1 AND project_id=$2 AND board_id=$3 FOR SHARE',
+    [row.card_id,row.project_id,row.board_id]);
+}
+
 /**
  * Edits an existing comment.
  * - Author only: non-author members or managers receive 403 FORBIDDEN.
@@ -456,6 +477,7 @@ export async function editComment(
   actorId: string,
 ): Promise<Comment> {
   const validated = parseOrThrow(editCommentInputSchema, input);
+  await lockWritableCommentContext(client,commentId,actorId);
 
   // 1. Fetch comment and card details with row lock
   const commentRes = await client.query<{
@@ -477,7 +499,7 @@ export async function editComment(
      FROM comments c
      JOIN cards cd ON c.card_id = cd.id
      WHERE c.id = $1
-     FOR UPDATE`,
+     FOR UPDATE OF c`,
     [commentId],
   );
 
@@ -516,7 +538,18 @@ export async function editComment(
 
   // 4. Mentions re-validation if provided
   const mentions = validated.mentions ?? [];
-  await validateMentions(client, comment.project_id, comment.board_id, validated.body, mentions);
+  // Only persisted spans prove an old display name belonged to this recipient. A caller
+  // cannot invent arbitrary historical names, and current board eligibility still applies.
+  const previous = await client.query<{ user_id: string; start_offset: number; end_offset: number }>(
+    'SELECT user_id, start_offset, end_offset FROM comment_mentions WHERE comment_id = $1', [commentId],
+  );
+  const historicalTokens = new Map<string, Set<string>>();
+  for (const span of previous.rows) {
+    const tokens = historicalTokens.get(span.user_id) ?? new Set<string>();
+    tokens.add(comment.body.slice(span.start_offset, span.end_offset));
+    historicalTokens.set(span.user_id, tokens);
+  }
+  await validateMentions(client, comment.project_id, comment.board_id, validated.body, mentions, historicalTokens);
 
   const now = new Date();
   const nowIso = now.toISOString();
@@ -555,6 +588,10 @@ export async function editComment(
       [mentionId, commentId, m.userId, m.start, m.end, nowIso],
     );
   }
+
+  await redactEditedCommentCopies(client, {
+    commentId, cardId: comment.card_id, projectId: comment.project_id, workspaceId: comment.workspace_id,
+  });
 
   // 7. Activity log fact
   await recordActivity(client, {
@@ -607,6 +644,7 @@ export async function deleteComment(
   expectedVersion: number,
   actorId: string,
 ): Promise<{ success: true; id: string; version: number }> {
+  await lockWritableCommentContext(client,commentId,actorId);
   // 1. Fetch comment with row lock
   const commentRes = await client.query<{
     id: string;
@@ -624,7 +662,7 @@ export async function deleteComment(
      FROM comments c
      JOIN cards cd ON c.card_id = cd.id
      WHERE c.id = $1
-     FOR UPDATE`,
+     FOR UPDATE OF c`,
     [commentId],
   );
 
@@ -676,6 +714,9 @@ export async function deleteComment(
 
   // Redact any mention spans associated with this comment
   await client.query(`DELETE FROM comment_mentions WHERE comment_id = $1`, [commentId]);
+
+  await redactCommentCopies(client, { commentId, cardId:comment.card_id,
+    projectId:comment.project_id, workspaceId:comment.workspace_id });
 
   const newVersion = updateRes.rows[0]!.version;
 

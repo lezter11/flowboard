@@ -1,0 +1,214 @@
+
+> @flowboard/contracts@0.3.0 test
+> node --test --test-concurrency=1 test/*.test.ts
+
+✔ activity action names are unique lowercase snake_case (0.742167ms)
+✔ the names the UI was promised are present (0.136459ms)
+✔ normalizeNamePart trims, collapses whitespace, and bounds the length in code points (0.569375ms)
+✔ normalizeNamePart refuses control, zero-width, bidirectional and separator characters (0.063292ms)
+✔ saveNameInputSchema: both parts are required, stored normalised, and unknown fields are refused (1.136708ms)
+✔ saveNameResponseSchema and the session fields carry the name state (1.085667ms)
+✔ POST /api/v1/projects input refuses a workspace id: the caller never chooses a workspace (3.076625ms)
+✔ QUOTA_EXCEEDED details carry scope, limit, optional current, and remedy (0.656125ms)
+✔ session limits and the isOwned flag are optional and additive (1.672834ms)
+✔ board create accepts an optional description up to 2000 characters (1.59975ms)
+✔ board update needs at least one of name or description; null clears the description (0.392541ms)
+✔ board read model accepts description as a string, null or absent (0.490625ms)
+✔ project update accepts defaultBoardId as an id or null, and at least one field (0.301333ms)
+✔ project read model accepts defaultBoardId as an id, null or absent (0.361083ms)
+▶ Contracts Schema Validation Tests
+  ▶ Gregorian Date Validation
+    ✔ validates leap years and non-leap years accurately (0.313541ms)
+    ✔ parses valid date-only strings and rejects invalid ones via Zod (0.705584ms)
+  ✔ Gregorian Date Validation (1.286792ms)
+  ▶ UTC ISO Timestamps
+    ✔ accepts UTC timestamps ending in Z with ISO representation (0.086208ms)
+    ✔ rejects timestamps with local timezone offsets or missing Z (0.099375ms)
+  ✔ UTC ISO Timestamps (0.24625ms)
+  ▶ Idempotency Key Validation
+    ✔ accepts valid ASCII keys between 16 and 128 characters (0.090041ms)
+    ✔ rejects short, long, or non-ASCII / forbidden characters (0.118667ms)
+  ✔ Idempotency Key Validation (0.262208ms)
+  ▶ Standard Error Codes and Envelopes
+    ✔ validates all canonical error codes (0.082ms)
+    ✔ validates standard error envelope (1.097167ms)
+    ✔ validates mutation responses with receipts and replayed boolean (0.369709ms)
+  ✔ Standard Error Codes and Envelopes (1.621333ms)
+  ▶ Auth and Session Schemas
+    ✔ validates GetSessionResponse structure (1.5095ms)
+    ✔ validates LogoutResponse structure (0.135833ms)
+  ✔ Auth and Session Schemas (1.684625ms)
+  ▶ PersonDisplay Validation
+    ✔ validates active project reader display identity (0.244583ms)
+    ✔ permits null avatarUrl and inactive project status (0.033375ms)
+  ✔ PersonDisplay Validation (0.303792ms)
+  ▶ Workspace Schemas
+    ✔ validates workspace creation input (20.66275ms)
+    ✔ rejects empty or whitespace-only name (0.357208ms)
+    ✔ requires at least one field in workspace update (0.257417ms)
+    ✔ validates ownership transfer input (0.127625ms)
+  ✔ Workspace Schemas (21.467209ms)
+  ▶ Project & Membership Schemas
+    ✔ validates project creation and update inputs (0.389209ms)
+    ✔ validates member role and status updates (0.124292ms)
+  ✔ Project & Membership Schemas (0.540334ms)
+  ▶ Invitations Schemas
+    ✔ normalizes email to lowercase and validates role (0.191042ms)
+    ✔ validates accept invitation token bounds (0.110208ms)
+  ✔ Invitations Schemas (0.328375ms)
+  ▶ Board and Column Schemas
+    ✔ validates column creation and category enum (0.151041ms)
+    ✔ enforces column reordering limits (up to 12 columns, unique IDs) (0.217542ms)
+    ✔ validates placement query rules (anchorCardId required for before/after) (0.1445ms)
+  ✔ Board and Column Schemas (0.548625ms)
+  ▶ Card Schemas
+    ✔ validates card creation input with defaults (0.22075ms)
+    ✔ rejects card with duplicate assignees or >20 assignees (0.138041ms)
+    ✔ validates card movement input with nullable neighbors (0.171416ms)
+  ✔ Card Schemas (0.562208ms)
+  ▶ Discussion & Mentions
+    ✔ validates non-overlapping mentions and defaults empty list (0.3465ms)
+    ✔ rejects overlapping mention spans (0.051958ms)
+    ✔ rejects mention where start >= end (0.0505ms)
+  ✔ Discussion & Mentions (0.477792ms)
+  ▶ Image Upload Schemas
+    ✔ validates image upload request within limits (0.223583ms)
+    ✔ B-14: refuses a filename with a slash, a backslash or a control character, and keeps ordinary names (0.296709ms)
+    ✔ rejects image exceeding 10 MiB limit or unsupported content type (0.165167ms)
+  ✔ Image Upload Schemas (0.730041ms)
+  ▶ Trash and Exact 24h Window
+    ✔ validates soft-delete and restore inputs (0.215333ms)
+    ✔ validates trash row representation with blocked reason (0.371458ms)
+    ✔ validates special trash error detail schemas (0.217708ms)
+  ✔ Trash and Exact 24h Window (0.838208ms)
+  ▶ Excel Import Schemas
+    ✔ validates commit import input and status mapping inputs (0.994ms)
+    ✔ validates import status and rows (1.004458ms)
+  ✔ Excel Import Schemas (2.034542ms)
+  ▶ Board Snapshot Data Schema
+    ✔ validates complete board snapshot with totals, columns, and people (1.24325ms)
+  ✔ Board Snapshot Data Schema (1.265959ms)
+  ▶ OpenAPI Metadata and Routes Catalog
+    ✔ has valid OpenAPI 3.1 metadata and comprehensive route catalog (0.038167ms)
+  ✔ OpenAPI Metadata and Routes Catalog (0.052334ms)
+  ▶ Validation Error Helper
+    ✔ formats error issues cleanly with parseOrThrow (0.29275ms)
+    ✔ returns structured safeParse result on success and failure (0.1185ms)
+  ✔ Validation Error Helper (0.458334ms)
+✔ Contracts Schema Validation Tests (35.126292ms)
+✔ discussion spans use UTF16, normalize trim once, and refuse split/removed characters (1.929708ms)
+✔ activity bounds validate calendar/ranges, preserve date-only midnight and normalize offset instants (2.167459ms)
+✔ notification query uses explicit boolean text and bounds rather than truthy coercion (0.269709ms)
+▶ invitation email: table of accepted and refused addresses
+  ✔ accepts plain address (0.921583ms)
+  ✔ accepts dotted local part and subdomains (0.065958ms)
+  ✔ accepts plus tag (0.38525ms)
+  ✔ accepts every atext symbol is allowed (0.059417ms)
+  ✔ accepts punycode label (0.048833ms)
+  ✔ accepts local part of exactly 64 characters (0.046625ms)
+  ✔ refuses CRLF header injection (0.226208ms)
+  ✔ refuses trailing LF (0.0565ms)
+  ✔ refuses tab inside local part (0.068334ms)
+  ✔ refuses NUL byte (0.077042ms)
+  ✔ refuses space inside local part (0.0465ms)
+  ✔ refuses space inside domain (0.037833ms)
+  ✔ refuses display name with angle brackets (0.030708ms)
+  ✔ refuses bare angle brackets (0.029458ms)
+  ✔ refuses quoted local part (0.035084ms)
+  ✔ refuses comma (0.043458ms)
+  ✔ refuses semicolon (0.031917ms)
+  ✔ refuses colon (0.028833ms)
+  ✔ refuses parentheses (0.022792ms)
+  ✔ refuses backslash (0.032333ms)
+  ✔ refuses accented local part (0.026292ms)
+  ✔ refuses accented domain (0.021875ms)
+  ✔ refuses empty (0.028708ms)
+  ✔ refuses no at sign (0.020458ms)
+  ✔ refuses empty local part (0.030291ms)
+  ✔ refuses empty domain (0.017958ms)
+  ✔ refuses two at signs (0.016041ms)
+  ✔ refuses two at signs, mid string (0.016167ms)
+  ✔ refuses domain without a TLD (0.017208ms)
+  ✔ refuses one-letter TLD (0.017917ms)
+  ✔ refuses numeric TLD (0.018583ms)
+  ✔ refuses label starts with a hyphen (0.018958ms)
+  ✔ refuses label ends with a hyphen (0.01725ms)
+  ✔ refuses leading dot in local part (0.01625ms)
+  ✔ refuses trailing dot in local part (0.017ms)
+  ✔ refuses consecutive dots in local part (0.019208ms)
+  ✔ refuses leading dot in domain (0.020083ms)
+  ✔ refuses trailing dot in domain (0.020375ms)
+  ✔ refuses consecutive dots in domain (0.017083ms)
+  ✔ refuses local part of 65 characters (0.019125ms)
+  ✔ refuses domain over 255 characters (0.071459ms)
+  ✔ refuses label over 63 characters (0.030792ms)
+  ✔ refuses total over 254 characters (0.033167ms)
+✔ invitation email: table of accepted and refused addresses (3.822042ms)
+✔ invitation email: trim and lowercase still apply, and the stored value is normalised (0.052083ms)
+✔ invitation email: a refused address reports the documented message (0.057791ms)
+✔ session response accepts lastLocation as null, absent or a project/board pair (1.547416ms)
+✔ last-location input is strict: unknown fields and empty ids are refused (0.231958ms)
+✖ generated OpenAPI artifact is deterministic and matches current schema/operation bindings (4.817792ms)
+✔ request fixtures are checked by shared Zod and the emitted structural JSON Schema (6.2525ms)
+✔ response fixtures reject missing/wrong fields in emitted JSON Schema; source wire projections remain distinct (13.633542ms)
+✔ fixtures preserve distinct sibling project membership instead of one global people grant (0.134375ms)
+✔ retired paths, session/PAT variants, empty logout and binary reports are explicit in generated operations (0.529ms)
+✔ board archive query uses explicit literal false input rather than truthy string coercion (0.747542ms)
+✔ project links accept only https URLs without credentials or whitespace (0.657542ms)
+✔ project link input needs a title of 1-100 characters and a safe url (0.833833ms)
+✔ project update: brief up to 5000, links up to 10, and at least one field (0.51725ms)
+✔ overview response accepts the counts shape and refuses more than 10 activity rows (0.963625ms)
+▶ Personal Access Token Schemas
+  ✔ defaults to finite 30-day expiry and rejects unknown fields/non-finite or oversized values (1.256042ms)
+  ✔ createTokenInputSchema: validates valid inputs (0.292125ms)
+  ✔ createTokenInputSchema: rejects empty name (0.3205ms)
+  ✔ createTokenInputSchema: rejects empty scopes array (0.075791ms)
+  ✔ createTokenInputSchema: rejects duplicate scopes (0.090041ms)
+  ✔ createTokenInputSchema: rejects invalid scope (0.136291ms)
+  ✔ tokenSummarySchema: parses valid summary object (0.893875ms)
+  ✔ createdTokenResponseSchema: validates data envelope with raw token (0.250708ms)
+✔ Personal Access Token Schemas (3.898292ms)
+ℹ tests 126
+ℹ suites 19
+ℹ pass 125
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1318.900959
+
+✖ failing tests:
+
+test at test/openapi.test.ts:15:1
+✖ generated OpenAPI artifact is deterministic and matches current schema/operation bindings (4.817792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  ... Skipped lines
+  
+    '{\n' +
+      '  "openapi": "3.1.0",\n' +
+      '  "info": {\n' +
+      '    "title": "Flowboard API",\n' +
+      '    "version": "0.3.0",\n' +
+  ...
+      '                  "type": "string"\n' +
+  +   '             '... 831440 more characters
+  -   '             '... 832126 more characters
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/contracts/test/openapi.test.ts:17:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '{\n  "openapi": "3.1.0",\n  "info": {\n    "title": "Flowboard API",\n    "version": "0.3.0",\n    "description": "Current mounted Node/Worker HTTP operations. Project membership plus board grants protect board-derived data; six bearer capabilities are an explicit subset of session authority."\n  },\n  "servers": [\n    {\n      "url": "/",\n      "description": "Current origin; paths include /api/v1 or root health namespace."\n    }\n  ],\n  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",\n  "paths": {\n    "/api/v1/activity/health": {\n      "get": {\n        "operationId": "get_api_v1_activity_health",\n        "summary": "Liveness without private data",\n        "description": "Liveness without private data",\n        "security": [],\n        "parameters": [],\n        "responses": {\n          "200": {\n            "description": "Liveness without private data",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Assigned by shared middleware when app initialization succeeds."\n              }\n            },\n            "content": {\n              "application/json": {\n                "schema": {\n                  "$ref": "#/components/schemas/Health"\n                }\n              }\n            }\n          },\n          "default": {\n            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                }\n              },\n              "Retry-After": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "429 and retryable conflicts when supplied."\n              }\n            },\n            "content": {\n              "application/json": {\n                "schema": {\n                  "anyOf": [\n                    {\n                      "$ref": "#/components/schemas/ErrorEnvelope"\n                    },\n                    {\n                      "$ref": "#/components/schemas/WorkerBootstrapError"\n                    }\n                  ]\n                }\n              }\n            }\n          }\n        },\n        "x-minimum-project-role": "authenticated",\n        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",\n        "x-runtime-source": "apps/api/src/http/routes/activity.ts",\n        "x-lifecycle": "active",\n        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."\n      }\n    },\n    "/api/v1/auth/google": {\n      "get": {\n        "operationId": "get_api_v1_auth_google",\n        "summary": "Begin Google OAuth; optional safe same-app next path",\n        "description": "Begin Google OAuth; optional safe same-app next path",\n        "security": [],\n        "parameters": [\n          {\n            "name": "next",\n            "in": "query",\n            "required": false,\n            "schema": {\n              "type": "string"\n            }\n          }\n        ],\n        "responses": {\n          "302": {\n            "description": "Begin Google OAuth; optional safe same-app next path",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Assigned by shared middleware when app initialization succeeds."\n              },\n              "Location": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Authorization provider or safe frontend landing/sign-in destination."\n              }\n            }\n          },\n          "default": {\n            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                }\n              },\n              "Retry-After": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "429 and retryable conflicts when supplied."\n              }\n            },\n            "content": {\n              "application/json": {\n                "schema": {\n                  "anyOf": [\n                    {\n                      "$ref": "#/components/schemas/ErrorEnvelope"\n                    },\n                    {\n                      "$ref": "#/components/schemas/WorkerBootstrapError"\n                    }\n                  ]\n                }\n              }\n            }\n          }\n        },\n        "x-minimum-project-role": "authenticated",\n        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",\n        "x-runtime-source": "apps/api/src/http/routes/google-auth.ts",\n        "x-lifecycle": "active",\n        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."\n      }\n    },\n    "/api/v1/auth/google/callback": {\n      "get": {\n        "operationId": "get_api_v1_auth_google_callback",\n        "summary": "Verify provider/state and issue session; failures redirect to fixed sign-in state",\n        "description": "Verify provider/state and issue session; failures redirect to fixed sign-in state",\n        "security": [],\n        "parameters": [\n          {\n            "name": "code",\n            "in": "query",\n            "required": false,\n            "schema": {\n              "type": "string"\n            }\n          },\n          {\n            "name": "state",\n            "in": "query",\n            "required": false,\n            "schema": {\n              "type": "string"\n            }\n          },\n          {\n            "name": "error",\n            "in": "query",\n            "required": false,\n            "schema": {\n              "type": "string"\n            }\n          }\n        ],\n        "responses": {\n          "302": {\n            "description": "Verify provider/state and issue session; failures redirect to fixed sign-in state",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Assigned by shared middleware when app initialization succeeds."\n              },\n              "Location": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Authorization provider or safe frontend landing/sign-in destination."\n              }\n            }\n          },\n          "default": {\n            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                }\n              },\n              "Retry-After": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "429 and retryable conflicts when supplied."\n              }\n            },\n            "content": {\n              "application/json": {\n                "schema": {\n                  "anyOf": [\n                    {\n                      "$ref": "#/components/schemas/ErrorEnvelope"\n                    },\n                    {\n                      "$ref": "#/components/schemas/WorkerBootstrapError"\n                    }\n                  ]\n                }\n              }\n            }\n          }\n        },\n        "x-minimum-project-role": "authenticated",\n        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",\n        "x-runtime-source": "apps/api/src/http/routes/google-auth.ts",\n        "x-lifecycle": "active",\n        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."\n      }\n    },\n    "/api/v1/auth/google/start": {\n      "get": {\n        "operationId": "get_api_v1_auth_google_start",\n        "summary": "Begin Google OAuth; optional safe same-app next path",\n        "description": "Begin Google OAuth; optional safe same-app next path",\n        "security": [],\n        "parameters": [\n          {\n            "name": "next",\n            "in": "query",\n            "required": false,\n            "schema": {\n              "type": "string"\n            }\n          }\n        ],\n        "responses": {\n          "302": {\n            "description": "Begin Google OAuth; optional safe same-app next path",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Assigned by shared middleware when app initialization succeeds."\n              },\n              "Location": {\n                "schema": {\n                  "type": "string"\n             '... 831440 more characters,
+    expected: '{\n  "openapi": "3.1.0",\n  "info": {\n    "title": "Flowboard API",\n    "version": "0.3.0",\n    "description": "Current mounted Node/Worker HTTP operations. Project membership plus board grants protect board-derived data; six bearer capabilities are an explicit subset of session authority."\n  },\n  "servers": [\n    {\n      "url": "/",\n      "description": "Current origin; paths include /api/v1 or root health namespace."\n    }\n  ],\n  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",\n  "paths": {\n    "/api/v1/activity/health": {\n      "get": {\n        "operationId": "get_api_v1_activity_health",\n        "summary": "Liveness without private data",\n        "description": "Liveness without private data",\n        "security": [],\n        "parameters": [],\n        "responses": {\n          "200": {\n            "description": "Liveness without private data",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Assigned by shared middleware when app initialization succeeds."\n              }\n            },\n            "content": {\n              "application/json": {\n                "schema": {\n                  "$ref": "#/components/schemas/Health"\n                }\n              }\n            }\n          },\n          "default": {\n            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                }\n              },\n              "Retry-After": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "429 and retryable conflicts when supplied."\n              }\n            },\n            "content": {\n              "application/json": {\n                "schema": {\n                  "anyOf": [\n                    {\n                      "$ref": "#/components/schemas/ErrorEnvelope"\n                    },\n                    {\n                      "$ref": "#/components/schemas/WorkerBootstrapError"\n                    }\n                  ]\n                }\n              }\n            }\n          }\n        },\n        "x-minimum-project-role": "authenticated",\n        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",\n        "x-runtime-source": "apps/api/src/http/routes/activity.ts",\n        "x-lifecycle": "active",\n        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."\n      }\n    },\n    "/api/v1/auth/google": {\n      "get": {\n        "operationId": "get_api_v1_auth_google",\n        "summary": "Begin Google OAuth; optional safe same-app next path",\n        "description": "Begin Google OAuth; optional safe same-app next path",\n        "security": [],\n        "parameters": [\n          {\n            "name": "next",\n            "in": "query",\n            "required": false,\n            "schema": {\n              "type": "string"\n            }\n          }\n        ],\n        "responses": {\n          "302": {\n            "description": "Begin Google OAuth; optional safe same-app next path",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Assigned by shared middleware when app initialization succeeds."\n              },\n              "Location": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Authorization provider or safe frontend landing/sign-in destination."\n              }\n            }\n          },\n          "default": {\n            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                }\n              },\n              "Retry-After": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "429 and retryable conflicts when supplied."\n              }\n            },\n            "content": {\n              "application/json": {\n                "schema": {\n                  "anyOf": [\n                    {\n                      "$ref": "#/components/schemas/ErrorEnvelope"\n                    },\n                    {\n                      "$ref": "#/components/schemas/WorkerBootstrapError"\n                    }\n                  ]\n                }\n              }\n            }\n          }\n        },\n        "x-minimum-project-role": "authenticated",\n        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",\n        "x-runtime-source": "apps/api/src/http/routes/google-auth.ts",\n        "x-lifecycle": "active",\n        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."\n      }\n    },\n    "/api/v1/auth/google/callback": {\n      "get": {\n        "operationId": "get_api_v1_auth_google_callback",\n        "summary": "Verify provider/state and issue session; failures redirect to fixed sign-in state",\n        "description": "Verify provider/state and issue session; failures redirect to fixed sign-in state",\n        "security": [],\n        "parameters": [\n          {\n            "name": "code",\n            "in": "query",\n            "required": false,\n            "schema": {\n              "type": "string"\n            }\n          },\n          {\n            "name": "state",\n            "in": "query",\n            "required": false,\n            "schema": {\n              "type": "string"\n            }\n          },\n          {\n            "name": "error",\n            "in": "query",\n            "required": false,\n            "schema": {\n              "type": "string"\n            }\n          }\n        ],\n        "responses": {\n          "302": {\n            "description": "Verify provider/state and issue session; failures redirect to fixed sign-in state",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Assigned by shared middleware when app initialization succeeds."\n              },\n              "Location": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Authorization provider or safe frontend landing/sign-in destination."\n              }\n            }\n          },\n          "default": {\n            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                }\n              },\n              "Retry-After": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "429 and retryable conflicts when supplied."\n              }\n            },\n            "content": {\n              "application/json": {\n                "schema": {\n                  "anyOf": [\n                    {\n                      "$ref": "#/components/schemas/ErrorEnvelope"\n                    },\n                    {\n                      "$ref": "#/components/schemas/WorkerBootstrapError"\n                    }\n                  ]\n                }\n              }\n            }\n          }\n        },\n        "x-minimum-project-role": "authenticated",\n        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",\n        "x-runtime-source": "apps/api/src/http/routes/google-auth.ts",\n        "x-lifecycle": "active",\n        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."\n      }\n    },\n    "/api/v1/auth/google/start": {\n      "get": {\n        "operationId": "get_api_v1_auth_google_start",\n        "summary": "Begin Google OAuth; optional safe same-app next path",\n        "description": "Begin Google OAuth; optional safe same-app next path",\n        "security": [],\n        "parameters": [\n          {\n            "name": "next",\n            "in": "query",\n            "required": false,\n            "schema": {\n              "type": "string"\n            }\n          }\n        ],\n        "responses": {\n          "302": {\n            "description": "Begin Google OAuth; optional safe same-app next path",\n            "headers": {\n              "X-Request-Id": {\n                "schema": {\n                  "type": "string"\n                },\n                "description": "Assigned by shared middleware when app initialization succeeds."\n              },\n              "Location": {\n                "schema": {\n                  "type": "string"\n             '... 832126 more characters,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/contracts
+npm error workspace @flowboard/contracts@0.3.0
+npm error location /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/contracts
+npm error command failed
+npm error command sh -c node --test --test-concurrency=1 test/*.test.ts

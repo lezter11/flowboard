@@ -1,0 +1,37 @@
+✔ B-7 XLSX: a bomb is stopped by the decompressor cap, not after allocation (33.451208ms)
+✔ B-7 XLSX: an honest declared size over the remaining budget is refused before inflation (36.6285ms)
+✔ B-7 XLSX: a garbage payload with an oversize declared size reports the size, not a decode error (0.120166ms)
+✔ B-7 XLSX: a stored (uncompressed) member is capped by the same budget (5.963ms)
+✔ B-7 XLSX: a corrupt deflate stream still reports DECOMPRESSION_FAILED (1.887792ms)
+▶ B-7 XLSX import: callers without an import right never reach the parser
+  ✔ no grant gets 404 before any parsing (the bytes are not a workbook) (1.518375ms)
+  ✔ a viewer with a grant gets 403 before any parsing (1.161583ms)
+  ✔ a member with a grant gets 403 before any parsing (1.055ms)
+  ✔ an unknown board gets 404 before any parsing (1.014791ms)
+  ✔ a no-grant caller sending a bomb never inflates it (38.008125ms)
+  ✔ an authorised manager sending a bomb is stopped by the parser cap (34.933ms)
+  ✔ an authorised manager with a non-workbook reaches the parser and gets its error (1.738583ms)
+✔ B-7 XLSX import: callers without an import right never reach the parser (225.507416ms)
+▶ IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite
+  ✔ 0. Setup Workspace, Projects, Members and Boards (132.641333ms)
+  ✔ IMP-01: Download Excel template with versioned 7-column schema (44.26425ms)
+  ✔ IMP-02: Role authorization and target boundaries (Owner/Manager pass, Member/Viewer 403, Outsider 404) (26.752375ms)
+  ✔ IMP-03: Security boundaries: formulas, macros, external links, OLE, XXE, row limits (21.143625ms)
+  ✔ IMP-04: Header validation, leading zeros, numeric rejection, date systems, assignee resolution (53.664792ms)
+  ✔ IMP-05a: a Blocked status maps to the default Blocked column on a new board (case-insensitive) (16.103333ms)
+  ✔ IMP-05: Dry run preview, pagination, unmapped status update, and cancel before commit (38.95025ms)
+  ✔ IMP-06: Atomic confirmation, OCC guards, role re-check, and single transaction commit (51.280583ms)
+  ✔ IMP-07: Duplicate skips unchanged row, conflicts on changed payload, and protects 24-hour trash (26.889125ms)
+  ✔ IMP-09: Safe CSV report download with formula injection neutralization (2.66975ms)
+  ✔ Adversarial: Revoked manager authority race between preview and commit returns 403 FORBIDDEN (14.3955ms)
+  ✔ Adversarial: Removed assignee between preview and commit returns 409 PREVIEW_STALE (20.444459ms)
+  ✔ IMP-11: Batch and card provenance activity log links (0.330083ms)
+✔ IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite (452.506833ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 27
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 11077.498

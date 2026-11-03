@@ -1,0 +1,71 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "BRD-01",
+    "BRD-02",
+    "BRD-03",
+    "BRD-04",
+    "BRD-05",
+    "BRD-06",
+    "BRD-07",
+    "BRD-08"
+  ],
+  "risk": "high",
+  "baselineRevision": "917706ae0433df471c72736be4d548eb022236c4",
+  "mandatoryCriteria": [
+    "BRD-01: Owner/manager creates a board with default columns atomically inside an authorized project.",
+    "BRD-02: List only currently accessible project boards; Owner alone edits board name/description with expected version without breaking card IDs/links. Metadata-only machine credentials receive only their explicitly allowed fields.",
+    "BRD-03: Metadata, counts and first column pages share one snapshot; caps/cursors are explicit and all filters count beyond the visible page.",
+    "BRD-04: Owner/manager configures unique normalized names, colors and todo/active/done categories with expected board version.",
+    "BRD-05: Pointer and click/tap/keyboard ordering persist atomically; missing/duplicate/foreign IDs and stale revisions fail clearly.",
+    "BRD-06: Owner/manager cannot remove final column or any column referenced by active/restorable cards; no silent card deletion/move occurs.",
+    "BRD-07: Load more retains canonical order without duplicates; empty column and empty filtered column are distinct and stale cursors refresh.",
+    "BRD-08: Owner/manager makes board read-only or reopens it; no card is deleted and pending trash deadlines continue.",
+    "Mounted operations enforce current identity, role/target authority, project and board grants, resource ancestry, lifecycle and receipt replay boundaries; negative cases cannot expose data or write effects.",
+    "Applicable writes preserve state/version, minimal receipt, activity and outbox atomically; real separate-connection tests cover the feature races and retention limits.",
+    "Every listed backend feature requires a fresh independent review of its complete reachable frozen source, fixed weights/category minima, unrounded score strictly greater than8.5, no blocker and actual passing checks. Builders cannot approve their own work.",
+    "Required UI and integration phases need actual test/browser evidence with current backend/UI hash bindings; source or API tests alone cannot prove UI or real-provider/hosted acceptance. Do not relabel missing mandatory behavior deferred to close a feature."
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "typecheck-web": "npm run typecheck:web",
+    "api": "npm test --workspace @flowboard/api",
+    "contracts": "npm test --workspace @flowboard/contracts",
+    "web": "npm test --workspace @flowboard/web",
+    "mcp": "npm test --workspace @flowboard/mcp",
+    "build-worker": "npm run build --workspace @flowboard/api",
+    "build-web": "npm run build:web",
+    "build-mcp": "npm run build --workspace @flowboard/mcp",
+    "mcp-artifact": "npm run test:artifact --workspace @flowboard/mcp",
+    "openapi-staleness": "npm run openapi:check",
+    "embedded-migration-parity": "npm run migrations:embed:check",
+    "browser-integration": "npm run test:browser",
+    "mcp-integration": "npm run test:mcp-integration"
+  },
+  "scopeAndExclusions": "Current listed product features and reachable shared dependencies; PostgreSQL Node/Worker and Next static UI. Review alone does not approve unexecuted UI/hosted/provider/deployment behavior. Real OAuth must not be replaced with an email-only session. Direct UAT after all local gates pass; hosted checks remain UAT pending until run. No dev/production. Reconciled retirements preserve stableIDs and precede scoring. No real credentials or live-user data in tests/logs.",
+  "releaseSequenceClarification": "User explicitly clarified2026-11-03: all local gates pass and source freezes, deploy UAT directly, then finish hosted checks. Host-dependent checks remain UAT pending and are not falsely closed. No dev or production.",
+  "requiredTestsExpansion": {
+    "date": "2026-11-03",
+    "previousFileSHA256": "a3edffc0c6db729249df7aa040aa0da077ff2004b84d340c8601b41177920b01",
+    "previousRequiredTests": {
+      "typecheck": "npm run typecheck",
+      "typecheck-web": "npm run typecheck:web",
+      "api": "npm test --workspace @flowboard/api",
+      "contracts": "npm test --workspace @flowboard/contracts",
+      "web": "npm test --workspace @flowboard/web",
+      "mcp": "npm test --workspace @flowboard/mcp",
+      "build-worker": "npm run build --workspace @flowboard/api",
+      "build-web": "npm run build:web",
+      "build-mcp": "npm run build --workspace @flowboard/mcp",
+      "mcp-artifact": "npm run test:artifact --workspace @flowboard/mcp"
+    },
+    "addedRequiredTests": {
+      "openapi-staleness": "npm run openapi:check",
+      "embedded-migration-parity": "npm run migrations:embed:check",
+      "browser-integration": "npm run test:browser",
+      "mcp-integration": "npm run test:mcp-integration"
+    },
+    "reason": "Before final review/source freeze, explicitly require existing generated-contract parity, embedded-SQL parity and actual local browser/MCP integration commands. This adds checks without changing or weakening any acceptance statement or score threshold.",
+    "runnerEnvironment": "Runner must supply explicit disposable loopback PostgreSQL test URLs, NODE_ENV=test and the documented local browser executable/runtime; commands do not use production or hosted user data."
+  }
+}

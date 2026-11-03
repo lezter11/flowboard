@@ -348,14 +348,14 @@ test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Admini
     const sent = sentMail.find((m) => m.to === 'invitee-delivery@example.com');
     assert.ok(sent, 'mailer received the invitation');
     assert.match(sent!.text, /https:\/\/flowboard\.example\/invitation\?token=[0-9a-f]{64}/);
-    void invId;
 
     // 3. Verify no secret link is stored in outbox payload
     const client = await pool.connect();
     try {
-      // The receipt keeps only the provider id (B-14), so the row is the newest delivered invitation.
+      // The minimal receipt retains its trusted invitation association and provider id only.
       const outRes = await client.query<{ payload: any; status: string }>(
-        `SELECT payload, status FROM outbox WHERE event_type = 'invitation.created' AND status = 'delivered' ORDER BY created_at DESC LIMIT 1`,
+        `SELECT payload, status FROM outbox WHERE event_type = 'invitation.created' AND status = 'delivered'
+         AND payload->>'invitationId'=$1 ORDER BY created_at DESC LIMIT 1`, [invId],
       );
       assert.ok(outRes.rows.length >= 1);
       const outRow = outRes.rows[0]!;
@@ -363,7 +363,7 @@ test('ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Admini
       const payloadStr = JSON.stringify(outRow.payload);
       assert.ok(!payloadStr.includes('token='), 'Must not contain token');
       assert.ok(!payloadStr.includes('secret'), 'Must not contain secret');
-      assert.deepEqual(Object.keys(outRow.payload), ['providerMessageId'], 'the receipt holds only the provider id');
+      assert.deepEqual(outRow.payload, { invitationId: invId, providerMessageId: 'test-message' }, 'only the trusted association and provider receipt remain');
     } finally {
       client.release();
     }

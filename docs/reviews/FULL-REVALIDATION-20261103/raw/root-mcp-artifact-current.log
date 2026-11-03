@@ -1,0 +1,35 @@
+
+> @flowboard/mcp@0.2.0 test:artifact
+> node --test --test-concurrency=1 test/artifact.test.mjs
+
+✖ packed executable completes a real SDK handshake and calls metadata/search/create tools (860.403084ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1158.389625
+
+✖ failing tests:
+
+test at test/artifact.test.mjs:21:1
+✖ packed executable completes a real SDK handshake and calls metadata/search/create tools (860.403084ms)
+  Error: listen EPERM: operation not permitted 127.0.0.1
+      at Server.setupListenHandle [as _listen2] (node:net:1986:21)
+      at listenInCluster (node:net:2065:12)
+      at node:net:2274:7
+      at process.processTicksAndRejections (node:internal/process/task_queues:90:21) {
+    code: 'EPERM',
+    errno: -1,
+    syscall: 'listen',
+    address: '127.0.0.1'
+  }
+npm error Lifecycle script `test:artifact` failed with error:
+npm error code 1
+npm error path /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/mcp
+npm error workspace @flowboard/mcp@0.2.0
+npm error location /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/mcp
+npm error command failed
+npm error command sh -c node --test --test-concurrency=1 test/artifact.test.mjs

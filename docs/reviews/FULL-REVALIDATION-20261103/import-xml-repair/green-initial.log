@@ -1,0 +1,57 @@
+✔ XML repair: prior entity-like literal is decoded once (22.804167ms)
+✔ XML repair: prior inline rich text keeps every run (15.066209ms)
+✔ XML repair: prior UTF16 worksheet keeps its row (11.796709ms)
+✔ XML repair: legal single quoted attributes are recognized (9.197791ms)
+✔ XML repair: prior utf16-formula rejects safely (8.883ms)
+✔ XML repair: prior macro-content-type rejects safely (7.332ms)
+✔ XML repair: prior external-relationship rejects safely (7.629625ms)
+✔ XML repair: prior actual-image-package rejects safely (8.167833ms)
+✔ XML repair: prior invalid-numeric-entity rejects safely (4.582667ms)
+✔ XML repair: prior merged-data rejects safely (9.200833ms)
+✔ XML repair: prior xxe rejects safely (1.112708ms)
+✔ XML repair: prior formula rejects safely (8.43875ms)
+✖ XML repair: text leading zero IDs and description whitespace survive (0.463542ms)
+✔ XML repair: missing/malformed/row2 header <worksheet/> rejects (0.472959ms)
+✔ XML repair: missing/malformed/row2 header <worksheet><sheetData/></worksheet> rejects (0.402916ms)
+✔ XML repair: missing/malformed/row2 header <worksheet><sheetData></worksheet> rejects (0.284125ms)
+✔ XML repair: missing/malformed/row2 header <worksheet><sheetData><row r="2"><c r="A2" t= rejects (0.252375ms)
+✔ XML repair: invalid XML text "&#x110000;" rejects safely (0.291625ms)
+✔ XML repair: invalid XML text "&#0;" rejects safely (0.257791ms)
+✔ XML repair: invalid XML text "&#xD800;" rejects safely (0.248584ms)
+✔ XML repair: invalid XML text "&unknown;" rejects safely (0.271708ms)
+✔ XML repair: invalid XML text "&oops" rejects safely (0.265083ms)
+✔ XML repair: invalid XML text "\u0001" rejects safely (0.227375ms)
+✔ XML repair: mismatched and unsupported encoding declarations reject (0.496667ms)
+✔ XML repair: invalid UTF8 rejects instead of replacement-character corruption (0.590959ms)
+✔ XML repair: all XML parts reject hidden declarations including UTF16 (0.340542ms)
+✔ XML repair: actual supplied blank template is valid with zero domain rows (7.805458ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 26
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 280.195208
+
+✖ failing tests:
+
+test at apps/api/test/import-xml-parser.test.ts:20:1
+✖ XML repair: text leading zero IDs and description whitespace survive (0.463542ms)
+  Error [HttpError]: ZIP size or CRC integrity check failed.
+      at HttpError.unprocessable (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/http/errors.ts:151:12)
+      at invalidXml (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/import-xml.ts:16:76)
+      at unzipXlsx (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/excel-parser.ts:231:101)
+      at parseExcelWorkbook (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/excel-parser.ts:432:17)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:21:13)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12) {
+    res: undefined,
+    status: 422,
+    code: 'INVALID_WORKBOOK',
+    details: undefined,
+    [cause]: undefined
+  }

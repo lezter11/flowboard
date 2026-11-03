@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import test from 'node:test';
 import { fileURLToPath } from 'node:url';
 import pg from 'pg';
@@ -27,16 +27,17 @@ async function freshSchema() {
   };
 }
 
-test('B-7 migration 0015: 0001 to 0020 migrate clean from empty, and a second run changes nothing', async () => {
+test('B-7 migration 0015: every canonical migration installs from empty, and a second run changes nothing', async () => {
   const db = await freshSchema();
   try {
     await runMigrations(db.pool);
     const applied = await db.pool.query<{ version: string }>('SELECT version FROM schema_migrations ORDER BY version');
-    assert.equal(applied.rows.at(-1)!.version, '0020');
-    assert.equal(applied.rows.length, 20, 'migrations 0001 to 0020 are all recorded');
+    const expected = readdirSync(new URL('../../../database/migrations/', import.meta.url))
+      .filter(name => /^\d{4}_.*\.sql$/.test(name)).map(name => name.slice(0,4)).sort();
+    assert.deepEqual(applied.rows.map(row => row.version), expected, 'every real migration is recorded exactly once');
     await runMigrations(db.pool);
-    const again = await db.pool.query<{ n: string }>('SELECT COUNT(*)::text AS n FROM schema_migrations');
-    assert.equal(again.rows[0]!.n, '20');
+    const again = await db.pool.query<{ version: string }>('SELECT version FROM schema_migrations ORDER BY version');
+    assert.deepEqual(again.rows, applied.rows);
   } finally {
     await db.close();
   }

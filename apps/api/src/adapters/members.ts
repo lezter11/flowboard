@@ -7,7 +7,9 @@ import type {
   SessionActor,
 } from '@flowboard/contracts';
 import { getPool } from './postgres.ts';
-import { acquireWriteGrantLock } from './rbac.ts';
+import { acquireWriteGrantLock, acquireWritableProjectContextLock } from './rbac.ts';
+import { lockProjectQuota, countActiveMembers, countPendingInvitations, quotaExceeded } from './quotas.ts';
+import { DEFAULT_LIMITS, type Limits } from '../services/limits.ts';
 import { recordActivity } from './activity.ts';
 
 function isPool(target: pg.Pool | pg.ClientBase): target is pg.Pool {
@@ -22,6 +24,7 @@ export async function updateProjectMember(
   newRole: ProjectRole,
   newStatus: ProjectMemberStatus,
   expectedVersion: number,
+  limits: Limits = { ...DEFAULT_LIMITS },
 ): Promise<ProjectMember> {
   const pool = clientOrPool ?? getPool();
   let poolClient: pg.PoolClient | undefined;
@@ -38,6 +41,9 @@ export async function updateProjectMember(
     if (poolClient) {
       await client.query('BEGIN');
     }
+
+    // Quota locks precede all authorization, membership and receipt row locks.
+    await lockProjectQuota(client, projectId);
 
     // 1. Acquire write grant lock on actor (checks workspace ownership or holds FOR SHARE on actor's membership)
     const grant = await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
@@ -96,9 +102,22 @@ export async function updateProjectMember(
       }
     }
 
+    // An archived project still permits removing access, without changing the role.
+    if (newStatus !== 'removed' || newRole !== targetMember.role) {
+      await acquireWritableProjectContextLock(client, projectId);
+    }
+
     // 4. Optimistic concurrency version check
     if (targetMember.version !== expectedVersion) {
       throw HttpError.conflict('Member was concurrently updated. Refresh and try again.', 'STALE_VERSION');
+    }
+
+    if (targetMember.status !== 'active' && newStatus === 'active' && targetUserId !== grant.ownerId) {
+      const active = await countActiveMembers(client, projectId);
+      const pending = await countPendingInvitations(client, projectId);
+      if (active + pending >= limits.membersPerProject) {
+        throw quotaExceeded('members', limits.membersPerProject, pending > 0 ? 'revoke_invitation' : 'remove_member', active);
+      }
     }
 
     // 5. Update target member with OCC and role predicate for non-owners
@@ -132,6 +151,10 @@ export async function updateProjectMember(
         throw HttpError.forbidden('Project managers cannot modify other managers.', 'FORBIDDEN');
       }
       throw HttpError.conflict('Member was concurrently updated. Refresh and try again.', 'STALE_VERSION');
+    }
+
+    if (newStatus === 'removed') {
+      await revokeMemberInvitations(client, projectId, targetUserId, targetMember.workspace_id, actor.id);
     }
 
     // Project-scope events: only owner and managers read them in the Activity page. Recorded only
@@ -207,6 +230,9 @@ export async function removeProjectMember(
     if (poolClient) {
       await client.query('BEGIN');
     }
+
+    // Quota locks precede all authorization, membership and receipt row locks.
+    await lockProjectQuota(client, projectId);
 
     // 1. Acquire write grant lock on actor (checks workspace ownership or holds FOR SHARE on actor's membership)
     const grant = await acquireWriteGrantLock(client, projectId, actor.id, 'manager');
@@ -289,21 +315,7 @@ export async function removeProjectMember(
       throw HttpError.notFound('Member not found.', 'NOT_FOUND');
     }
 
-    // Look up target user's email and atomically revoke pending invitations for that email in this project
-    const userRes = await client.query<{ email: string }>(
-      'SELECT email FROM users WHERE id = $1',
-      [targetUserId],
-    );
-    const targetEmail = userRes.rows[0]?.email;
-    const revokedInvitations = targetEmail
-      ? await client.query<{ id: string; role: ProjectRole }>(
-        `UPDATE project_invitations
-         SET status = 'revoked', updated_at = NOW()
-         WHERE project_id = $1 AND LOWER(email) = LOWER($2) AND status = 'pending'
-         RETURNING id, role`,
-        [projectId, targetEmail],
-      )
-      : { rows: [] as { id: string; role: ProjectRole }[] };
+    await revokeMemberInvitations(client, projectId, targetUserId, targetMember.workspace_id, actor.id);
 
     const updated = updateRes.rows[0]!;
     await recordActivity(client, {
@@ -314,18 +326,6 @@ export async function removeProjectMember(
       action: 'member_removed',
       safeChanges: { userId: targetUserId, role: targetMember.role },
     });
-    // Invitations revoked as a side effect of removal are logged too, with no email.
-    for (const inv of revokedInvitations.rows) {
-      await recordActivity(client, {
-        workspaceId: targetMember.workspace_id,
-        projectId,
-        visibilityScope: 'project',
-        actorId: actor.id,
-        action: 'invitation_revoked',
-        safeChanges: { invitationId: inv.id, role: inv.role, reason: 'member_removed' },
-      });
-    }
-
     if (poolClient) {
       await client.query('COMMIT');
     }
@@ -352,5 +352,25 @@ export async function removeProjectMember(
     if (poolClient) {
       poolClient.release();
     }
+  }
+}
+
+/** Removal through either endpoint invalidates old invitations in the same transaction. */
+async function revokeMemberInvitations(
+  client: pg.ClientBase, projectId: string, targetUserId: string, workspaceId: string, actorId: string,
+): Promise<void> {
+  const user = await client.query<{ email: string }>('SELECT email FROM users WHERE id = $1', [targetUserId]);
+  const email = user.rows[0]?.email;
+  if (!email) return;
+  const revoked = await client.query<{ id: string; role: ProjectRole }>(
+    `UPDATE project_invitations SET status = 'revoked', updated_at = NOW()
+     WHERE project_id = $1 AND LOWER(email) = LOWER($2) AND status = 'pending'
+     RETURNING id, role`, [projectId, email],
+  );
+  for (const invitation of revoked.rows) {
+    await recordActivity(client, {
+      workspaceId, projectId, visibilityScope: 'project', actorId, action: 'invitation_revoked',
+      safeChanges: { invitationId: invitation.id, role: invitation.role, reason: 'member_removed' },
+    });
   }
 }

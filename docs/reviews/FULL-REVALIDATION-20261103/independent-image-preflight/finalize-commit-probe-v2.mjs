@@ -1,0 +1,31 @@
+import crypto from 'node:crypto';
+import { lifecycleFixture } from '../../../../apps/api/test/support/lifecycle-fixture.ts';
+import { createApp } from '../../../../apps/api/src/http/app.ts';
+import { MemoryStorageDriver,runWithStorageDriver } from '../../../../apps/api/src/adapters/storage.ts';
+import { SharpImageVerifier } from '../../../../apps/api/src/services/image-verifier-node.ts';
+import { imageFixture } from '../../../../apps/api/test/support/image-fixtures.ts';
+import { cleanupOrphanUploads } from '../../../../apps/api/src/adapters/images.ts';
+import { processPendingStorageDeletions } from '../../../../apps/api/src/services/trash-purge.ts';
+const cleanup=[];
+try {
+ const f=await lifecycleFixture({after:fn=>cleanup.push(fn)});
+ const storage=new MemoryStorageDriver();
+ const app=createApp(async()=>{},{pool:f.pool,storage,imageVerifier:new SharpImageVerifier(),rateLimiter:()=>({limit:async()=>({success:true})}),windowCounter:()=>({consume:async()=>({count:1,retryAfterSeconds:60})})});
+ const headers={cookie:`flowboard_session=${f.actors.owner.session.id}`,origin:'http://localhost','content-type':'application/json','idempotency-key':crypto.randomUUID()};
+ const row=imageFixture('png');
+ const stage=await app.request('http://localhost/api/v1/cards/card/image-uploads',{method:'POST',headers,body:JSON.stringify({filename:'synthetic.png',byteLength:row.bytes.length,contentType:row.contentType,sha256:crypto.createHash('sha256').update(row.bytes).digest('hex')})});
+ const id=(await stage.json()).data.id;
+ const put=await app.request(`http://localhost/api/v1/image-uploads/${id}/content`,{method:'PUT',headers,body:row.bytes});
+ const key=(await f.pool.query('SELECT staging_storage_key FROM card_image_uploads WHERE id=$1',[id])).rows[0].staging_storage_key;
+ await f.pool.query(`CREATE FUNCTION force_image_commit_failure() RETURNS trigger AS $$ BEGIN RAISE EXCEPTION 'synthetic finalize commit failure'; END $$ LANGUAGE plpgsql`);
+ await f.pool.query(`CREATE CONSTRAINT TRIGGER force_image_commit_failure_trigger AFTER INSERT ON card_images DEFERRABLE INITIALLY DEFERRED FOR EACH ROW EXECUTE FUNCTION force_image_commit_failure()`);
+ const fin=await app.request(`http://localhost/api/v1/image-uploads/${id}/finalize`,{method:'POST',headers:{...headers,'idempotency-key':crypto.randomUUID()}});
+ await f.pool.query('DROP TRIGGER force_image_commit_failure_trigger ON card_images');
+ const after={finalizeStatus:fin.status,response:await fin.json(),imageCount:(await f.pool.query('SELECT count(*) FROM card_images')).rows[0].count,pendingCount:(await f.pool.query('SELECT count(*) FROM pending_storage_deletions')).rows[0].count,uploadState:(await f.pool.query('SELECT state FROM card_image_uploads WHERE id=$1',[id])).rows[0].state,storedObjects:storage.size(),stagingPresent:!!await storage.get(key)};
+ const retry=await app.request(`http://localhost/api/v1/image-uploads/${id}/finalize`,{method:'POST',headers:{...headers,'idempotency-key':crypto.randomUUID()}});
+ after.retryStatus=retry.status;after.retryResponse=await retry.json();
+ await f.pool.query("UPDATE card_image_uploads SET expires_at=NOW()-INTERVAL '1 second' WHERE id=$1",[id]);
+ await runWithStorageDriver(storage,async()=>{await cleanupOrphanUploads(f.pool);await processPendingStorageDeletions(f.pool)});
+ after.storedObjectsAfterCleanup=storage.size();
+ console.log(JSON.stringify({schema:f.schema,stageStatus:stage.status,putStatus:put.status,after},null,2));
+} finally { for(const fn of cleanup.reverse())await fn(); }

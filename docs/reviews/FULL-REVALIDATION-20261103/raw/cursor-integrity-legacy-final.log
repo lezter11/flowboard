@@ -1,0 +1,158 @@
+▶ AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite
+  ✔ 0. Setup Workspace, Projects, Members and Initial Board Structure (136.370208ms)
+  ✔ AUD-01 & AUD-02: Card Activity Timeline and Movement History (65.653417ms)
+(node:9337) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+  ✔ AUD-03: Workspace Owner Cross-Project Activity & Sibling Privacy (24.294292ms)
+  ✔ AUD-04: Manager vs Member vs Viewer Audit Scopes (14.793458ms)
+  ✔ AUD-06: Append-only Immutability and Retention Redaction (4.766125ms)
+  ✔ NTF-01: Durable In-App Mention Inbox & Self-Mention Omission (27.609708ms)
+  ✖ NTF-02: Inbox Read State & Access Revocation Redaction (19.682042ms)
+  ✔ NTF-03: Outbox Leased Worker Processing, Idempotency & Quarantine (20.474083ms)
+  ✔ AUD-05: Lifecycle import and image events (31.123417ms)
+✖ AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite (347.62025ms)
+▶ B-9 mentions: only readers of the card may be mentioned; refusals do not reveal who exists
+  ✔ a viewer with a board grant can be mentioned and is notified (30.291416ms)
+  ✔ refuses a member with no board grant with 422 and writes nothing (9.150291ms)
+  ✔ refuses a removed member who once had a grant with 422 and writes nothing (8.682708ms)
+  ✔ refuses a user of another project with 422 and writes nothing (8.423292ms)
+  ✔ refuses a registered user who is not a member of the project with 422 and writes nothing (8.268292ms)
+  ✔ refuses an id that does not exist with 422 and writes nothing (7.864542ms)
+  ✔ the refusals for an existing non-reader and a missing id are identical (0.328333ms)
+  ✔ a self-mention is accepted and notifies nobody (11.632083ms)
+  ✔ an idempotent replay writes no second comment and no second notification (19.641167ms)
+✔ B-9 mentions: only readers of the card may be mentioned; refusals do not reveal who exists (137.210917ms)
+▶ B-9 mentions: edits do not add notifications (v1 rule, documented)
+  ✔ an edit that adds a mention of a reader does not notify (docs/API.md: edits do not re-notify in v1) (12.051791ms)
+✔ B-9 mentions: edits do not add notifications (v1 rule, documented) (33.214666ms)
+▶ B-9 mentions: a notification is re-authorised at read time, so revoked readers lose the snippet and title
+  ✔ while the grant is held, the viewer sees the notification with the snippet (4.934792ms)
+  ✔ after the board grant is removed the notification disappears from the inbox (2.655292ms)
+  ✔ marking it read after revocation is refused and does not change the row (2.771917ms)
+  ✔ a removed membership hides it too, even with a grant row left behind (3.021625ms)
+  ✔ a trashed card hides the notification from its readers (5.946292ms)
+✔ B-9 mentions: a notification is re-authorised at read time, so revoked readers lose the snippet and title (42.2585ms)
+▶ mounted activity and notifications enforce board access
+  ✔ project and card activity hide hidden boards and unknown events before pagination (47.115958ms)
+  ✔ inbox hides hidden and legacy rows, and mark operations respect board access (18.631167ms)
+  ✔ revocation invalidates cursors and blocks reads and marks (18.587667ms)
+  ✔ notification read and grant revocation serialize (24.861667ms)
+  ✔ batch read commits before a waiting revocation, then later marks are denied (26.896042ms)
+✔ mounted activity and notifications enforce board access (350.85525ms)
+▶ board access comprehensive integration on isolated PostgreSQL
+  ✔ Criterion 1: Owner has implicit access to all boards; nonowner without grant gets 404 (25.273625ms)
+  ✔ Criterion 3: Only workspace Owner can administer board grants; reject self-elevation and foreign targets (19.327584ms)
+  ✔ Criterion 4: Project Manager can create a board; receives no implicit grant until Owner grants it (20.6515ms)
+  ✔ Criterion 2: Project removal atomically clears board grants; re-adding member does not resurrect grants (5.772458ms)
+  ✔ Criterion 7: Revocation advances access revision and rejects stale retries (13.731792ms)
+  ✔ Criterion 6: Activity scope & mention delivery isolate by board grant (8.629375ms)
+  ✔ Criterion 5: Project members with zero grants see empty board list; granted members see only granted boards (12.281666ms)
+  ✔ Criterion 1 & 9: Role action limits are strictly preserved on granted boards (38.27425ms)
+  ✔ Board-scoped people picker includes only people who can open that board (7.988084ms)
+  ✔ Mounted comment list requires the current board grant (11.233416ms)
+  ✔ Mounted card list holds its grant until delivery, then revocation denies the next read (44.815334ms)
+  ✔ Mounted comment list holds its grant until delivery, then revocation denies the next read (37.314292ms)
+  ✔ Mounted board snapshot holds its grant until delivery, then revocation denies the next read (39.130208ms)
+  ✔ Mounted placement read holds its grant until delivery, then Owner revocation denies the next read (35.18625ms)
+  ✔ Mounted project Trash read holds its board grant until delivery, then revocation denies the next read (42.965166ms)
+  ✔ Mounted project search counts an off-page granted board and holds that grant through delivery (51.514417ms)
+  ✔ Mounted project Trash read holds Manager access until delivery, then demotion denies the next read (25.3925ms)
+  ✔ Mounted My Tasks across two granted boards holds both grants through delivery (49.802333ms)
+  ✔ Scheduled mention cannot cross the outbox project boundary even for an Owner (3.532875ms)
+  ✔ Criterion 8: PostgreSQL DDL rollback safety in transactional migration block (3.723417ms)
+  ✔ Mounted trashed-card image list holds Manager authority through delivery during demotion (48.545416ms)
+  ✔ Mounted image content and thumbnail recheck Manager access after storage delivery (32.934792ms)
+  ✔ Mounted access summary holds Owner scope through board count during ownership transfer (32.625583ms)
+  ✔ Mounted people, directory and workspace project reads retain authorization through response assembly (100.750458ms)
+  ✔ Mounted project board list holds Owner authority through delivery during ownership transfer (31.505917ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ BAR7: Project, invitation, and membership authority and replay gates reject former owner after ownership transfer (63.751291ms)
+  ✔ Scheduled mention delivery fails closed when board_grants is missing (8.3805ms)
+✔ board access comprehensive integration on isolated PostgreSQL (1001.946083ms)
+▶ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite
+  ✔ COM-02: Viewers cannot post comments (403 FORBIDDEN) (118.812875ms)
+  ✔ COM-02: Outsiders receive 404 NOT_FOUND on comment post (3.792083ms)
+  ✔ COM-02: Comment post requires mandatory Idempotency-Key header (1.198958ms)
+  ✔ COM-02: Comment body validation (rejects empty or whitespace-only body) (1.404125ms)
+  ✔ COM-02: Member posts valid comment with outbox and activity_log (17.889125ms)
+  ✔ COM-02: Idempotency replay returns identical comment with replayed=true (9.883875ms)
+  ✔ COM-02: Idempotency conflict on same key with different body (5.34875ms)
+  ✔ COM-03: Rejects overlapping mention spans (1.252459ms)
+  ✔ COM-03: Rejects mentions of sibling project users or non-members (8.608125ms)
+  ✔ COM-03: Valid mentions notify teammates but self-mentions do NOT notify (15.769583ms)
+  ✔ COM-01: GET /cards/:cardId/comments returns chronological comments for readers (6.203083ms)
+  ✔ COM-01: Outsiders receive 404 NOT_FOUND on comment listing (2.214875ms)
+  ✔ COM-01: Comment cursor pages are card-scoped and stable across inserts (32.520125ms)
+  ✔ COM-04: Non-author cannot edit another user comment (403 FORBIDDEN) (5.828167ms)
+  ✔ COM-04: Edit comment OCC conflict returns 409 STALE_VERSION (6.47025ms)
+  ✔ COM-04: Author successfully edits comment and increments version (11.04475ms)
+  ✔ COM-05: Regular member cannot delete another member comment (403 FORBIDDEN) (14.2525ms)
+  ✔ COM-05: Workspace owner moderates and deletes comment (14.104667ms)
+  ✔ COM-05: Author deletes their own comment (8.647042ms)
+  ✔ DEL-01: Regular member/viewer cannot delete card (403 FORBIDDEN) (4.820792ms)
+  ✔ DEL-01: Delete card OCC check returns 409 STALE_VERSION (5.55225ms)
+  ✔ DEL-01: Manager soft-deletes card with 24-hour restore window and board version increment (9.493958ms)
+  ✔ DEL-08: Trashed card returns 404 NOT_FOUND on direct GET /cards/:cardId (0.976459ms)
+  ✔ DEL-08: Trashed card comments return 404 NOT_FOUND on GET /cards/:cardId/comments (2.356791ms)
+  ✔ COM-06: Posting comment on trashed card is rejected with 400 CARD_IS_TRASHED (2.6505ms)
+  ✔ DEL-02: Non-administrators (members/viewers) receive 403 on trash listing (4.39325ms)
+  ✔ DEL-02: Owner and Manager can list trash with canRestore and blockedReason details (15.378625ms)
+  ✔ DEL-03: Non-admin cannot restore card (403 FORBIDDEN) (2.430833ms)
+  ✔ DEL-03: Manager restores card before deadline with OCC checks (12.131959ms)
+  ✔ DEL-04: Destination missing requires explicit toColumnId (32.214542ms)
+  ✔ DEL-05: Expired restore returns HTTP 410 RESTORE_WINDOW_EXPIRED with details (17.069125ms)
+  ✔ Archived project and board reject card and comment writes atomically (31.869042ms)
+  ✔ Comment delete replay rechecks moderator authority after role demotion (21.299791ms)
+  ✔ Comment post retry respects current parent-card trash state (41.807875ms)
+  ✔ DEL-06: Background purge worker, private content redaction, and fenced winner race (101.963708ms)
+✔ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite (595.4055ms)
+▶ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite
+  ✔ PRJ-02.1: Workspace Owner sees all projects in workspace, paginated (93.208083ms)
+  ✔ PRJ-02.2: Cursor pagination for workspace projects (5.80425ms)
+  ✔ PRJ-02.3: Project Manager / Member sees only granted projects; sibling projects are hidden (9.104334ms)
+  ✔ PRJ-02.4: Outsider querying workspace projects gets 404 NOT_FOUND (sibling privacy) (1.780916ms)
+  ✔ PRJ-02.5: GET /api/v1/projects lists accessible projects across all workspaces for current session (4.390083ms)
+  ✔ PRJ-02.6: Malformed or bounded limit queries gracefully fall back to bounded limits without NaN SQL error (5.177ms)
+  ✔ PRJ-03.0: Missing or invalid Idempotency-Key returns 400 IDEMPOTENCY_KEY_REQUIRED (1.145125ms)
+  ✔ PRJ-03.1: Workspace Owner updates project name and description with OCC (11.16375ms)
+  ✔ PRJ-03.2: Project Manager updates project description with OCC (4.679458ms)
+  ✔ PRJ-03.3: Member & Viewer cannot update project settings -> 403 FORBIDDEN (3.417833ms)
+  ✔ PRJ-03.4: Sibling PM & Outsider get 404 NOT_FOUND on project settings (3.292625ms)
+  ✔ PRJ-03.5: Stale expectedVersion rejected with 409 STALE_VERSION (3.277875ms)
+  ✔ PRJ-05.1: Owner sees project members directory including workspace owner and active members (2.698708ms)
+  ✔ PRJ-05.2: Project Manager sees full directory; Member and Viewer are forbidden without email data (5.052625ms)
+  ✔ PRJ-05.3: Sibling project member & outsider get 404 NOT_FOUND on members directory (2.943125ms)
+  ✔ PRJ-05.4: Removed project member is excluded from directory and cannot access it (3.895125ms)
+✔ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite (163.804542ms)
+ℹ tests 115
+ℹ suites 0
+ℹ pass 113
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16512.829125
+
+✖ failing tests:
+
+test at apps/api/test/aud-ntf.test.ts:544:11
+✖ NTF-02: Inbox Read State & Access Revocation Redaction (19.682042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/aud-ntf.test.ts:602:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/aud-ntf.test.ts:544:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

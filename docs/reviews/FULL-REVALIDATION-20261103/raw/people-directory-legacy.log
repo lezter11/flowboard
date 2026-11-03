@@ -1,0 +1,58 @@
+▶ board access comprehensive integration on isolated PostgreSQL
+  ✔ Criterion 1: Owner has implicit access to all boards; nonowner without grant gets 404 (25.8895ms)
+  ✔ Criterion 3: Only workspace Owner can administer board grants; reject self-elevation and foreign targets (19.6275ms)
+  ✔ Criterion 4: Project Manager can create a board; receives no implicit grant until Owner grants it (19.714375ms)
+  ✔ Criterion 2: Project removal atomically clears board grants; re-adding member does not resurrect grants (5.487792ms)
+  ✔ Criterion 7: Revocation advances access revision and rejects stale retries (13.302667ms)
+  ✔ Criterion 6: Activity scope & mention delivery isolate by board grant (7.874792ms)
+  ✔ Criterion 5: Project members with zero grants see empty board list; granted members see only granted boards (11.064959ms)
+  ✔ Criterion 1 & 9: Role action limits are strictly preserved on granted boards (36.490792ms)
+  ✔ Board-scoped people picker includes only people who can open that board (7.327208ms)
+  ✔ Mounted comment list requires the current board grant (10.688209ms)
+  ✔ Mounted card list holds its grant until delivery, then revocation denies the next read (43.869541ms)
+  ✔ Mounted comment list holds its grant until delivery, then revocation denies the next read (34.326792ms)
+  ✔ Mounted board snapshot holds its grant until delivery, then revocation denies the next read (37.378458ms)
+  ✔ Mounted placement read holds its grant until delivery, then Owner revocation denies the next read (33.402333ms)
+  ✔ Mounted project Trash read holds its board grant until delivery, then revocation denies the next read (44.471625ms)
+  ✔ Mounted project search counts an off-page granted board and holds that grant through delivery (47.989708ms)
+  ✔ Mounted project Trash read holds Manager access until delivery, then demotion denies the next read (19.425875ms)
+  ✔ Mounted My Tasks across two granted boards holds both grants through delivery (46.5625ms)
+  ✔ Scheduled mention cannot cross the outbox project boundary even for an Owner (2.492125ms)
+  ✔ Criterion 8: PostgreSQL DDL rollback safety in transactional migration block (7.258792ms)
+  ✔ Mounted trashed-card image list holds Manager authority through delivery during demotion (41.202833ms)
+  ✔ Mounted image content and thumbnail recheck Manager access after storage delivery (28.148167ms)
+  ✔ Mounted access summary holds Owner scope through board count during ownership transfer (29.124ms)
+  ✔ Mounted people, directory and workspace project reads retain authorization through response assembly (70.494042ms)
+  ✔ Mounted project board list holds Owner authority through delivery during ownership transfer (28.558042ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ BAR7: Project, invitation, and membership authority and replay gates reject former owner after ownership transfer (43.196958ms)
+  ✔ Scheduled mention delivery fails closed when board_grants is missing (6.922417ms)
+✔ board access comprehensive integration on isolated PostgreSQL (973.549917ms)
+▶ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite
+  ✔ PRJ-02.1: Workspace Owner sees all projects in workspace, paginated (111.421792ms)
+  ✔ PRJ-02.2: Cursor pagination for workspace projects (5.129542ms)
+  ✔ PRJ-02.3: Project Manager / Member sees only granted projects; sibling projects are hidden (9.298708ms)
+  ✔ PRJ-02.4: Outsider querying workspace projects gets 404 NOT_FOUND (sibling privacy) (1.810167ms)
+  ✔ PRJ-02.5: GET /api/v1/projects lists accessible projects across all workspaces for current session (4.571042ms)
+  ✔ PRJ-02.6: Malformed or bounded limit queries gracefully fall back to bounded limits without NaN SQL error (6.283167ms)
+  ✔ PRJ-03.0: Missing or invalid Idempotency-Key returns 400 IDEMPOTENCY_KEY_REQUIRED (1.290083ms)
+  ✔ PRJ-03.1: Workspace Owner updates project name and description with OCC (12.984458ms)
+  ✔ PRJ-03.2: Project Manager updates project description with OCC (4.926667ms)
+  ✔ PRJ-03.3: Member & Viewer cannot update project settings -> 403 FORBIDDEN (4.06675ms)
+  ✔ PRJ-03.4: Sibling PM & Outsider get 404 NOT_FOUND on project settings (4.911875ms)
+  ✔ PRJ-03.5: Stale expectedVersion rejected with 409 STALE_VERSION (3.55175ms)
+  ✔ PRJ-05.1: Owner sees project members directory including workspace owner and active members (3.267083ms)
+  ✔ PRJ-05.2: Project Manager sees full directory; Member and Viewer are forbidden without email data (6.127375ms)
+  ✔ PRJ-05.3: Sibling project member & outsider get 404 NOT_FOUND on members directory (4.1455ms)
+  ✔ PRJ-05.4: Removed project member is excluded from directory and cannot access it (4.496333ms)
+✔ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite (191.121542ms)
+ℹ tests 45
+ℹ suites 0
+ℹ pass 45
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4480.807792

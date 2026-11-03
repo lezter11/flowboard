@@ -1,0 +1,3199 @@
+{
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64",
+    "cpu": "Apple M5",
+    "logicalCPUs": 10,
+    "totalMemoryBytes": 17179869184,
+    "postgres": "PostgreSQL 17.11 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+    "installedPackages": {
+      "hono": "4.13.14",
+      "@hono/node-server": "2.1.5",
+      "pg": "8.23.1",
+      "wrangler": "4.156.2",
+      "zod": "4.6.7",
+      "typescript": "7.0.2"
+    },
+    "declaredApiPackages": {
+      "name": "@flowboard/api",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "dev:node": "node --watch src/runtime/node.ts",
+        "dev:worker": "node scripts/dev-worker.mjs",
+        "build": "tsc -p tsconfig.build.json && WRANGLER_SEND_METRICS=false wrangler deploy --dry-run --outdir dist/worker",
+        "test": "node scripts/check-test-databases.mjs && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/*.test.ts",
+        "db:migrate": "node --experimental-strip-types src/runtime/migrate.ts"
+      },
+      "dependencies": {
+        "@hono/node-server": "2.1.5",
+        "hono": "4.13.14",
+        "kysely": "0.29.7",
+        "pg": "8.23.1",
+        "sharp": "0.35.5"
+      },
+      "devDependencies": {
+        "wrangler": "4.156.2"
+      }
+    }
+  },
+  "measurements": [
+    {
+      "runtime": "node",
+      "phase": "startup",
+      "elapsedMs": 4.93816599999991
+    },
+    {
+      "runtime": "node",
+      "phase": "first_after_runtime_start",
+      "sample": 0,
+      "elapsedMs": 91.52591699999994,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=74.03"
+    },
+    {
+      "runtime": "node",
+      "phase": "warm",
+      "sample": 1,
+      "elapsedMs": 43.175042000000076,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=41.16"
+    },
+    {
+      "runtime": "node",
+      "phase": "warm",
+      "sample": 2,
+      "elapsedMs": 37.81604100000004,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=36.31"
+    },
+    {
+      "runtime": "node",
+      "phase": "warm",
+      "sample": 3,
+      "elapsedMs": 35.460583999999926,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=34.36"
+    },
+    {
+      "runtime": "node",
+      "phase": "warm",
+      "sample": 4,
+      "elapsedMs": 59.83020799999986,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=57.94"
+    },
+    {
+      "runtime": "node",
+      "phase": "warm",
+      "sample": 5,
+      "elapsedMs": 41.95349999999985,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=40.49"
+    },
+    {
+      "runtime": "node",
+      "phase": "my_tasks_page",
+      "sample": 0,
+      "elapsedMs": 24.683166999999912,
+      "bytes": 59796,
+      "rows": 100
+    },
+    {
+      "runtime": "node",
+      "phase": "my_tasks_page",
+      "sample": 1,
+      "elapsedMs": 22.437459000000217,
+      "bytes": 59793,
+      "rows": 100
+    },
+    {
+      "runtime": "node",
+      "phase": "my_tasks_page",
+      "sample": 2,
+      "elapsedMs": 21.015041999999994,
+      "bytes": 59793,
+      "rows": 100
+    },
+    {
+      "runtime": "node",
+      "phase": "my_tasks_page",
+      "sample": 3,
+      "elapsedMs": 16.670500000000175,
+      "bytes": 59793,
+      "rows": 100
+    },
+    {
+      "runtime": "node",
+      "phase": "my_tasks_page",
+      "sample": 4,
+      "elapsedMs": 22.826459000000114,
+      "bytes": 59793,
+      "rows": 100
+    },
+    {
+      "runtime": "node",
+      "phase": "my_tasks_page",
+      "sample": 5,
+      "elapsedMs": 29.803125000000136,
+      "bytes": 59793,
+      "rows": 100
+    },
+    {
+      "runtime": "node",
+      "phase": "my_tasks_page",
+      "sample": 6,
+      "elapsedMs": 14.880499999999984,
+      "bytes": 59524,
+      "rows": 100
+    },
+    {
+      "runtime": "node",
+      "phase": "my_tasks_page",
+      "sample": 7,
+      "elapsedMs": 17.129290999999967,
+      "bytes": 58982,
+      "rows": 100
+    },
+    {
+      "runtime": "node",
+      "phase": "my_tasks_page",
+      "sample": 8,
+      "elapsedMs": 13.008916,
+      "bytes": 58982,
+      "rows": 100
+    },
+    {
+      "runtime": "node",
+      "phase": "my_tasks_page",
+      "sample": 9,
+      "elapsedMs": 12.956084000000146,
+      "bytes": 58836,
+      "rows": 100
+    },
+    {
+      "runtime": "worker",
+      "phase": "startup",
+      "elapsedMs": 521.6228329999994
+    },
+    {
+      "runtime": "worker",
+      "phase": "first_after_runtime_start",
+      "sample": 0,
+      "elapsedMs": 131.38908300000003,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=108.00"
+    },
+    {
+      "runtime": "worker",
+      "phase": "warm",
+      "sample": 1,
+      "elapsedMs": 51.82166599999982,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=48.00"
+    },
+    {
+      "runtime": "worker",
+      "phase": "warm",
+      "sample": 2,
+      "elapsedMs": 50.41166599999997,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=47.00"
+    },
+    {
+      "runtime": "worker",
+      "phase": "warm",
+      "sample": 3,
+      "elapsedMs": 58.858249999999316,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=52.00"
+    },
+    {
+      "runtime": "worker",
+      "phase": "warm",
+      "sample": 4,
+      "elapsedMs": 52.84312500000033,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=48.00"
+    },
+    {
+      "runtime": "worker",
+      "phase": "warm",
+      "sample": 5,
+      "elapsedMs": 72.9838749999999,
+      "status": 200,
+      "bytes": 37572,
+      "serverTiming": "app;dur=70.00"
+    },
+    {
+      "runtime": "worker",
+      "phase": "my_tasks_page",
+      "sample": 0,
+      "elapsedMs": 34.17729200000031,
+      "bytes": 59796,
+      "rows": 100
+    },
+    {
+      "runtime": "worker",
+      "phase": "my_tasks_page",
+      "sample": 1,
+      "elapsedMs": 47.190207999999984,
+      "bytes": 59793,
+      "rows": 100
+    },
+    {
+      "runtime": "worker",
+      "phase": "my_tasks_page",
+      "sample": 2,
+      "elapsedMs": 55.193583999999646,
+      "bytes": 59793,
+      "rows": 100
+    },
+    {
+      "runtime": "worker",
+      "phase": "my_tasks_page",
+      "sample": 3,
+      "elapsedMs": 33.90779199999997,
+      "bytes": 59793,
+      "rows": 100
+    },
+    {
+      "runtime": "worker",
+      "phase": "my_tasks_page",
+      "sample": 4,
+      "elapsedMs": 34.39662500000031,
+      "bytes": 59793,
+      "rows": 100
+    },
+    {
+      "runtime": "worker",
+      "phase": "my_tasks_page",
+      "sample": 5,
+      "elapsedMs": 30.46179200000006,
+      "bytes": 59793,
+      "rows": 100
+    },
+    {
+      "runtime": "worker",
+      "phase": "my_tasks_page",
+      "sample": 6,
+      "elapsedMs": 41.3853339999996,
+      "bytes": 59524,
+      "rows": 100
+    },
+    {
+      "runtime": "worker",
+      "phase": "my_tasks_page",
+      "sample": 7,
+      "elapsedMs": 31.156291999999667,
+      "bytes": 58982,
+      "rows": 100
+    },
+    {
+      "runtime": "worker",
+      "phase": "my_tasks_page",
+      "sample": 8,
+      "elapsedMs": 39.312291999999616,
+      "bytes": 58982,
+      "rows": 100
+    },
+    {
+      "runtime": "worker",
+      "phase": "my_tasks_page",
+      "sample": 9,
+      "elapsedMs": 25.004832999999962,
+      "bytes": 58836,
+      "rows": 100
+    }
+  ],
+  "checks": [
+    {
+      "runtime": "node",
+      "kind": "sql_capture",
+      "phase": "snapshot1000",
+      "queryCount": 15,
+      "boardRechecks": 0,
+      "hotPlans": [
+        {
+          "sql": "SELECT\n         COUNT(*) FILTER (WHERE c.due_date < $2::date)::text AS overdue,\n         COUNT(*) FILTER (WHERE c.due_date >= $2::date AND c.due_date <= ($2::date + 7))::text AS due_soon\n       FROM cards c\n       JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL\n       WHERE c.board_id = $1 AND c.state = '<literal>' AND c.due_date IS NOT NULL AND col.category <> '<literal>'",
+          "plan": [
+            {
+              "Plan": {
+                "Node Type": "Aggregate",
+                "Strategy": "Plain",
+                "Partial Mode": "Simple",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 20.85,
+                "Total Cost": 20.87,
+                "Plan Rows": 1,
+                "Plan Width": 64,
+                "Plans": [
+                  {
+                    "Node Type": "Nested Loop",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Join Type": "Inner",
+                    "Startup Cost": 8.79,
+                    "Total Cost": 20.83,
+                    "Plan Rows": 1,
+                    "Plan Width": 4,
+                    "Inner Unique": true,
+                    "Join Filter": "(c.column_id = col.id)",
+                    "Plans": [
+                      {
+                        "Node Type": "Bitmap Heap Scan",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Relation Name": "cards",
+                        "Alias": "c",
+                        "Startup Cost": 8.65,
+                        "Total Cost": 12.66,
+                        "Plan Rows": 1,
+                        "Plan Width": 36,
+                        "Recheck Cond": "((state = '<literal>'::text) AND (board_id = '<literal>'::text))",
+                        "Filter": "(due_date IS NOT NULL)",
+                        "Plans": [
+                          {
+                            "Node Type": "BitmapAnd",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Startup Cost": 8.65,
+                            "Total Cost": 8.65,
+                            "Plan Rows": 1,
+                            "Plan Width": 0,
+                            "Plans": [
+                              {
+                                "Node Type": "Bitmap Index Scan",
+                                "Parent Relationship": "Member",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Index Name": "idx_cards_state",
+                                "Startup Cost": 0,
+                                "Total Cost": 4.2,
+                                "Plan Rows": 6,
+                                "Plan Width": 0,
+                                "Index Cond": "(state = '<literal>'::text)"
+                              },
+                              {
+                                "Node Type": "Bitmap Index Scan",
+                                "Parent Relationship": "Member",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Index Name": "idx_cards_board",
+                                "Startup Cost": 0,
+                                "Total Cost": 4.2,
+                                "Plan Rows": 6,
+                                "Plan Width": 0,
+                                "Index Cond": "(board_id = '<literal>'::text)"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Node Type": "Index Scan",
+                        "Parent Relationship": "Inner",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Scan Direction": "Forward",
+                        "Index Name": "idx_live_columns_board_position",
+                        "Relation Name": "columns",
+                        "Alias": "col",
+                        "Startup Cost": 0.14,
+                        "Total Cost": 8.16,
+                        "Plan Rows": 1,
+                        "Plan Width": 32,
+                        "Filter": "(category <> '<literal>'::text)"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runtime": "node",
+      "kind": "sql_capture",
+      "phase": "my_tasks_1_returned_board",
+      "queryCount": 13,
+      "boardRechecks": 0,
+      "hotPlans": [
+        {
+          "sql": "SELECT \n       c.id, c.board_id, c.column_id, c.title, c.priority,\n       to_char(c.due_date, '<literal>') AS due_date, c.position::TEXT,\n       c.version, c.created_at, c.updated_at,\n       p.name AS project_name, b.name AS board_name, col.name AS column_title,\n       p.key_prefix || '<literal>' || c.card_number::text AS card_key\n     FROM cards c\n     JOIN card_assignees ca ON ca.card_id = c.id\n     JOIN projects p ON c.project_id = p.id\n     JOIN boards b ON c.board_id = b.id\n     JOIN columns col ON c.column_id = col.id AND col.deleted_at IS NULL\n     JOIN workspaces w ON p.workspace_id = w.id\n     LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $1 AND pm.status = '<literal>'\n     WHERE c.state = '<literal>' AND p.archived = FALSE AND b.archived = FALSE AND ca.user_id = $1 AND c.project_id = $2 AND (w.owner_id = $1 OR pm.id IS NOT NULL) AND (w.owner_id = $1 OR EXISTS (\n       SELECT 1 FROM board_grants bg WHERE bg.board_id = c.board_id\n         AND bg.project_id = c.project_id AND bg.user_id = $1)) AND c.board_id = ANY($3::text[])\n     ORDER BY c.due_date ASC NULLS LAST, c.id ASC\n     LIMIT $4",
+          "plan": [
+            {
+              "Plan": {
+                "Node Type": "Limit",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 72.8,
+                "Total Cost": 72.81,
+                "Plan Rows": 1,
+                "Plan Width": 376,
+                "Plans": [
+                  {
+                    "Node Type": "Sort",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 72.8,
+                    "Total Cost": 72.81,
+                    "Plan Rows": 1,
+                    "Plan Width": 376,
+                    "Sort Key": [
+                      "c.due_date",
+                      "c.id"
+                    ],
+                    "Plans": [
+                      {
+                        "Node Type": "Nested Loop",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Left",
+                        "Startup Cost": 9.65,
+                        "Total Cost": 72.79,
+                        "Plan Rows": 1,
+                        "Plan Width": 376,
+                        "Inner Unique": true,
+                        "Filter": "((w.owner_id = '<literal>'::text) OR (pm.id IS NOT NULL))",
+                        "Plans": [
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 9.51,
+                            "Total Cost": 64.59,
+                            "Plan Rows": 1,
+                            "Plan Width": 392,
+                            "Inner Unique": true,
+                            "Join Filter": "((w.owner_id = '<literal>'::text) OR (ANY ((c.board_id = (hashed SubPlan 2).col1) AND (c.project_id = (hashed SubPlan 2).col2))))",
+                            "Plans": [
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 9.36,
+                                "Total Cost": 48.24,
+                                "Plan Rows": 1,
+                                "Plan Width": 424,
+                                "Inner Unique": true,
+                                "Join Filter": "(c.column_id = col.id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Nested Loop",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Join Type": "Inner",
+                                    "Startup Cost": 9.22,
+                                    "Total Cost": 40.07,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 392,
+                                    "Inner Unique": true,
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Nested Loop",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Join Type": "Inner",
+                                        "Startup Cost": 9.07,
+                                        "Total Cost": 31.81,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 360,
+                                        "Inner Unique": false,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Index Scan",
+                                            "Parent Relationship": "Outer",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Scan Direction": "Forward",
+                                            "Index Name": "uq_projects_id_workspace",
+                                            "Relation Name": "projects",
+                                            "Alias": "p",
+                                            "Startup Cost": 0.15,
+                                            "Total Cost": 8.17,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 128,
+                                            "Index Cond": "(id = '<literal>'::text)",
+                                            "Filter": "(NOT archived)"
+                                          },
+                                          {
+                                            "Node Type": "Nested Loop",
+                                            "Parent Relationship": "Inner",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Join Type": "Inner",
+                                            "Startup Cost": 8.92,
+                                            "Total Cost": 23.64,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 232,
+                                            "Inner Unique": true,
+                                            "Plans": [
+                                              {
+                                                "Node Type": "Bitmap Heap Scan",
+                                                "Parent Relationship": "Outer",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "cards",
+                                                "Alias": "c",
+                                                "Startup Cost": 8.65,
+                                                "Total Cost": 12.67,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 232,
+                                                "Recheck Cond": "((project_id = '<literal>'::text) AND (state = '<literal>'::text))",
+                                                "Filter": "(board_id = ANY ('<literal>'::text[]))",
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "BitmapAnd",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Startup Cost": 8.65,
+                                                    "Total Cost": 8.65,
+                                                    "Plan Rows": 1,
+                                                    "Plan Width": 0,
+                                                    "Plans": [
+                                                      {
+                                                        "Node Type": "Bitmap Index Scan",
+                                                        "Parent Relationship": "Member",
+                                                        "Parallel Aware": false,
+                                                        "Async Capable": false,
+                                                        "Index Name": "idx_cards_project",
+                                                        "Startup Cost": 0,
+                                                        "Total Cost": 4.2,
+                                                        "Plan Rows": 6,
+                                                        "Plan Width": 0,
+                                                        "Index Cond": "(project_id = '<literal>'::text)"
+                                                      },
+                                                      {
+                                                        "Node Type": "Bitmap Index Scan",
+                                                        "Parent Relationship": "Member",
+                                                        "Parallel Aware": false,
+                                                        "Async Capable": false,
+                                                        "Index Name": "idx_cards_state",
+                                                        "Startup Cost": 0,
+                                                        "Total Cost": 4.2,
+                                                        "Plan Rows": 6,
+                                                        "Plan Width": 0,
+                                                        "Index Cond": "(state = '<literal>'::text)"
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "Node Type": "Index Only Scan",
+                                                "Parent Relationship": "Inner",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Scan Direction": "Forward",
+                                                "Index Name": "card_assignees_pkey",
+                                                "Relation Name": "card_assignees",
+                                                "Alias": "ca",
+                                                "Startup Cost": 0.28,
+                                                "Total Cost": 8.29,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 32,
+                                                "Index Cond": "((card_id = c.id) AND (user_id = '<literal>'::text))"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Node Type": "Index Scan",
+                                        "Parent Relationship": "Inner",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Scan Direction": "Forward",
+                                        "Index Name": "boards_id_project_id_key",
+                                        "Relation Name": "boards",
+                                        "Alias": "b",
+                                        "Startup Cost": 0.15,
+                                        "Total Cost": 8.17,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 64,
+                                        "Index Cond": "(id = c.board_id)",
+                                        "Filter": "(NOT archived)"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "idx_live_columns_board_position",
+                                    "Relation Name": "columns",
+                                    "Alias": "col",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 8.16,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 64
+                                  }
+                                ]
+                              },
+                              {
+                                "Node Type": "Index Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "workspaces_pkey",
+                                "Relation Name": "workspaces",
+                                "Alias": "w",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Index Cond": "(id = p.workspace_id)"
+                              },
+                              {
+                                "Node Type": "Seq Scan",
+                                "Parent Relationship": "SubPlan",
+                                "Subplan Name": "SubPlan 2",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "board_grants",
+                                "Alias": "bg",
+                                "Startup Cost": 0,
+                                "Total Cost": 15.12,
+                                "Plan Rows": 2,
+                                "Plan Width": 64,
+                                "Filter": "(user_id = '<literal>'::text)"
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Index Scan",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Scan Direction": "Forward",
+                            "Index Name": "project_memberships_project_id_user_id_key",
+                            "Relation Name": "project_memberships",
+                            "Alias": "pm",
+                            "Startup Cost": 0.15,
+                            "Total Cost": 8.17,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Index Cond": "((project_id = '<literal>'::text) AND (user_id = '<literal>'::text))",
+                            "Filter": "(status = '<literal>'::text)"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runtime": "node",
+      "kind": "sql_capture",
+      "phase": "search_filter1000",
+      "queryCount": 18,
+      "boardRechecks": 1,
+      "hotPlans": [
+        {
+          "sql": "\n    SELECT \n      (SELECT COUNT(*)::INT FROM cards counted\n       JOIN projects cp ON cp.id = counted.project_id\n       JOIN workspaces cw ON cw.id = cp.workspace_id\n       WHERE counted.project_id = $1 AND counted.state = '<literal>'\n         AND (cw.owner_id = $2 OR EXISTS (\n           SELECT 1 FROM project_memberships pm JOIN board_grants bg\n             ON bg.project_id = pm.project_id AND bg.user_id = pm.user_id\n           WHERE pm.project_id = counted.project_id AND pm.user_id = $2\n             AND pm.status = '<literal>' AND bg.board_id = counted.board_id))\n         AND counted.board_id = ANY($3::text[])) AS active_count,\n      COUNT(*)::INT AS matching_count\n    FROM cards c\n    JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL\n    JOIN projects p ON p.id = c.project_id\n    JOIN workspaces w ON w.id = p.workspace_id\n    WHERE c.project_id = $1 AND c.state = '<literal>' AND (w.owner_id = $2 OR EXISTS (\n    SELECT 1 FROM project_memberships pm JOIN board_grants bg\n      ON bg.project_id = pm.project_id AND bg.user_id = pm.user_id\n    WHERE pm.project_id = c.project_id AND pm.user_id = $2\n      AND pm.status = '<literal>' AND bg.board_id = c.board_id)) AND c.board_id = ANY($3::text[]) AND c.due_date IS NULL\n  ",
+          "plan": [
+            {
+              "Plan": {
+                "Node Type": "Aggregate",
+                "Strategy": "Plain",
+                "Partial Mode": "Simple",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 90.58,
+                "Total Cost": 90.59,
+                "Plan Rows": 1,
+                "Plan Width": 8,
+                "Plans": [
+                  {
+                    "Node Type": "Aggregate",
+                    "Strategy": "Plain",
+                    "Partial Mode": "Simple",
+                    "Parent Relationship": "InitPlan",
+                    "Subplan Name": "InitPlan 3",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 41.2,
+                    "Total Cost": 41.21,
+                    "Plan Rows": 1,
+                    "Plan Width": 4,
+                    "Plans": [
+                      {
+                        "Node Type": "Hash Join",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Inner",
+                        "Startup Cost": 29.14,
+                        "Total Cost": 41.19,
+                        "Plan Rows": 1,
+                        "Plan Width": 0,
+                        "Inner Unique": true,
+                        "Hash Cond": "(cp.workspace_id = cw.id)",
+                        "Join Filter": "((cw.owner_id = '<literal>'::text) OR (ANY ((counted.project_id = (hashed SubPlan 2).col1) AND (counted.board_id = (hashed SubPlan 2).col2))))",
+                        "Plans": [
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 8.79,
+                            "Total Cost": 20.84,
+                            "Plan Rows": 1,
+                            "Plan Width": 96,
+                            "Inner Unique": false,
+                            "Plans": [
+                              {
+                                "Node Type": "Index Only Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "uq_projects_id_workspace",
+                                "Relation Name": "projects",
+                                "Alias": "cp",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Index Cond": "(id = '<literal>'::text)"
+                              },
+                              {
+                                "Node Type": "Bitmap Heap Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "cards",
+                                "Alias": "counted",
+                                "Startup Cost": 8.65,
+                                "Total Cost": 12.67,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Recheck Cond": "((project_id = '<literal>'::text) AND (state = '<literal>'::text))",
+                                "Filter": "(board_id = ANY ('<literal>'::text[]))",
+                                "Plans": [
+                                  {
+                                    "Node Type": "BitmapAnd",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Startup Cost": 8.65,
+                                    "Total Cost": 8.65,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 0,
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Bitmap Index Scan",
+                                        "Parent Relationship": "Member",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Index Name": "idx_cards_project",
+                                        "Startup Cost": 0,
+                                        "Total Cost": 4.2,
+                                        "Plan Rows": 6,
+                                        "Plan Width": 0,
+                                        "Index Cond": "(project_id = '<literal>'::text)"
+                                      },
+                                      {
+                                        "Node Type": "Bitmap Index Scan",
+                                        "Parent Relationship": "Member",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Index Name": "idx_cards_state",
+                                        "Startup Cost": 0,
+                                        "Total Cost": 4.2,
+                                        "Plan Rows": 6,
+                                        "Plan Width": 0,
+                                        "Index Cond": "(state = '<literal>'::text)"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Hash",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Startup Cost": 14.6,
+                            "Total Cost": 14.6,
+                            "Plan Rows": 460,
+                            "Plan Width": 64,
+                            "Plans": [
+                              {
+                                "Node Type": "Seq Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "workspaces",
+                                "Alias": "cw",
+                                "Startup Cost": 0,
+                                "Total Cost": 14.6,
+                                "Plan Rows": 460,
+                                "Plan Width": 64
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "SubPlan",
+                            "Subplan Name": "SubPlan 2",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 4.31,
+                            "Total Cost": 17.69,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Inner Unique": false,
+                            "Plans": [
+                              {
+                                "Node Type": "Bitmap Heap Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "project_memberships",
+                                "Alias": "pm",
+                                "Startup Cost": 4.16,
+                                "Total Cost": 9.51,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Recheck Cond": "(user_id = '<literal>'::text)",
+                                "Filter": "(status = '<literal>'::text)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Bitmap Index Scan",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Index Name": "idx_project_memberships_user",
+                                    "Startup Cost": 0,
+                                    "Total Cost": 4.16,
+                                    "Plan Rows": 2,
+                                    "Plan Width": 0,
+                                    "Index Cond": "(user_id = '<literal>'::text)"
+                                  }
+                                ]
+                              },
+                              {
+                                "Node Type": "Index Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "idx_board_grants_project_user",
+                                "Relation Name": "board_grants",
+                                "Alias": "bg",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 96,
+                                "Index Cond": "((project_id = pm.project_id) AND (user_id = '<literal>'::text))"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Node Type": "Hash Join",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Join Type": "Inner",
+                    "Startup Cost": 29.29,
+                    "Total Cost": 49.36,
+                    "Plan Rows": 1,
+                    "Plan Width": 0,
+                    "Inner Unique": true,
+                    "Hash Cond": "(p.workspace_id = w.id)",
+                    "Join Filter": "((w.owner_id = '<literal>'::text) OR (ANY ((c.project_id = (hashed SubPlan 5).col1) AND (c.board_id = (hashed SubPlan 5).col2))))",
+                    "Plans": [
+                      {
+                        "Node Type": "Nested Loop",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Inner",
+                        "Startup Cost": 8.94,
+                        "Total Cost": 29.01,
+                        "Plan Rows": 1,
+                        "Plan Width": 96,
+                        "Inner Unique": false,
+                        "Plans": [
+                          {
+                            "Node Type": "Index Only Scan",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Scan Direction": "Forward",
+                            "Index Name": "uq_projects_id_workspace",
+                            "Relation Name": "projects",
+                            "Alias": "p",
+                            "Startup Cost": 0.15,
+                            "Total Cost": 8.17,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Index Cond": "(id = '<literal>'::text)"
+                          },
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 8.79,
+                            "Total Cost": 20.84,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Inner Unique": true,
+                            "Join Filter": "(c.column_id = col.id)",
+                            "Plans": [
+                              {
+                                "Node Type": "Bitmap Heap Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "cards",
+                                "Alias": "c",
+                                "Startup Cost": 8.65,
+                                "Total Cost": 12.67,
+                                "Plan Rows": 1,
+                                "Plan Width": 96,
+                                "Recheck Cond": "((project_id = '<literal>'::text) AND (state = '<literal>'::text))",
+                                "Filter": "((due_date IS NULL) AND (board_id = ANY ('<literal>'::text[])))",
+                                "Plans": [
+                                  {
+                                    "Node Type": "BitmapAnd",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Startup Cost": 8.65,
+                                    "Total Cost": 8.65,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 0,
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Bitmap Index Scan",
+                                        "Parent Relationship": "Member",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Index Name": "idx_cards_project",
+                                        "Startup Cost": 0,
+                                        "Total Cost": 4.2,
+                                        "Plan Rows": 6,
+                                        "Plan Width": 0,
+                                        "Index Cond": "(project_id = '<literal>'::text)"
+                                      },
+                                      {
+                                        "Node Type": "Bitmap Index Scan",
+                                        "Parent Relationship": "Member",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Index Name": "idx_cards_state",
+                                        "Startup Cost": 0,
+                                        "Total Cost": 4.2,
+                                        "Plan Rows": 6,
+                                        "Plan Width": 0,
+                                        "Index Cond": "(state = '<literal>'::text)"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "Node Type": "Index Only Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "idx_live_columns_board_position",
+                                "Relation Name": "columns",
+                                "Alias": "col",
+                                "Startup Cost": 0.14,
+                                "Total Cost": 8.16,
+                                "Plan Rows": 1,
+                                "Plan Width": 32
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Node Type": "Hash",
+                        "Parent Relationship": "Inner",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Startup Cost": 14.6,
+                        "Total Cost": 14.6,
+                        "Plan Rows": 460,
+                        "Plan Width": 64,
+                        "Plans": [
+                          {
+                            "Node Type": "Seq Scan",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Relation Name": "workspaces",
+                            "Alias": "w",
+                            "Startup Cost": 0,
+                            "Total Cost": 14.6,
+                            "Plan Rows": 460,
+                            "Plan Width": 64
+                          }
+                        ]
+                      },
+                      {
+                        "Node Type": "Nested Loop",
+                        "Parent Relationship": "SubPlan",
+                        "Subplan Name": "SubPlan 5",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Inner",
+                        "Startup Cost": 4.31,
+                        "Total Cost": 17.69,
+                        "Plan Rows": 1,
+                        "Plan Width": 64,
+                        "Inner Unique": false,
+                        "Plans": [
+                          {
+                            "Node Type": "Bitmap Heap Scan",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Relation Name": "project_memberships",
+                            "Alias": "pm_1",
+                            "Startup Cost": 4.16,
+                            "Total Cost": 9.51,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Recheck Cond": "(user_id = '<literal>'::text)",
+                            "Filter": "(status = '<literal>'::text)",
+                            "Plans": [
+                              {
+                                "Node Type": "Bitmap Index Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Index Name": "idx_project_memberships_user",
+                                "Startup Cost": 0,
+                                "Total Cost": 4.16,
+                                "Plan Rows": 2,
+                                "Plan Width": 0,
+                                "Index Cond": "(user_id = '<literal>'::text)"
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Index Scan",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Scan Direction": "Forward",
+                            "Index Name": "idx_board_grants_project_user",
+                            "Relation Name": "board_grants",
+                            "Alias": "bg_1",
+                            "Startup Cost": 0.15,
+                            "Total Cost": 8.17,
+                            "Plan Rows": 1,
+                            "Plan Width": 96,
+                            "Index Cond": "((project_id = pm_1.project_id) AND (user_id = '<literal>'::text))"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sql": "\n    SELECT \n      c.id, c.board_id, c.column_id, c.title, c.priority,\n      to_char(c.due_date, '<literal>') AS due_date, c.position::TEXT,\n      c.version, c.created_at, c.updated_at\n    FROM cards c\n    JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL\n    JOIN projects p ON p.id = c.project_id\n    JOIN workspaces w ON w.id = p.workspace_id\n    WHERE c.project_id = $1 AND c.state = '<literal>' AND (w.owner_id = $2 OR EXISTS (\n    SELECT 1 FROM project_memberships pm JOIN board_grants bg\n      ON bg.project_id = pm.project_id AND bg.user_id = pm.user_id\n    WHERE pm.project_id = c.project_id AND pm.user_id = $2\n      AND pm.status = '<literal>' AND bg.board_id = c.board_id)) AND c.board_id = ANY($3::text[]) AND c.due_date IS NULL\n    ORDER BY c.position ASC, c.id ASC\n    LIMIT $4\n  ",
+          "plan": [
+            {
+              "Plan": {
+                "Node Type": "Limit",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 49.38,
+                "Total Cost": 49.39,
+                "Plan Rows": 1,
+                "Plan Width": 252,
+                "Plans": [
+                  {
+                    "Node Type": "Sort",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 49.38,
+                    "Total Cost": 49.39,
+                    "Plan Rows": 1,
+                    "Plan Width": 252,
+                    "Sort Key": [
+                      "c.\"position\"",
+                      "c.id"
+                    ],
+                    "Plans": [
+                      {
+                        "Node Type": "Hash Join",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Inner",
+                        "Startup Cost": 29.29,
+                        "Total Cost": 49.37,
+                        "Plan Rows": 1,
+                        "Plan Width": 252,
+                        "Inner Unique": true,
+                        "Hash Cond": "(p.workspace_id = w.id)",
+                        "Join Filter": "((w.owner_id = '<literal>'::text) OR (ANY ((c.project_id = (hashed SubPlan 2).col1) AND (c.board_id = (hashed SubPlan 2).col2))))",
+                        "Plans": [
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 8.94,
+                            "Total Cost": 29.01,
+                            "Plan Rows": 1,
+                            "Plan Width": 256,
+                            "Inner Unique": false,
+                            "Plans": [
+                              {
+                                "Node Type": "Index Only Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "uq_projects_id_workspace",
+                                "Relation Name": "projects",
+                                "Alias": "p",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Index Cond": "(id = '<literal>'::text)"
+                              },
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 8.79,
+                                "Total Cost": 20.84,
+                                "Plan Rows": 1,
+                                "Plan Width": 224,
+                                "Inner Unique": true,
+                                "Join Filter": "(c.column_id = col.id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Bitmap Heap Scan",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Relation Name": "cards",
+                                    "Alias": "c",
+                                    "Startup Cost": 8.65,
+                                    "Total Cost": 12.67,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 224,
+                                    "Recheck Cond": "((project_id = '<literal>'::text) AND (state = '<literal>'::text))",
+                                    "Filter": "((due_date IS NULL) AND (board_id = ANY ('<literal>'::text[])))",
+                                    "Plans": [
+                                      {
+                                        "Node Type": "BitmapAnd",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Startup Cost": 8.65,
+                                        "Total Cost": 8.65,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 0,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Bitmap Index Scan",
+                                            "Parent Relationship": "Member",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Index Name": "idx_cards_project",
+                                            "Startup Cost": 0,
+                                            "Total Cost": 4.2,
+                                            "Plan Rows": 6,
+                                            "Plan Width": 0,
+                                            "Index Cond": "(project_id = '<literal>'::text)"
+                                          },
+                                          {
+                                            "Node Type": "Bitmap Index Scan",
+                                            "Parent Relationship": "Member",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Index Name": "idx_cards_state",
+                                            "Startup Cost": 0,
+                                            "Total Cost": 4.2,
+                                            "Plan Rows": 6,
+                                            "Plan Width": 0,
+                                            "Index Cond": "(state = '<literal>'::text)"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Only Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "idx_live_columns_board_position",
+                                    "Relation Name": "columns",
+                                    "Alias": "col",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 8.16,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 32
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Hash",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Startup Cost": 14.6,
+                            "Total Cost": 14.6,
+                            "Plan Rows": 460,
+                            "Plan Width": 64,
+                            "Plans": [
+                              {
+                                "Node Type": "Seq Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "workspaces",
+                                "Alias": "w",
+                                "Startup Cost": 0,
+                                "Total Cost": 14.6,
+                                "Plan Rows": 460,
+                                "Plan Width": 64
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "SubPlan",
+                            "Subplan Name": "SubPlan 2",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 4.31,
+                            "Total Cost": 17.69,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Inner Unique": false,
+                            "Plans": [
+                              {
+                                "Node Type": "Bitmap Heap Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "project_memberships",
+                                "Alias": "pm",
+                                "Startup Cost": 4.16,
+                                "Total Cost": 9.51,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Recheck Cond": "(user_id = '<literal>'::text)",
+                                "Filter": "(status = '<literal>'::text)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Bitmap Index Scan",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Index Name": "idx_project_memberships_user",
+                                    "Startup Cost": 0,
+                                    "Total Cost": 4.16,
+                                    "Plan Rows": 2,
+                                    "Plan Width": 0,
+                                    "Index Cond": "(user_id = '<literal>'::text)"
+                                  }
+                                ]
+                              },
+                              {
+                                "Node Type": "Index Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "idx_board_grants_project_user",
+                                "Relation Name": "board_grants",
+                                "Alias": "bg",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 96,
+                                "Index Cond": "((project_id = pm.project_id) AND (user_id = '<literal>'::text))"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runtime": "node",
+      "kind": "sql_capture",
+      "phase": "my_tasks_5_returned_boards",
+      "queryCount": 13,
+      "boardRechecks": 0,
+      "hotPlans": [
+        {
+          "sql": "SELECT \n       c.id, c.board_id, c.column_id, c.title, c.priority,\n       to_char(c.due_date, '<literal>') AS due_date, c.position::TEXT,\n       c.version, c.created_at, c.updated_at,\n       p.name AS project_name, b.name AS board_name, col.name AS column_title,\n       p.key_prefix || '<literal>' || c.card_number::text AS card_key\n     FROM cards c\n     JOIN card_assignees ca ON ca.card_id = c.id\n     JOIN projects p ON c.project_id = p.id\n     JOIN boards b ON c.board_id = b.id\n     JOIN columns col ON c.column_id = col.id AND col.deleted_at IS NULL\n     JOIN workspaces w ON p.workspace_id = w.id\n     LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $1 AND pm.status = '<literal>'\n     WHERE c.state = '<literal>' AND p.archived = FALSE AND b.archived = FALSE AND ca.user_id = $1 AND c.project_id = $2 AND (w.owner_id = $1 OR pm.id IS NOT NULL) AND (w.owner_id = $1 OR EXISTS (\n       SELECT 1 FROM board_grants bg WHERE bg.board_id = c.board_id\n         AND bg.project_id = c.project_id AND bg.user_id = $1)) AND c.board_id = ANY($3::text[])\n     ORDER BY c.due_date ASC NULLS LAST, c.id ASC\n     LIMIT $4",
+          "plan": [
+            {
+              "Plan": {
+                "Node Type": "Limit",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 73.13,
+                "Total Cost": 73.14,
+                "Plan Rows": 1,
+                "Plan Width": 376,
+                "Plans": [
+                  {
+                    "Node Type": "Sort",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 73.13,
+                    "Total Cost": 73.14,
+                    "Plan Rows": 1,
+                    "Plan Width": 376,
+                    "Sort Key": [
+                      "c.due_date",
+                      "c.id"
+                    ],
+                    "Plans": [
+                      {
+                        "Node Type": "Nested Loop",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Left",
+                        "Startup Cost": 9.98,
+                        "Total Cost": 73.12,
+                        "Plan Rows": 1,
+                        "Plan Width": 376,
+                        "Inner Unique": true,
+                        "Filter": "((w.owner_id = '<literal>'::text) OR (pm.id IS NOT NULL))",
+                        "Plans": [
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 9.84,
+                            "Total Cost": 64.92,
+                            "Plan Rows": 1,
+                            "Plan Width": 392,
+                            "Inner Unique": true,
+                            "Join Filter": "((w.owner_id = '<literal>'::text) OR (ANY ((c.board_id = (hashed SubPlan 2).col1) AND (c.project_id = (hashed SubPlan 2).col2))))",
+                            "Plans": [
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 9.69,
+                                "Total Cost": 48.57,
+                                "Plan Rows": 1,
+                                "Plan Width": 424,
+                                "Inner Unique": true,
+                                "Join Filter": "(c.column_id = col.id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Nested Loop",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Join Type": "Inner",
+                                    "Startup Cost": 9.55,
+                                    "Total Cost": 40.4,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 392,
+                                    "Inner Unique": true,
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Nested Loop",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Join Type": "Inner",
+                                        "Startup Cost": 9.4,
+                                        "Total Cost": 32.14,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 360,
+                                        "Inner Unique": false,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Index Scan",
+                                            "Parent Relationship": "Outer",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Scan Direction": "Forward",
+                                            "Index Name": "uq_projects_id_workspace",
+                                            "Relation Name": "projects",
+                                            "Alias": "p",
+                                            "Startup Cost": 0.15,
+                                            "Total Cost": 8.17,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 128,
+                                            "Index Cond": "(id = '<literal>'::text)",
+                                            "Filter": "(NOT archived)"
+                                          },
+                                          {
+                                            "Node Type": "Nested Loop",
+                                            "Parent Relationship": "Inner",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Join Type": "Inner",
+                                            "Startup Cost": 9.25,
+                                            "Total Cost": 23.97,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 232,
+                                            "Inner Unique": true,
+                                            "Plans": [
+                                              {
+                                                "Node Type": "Bitmap Heap Scan",
+                                                "Parent Relationship": "Outer",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "cards",
+                                                "Alias": "c",
+                                                "Startup Cost": 8.98,
+                                                "Total Cost": 13,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 232,
+                                                "Recheck Cond": "((project_id = '<literal>'::text) AND (state = '<literal>'::text))",
+                                                "Filter": "(board_id = ANY ('<literal>'::text[]))",
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "BitmapAnd",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Startup Cost": 8.98,
+                                                    "Total Cost": 8.98,
+                                                    "Plan Rows": 1,
+                                                    "Plan Width": 0,
+                                                    "Plans": [
+                                                      {
+                                                        "Node Type": "Bitmap Index Scan",
+                                                        "Parent Relationship": "Member",
+                                                        "Parallel Aware": false,
+                                                        "Async Capable": false,
+                                                        "Index Name": "idx_cards_project",
+                                                        "Startup Cost": 0,
+                                                        "Total Cost": 4.36,
+                                                        "Plan Rows": 11,
+                                                        "Plan Width": 0,
+                                                        "Index Cond": "(project_id = '<literal>'::text)"
+                                                      },
+                                                      {
+                                                        "Node Type": "Bitmap Index Scan",
+                                                        "Parent Relationship": "Member",
+                                                        "Parallel Aware": false,
+                                                        "Async Capable": false,
+                                                        "Index Name": "idx_cards_state",
+                                                        "Startup Cost": 0,
+                                                        "Total Cost": 4.36,
+                                                        "Plan Rows": 11,
+                                                        "Plan Width": 0,
+                                                        "Index Cond": "(state = '<literal>'::text)"
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "Node Type": "Index Only Scan",
+                                                "Parent Relationship": "Inner",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Scan Direction": "Forward",
+                                                "Index Name": "card_assignees_pkey",
+                                                "Relation Name": "card_assignees",
+                                                "Alias": "ca",
+                                                "Startup Cost": 0.28,
+                                                "Total Cost": 8.29,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 32,
+                                                "Index Cond": "((card_id = c.id) AND (user_id = '<literal>'::text))"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Node Type": "Index Scan",
+                                        "Parent Relationship": "Inner",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Scan Direction": "Forward",
+                                        "Index Name": "boards_id_project_id_key",
+                                        "Relation Name": "boards",
+                                        "Alias": "b",
+                                        "Startup Cost": 0.15,
+                                        "Total Cost": 8.17,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 64,
+                                        "Index Cond": "(id = c.board_id)",
+                                        "Filter": "(NOT archived)"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "idx_live_columns_board_position",
+                                    "Relation Name": "columns",
+                                    "Alias": "col",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 8.16,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 64
+                                  }
+                                ]
+                              },
+                              {
+                                "Node Type": "Index Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "workspaces_pkey",
+                                "Relation Name": "workspaces",
+                                "Alias": "w",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Index Cond": "(id = p.workspace_id)"
+                              },
+                              {
+                                "Node Type": "Seq Scan",
+                                "Parent Relationship": "SubPlan",
+                                "Subplan Name": "SubPlan 2",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "board_grants",
+                                "Alias": "bg",
+                                "Startup Cost": 0,
+                                "Total Cost": 15.12,
+                                "Plan Rows": 2,
+                                "Plan Width": 64,
+                                "Filter": "(user_id = '<literal>'::text)"
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Index Scan",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Scan Direction": "Forward",
+                            "Index Name": "project_memberships_project_id_user_id_key",
+                            "Relation Name": "project_memberships",
+                            "Alias": "pm",
+                            "Startup Cost": 0.15,
+                            "Total Cost": 8.17,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Index Cond": "((project_id = '<literal>'::text) AND (user_id = '<literal>'::text))",
+                            "Filter": "(status = '<literal>'::text)"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runtime": "node",
+      "kind": "body_cap",
+      "route": "/api/v1/boards/brd/cards",
+      "bytes": 1048576,
+      "status": 400
+    },
+    {
+      "runtime": "node",
+      "kind": "body_cap",
+      "route": "/api/v1/boards/brd/cards",
+      "bytes": 1048577,
+      "status": 413
+    },
+    {
+      "runtime": "node",
+      "kind": "body_cap",
+      "route": "/api/v1/boards/absent/imports",
+      "bytes": 5308416,
+      "status": 400
+    },
+    {
+      "runtime": "node",
+      "kind": "body_cap",
+      "route": "/api/v1/boards/absent/imports",
+      "bytes": 5308417,
+      "status": 413
+    },
+    {
+      "runtime": "node",
+      "kind": "body_cap",
+      "route": "/api/v1/image-uploads/absent/content",
+      "bytes": 10551296,
+      "status": 503
+    },
+    {
+      "runtime": "node",
+      "kind": "body_cap",
+      "route": "/api/v1/image-uploads/absent/content",
+      "bytes": 10551297,
+      "status": 413
+    },
+    {
+      "runtime": "node",
+      "kind": "early413_keepalive_recovery",
+      "status": 413,
+      "nextStatus": 400,
+      "normalConnectionReused": true,
+      "refusedConnectionClosed": true
+    },
+    {
+      "runtime": "node",
+      "kind": "early_private_error_recovery",
+      "status": 401,
+      "nextStatus": 400,
+      "hasData": false
+    },
+    {
+      "runtime": "node",
+      "kind": "incomplete_refusal_body",
+      "status": 413,
+      "elapsedMs": 1003.2493340000001,
+      "subsequentHealth": 200
+    },
+    {
+      "runtime": "node",
+      "kind": "sql_lock_timeout",
+      "elapsedMs": 3018.1365410000003,
+      "status": 503,
+      "body": {
+        "error": {
+          "code": "SERVICE_UNAVAILABLE",
+          "message": "The database request took too long. Retry shortly.",
+          "requestId": "9c345601-f114-4e40-9625-11c895111056"
+        }
+      }
+    },
+    {
+      "runtime": "worker",
+      "kind": "sql_capture",
+      "phase": "snapshot1000",
+      "queryCount": 15,
+      "boardRechecks": 0,
+      "hotPlans": [
+        {
+          "sql": "SELECT\n         COUNT(*) FILTER (WHERE c.due_date < $2::date)::text AS overdue,\n         COUNT(*) FILTER (WHERE c.due_date >= $2::date AND c.due_date <= ($2::date + 7))::text AS due_soon\n       FROM cards c\n       JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL\n       WHERE c.board_id = $1 AND c.state = '<literal>' AND c.due_date IS NOT NULL AND col.category <> '<literal>'",
+          "plan": [
+            {
+              "Plan": {
+                "Node Type": "Aggregate",
+                "Strategy": "Plain",
+                "Partial Mode": "Simple",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 21.24,
+                "Total Cost": 21.26,
+                "Plan Rows": 1,
+                "Plan Width": 64,
+                "Plans": [
+                  {
+                    "Node Type": "Nested Loop",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Join Type": "Inner",
+                    "Startup Cost": 9.18,
+                    "Total Cost": 21.22,
+                    "Plan Rows": 1,
+                    "Plan Width": 4,
+                    "Inner Unique": true,
+                    "Join Filter": "(c.column_id = col.id)",
+                    "Plans": [
+                      {
+                        "Node Type": "Bitmap Heap Scan",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Relation Name": "cards",
+                        "Alias": "c",
+                        "Startup Cost": 9.04,
+                        "Total Cost": 13.05,
+                        "Plan Rows": 1,
+                        "Plan Width": 36,
+                        "Recheck Cond": "((state = '<literal>'::text) AND (board_id = '<literal>'::text))",
+                        "Filter": "(due_date IS NOT NULL)",
+                        "Plans": [
+                          {
+                            "Node Type": "BitmapAnd",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Startup Cost": 9.04,
+                            "Total Cost": 9.04,
+                            "Plan Rows": 1,
+                            "Plan Width": 0,
+                            "Plans": [
+                              {
+                                "Node Type": "Bitmap Index Scan",
+                                "Parent Relationship": "Member",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Index Name": "idx_cards_state",
+                                "Startup Cost": 0,
+                                "Total Cost": 4.39,
+                                "Plan Rows": 15,
+                                "Plan Width": 0,
+                                "Index Cond": "(state = '<literal>'::text)"
+                              },
+                              {
+                                "Node Type": "Bitmap Index Scan",
+                                "Parent Relationship": "Member",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Index Name": "idx_cards_board",
+                                "Startup Cost": 0,
+                                "Total Cost": 4.39,
+                                "Plan Rows": 15,
+                                "Plan Width": 0,
+                                "Index Cond": "(board_id = '<literal>'::text)"
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Node Type": "Index Scan",
+                        "Parent Relationship": "Inner",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Scan Direction": "Forward",
+                        "Index Name": "idx_live_columns_board_position",
+                        "Relation Name": "columns",
+                        "Alias": "col",
+                        "Startup Cost": 0.14,
+                        "Total Cost": 8.16,
+                        "Plan Rows": 1,
+                        "Plan Width": 32,
+                        "Filter": "(category <> '<literal>'::text)"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runtime": "worker",
+      "kind": "sql_capture",
+      "phase": "my_tasks_1_returned_board",
+      "queryCount": 13,
+      "boardRechecks": 0,
+      "hotPlans": [
+        {
+          "sql": "SELECT \n       c.id, c.board_id, c.column_id, c.title, c.priority,\n       to_char(c.due_date, '<literal>') AS due_date, c.position::TEXT,\n       c.version, c.created_at, c.updated_at,\n       p.name AS project_name, b.name AS board_name, col.name AS column_title,\n       p.key_prefix || '<literal>' || c.card_number::text AS card_key\n     FROM cards c\n     JOIN card_assignees ca ON ca.card_id = c.id\n     JOIN projects p ON c.project_id = p.id\n     JOIN boards b ON c.board_id = b.id\n     JOIN columns col ON c.column_id = col.id AND col.deleted_at IS NULL\n     JOIN workspaces w ON p.workspace_id = w.id\n     LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $1 AND pm.status = '<literal>'\n     WHERE c.state = '<literal>' AND p.archived = FALSE AND b.archived = FALSE AND ca.user_id = $1 AND c.project_id = $2 AND (w.owner_id = $1 OR pm.id IS NOT NULL) AND (w.owner_id = $1 OR EXISTS (\n       SELECT 1 FROM board_grants bg WHERE bg.board_id = c.board_id\n         AND bg.project_id = c.project_id AND bg.user_id = $1)) AND c.board_id = ANY($3::text[])\n     ORDER BY c.due_date ASC NULLS LAST, c.id ASC\n     LIMIT $4",
+          "plan": [
+            {
+              "Plan": {
+                "Node Type": "Limit",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 73.19,
+                "Total Cost": 73.2,
+                "Plan Rows": 1,
+                "Plan Width": 376,
+                "Plans": [
+                  {
+                    "Node Type": "Sort",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 73.19,
+                    "Total Cost": 73.2,
+                    "Plan Rows": 1,
+                    "Plan Width": 376,
+                    "Sort Key": [
+                      "c.due_date",
+                      "c.id"
+                    ],
+                    "Plans": [
+                      {
+                        "Node Type": "Nested Loop",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Left",
+                        "Startup Cost": 10.04,
+                        "Total Cost": 73.18,
+                        "Plan Rows": 1,
+                        "Plan Width": 376,
+                        "Inner Unique": true,
+                        "Filter": "((w.owner_id = '<literal>'::text) OR (pm.id IS NOT NULL))",
+                        "Plans": [
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 9.9,
+                            "Total Cost": 64.98,
+                            "Plan Rows": 1,
+                            "Plan Width": 392,
+                            "Inner Unique": true,
+                            "Join Filter": "((w.owner_id = '<literal>'::text) OR (ANY ((c.board_id = (hashed SubPlan 2).col1) AND (c.project_id = (hashed SubPlan 2).col2))))",
+                            "Plans": [
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 9.75,
+                                "Total Cost": 48.63,
+                                "Plan Rows": 1,
+                                "Plan Width": 424,
+                                "Inner Unique": true,
+                                "Join Filter": "(c.column_id = col.id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Nested Loop",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Join Type": "Inner",
+                                    "Startup Cost": 9.61,
+                                    "Total Cost": 40.46,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 392,
+                                    "Inner Unique": true,
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Nested Loop",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Join Type": "Inner",
+                                        "Startup Cost": 9.46,
+                                        "Total Cost": 32.2,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 360,
+                                        "Inner Unique": false,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Index Scan",
+                                            "Parent Relationship": "Outer",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Scan Direction": "Forward",
+                                            "Index Name": "uq_projects_id_workspace",
+                                            "Relation Name": "projects",
+                                            "Alias": "p",
+                                            "Startup Cost": 0.15,
+                                            "Total Cost": 8.17,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 128,
+                                            "Index Cond": "(id = '<literal>'::text)",
+                                            "Filter": "(NOT archived)"
+                                          },
+                                          {
+                                            "Node Type": "Nested Loop",
+                                            "Parent Relationship": "Inner",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Join Type": "Inner",
+                                            "Startup Cost": 9.31,
+                                            "Total Cost": 24.03,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 232,
+                                            "Inner Unique": true,
+                                            "Plans": [
+                                              {
+                                                "Node Type": "Bitmap Heap Scan",
+                                                "Parent Relationship": "Outer",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "cards",
+                                                "Alias": "c",
+                                                "Startup Cost": 9.04,
+                                                "Total Cost": 13.06,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 232,
+                                                "Recheck Cond": "((project_id = '<literal>'::text) AND (state = '<literal>'::text))",
+                                                "Filter": "(board_id = ANY ('<literal>'::text[]))",
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "BitmapAnd",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Startup Cost": 9.04,
+                                                    "Total Cost": 9.04,
+                                                    "Plan Rows": 1,
+                                                    "Plan Width": 0,
+                                                    "Plans": [
+                                                      {
+                                                        "Node Type": "Bitmap Index Scan",
+                                                        "Parent Relationship": "Member",
+                                                        "Parallel Aware": false,
+                                                        "Async Capable": false,
+                                                        "Index Name": "idx_cards_project",
+                                                        "Startup Cost": 0,
+                                                        "Total Cost": 4.39,
+                                                        "Plan Rows": 15,
+                                                        "Plan Width": 0,
+                                                        "Index Cond": "(project_id = '<literal>'::text)"
+                                                      },
+                                                      {
+                                                        "Node Type": "Bitmap Index Scan",
+                                                        "Parent Relationship": "Member",
+                                                        "Parallel Aware": false,
+                                                        "Async Capable": false,
+                                                        "Index Name": "idx_cards_state",
+                                                        "Startup Cost": 0,
+                                                        "Total Cost": 4.39,
+                                                        "Plan Rows": 15,
+                                                        "Plan Width": 0,
+                                                        "Index Cond": "(state = '<literal>'::text)"
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "Node Type": "Index Only Scan",
+                                                "Parent Relationship": "Inner",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Scan Direction": "Forward",
+                                                "Index Name": "card_assignees_pkey",
+                                                "Relation Name": "card_assignees",
+                                                "Alias": "ca",
+                                                "Startup Cost": 0.28,
+                                                "Total Cost": 8.29,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 32,
+                                                "Index Cond": "((card_id = c.id) AND (user_id = '<literal>'::text))"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Node Type": "Index Scan",
+                                        "Parent Relationship": "Inner",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Scan Direction": "Forward",
+                                        "Index Name": "boards_id_project_id_key",
+                                        "Relation Name": "boards",
+                                        "Alias": "b",
+                                        "Startup Cost": 0.15,
+                                        "Total Cost": 8.17,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 64,
+                                        "Index Cond": "(id = c.board_id)",
+                                        "Filter": "(NOT archived)"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "idx_live_columns_board_position",
+                                    "Relation Name": "columns",
+                                    "Alias": "col",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 8.16,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 64
+                                  }
+                                ]
+                              },
+                              {
+                                "Node Type": "Index Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "workspaces_pkey",
+                                "Relation Name": "workspaces",
+                                "Alias": "w",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Index Cond": "(id = p.workspace_id)"
+                              },
+                              {
+                                "Node Type": "Seq Scan",
+                                "Parent Relationship": "SubPlan",
+                                "Subplan Name": "SubPlan 2",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "board_grants",
+                                "Alias": "bg",
+                                "Startup Cost": 0,
+                                "Total Cost": 15.12,
+                                "Plan Rows": 2,
+                                "Plan Width": 64,
+                                "Filter": "(user_id = '<literal>'::text)"
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Index Scan",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Scan Direction": "Forward",
+                            "Index Name": "project_memberships_project_id_user_id_key",
+                            "Relation Name": "project_memberships",
+                            "Alias": "pm",
+                            "Startup Cost": 0.15,
+                            "Total Cost": 8.17,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Index Cond": "((project_id = '<literal>'::text) AND (user_id = '<literal>'::text))",
+                            "Filter": "(status = '<literal>'::text)"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runtime": "worker",
+      "kind": "sql_capture",
+      "phase": "search_filter1000",
+      "queryCount": 18,
+      "boardRechecks": 1,
+      "hotPlans": [
+        {
+          "sql": "\n    SELECT \n      (SELECT COUNT(*)::INT FROM cards counted\n       JOIN projects cp ON cp.id = counted.project_id\n       JOIN workspaces cw ON cw.id = cp.workspace_id\n       WHERE counted.project_id = $1 AND counted.state = '<literal>'\n         AND (cw.owner_id = $2 OR EXISTS (\n           SELECT 1 FROM project_memberships pm JOIN board_grants bg\n             ON bg.project_id = pm.project_id AND bg.user_id = pm.user_id\n           WHERE pm.project_id = counted.project_id AND pm.user_id = $2\n             AND pm.status = '<literal>' AND bg.board_id = counted.board_id))\n         AND counted.board_id = ANY($3::text[])) AS active_count,\n      COUNT(*)::INT AS matching_count\n    FROM cards c\n    JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL\n    JOIN projects p ON p.id = c.project_id\n    JOIN workspaces w ON w.id = p.workspace_id\n    WHERE c.project_id = $1 AND c.state = '<literal>' AND (w.owner_id = $2 OR EXISTS (\n    SELECT 1 FROM project_memberships pm JOIN board_grants bg\n      ON bg.project_id = pm.project_id AND bg.user_id = pm.user_id\n    WHERE pm.project_id = c.project_id AND pm.user_id = $2\n      AND pm.status = '<literal>' AND bg.board_id = c.board_id)) AND c.board_id = ANY($3::text[]) AND c.due_date IS NULL\n  ",
+          "plan": [
+            {
+              "Plan": {
+                "Node Type": "Aggregate",
+                "Strategy": "Plain",
+                "Partial Mode": "Simple",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 91.36,
+                "Total Cost": 91.37,
+                "Plan Rows": 1,
+                "Plan Width": 8,
+                "Plans": [
+                  {
+                    "Node Type": "Aggregate",
+                    "Strategy": "Plain",
+                    "Partial Mode": "Simple",
+                    "Parent Relationship": "InitPlan",
+                    "Subplan Name": "InitPlan 3",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 41.59,
+                    "Total Cost": 41.6,
+                    "Plan Rows": 1,
+                    "Plan Width": 4,
+                    "Plans": [
+                      {
+                        "Node Type": "Hash Join",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Inner",
+                        "Startup Cost": 29.53,
+                        "Total Cost": 41.58,
+                        "Plan Rows": 1,
+                        "Plan Width": 0,
+                        "Inner Unique": true,
+                        "Hash Cond": "(cp.workspace_id = cw.id)",
+                        "Join Filter": "((cw.owner_id = '<literal>'::text) OR (ANY ((counted.project_id = (hashed SubPlan 2).col1) AND (counted.board_id = (hashed SubPlan 2).col2))))",
+                        "Plans": [
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 9.18,
+                            "Total Cost": 21.23,
+                            "Plan Rows": 1,
+                            "Plan Width": 96,
+                            "Inner Unique": false,
+                            "Plans": [
+                              {
+                                "Node Type": "Index Only Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "uq_projects_id_workspace",
+                                "Relation Name": "projects",
+                                "Alias": "cp",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Index Cond": "(id = '<literal>'::text)"
+                              },
+                              {
+                                "Node Type": "Bitmap Heap Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "cards",
+                                "Alias": "counted",
+                                "Startup Cost": 9.04,
+                                "Total Cost": 13.06,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Recheck Cond": "((project_id = '<literal>'::text) AND (state = '<literal>'::text))",
+                                "Filter": "(board_id = ANY ('<literal>'::text[]))",
+                                "Plans": [
+                                  {
+                                    "Node Type": "BitmapAnd",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Startup Cost": 9.04,
+                                    "Total Cost": 9.04,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 0,
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Bitmap Index Scan",
+                                        "Parent Relationship": "Member",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Index Name": "idx_cards_project",
+                                        "Startup Cost": 0,
+                                        "Total Cost": 4.39,
+                                        "Plan Rows": 15,
+                                        "Plan Width": 0,
+                                        "Index Cond": "(project_id = '<literal>'::text)"
+                                      },
+                                      {
+                                        "Node Type": "Bitmap Index Scan",
+                                        "Parent Relationship": "Member",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Index Name": "idx_cards_state",
+                                        "Startup Cost": 0,
+                                        "Total Cost": 4.39,
+                                        "Plan Rows": 15,
+                                        "Plan Width": 0,
+                                        "Index Cond": "(state = '<literal>'::text)"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Hash",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Startup Cost": 14.6,
+                            "Total Cost": 14.6,
+                            "Plan Rows": 460,
+                            "Plan Width": 64,
+                            "Plans": [
+                              {
+                                "Node Type": "Seq Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "workspaces",
+                                "Alias": "cw",
+                                "Startup Cost": 0,
+                                "Total Cost": 14.6,
+                                "Plan Rows": 460,
+                                "Plan Width": 64
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "SubPlan",
+                            "Subplan Name": "SubPlan 2",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 4.31,
+                            "Total Cost": 17.69,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Inner Unique": false,
+                            "Plans": [
+                              {
+                                "Node Type": "Bitmap Heap Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "project_memberships",
+                                "Alias": "pm",
+                                "Startup Cost": 4.16,
+                                "Total Cost": 9.51,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Recheck Cond": "(user_id = '<literal>'::text)",
+                                "Filter": "(status = '<literal>'::text)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Bitmap Index Scan",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Index Name": "idx_project_memberships_user",
+                                    "Startup Cost": 0,
+                                    "Total Cost": 4.16,
+                                    "Plan Rows": 2,
+                                    "Plan Width": 0,
+                                    "Index Cond": "(user_id = '<literal>'::text)"
+                                  }
+                                ]
+                              },
+                              {
+                                "Node Type": "Index Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "idx_board_grants_project_user",
+                                "Relation Name": "board_grants",
+                                "Alias": "bg",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 96,
+                                "Index Cond": "((project_id = pm.project_id) AND (user_id = '<literal>'::text))"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  {
+                    "Node Type": "Hash Join",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Join Type": "Inner",
+                    "Startup Cost": 29.68,
+                    "Total Cost": 49.75,
+                    "Plan Rows": 1,
+                    "Plan Width": 0,
+                    "Inner Unique": true,
+                    "Hash Cond": "(p.workspace_id = w.id)",
+                    "Join Filter": "((w.owner_id = '<literal>'::text) OR (ANY ((c.project_id = (hashed SubPlan 5).col1) AND (c.board_id = (hashed SubPlan 5).col2))))",
+                    "Plans": [
+                      {
+                        "Node Type": "Nested Loop",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Inner",
+                        "Startup Cost": 9.33,
+                        "Total Cost": 29.4,
+                        "Plan Rows": 1,
+                        "Plan Width": 96,
+                        "Inner Unique": false,
+                        "Plans": [
+                          {
+                            "Node Type": "Index Only Scan",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Scan Direction": "Forward",
+                            "Index Name": "uq_projects_id_workspace",
+                            "Relation Name": "projects",
+                            "Alias": "p",
+                            "Startup Cost": 0.15,
+                            "Total Cost": 8.17,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Index Cond": "(id = '<literal>'::text)"
+                          },
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 9.18,
+                            "Total Cost": 21.23,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Inner Unique": true,
+                            "Join Filter": "(c.column_id = col.id)",
+                            "Plans": [
+                              {
+                                "Node Type": "Bitmap Heap Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "cards",
+                                "Alias": "c",
+                                "Startup Cost": 9.04,
+                                "Total Cost": 13.06,
+                                "Plan Rows": 1,
+                                "Plan Width": 96,
+                                "Recheck Cond": "((project_id = '<literal>'::text) AND (state = '<literal>'::text))",
+                                "Filter": "((due_date IS NULL) AND (board_id = ANY ('<literal>'::text[])))",
+                                "Plans": [
+                                  {
+                                    "Node Type": "BitmapAnd",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Startup Cost": 9.04,
+                                    "Total Cost": 9.04,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 0,
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Bitmap Index Scan",
+                                        "Parent Relationship": "Member",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Index Name": "idx_cards_project",
+                                        "Startup Cost": 0,
+                                        "Total Cost": 4.39,
+                                        "Plan Rows": 15,
+                                        "Plan Width": 0,
+                                        "Index Cond": "(project_id = '<literal>'::text)"
+                                      },
+                                      {
+                                        "Node Type": "Bitmap Index Scan",
+                                        "Parent Relationship": "Member",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Index Name": "idx_cards_state",
+                                        "Startup Cost": 0,
+                                        "Total Cost": 4.39,
+                                        "Plan Rows": 15,
+                                        "Plan Width": 0,
+                                        "Index Cond": "(state = '<literal>'::text)"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "Node Type": "Index Only Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "idx_live_columns_board_position",
+                                "Relation Name": "columns",
+                                "Alias": "col",
+                                "Startup Cost": 0.14,
+                                "Total Cost": 8.16,
+                                "Plan Rows": 1,
+                                "Plan Width": 32
+                              }
+                            ]
+                          }
+                        ]
+                      },
+                      {
+                        "Node Type": "Hash",
+                        "Parent Relationship": "Inner",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Startup Cost": 14.6,
+                        "Total Cost": 14.6,
+                        "Plan Rows": 460,
+                        "Plan Width": 64,
+                        "Plans": [
+                          {
+                            "Node Type": "Seq Scan",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Relation Name": "workspaces",
+                            "Alias": "w",
+                            "Startup Cost": 0,
+                            "Total Cost": 14.6,
+                            "Plan Rows": 460,
+                            "Plan Width": 64
+                          }
+                        ]
+                      },
+                      {
+                        "Node Type": "Nested Loop",
+                        "Parent Relationship": "SubPlan",
+                        "Subplan Name": "SubPlan 5",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Inner",
+                        "Startup Cost": 4.31,
+                        "Total Cost": 17.69,
+                        "Plan Rows": 1,
+                        "Plan Width": 64,
+                        "Inner Unique": false,
+                        "Plans": [
+                          {
+                            "Node Type": "Bitmap Heap Scan",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Relation Name": "project_memberships",
+                            "Alias": "pm_1",
+                            "Startup Cost": 4.16,
+                            "Total Cost": 9.51,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Recheck Cond": "(user_id = '<literal>'::text)",
+                            "Filter": "(status = '<literal>'::text)",
+                            "Plans": [
+                              {
+                                "Node Type": "Bitmap Index Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Index Name": "idx_project_memberships_user",
+                                "Startup Cost": 0,
+                                "Total Cost": 4.16,
+                                "Plan Rows": 2,
+                                "Plan Width": 0,
+                                "Index Cond": "(user_id = '<literal>'::text)"
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Index Scan",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Scan Direction": "Forward",
+                            "Index Name": "idx_board_grants_project_user",
+                            "Relation Name": "board_grants",
+                            "Alias": "bg_1",
+                            "Startup Cost": 0.15,
+                            "Total Cost": 8.17,
+                            "Plan Rows": 1,
+                            "Plan Width": 96,
+                            "Index Cond": "((project_id = pm_1.project_id) AND (user_id = '<literal>'::text))"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "sql": "\n    SELECT \n      c.id, c.board_id, c.column_id, c.title, c.priority,\n      to_char(c.due_date, '<literal>') AS due_date, c.position::TEXT,\n      c.version, c.created_at, c.updated_at\n    FROM cards c\n    JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL\n    JOIN projects p ON p.id = c.project_id\n    JOIN workspaces w ON w.id = p.workspace_id\n    WHERE c.project_id = $1 AND c.state = '<literal>' AND (w.owner_id = $2 OR EXISTS (\n    SELECT 1 FROM project_memberships pm JOIN board_grants bg\n      ON bg.project_id = pm.project_id AND bg.user_id = pm.user_id\n    WHERE pm.project_id = c.project_id AND pm.user_id = $2\n      AND pm.status = '<literal>' AND bg.board_id = c.board_id)) AND c.board_id = ANY($3::text[]) AND c.due_date IS NULL\n    ORDER BY c.position ASC, c.id ASC\n    LIMIT $4\n  ",
+          "plan": [
+            {
+              "Plan": {
+                "Node Type": "Limit",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 49.77,
+                "Total Cost": 49.78,
+                "Plan Rows": 1,
+                "Plan Width": 252,
+                "Plans": [
+                  {
+                    "Node Type": "Sort",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 49.77,
+                    "Total Cost": 49.78,
+                    "Plan Rows": 1,
+                    "Plan Width": 252,
+                    "Sort Key": [
+                      "c.\"position\"",
+                      "c.id"
+                    ],
+                    "Plans": [
+                      {
+                        "Node Type": "Hash Join",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Inner",
+                        "Startup Cost": 29.68,
+                        "Total Cost": 49.76,
+                        "Plan Rows": 1,
+                        "Plan Width": 252,
+                        "Inner Unique": true,
+                        "Hash Cond": "(p.workspace_id = w.id)",
+                        "Join Filter": "((w.owner_id = '<literal>'::text) OR (ANY ((c.project_id = (hashed SubPlan 2).col1) AND (c.board_id = (hashed SubPlan 2).col2))))",
+                        "Plans": [
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 9.33,
+                            "Total Cost": 29.4,
+                            "Plan Rows": 1,
+                            "Plan Width": 256,
+                            "Inner Unique": false,
+                            "Plans": [
+                              {
+                                "Node Type": "Index Only Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "uq_projects_id_workspace",
+                                "Relation Name": "projects",
+                                "Alias": "p",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Index Cond": "(id = '<literal>'::text)"
+                              },
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 9.18,
+                                "Total Cost": 21.23,
+                                "Plan Rows": 1,
+                                "Plan Width": 224,
+                                "Inner Unique": true,
+                                "Join Filter": "(c.column_id = col.id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Bitmap Heap Scan",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Relation Name": "cards",
+                                    "Alias": "c",
+                                    "Startup Cost": 9.04,
+                                    "Total Cost": 13.06,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 224,
+                                    "Recheck Cond": "((project_id = '<literal>'::text) AND (state = '<literal>'::text))",
+                                    "Filter": "((due_date IS NULL) AND (board_id = ANY ('<literal>'::text[])))",
+                                    "Plans": [
+                                      {
+                                        "Node Type": "BitmapAnd",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Startup Cost": 9.04,
+                                        "Total Cost": 9.04,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 0,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Bitmap Index Scan",
+                                            "Parent Relationship": "Member",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Index Name": "idx_cards_project",
+                                            "Startup Cost": 0,
+                                            "Total Cost": 4.39,
+                                            "Plan Rows": 15,
+                                            "Plan Width": 0,
+                                            "Index Cond": "(project_id = '<literal>'::text)"
+                                          },
+                                          {
+                                            "Node Type": "Bitmap Index Scan",
+                                            "Parent Relationship": "Member",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Index Name": "idx_cards_state",
+                                            "Startup Cost": 0,
+                                            "Total Cost": 4.39,
+                                            "Plan Rows": 15,
+                                            "Plan Width": 0,
+                                            "Index Cond": "(state = '<literal>'::text)"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Only Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "idx_live_columns_board_position",
+                                    "Relation Name": "columns",
+                                    "Alias": "col",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 8.16,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 32
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Hash",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Startup Cost": 14.6,
+                            "Total Cost": 14.6,
+                            "Plan Rows": 460,
+                            "Plan Width": 64,
+                            "Plans": [
+                              {
+                                "Node Type": "Seq Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "workspaces",
+                                "Alias": "w",
+                                "Startup Cost": 0,
+                                "Total Cost": 14.6,
+                                "Plan Rows": 460,
+                                "Plan Width": 64
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "SubPlan",
+                            "Subplan Name": "SubPlan 2",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 4.31,
+                            "Total Cost": 17.69,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Inner Unique": false,
+                            "Plans": [
+                              {
+                                "Node Type": "Bitmap Heap Scan",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "project_memberships",
+                                "Alias": "pm",
+                                "Startup Cost": 4.16,
+                                "Total Cost": 9.51,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Recheck Cond": "(user_id = '<literal>'::text)",
+                                "Filter": "(status = '<literal>'::text)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Bitmap Index Scan",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Index Name": "idx_project_memberships_user",
+                                    "Startup Cost": 0,
+                                    "Total Cost": 4.16,
+                                    "Plan Rows": 2,
+                                    "Plan Width": 0,
+                                    "Index Cond": "(user_id = '<literal>'::text)"
+                                  }
+                                ]
+                              },
+                              {
+                                "Node Type": "Index Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "idx_board_grants_project_user",
+                                "Relation Name": "board_grants",
+                                "Alias": "bg",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 96,
+                                "Index Cond": "((project_id = pm.project_id) AND (user_id = '<literal>'::text))"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runtime": "worker",
+      "kind": "sql_capture",
+      "phase": "my_tasks_5_returned_boards",
+      "queryCount": 13,
+      "boardRechecks": 0,
+      "hotPlans": [
+        {
+          "sql": "SELECT \n       c.id, c.board_id, c.column_id, c.title, c.priority,\n       to_char(c.due_date, '<literal>') AS due_date, c.position::TEXT,\n       c.version, c.created_at, c.updated_at,\n       p.name AS project_name, b.name AS board_name, col.name AS column_title,\n       p.key_prefix || '<literal>' || c.card_number::text AS card_key\n     FROM cards c\n     JOIN card_assignees ca ON ca.card_id = c.id\n     JOIN projects p ON c.project_id = p.id\n     JOIN boards b ON c.board_id = b.id\n     JOIN columns col ON c.column_id = col.id AND col.deleted_at IS NULL\n     JOIN workspaces w ON p.workspace_id = w.id\n     LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $1 AND pm.status = '<literal>'\n     WHERE c.state = '<literal>' AND p.archived = FALSE AND b.archived = FALSE AND ca.user_id = $1 AND c.project_id = $2 AND (w.owner_id = $1 OR pm.id IS NOT NULL) AND (w.owner_id = $1 OR EXISTS (\n       SELECT 1 FROM board_grants bg WHERE bg.board_id = c.board_id\n         AND bg.project_id = c.project_id AND bg.user_id = $1)) AND c.board_id = ANY($3::text[])\n     ORDER BY c.due_date ASC NULLS LAST, c.id ASC\n     LIMIT $4",
+          "plan": [
+            {
+              "Plan": {
+                "Node Type": "Limit",
+                "Parallel Aware": false,
+                "Async Capable": false,
+                "Startup Cost": 73.27,
+                "Total Cost": 73.27,
+                "Plan Rows": 1,
+                "Plan Width": 376,
+                "Plans": [
+                  {
+                    "Node Type": "Sort",
+                    "Parent Relationship": "Outer",
+                    "Parallel Aware": false,
+                    "Async Capable": false,
+                    "Startup Cost": 73.27,
+                    "Total Cost": 73.27,
+                    "Plan Rows": 1,
+                    "Plan Width": 376,
+                    "Sort Key": [
+                      "c.due_date",
+                      "c.id"
+                    ],
+                    "Plans": [
+                      {
+                        "Node Type": "Nested Loop",
+                        "Parent Relationship": "Outer",
+                        "Parallel Aware": false,
+                        "Async Capable": false,
+                        "Join Type": "Left",
+                        "Startup Cost": 10.12,
+                        "Total Cost": 73.26,
+                        "Plan Rows": 1,
+                        "Plan Width": 376,
+                        "Inner Unique": true,
+                        "Filter": "((w.owner_id = '<literal>'::text) OR (pm.id IS NOT NULL))",
+                        "Plans": [
+                          {
+                            "Node Type": "Nested Loop",
+                            "Parent Relationship": "Outer",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Join Type": "Inner",
+                            "Startup Cost": 9.97,
+                            "Total Cost": 65.06,
+                            "Plan Rows": 1,
+                            "Plan Width": 392,
+                            "Inner Unique": true,
+                            "Join Filter": "((w.owner_id = '<literal>'::text) OR (ANY ((c.board_id = (hashed SubPlan 2).col1) AND (c.project_id = (hashed SubPlan 2).col2))))",
+                            "Plans": [
+                              {
+                                "Node Type": "Nested Loop",
+                                "Parent Relationship": "Outer",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Join Type": "Inner",
+                                "Startup Cost": 9.82,
+                                "Total Cost": 48.71,
+                                "Plan Rows": 1,
+                                "Plan Width": 424,
+                                "Inner Unique": true,
+                                "Join Filter": "(c.column_id = col.id)",
+                                "Plans": [
+                                  {
+                                    "Node Type": "Nested Loop",
+                                    "Parent Relationship": "Outer",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Join Type": "Inner",
+                                    "Startup Cost": 9.68,
+                                    "Total Cost": 40.54,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 392,
+                                    "Inner Unique": true,
+                                    "Plans": [
+                                      {
+                                        "Node Type": "Nested Loop",
+                                        "Parent Relationship": "Outer",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Join Type": "Inner",
+                                        "Startup Cost": 9.53,
+                                        "Total Cost": 32.28,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 360,
+                                        "Inner Unique": false,
+                                        "Plans": [
+                                          {
+                                            "Node Type": "Index Scan",
+                                            "Parent Relationship": "Outer",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Scan Direction": "Forward",
+                                            "Index Name": "uq_projects_id_workspace",
+                                            "Relation Name": "projects",
+                                            "Alias": "p",
+                                            "Startup Cost": 0.15,
+                                            "Total Cost": 8.17,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 128,
+                                            "Index Cond": "(id = '<literal>'::text)",
+                                            "Filter": "(NOT archived)"
+                                          },
+                                          {
+                                            "Node Type": "Nested Loop",
+                                            "Parent Relationship": "Inner",
+                                            "Parallel Aware": false,
+                                            "Async Capable": false,
+                                            "Join Type": "Inner",
+                                            "Startup Cost": 9.39,
+                                            "Total Cost": 24.1,
+                                            "Plan Rows": 1,
+                                            "Plan Width": 232,
+                                            "Inner Unique": true,
+                                            "Plans": [
+                                              {
+                                                "Node Type": "Bitmap Heap Scan",
+                                                "Parent Relationship": "Outer",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Relation Name": "cards",
+                                                "Alias": "c",
+                                                "Startup Cost": 9.11,
+                                                "Total Cost": 13.13,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 232,
+                                                "Recheck Cond": "((project_id = '<literal>'::text) AND (state = '<literal>'::text))",
+                                                "Filter": "(board_id = ANY ('<literal>'::text[]))",
+                                                "Plans": [
+                                                  {
+                                                    "Node Type": "BitmapAnd",
+                                                    "Parent Relationship": "Outer",
+                                                    "Parallel Aware": false,
+                                                    "Async Capable": false,
+                                                    "Startup Cost": 9.11,
+                                                    "Total Cost": 9.11,
+                                                    "Plan Rows": 1,
+                                                    "Plan Width": 0,
+                                                    "Plans": [
+                                                      {
+                                                        "Node Type": "Bitmap Index Scan",
+                                                        "Parent Relationship": "Member",
+                                                        "Parallel Aware": false,
+                                                        "Async Capable": false,
+                                                        "Index Name": "idx_cards_project",
+                                                        "Startup Cost": 0,
+                                                        "Total Cost": 4.43,
+                                                        "Plan Rows": 20,
+                                                        "Plan Width": 0,
+                                                        "Index Cond": "(project_id = '<literal>'::text)"
+                                                      },
+                                                      {
+                                                        "Node Type": "Bitmap Index Scan",
+                                                        "Parent Relationship": "Member",
+                                                        "Parallel Aware": false,
+                                                        "Async Capable": false,
+                                                        "Index Name": "idx_cards_state",
+                                                        "Startup Cost": 0,
+                                                        "Total Cost": 4.43,
+                                                        "Plan Rows": 20,
+                                                        "Plan Width": 0,
+                                                        "Index Cond": "(state = '<literal>'::text)"
+                                                      }
+                                                    ]
+                                                  }
+                                                ]
+                                              },
+                                              {
+                                                "Node Type": "Index Only Scan",
+                                                "Parent Relationship": "Inner",
+                                                "Parallel Aware": false,
+                                                "Async Capable": false,
+                                                "Scan Direction": "Forward",
+                                                "Index Name": "card_assignees_pkey",
+                                                "Relation Name": "card_assignees",
+                                                "Alias": "ca",
+                                                "Startup Cost": 0.28,
+                                                "Total Cost": 8.29,
+                                                "Plan Rows": 1,
+                                                "Plan Width": 32,
+                                                "Index Cond": "((card_id = c.id) AND (user_id = '<literal>'::text))"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "Node Type": "Index Scan",
+                                        "Parent Relationship": "Inner",
+                                        "Parallel Aware": false,
+                                        "Async Capable": false,
+                                        "Scan Direction": "Forward",
+                                        "Index Name": "boards_id_project_id_key",
+                                        "Relation Name": "boards",
+                                        "Alias": "b",
+                                        "Startup Cost": 0.15,
+                                        "Total Cost": 8.17,
+                                        "Plan Rows": 1,
+                                        "Plan Width": 64,
+                                        "Index Cond": "(id = c.board_id)",
+                                        "Filter": "(NOT archived)"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "Node Type": "Index Scan",
+                                    "Parent Relationship": "Inner",
+                                    "Parallel Aware": false,
+                                    "Async Capable": false,
+                                    "Scan Direction": "Forward",
+                                    "Index Name": "idx_live_columns_board_position",
+                                    "Relation Name": "columns",
+                                    "Alias": "col",
+                                    "Startup Cost": 0.14,
+                                    "Total Cost": 8.16,
+                                    "Plan Rows": 1,
+                                    "Plan Width": 64
+                                  }
+                                ]
+                              },
+                              {
+                                "Node Type": "Index Scan",
+                                "Parent Relationship": "Inner",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Scan Direction": "Forward",
+                                "Index Name": "workspaces_pkey",
+                                "Relation Name": "workspaces",
+                                "Alias": "w",
+                                "Startup Cost": 0.15,
+                                "Total Cost": 8.17,
+                                "Plan Rows": 1,
+                                "Plan Width": 64,
+                                "Index Cond": "(id = p.workspace_id)"
+                              },
+                              {
+                                "Node Type": "Seq Scan",
+                                "Parent Relationship": "SubPlan",
+                                "Subplan Name": "SubPlan 2",
+                                "Parallel Aware": false,
+                                "Async Capable": false,
+                                "Relation Name": "board_grants",
+                                "Alias": "bg",
+                                "Startup Cost": 0,
+                                "Total Cost": 15.12,
+                                "Plan Rows": 2,
+                                "Plan Width": 64,
+                                "Filter": "(user_id = '<literal>'::text)"
+                              }
+                            ]
+                          },
+                          {
+                            "Node Type": "Index Scan",
+                            "Parent Relationship": "Inner",
+                            "Parallel Aware": false,
+                            "Async Capable": false,
+                            "Scan Direction": "Forward",
+                            "Index Name": "project_memberships_project_id_user_id_key",
+                            "Relation Name": "project_memberships",
+                            "Alias": "pm",
+                            "Startup Cost": 0.15,
+                            "Total Cost": 8.17,
+                            "Plan Rows": 1,
+                            "Plan Width": 64,
+                            "Index Cond": "((project_id = '<literal>'::text) AND (user_id = '<literal>'::text))",
+                            "Filter": "(status = '<literal>'::text)"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "runtime": "workerd_test_only_app",
+      "kind": "http_deadline_pg_sleep",
+      "configuredDeadlineMs": 50,
+      "elapsedMs": 160.48304200000075,
+      "status": 504,
+      "underlyingWriteCompleted": true,
+      "poolEndWaitsForOutstandingQuery": true
+    },
+    {
+      "runtime": "worker",
+      "kind": "body_cap",
+      "route": "/api/v1/boards/brd/cards",
+      "bytes": 1048576,
+      "status": 400
+    },
+    {
+      "runtime": "worker",
+      "kind": "body_cap",
+      "route": "/api/v1/boards/brd/cards",
+      "bytes": 1048577,
+      "status": 413
+    },
+    {
+      "runtime": "worker",
+      "kind": "body_cap",
+      "route": "/api/v1/boards/absent/imports",
+      "bytes": 5308416,
+      "status": 400
+    },
+    {
+      "runtime": "worker",
+      "kind": "body_cap",
+      "route": "/api/v1/boards/absent/imports",
+      "bytes": 5308417,
+      "status": 413
+    },
+    {
+      "runtime": "worker",
+      "kind": "body_cap",
+      "route": "/api/v1/image-uploads/absent/content",
+      "bytes": 10551296,
+      "status": 503
+    },
+    {
+      "runtime": "worker",
+      "kind": "body_cap",
+      "route": "/api/v1/image-uploads/absent/content",
+      "bytes": 10551297,
+      "status": 413
+    },
+    {
+      "runtime": "worker",
+      "kind": "sql_lock_timeout",
+      "elapsedMs": 3027.399041999999,
+      "status": 503,
+      "body": {
+        "error": {
+          "code": "SERVICE_UNAVAILABLE",
+          "message": "The database request took too long. Retry shortly.",
+          "requestId": "16a49939-4f6d-4ad9-81bb-be4281acaed1"
+        }
+      }
+    },
+    {
+      "runtime": "node_test_only_app",
+      "kind": "http_deadline_pg_sleep",
+      "elapsedMs": 34.00324999999975,
+      "status": 504,
+      "underlyingWriteCompleted": true
+    },
+    {
+      "runtime": "workerd",
+      "kind": "bootstrap_missing_binding",
+      "status": 500,
+      "hasRequestId": false,
+      "note": "Current pre-middleware shape; not a general request-ID guarantee"
+    }
+  ]
+}

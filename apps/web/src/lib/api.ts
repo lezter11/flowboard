@@ -11,6 +11,8 @@ import {
   type CreateInvitationInput,
   type InvitationResponse,
   type InvitationListResponse,
+  type InvitationStatus,
+  type RevokeInvitationResponse,
   type UpdateColumnInput,
   type ReorderColumnsInput,
   type DeleteColumnInput,
@@ -21,14 +23,22 @@ import {
   type AcceptInvitationResponse,
   type ImportStatusResponse,
   type CommitImportInput,
+  type UpdateImportMappingsInput,
   type UpdateProjectMemberInput,
   type UpdateProjectInput,
   type UpdateProfileInput,
+  type UpdateWorkspaceInput,
+  type WorkspaceResponse,
   type SaveNameInput,
   type SaveNameResponse,
   type UpdateBoardInput,
   type BoardSnapshotResponse,
   type BoardSnapshotQuery,
+  type CardsQuery,
+  type MyTasksQuery,
+  type CardListResponse,
+  type PlacementInput,
+  type PlacementResponse,
   type CardResponse,
   type CardSummary,
   type CreateCardInput,
@@ -38,6 +48,8 @@ import {
   type MutationResponse,
   type CommentListResponse,
   type PostCommentInput,
+  type EditCommentInput,
+  type DeleteCommentInput,
   type CommentResponse,
   type ActivityListResponse,
   type NotificationListResponse,
@@ -47,23 +59,35 @@ import {
   type ImageUploadResponse,
   type FinalizedImageResponse,
   type FinalizedImageListResponse,
+  type ImageGalleryResponse,
+  type ActivityFeedQuery,
 } from '@flowboard/contracts';
 
-import { isNetworkFailure, NETWORK_MESSAGE } from '@/lib/error-codes';
+import { isNetworkFailure, NETWORK_MESSAGE } from './error-codes.ts';
 
 export class ApiError extends Error {
+  readonly status: number;
+  readonly code: string;
+  readonly details?: unknown;
+  readonly requestId?: string;
+  readonly retryAfter?: number | null;
   constructor(
-    public readonly status: number,
-    public readonly code: string,
+    status: number,
+    code: string,
     message: string,
-    public readonly details?: unknown,
+    details?: unknown,
     /** Server request id, shown only as a support reference on server faults. */
-    public readonly requestId?: string,
+    requestId?: string,
     /** Seconds from the Retry-After header, when present. */
-    public readonly retryAfter?: number | null
+    retryAfter?: number | null
   ) {
     super(message);
     this.name = 'ApiError';
+    this.status = status;
+    this.code = code;
+    this.details = details;
+    this.requestId = requestId;
+    this.retryAfter = retryAfter;
   }
 }
 
@@ -144,6 +168,9 @@ export const api = {
   async updateProfile(input: UpdateProfileInput): Promise<void> {
     await request<unknown>('/api/v1/session/profile', { method: 'PATCH', body: JSON.stringify(input) });
   },
+  async updateWorkspace(workspaceId:string,input:UpdateWorkspaceInput):Promise<WorkspaceResponse> {
+    return request(`/api/v1/workspaces/${encodeURIComponent(workspaceId)}`,{method:'PATCH',body:JSON.stringify(input)});
+  },
   // Card images (private; bytes only ever travel through these authenticated calls)
   async createImageUpload(cardId: string, input: CreateImageUploadInput, idempotencyKey?: string): Promise<ImageUploadResponse> {
     return request<ImageUploadResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/image-uploads`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify(input) });
@@ -157,8 +184,8 @@ export const api = {
   async cancelImageUpload(uploadId: string): Promise<ImageUploadResponse> {
     return request<ImageUploadResponse>(`/api/v1/image-uploads/${encodeURIComponent(uploadId)}`, { method: 'DELETE' });
   },
-  async listCardImages(cardId: string): Promise<FinalizedImageListResponse> {
-    return request<FinalizedImageListResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/images`);
+  async listCardImages(cardId: string): Promise<ImageGalleryResponse> {
+    return request<ImageGalleryResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/images`);
   },
   /** Image bytes as a Blob. The caller turns it into an object URL and revokes it; no image URL is ever put on the page. */
   async fetchImageBlob(imageId: string, kind: 'content' | 'thumbnail' = 'content'): Promise<Blob> {
@@ -205,6 +232,10 @@ export const api = {
   },
 
   // Projects
+  async listAccessibleProjects(options:{cursor?:string;limit?:number;signal?:AbortSignal}={}):Promise<ProjectListResponse> {
+    const query=new URLSearchParams({limit:String(options.limit??50)});if(options.cursor)query.set('cursor',options.cursor);
+    return request(`/api/v1/projects?${query}`,{signal:options.signal});
+  },
   async listProjects(workspaceId: string): Promise<ProjectListResponse> {
     return request<ProjectListResponse>(`/api/v1/workspaces/${encodeURIComponent(workspaceId)}/projects`);
   },
@@ -266,14 +297,17 @@ export const api = {
   async createInvitation(projectId: string, input: CreateInvitationInput, idempotencyKey?: string): Promise<InvitationResponse> {
     return request<InvitationResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/invitations`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify(input) });
   },
-  async listInvitations(projectId: string): Promise<InvitationListResponse> {
-    return request<InvitationListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/invitations`);
+  async listInvitations(projectId: string, options: { cursor?: string; limit?: number; status?: InvitationStatus; signal?: AbortSignal } = {}): Promise<InvitationListResponse> {
+    const query = new URLSearchParams({ limit: String(options.limit ?? 50) });
+    if (options.cursor) query.set('cursor', options.cursor);
+    if (options.status) query.set('status', options.status);
+    return request<InvitationListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/invitations?${query}`, { signal: options.signal });
   },
   async resendInvitation(projectId: string, invitationId: string, idempotencyKey?: string): Promise<InvitationResponse> {
     return request<InvitationResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/invitations/${encodeURIComponent(invitationId)}/resend`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: '{}' });
   },
-  async revokeInvitation(projectId: string, invitationId: string, idempotencyKey?: string): Promise<unknown> {
-    return request<unknown>(`/api/v1/projects/${encodeURIComponent(projectId)}/invitations/${encodeURIComponent(invitationId)}/revoke`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: '{}' });
+  async revokeInvitation(projectId: string, invitationId: string, idempotencyKey?: string): Promise<RevokeInvitationResponse> {
+    return request<RevokeInvitationResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/invitations/${encodeURIComponent(invitationId)}/revoke`, { method: 'POST', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: '{}' });
   },
 
   async acceptInvitation(token: string, idempotencyKey?: string): Promise<AcceptInvitationResponse> {
@@ -289,6 +323,24 @@ export const api = {
     form.set('file', file);
     form.set('defaultColumnId', defaultColumnId);
     return request<ImportStatusResponse>(`/api/v1/boards/${encodeURIComponent(boardId)}/imports`, { method: 'POST', body: form });
+  },
+
+  async getImportStatus(importId:string, options:{limit?:number;cursor?:string;signal?:AbortSignal}={}):Promise<ImportStatusResponse> {
+    const query=new URLSearchParams({limit:String(options.limit??50)});
+    if(options.cursor) query.set('cursor',options.cursor);
+    return request(`/api/v1/imports/${encodeURIComponent(importId)}?${query}`,{signal:options.signal});
+  },
+  async updateImportMappings(importId:string,input:UpdateImportMappingsInput):Promise<ImportStatusResponse> {
+    const mappingEntries=[...Object.entries(input.mappings).map(([sourceStatus,columnId])=>({sourceStatus,columnId})),...(input.mappingEntries??[])];
+    return request(`/api/v1/imports/${encodeURIComponent(importId)}/mappings`,{method:'POST',body:JSON.stringify({mappings:{},mappingEntries,expectedVersion:input.expectedVersion})});
+  },
+  async getImportReport(importId:string):Promise<Blob> {
+    let response:Response;
+    try {response=await fetch(`/api/v1/imports/${encodeURIComponent(importId)}/report`,{credentials:'same-origin'});}
+    catch(error){if(isNetworkFailure(error)) throw new ApiError(0,'NETWORK_ERROR',NETWORK_MESSAGE);throw error;}
+    if(!response.ok){const payload=await response.json().catch(()=>null);throw new ApiError(response.status,payload?.error?.code??'HTTP_ERROR','Could not download the import report.');}
+    if(!response.headers.get('content-type')?.toLowerCase().startsWith('text/csv')) throw new ApiError(502,'INVALID_RESPONSE','The import report was not a CSV file.');
+    return response.blob();
   },
 
   async commitImport(importId: string, input: CommitImportInput, idempotencyKey?: string): Promise<ImportStatusResponse> {
@@ -344,11 +396,29 @@ export const api = {
   },
 
   // Boards
-  async listProjectBoards(projectId: string): Promise<BoardListResponse> {
-    return request<BoardListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/boards`);
+  async listBoardCards(boardId: string, query: CardsQuery, signal?: AbortSignal): Promise<CardListResponse> {
+    const params = new URLSearchParams();
+    for (const [key, value] of Object.entries(query)) if (value !== undefined) params.set(key, String(value));
+    return request(`/api/v1/boards/${encodeURIComponent(boardId)}/cards?${params}`, { signal });
   },
 
-  async getBoardSnapshot(boardId: string, query?: BoardSnapshotQuery): Promise<BoardSnapshotResponse> {
+  async getCardPlacement(boardId: string, columnId: string, input: PlacementInput): Promise<PlacementResponse> {
+    const params = new URLSearchParams({ movingCardId: input.movingCardId, at: input.at });
+    if (input.anchorCardId) params.set('anchorCardId', input.anchorCardId);
+    return request(`/api/v1/boards/${encodeURIComponent(boardId)}/columns/${encodeURIComponent(columnId)}/placement?${params}`);
+  },
+
+  async changeBoardLifecycle(boardId: string, archived: boolean, expectedVersion: number, idempotencyKey: string): Promise<BoardResponse> {
+    return request(`/api/v1/boards/${encodeURIComponent(boardId)}/${archived ? 'archive' : 'reopen'}`, {
+      method: 'POST', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify({ expectedVersion }),
+    });
+  },
+
+  async listProjectBoards(projectId: string, options: { includeArchived?: boolean } = {}): Promise<BoardListResponse> {
+    return request<BoardListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/boards${options.includeArchived ? '?includeArchived=true' : ''}`);
+  },
+
+  async getBoardSnapshot(boardId: string, query?: BoardSnapshotQuery, signal?: AbortSignal): Promise<BoardSnapshotResponse> {
     const params = new URLSearchParams();
     if (query?.titleQuery) params.set('titleQuery', query.titleQuery);
     if (query?.priority) params.set('priority', query.priority);
@@ -357,7 +427,7 @@ export const api = {
     if (query?.cardLimitPerColumn) params.set('cardLimitPerColumn', String(query.cardLimitPerColumn));
 
     const queryString = params.toString() ? `?${params.toString()}` : '';
-    return request<BoardSnapshotResponse>(`/api/v1/boards/${encodeURIComponent(boardId)}${queryString}`);
+    return request<BoardSnapshotResponse>(`/api/v1/boards/${encodeURIComponent(boardId)}${queryString}`, { signal });
   },
 
   // Cards
@@ -371,8 +441,8 @@ export const api = {
     });
   },
 
-  async getCard(cardId: string): Promise<CardResponse> {
-    return request<CardResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}`);
+  async getCard(cardId: string, signal?:AbortSignal): Promise<CardResponse> {
+    return request<CardResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}`,{signal});
   },
 
   async updateCard(cardId: string, input: UpdateCardInput, idempotencyKey?: string): Promise<MutationResponse> {
@@ -385,6 +455,9 @@ export const api = {
     });
   },
 
+  async undoCardMove(cardId:string,input:{expectedVersion:number;expectedBoardVersion:number},idempotencyKey:string):Promise<MutationResponse> {
+    return request(`/api/v1/cards/${encodeURIComponent(cardId)}/move-undo`,{method:'POST',headers:{'Idempotency-Key':idempotencyKey},body:JSON.stringify(input)});
+  },
   async moveCard(cardId: string, input: MoveCardInput, idempotencyKey?: string): Promise<MutationResponse> {
     return request<MutationResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/move`, {
       method: 'POST',
@@ -406,8 +479,10 @@ export const api = {
   },
 
   // Comments
-  async listCardComments(cardId: string): Promise<CommentListResponse> {
-    return request<CommentListResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/comments`);
+  async listCardComments(cardId: string, options: { cursor?: string; limit?: number; signal?: AbortSignal } = {}): Promise<CommentListResponse> {
+    const query = new URLSearchParams({ limit: String(options.limit ?? 50) });
+    if (options.cursor) query.set('cursor', options.cursor);
+    return request<CommentListResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/comments?${query}`, { signal: options.signal });
   },
 
   async postCardComment(cardId: string, input: PostCommentInput, idempotencyKey?: string): Promise<CommentResponse> {
@@ -420,21 +495,46 @@ export const api = {
     });
   },
 
+  async editComment(commentId: string, input: EditCommentInput, idempotencyKey: string): Promise<CommentResponse> {
+    return request<CommentResponse>(`/api/v1/comments/${encodeURIComponent(commentId)}`, {
+      method: 'PATCH', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(input),
+    });
+  },
+
+  async deleteComment(commentId: string, input: DeleteCommentInput, idempotencyKey: string): Promise<{ data: { success: boolean; id: string; version: number } }> {
+    return request(`/api/v1/comments/${encodeURIComponent(commentId)}`, {
+      method: 'DELETE', headers: { 'Idempotency-Key': idempotencyKey }, body: JSON.stringify(input),
+    });
+  },
+
   // Activity & Notifications
-  async listProjectActivity(projectId: string, limit = 100): Promise<ActivityListResponse> {
-    return request<ActivityListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/activity?limit=${limit}`);
+  async listProjectActivity(projectId: string, limit = 50, cursor?: string, signal?: AbortSignal, filters:Omit<ActivityFeedQuery,'projectId'|'limit'|'cursor'>={}): Promise<ActivityListResponse> {
+    const query = new URLSearchParams({limit:String(limit)});
+    for(const [key,value]of Object.entries(filters))if(value)query.set(key,value);
+    if(cursor) query.set('cursor',cursor);
+    return request<ActivityListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/activity?${query}`,{signal});
   },
 
-  async listCardActivity(cardId: string, limit = 50): Promise<ActivityListResponse> {
-    return request<ActivityListResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/activity?limit=${limit}`);
+  async listWorkspaceActivity(workspaceId:string,options:Partial<ActivityFeedQuery>&{signal?:AbortSignal}={}):Promise<ActivityListResponse>{
+    const query=new URLSearchParams({limit:String(options.limit??50)});for(const field of ['projectId','cardId','actorId','action','fromDate','toDate','cursor']as const)if(options[field])query.set(field,options[field]!);
+    return request(`/api/v1/workspaces/${encodeURIComponent(workspaceId)}/activity?${query}`,{signal:options.signal});
+  },
+  async listCardActivity(cardId: string, limit = 50, cursor?: string, signal?: AbortSignal): Promise<ActivityListResponse> {
+    const query = new URLSearchParams({ limit: String(limit) });
+    if (cursor) query.set('cursor', cursor);
+    return request<ActivityListResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}/activity?${query}`, { signal });
   },
 
-  async listMyTasks(projectId: string): Promise<{ data: Array<CardSummary & { projectName?: string; boardName?: string; columnTitle?: string }> }> {
-    return request(`/api/v1/me/tasks?projectId=${encodeURIComponent(projectId)}&limit=100`);
+  async listMyTasks(projectId: string, options: Partial<Pick<MyTasksQuery,'due'|'priority'|'cursor'|'limit'>> & {signal?:AbortSignal} = {}): Promise<{ data: Array<CardSummary & { projectName?: string; boardName?: string; columnTitle?: string }>; nextCursor:string|null; asOfDate:string; timezone:string }> {
+    const query = new URLSearchParams({projectId,limit:String(options.limit??50)});
+    for(const field of ['due','priority','cursor'] as const) if(options[field]) query.set(field,options[field]!);
+    return request(`/api/v1/me/tasks?${query}`,{signal:options.signal});
   },
 
-  async listNotifications(): Promise<NotificationListResponse> {
-    return request<NotificationListResponse>('/api/v1/notifications?limit=100');
+  async listNotifications(options:{cursor?:string;limit?:number;signal?:AbortSignal} = {}): Promise<NotificationListResponse> {
+    const query = new URLSearchParams({limit:String(options.limit??50)});
+    if(options.cursor) query.set('cursor',options.cursor);
+    return request<NotificationListResponse>(`/api/v1/notifications?${query}`,{signal:options.signal});
   },
 
   async markNotificationRead(id: string): Promise<void> {
@@ -454,7 +554,9 @@ export const api = {
     });
   },
 
-  async listProjectTrash(projectId: string): Promise<TrashListResponse> {
-    return request<TrashListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/trash`);
+  async listProjectTrash(projectId: string, options:{cursor?:string;limit?:number;signal?:AbortSignal} = {}): Promise<TrashListResponse> {
+    const query = new URLSearchParams({limit:String(options.limit??50)});
+    if(options.cursor) query.set('cursor',options.cursor);
+    return request<TrashListResponse>(`/api/v1/projects/${encodeURIComponent(projectId)}/trash?${query}`,{signal:options.signal});
   },
 };

@@ -1,0 +1,23 @@
+✔ People policy: only inherited Owner/current Manager read emails; Member/Viewer deny without directory data (257.647041ms)
+✔ People policy: Member/Viewer board-scoped pickers remain available and contain no emails (191.804709ms)
+✔ People policy: default/display aliases never expose the project roster to Member/Viewer (251.342666ms)
+✔ People policy: display administrators retain search/page/archive reads without a board grant (191.42675ms)
+✔ People policy: direct display adapter requires a current directory administrator (163.821792ms)
+✔ People policy: default/display read waits for demotion and denies the newly demoted Manager (187.725625ms)
+✔ People policy: display assembly finishes before a concurrent Manager demotion (206.290833ms)
+✔ People policy: demotion winning membership lock prevents an in-flight directory disclosure (175.427125ms)
+✔ People policy: authorized directory assembly serializes before concurrent Manager demotion (202.810334ms)
+{"role":"member","displayStatus":403,"pickerCount":3}
+✔ independent display scope: member should not enumerate a teammate outside the requested board (213.613125ms)
+{"role":"viewer","displayStatus":403,"pickerCount":3}
+✔ independent display scope: viewer should not enumerate a teammate outside the requested board (166.663166ms)
+{"status":403,"payload":{"error":{"code":"FORBIDDEN","message":"Only the Owner or a Project Manager can view the full People directory.","requestId":"0dfc3aa1-0fa0-4a22-a690-fe49486b1c32"}}}
+✔ independent adversarial: Member without board grants cannot enumerate full project identities via unscoped display picker (222.2685ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 12
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4921.056833

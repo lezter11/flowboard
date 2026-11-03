@@ -1,0 +1,66 @@
+✖ Move Undo: cross-column restores original order once, lost-response replay is safe (254.449291ms)
+✖ Move Undo: same-column restores original order once, lost-response replay is safe (191.237833ms)
+✔ Move Undo: intervening edit or changed original neighbors gives conflict without overwriting (208.028166ms)
+{"maxCardRowsInMoveRead":1000}
+✖ Move rank calculation: a 1000-card destination never materializes all card rows (226.281166ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1050.231416
+
+✖ failing tests:
+
+test at apps/api/test/move-undo-repair.test.ts:19:50
+✖ Move Undo: cross-column restores original order once, lost-response replay is safe (254.449291ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_ERROR","message":"Cannot move with both null neighbors into non-empty column.","requestId":"5283e6b6-106e-489c-8410-62818a889434","details":{"issues":[{"path":"previousCardId","message":"Neighbors cannot both be null in non-empty column"}]}}}
+  
+  422 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/move-undo-repair.test.ts:23:89)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/move-undo-repair.test.ts:19:50
+✖ Move Undo: same-column restores original order once, lost-response replay is safe (191.237833ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_ERROR","message":"Cannot move with both null neighbors into non-empty column.","requestId":"c6b30328-0463-48e8-967d-b5d8834fb2d1","details":{"issues":[{"path":"previousCardId","message":"Neighbors cannot both be null in non-empty column"}]}}}
+  
+  422 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/move-undo-repair.test.ts:23:89)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/move-undo-repair.test.ts:37:1
+✖ Move rank calculation: a 1000-card destination never materializes all card rows (226.281166ms)
+  AssertionError [ERR_ASSERTION]: Normal move queries must read bounded neighbors, not1000 destination rows
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/move-undo-repair.test.ts:47:75)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

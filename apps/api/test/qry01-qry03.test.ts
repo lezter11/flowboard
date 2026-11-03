@@ -319,7 +319,7 @@ test('QRY-01 to QRY-03: Discovery, Search, Multi-Facet Filters & My Tasks Suite'
     const missingScope = await app.request('/api/v1/me/tasks', {
       headers: { Cookie: ownerCookie },
     });
-    assert.equal(missingScope.status, 400, 'Cross-project My Tasks queries require one projectId');
+    assert.equal(missingScope.status, 422, 'The strict MyTasks query schema requires one projectId');
 
     // 1. Member calls /api/v1/me/tasks for Project Alpha:
     // Should see Card 1 from Project Alpha.

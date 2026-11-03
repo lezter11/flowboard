@@ -5,12 +5,16 @@ import * as m from 'motion/react-m';
 import type { CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
 import { Icon } from '@/components/ui/icon';
 import { toneFor } from '@/lib/board-model';
+import { isComposingInput } from '@/lib/comment-state';
 import { BoardCard, type CardStyle } from './board-card';
+import { ApiError } from '@/lib/api';
+import { describeError } from '@/lib/errors';
 
 export interface DropTarget { columnId: string; index: number }
 
 interface Props {
   column: ColumnSummary;
+  asOfDateForCard?:(card:CardSummary)=>string|null;
   shown: CardSummary[];
   filtering: boolean;
   view: 'board' | 'list';
@@ -25,11 +29,18 @@ interface Props {
   addBoardId?: string;
   onAddBoard?: (boardId: string) => void;
   addNote?: string;
+  pageSources?: Array<{ boardId: string; columnId: string; name: string; pending: boolean; error?: unknown }>;
+  pagesReset?: boolean;
+  onLoadMore?: (boardId: string, columnId: string) => void;
+  onReloadBoard?: (boardId: string) => void;
   dragId: string | null;
   drop: DropTarget | null;
   composerOpen: boolean;
   quickAddBusy: boolean;
+  quickAddUnresolved: boolean;
   quickAddError: string;
+  quickAddDraft: { title: string; priority: string };
+  onQuickAddDraft: (patch: Partial<{ title: string; priority: string }>) => void;
   onOpenComposer: (columnId: string, trigger: HTMLElement) => void;
   onCloseComposer: () => void;
   onQuickAdd: (columnId: string, title: string, priority: string) => void;
@@ -50,8 +61,9 @@ export function BoardColumn(props: Props) {
   const cardMovable = (card: CardSummary) => (props.canMoveCard ? props.canMoveCard(card) : canMove);
   const isCompleted = column.category === 'done';
   const [expanded, setExpanded] = useState(false);
-  const [title, setTitle] = useState('');
-  const [priority, setPriority] = useState('');
+  const { title, priority } = props.quickAddDraft;
+  const setTitle = (title: string) => props.onQuickAddDraft({ title });
+  const setPriority = (priority: string) => props.onQuickAddDraft({ priority });
   const [error, setError] = useState('');
 
   const collapse = isCompleted && !filtering && !expanded && shown.length > 5;
@@ -64,12 +76,18 @@ export function BoardColumn(props: Props) {
 
   const submit = (event: FormEvent) => {
     event.preventDefault();
+    if (props.quickAddBusy) return;
     if (!title.trim()) { setError('Enter a card title first.'); return; }
     if (!PRIORITIES.includes(priority as (typeof PRIORITIES)[number])) { setError('Choose Low, Medium, High, or Urgent before adding this card.'); return; }
     props.onQuickAdd(column.id, title.trim(), priority);
   };
-  const reset = () => { setTitle(''); setPriority(''); setError(''); props.onCloseComposer(); };
+  const reset = () => { props.onQuickAddDraft({ title: '', priority: '' }); setError(''); props.onCloseComposer(); };
   const keydown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (isComposingInput(event.nativeEvent)) return;
+    if (props.quickAddBusy || props.quickAddUnresolved) {
+      if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); }
+      return;
+    }
     if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); event.currentTarget.form?.requestSubmit(); }
     else if (event.key === 'Escape') { event.preventDefault(); reset(); }
   };
@@ -114,6 +132,7 @@ export function BoardColumn(props: Props) {
               {lineBefore === card.id && line}
               <BoardCard
                 card={card}
+                asOfDate={props.asOfDateForCard?.(card)??null}
                 done={isCompleted}
                 view={view}
                 cardStyle={cardStyle}
@@ -137,9 +156,17 @@ export function BoardColumn(props: Props) {
             </div>
           )}
         </div>
-        {unloaded > 0 && !filtering && <p className="column-more-note" style={{ fontSize: 12, color: 'var(--muted)', padding: '2px 4px' }}>Showing the first {column.cards.length} of {column.matchingCardCount} cards.</p>}
+        {(unloaded > 0 || filtering) && <p className="column-more-note" role="status" style={{ fontSize: 12, color: 'var(--muted)', padding: '2px 4px' }}>{column.cards.length} loaded · {column.matchingCardCount} matching · {total} total.</p>}
+        {props.pagesReset && <p className="hint" role="status">Cards or filters changed. Pages restarted from the current snapshot; unsaved drafts are kept.</p>}
+        {props.pageSources?.map((source) => {
+          const stale = source.error instanceof ApiError && source.error.code === 'STALE_CURSOR';
+          return <div key={`${source.boardId}:${source.columnId}`}>
+            {source.error != null && <p role="alert" className="field-error">{stale ? 'Cards changed. Reload this board before loading more; your drafts are kept.' : describeError(source.error)}</p>}
+            <button className="btn sm show-more" type="button" disabled={source.pending} onClick={() => stale ? props.onReloadBoard?.(source.boardId) : props.onLoadMore?.(source.boardId, source.columnId)}>{source.pending ? 'Loading cards…' : stale ? 'Reload board cards' : `Load more cards${props.pageSources!.length > 1 ? ` from ${source.name}` : ''}`}</button>
+          </div>;
+        })}
         {hiddenCount > 0 ? (
-          <button className="show-more" type="button" onClick={() => setExpanded(true)}><Icon name="chevron-down" />Show {hiddenCount} more</button>
+          <button className="show-more" type="button" onClick={() => setExpanded(true)}><Icon name="chevron-down" />Show {hiddenCount} more loaded cards</button>
         ) : isCompleted && !filtering && expanded && shown.length > 5 ? (
           <button className="show-more" type="button" onClick={() => setExpanded(false)}><Icon name="chevron-down" />Show less</button>
         ) : null}
@@ -147,16 +174,16 @@ export function BoardColumn(props: Props) {
           <div className="quick-add">
             <form className="quick-add-form" onSubmit={submit}>
               <label className="sr-only" htmlFor={`quickAdd-${column.id}`}>New card title in {column.name}</label>
-              <textarea id={`quickAdd-${column.id}`} rows={2} maxLength={200} placeholder="Card title…" value={title} data-autofocus onKeyDown={keydown} onChange={(event) => { setTitle(event.target.value); setError(''); }} autoFocus />
+              <textarea id={`quickAdd-${column.id}`} rows={2} maxLength={200} placeholder="Card title…" value={title} readOnly={props.quickAddBusy || props.quickAddUnresolved} data-autofocus onKeyDown={keydown} onChange={(event) => { setTitle(event.target.value); setError(''); }} autoFocus />
               <label className="quick-add-priority-label" htmlFor={`quickAddPriority-${column.id}`}>Priority <span aria-hidden="true">*</span></label>
-              <select className={`quick-add-priority${priority ? ` priority-${priority}` : ''}`} id={`quickAddPriority-${column.id}`} aria-required="true" aria-describedby={`quickAddPriorityError-${column.id}`} value={priority} onChange={(event) => { setPriority(event.target.value); setError(''); }}>
+              <select className={`quick-add-priority${priority ? ` priority-${priority}` : ''}`} id={`quickAddPriority-${column.id}`} disabled={props.quickAddBusy || props.quickAddUnresolved} aria-required="true" aria-describedby={`quickAddPriorityError-${column.id}`} value={priority} onChange={(event) => { setPriority(event.target.value); setError(''); }}>
                 <option value="">Choose a priority</option>
                 {PRIORITIES.map((p) => <option key={p} value={p}>{p[0]!.toUpperCase() + p.slice(1)}</option>)}
               </select>
               {props.addBoards && props.addBoards.length > 0 && (
                 <>
                   <label className="quick-add-priority-label" htmlFor={`quickAddBoard-${column.id}`}>Board</label>
-                  <select className="quick-add-priority" id={`quickAddBoard-${column.id}`} value={props.addBoardId} onChange={(event) => props.onAddBoard?.(event.target.value)}>
+                  <select className="quick-add-priority" id={`quickAddBoard-${column.id}`} disabled={props.quickAddBusy || props.quickAddUnresolved} value={props.addBoardId} onChange={(event) => props.onAddBoard?.(event.target.value)}>
                     {props.addBoards.map((b) => <option key={b.id} value={b.id}>{b.name}</option>)}
                   </select>
                   {props.addNote && <p className="quick-add-note" role="status">{props.addNote}</p>}
@@ -165,8 +192,8 @@ export function BoardColumn(props: Props) {
               <p className="quick-add-error" id={`quickAddPriorityError-${column.id}`} role="alert" hidden={!(error || props.quickAddError)}>{error || props.quickAddError}</p>
               <div className="quick-add-actions">
                 <span className="hint">Choose a priority · Enter to add · Esc to cancel</span>
-                <button className="btn ghost sm" type="button" onClick={reset}>Cancel</button>
-                <button className="btn primary sm" type="submit" disabled={props.quickAddBusy}>{props.quickAddBusy ? 'Adding…' : 'Add card'}</button>
+                <button className="btn ghost sm" type="button" disabled={props.quickAddBusy || props.quickAddUnresolved} onClick={reset}>Cancel</button>
+                <button className="btn primary sm" type="submit" disabled={props.quickAddBusy}>{props.quickAddBusy ? 'Adding…' : props.quickAddUnresolved ? 'Retry original request' : 'Add card'}</button>
               </div>
             </form>
           </div>

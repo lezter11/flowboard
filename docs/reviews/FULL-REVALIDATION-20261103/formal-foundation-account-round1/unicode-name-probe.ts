@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict';import crypto from 'node:crypto';import pg from 'pg';
+import {createApp}from '../../../../apps/api/src/http/app.ts';import {runMigrations}from '../../../../apps/api/src/adapters/migrations.ts';import {createDevUserAndSession}from '../../../../apps/api/src/adapters/session.ts';import {saveNameInputSchema,getSessionResponseSchema}from '@flowboard/contracts';
+const input={firstName:'😀'.repeat(60),lastName:'😀'.repeat(60)};assert.equal(saveNameInputSchema.safeParse(input).success,true);
+const uri=process.env.FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL!;const url=new URL(uri);assert.equal(url.hostname,'127.0.0.1');assert.equal(url.port,'55931');assert.equal(url.pathname,'/flowboard_identity_extra_test');
+const schema='independent_name_'+crypto.randomUUID().replaceAll('-','');const admin=new pg.Pool({connectionString:uri,max:1});await admin.query(`CREATE SCHEMA "${schema}"`);const pool=new pg.Pool({connectionString:uri,max:4,options:`-c search_path=${schema}`});
+try{await runMigrations(pool);const actor=await createDevUserAndSession('name@independent.example','Synthetic Name',pool);const app=createApp(async()=>{},{pool});const headers={Cookie:`flowboard_session=${actor.session.id}`,Origin:'http://localhost','Content-Type':'application/json'};
+const before=await app.request('http://localhost/api/v1/session',{headers});assert.equal(before.status,200);
+const changed=await app.request('http://localhost/api/v1/session/name',{method:'PATCH',headers,body:JSON.stringify(input)});console.log('PATCH',changed.status,await changed.text());assert.equal(changed.status,200);
+const after=await app.request('http://localhost/api/v1/session',{headers});const text=await after.text();console.log('GET after accepted name',after.status,text);assert.equal(after.status,500);console.log('CONFIRMED: accepted60-codepoint name parts produce241-code-unit displayName that violates121-code-unit session schema.');
+}finally{await pool.end();await admin.query(`DROP SCHEMA "${schema}" CASCADE`);await admin.end();}

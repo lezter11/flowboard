@@ -1,0 +1,169 @@
+▶ generated cookie resource mutation isolation with genuine authorized controls
+  ✔ PUT /api/v1/session/last-location (1002.422875ms)
+  ✔ PATCH /api/v1/workspaces/{workspaceId} (811.647459ms)
+  ✔ POST /api/v1/workspaces/{workspaceId}/transfer-ownership (722.224292ms)
+  ✔ POST /api/v1/workspaces/{workspaceId}/projects (766.346708ms)
+  ✔ PATCH /api/v1/projects/{projectId} (849.199167ms)
+  ✔ PATCH /api/v1/projects/{projectId}/members/{userId} (834.705917ms)
+  ✔ DELETE /api/v1/projects/{projectId}/members/{userId} (760.520083ms)
+  ✔ POST /api/v1/projects/{projectId}/archive (706.194708ms)
+  ✔ POST /api/v1/projects/{projectId}/reopen (650.204875ms)
+  ✔ POST /api/v1/projects/{projectId}/leave (737.691208ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ POST /api/v1/projects/{projectId}/invitations (704.186834ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ POST /api/v1/projects/{projectId}/invitations/{invitationId}/resend (794.731417ms)
+  ✔ POST /api/v1/projects/{projectId}/invitations/{invitationId}/revoke (718.103584ms)
+  ✔ POST /api/v1/projects/{projectId}/boards (779.812417ms)
+  ✔ PATCH /api/v1/boards/{boardId} (1009.924292ms)
+  ✔ POST /api/v1/boards/{boardId}/archive (924.567125ms)
+  ✔ POST /api/v1/boards/{boardId}/reopen (1204.188625ms)
+  ✔ PUT /api/v1/boards/{boardId}/grants/{userId} (969.842334ms)
+  ✔ DELETE /api/v1/boards/{boardId}/grants/{userId} (940.770875ms)
+  ✔ POST /api/v1/boards/{boardId}/columns (1322.397167ms)
+  ✔ PATCH /api/v1/boards/{boardId}/columns/{columnId} (1247.234917ms)
+  ✔ POST /api/v1/boards/{boardId}/columns/reorder (1303.786625ms)
+  ✔ DELETE /api/v1/boards/{boardId}/columns/{columnId} (1170.563583ms)
+  ✔ POST /api/v1/boards/{boardId}/cards (1210.5525ms)
+  ✔ PATCH /api/v1/cards/{cardId} (1339.993542ms)
+  ✔ POST /api/v1/cards/{cardId}/move (1216.720833ms)
+  ✔ POST /api/v1/cards/{cardId}/move-undo (1521.52475ms)
+  ✔ POST /api/v1/cards/{cardId}/comments (1343.956333ms)
+  ✔ PATCH /api/v1/comments/{commentId} (1290.9205ms)
+  ✔ DELETE /api/v1/comments/{commentId} (1639.892292ms)
+  ✔ PATCH /api/v1/notifications/{id}/read (1410.398667ms)
+  ✔ POST /api/v1/cards/{cardId}/image-uploads (1505.664ms)
+  ✔ PUT /api/v1/image-uploads/{uploadId}/content (1358.788292ms)
+  ✔ POST /api/v1/image-uploads/{uploadId}/finalize (1664.26825ms)
+  ✔ DELETE /api/v1/image-uploads/{uploadId} (2277.393792ms)
+  ✔ DELETE /api/v1/images/{imageId} (1001.599792ms)
+  ✔ POST /api/v1/cards/{cardId}/delete (1555.108875ms)
+  ✔ POST /api/v1/cards/{cardId}/restore (1829.94375ms)
+  ✔ POST /api/v1/boards/{boardId}/imports (1328.026625ms)
+  ✔ POST /api/v1/boards/{boardId}/card-imports (2705.394042ms)
+  ✔ POST /api/v1/imports/{importId}/mappings (2705.871708ms)
+  ✔ POST /api/v1/imports/{importId}/commit (2159.080625ms)
+  ✔ DELETE /api/v1/imports/{importId} (1450.865459ms)
+  ✔ POST /api/v1/card-imports/{importId}/mappings (1700.255792ms)
+  ✔ POST /api/v1/card-imports/{importId}/commit (2145.212625ms)
+  ✔ DELETE /api/v1/card-imports/{importId} (1601.813834ms)
+  ✔ POST /api/v1/tokens (1221.654959ms)
+  ✔ DELETE /api/v1/tokens/{tokenId} (1195.816334ms)
+  ✖ manager cannot demote peer manager (1437.547334ms)
+  ✔ manager cannot remove peer manager (1530.59675ms)
+  ✖ manager cannot promote viewer to manager (1670.742833ms)
+  ✖ manager cannot change own role (2216.743167ms)
+  ✖ member cannot administer project roles (1248.872166ms)
+  ✖ viewer cannot administer project roles (979.190959ms)
+✖ generated cookie resource mutation isolation with genuine authorized controls (70414.435584ms)
+ℹ {"operations":48,"cells":295,"controls":48,"denials":295,"failures":5}
+ℹ tests 55
+ℹ suites 0
+ℹ pass 49
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 70927.4305
+
+✖ failing tests:
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:52:13
+✖ manager cannot demote peer manager (1437.547334ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 403
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:55:322)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:52:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 403,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:52:13
+✖ manager cannot promote viewer to manager (1670.742833ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 403
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:55:322)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:52:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 403,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:52:13
+✖ manager cannot change own role (2216.743167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 403
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:55:322)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:52:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 403,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:52:13
+✖ member cannot administer project roles (1248.872166ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 403
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:55:322)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:52:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 403,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:52:13
+✖ viewer cannot administer project roles (979.190959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 403
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:55:322)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:52:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 403,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

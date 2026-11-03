@@ -1,0 +1,30 @@
+✔ Image promotion: commit failure preserves one known object and original command retry (320.848667ms)
+✔ Image promotion: abandoned failed finalization expires without an untracked object (210.222459ms)
+✔ Image cleanup: expired staging lifetime cannot expire a finalized receipt or delete its referenced object (219.354792ms)
+✔ Image cleanup: legacy distinct staging key is removed while permanent key and terminal state survive (207.087667ms)
+✔ Image cancellation: deferred commit failure preserves bytes and permits finalize (282.984083ms)
+✔ Image cancellation: committed failure to delete retains durable cleanup key (229.572209ms)
+✔ Image migration: legacy finalized references repair terminal state exactly once (266.456084ms)
+✔ Image cleanup: a finalize commit after the claim snapshot cannot delete its live object (2250.956042ms)
+✔ lifecycle retention: column with only expired card reference retires live column and preserves tombstone/history (348.711625ms)
+✔ lifecycle retention: column with only purged card reference retires live column and preserves tombstone/history (333.802167ms)
+✔ lifecycle retention: ready import default-column context survives live column retirement (373.953666ms)
+✔ lifecycle retention: terminal import default-column context survives live column retirement (351.206292ms)
+✔ lifecycle retention: tombstoning own and moderated comments removes copied inbox snippets while retaining facts (314.976ms)
+✔ lifecycle retention: copied legacy comment outbox fields are scrubbed on deletion and recovery cannot recreate them (270.409833ms)
+✔ lifecycle retention: recovery distinguishes two comment events on the same card and repeats neither (296.486208ms)
+✔ lifecycle retention: unreferenced column deletes once while final/active/restorable guards remain (265.60125ms)
+✔ lifecycle retention: concurrent column delete/card create create wins without partial history (246.755667ms)
+✔ lifecycle retention: concurrent column delete/card create delete wins without partial history (247.328916ms)
+✔ lifecycle retention: delete winning comment lock does not deadlock with an in-flight outbox consumer or resurrect text (271.091167ms)
+✔ lifecycle retention: actual consumer holds source share lock and completes before waiting comment deletion (268.775708ms)
+✔ lifecycle retention: failed tombstone commit rolls back comment, inbox redaction, event and receipt (297.013958ms)
+✔ lifecycle retention: legacy migration redacts unknown sources honestly and preserves exact known source/recipient on rerun (254.616375ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 8778.241417

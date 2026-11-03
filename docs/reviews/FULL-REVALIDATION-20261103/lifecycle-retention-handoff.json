@@ -1,0 +1,51 @@
+{
+  "kind": "builder_handoff_not_approval",
+  "criteria": "lifecycle-retention-repair-criteria.json",
+  "status": "bounded_retention_implemented_local_tests_passed_BRD06_open",
+  "sourceHashes": {
+    "apps/api/src/adapters/boards.ts": "e55f90e4bfe9d9d57044b69159caf32ef4cf1a69ccb6c74b52dc2656e8794d9b",
+    "apps/api/src/adapters/comments.ts": "d2671715eabc2d96d6f50f3c2e132fff133820bdb31bc7a1b69b48a1920aa4b7",
+    "apps/api/src/adapters/notifications.ts": "6e279f90b3fa3cf4ace2713d810e6d235c7b0987f79c11433db58749ded7f55c",
+    "apps/api/src/services/comment-retention.ts": "a9525d2f7e7ee30b8e5929115a609040a4dd3683dcf5842d6a6394a8a71ab822",
+    "database/migrations/0023_comment_notification_sources.sql": "6c34b5f1103c1728d23f51d5b38485d47d667d83c5b166349ef88fd2f9cc1aa1",
+    "apps/api/test/lifecycle-retention-repair.test.ts": "1de93f2cee1dfbbe81d9f367ad07dca3195de1b3d04e34a4fe93e2b8983c4d5f"
+  },
+  "evidence": [
+    {
+      "path": "lifecycle-retention-baseline.log",
+      "command": "FLOWBOARD_IMPORT_TEST_DATABASE_URL=<local55931/importDB> NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test apps/api/test/lifecycle-retention-repair.test.ts",
+      "exitCode": 1,
+      "result": "7fail,0pass,0skip; exact baseline test snapshot preserved"
+    },
+    {
+      "path": "lifecycle-retention-final.log",
+      "command": "same isolated command on final expanded suite",
+      "exitCode": 0,
+      "result": "14pass,0fail,0skip"
+    },
+    {
+      "path": "lifecycle-retention-existing-round1.log",
+      "command": "DATABASE_URL=<canonical local55931 harness> ALLOW_REMOTE_DB=false NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test apps/api/test/brd01-brd07.test.ts apps/api/test/com-del.test.ts apps/api/test/aud-ntf.test.ts apps/api/test/b9-mention-access.test.ts apps/api/test/b14-purge-redaction.test.ts apps/api/test/b14-outbox-privacy.test.ts",
+      "exitCode": 0,
+      "result": "86pass,0fail,0skip before final additive source-card check constraint/test"
+    },
+    {
+      "path": "lifecycle-retention-typecheck.log",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "result": "TypeScript/root/MCP passed before final additive constraint/test"
+    },
+    {
+      "path": "lifecycle-retention-typecheck-final.log",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "result": "Final own-source TypeScript/root/MCP pass after constraint and formatting"
+    }
+  ],
+  "limits": [
+    "BRD06 not closed: typed409 is interim; next soft-column criterion frozen separately",
+    "Root coordinates embedded0023 synchronization, new error catalogue/UI, final full suite and independent review",
+    "No hosted acceptance/deployment/commits/scores; invitation branch+retry/failure tail unchanged byte-for-byte against preserved before snapshot",
+    "Remaining mandatory lifecycle behavior inventory is remaining-lifecycle-gaps.md/json"
+  ]
+}

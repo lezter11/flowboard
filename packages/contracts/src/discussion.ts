@@ -12,6 +12,7 @@ export const mentionSpanSchema = z
     start: z.number().int().nonnegative('Start offset must be non-negative'),
     end: z.number().int().positive('End offset must be positive'),
   })
+  .strict()
   .refine((data) => data.start < data.end, {
     message: 'Start offset must be strictly less than end offset',
   });
@@ -38,30 +39,77 @@ export const mentionsListSchema = z
   });
 export type MentionsList = z.infer<typeof mentionsListSchema>;
 
+/** Mention offsets are UTF-16 positions into submitted text, shifted with canonical trim. */
+function normalizeComment<T extends { body: string; mentions?: MentionSpan[] | undefined }>(input: T): T {
+  const leading = input.body.length - input.body.trimStart().length;
+  return { ...input, body: input.body.trim(), ...(input.mentions === undefined ? {} : {
+    mentions: input.mentions.map((m) => ({ ...m, start: m.start - leading, end: m.end - leading })),
+  }) };
+}
+function validateCommentSpans(input: { body: string; mentions?: MentionSpan[] | undefined }, ctx: z.RefinementCtx): void {
+  const splitsPair = (at: number) => at > 0 && at < input.body.length &&
+    /[\uD800-\uDBFF]/.test(input.body[at - 1]!) && /[\uDC00-\uDFFF]/.test(input.body[at]!);
+  for (const [index, mention] of (input.mentions ?? []).entries()) {
+    if (mention.start < 0 || mention.end > input.body.length || splitsPair(mention.start) || splitsPair(mention.end)) {
+      ctx.addIssue({ code: 'custom', path: ['mentions', index], message: 'Mention must cover complete UTF-16 characters within the trimmed body' });
+    }
+  }
+}
+const commentBodyInput = z.string().refine((body) => body.trim().length > 0, 'Comment body cannot be empty')
+  .refine((body) => body.trim().length <= 10000, 'Comment body cannot exceed 10,000 characters');
 export const postCommentInputSchema = z.object({
-  body: z
-    .string()
-    .trim()
-    .min(1, 'Comment body cannot be empty')
-    .max(10000, 'Comment body cannot exceed 10,000 characters'),
+  body: commentBodyInput,
   mentions: mentionsListSchema.optional().default([]),
-});
+}).strict().transform(normalizeComment).superRefine(validateCommentSpans);
 export type PostCommentInput = z.infer<typeof postCommentInputSchema>;
 
 export const editCommentInputSchema = z.object({
-  body: z
-    .string()
-    .trim()
-    .min(1, 'Comment body cannot be empty')
-    .max(10000, 'Comment body cannot exceed 10,000 characters'),
+  body: commentBodyInput,
   mentions: mentionsListSchema.optional(),
   expectedVersion: z.number().int().nonnegative(),
-});
+}).strict().transform(normalizeComment).superRefine(validateCommentSpans);
 export type EditCommentInput = z.infer<typeof editCommentInputSchema>;
+
+// A date-only bound retains the existing inclusive UTC-midnight meaning. Timestamps
+// are normalized only for SQL safety (including large valid RFC3339 offset values).
+const activityDateBoundSchema = z.union([z.iso.date(), z.iso.datetime({ offset: true })])
+  .refine((value) => Number(value.slice(0, 4)) >= 1 && Number.isFinite(Date.parse(value)), 'Invalid activity date')
+  .transform((value) => value.length === 10 ? value : new Date(value).toISOString());
+export const cardActivityQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().min(1).max(4096).optional(),
+}).strict();
+const activityFeedQueryBaseSchema = cardActivityQuerySchema.extend({
+  projectId: z.string().min(1).optional(),
+  cardId: z.string().min(1).optional(),
+  actorId: z.string().min(1).optional(),
+  action: z.string().min(1).optional(),
+  fromDate: activityDateBoundSchema.optional(),
+  toDate: activityDateBoundSchema.optional(),
+});
+const orderedActivityDates = (query: { fromDate?: string | undefined; toDate?: string | undefined }) =>
+  !query.fromDate || !query.toDate || Date.parse(query.fromDate) <= Date.parse(query.toDate);
+const activityRangeIssue = { path: ['toDate'], message: 'toDate must not precede fromDate' };
+export const activityFeedQuerySchema = activityFeedQueryBaseSchema.refine(orderedActivityDates, activityRangeIssue);
+export const projectActivityQuerySchema = activityFeedQueryBaseSchema.omit({ projectId: true })
+  .refine(orderedActivityDates, activityRangeIssue);
+export type ActivityFeedQuery = z.infer<typeof activityFeedQuerySchema>;
 
 export const deleteCommentInputSchema = z.object({
   expectedVersion: z.number().int().nonnegative(),
-});
+}).strict();
+
+/** HTTP query integers are decimal digits, never parseInt prefixes or coercible empty text. */
+export const commentsQuerySchema = z.object({
+  limit: z.string().regex(/^[1-9][0-9]*$/).transform(Number).pipe(z.number().int().min(1).max(100)).default(50),
+  cursor: z.string().min(1).max(4096).optional(),
+}).strict();
+export type CommentsQuery = z.infer<typeof commentsQuerySchema>;
+export const deleteCommentQuerySchema = z.object({
+  expectedVersion: z.string().regex(/^(0|[1-9][0-9]*)$/).transform(Number)
+    .pipe(z.number().int().nonnegative()).optional(),
+}).strict();
+export type DeleteCommentQuery = z.infer<typeof deleteCommentQuerySchema>;
 export type DeleteCommentInput = z.infer<typeof deleteCommentInputSchema>;
 
 export const commentSchema = z.object({
@@ -94,6 +142,7 @@ export const activityItemSchema = z.object({
   safeChanges: z.record(z.string(), z.unknown()),
   createdAt: utcIsoTimestampSchema,
   actor: personDisplaySchema.optional(),
+  referencedPeople: z.array(personDisplaySchema).optional(),
   // Optional, additive: set on card-scoped feeds only (the actor already passed that card's check).
   boardId: z.string().min(1).optional(),
   cardKey: z.string().min(1).optional(),
@@ -106,6 +155,13 @@ export type ActivityResponse = z.infer<typeof activityResponseSchema>;
 
 export const activityListResponseSchema = createPaginatedEnvelopeSchema(activityItemSchema);
 export type ActivityListResponse = z.infer<typeof activityListResponseSchema>;
+
+export const notificationQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+  cursor: z.string().min(1).max(4096).optional(),
+  unreadOnly: z.enum(['true', 'false']).optional().default('false').transform((value) => value === 'true'),
+}).strict();
+export type NotificationQuery = z.infer<typeof notificationQuerySchema>;
 
 export const NOTIFICATION_TYPES = ['mention', 'assigned', 'system'] as const;
 export const notificationTypeSchema = z.enum(NOTIFICATION_TYPES);

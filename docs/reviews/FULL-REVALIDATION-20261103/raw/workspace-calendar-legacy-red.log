@@ -1,0 +1,37 @@
+✔ My Tasks: both routes traverse tied/null dates with bounded pages and no duplication (267.68475ms)
+✔ My Tasks: due-state and priority are SQL filters; done is never overdue (198.8255ms)
+✔ My Tasks: invalid queries, altered context and grant revocation fail closed (175.310125ms)
+✔ My Tasks: archive lifecycle hides assignments and invalidates a prior cursor (178.269708ms)
+✔ My Tasks: shared project receives its workspace calendar date and timezone changes stale the cursor (177.046625ms)
+{"myTasksQueryCounts":{"oneBoard":7,"threeBoards":7}}
+✔ My Tasks: query count stays constant when returned cards span more granted boards (177.112791ms)
+✔ Workspace calendar: invalid timezone is422 with no version/state change; valid owner update preserves date-only deadlines (182.828042ms)
+✖ Workspace calendar: invalid legacy timezone fails safely without silently substituting UTC (163.874375ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 7
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1731.814542
+
+✖ failing tests:
+
+test at apps/api/test/my-tasks-repair.test.ts:108:1
+✖ Workspace calendar: invalid legacy timezone fails safely without silently substituting UTC (163.874375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 503
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:110:76)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 503,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

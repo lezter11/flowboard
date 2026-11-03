@@ -1,0 +1,64 @@
+✔ JPEG entropy genuine oracle corpus: baseline-420 (24.963542ms)
+✔ JPEG entropy genuine oracle corpus: baseline-422 (10.093584ms)
+✔ JPEG entropy genuine oracle corpus: baseline-444 (7.753042ms)
+✔ JPEG entropy genuine oracle corpus: baseline-411 (8.709875ms)
+✔ JPEG entropy genuine oracle corpus: baseline-31 (4.50725ms)
+✔ JPEG entropy genuine oracle corpus: grayscale (3.85125ms)
+✔ JPEG entropy genuine oracle corpus: grayscale-restart (11.493958ms)
+✔ JPEG entropy genuine oracle corpus: baseline-restart (7.733084ms)
+✔ JPEG entropy genuine oracle corpus: baseline-restart-partial (3.982834ms)
+✔ JPEG entropy genuine oracle corpus: progressive-420 (5.436041ms)
+✔ JPEG entropy genuine oracle corpus: progressive-444 (13.306583ms)
+✔ JPEG entropy genuine oracle corpus: progressive-restart (6.569167ms)
+✖ JPEG entropy genuine oracle corpus: progressive-restart-partial (0.416875ms)
+✔ JPEG entropy genuine oracle corpus: sequential-partial-interleave (7.912459ms)
+✔ JPEG entropy genuine oracle corpus: custom-spectral-refinement (3.97775ms)
+✔ JPEG entropy genuine oracle corpus: custom-refinement-restart (3.566458ms)
+✔ JPEG entropy genuine oracle corpus: grayscale-single-baseline (2.438792ms)
+✔ JPEG entropy genuine oracle corpus: grayscale-single-progressive (1.697917ms)
+✔ JPEG entropy genuine oracle corpus: cmyk-baseline (45.988042ms)
+✔ JPEG entropy genuine oracle corpus: cmyk-progressive (39.437958ms)
+✔ JPEG entropy rejects bounded malformed scan: jpeg-corrupt-entropy (0.550458ms)
+✔ JPEG entropy rejects bounded malformed scan: jpeg-warning-recovered (0.1315ms)
+✔ JPEG entropy rejects bounded malformed scan: DC-category12 (0.084792ms)
+✔ JPEG entropy rejects bounded malformed scan: AC-zero-run-overflow (0.069875ms)
+✔ JPEG entropy rejects bounded malformed scan: EOB-overrun (0.088833ms)
+✔ JPEG entropy rejects bounded malformed scan: refinement-category2 (0.093458ms)
+✔ JPEG entropy rejects bounded malformed scan: non-one-padding (0.069ms)
+✔ JPEG entropy rejects bounded malformed scan: surplus-entropy (0.069833ms)
+✔ JPEG entropy rejects bounded malformed scan: wrong-restart-sequence (0.087875ms)
+✔ JPEG entropy rejects bounded malformed scan: missing-restart (0.084208ms)
+✔ JPEG entropy rejects bounded malformed scan: invalid-spectral-approximation (0.086625ms)
+✔ JPEG entropy rejects bounded malformed scan: duplicate-first-scan (0.114792ms)
+✔ JPEG entropy rejects bounded malformed scan: oversized-segment (0.046167ms)
+✔ JPEG entropy rejects bounded malformed scan: invalid-stuffing-restart (0.18675ms)
+✔ JPEG entropy bounded deterministic differential mutations against pinned strict pixel oracle (221.92225ms)
+ℹ {"mutations":192,"unsafe":0,"stricter":26}
+✔ JPEG entropy validates20MP maximum supported cases with bounded bitsets and aborts before work (3777.434209ms)
+ℹ 20MP-jpeg444baseline {"scans":1,"operations":4062527,"presenceBytes":0,"elapsedMs":121}
+ℹ 20MP-jpeg444progressive {"scans":10,"operations":19376317,"presenceBytes":7500000,"elapsedMs":266}
+ℹ 20MP-jpegcmykprogressive {"scans":18,"operations":35627629,"presenceBytes":10000000,"elapsedMs":476}
+ℹ tests 36
+ℹ suites 0
+ℹ pass 35
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4448.656959
+
+✖ failing tests:
+
+test at apps/api/test/jpeg-entropy.test.ts:12:29
+✖ JPEG entropy genuine oracle corpus: progressive-restart-partial (0.416875ms)
+  TypeError: Cannot read properties of undefined (reading '0')
+      at decodeBlock (evalmachine.<anonymous>:272:51)
+      at decodeScan (evalmachine.<anonymous>:306:11)
+      at constructor.parse (evalmachine.<anonymous>:812:29)
+      at decode (evalmachine.<anonymous>:1116:11)
+      at strictJpegOracle (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/jpeg-oracle.ts:11:59)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/jpeg-entropy.test.ts:13:17)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)

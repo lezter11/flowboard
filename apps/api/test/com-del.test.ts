@@ -382,7 +382,7 @@ test('COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite', as
 
   await t.test('COM-03: Valid mentions notify teammates but self-mentions do NOT notify', async () => {
     // Charlie mentions Bob and himself
-    const bodyText = 'Hey @Bob and @Charlie please check';
+    const bodyText = 'Hey @Bob Manager and @Charlie Member please check';
     const res = await app.request(`/api/v1/cards/${card1Id}/comments`, {
       method: 'POST',
       headers: {
@@ -393,8 +393,8 @@ test('COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite', as
       body: JSON.stringify({
         body: bodyText,
         mentions: [
-          { userId: bobId, start: 4, end: 8 },
-          { userId: charlieId, start: 13, end: 21 },
+          { userId: bobId, start: bodyText.indexOf('@Bob Manager'), end: bodyText.indexOf('@Bob Manager') + '@Bob Manager'.length },
+          { userId: charlieId, start: bodyText.indexOf('@Charlie Member'), end: bodyText.indexOf('@Charlie Member') + '@Charlie Member'.length },
         ],
       }),
     });

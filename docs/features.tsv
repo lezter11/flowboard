@@ -6,16 +6,16 @@ FND-04	S0	Foundation	Failure and observability baseline	Request IDs, safe errors
 ACC-01	S1	Account	Sign in and session	Chosen OAuth login creates one identity/session; unsupported callbacks fail closed and private data needs a valid session.	FND-02,FND-03	yes
 ACC-02	S1	Account	Sign out and expired session	Logout revokes server session; expired tabs retain safe drafts but cannot keep reading or writing protected data.	ACC-01	yes
 ACC-03	S1	Account	Profile and historical identity	Name/avatar updates display correctly; historical actors remain attributable after grant removal without leaking private account fields.	ACC-01	yes
-ACC-04	S1	Account	Create workspace and owner	Account creates a workspace and exactly one owner atomically; a lost response replay does not create a second workspace.	ACC-01	yes
+ACC-04	S1	Account	Personal workspace and owner	First authenticated use ensures one personal workspace and sole owner atomically; concurrent retries cannot create duplicates. Manual workspace creation stays retired with typed 410; project creation uses the ensured owner context.	ACC-01	yes
 ACC-05	S1	Account	Workspace preferences	Owner sets workspace name/timezone; date-only deadlines retain their selected day and shared overdue semantics.	ACC-04	yes
-ACC-06	S1	Account	Owned and invited context switcher	Show only owned containers and explicitly granted projects; being owner elsewhere grants no extra rights here.	ACC-04,RBAC-01	yes
-ACC-07	S6	Account	Owner transfer	Only current owner transfers to an eligible account atomically; no interval has zero/multiple owners and no stale grant escalates.	ACC-04,RBAC-01	yes
+ACC-06	S1	Account	Owned and invited project switcher	Show only owned projects and explicitly granted projects; current context is reauthorized and being owner elsewhere grants no extra rights.	ACC-04,RBAC-01	yes
+ACC-07	S6	Account	Ownership transfer retirement	Ownership transfer stays unavailable in the current beta through every route and UI affordance; direct requests return the documented typed retirement response with no ownership/quota mutation. No transfer capability is claimed.	ACC-04,RBAC-01	yes
 PRJ-01	S1	Projects	Create multiple projects	Owner creates named projects inside their workspace; each has independent membership and boards.	ACC-04	yes
 PRJ-02	S1	Projects	Project list and navigation	Owned projects and invited projects are paginated and scoped; hidden projects leak no name, count or existence.	PRJ-01,RBAC-01	yes
 PRJ-03	S1	Projects	Project settings	Owner/manager updates project name/description using expected version; managers cannot alter workspace ownership.	PRJ-01,RBAC-01	yes
 PRJ-04	S6	Projects	Archive and reopen project	Owner archives project as read-only and can reopen; data/history remain, trash deadlines continue and new imports/writes stop.	PRJ-01,DEL-01	yes
-PRJ-05	S1	Projects	Project people directory	Owner/manager sees authorized project members; picker exposes only eligible identities and never enumerates unrelated projects.	RBAC-01	yes
-INV-01	S1	Invitations	Project invitation	Owner invites manager/member/viewer; project manager invites member/viewer only; invitation names the exact project and inherited boards.	PRJ-01,RBAC-01	yes
+PRJ-05	S1	Projects	Project people directory	Only Owner/Project Manager can read the full project People directory including emails; Member/Viewer direct requests expose no directory data. Authorized board-scoped assignee/mention pickers remain available with eligible identities only and no unrelated-project enumeration.	RBAC-01	yes
+INV-01	S1	Invitations	Project invitation	Owner invites manager/member/viewer; manager invites member/viewer only. Invitation grants only exact project membership, never implicit board access; independent board grants are explained.	PRJ-01,RBAC-01	yes
 INV-02	S1	Invitations	Invitation delivery	Durable invite delivery uses a configured email adapter; failure is visible and retryable without logging the secret link.	INV-01,FND-04	yes
 INV-03	S1	Invitations	Accept matching invitation	Signed-in verified email must match unexpired, hashed, single-use project token; wrong email grants nothing.	INV-01,ACC-01	yes
 INV-04	S1	Invitations	Resend and revoke invitation	Authorized resend rotates token; revoke invalidates it; races create at most one grant and invitation outcome.	INV-01	yes
@@ -27,9 +27,9 @@ RBAC-01	S1	Access	Owner manager member viewer matrix	Every endpoint derives acti
 RBAC-02	S1	Access	Project ancestry enforcement	Guessing sibling board/card/comment/file/import IDs returns a consistent private not-found response with no metadata leakage.	RBAC-01	no
 RBAC-03	S1	Access	Revocation versus writes	Grant/owner lock protocol serializes a write against role removal; no write commits after a preceding revocation wins.	RBAC-01	no
 RBAC-04	S1	Access	Picker and notification privacy	Search, people, assignees, mentions, inbox and historical identity responses expose only the actor's authorized project context.	RBAC-01	no
-RBAC-05	S1	Access	Project inheritance disclosure	Board invitation action explicitly grants project access to all its boards; no hidden board-only permission exception exists.	INV-01	yes
+RBAC-05	S1	Access	Explicit board access disclosure	Membership and board access are distinct: non-Owners require both; invitations grant no boards automatically. Owner administers board grants; Manager receives creator access to a board they create. UI and APIs disclose current effective access without hidden-board metadata.	INV-01	yes
 BRD-01	S2	Boards	Create board	Owner/manager creates a board with default columns atomically inside an authorized project.	PRJ-01,RBAC-01	yes
-BRD-02	S2	Boards	Board list and settings	List only accessible project boards; owner/manager renames a board without breaking card IDs/links.	BRD-01	yes
+BRD-02	S2	Boards	Board list and settings	List only currently accessible project boards; Owner alone edits board name/description with expected version without breaking card IDs/links. Metadata-only machine credentials receive only their explicitly allowed fields.	BRD-01	yes
 BRD-03	S2	Boards	Bounded consistent board snapshot	Metadata, counts and first column pages share one snapshot; caps/cursors are explicit and all filters count beyond the visible page.	BRD-01,FND-02	yes
 BRD-04	S2	Boards	Add and rename columns	Owner/manager configures unique normalized names, colors and todo/active/done categories with expected board version.	BRD-01	yes
 BRD-05	S2	Boards	Reorder columns	Pointer and click/tap/keyboard ordering persist atomically; missing/duplicate/foreign IDs and stale revisions fail clearly.	BRD-04	yes
@@ -91,7 +91,7 @@ NTF-02	S3	Notifications	Inbox read state and deep link	Actor opens accessible pr
 NTF-03	S3	Notifications	Outbox retry and failed-work recovery	Lease/fenced consumer retries bounded jobs and quarantines failures; restart/duplicate handling does not lose accepted notification intent.	NTF-01,FND-04	no
 QRY-01	S2	Discovery	Project-scoped search	Title search returns authorized active cards only with pagination and safe historical people mapping.	BRD-03,RBAC-01	yes
 QRY-02	S2	Discovery	Assignee priority date column filters	Filters combine predictably, distinguish total/matching counts and exclude trash; no global project discovery through query parameters.	QRY-01	yes
-QRY-03	S2	Discovery	My assigned tasks	Show actor's assignments across only accessible projects, grouped by project and due state; removed access disappears on next request.	CRD-06,QRY-01	yes
+QRY-03	S2	Discovery	My assigned tasks in selected project	Show actor assignments within one selected authorized project and currently granted boards with due-state filters/pagination; no cross-project aggregation or revoked-access content.	CRD-06,QRY-01	yes
 UX-01	S2	Experience	Empty loading failed and forbidden states	First project/empty board/no matches/loading/offline/validation/permission errors have accurate actions and preserve relevant drafts.	BRD-03	yes
 UX-02	S2	Experience	Accessible movement and dialog	Keyboard and click/tap complete all essential operations; focus, announcements, labels and color-independent cues are verified in browser.	CRD-08,CRD-03	yes
 UX-03	S2	Experience	Narrow viewport and long content	Board scroll and detail layout work at narrow width/zoom; long titles, many assignees and image/comment lists remain usable.	CRD-03	yes

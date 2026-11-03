@@ -1,0 +1,6 @@
+import {deflateSync} from 'node:zlib';
+import {pngChunk} from '../../../../apps/api/test/support/image-fixtures.ts';
+import {validateImageBinary} from '../../../../apps/api/src/services/image-validator.ts';
+import {validatePngPixelStream} from '../../../../apps/api/src/services/png-stream.ts';
+import {SharpImageVerifier} from '../../../../apps/api/src/services/image-verifier-node.ts';
+const results=[];for(const depth of [1,2,4,8])for(const index of [0,1,(1<<depth)-1]){const ihdr=Buffer.alloc(13);ihdr.writeUInt32BE(1);ihdr.writeUInt32BE(1,4);ihdr[8]=depth;ihdr[9]=3;const bytes=Buffer.concat([Buffer.from('89504e470d0a1a0a','hex'),pngChunk('IHDR',ihdr),pngChunk('PLTE',Buffer.from([255,0,0])),pngChunk('IDAT',deflateSync(Buffer.from([0,index<<(8-depth)]))),pngChunk('IEND',Buffer.alloc(0))]);let container,semantic,native;let dims;try{dims=validateImageBinary(bytes,'image/png');container='accept'}catch(e){container=e.code}try{await validatePngPixelStream(bytes);semantic='accept'}catch(e){semantic=e.code}try{await new SharpImageVerifier().verify({bytes,...dims},new AbortController().signal);native='accept'}catch(e){native=e.code}results.push({depth,index,paletteEntries:1,container,semantic,native})}console.log(JSON.stringify(results,null,2));

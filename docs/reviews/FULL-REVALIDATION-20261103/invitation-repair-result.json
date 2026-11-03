@@ -1,0 +1,266 @@
+{
+  "type": "builder_local_implementation_handoff_not_acceptance_review",
+  "date": "2026-11-03",
+  "baseline_commit": "917706ae0433df471c72736be4d548eb022236c4",
+  "criteria": [
+    "docs/reviews/FULL-REVALIDATION-20261103/invitation-race-criteria.json",
+    "docs/reviews/FULL-REVALIDATION-20261103/invitation-list-criteria.json"
+  ],
+  "features": [
+    "INV-02",
+    "INV-03",
+    "INV-04",
+    "INV-05",
+    "INV-07",
+    "INV-08",
+    "PRJ-04",
+    "RBAC-03",
+    "RBAC-04",
+    "FND-02",
+    "FND-04"
+  ],
+  "score": null,
+  "review": "Fresh independent full-product target review still pending",
+  "feature_closure_claimed": false,
+  "owned_changed_files": [
+    "apps/api/src/adapters/invitations.ts",
+    "apps/api/src/http/routes/invitations.ts",
+    "apps/api/src/adapters/invitation-delivery.ts",
+    "apps/api/src/adapters/notifications.ts",
+    "packages/contracts/src/invitations.ts",
+    "apps/api/test/invitation-repair.test.ts",
+    "apps/api/test/acc-lifecycle.test.ts",
+    "apps/api/test/uat-immediate-invite-send.test.ts",
+    "database/migrations/0022_invitation_history_indexes.sql"
+  ],
+  "owned_manifest": [
+    {
+      "path": "apps/api/src/adapters/invitations.ts",
+      "sha256": "ea24d483b4a7fe04ccf7d7c880411c2fc340841d48c7f23bd494a3e3d431a41b"
+    },
+    {
+      "path": "apps/api/src/http/routes/invitations.ts",
+      "sha256": "7bc11c0bfabaa5c1157a0a460001c837431d125b87dc59c3a10fb984a7da54e3"
+    },
+    {
+      "path": "apps/api/src/adapters/invitation-delivery.ts",
+      "sha256": "ae4e83a6c81db4224d8070a1d03c9e085ef0b393b13edb56ea212372461ed16d"
+    },
+    {
+      "path": "apps/api/src/adapters/notifications.ts",
+      "sha256": "891ad244ff868f211de8b9f309037ea6989d4d3dbf9a46e643f2bf7987f5523d"
+    },
+    {
+      "path": "packages/contracts/src/invitations.ts",
+      "sha256": "a460156fe5dc50e932ad45dda98e916ac4ecbbcbd40e61085a552114e094ca8c"
+    },
+    {
+      "path": "apps/api/test/invitation-repair.test.ts",
+      "sha256": "acee1c61ebbb5a073515c1d9dfaaa2f6191e0a2dcad19c998662f40c3f9f00e5"
+    },
+    {
+      "path": "apps/api/test/acc-lifecycle.test.ts",
+      "sha256": "7de0706ecfe40d5ea2c1a1c27760af94c01956157482a11a5ef6d80a544b8664"
+    },
+    {
+      "path": "apps/api/test/uat-immediate-invite-send.test.ts",
+      "sha256": "97bbc280819140389cf5605d5088f3ad5626766c786c1188ba74802ad01aa6b7"
+    },
+    {
+      "path": "database/migrations/0022_invitation_history_indexes.sql",
+      "sha256": "cc8c0ea88e27514dbd2c6bce8faf1de0c381c1177ca692298eaa9994e84535a8"
+    }
+  ],
+  "coordinated_dependency": {
+    "path": "apps/api/src/adapters/embedded-migrations.ts",
+    "owner": "Root synchronized0022 after import agent0021",
+    "sha256": "253da95ffa03593d71f7213c091f2dafbcddf9002273aba1d2cbe12a5b49b361",
+    "0022_exact_parity": "PASS, raw/invitation-migration-parity.log"
+  },
+  "changes": [
+    "Accept route and direct adapter take project quota then hold writable project FOR SHARE through invitation/member/receipt commit. Replay follows same lifecycle guard and locks current membership; archive wins or acceptance wins are tested on observed distinct PostgreSQL connections.",
+    "Leave route and direct adapter take project quota before actor/project/member/receipt locks. Route checks current owner/self membership before receipt; archived leave and identical replay remain possible. Owner and unrelated nonmember cannot leave.",
+    "Expired accept no longer COMMITs a caller-owned adapter transaction. The HTTP route explicitly owns/persists its expired status update, preserving prior API behavior while direct callers may roll back unrelated work.",
+    "Invitation list now uses strict additive limit/cursor/status query schema, descending created_at/id keyset with microsecond timestamp anchors, signed current-scope cursors and default50/max100 page.",
+    "List rows add safe delivery status and role/lifecycle-aware retry eligibility; no new raw provider error/body/token/private recipient fields. Existing authorized email field remains unchanged.",
+    "Terminal delivery, permanent refusal, exhausted retries and superseded attempts retain only trusted same-project/workspace invitationId plus optional provider ID. Association is copied only if it matches a real invitation record; unknown/foreign associations are omitted and legacy missing associations remain unknown.",
+    "Migration0022 adds matching history and latest-delivery expression indexes; one page CTE plus bounded indexed lateral lookup avoids per-invitation application queries."
+  ],
+  "api_contract": {
+    "route": "GET /api/v1/projects/:projectId/invitations",
+    "query": {
+      "limit": "integer1..100,default50",
+      "cursor": "optional signed opaque token <=4096 chars",
+      "status": "optional pending|accepted|revoked|expired"
+    },
+    "response": "{data:Invitation[],nextCursor:string|null}",
+    "additive_list_row_field": "delivery?:{status:pending|retrying|delivered|failed|unknown,canRetry:boolean}",
+    "canRetry_meaning": "failed delivery, still-pending/unexpired invitation, active project and current role may resend that invitation role; this does not promise request cannot hit rate/quota/provider failures",
+    "cursor_binding": [
+      "actor",
+      "project",
+      "status filter",
+      "current role/membership version",
+      "current owner/workspace version",
+      "project lifecycle version/archive state"
+    ],
+    "errors": {
+      "invalid_query": "422 VALIDATION_ERROR",
+      "invalid_tampered_or_stale_cursor": "409 STALE_CURSOR after current authorization",
+      "member_viewer": "403 FORBIDDEN",
+      "outsider_revoked": "404 NOT_FOUND",
+      "missing_cursor_signing_config": "503 CONFIG_ERROR when cursor generation/verification is needed"
+    },
+    "configuration": "Uses existing CURSOR_SECRET, at least32 UTF8 bytes; no production default. Stable across requests for pagination.",
+    "compatibility": "No invitation state enum or mutation body changes. Old data-array unwrappers remain compatible for first page; UI must consume nextCursor and show delivery status to finish integrated behavior."
+  },
+  "verification": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-repair-red.log",
+      "exit_code": 1,
+      "totals": {
+        "tests": 9,
+        "pass": 0,
+        "fail": 9,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "3fd57ead4e3809f9645ff840eea5d4162e26032096965f59c0bd294ebb080b34"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-repair-green-first.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 9,
+        "pass": 9,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "eb91d93e5f3d7f2d56097f761d58381c897ff8b824c42993986be06f9b7fd281"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-repair-typecheck-first.log",
+      "exit_code": 1,
+      "totals": {},
+      "sha256": "a315926ed620b2dc470492f28328aadf0ebd9c53559d6512102b07b86b091330"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-repair-typecheck.log",
+      "exit_code": 0,
+      "totals": {},
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-repair-typecheck-next.log",
+      "exit_code": 0,
+      "totals": {},
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-repair-typecheck-final.log",
+      "exit_code": 0,
+      "totals": {},
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-repair-targeted.log",
+      "exit_code": 1,
+      "totals": {
+        "tests": 151,
+        "pass": 149,
+        "fail": 2,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "77e7c48656b56f3211002b35a7a27138cb8b1cea4e3a7d164a28e3f988cc04c7"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-repair-targeted-final.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 151,
+        "pass": 151,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "b1e1205ce03ce193225e07a0d4bdb70c241430b99a62cadbb2775bbb4d650703"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-repair-new-final.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 12,
+        "pass": 12,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "a86e4f0594ad708dda400297771a84b0726b6e3a7e7e03bfd74634608d924d43"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-repair-contracts.log",
+      "exit_code": 0,
+      "totals": {
+        "tests": 117,
+        "pass": 117,
+        "fail": 0,
+        "skipped": 0,
+        "cancelled": 0
+      },
+      "sha256": "1b2d8d3ad7d2aea36bdc767562e290e0500467ad5b1dc0f7c5a52409bd57f156"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-migration-parity.log",
+      "exit_code": 0,
+      "totals": {},
+      "sha256": "28c9e21f2b217a9e66b8695ad948b3f53876d19ce66bb421487b2af343d36e81"
+    }
+  ],
+  "query_plan": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/invitation-query-plan-populated.json",
+    "sha256": "b8f61e00517ab3ce51b601a47a8d45241ce1aee0d4804a223a7684f10028ec56",
+    "synthetic_rows": "105 invitations and105 associated delivered outbox records, fresh schema",
+    "history_delivery_application_statements": 1,
+    "page_bound": 101,
+    "observed_indexes": [
+      "idx_project_invitations_history",
+      "idx_outbox_invitation_delivery"
+    ],
+    "planning_ms": 0.063,
+    "execution_ms": 0.154,
+    "limit": "One local EXPLAIN ANALYZE case, not a production benchmark, capacity proof or zero-downtime migration claim"
+  },
+  "environment": {
+    "node": "24.15.0",
+    "postgres": "17.11 disposable root-provisioned loopback55931",
+    "new_cases": "FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL targets flowboard_identity_extra_test; explicit pool injection/fresh generated schema per test",
+    "legacy_suites": "Root separately reserved flowboard_harness for sequential legacy check; released after final151-pass run",
+    "home": "/tmp/flowboard-identity-home",
+    "provider": "Synthetic mail adapters/provider stubs; no real email, OAuth, cloud or hosted acceptance"
+  },
+  "commands": {
+    "nearest": "node --test-concurrency=1 --test apps/api/test/invitation-repair.test.ts apps/api/test/identity-repair.test.ts apps/api/test/inv01-inv03.test.ts apps/api/test/inv04-inv08.test.ts apps/api/test/inv06-inv07.test.ts apps/api/test/b22-invitation-caps.test.ts apps/api/test/b10-invitation-email.test.ts apps/api/test/b14-outbox-privacy.test.ts apps/api/test/uat-immediate-invite-send.test.ts apps/api/test/rbac-advanced.test.ts apps/api/test/acc-lifecycle.test.ts apps/api/test/node.test.ts apps/api/test/worker.test.ts",
+    "new_only": "node --test-concurrency=1 --test apps/api/test/invitation-repair.test.ts",
+    "root_typecheck": "npm run typecheck",
+    "contracts": "npm run test --workspace @flowboard/contracts",
+    "runtime_environment": "env -i PATH=<existing runtime PATH> HOME=/tmp/flowboard-identity-home NODE_ENV=test WRANGLER_SEND_METRICS=false CURSOR_SECRET=<synthetic test key> DATABASE_URL=<primary disposable local target> FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL=<separate disposable local target>",
+    "plan_capture": "Set FLOWBOARD_INVITATION_PLAN_PATH to an owned review raw JSON path for new-only run. No credentials are printed or included in that plan.",
+    "required_final_suite_env": "FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL must be set to the isolated new database, otherwise the new suite explicitly skips. Full final gate must show zero required skips."
+  },
+  "failure_history": [
+    "Initial new suite9/9failed exit1 before production changes; reproduced caller transaction commit, missing accept lifecycle serialization/replay policy, missing leave quota, unbounded history, absent cursors/delivery summary and dropped terminal association.",
+    "First typecheck failed one Hono Response|Promise<Response> test assignment; fixed using Promise.resolve without changing race ordering. Subsequent typechecks pass.",
+    "First nearest suite149pass2fail exit1: one legacy ACC lifecycle subtest expected provider-only receipt, plus its failing parent suite. Updated exact allowlist expectation to approved trusted invitationId+providerId and selected actual invitation association, preserving token/email/body denial.",
+    "Corrected nearest suite151pass0fail0skip exit0 includes first11 new cases and prior16 identity cases plus actual Node/localworkerd tests. One final latest-attempt/expiry case and populated-plan data were then added; final new-only12pass0fail0skip exit0. Counts are separate runs, never summed."
+  ],
+  "remaining": [
+    "UI integration must expose delivery failure/retry and nextCursor instead of silently showing first50; UI owner was notified before edits and given stable contract after local checks.",
+    "Global OpenAPI and role-owned review/checklist records remain Architect-owned; no feature was marked complete by this builder.",
+    "Full final API/access tests, complete builds and fresh independent full-product manifest review remain required. Bounded source manifest here is not complete reachable dependency coverage.",
+    "Hosted OAuth/provider email, deployed database/index state, actual signed-in browser permissions and UAT workflow checks remain UAT pending after local gates and authorized direct UAT deployment. No dev or production stage, commits, pushes or cloud actions occurred.",
+    "Past settled/retention-purged delivery records without association intentionally show unknown, not invented historical success. Existing invitation email fields are unchanged; directory email policy is outside this patch.",
+    "Migration0022 uses ordinary transactional CREATE INDEX, not a zero-downtime/concurrent migration claim. The source SQL and root-synchronized embedded SQL match exactly."
+  ]
+}

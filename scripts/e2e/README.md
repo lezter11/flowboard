@@ -1,0 +1,11 @@
+# Synthetic browser checks
+
+These checks start the real local Hono API and Next app and use a new isolated Chrome profile. Sessions/accounts are synthetic fixtures backed by a disposable PostgreSQL schema; this does not verify Google login, R2 durability, mail delivery or hosted Cloudflare policy. The browser page routing rejects nonloopback HTTP requests. This is not a claim about every operating-system or browser-background network request.
+
+After `npm ci`, create `flowboard_ui_test` owned by `flowboard_harness` on your own loopback PostgreSQL. Supply `FLOWBOARD_UI_TEST_DATABASE_URL` with that exact user/database and an explicit disposable port (not55432/55479). No remote URI or unsafe database-fence bypass is accepted. Each run creates/drops its own random schema, preserving other test runs. Ports44931(API) and44932(Next) must be free; the harness only terminates its own server children.
+
+Run `npm run test:browser`. Linux CI installs Chromium through the pinned Playwright CLI. On macOS the harness uses the installed Google Chrome executable in `/Applications`; `FLOWBOARD_CHROME_EXECUTABLE` can explicitly select another isolated test executable. Browser state/cookies are never saved. `FLOWBOARD_BROWSER_REPORT_DIR` selects a new output directory; prior completed results cannot be overwritten. The default `artifacts/browser` directory is ignored by Git. Preserve failed attempts and distinguish harness failures from product failures.
+
+The current scenarios verify real API/database saves and authorization, not screenshots alone: full column continuation, off-page title filtering, draft preservation across column unmount, self-assignment/priority/date save, one-effect comment retry after a lost committed response, comment editing, and all four directory roles with permitted board reads. New feature acceptance needs its own named assertions; these scenarios do not close all98 features.
+
+Final freeze/build/browser commands use the default `.next` directory sequentially so Next's generated route-type references remain stable. Set `NEXT_DIST_DIR` explicitly only for a separate isolated build window; doing so can change tracked generated type/config files and requires a new manifest. Never treat a generated-file change as a matching immutable target.

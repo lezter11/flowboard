@@ -447,8 +447,9 @@ export async function acquireWritableProjectContextLock(
  * Retrieves eligible people for a project with strict sibling isolation.
  * Purpose 'assignee' returns only active workspace owner and active managers/members.
  * Purpose 'mention' returns active workspace owner and active managers/members/viewers.
- * Purpose 'display' returns all active project identities.
+ * Purpose 'display' returns all active project identities, to the Owner/current Manager only.
  * Removed members are never returned in picker queries; sibling project members are never returned.
+ * Caller-supplied clients must be in an explicit transaction through response assembly.
  */
 export async function getProjectPeople(
   clientOrPool: pg.Pool | pg.ClientBase,
@@ -461,6 +462,39 @@ export async function getProjectPeople(
   actorId?: string,
 ): Promise<{ data: PersonDisplay[]; nextCursor: string | null }> {
   const pool = clientOrPool ?? getPool();
+
+  if (purpose === 'display') {
+    if (!actorId) throw HttpError.unauthorized('An authenticated directory actor is required.');
+    // Direct Pool callers need the same transaction lifetime as mounted routes. Otherwise
+    // a Manager demotion could commit between the role check and roster assembly.
+    if (typeof (pool as pg.Pool).connect === 'function' && typeof (pool as pg.Pool).totalCount === 'number') {
+      const client = await (pool as pg.Pool).connect();
+      try {
+        await client.query('BEGIN');
+        const result = await getProjectPeople(client, projectId, purpose, query, cursor, limit, boardId, actorId);
+        await client.query('COMMIT');
+        return result;
+      } catch (error) {
+        await client.query('ROLLBACK').catch(() => {});
+        throw error;
+      } finally { client.release(); }
+    }
+    const context = await pool.query<{ owner_id: string }>(
+      `SELECT w.owner_id FROM projects p JOIN workspaces w ON w.id=p.workspace_id
+       WHERE p.id=$1 FOR SHARE OF w`, [projectId],
+    );
+    if (!context.rows[0]) throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+    if (context.rows[0].owner_id !== actorId) {
+      const membership = await pool.query<{ role: string; status: string }>(
+        'SELECT role,status FROM project_memberships WHERE project_id=$1 AND user_id=$2 FOR SHARE',
+        [projectId, actorId],
+      );
+      if (membership.rows[0]?.status !== 'active') throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+      if (membership.rows[0].role !== 'manager') {
+        throw HttpError.forbidden('Only the Owner or a Project Manager can view the full People directory.', 'FORBIDDEN');
+      }
+    }
+  }
 
   let boardEligibleIds: Set<string> | null = null;
   let boardAssignees: Set<string> | null = null;
@@ -610,9 +644,46 @@ export async function getEligibleMentionees(
   projectId: string,
   query?: string,
   boardId?: string,
+  selectedUserIds?: readonly string[],
 ): Promise<PersonDisplay[]> {
-  const { data } = await getProjectPeople(clientOrPool, projectId, 'mention', query, undefined, 100, boardId);
-  return data;
+  if (!selectedUserIds) {
+    const { data } = await getProjectPeople(clientOrPool, projectId, 'mention', query, undefined, 100, boardId);
+    return data;
+  }
+  const ids = [...new Set(selectedUserIds)];
+  if (ids.length === 0) return [];
+  if (ids.length > 20) throw HttpError.badRequest('At most20 selected mention identities are allowed.', 'VALIDATION_ERROR');
+  // Called under the comment's existing project/board write locks. Do not take
+  // target row locks after the board: grant/member revocation locks them first.
+  // Eligibility is a bounded lookup of submitted IDs, independent of picker pages.
+  const result = await clientOrPool.query<{
+    id: string; display_name: string; avatar_url: string | null; scoped_role: Role;
+  }>(
+    `WITH context AS (
+       SELECT p.id, p.workspace_id, w.owner_id FROM projects p
+       JOIN workspaces w ON w.id=p.workspace_id WHERE p.id=$1
+         AND ($3::text IS NULL OR EXISTS (SELECT 1 FROM boards b
+           WHERE b.id=$3 AND b.project_id=p.id AND b.workspace_id=p.workspace_id AND b.archived=FALSE))
+     )
+     SELECT u.id,u.display_name,u.avatar_url,'owner'::text AS scoped_role
+     FROM context x JOIN users u ON u.id=x.owner_id WHERE u.id=ANY($2::text[])
+     UNION ALL
+     SELECT u.id,u.display_name,u.avatar_url,pm.role::text AS scoped_role
+     FROM context x JOIN project_memberships pm ON pm.project_id=x.id
+     JOIN users u ON u.id=pm.user_id
+     WHERE pm.status='active' AND pm.user_id<>x.owner_id AND u.id=ANY($2::text[])
+       AND ($3::text IS NULL OR EXISTS (SELECT 1 FROM board_grants bg
+         WHERE bg.board_id=$3 AND bg.project_id=x.id AND bg.workspace_id=x.workspace_id AND bg.user_id=u.id))`,
+    [projectId, ids, boardId ?? null],
+  );
+  // Canonical Unicode duplicate-name numbering needs the project's active names.
+  // This names-only work remains project-cap bounded; the profile lookup above is<=20.
+  const suffixes = await projectNameSuffixes(clientOrPool, projectId);
+  return result.rows.map((person) => withNameSuffix<PersonDisplay>({
+    id: person.id, displayName: person.display_name, avatarUrl: person.avatar_url,
+    activeInProject: true, scopedRole: person.scoped_role,
+    assignable: person.scoped_role !== 'viewer', mentionable: true,
+  }, suffixes));
 }
 
 /**

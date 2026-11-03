@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/guarded-router';
 import { landingFor } from '@/lib/landing';
 import { useSession } from '@/lib/session';
 

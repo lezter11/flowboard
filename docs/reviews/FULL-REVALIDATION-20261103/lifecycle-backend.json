@@ -1,0 +1,2556 @@
+{
+  "schemaVersion": 1,
+  "kind": "read_only_backend_discovery_not_independent_acceptance",
+  "targetCommit": "917706ae0433df471c72736be4d548eb022236c4",
+  "generatedAt": "2026-11-03",
+  "scope": "69 lifecycle backend feature rows BRD/CRD/COM/ATT/AUD/DEL/IMP/NTF/QRY/UX; excludes UI implementation review",
+  "constraints": [
+    "No source edits",
+    "No tests/build/install executed",
+    "No network/cloud/credentials read",
+    "No approval rating or feature closure",
+    "Only lifecycle-backend.md/json written"
+  ],
+  "mountedRoot": "apps/api/src/http/app.ts:179-193",
+  "sharedDependencies": [
+    "apps/api/src/http/middleware/auth.ts",
+    "apps/api/src/http/middleware/token-policy.ts",
+    "apps/api/src/adapters/rbac.ts:300",
+    "apps/api/src/adapters/rbac.ts:391",
+    "apps/api/src/adapters/board-grants-foundation.ts:21",
+    "apps/api/src/adapters/idempotency.ts:53",
+    "apps/api/src/runtime/node.ts",
+    "apps/api/src/runtime/worker.ts",
+    "database/migrations/0001_initial.sql",
+    "database/migrations/0003_constraints.sql",
+    "database/migrations/0005_card_images.sql",
+    "database/migrations/0006_retryable_storage_cleanup.sql",
+    "database/migrations/0007_board_grants.sql",
+    "database/migrations/0008_board_activity_scope.sql",
+    "database/migrations/0017_audit_round_b14.sql"
+  ],
+  "features": [
+    {
+      "id": "BRD-01",
+      "feature": "Create board",
+      "acceptance_catalogue": "Owner/manager creates a board with default columns atomically inside an authorized project.",
+      "depends_on": [
+        "PRJ-01",
+        "RBAC-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:50 POST projects/:projectId/boards"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:138 createBoard",
+        "apps/api/src/adapters/board-grants-foundation.ts:140 grantCreatorBoardAccess"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:24"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/brd01-brd07.test.ts:114",
+        "apps/api/test/brd01-brd07.test.ts:203",
+        "apps/api/test/b18-own-projects.test.ts:1"
+      ],
+      "current_source_behavior": "Owner/Manager atomic board plus five default columns; transaction also grants creator Manager this new board only; active/total quotas enforced in mounted route.",
+      "verification_not_covered": "Rerun role matrix, same-key create, concurrent cap and creator-only grant through mounted handler; historical no-creator-grant test titles must not override 31 Oct amendment.",
+      "gaps": []
+    },
+    {
+      "id": "BRD-02",
+      "feature": "Board list and settings",
+      "acceptance_catalogue": "List only accessible project boards; owner/manager renames a board without breaking card IDs/links.",
+      "depends_on": [
+        "BRD-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:144 GET projects/:projectId/boards",
+        "apps/api/src/http/routes/boards.ts:227 PATCH boards/:boardId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:238 listProjectBoards",
+        "apps/api/src/adapters/boards.ts:310 updateBoard"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:34",
+        "packages/contracts/src/boards.ts:70"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/brd01-brd07.test.ts:304",
+        "apps/api/test/brd01-brd07.test.ts:330",
+        "apps/api/test/board-description-default-board.test.ts:1"
+      ],
+      "current_source_behavior": "List active accessible boards; PATCH keeps IDs, uses snapshot version and Owner-only name/description rule.",
+      "verification_not_covered": "Run Owner/Manager/member/viewer/no-grant/removed replay paths, rename link stability and owner-transfer interleaving. TSV owner/manager rename wording is superseded by FEATURE_SPEC:57.",
+      "gaps": [
+        "DOC-01"
+      ]
+    },
+    {
+      "id": "BRD-03",
+      "feature": "Bounded consistent board snapshot",
+      "acceptance_catalogue": "Metadata, counts and first column pages share one snapshot; caps/cursors are explicit and all filters count beyond the visible page.",
+      "depends_on": [
+        "BRD-01",
+        "FND-02"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:207 GET boards/:boardId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:1111 getBoardSnapshot"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:188",
+        "packages/contracts/src/boards.ts:201"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/brd01-brd07.test.ts:795",
+        "apps/api/test/board-access.test.ts:614"
+      ],
+      "current_source_behavior": "Repeatable-read snapshot holds board access; returns bounded per-column pages, totals, filters, versions, people and cursor metadata.",
+      "verification_not_covered": "Run concurrent mutation/read and revocation/read on separate connections; verify all filter counts beyond page and bounded query plans with realistic cardinality.",
+      "gaps": []
+    },
+    {
+      "id": "BRD-04",
+      "feature": "Add and rename columns",
+      "acceptance_catalogue": "Owner/manager configures unique normalized names, colors and todo/active/done categories with expected board version.",
+      "depends_on": [
+        "BRD-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:318 POST boards/:boardId/columns",
+        "apps/api/src/http/routes/boards.ts:402 PATCH boards/:boardId/columns/:columnId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:431 addColumn",
+        "apps/api/src/adapters/boards.ts:559 updateColumn"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:87",
+        "packages/contracts/src/boards.ts:95"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/brd01-brd07.test.ts:392",
+        "apps/api/test/brd01-brd07.test.ts:454",
+        "apps/api/test/brd01-brd07.test.ts:492"
+      ],
+      "current_source_behavior": "Manager/Owner column changes use structure version, normalized uniqueness and max12 columns; category and tone are independent labels.",
+      "verification_not_covered": "Run normalized Unicode/case names, sibling column IDs, stale version, archived context and failed-write rollback including receipt/activity.",
+      "gaps": []
+    },
+    {
+      "id": "BRD-05",
+      "feature": "Reorder columns",
+      "acceptance_catalogue": "Pointer and click/tap/keyboard ordering persist atomically; missing/duplicate/foreign IDs and stale revisions fail clearly.",
+      "depends_on": [
+        "BRD-04"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:487 POST boards/:boardId/columns/reorder"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:710 reorderColumns"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:108"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/brd01-brd07.test.ts:554"
+      ],
+      "current_source_behavior": "Exact complete column ID set and expected structure version update positions and activity atomically.",
+      "verification_not_covered": "Run duplicate/missing/foreign ID and two-writer races; pointer, keyboard and click/tap behavior belongs to UI verification.",
+      "gaps": []
+    },
+    {
+      "id": "BRD-06",
+      "feature": "Remove empty column",
+      "acceptance_catalogue": "Owner/manager cannot remove final column or any column referenced by active/restorable cards; no silent card deletion/move occurs.",
+      "depends_on": [
+        "BRD-04",
+        "FND-03"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:571 DELETE boards/:boardId/columns/:columnId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:811 deleteColumn"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:120"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/brd01-brd07.test.ts:685",
+        "database/migrations/0003_constraints.sql:51"
+      ],
+      "current_source_behavior": "Rejects final column, active cards and unexpired trashed cards; truly empty column deletes and compacts.",
+      "verification_not_covered": "Existing test physically deletes trash fixture before successful column deletion; test expired/purged-card and import-default references explicitly, including expected safe refusal instead of raw FK/server failure.",
+      "gaps": [
+        "GAP-08"
+      ]
+    },
+    {
+      "id": "BRD-07",
+      "feature": "Card pagination and column counts",
+      "acceptance_catalogue": "Load more retains canonical order without duplicates; empty column and empty filtered column are distinct and stale cursors refresh.",
+      "depends_on": [
+        "BRD-03"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:711 GET boards/:boardId/cards"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:1479 listBoardCards"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:136"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/brd01-brd07.test.ts:862",
+        "apps/api/test/board-access.test.ts:509"
+      ],
+      "current_source_behavior": "Keyset position/ID pages bind board/filter/date/snapshot/order revision; active/matching counts are separate.",
+      "verification_not_covered": "Run off-page filter counts, same-rank tie, malformed/foreign/stale cursor, inserts/moves between pages, revocation/read, timezone-day rollover and query bounds.",
+      "gaps": []
+    },
+    {
+      "id": "BRD-08",
+      "feature": "Archive and reopen board",
+      "acceptance_catalogue": "Owner/manager makes board read-only or reopens it; no card is deleted and pending trash deadlines continue.",
+      "depends_on": [
+        "BRD-01",
+        "DEL-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:737 POST boards/:boardId/archive",
+        "apps/api/src/http/routes/boards.ts:856 POST boards/:boardId/reopen"
+      ],
+      "adapters": [
+        "apps/api/src/http/routes/boards.ts:737 inline transactional handlers",
+        "apps/api/src/adapters/rbac.ts:391"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:47",
+        "packages/contracts/src/boards.ts:52"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/lifecycle-undo.test.ts:235",
+        "apps/api/test/b18-own-projects.test.ts:1"
+      ],
+      "current_source_behavior": "Manager/Owner archive retains content and blocks writes; reopen checks active-board cap and archived parent. Neither updates trash cutoff.",
+      "verification_not_covered": "Run archive/reopen vs writes/imports/grant revoke, read-only project rejection, idempotent no-op semantics and deadline continuity. Route bodies currently ignore lifecycle expectedVersion schema; decide/document whether archive concurrency is last-writer-wins.",
+      "gaps": [
+        "GAP-09"
+      ]
+    },
+    {
+      "id": "CRD-01",
+      "feature": "Quick create card",
+      "acceptance_catalogue": "Member/manager/owner creates title in an active authorized column; required field and retry failures retain draft and create once.",
+      "depends_on": [
+        "BRD-01",
+        "RBAC-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:39 POST boards/:boardId/cards"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:254 createCard"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:18"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/crd01-crd11.test.ts:187",
+        "apps/api/test/crd01-crd11.test.ts:1206"
+      ],
+      "current_source_behavior": "Member+ creates one authorized active card, validates structure version/column and writes activity/receipt atomically; token create retry path additionally uses semantic identity.",
+      "verification_not_covered": "Run invalid/blank/long title, response loss, concurrent same key, revoke/trash/archive races and required-priority product alignment.",
+      "gaps": [
+        "DOC-02"
+      ]
+    },
+    {
+      "id": "CRD-02",
+      "feature": "Compact card summary",
+      "acceptance_catalogue": "Show title, priority, due date, assignees and accurate comment/image counts without loading full descriptions/history.",
+      "depends_on": [
+        "CRD-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:207 GET boards/:boardId",
+        "apps/api/src/http/routes/boards.ts:711 GET boards/:boardId/cards"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:100 toCardSummary",
+        "apps/api/src/adapters/cards.ts:186 fetchCardCounts"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:80"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/crd01-crd11.test.ts:330",
+        "apps/api/test/card-key-counts-creator.test.ts:1"
+      ],
+      "current_source_behavior": "Lightweight summaries carry title/priority/date/assignee IDs and comment/finalized-image counts, optional key/excerpt.",
+      "verification_not_covered": "Run counts after comment tombstone/image failure/delete/trash and off-page rows; verify no full discussion/description payload and bounded SQL at scale.",
+      "gaps": []
+    },
+    {
+      "id": "CRD-03",
+      "feature": "Open detail dialog and deep link",
+      "acceptance_catalogue": "Card link loads an authorized popup/drawer or direct-page view with focus restoration and recoverable missing/loading states.",
+      "depends_on": [
+        "CRD-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:142 GET cards/:cardId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:425 getCard"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:100"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/crd01-crd11.test.ts:353",
+        "apps/api/test/card-key-counts-creator.test.ts:1"
+      ],
+      "current_source_behavior": "Authorized detail loads card plus historical people and creator; active resource visibility is checked independently.",
+      "verification_not_covered": "Run missing/sibling/zero-grant/removed/trash and response contract; URL opening, focus and recoverable loading are UI responsibilities.",
+      "gaps": []
+    },
+    {
+      "id": "CRD-04",
+      "feature": "Edit title and description",
+      "acceptance_catalogue": "Explicit Save validates plain text and expected card version; Cancel/discard never overwrites saved state.",
+      "depends_on": [
+        "CRD-03"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:165 PATCH cards/:cardId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:527 updateCard"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:40"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/crd01-crd11.test.ts:403"
+      ],
+      "current_source_behavior": "Plain text bounds and expectedVersion update fields only, increment card/snapshot versions and append field history.",
+      "verification_not_covered": "Run failed update rollback, stale two-writer race, archived/revoked access and receipt replay. Cancel/discard has no separate backend mutation.",
+      "gaps": []
+    },
+    {
+      "id": "CRD-05",
+      "feature": "Priority and due date",
+      "acceptance_catalogue": "Five priority values and optional date-only deadline save/reset consistently; invalid calendar dates fail and overdue excludes done cards.",
+      "depends_on": [
+        "CRD-04"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:165 PATCH cards/:cardId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:527 updateCard",
+        "apps/api/src/adapters/boards.ts:39 getWorkspaceToday"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:10",
+        "packages/contracts/src/common.ts:1"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/crd01-crd11.test.ts:491",
+        "apps/api/test/qry01-qry03.test.ts:255"
+      ],
+      "current_source_behavior": "Server accepts five priorities including none, optional real date-only deadlines; overdue queries exclude done category in workspace timezone.",
+      "verification_not_covered": "Run clear/reset, leap/year/month dates, date-only timezone/DST boundary and done/reopen semantics. New-card explicit priority rule is a known coordinated contract change.",
+      "gaps": [
+        "DOC-02"
+      ]
+    },
+    {
+      "id": "CRD-06",
+      "feature": "Assign project teammates",
+      "acceptance_catalogue": "Assign zero/multiple active eligible project users or owner; removed identities stay labeled historical and cannot be newly assigned.",
+      "depends_on": [
+        "CRD-04",
+        "PRJ-05"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:39 POST boards/:boardId/cards",
+        "apps/api/src/http/routes/cards.ts:165 PATCH cards/:cardId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:138 validateAssigneeIds",
+        "apps/api/src/services/board-assignees.ts:11"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:18",
+        "packages/contracts/src/cards.ts:40"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/crd01-crd11.test.ts:561",
+        "apps/api/test/b24-assignee-eligibility.test.ts:110"
+      ],
+      "current_source_behavior": "Card validator and picker use Owner or active Manager/Member with this board grant; historical assignees display separately.",
+      "verification_not_covered": "Run grant removal/demotion/owner-transfer concurrent with new assignment and max20/duplicates. Import does not reuse this shared rule.",
+      "gaps": [
+        "GAP-03"
+      ]
+    },
+    {
+      "id": "CRD-07",
+      "feature": "Drag across and within columns",
+      "acceptance_catalogue": "Server validates neighbors and versions, changes rank/history atomically and returns canonical position; failure restores server order.",
+      "depends_on": [
+        "CRD-01",
+        "BRD-03"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:240 POST cards/:cardId/move"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:733 moveCard"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:71"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/crd01-crd11.test.ts:674",
+        "apps/api/test/comment-move-replay.test.ts:40"
+      ],
+      "current_source_behavior": "Canonical neighbor checks, dual card/order revisions, bounded recompact, same-transaction move/history/receipt return canonical card.",
+      "verification_not_covered": "Run equal/gap exhaustion ranks, nonadjacent/foreign/trashed neighbors, same/foreign column, separate-connection competing moves and rollback after final write.",
+      "gaps": []
+    },
+    {
+      "id": "CRD-08",
+      "feature": "Click tap and keyboard Move",
+      "acceptance_catalogue": "Visible Move chooses column plus first/last/before/after via bounded placement read; equivalent outcome without dragging.",
+      "depends_on": [
+        "CRD-07"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:678 GET boards/:boardId/columns/:columnId/placement",
+        "apps/api/src/http/routes/cards.ts:240 POST cards/:cardId/move"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:935 getPlacement",
+        "apps/api/src/adapters/cards.ts:733 moveCard"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:125",
+        "packages/contracts/src/cards.ts:71"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/crd01-crd11.test.ts:833",
+        "apps/api/test/board-access.test.ts:664"
+      ],
+      "current_source_behavior": "Bounded first/last/before/after neighbor read excludes moving card; same move endpoint persists keyboard/click operation.",
+      "verification_not_covered": "Run anchor missing/foreign/stale and placement-to-write intervening move; accessibility interaction itself remains UI evidence.",
+      "gaps": []
+    },
+    {
+      "id": "CRD-09",
+      "feature": "Filtered movement",
+      "acceptance_catalogue": "Explain disabled ambiguous drag while filters apply; Move uses full destination order rather than renumbering visible cards only.",
+      "depends_on": [
+        "CRD-08"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:678 GET boards/:boardId/columns/:columnId/placement",
+        "apps/api/src/http/routes/cards.ts:240 POST cards/:cardId/move"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:935 getPlacement"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:125"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/crd01-crd11.test.ts:833"
+      ],
+      "current_source_behavior": "Placement derives full destination order rather than the filtered visible subset.",
+      "verification_not_covered": "Run hidden-neighbor placement on filtered multi-page column and stale revisions; explanatory drag-disabled UI not evidenced by backend.",
+      "gaps": []
+    },
+    {
+      "id": "CRD-10",
+      "feature": "Concurrent edits and move conflicts",
+      "acceptance_catalogue": "Stale field/order version returns 409 without partial side effects; preserve draft and allow deliberate refresh/reapply.",
+      "depends_on": [
+        "CRD-04",
+        "CRD-07"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:165 PATCH cards/:cardId",
+        "apps/api/src/http/routes/cards.ts:240 POST cards/:cardId/move"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:527 updateCard",
+        "apps/api/src/adapters/cards.ts:733 moveCard"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:40",
+        "packages/contracts/src/cards.ts:71"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/crd01-crd11.test.ts:935",
+        "apps/api/test/board-concurrency.test.ts:16"
+      ],
+      "current_source_behavior": "Conflicts return 409 with no accepted partial field/order side effects; shared errors classify DB deadlock/serialization as retryable.",
+      "verification_not_covered": "Run real simultaneous separate clients and failure injection, not only sequential stale calls; verify UI draft reconciliation separately.",
+      "gaps": []
+    },
+    {
+      "id": "CRD-11",
+      "feature": "Save pending errors and unsaved drafts",
+      "acceptance_catalogue": "Save affects fields only; comment/upload actions are independent; retries keep command identity and closing protects unsaved work.",
+      "depends_on": [
+        "CRD-04"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:165 PATCH cards/:cardId",
+        "apps/api/src/http/routes/comments.ts:67 POST cards/:cardId/comments",
+        "apps/api/src/http/routes/images.ts:79 POST cards/:cardId/image-uploads"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/idempotency.ts:53",
+        "apps/api/src/adapters/cards.ts:527"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:40"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/crd01-crd11.test.ts:982",
+        "apps/api/test/crd01-crd11.test.ts:1143",
+        "apps/api/test/crd01-crd11.test.ts:1247"
+      ],
+      "current_source_behavior": "Independent field/comment/upload commands require stable keys; minimal receipts reauthorize before replay and do not preserve old content.",
+      "verification_not_covered": "Run response loss and changed-payload key conflicts for each operation, revoke/trash/replay interleavings. Unsaved draft/close behavior is entirely UI-owned.",
+      "gaps": []
+    },
+    {
+      "id": "CRD-12",
+      "feature": "Move undo",
+      "acceptance_catalogue": "Undo is a new authorized versioned move; it succeeds once or explains conflict without overwriting intervening work.",
+      "depends_on": [
+        "CRD-07"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:315 POST cards/:cardId/move-undo"
+      ],
+      "adapters": [
+        "apps/api/src/http/routes/cards.ts:315 inline versioned undo handler",
+        "apps/api/src/adapters/cards.ts:733 moveCard"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:71"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/lifecycle-undo.test.ts:155"
+      ],
+      "current_source_behavior": "Undo reconstructs prior movement as a new authorized move with current expected versions and new history.",
+      "verification_not_covered": "Run repeat undo, unrelated intervening field/move, deleted/archived destination, revoked actor and same-key response-loss replay; UI conflict explanation separate.",
+      "gaps": []
+    },
+    {
+      "id": "COM-01",
+      "feature": "Comment read and pagination",
+      "acceptance_catalogue": "Project readers see chronological comments with author displays; stable cursors do not expose other project content.",
+      "depends_on": [
+        "CRD-03",
+        "RBAC-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/comments.ts:32 GET cards/:cardId/comments"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/comments.ts:73 listCardComments"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:67",
+        "packages/contracts/src/discussion.ts:85"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:427",
+        "apps/api/test/com-del.test.ts:454",
+        "apps/api/test/board-access.test.ts:562"
+      ],
+      "current_source_behavior": "Chronological createdAt/ID cursor bound to card, historical author display and tombstone-safe reads under board grant.",
+      "verification_not_covered": "Run inserts tied timestamps, malformed/foreign cursor, deleted comments, no-grant card and revocation during multi-query response assembly.",
+      "gaps": []
+    },
+    {
+      "id": "COM-02",
+      "feature": "Post comment",
+      "acceptance_catalogue": "Member/manager/owner posts plain text independently of card Save; atomic event/outbox/receipt and lost-response retry create one comment.",
+      "depends_on": [
+        "COM-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/comments.ts:67 POST cards/:cardId/comments"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/comments.ts:277 postComment"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:41"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:228",
+        "apps/api/test/com-del.test.ts:276",
+        "apps/api/test/comment-move-replay.test.ts:40"
+      ],
+      "current_source_behavior": "Comment, mentions, direct inbox rows, activity, outbox and receipt commit together independently of card fields.",
+      "verification_not_covered": "Run final-write rollback, duplicate/lost response, post vs move/trash/revoke and comment body bounds; ensure accepted notification intent retained.",
+      "gaps": []
+    },
+    {
+      "id": "COM-03",
+      "feature": "Mention project teammate",
+      "acceptance_catalogue": "Accessible picker resolves active project identities; validated UTF-16 spans produce mentions and literal at-name text does not notify.",
+      "depends_on": [
+        "COM-02",
+        "PRJ-05"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/comments.ts:67 POST cards/:cardId/comments"
+      ],
+      "adapters": [
+        "apps/api/src/http/routes/projects.ts:1 people picker",
+        "apps/api/src/adapters/comments.ts:231 validateMentions"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:9",
+        "packages/contracts/src/discussion.ts:33"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:343",
+        "apps/api/test/com-del.test.ts:364",
+        "apps/api/test/b9-mention-access.test.ts:82"
+      ],
+      "current_source_behavior": "Explicit UTF-16 mention spans validate board readers; literal at-name text has no notification side effect.",
+      "verification_not_covered": "Run Unicode surrogate/IME edges, span/body mismatch, duplicate recipient/self, revoked eligible recipient while posting and picker no-email disclosure.",
+      "gaps": []
+    },
+    {
+      "id": "COM-04",
+      "feature": "Edit own comment",
+      "acceptance_catalogue": "Author updates with expected version; edit activity persists and v1 edits do not resend mention notifications.",
+      "depends_on": [
+        "COM-02"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/comments.ts:171 PATCH comments/:commentId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/comments.ts:452 editComment"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:51"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:514",
+        "apps/api/test/com-del.test.ts:533",
+        "apps/api/test/b9-mention-access.test.ts:137"
+      ],
+      "current_source_behavior": "Only current author with write access edits expected version; activity persists and v1 edit does not re-notify.",
+      "verification_not_covered": "Run author demotion/revocation/trash and response-loss replay; ensure new/removed spans validate and no fresh notifications emitted.",
+      "gaps": []
+    },
+    {
+      "id": "COM-05",
+      "feature": "Delete and moderate comment",
+      "acceptance_catalogue": "Author or owner/manager tombstones a comment, records action and hides body from normal reads; other members cannot moderate.",
+      "depends_on": [
+        "COM-02"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/comments.ts:284 DELETE comments/:commentId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/comments.ts:604 deleteComment"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:62"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:575",
+        "apps/api/test/com-del.test.ts:602",
+        "apps/api/test/com-del.test.ts:1143"
+      ],
+      "current_source_behavior": "Author or Manager/Owner tombstones body and removes spans while recording action; other Members denied.",
+      "verification_not_covered": "Run moderator demotion concurrent with delete/replay; verify copied original comment snippet in existing notifications follows deleted-body retention policy.",
+      "gaps": [
+        "GAP-10"
+      ]
+    },
+    {
+      "id": "COM-06",
+      "feature": "Independent comment drafts",
+      "acceptance_catalogue": "Typing, mention selection and post error survive field saves/refetch; no comment posts accidentally through Enter in a picker.",
+      "depends_on": [
+        "COM-03"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/comments.ts:67 POST cards/:cardId/comments"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/comments.ts:277 postComment"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:41"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:757",
+        "apps/api/test/com-del.test.ts:1168"
+      ],
+      "current_source_behavior": "Comment endpoint independent from field Save; trashed parent refuses post/replay.",
+      "verification_not_covered": "No backend can prove picker Enter handling or preservation of local draft through save/refetch; UI browser verification required.",
+      "gaps": []
+    },
+    {
+      "id": "ATT-01",
+      "feature": "Image upload staging",
+      "acceptance_catalogue": "Authorized editor requests bounded upload and sees progress/cancel; private staging cannot attach files across projects.",
+      "depends_on": [
+        "CRD-03",
+        "RBAC-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/images.ts:79 POST cards/:cardId/image-uploads",
+        "apps/api/src/http/routes/images.ts:157 PUT image-uploads/:uploadId/content",
+        "apps/api/src/http/routes/images.ts:272 DELETE image-uploads/:uploadId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/images.ts:127 createImageUpload",
+        "apps/api/src/adapters/images.ts:224 receiveImageContent",
+        "apps/api/src/adapters/images.ts:590 cancelImageUpload"
+      ],
+      "contracts": [
+        "packages/contracts/src/images.ts:16",
+        "packages/contracts/src/images.ts:55"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/att01-att07.test.ts:263",
+        "apps/api/test/b11-cleanup-cap-people.test.ts:125"
+      ],
+      "current_source_behavior": "Private staged upload binds card/uploader, hash/bytes/type, expiry and max10 including live stages.",
+      "verification_not_covered": "Run cross-project/board/upload IDs, staged-cap concurrency, cancellation during byte receipt, revoke/archive/trash and response-loss replay; progress is UI-owned.",
+      "gaps": []
+    },
+    {
+      "id": "ATT-02",
+      "feature": "Validate and finalize image",
+      "acceptance_catalogue": "Accept validated PNG/JPEG/WebP bytes with size/dimension/count caps; reject SVG/HTML/spoofed MIME and finalize only after verification.",
+      "depends_on": [
+        "ATT-01"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/images.ts:189 POST image-uploads/:uploadId/finalize"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/images.ts:338 finalizeImageUpload",
+        "apps/api/src/services/image-validator.ts:268"
+      ],
+      "contracts": [
+        "packages/contracts/src/images.ts:8",
+        "packages/contracts/src/images.ts:16"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/att01-att07.test.ts:432"
+      ],
+      "current_source_behavior": "Validates hash, size, magic/dimensions and markup rejection for PNG/JPEG/WebP; finalize locks active card/count and only then creates saved image.",
+      "verification_not_covered": "Run truncated/corrupt stream beyond valid header, spoof/polyglot, mismatched dimensions/hash, size20MP/8192/10MiB exact edges and concurrent finalizes. Validator checks headers rather than full image decode; clarify required fidelity.",
+      "gaps": [
+        "GAP-11"
+      ]
+    },
+    {
+      "id": "ATT-03",
+      "feature": "Card image gallery",
+      "acceptance_catalogue": "Finalized images show filename/size/thumbnail and preview; failed or pending upload is not shown as a saved attachment.",
+      "depends_on": [
+        "ATT-02"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/images.ts:301 GET cards/:cardId/images",
+        "apps/api/src/http/routes/images.ts:360 GET images/:imageId/thumbnail"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/images.ts:650 listCardImages",
+        "apps/api/src/adapters/images.ts:703 getImageContent"
+      ],
+      "contracts": [
+        "packages/contracts/src/images.ts:73",
+        "packages/contracts/src/images.ts:92"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/att01-att07.test.ts:679"
+      ],
+      "current_source_behavior": "Gallery lists finalized metadata only; thumbnail endpoint currently serves same bytes as content, not a generated reduced thumbnail.",
+      "verification_not_covered": "Run pending/failed/removed filtering and authorized trashed Gallery; browser memory/loading and whether full-byte thumbnail meets performance need are unmeasured.",
+      "gaps": []
+    },
+    {
+      "id": "ATT-04",
+      "feature": "Private image delivery",
+      "acceptance_catalogue": "Authenticated proxy checks current project access on every fetch; no public bucket/long-lived URL or project-revocation bypass.",
+      "depends_on": [
+        "ATT-02"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/images.ts:338 GET images/:imageId/content",
+        "apps/api/src/http/routes/images.ts:360 GET images/:imageId/thumbnail"
+      ],
+      "adapters": [
+        "apps/api/src/http/routes/images.ts:38 getImageForDelivery",
+        "apps/api/src/adapters/images.ts:703 getImageContent"
+      ],
+      "contracts": [
+        "packages/contracts/src/images.ts:73"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/att01-att07.test.ts:718",
+        "apps/api/test/board-access.test.ts:1086",
+        "apps/api/test/b7-image-storage-r2.test.ts:153"
+      ],
+      "current_source_behavior": "Authenticated private proxy rechecks access after storage IO; no-store/nosniff delivery; no-bucket fails503.",
+      "verification_not_covered": "Run current grant/Manager demotion after storage read, owner transfer, trashed roles and encoded filename. Live R2 public-access policy/durable storage and signed-in UAT remain unverified.",
+      "gaps": []
+    },
+    {
+      "id": "ATT-05",
+      "feature": "Remove attached image",
+      "acceptance_catalogue": "Uploader or owner/manager removes image with confirmation/history; removed images are absent from active card and cleanup is retryable.",
+      "depends_on": [
+        "ATT-03"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/images.ts:382 DELETE images/:imageId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/images.ts:774 deleteCardImage",
+        "apps/api/src/adapters/images.ts:878 deleteStorageAfterCommit"
+      ],
+      "contracts": [
+        "packages/contracts/src/images.ts:95"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/att01-att07.test.ts:776",
+        "apps/api/test/b8-image-delete-after-commit.test.ts:83"
+      ],
+      "current_source_behavior": "Uploader or Manager/Owner with current access removes versioned row/history; durable deletion key commits before byte deletion.",
+      "verification_not_covered": "Run upload-owner grant loss, moderator demotion, failed DB commit, postcommit storage failure and replay; no bytes removed on rollback.",
+      "gaps": []
+    },
+    {
+      "id": "ATT-06",
+      "feature": "Orphan cleanup and storage limits",
+      "acceptance_catalogue": "Expired uploads/unreferenced objects are cleaned safely; quotas fail visibly without breaking existing saved card fields.",
+      "depends_on": [
+        "ATT-02"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/runtime/worker.ts:82 scheduled"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/images.ts:897 cleanupOrphanUploads",
+        "apps/api/src/services/trash-purge.ts:19 processPendingStorageDeletions"
+      ],
+      "contracts": [
+        "packages/contracts/src/images.ts:12"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/att01-att07.test.ts:857",
+        "apps/api/test/b11-cleanup-cap-people.test.ts:77"
+      ],
+      "current_source_behavior": "Expiry cleanup persists retry keys and fenced storage-deletion lease; max10 caps staged+finalized count; storage binding required.",
+      "verification_not_covered": "Run overlapping scheduled jobs, crash/reclaim and failed storage delete; total account/bucket quota and actual deployed schedule/durability not proved.",
+      "gaps": []
+    },
+    {
+      "id": "ATT-07",
+      "feature": "Attachment lifecycle in trash",
+      "acceptance_catalogue": "Trashing card preserves finalized files until restore cutoff; restore recovers them and purge never destroys a successfully restored card's images.",
+      "depends_on": [
+        "ATT-03",
+        "DEL-01"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/trash.ts:24 POST cards/:cardId/delete",
+        "apps/api/src/http/routes/trash.ts:156 POST cards/:cardId/restore",
+        "apps/api/src/runtime/worker.ts:82 scheduled"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/trash.ts:193 deleteCard",
+        "apps/api/src/adapters/trash.ts:506 restoreCard",
+        "apps/api/src/services/trash-purge.ts:107 purgeExpiredTrash"
+      ],
+      "contracts": [
+        "packages/contracts/src/images.ts:73",
+        "packages/contracts/src/trash.ts:10"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/att01-att07.test.ts:958",
+        "apps/api/test/com-del.test.ts:1211"
+      ],
+      "current_source_behavior": "Trash preserves finalized files; restore same card ID restores references; purge writes deletion keys only after still-trashed winner transition.",
+      "verification_not_covered": "Run restore vs purge on separate connections, image finalize/delete vs trash, worker crash/storage retry and no resurrection of earlier removed image.",
+      "gaps": []
+    },
+    {
+      "id": "AUD-01",
+      "feature": "Card activity timeline",
+      "acceptance_catalogue": "Owner sees create, field change, assignment, move, comment and actor/server timestamp chronologically with stable pagination.",
+      "depends_on": [
+        "CRD-04",
+        "COM-02"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/activity.ts:24 GET cards/:cardId/activity"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/activity.ts:109 listCardActivity",
+        "apps/api/src/adapters/activity.ts:647 recordActivity"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:88",
+        "packages/contracts/src/activity-actions.ts:12"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/aud-ntf.test.ts:166",
+        "apps/api/test/activity-coverage-b5.test.ts:116"
+      ],
+      "current_source_behavior": "Chronological append-only-to-users card facts with timestamp/actor/source; authorized card timeline uses stable cursor.",
+      "verification_not_covered": "Run exact action coverage through mounted routes, actor historical label after removal, tied timestamp pagination, no event on rollback and board-revocation read race.",
+      "gaps": []
+    },
+    {
+      "id": "AUD-02",
+      "feature": "Field and movement history",
+      "acceptance_catalogue": "Record safe before/after field values and from/to columns; historical name changes and removed people remain understandable.",
+      "depends_on": [
+        "AUD-01"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/activity.ts:24 GET cards/:cardId/activity"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:643 field changes",
+        "apps/api/src/adapters/cards.ts:977 moveChanges",
+        "apps/api/src/adapters/activity.ts:647 recordActivity"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:88"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/aud-ntf.test.ts:166"
+      ],
+      "current_source_behavior": "Field old/new and assignee added/removed values; moves retain column IDs/title and position; historical people resolved.",
+      "verification_not_covered": "Run rename/remove people/column after action and verify meaningful historical display; copied description/history must be scrubbed on purge, including import copies.",
+      "gaps": []
+    },
+    {
+      "id": "AUD-03",
+      "feature": "Owner cross-project activity",
+      "acceptance_catalogue": "Owner filters owned workspace activity by project/card/actor/action/date; invited users cannot access sibling-project audit data.",
+      "depends_on": [
+        "AUD-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/activity.ts:77 GET workspaces/:workspaceId/activity"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/activity.ts:442 listWorkspaceActivity"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:88"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/aud-ntf.test.ts:315",
+        "apps/api/test/activity-coverage-b5.test.ts:378"
+      ],
+      "current_source_behavior": "Owner-only workspace feed supports project/card/actor/action/date filters and stable scoped cursor.",
+      "verification_not_covered": "Run ownership transfer during feed, forged sibling filter/card/cursor, unknown events and long dates/actions; no raw token/invitee-email content.",
+      "gaps": []
+    },
+    {
+      "id": "AUD-04",
+      "feature": "Manager and member audit scopes",
+      "acceptance_catalogue": "Manager sees project activity/access changes; member/viewer sees card activity only for granted project; workspace security log is owner-only.",
+      "depends_on": [
+        "AUD-01",
+        "RBAC-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/activity.ts:44 GET projects/:projectId/activity",
+        "apps/api/src/http/routes/activity.ts:24 GET cards/:cardId/activity"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/activity.ts:270 listProjectActivity",
+        "apps/api/src/adapters/activity.ts:109 listCardActivity"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:88"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/aud-ntf.test.ts:394",
+        "apps/api/test/activity-coverage-b5.test.ts:298",
+        "apps/api/test/board-access-activity-notifications.test.ts:69"
+      ],
+      "current_source_behavior": "Manager project feed includes project facts and granted-board facts; Member/Viewer only card feed on granted board; unknown board scope hidden.",
+      "verification_not_covered": "Run manager with zero/one board, revoked board with off-page items, former owner, access-change fact visibility and cursor invalidation.",
+      "gaps": []
+    },
+    {
+      "id": "AUD-05",
+      "feature": "Lifecycle import and image events",
+      "acceptance_catalogue": "Trash/restore/purge/import/image events are traceable; no secret token or raw file appears in audit payloads.",
+      "depends_on": [
+        "AUD-01",
+        "DEL-01"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/activity.ts:24 GET cards/:cardId/activity",
+        "apps/api/src/http/routes/activity.ts:44 GET projects/:projectId/activity"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/activity.ts:647 recordActivity",
+        "apps/api/src/services/trash-purge.ts:236"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:88",
+        "packages/contracts/src/activity-actions.ts:12"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/aud-ntf.test.ts:748",
+        "apps/api/test/activity-coverage-b5.test.ts:244"
+      ],
+      "current_source_behavior": "Image finalize/remove, trash/restore/purge and import source/batch emit auditable facts in owning transaction.",
+      "verification_not_covered": "Run every lifecycle action including purge whose normal card timeline becomes unavailable; verify project/owner audit retains minimal action/time without content.",
+      "gaps": []
+    },
+    {
+      "id": "AUD-06",
+      "feature": "Append-only history and redaction",
+      "acceptance_catalogue": "No user edits audit facts; sensitive/deleted bodies are redacted under retention rules while actor/action/time facts persist.",
+      "depends_on": [
+        "AUD-01"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/activity.ts:24 GET cards/:cardId/activity"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/activity.ts:609 redactCardActivity",
+        "apps/api/src/services/trash-purge.ts:107"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:88"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/aud-ntf.test.ts:429",
+        "apps/api/test/b14-purge-redaction.test.ts:37"
+      ],
+      "current_source_behavior": "No user audit edit endpoint; purge clears card/comment/history/notification content while keeping actor/action/time and duplicate marker.",
+      "verification_not_covered": "Import row titles/emails and copied comment snippets require complete retention inventory; test normal and errored paths plus backups policy separately.",
+      "gaps": [
+        "GAP-04",
+        "GAP-10"
+      ]
+    },
+    {
+      "id": "DEL-01",
+      "feature": "Delete card with 24-hour recovery",
+      "acceptance_catalogue": "Owner/manager confirms Delete, moves card to trash with server deletedAt/restoreUntil and immediately excludes it from active counts/search.",
+      "depends_on": [
+        "CRD-01",
+        "RBAC-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/trash.ts:24 POST cards/:cardId/delete"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/trash.ts:193 deleteCard"
+      ],
+      "contracts": [
+        "packages/contracts/src/trash.ts:4"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:656",
+        "apps/api/test/com-del.test.ts:695"
+      ],
+      "current_source_behavior": "Manager/Owner versioned delete stores server timestamp plus24h, anchors and actor; state excluded from active reads/counts.",
+      "verification_not_covered": "Run single-winner delete, stale retry, current permission, archive, immediate search/count exclusion and no deadline extension on replay.",
+      "gaps": []
+    },
+    {
+      "id": "DEL-02",
+      "feature": "Project trash list",
+      "acceptance_catalogue": "Owner/manager lists trashed cards with actor/deadline and restore action; member/viewer cannot browse trash.",
+      "depends_on": [
+        "DEL-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/trash.ts:117 GET projects/:projectId/trash"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/trash.ts:321 listProjectTrash"
+      ],
+      "contracts": [
+        "packages/contracts/src/trash.ts:26",
+        "packages/contracts/src/trash.ts:45"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:776",
+        "apps/api/test/com-del.test.ts:793",
+        "apps/api/test/board-access.test.ts:716"
+      ],
+      "current_source_behavior": "Bounded Manager/Owner trash list filters by current board access and carries deadline/canRestore/blockedReason.",
+      "verification_not_covered": "Run hidden off-page boards, manager demotion while assembling, cursor/timestamp ties, expired/purged handling and private not-found consistency.",
+      "gaps": []
+    },
+    {
+      "id": "DEL-03",
+      "feature": "Restore before deadline",
+      "acceptance_catalogue": "Owner/manager restores same ID/content/comments/finalized images strictly before server cutoff; no-op repeats do not extend deadline.",
+      "depends_on": [
+        "DEL-02"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/trash.ts:156 POST cards/:cardId/restore"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/trash.ts:506 restoreCard"
+      ],
+      "contracts": [
+        "packages/contracts/src/trash.ts:10"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:850",
+        "apps/api/test/com-del.test.ts:863",
+        "apps/api/test/att01-att07.test.ts:958"
+      ],
+      "current_source_behavior": "Versioned authorized restore before cutoff keeps ID/content/comment/image references and clears trash fields.",
+      "verification_not_covered": "Run restore duplicate/lost response, version races, cutoff -1ms/0/+1ms under controlled server time and no previously deleted comments/images restored.",
+      "gaps": []
+    },
+    {
+      "id": "DEL-04",
+      "feature": "Restore destination conflict",
+      "acceptance_catalogue": "Original valid column/nearest surviving position is default; absent/read-only destination requires explicit authorized active target or reopening board.",
+      "depends_on": [
+        "DEL-03"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/trash.ts:156 POST cards/:cardId/restore"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/trash.ts:506 restoreCard"
+      ],
+      "contracts": [
+        "packages/contracts/src/trash.ts:10",
+        "packages/contracts/src/trash.ts:58"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:908"
+      ],
+      "current_source_behavior": "Original column/nearest surviving anchor defaults; explicit same-board authorized destination required if missing; archived parent/board requires reopen.",
+      "verification_not_covered": "Run neighbors both/one gone, equal ranks, cross-board supplied target, missing imported default constraints and concurrent reorder/archive; no silent move to hidden board.",
+      "gaps": []
+    },
+    {
+      "id": "DEL-05",
+      "feature": "Expired restore denial",
+      "acceptance_catalogue": "At or after deletedAt plus exactly 24 hours restore returns stable expired response even if cleanup has not run.",
+      "depends_on": [
+        "DEL-01"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/trash.ts:156 POST cards/:cardId/restore"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/trash.ts:578 cutoff comparison"
+      ],
+      "contracts": [
+        "packages/contracts/src/trash.ts:52"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:1010",
+        "apps/api/test/ux-integration.test.ts:351"
+      ],
+      "current_source_behavior": "Authorized restore at/after server restoreUntil returns410 even before cleanup.",
+      "verification_not_covered": "Existing UX test uses a card expired one hour ago; must add/control exact millisecond equality and transaction-wait crossing cutoff. No real deadline test executed here.",
+      "gaps": []
+    },
+    {
+      "id": "DEL-06",
+      "feature": "Purge and restore races",
+      "acceptance_catalogue": "Conditional state/version and job fencing allow one winner; cleanup cannot purge restored data or files.",
+      "depends_on": [
+        "DEL-03"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/trash.ts:156 POST cards/:cardId/restore",
+        "apps/api/src/runtime/worker.ts:82 scheduled"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/trash.ts:506 restoreCard",
+        "apps/api/src/services/trash-purge.ts:107 purgeExpiredTrash"
+      ],
+      "contracts": [
+        "packages/contracts/src/trash.ts:10"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:1211",
+        "apps/api/test/att01-att07.test.ts:958"
+      ],
+      "current_source_behavior": "Row-locked still-trashed selection and conditional transition make restore/purge one winner; storage deletes staged durably after transition.",
+      "verification_not_covered": "Run deterministic two independent connections, both lock winners, cutoff, multiple workers, worker crash after claim/commit and failed object delete; sequential calls alone insufficient.",
+      "gaps": []
+    },
+    {
+      "id": "DEL-07",
+      "feature": "Content purge and audit retention",
+      "acceptance_catalogue": "After cutoff remove recoverable content/files via retryable cleanup; retain minimal audit/duplicate tombstones with no deleted body.",
+      "depends_on": [
+        "DEL-06"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/runtime/worker.ts:82 scheduled"
+      ],
+      "adapters": [
+        "apps/api/src/services/trash-purge.ts:107 purgeExpiredTrash",
+        "apps/api/src/adapters/idempotency.ts:16 minimalReceiptOutcome"
+      ],
+      "contracts": [
+        "packages/contracts/src/trash.ts:26"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:1211",
+        "apps/api/test/b14-purge-redaction.test.ts:37"
+      ],
+      "current_source_behavior": "Card text/comment bodies/history/notification titles and images scrubbed; content-free receipts and import duplicate markers retained.",
+      "verification_not_covered": "Purged imported card still has title/assignee-email copies in card_import_rows; cleanup/retention must minimize those while retaining duplicate markers and minimal provenance.",
+      "gaps": [
+        "GAP-04"
+      ]
+    },
+    {
+      "id": "DEL-08",
+      "feature": "Deleted card interaction guards",
+      "acceptance_catalogue": "Trashed/expired cards reject edits/moves/comments/new uploads; UI explains disappearance while retaining safe unsent drafts.",
+      "depends_on": [
+        "DEL-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:165 PATCH cards/:cardId",
+        "apps/api/src/http/routes/cards.ts:240 POST cards/:cardId/move",
+        "apps/api/src/http/routes/comments.ts:67 POST cards/:cardId/comments",
+        "apps/api/src/http/routes/images.ts:79 POST cards/:cardId/image-uploads"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:527 updateCard",
+        "apps/api/src/adapters/comments.ts:277 postComment",
+        "apps/api/src/adapters/images.ts:127 createImageUpload"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:40",
+        "packages/contracts/src/discussion.ts:41",
+        "packages/contracts/src/images.ts:16"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/com-del.test.ts:743",
+        "apps/api/test/com-del.test.ts:750",
+        "apps/api/test/com-del.test.ts:757",
+        "apps/api/test/crd01-crd11.test.ts:1247"
+      ],
+      "current_source_behavior": "Trashed/expired cards hidden from normal readers and refuse ordinary mutations; lifecycle checks run before replay where implemented.",
+      "verification_not_covered": "Run every child operation edit/delete/finalize/content/cancel plus stale receipts after trash/purge and revoked access; UI draft preservation/disappearance explanations separate.",
+      "gaps": []
+    },
+    {
+      "id": "IMP-01",
+      "feature": "Download Excel template",
+      "acceptance_catalogue": "Versioned seven-column Cards template plus Instructions downloads without example rows in the import sheet.",
+      "depends_on": [
+        "BRD-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/imports.ts:76 GET import/template",
+        "apps/api/src/http/routes/imports.ts:77 GET boards/:boardId/card-import-template"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/imports.ts:34 getImportTemplatePath"
+      ],
+      "contracts": [
+        "packages/contracts/src/imports.ts:73"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/imp01-imp06.test.ts:445"
+      ],
+      "current_source_behavior": "Authenticated download serves seven-column workbook from filesystem path; board-specific variants authorize board first.",
+      "verification_not_covered": "Actual template blank-sheet behavior and deployed Worker filesystem/package availability need explicit tests; no template asset bundling is evident in wrangler.jsonc.",
+      "gaps": [
+        "GAP-12",
+        "DOC-02"
+      ]
+    },
+    {
+      "id": "IMP-02",
+      "feature": "Choose authorized import target",
+      "acceptance_catalogue": "Owner/manager chooses one project/board and default column; upload cannot create projects/users/grants or override destination.",
+      "depends_on": [
+        "IMP-01",
+        "RBAC-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/imports.ts:141 POST boards/:boardId/imports"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/imports.ts:170 assertImportAccessBeforeParse",
+        "apps/api/src/adapters/imports.ts:216 createCardImport"
+      ],
+      "contracts": [
+        "packages/contracts/src/imports.ts:95"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/imp01-imp06.test.ts:478",
+        "apps/api/test/b7-xlsx-budget.test.ts:201"
+      ],
+      "current_source_behavior": "Owner/Manager choose target board/default column; authority checked before parser; cannot create projects/users/grants from data.",
+      "verification_not_covered": "Run hidden-board Manager, parent archive/revoke between preparse/commit, foreign default/status target and file body abuse. Commit currently allows defaultColumnId override beyond digest binding.",
+      "gaps": [
+        "GAP-05"
+      ]
+    },
+    {
+      "id": "IMP-03",
+      "feature": "Bounded literal workbook parsing",
+      "acceptance_catalogue": "Accept supported XLSX only, enforce compressed/expanded/cell/row limits and reject formulas/macros/external package links without evaluating them.",
+      "depends_on": [
+        "IMP-02"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/imports.ts:141 POST boards/:boardId/imports"
+      ],
+      "adapters": [
+        "apps/api/src/services/excel-parser.ts:49 unzipXlsx",
+        "apps/api/src/services/excel-parser.ts:325 parseExcelWorkbook"
+      ],
+      "contracts": [
+        "packages/contracts/src/imports.ts:35"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/imp01-imp06.test.ts:568",
+        "apps/api/test/b7-xlsx-budget.test.ts:87"
+      ],
+      "current_source_behavior": "5MiB compressed/20MiB inflated/200 rows/100 entries; reject formulas, macro executable parts, external/embedded and XXE markers without evaluation.",
+      "verification_not_covered": "No explicit parser CPU/cell-count time budget or date-style parser; regex XML/package validation needs adversarial malformed/namespaced/sheet-dup/relationship cases and real Worker memory/CPU measurement.",
+      "gaps": [
+        "GAP-06"
+      ]
+    },
+    {
+      "id": "IMP-04",
+      "feature": "Map and validate template fields",
+      "acceptance_catalogue": "Exact seven headers map shared card validators; status/date/email errors name row/field and no invalid value is silently guessed.",
+      "depends_on": [
+        "IMP-03",
+        "CRD-06"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/imports.ts:141 POST boards/:boardId/imports"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/imports.ts:216 createCardImport",
+        "apps/api/src/services/excel-parser.ts:564 row mapping"
+      ],
+      "contracts": [
+        "packages/contracts/src/imports.ts:42"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/imp01-imp06.test.ts:674"
+      ],
+      "current_source_behavior": "Seven supported headers validate normalized fields/status/email/date, row errors explicit; required-only headers permitted by IMPORT_SPEC.",
+      "verification_not_covered": "Nonempty Description is parsed/hashed then dropped from stored preview and inserted cards; numeric dates need actual styles; explicit priority coordination outstanding.",
+      "gaps": [
+        "GAP-01",
+        "GAP-06",
+        "DOC-02"
+      ]
+    },
+    {
+      "id": "IMP-05",
+      "feature": "Preview new existing and conflict rows",
+      "acceptance_catalogue": "Preview counts new/already-imported/conflicting/invalid rows, displays mapping and writes no cards; user corrects errors before confirming.",
+      "depends_on": [
+        "IMP-04"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/imports.ts:171 GET imports/:importId",
+        "apps/api/src/http/routes/imports.ts:200 POST imports/:importId/mappings"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/imports.ts:552 getCardImportStatus",
+        "apps/api/src/adapters/imports.ts:727 updateImportMappings"
+      ],
+      "contracts": [
+        "packages/contracts/src/imports.ts:42",
+        "packages/contracts/src/imports.ts:73",
+        "packages/contracts/src/imports.ts:102"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/imp01-imp06.test.ts:837"
+      ],
+      "current_source_behavior": "Preview persists rows/counts without cards; mapping changes only to same-board columns and returns version/digest.",
+      "verification_not_covered": "Mapped digest uses row ID placeholder and empty assignees instead of normalized payload; mapping mutates original status, affecting original-row retry identity; inspect cancelled/expired content cleanup.",
+      "gaps": [
+        "GAP-05",
+        "GAP-04"
+      ]
+    },
+    {
+      "id": "IMP-06",
+      "feature": "Explicit atomic confirmation",
+      "acceptance_catalogue": "Bind preview to actor/target/digest/expiry; revalidate grant/columns/assignees and create all new rows in one bounded transaction or none.",
+      "depends_on": [
+        "IMP-05",
+        "FND-03"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/imports.ts:291 POST imports/:importId/commit"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/imports.ts:850 commitCardImport"
+      ],
+      "contracts": [
+        "packages/contracts/src/imports.ts:95"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/imp01-imp06.test.ts:930",
+        "apps/api/test/imp01-imp06.test.ts:1148",
+        "apps/api/test/lock-order-interleave.test.ts:19"
+      ],
+      "current_source_behavior": "Single transaction rechecks actor write grant, archived state, import version/digest/expiry, current columns and project assignee roles before all cards/events.",
+      "verification_not_covered": "Does not recheck duplicate markers or board-granted assignees; default target override not digest-bound, no stored structure revision/creator binding; description lost. Add last-row failure injection.",
+      "gaps": [
+        "GAP-01",
+        "GAP-02",
+        "GAP-03",
+        "GAP-05"
+      ]
+    },
+    {
+      "id": "IMP-07",
+      "feature": "External ID and retry deduplication",
+      "acceptance_catalogue": "Board-scoped text External ID preserves zeros; duplicate upload/race creates once, changed ID payload conflicts and deleted imports never resurrect silently.",
+      "depends_on": [
+        "IMP-06"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/imports.ts:141 POST boards/:boardId/imports",
+        "apps/api/src/http/routes/imports.ts:291 POST imports/:importId/commit"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/imports.ts:298 preview duplicate lookup",
+        "apps/api/src/adapters/imports.ts:1086 card insert",
+        "apps/api/src/adapters/imports.ts:1135 marker insert"
+      ],
+      "contracts": [
+        "packages/contracts/src/imports.ts:24"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/imp01-imp06.test.ts:1060",
+        "database/migrations/0001_initial.sql:248"
+      ],
+      "current_source_behavior": "Board-scoped text External ID markers preserve leading zero and survive trash/purge; preview compares normalized original hash.",
+      "verification_not_covered": "Two ready previews can both insert cards because marker conflict ignored after card insert; description/hash and mapped status differ from original payload. Separate-connection regression mandatory.",
+      "gaps": [
+        "GAP-01",
+        "GAP-02",
+        "GAP-05"
+      ]
+    },
+    {
+      "id": "IMP-08",
+      "feature": "Date and multi-assignee conversion",
+      "acceptance_catalogue": "Real 1900/1904 Excel dates or strict ISO map to date-only values; semicolon emails resolve active eligible project users only.",
+      "depends_on": [
+        "IMP-04"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/imports.ts:141 POST boards/:boardId/imports",
+        "apps/api/src/http/routes/imports.ts:291 POST imports/:importId/commit"
+      ],
+      "adapters": [
+        "apps/api/src/services/excel-parser.ts:586",
+        "apps/api/src/services/excel-parser.ts:691",
+        "apps/api/src/adapters/imports.ts:280",
+        "apps/api/src/adapters/imports.ts:997"
+      ],
+      "contracts": [
+        "packages/contracts/src/imports.ts:42"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/imp01-imp06.test.ts:674",
+        "apps/api/test/imp01-imp06.test.ts:1192"
+      ],
+      "current_source_behavior": "1900/1904 serial conversion plus strict ISO; semicolon emails map active project editors/Owner.",
+      "verification_not_covered": "Any numeric cell treated as date without date style; assignee queries omit board grants and target-grant locking, contrary shared B24 rule.",
+      "gaps": [
+        "GAP-03",
+        "GAP-06"
+      ]
+    },
+    {
+      "id": "IMP-09",
+      "feature": "Results and safe error download",
+      "acceptance_catalogue": "Result links created cards and row outcomes; safe report cannot execute spreadsheet formulas or leak another project's data.",
+      "depends_on": [
+        "IMP-06"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/imports.ts:350 GET imports/:importId/report"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/imports.ts:1254 getImportReport"
+      ],
+      "contracts": [
+        "packages/contracts/src/imports.ts:42",
+        "packages/contracts/src/imports.ts:73"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/imp01-imp06.test.ts:1133"
+      ],
+      "current_source_behavior": "Current Manager/Owner board access required; bounded report uses CSV formula escaping and card IDs/outcomes.",
+      "verification_not_covered": "Run formula-leading whitespace/tab/CR/Unicode prefixes, quoted delimiters/newlines, hidden-board/grant-loss read, stale row metadata after purge; UI link flow separate.",
+      "gaps": [
+        "GAP-04"
+      ]
+    },
+    {
+      "id": "IMP-10",
+      "feature": "Cancel expire and clean preview",
+      "acceptance_catalogue": "Cancel before commit/expiry cleans temporary content; once transaction begins show actual final result rather than promise cancellation.",
+      "depends_on": [
+        "IMP-05"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/imports.ts:317 DELETE imports/:importId",
+        "apps/api/src/http/routes/imports.ts:171 GET imports/:importId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/imports.ts:1211 cancelCardImport",
+        "apps/api/src/adapters/imports.ts:552 getCardImportStatus"
+      ],
+      "contracts": [
+        "packages/contracts/src/imports.ts:10"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/imp01-imp06.test.ts:837"
+      ],
+      "current_source_behavior": "Cancel allowed before committing; expiry30min checked on status/commit; committed result cannot be cancelled.",
+      "verification_not_covered": "Cancel/expiry only change state and no scheduler removes preview rows; test cleanup within hour, overlapping cancel/commit and exact expiry. Raw workbook not persisted, but personal preview rows are.",
+      "gaps": [
+        "GAP-04"
+      ]
+    },
+    {
+      "id": "IMP-11",
+      "feature": "Import provenance and activity",
+      "acceptance_catalogue": "Import receipt links actor/batch/rows/created cards, while each card behaves like a normal card with a creation activity event.",
+      "depends_on": [
+        "IMP-06",
+        "AUD-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/imports.ts:291 POST imports/:importId/commit"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/imports.ts:1152 per-card activity",
+        "apps/api/src/adapters/imports.ts:1172 batch activity"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:88",
+        "packages/contracts/src/imports.ts:73"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/imp01-imp06.test.ts:1237"
+      ],
+      "current_source_behavior": "Created cards get normal card_created source/import ID/external ID/rowNumber and batch card_import_committed fact.",
+      "verification_not_covered": "Verify normal card semantics including human key and creator attribution, no descriptions/email/body copies in retained audit, and retention removes preview content without erasing minimal provenance.",
+      "gaps": [
+        "GAP-04"
+      ]
+    },
+    {
+      "id": "NTF-01",
+      "feature": "Durable in-app mention inbox",
+      "acceptance_catalogue": "One event/recipient notification appears after commit; no self-mention or duplicate logical delivery and no stale private preview leak.",
+      "depends_on": [
+        "COM-03"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/comments.ts:67 POST cards/:cardId/comments",
+        "apps/api/src/http/routes/notifications.ts:24 GET notifications"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/comments.ts:376 direct notifications",
+        "apps/api/src/adapters/notifications.ts:245 processOutboxLease"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:114"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/aud-ntf.test.ts:471",
+        "apps/api/test/b9-mention-access.test.ts:124"
+      ],
+      "current_source_behavior": "Normal comment transaction inserts one notification per unique nonself recipient plus durable outbox intent; inbox applies current project/board access.",
+      "verification_not_covered": "Recovery consumer deduplicates by card link rather than comment/event ID; direct insertion is counterevidence to ordinary lost-notification claim. Test two distinct recovered events same card plus concurrent consumers and normal/direct overlap.",
+      "gaps": [
+        "GAP-07"
+      ]
+    },
+    {
+      "id": "NTF-02",
+      "feature": "Inbox read state and deep link",
+      "acceptance_catalogue": "Actor opens accessible project/card and marks read; removed-access notifications are redacted/hidden and never reveal content.",
+      "depends_on": [
+        "NTF-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/notifications.ts:24 GET notifications",
+        "apps/api/src/http/routes/notifications.ts:44 PATCH notifications/:id/read",
+        "apps/api/src/http/routes/notifications.ts:60 POST notifications/mark-all-read"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/notifications.ts:107 listNotifications",
+        "apps/api/src/adapters/notifications.ts:151 markNotificationRead",
+        "apps/api/src/adapters/notifications.ts:195 markAllNotificationsRead"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:114"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/aud-ntf.test.ts:542",
+        "apps/api/test/board-access-activity-notifications.test.ts:86"
+      ],
+      "current_source_behavior": "Scoped inbox cursor and current-access SQL; read markers hold board grant and recheck visibility; old hidden notifications disappear.",
+      "verification_not_covered": "Run cursor revocation, owner-transfer/demotion, trashed card snippets, actual deep link route and list-read race; list transaction alone has no explicit grant lock in current source.",
+      "gaps": []
+    },
+    {
+      "id": "NTF-03",
+      "feature": "Outbox retry and failed-work recovery",
+      "acceptance_catalogue": "Lease/fenced consumer retries bounded jobs and quarantines failures; restart/duplicate handling does not lose accepted notification intent.",
+      "depends_on": [
+        "NTF-01",
+        "FND-04"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/runtime/worker.ts:82 scheduled"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/notifications.ts:245 processOutboxLease"
+      ],
+      "contracts": [
+        "packages/contracts/src/discussion.ts:110"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/aud-ntf.test.ts:638",
+        "apps/api/test/b11-cleanup-cap-people.test.ts:115"
+      ],
+      "current_source_behavior": "Bounded SKIP LOCKED DB transaction processes pending/processing rows, backoff/max retries quarantine; Worker scheduled entry invokes processor.",
+      "verification_not_covered": "Despite name, processor holds transaction locks rather than persisting expiring lease/fencing token. Test crash/restart, overlap, poison SQL abort, partial recipient recovery, admin retry and Node deployment runner; Node entry has no scheduler.",
+      "gaps": [
+        "GAP-07"
+      ]
+    },
+    {
+      "id": "QRY-01",
+      "feature": "Project-scoped search",
+      "acceptance_catalogue": "Title search returns authorized active cards only with pagination and safe historical people mapping.",
+      "depends_on": [
+        "BRD-03",
+        "RBAC-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:447 GET projects/:projectId/cards/search"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:1009 searchProjectCards"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:136"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/qry01-qry03.test.ts:205",
+        "apps/api/test/board-access.test.ts:778"
+      ],
+      "current_source_behavior": "Project-scoped title/description search returns active cards only from currently granted boards; actor/filter/access-revision scoped pagination/counts.",
+      "verification_not_covered": "Run hidden off-page board, removal, wildcard/Unicode queries and historical identities; search-vs-revoke lock and representative explain plans.",
+      "gaps": []
+    },
+    {
+      "id": "QRY-02",
+      "feature": "Assignee priority date column filters",
+      "acceptance_catalogue": "Filters combine predictably, distinguish total/matching counts and exclude trash; no global project discovery through query parameters.",
+      "depends_on": [
+        "QRY-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:207 GET boards/:boardId",
+        "apps/api/src/http/routes/boards.ts:711 GET boards/:boardId/cards",
+        "apps/api/src/http/routes/cards.ts:447 GET projects/:projectId/cards/search"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:1050 buildCardFilterClauses",
+        "apps/api/src/adapters/cards.ts:1009 searchProjectCards"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:170",
+        "packages/contracts/src/cards.ts:136"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/qry01-qry03.test.ts:255"
+      ],
+      "current_source_behavior": "Assignee/priority/due/column query facets combine and produce total/matching counts beyond page; active only; date uses workspace today.",
+      "verification_not_covered": "Run all facet combinations, no matches vs empty, done overdue, unknown filter IDs, revoked assignee/historical mapping and cursor rebind after filter/date change.",
+      "gaps": []
+    },
+    {
+      "id": "QRY-03",
+      "feature": "My assigned tasks",
+      "acceptance_catalogue": "Show actor's assignments across only accessible projects, grouped by project and due state; removed access disappears on next request.",
+      "depends_on": [
+        "CRD-06",
+        "QRY-01"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:474 GET me/tasks",
+        "apps/api/src/http/routes/cards.ts:503 GET workspaces/:workspaceId/my-tasks"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:1215 getMyTasks"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:80"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/qry01-qry03.test.ts:318",
+        "apps/api/test/board-access.test.ts:908"
+      ],
+      "current_source_behavior": "Current API requires projectId and filters assignee to authorized active cards/boards; bounded100 rows sorted due date.",
+      "verification_not_covered": "TSV cross-project grouped wording conflicts with newer within-project aggregate rule; do not add cross-project endpoint blindly. No cursor/completeness for more than100 tasks.",
+      "gaps": [
+        "DOC-03"
+      ]
+    },
+    {
+      "id": "UX-01",
+      "feature": "Empty loading failed and forbidden states",
+      "acceptance_catalogue": "First project/empty board/no matches/loading/offline/validation/permission errors have accurate actions and preserve relevant drafts.",
+      "depends_on": [
+        "BRD-03"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:207 GET boards/:boardId",
+        "apps/api/src/http/routes/cards.ts:142 GET cards/:cardId"
+      ],
+      "adapters": [
+        "apps/api/src/http/errors.ts:1",
+        "apps/api/src/http/middleware/error-handler.ts:1"
+      ],
+      "contracts": [
+        "packages/contracts/src/common.ts:1"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/ux-integration.test.ts:174"
+      ],
+      "current_source_behavior": "Backend empty data, validation/permission/conflict errors are structured with request IDs and no-store.",
+      "verification_not_covered": "API tests establish payload/error behavior only; browser offline/retry/recovery actions and safe drafts need separate UI tests.",
+      "gaps": []
+    },
+    {
+      "id": "UX-02",
+      "feature": "Accessible movement and dialog",
+      "acceptance_catalogue": "Keyboard and click/tap complete all essential operations; focus, announcements, labels and color-independent cues are verified in browser.",
+      "depends_on": [
+        "CRD-08",
+        "CRD-03"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:678 GET boards/:boardId/columns/:columnId/placement",
+        "apps/api/src/http/routes/cards.ts:142 GET cards/:cardId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:935 getPlacement"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:125",
+        "packages/contracts/src/cards.ts:100"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/ux-integration.test.ts:251"
+      ],
+      "current_source_behavior": "Backend supports placement and detail payload needed for click/keyboard workflow.",
+      "verification_not_covered": "No backend test proves focus trapping/restoration, labels, announcements or keyboard completion; browser acceptance remains open.",
+      "gaps": []
+    },
+    {
+      "id": "UX-03",
+      "feature": "Narrow viewport and long content",
+      "acceptance_catalogue": "Board scroll and detail layout work at narrow width/zoom; long titles, many assignees and image/comment lists remain usable.",
+      "depends_on": [
+        "CRD-03"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/cards.ts:142 GET cards/:cardId",
+        "apps/api/src/http/routes/comments.ts:32 GET cards/:cardId/comments",
+        "apps/api/src/http/routes/images.ts:301 GET cards/:cardId/images"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/cards.ts:425 getCard",
+        "apps/api/src/adapters/comments.ts:73 listCardComments"
+      ],
+      "contracts": [
+        "packages/contracts/src/cards.ts:100",
+        "packages/contracts/src/discussion.ts:85"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/ux-integration.test.ts:287"
+      ],
+      "current_source_behavior": "Bounded text/assignees/list payloads support long content rendering.",
+      "verification_not_covered": "Narrow viewport, zoom, scroll/actions, huge comments/images and accessibility require browser measurements; payload bounds alone do not establish usable UI.",
+      "gaps": []
+    },
+    {
+      "id": "UX-04",
+      "feature": "Refresh reconnect and safe polling",
+      "acceptance_catalogue": "Pause hidden-tab polling, refresh on focus and reconcile versions; no optimistic duplicate/older response overwrites newer data.",
+      "depends_on": [
+        "BRD-03",
+        "CRD-10"
+      ],
+      "ui_required": true,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/http/routes/boards.ts:207 GET boards/:boardId",
+        "apps/api/src/http/routes/cards.ts:165 PATCH cards/:cardId"
+      ],
+      "adapters": [
+        "apps/api/src/adapters/boards.ts:1111 getBoardSnapshot",
+        "apps/api/src/adapters/cards.ts:527 updateCard"
+      ],
+      "contracts": [
+        "packages/contracts/src/boards.ts:188",
+        "packages/contracts/src/cards.ts:40"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/ux-integration.test.ts:323"
+      ],
+      "current_source_behavior": "Snapshot/card versions and conflict responses support reconciliation; private responses no-store.",
+      "verification_not_covered": "Hidden-tab pause/focus refresh, out-of-order response discard, unsaved-assignee bug and duplicate optimism are UI/network-timing responsibilities; no claim from source alone.",
+      "gaps": []
+    },
+    {
+      "id": "UX-05",
+      "feature": "Performance and full workflow acceptance",
+      "acceptance_catalogue": "Representative Worker/Node warm/cold benchmarks, project isolation, exact restore boundary and repeated import pass documented gates.",
+      "depends_on": [
+        "IMP-06",
+        "DEL-06",
+        "ATT-04",
+        "UX-02"
+      ],
+      "ui_required": false,
+      "status": "source_mapped_unverified",
+      "routes": [
+        "apps/api/src/runtime/node.ts:1",
+        "apps/api/src/runtime/worker.ts:1",
+        "apps/api/src/http/routes/imports.ts:291 POST imports/:importId/commit",
+        "apps/api/src/http/routes/trash.ts:156 POST cards/:cardId/restore"
+      ],
+      "adapters": [
+        "apps/api/src/http/app.ts:63 createApp",
+        "apps/api/src/adapters/boards.ts:1111 getBoardSnapshot"
+      ],
+      "contracts": [
+        "packages/contracts/src/index.ts:1"
+      ],
+      "existing_test_sources": [
+        "apps/api/test/ux-integration.test.ts:351",
+        "apps/api/test/worker.test.ts:1",
+        "apps/api/test/node.test.ts:1"
+      ],
+      "current_source_behavior": "Backend has local workflow integration tests, one warm in-process snapshot latency assertion and separate runtime harnesses.",
+      "verification_not_covered": "Single <100ms synthetic snapshot is not representative Worker/Node warm/cold p95/p99/load benchmark; repeated import has material gaps, exact cutoff tests and full signed-in workflow still required.",
+      "gaps": [
+        "GAP-01",
+        "GAP-02",
+        "GAP-04"
+      ]
+    }
+  ],
+  "findings": [
+    {
+      "id": "GAP-01",
+      "severity": "high",
+      "feature_ids": [
+        "IMP-04",
+        "IMP-06",
+        "IMP-07"
+      ],
+      "title": "Description discarded and original hash drift",
+      "source": [
+        "apps/api/src/adapters/imports.ts:383",
+        "apps/api/src/adapters/imports.ts:420",
+        "apps/api/src/adapters/imports.ts:482",
+        "apps/api/src/adapters/imports.ts:1086",
+        "apps/api/src/adapters/imports.ts:1124"
+      ],
+      "observation_and_repair": "Parsed description enters preview hash but not persisted row; commit writes empty description and hashes empty. Persist normalized original payload/hash and use same representation for preview/commit/retry. Test nonempty multiline Unicode description roundtrip, same original skip after edit and changed description conflict.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    },
+    {
+      "id": "GAP-02",
+      "severity": "high",
+      "feature_ids": [
+        "IMP-06",
+        "IMP-07"
+      ],
+      "title": "Separate ready previews can create duplicate cards",
+      "source": [
+        "apps/api/src/adapters/imports.ts:298",
+        "apps/api/src/adapters/imports.ts:850",
+        "apps/api/src/adapters/imports.ts:1086",
+        "apps/api/src/adapters/imports.ts:1135"
+      ],
+      "observation_and_repair": "Only preview looks up duplicate markers; commit creates card then marker ON CONFLICT DO NOTHING. Recheck/reserve IDs under board lock before any card insert; parallel same and changed-payload preview commits must yield one logical creation or all-none conflict.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    },
+    {
+      "id": "GAP-03",
+      "severity": "high",
+      "feature_ids": [
+        "IMP-06",
+        "IMP-08",
+        "CRD-06"
+      ],
+      "title": "Importer permits assignee without board grant",
+      "source": [
+        "apps/api/src/adapters/imports.ts:280",
+        "apps/api/src/adapters/imports.ts:997",
+        "apps/api/src/services/board-assignees.ts:11"
+      ],
+      "observation_and_repair": "Import queries use project membership alone. Reuse canonical board eligibility and lock target ownership/membership/grants deterministically through commit; add grant removal and viewer/demotion race tests.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    },
+    {
+      "id": "GAP-04",
+      "severity": "high",
+      "feature_ids": [
+        "IMP-09",
+        "IMP-10",
+        "IMP-11",
+        "DEL-07",
+        "AUD-06"
+      ],
+      "title": "Temporary import copies lack cleanup/retention",
+      "source": [
+        "apps/api/src/adapters/imports.ts:585",
+        "apps/api/src/adapters/imports.ts:1244",
+        "apps/api/src/services/trash-purge.ts:107",
+        "apps/api/src/runtime/worker.ts:82"
+      ],
+      "observation_and_repair": "Cancelled/expired preview rows retain titles/emails; scheduled list has no import cleanup. Purge does not scrub rows tied to deleted card. Add minimal result/provenance design and bounded retryable terminal-content cleanup, preserve marker, demonstrate no copied content after purge.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    },
+    {
+      "id": "GAP-05",
+      "severity": "high",
+      "feature_ids": [
+        "IMP-02",
+        "IMP-05",
+        "IMP-06",
+        "IMP-07"
+      ],
+      "title": "Preview binding incomplete and mapping hash placeholder",
+      "source": [
+        "apps/api/src/adapters/imports.ts:89",
+        "apps/api/src/adapters/imports.ts:727",
+        "apps/api/src/adapters/imports.ts:830",
+        "apps/api/src/adapters/imports.ts:951"
+      ],
+      "observation_and_repair": "Mappings digest uses row ID and empty assignees; commit can override default column not recomputed in digest, no stored board structure revision. Preserve original row and explicit mappings separately; bind intended actor/target/configuration/eligibility and define actor-sharing policy. Test renamed/deleted mapped columns, changed default and stale mapped retries.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    },
+    {
+      "id": "GAP-06",
+      "severity": "medium",
+      "feature_ids": [
+        "IMP-03",
+        "IMP-04",
+        "IMP-08"
+      ],
+      "title": "Numeric dates lack styles and parser explicit CPU budget",
+      "source": [
+        "apps/api/src/services/excel-parser.ts:49",
+        "apps/api/src/services/excel-parser.ts:586",
+        "apps/api/src/services/excel-parser.ts:691",
+        "docs/IMPORT_SPEC.md:23"
+      ],
+      "observation_and_repair": "Numeric type alone implies serial date; no date-style semantics. Explicit row/expanded limits exist but no CPU deadline/cell-count bound. Parse date styles, reject general numeric date fields and bound/time actual Worker validation; fuzz malformed package/XML and limit edges.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    },
+    {
+      "id": "GAP-07",
+      "severity": "medium",
+      "feature_ids": [
+        "NTF-01",
+        "NTF-03"
+      ],
+      "title": "Recovery dedupe is card-link-wide, lease implementation differs",
+      "source": [
+        "apps/api/src/adapters/comments.ts:376",
+        "apps/api/src/adapters/notifications.ts:245",
+        "apps/api/src/adapters/notifications.ts:352",
+        "database/migrations/0001_initial.sql:163"
+      ],
+      "observation_and_repair": "Normal synchronous comment path already inserts recipient rows, so ordinary two-comment loss is not established. Recovery-only missing notifications for two events on same card can collapse via link dedupe, and no event-recipient unique key exists. Use stable logical event identity; crash/restart/overlap/failure injection needed. Current transaction locks recover on DB disconnect; no expiring fenced outbox lease columns exist.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    },
+    {
+      "id": "GAP-08",
+      "severity": "medium",
+      "feature_ids": [
+        "BRD-06",
+        "DEL-04"
+      ],
+      "title": "Expired/purged card or import default FK may block empty-column delete",
+      "source": [
+        "apps/api/src/adapters/boards.ts:877",
+        "database/migrations/0001_initial.sql:101",
+        "database/migrations/0001_initial.sql:216",
+        "database/migrations/0003_constraints.sql:51",
+        "apps/api/test/brd01-brd07.test.ts:685"
+      ],
+      "observation_and_repair": "Guard checks active/restorable only but FK restricts all card/default-column references. Existing success case physically deletes fixture. Add mounted tests with expired/purged and terminal import references; choose safe explicit reference policy and error mapping rather than weakening ancestry.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    },
+    {
+      "id": "GAP-09",
+      "severity": "low",
+      "feature_ids": [
+        "BRD-08"
+      ],
+      "title": "Archive route concurrency contract divergence",
+      "source": [
+        "packages/contracts/src/boards.ts:47",
+        "apps/api/src/http/routes/boards.ts:737",
+        "apps/api/src/http/routes/boards.ts:856"
+      ],
+      "observation_and_repair": "Lifecycle schema declares expectedVersion; inline route ignores body and applies transitions unconditionally. Establish intended archive/reopen semantics and same-key/stale opposite-command tests. This is source contract mismatch candidate, not a newly invented requirement.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    },
+    {
+      "id": "GAP-10",
+      "severity": "medium",
+      "feature_ids": [
+        "COM-05",
+        "AUD-06",
+        "NTF-02"
+      ],
+      "title": "Deleted comment body remains in direct notification snippet",
+      "source": [
+        "apps/api/src/adapters/comments.ts:381",
+        "apps/api/src/adapters/comments.ts:672",
+        "apps/api/src/adapters/notifications.ts:64"
+      ],
+      "observation_and_repair": "Post copies up to200 body characters into notification; tombstone clears comment/spans but does not identify/redact this copy. Requirement says deleted bodies redacted under retention policy, which is not explicit here. Define policy and event/comment identity, test authorized inbox after deletion and prevent copied-body resurrection.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    },
+    {
+      "id": "GAP-11",
+      "severity": "verification",
+      "feature_ids": [
+        "ATT-02"
+      ],
+      "title": "Image validation fidelity is header-level",
+      "source": [
+        "apps/api/src/services/image-validator.ts:64",
+        "apps/api/src/services/image-validator.ts:92",
+        "apps/api/src/services/image-validator.ts:268"
+      ],
+      "observation_and_repair": "Valid header/dimensions suffice without decoding all pixel stream/chunk CRCs. Test malformed/truncated payload with syntactically valid header; clarify whether supported-byte validation requires decodable image. Avoid unsupported claim that magic/dimension checks establish full decoder safety.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    },
+    {
+      "id": "GAP-12",
+      "severity": "verification",
+      "feature_ids": [
+        "IMP-01"
+      ],
+      "title": "Worker template packaging unproved",
+      "source": [
+        "apps/api/src/adapters/imports.ts:34",
+        "apps/api/src/http/routes/imports.ts:58",
+        "apps/api/wrangler.jsonc:4"
+      ],
+      "observation_and_repair": "Template download relies on process-relative fs file and no artifact binding is visible. Require actual isolated Worker template download/bytes inspection; Node integration alone cannot establish Worker bundle contains XLSX.",
+      "confidence": "source-grounded; no reproduction executed in this discovery"
+    }
+  ],
+  "definitionConflicts": [
+    {
+      "id": "DOC-01",
+      "source": [
+        "docs/features.tsv:32",
+        "docs/FEATURE_SPEC.md:57",
+        "apps/api/src/adapters/boards.ts:342"
+      ],
+      "resolution": "Board name/description Owner-only supersedes TSV Manager rename; Manager retains column/archive authority where specified."
+    },
+    {
+      "id": "DOC-02",
+      "source": [
+        "docs/FEATURE_SPEC.md:136",
+        "docs/IMPORT_SPEC.md:69",
+        "packages/contracts/src/cards.ts:29",
+        "apps/api/src/services/excel-parser.ts:671"
+      ],
+      "resolution": "Explicit low/medium/high/urgent is current UI requirement; server/template still allow none. Coordinate acceptance/contract/template once; existing none on legacy cards remains permitted. Do not silently change every existing-card priority value."
+    },
+    {
+      "id": "DOC-03",
+      "source": [
+        "docs/FEATURE_SPEC.md:141",
+        "docs/features.tsv:94",
+        "apps/api/src/adapters/cards.ts:1215"
+      ],
+      "resolution": "Separate board grants and one-project combined card view supersede project-wide inheritance and cross-project QRY03 wording; clarify whether My Tasks latest own-projects amendments allow UI fanout, without broad new endpoint."
+    },
+    {
+      "id": "DOC-04",
+      "source": [
+        "docs/handoffs/proposals/own-projects-decisions-2026-10-31.md:11",
+        "apps/api/src/http/routes/boards.ts:106",
+        "apps/api/test/board-access.test.ts:215"
+      ],
+      "resolution": "31 Oct creator grant amendment supersedes 27 Oct no implicit grant for new Manager-created board; existing project members get no backfill and grant administration stays Owner-only. Older test title is stale, and access-list404 still tests Owner-only administration."
+    },
+    {
+      "id": "DOC-05",
+      "source": [
+        "docs/FEATURE_SPEC.md:3",
+        "docs/IMPORT_SPEC.md:3",
+        "TASKS.md:15",
+        "docs/FEATURE_CHECKLIST.md:7"
+      ],
+      "resolution": "Leading not-implemented prose and historical self-scores are stale history; source exists but no fresh runtime pass or gate approval is established by this discovery."
+    }
+  ],
+  "suggestedCommandsNotRun": [
+    {
+      "command": "npm run typecheck",
+      "purpose": "Shared TypeScript/API/MCP typecheck; web requires separate workspace command."
+    },
+    {
+      "command": "npm run build",
+      "purpose": "API TypeScript and Worker dry-run build, no deploy; inspect bundle includes template."
+    },
+    {
+      "command": "npm run test --workspace @flowboard/contracts",
+      "purpose": "Shared schemas and OpenAPI contract suites."
+    },
+    {
+      "command": "npm run test --workspace @flowboard/api",
+      "purpose": "All API suites; precheck test database isolation; supply only disposable local DB configurations and fail on unplanned skips."
+    },
+    {
+      "command": "cd apps/api && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/brd01-brd07.test.ts test/crd01-crd11.test.ts test/com-del.test.ts test/att01-att07.test.ts test/imp01-imp06.test.ts test/aud-ntf.test.ts test/lifecycle-undo.test.ts test/qry01-qry03.test.ts test/ux-integration.test.ts",
+      "purpose": "Focused mounted lifecycle acceptance; same safe disposable fixtures as API harness."
+    },
+    {
+      "command": "cd apps/api && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/board-access.test.ts test/board-access-activity-notifications.test.ts test/board-access-boards-imports-trash.test.ts test/board-access-cards-images.test.ts test/board-concurrency.test.ts test/lock-order-interleave.test.ts test/comment-move-replay.test.ts",
+      "purpose": "Explicit FLOWBOARD_ACCESS_TEST_DATABASE_URL to separate disposable local PostgreSQL; forced concurrency and current board access (many skip without it). Run database guard first when invoking directly."
+    },
+    {
+      "command": "python3 scripts/check_backend_review.py <independent-record.json> --feature <ID>",
+      "purpose": "Only after fresh reviewer verifies exact immutable manifest/test logs. No fabricated score or pass."
+    }
+  ],
+  "dependencyOrderedRepairs": [
+    {
+      "order": 1,
+      "work": "Reconcile frozen criteria/current decisions (DOC01-05); inventory all copies/receipts and agree minimal import result/retention contract. Architect owns contracts."
+    },
+    {
+      "order": 2,
+      "work": "Persist normalized original import row including description/hash, original status plus separate mapping; bind target/configuration/expiry and define actor ownership (GAP01/05). Upgrade migration and embedded migration parity required."
+    },
+    {
+      "order": 3,
+      "work": "At confirm, lock canonical actor/target grants and board state in global lock order; revalidate assignees and reserve/recheck external IDs before card writes (GAP02/03); add late failure rollback tests."
+    },
+    {
+      "order": 4,
+      "work": "Add bounded terminal import-content cleanup and purge-linked redaction while preserving minimal result/duplicate tombstones; stable comment-event identity allows snippet redaction and recipient dedupe (GAP04/07/10). Verify old-format rows upgrade safely."
+    },
+    {
+      "order": 5,
+      "work": "Correct XLSX date-cell/style semantics and parser bounds; prove actual Worker template and import runtime budgets (GAP06/12), resolve image decoding fidelity based on acceptance (GAP11)."
+    },
+    {
+      "order": 6,
+      "work": "Test expired/purged/default-column FK deletion and archive/reopen concurrency contract (GAP08/09), then run focused+full suites and representative Node/Worker measurements."
+    },
+    {
+      "order": 7,
+      "work": "Freeze complete reachable manifest, fresh independent reviewer and passing gate; bind Backend handoffs, regenerate checklist via owning Architect, then UI/browser/integrated UAT. No deployment executed or authorized by this report itself."
+    }
+  ],
+  "sourceReferenceHashes": {
+    "AGENTS.md": "bf7c181f0c141efa14e3c922099be8ad3e5273da3d55bddc06ae242fda37944b",
+    "BACKEND_REVIEW_GATE.md": "21e021ab590c25f4b275aa2a7aac82b85f4b8e24bfd54d42286cb48e6c729718",
+    "RULES.md": "75a876ba37bea66203ebe47de92f1540ee154efc0c1d7168b72f739d1d301a12",
+    "apps/api/src/adapters/activity.ts": "100e5553cb8f2eef6f330cb5b2126eb48db94cf3f03061c09c2df92b645d6180",
+    "apps/api/src/adapters/board-grants-foundation.ts": "ec155f25fffa890dcacbdcf7541f78b25f35a13fe414653175941103c4feef38",
+    "apps/api/src/adapters/boards.ts": "bbc3ace9188459bd158297b87732ba18a25164c38f5e7674b1d277b388634599",
+    "apps/api/src/adapters/cards.ts": "f4713ec0f89ce68d9b388171cab1b17f7b317834affd3f8226d0545c9fb2fa15",
+    "apps/api/src/adapters/comments.ts": "df29df0bbbfe68cec89ce3f4519d66bd65e009b502e79f2d1746d53f405c0532",
+    "apps/api/src/adapters/idempotency.ts": "fa5b99fe0c7c5a1f112571a531f6dfac0e9f4de553c4e700f94b87cdc8630897",
+    "apps/api/src/adapters/images.ts": "8f6e0b5e84b7d1416333221a5a125fb14d0bf262a7787a5079f8dad36852bae8",
+    "apps/api/src/adapters/imports.ts": "6c64677cdb3af62e0aeeb683af6f039c7016265dad02060c52d26226a2274833",
+    "apps/api/src/adapters/notifications.ts": "e665d5093005f19c2ba3877e5cd68559f490d25764c238868e80f00e23c5395a",
+    "apps/api/src/adapters/rbac.ts": "0d04984d9978902ba1da2776e6a1b2a81262322077a9b1ef8b62e08ffb34c5e4",
+    "apps/api/src/adapters/trash.ts": "15f0cd8f786a81b1b0c61c00248d5d000e44741ad9d4c75c7e587fa1b26333a1",
+    "apps/api/src/http/app.ts": "fe35943086ca3da622d7c96dfac0520f5f42976a1a159d781e9abb68dc61b590",
+    "apps/api/src/http/errors.ts": "71437b074f1483cce3b04d4c8eae04e621bae3e34f1db7415ace176a5c257515",
+    "apps/api/src/http/middleware/error-handler.ts": "11e426f3561f1dc5a080b8b523af66419ed45dcc89b87422294d3ae5e3f1c520",
+    "apps/api/src/http/routes/activity.ts": "6a0f381d279b797268037ead27d12d7b730c6112ffec5554a390c145b46bc92b",
+    "apps/api/src/http/routes/boards.ts": "f4ed0dfac8f86bc6d130ddba58a949f48ca9be130feb8ef441c421c54419fa7d",
+    "apps/api/src/http/routes/cards.ts": "e9ca2620dd43007ea60e2aeb0a0da1925e9459e58c8eca54c6ad9ecf7a97e346",
+    "apps/api/src/http/routes/comments.ts": "7cf2450d54915ed6d1d9292a2f2c0bd46fea1d7c0675f09964ba7b70a5b316c1",
+    "apps/api/src/http/routes/images.ts": "732e66f62670a3bc29556160dca8cbd3d5edcb4268ccd3713468aeefe84aded0",
+    "apps/api/src/http/routes/imports.ts": "456399172028148cd04d2b87f212a35b283145353f59316088d6c0ea51e999f9",
+    "apps/api/src/http/routes/notifications.ts": "492cac60e4693f12cd211923b5822eecf277a22fd5d17651412e4a7d04110c98",
+    "apps/api/src/http/routes/projects.ts": "82203b4f4c45719b6c327b404a198f6c4261637695886b9f8cd178af971fdff0",
+    "apps/api/src/http/routes/trash.ts": "c9a51f0e4bdc4b1acfe347b49d20bcc3aaf329df033f673f036277569c0e2b5d",
+    "apps/api/src/runtime/node.ts": "49329092fba9dd3f528683fbb9a75055846a0ac5393b38ce5c8e9871651d01e8",
+    "apps/api/src/runtime/worker.ts": "4ef9c39a88d2d8cee194dfe59547d38875be753818118119777d41179e7241ec",
+    "apps/api/src/services/board-assignees.ts": "e6d9d875e22285060710d2e63ffd0e43d0daa33f2b8af46c867099a475dd2205",
+    "apps/api/src/services/excel-parser.ts": "470da3819821b1e7f9bdffea90429185d6082341aa5d91db4d3da6366878f29e",
+    "apps/api/src/services/image-validator.ts": "1cdc0686828dcd0da60f206e67a4ef8fd34b1c8b4aeb03100778f49e31a988c1",
+    "apps/api/src/services/trash-purge.ts": "fa5971894081f9399383edcb424f9ff159b270b274bd6c406f7464c64b2cb183",
+    "apps/api/test/activity-coverage-b5.test.ts": "e4d0da7223d064e3ddb015c7f34bbf6821f8632cc6b4cc04e792af65c70ebe89",
+    "apps/api/test/att01-att07.test.ts": "af35ed2f46c58b31e66f987b23804f578f79164e8edfc9a03b4c7df0b141574a",
+    "apps/api/test/aud-ntf.test.ts": "3fd5b57eecc4f4161fe8bbf639125f9ebb5293258be489bebff824f892ae2a6c",
+    "apps/api/test/b11-cleanup-cap-people.test.ts": "8a37310653c9fb7565b32e703abefe2bb08de22f7744131f1f22d1dfd49d54d7",
+    "apps/api/test/b14-purge-redaction.test.ts": "64df040096cd18e60d32ecbe42b4a927ad8966bbb54e7d16c0a20a93f7bfe2bc",
+    "apps/api/test/b18-own-projects.test.ts": "0c34aee069d8c7859718ee8b1159177b7a15b04b01baf45bb2e4fe48b451783f",
+    "apps/api/test/b24-assignee-eligibility.test.ts": "5b10ba9af483ab30211f62abf3d2aeafcfa4eceac0c0ff40bf6470416a65d1f7",
+    "apps/api/test/b7-image-storage-r2.test.ts": "d405da472df7a108318fce5692fd2558194fc9624794f8b4d847656575cf9805",
+    "apps/api/test/b7-xlsx-budget.test.ts": "fa3888acdac70bd7f82fea631293c77033a18495f341bc153bf2b8588090534a",
+    "apps/api/test/b8-image-delete-after-commit.test.ts": "d77f898afbc0b061bde4c85d6e9b8e0380e3cdafcffedcf8f966873fd8939258",
+    "apps/api/test/b9-mention-access.test.ts": "2392cd6ec30b15c68d833e2204e0498102b4b3846c64e5097fb1070b70166f44",
+    "apps/api/test/board-access-activity-notifications.test.ts": "b961040b60a1c0cac7c0580a91c17af0e6ac9de95435f7a04765ca8046dbf4bf",
+    "apps/api/test/board-access.test.ts": "c2e42ddc4b82a45a2f1e5f2431970151656dcb23d76e52845f2f8ebd51cc1032",
+    "apps/api/test/board-concurrency.test.ts": "c565dd703f8ec83931274c22c55756a2eee92328057bc2a8db49c9f2b453563d",
+    "apps/api/test/board-description-default-board.test.ts": "a1e447bc633e6373e5464691bf5dd8af965673949d27a130cb7d1ff2574f85b8",
+    "apps/api/test/brd01-brd07.test.ts": "93d4d0c29f16a468514d8e62541d05bace5ab2fcd906a59d0e2483fba303b027",
+    "apps/api/test/card-key-counts-creator.test.ts": "f83a354f2df984721b5efe99c78ed2da041e2eab25711d34b7a4f9fdbaea3add",
+    "apps/api/test/com-del.test.ts": "5806de8ebf803f5fdb1a5a2ddea07304660ff0df0ac0a5a812dc91cf06ed3d0d",
+    "apps/api/test/comment-move-replay.test.ts": "edaa23d8f562fc51ffd08697359509480d1f9c68c120b8bc6fc546f4a37d0a3f",
+    "apps/api/test/crd01-crd11.test.ts": "cc26833254c83634ef2ff06de4268739344ae810e04eed4a51327bf89ef0bf44",
+    "apps/api/test/imp01-imp06.test.ts": "1238e3f1cff394d505c7a00b78e546738553740b926611b69362261ea88a6ba5",
+    "apps/api/test/lifecycle-undo.test.ts": "17150c12dbca2ee51b5013bf9e9a414f4244ee626b8d4745685e1992f1435554",
+    "apps/api/test/lock-order-interleave.test.ts": "51c79a2126fba2a20d51a11b6aae5d2d218755eff93be9a12d28a270ec6968f9",
+    "apps/api/test/node.test.ts": "b83dc84b09eecab1825feba02ee0815fd69ddda7fe87395a46512769cc3c7c3a",
+    "apps/api/test/qry01-qry03.test.ts": "dbee9006be9d93ea87ebe40461a898559b2c5c5e184ac82967b0a7bd1856704d",
+    "apps/api/test/ux-integration.test.ts": "092ec904019304cd8bdf4e76f34a7d912ddad58d37bb5f15af7f929c2307ad7b",
+    "apps/api/test/worker.test.ts": "10fb781fdb50604f260aabe34f9bb09c37535559147d68aedc397db018ec6a7a",
+    "apps/api/wrangler.jsonc": "2de5f2ab1e35aa2c8f118cda0f674cba589af5bd579930b4343096fa8a2d3231",
+    "database/migrations/0001_initial.sql": "31f1e2e889951dc35e1dd141b91c3a357ebee22043916d9c08b601b3c9d40293",
+    "database/migrations/0003_constraints.sql": "84278975a601c45573f61cfbf70a2018bc18e89b9f10c63132f94b6a0fc5ef97",
+    "docs/ENGINEERING_CHECKLIST.md": "9fd0d23ce7b73717dd7fd5e5b2697c46e6750b92ae4ee08abf1326c4ce1c803d",
+    "docs/FEATURE_SPEC.md": "4f90fe308996b1267d0bd1c142b36bec6a1493d23271b4840ec71554906607a5",
+    "docs/IMPORT_SPEC.md": "fd769bb8801a145f89327abcf23dd5de3936aa1334f8500a76a02d05a47de42c",
+    "docs/features.tsv": "3860115f40611f913bc430c2210e0684a5a9ff6f249ab3e04291c2105a4f4d00",
+    "docs/handoffs/README.md": "fdc1b50f4fc976fa334d8d79b198694ec10b103695552472d0279099c5ee8b9a",
+    "docs/references/README.md": "2b9a91cf0e8b394f8a8529936b5574c2082188abf5a1a569f5b540497633d370",
+    "packages/contracts/src/activity-actions.ts": "f156b631331dd918379eaf6b4e3dc3c68f7a485dfa51b8f16ae33abc22ce4b8b",
+    "packages/contracts/src/boards.ts": "4fb9c53be3bdbd52688f4fe708d6517645c9b0f8830cc21eb87db5086bcd3836",
+    "packages/contracts/src/cards.ts": "9493025af8585d4eef41a1aa01c27f2fcf4318b5c2bd117bfa25dc6f46df6aba",
+    "packages/contracts/src/common.ts": "90a521baa0de5480fde26eade2b182c4c38063f8b027a3d2db7269f55c448cfd",
+    "packages/contracts/src/discussion.ts": "60f498be7aaf92580a0b20ad2b6d9cc5675e91e690c431caf10859664d7140bf",
+    "packages/contracts/src/images.ts": "682aa76a148e9e3c6f70295560ed943824249073e3d5bd8f9427feb8a6415641",
+    "packages/contracts/src/imports.ts": "aa90aff9405a664de252fafa0ba3f975ebe798e9dad1ba59b82f139557671314",
+    "packages/contracts/src/index.ts": "d73715196a2dd40736ad08ea2f831055b7efa64d66596f6e3796f775b58e2c91",
+    "packages/contracts/src/trash.ts": "c3b3151187edb8d2ec21e4a260be27f8f04af853c29234bd8088f3872893625d"
+  },
+  "manifestLimit": "Hashes cover discovery references only; not a complete gate manifest. Parent must freeze all reachable dependencies/tests/runtime/config plus criteria/logs before acceptance.",
+  "proposedAcceptanceCriteria": [
+    {
+      "id": "LC-01",
+      "features": [
+        "IMP-04",
+        "IMP-06",
+        "IMP-07"
+      ],
+      "criterion": "Nonempty description survives actual XLSX upload/preview/confirm/card read byte-for-byte under documented normalization; same ORIGINAL payload skips after later card edit, changed original description conflicts.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    },
+    {
+      "id": "LC-02",
+      "features": [
+        "IMP-06",
+        "IMP-07"
+      ],
+      "criterion": "Prepare two ready previews before confirming either; commit same External ID on separate PostgreSQL connections. Exactly one logical card and marker exist, no partial batch when a changed payload loses; repeat after trash and purge never resurrects.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    },
+    {
+      "id": "LC-03",
+      "features": [
+        "CRD-06",
+        "IMP-06",
+        "IMP-08"
+      ],
+      "criterion": "Card and XLSX assignee validators agree for Owner/Manager/Member/Viewer with and without board grants. Deterministically race target grant removal/demotion against commit on separate connections; no assignment commits after preceding revocation wins.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    },
+    {
+      "id": "LC-04",
+      "features": [
+        "IMP-05",
+        "IMP-06"
+      ],
+      "criterion": "Normalize/persist original payload separately from mappings. Confirm uses intended preview configuration, expiry, current authorized actor policy and digest. Changed target/default/columns or assignee eligibility fails stale or requires an explicitly revalidated preview; no placeholder hashes counted as binding.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    },
+    {
+      "id": "LC-05",
+      "features": [
+        "IMP-10",
+        "IMP-09",
+        "IMP-11",
+        "DEL-07",
+        "AUD-06"
+      ],
+      "criterion": "Bounded scheduled cleanup removes personal temporary preview content after cancellation/expiry/completion/failure within documented hour; purge removes card-content copies from import rows/reports as policy requires. Lost job/retry/overlap does not remove active preview or minimal duplicate/provenance identity.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    },
+    {
+      "id": "LC-06",
+      "features": [
+        "IMP-03",
+        "IMP-08"
+      ],
+      "criterion": "Actual XLSX date-style cells honor1900/1904; generic numeric cell is not guessed as date. ISO, leap/day60/range/timezone cases agree. Compressed/expanded/rows/cells/parser CPU-memory limits fail safely in actual Node and isolated Worker without evaluation.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    },
+    {
+      "id": "LC-07",
+      "features": [
+        "NTF-01",
+        "NTF-03"
+      ],
+      "criterion": "Two different comment events on the same card each retain one recipient delivery; same event retries/overlapping recovery do not duplicate. Include direct transactional creation counterevidence and injected missing-delivery recovery; crash/restart/poison SQL and retry quarantine retain accepted intent.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    },
+    {
+      "id": "LC-08",
+      "features": [
+        "COM-05",
+        "AUD-06",
+        "NTF-02"
+      ],
+      "criterion": "Document deleted-comment notification-snippet retention explicitly; enforce that policy across own/moderated delete, normal inbox, recovery and eventual purge without hiding minimal event/actor/time facts.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    },
+    {
+      "id": "LC-09",
+      "features": [
+        "BRD-06",
+        "DEL-04"
+      ],
+      "criterion": "Delete column with active/restorable card refuses. Expired/purged/default-import references follow explicit safe policy and stable client error, no raw FK500, silent card deletion or weakened tenant ancestry.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    },
+    {
+      "id": "LC-10",
+      "features": [
+        "BRD-08"
+      ],
+      "criterion": "Archive/reopen current Owner/Manager board-grant policy, archived-parent guard, write exclusion and trash deadline continuity pass. Clarify schema expectedVersion versus inline route behavior; do not invent new mandatory version semantics without coordinated contract decision.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    },
+    {
+      "id": "LC-11",
+      "features": [
+        "ATT-01",
+        "ATT-02",
+        "ATT-04",
+        "ATT-05",
+        "ATT-06",
+        "ATT-07",
+        "DEL-05",
+        "DEL-06"
+      ],
+      "criterion": "Private image boundary holds after actual storage IO/revocation/demotion; invalid decodability acceptance is explicit. At restore cutoff-1ms/0/+1ms one authorized restore/purge winner preserves/restores or removes finalized bytes appropriately, with durable cleanup retry and failed-commit preservation.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    },
+    {
+      "id": "LC-12",
+      "features": [
+        "IMP-01",
+        "UX-05"
+      ],
+      "criterion": "Isolated Worker downloads real supplied workbook bytes; Cards blank seven-column sheet creates zero tasks and copied synthetic Instructions examples create valid tasks. Representative Node/Worker warm/cold dataset and query/runtime/memory logs replace single in-process latency assertion; browser acceptance separately verifies UX IDs.",
+      "state": "proposal_for_parent_freeze_not_executed"
+    }
+  ],
+  "implementationOwnershipNote": "This discovery agent edits no application source. Parent import owner may own imports/parser/trash cleanup only; notifications.ts and members.ts belong to identity stream. Explicit priority remains UI-only requirement; preserve existing API/MCP default-none compatibility pending coordinated authorization."
+}

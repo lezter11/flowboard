@@ -1,0 +1,16 @@
+{
+  "version": "people-directory-user-policy-1",
+  "frozenBeforeImplementation": true,
+  "source": "User explicitly chose Owner and Project Manager only for full People directory including emails during current revalidation; parent relayed decision before code.",
+  "features": ["PRJ-05", "RBAC-01", "RBAC-04", "FND-02"],
+  "criteria": [
+    "GET /api/v1/projects/:projectId/members returns full email-bearing directory only to current Owner through owned-workspace inheritance or current active Manager of that exact project.",
+    "Active Member and Viewer receive403 with no data/email/account-existence disclosure. Outsider, removed actor and sibling-project actor keep private404; unauthenticated401. Ownership elsewhere grants no authority.",
+    "Current owner/membership read authorization remains serialized through response transaction. If demotion/removal wins first, response is denied; if authorized read wins, role mutation waits for read completion.",
+    "Owner and active Manager can read archived project directory. Directory read policy is distinct from mutating an archived project.",
+    "Permitted board-scoped assignee and mention picker endpoints remain available according to current board grant and role rules. No global email directory is introduced and no picker semantics are narrowed to fit directory policy.",
+    "Tests update the former Member/Viewer200 expectation to403/no data, retain positive Owner/Manager checks and current ancestry/privacy negatives, and exercise permitted picker responses through mounted handlers on synthetic PostgreSQL.",
+    "Generated OpenAPI documents the actual new Manager minimum and no longer labels the prior unresolved policy as current. No builder approval, feature closure or hosted acceptance is claimed."
+  ],
+  "scope": "Narrow getProjectMembers/directory route authority, related tests and owned OpenAPI bindings only. Root owns feature decision documents; UI owner owns nav/directpage."
+}

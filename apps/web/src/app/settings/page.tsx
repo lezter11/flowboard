@@ -6,22 +6,26 @@ import { useSearchParams } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { api, ApiError } from '@/lib/api';
 import { canLeave, describeLeaveFailure, leaveCopy } from '@/lib/leave-project';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/lib/guarded-router';
 import { describeError } from '@/lib/errors';
+import { canEditBoardDetails } from '@/lib/member-controls';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
 import { useProjectBoards } from '@/lib/portfolio';
 import { useSession } from '@/lib/session';
 import { usePollKeys } from '@/components/polling';
 import { Icon } from '@/components/ui/icon';
+import { WorkspacePreferences } from '@/components/ui/workspace-preferences';
 import { Avatar } from '@/components/ui/avatar';
 import { useToast } from '@/components/ui/toasts';
 import { useShell } from '@/components/shell/shell-context';
+import { memoryDrafts } from '@/lib/memory-drafts';
+import { useMemoryValue, useMemoryRef, useMemoryDirty } from '@/lib/use-memory-draft';
 import { ErrorNote } from '@/components/ui/error-note';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { ColumnsDialog } from '@/components/board/columns-dialog';
 
-type Tab = 'project' | 'board' | 'account' | 'appearance';
-const TABS: Array<[Tab, string]> = [['project', 'Project'], ['board', 'Board and columns'], ['account', 'Account'], ['appearance', 'Appearance']];
+type Tab = 'project' | 'board' | 'account' | 'workspace' | 'appearance';
+const TABS: Array<[Tab, string]> = [['project', 'Project'], ['board', 'Board and columns'], ['account', 'Account'], ['workspace', 'Workspace'], ['appearance', 'Appearance']];
 
 function SettingsScreen() {
   const params = useSearchParams();
@@ -33,46 +37,77 @@ function SettingsScreen() {
   const initial = params.get('tab');
   const [tab, setTab] = useState<Tab>(TABS.some(([id]) => id === initial) ? (initial as Tab) : 'project');
   const projects = useMemo(() => (state.status === 'ready' ? state.session.accessibleProjects : []), [state]);
-  const project = projects.find((p) => p.id === params.get('project')) ?? projects[0];
+  const sessionActorId=state.status==='ready'?state.session.actor.id:'';
+  const [rememberedProject,setRememberedProject]=useMemoryValue(['settings-context',sessionActorId,'project'],'');
+  const explicitProject=params.get('project')??rememberedProject;
+  const project = explicitProject?projects.find((p)=>p.id===explicitProject):projects[0];
+  useEffect(()=>{if(!rememberedProject&&project)setRememberedProject(project.id);},[rememberedProject,project?.id]);
   const role = normalizeRole(project?.role);
   const editable = can(role, 'manageBoard') && !project?.isArchived;
   const actor = state.status === 'ready' ? state.session.actor : null;
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
+  const scope=['settings',state.status==='ready'?state.session.actor.id:'',project?.id??''];
+  const [name, setName] = useMemoryValue([...scope,'name'],'');
+  const [description, setDescription] = useMemoryValue([...scope,'description'],'');
+  const [projectVersion,setProjectVersion]=useMemoryValue([...scope,'version'],project?.version??0);
+  const [projectConflict,setProjectConflict]=useMemoryValue([...scope,'conflict'],false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   // The session is polled, so a colleague's rename arrives here: follow it only for fields the user has not edited.
-  const seenRef = useRef<{ id?: string; name: string; description: string }>({ name: '', description: '' });
+  const seenRef = useMemoryRef<{ id?: string; name: string; description: string;version?:number }>([...scope,'baseline'],()=>({name:'',description:''}));
+  const projectProtection=memoryDrafts.protectFields(scope,{actorId:sessionActorId,projectId:project?.id},{
+    name:{scope:[...scope,'name'],base:()=>seenRef.current.name,empty:''},description:{scope:[...scope,'description'],base:()=>seenRef.current.description,empty:''},defaultBoard:{scope:[...scope,'default-board'],base:()=>seenDefault.current,empty:''},
+  },()=>{seenRef.current={id:projectIdForDraft,name:'',description:''};seenDefault.current='';setProjectVersion(0);setProjectConflict(true);});
+  const projectIdForDraft=project?.id;
   useEffect(() => {
+    if(project){const restored=projectProtection.restore({name:project.name,description:project.description??'',defaultBoard:project.defaultBoardId??''});if(restored){seenRef.current={id:project.id,name:project.name,description:project.description??'',version:project.version};seenDefault.current=project.defaultBoardId??'';setProjectVersion(project.version);setProjectConflict(restored.retained);return;}}
     const prev = seenRef.current;
     const same = prev.id === project?.id;
     setName((n) => (!same || n === prev.name ? project?.name ?? '' : n));
     setDescription((d) => (!same || d === prev.description ? project?.description ?? '' : d));
-    seenRef.current = { id: project?.id, name: project?.name ?? '', description: project?.description ?? '' };
-  }, [project?.id, project?.name, project?.description]);
+    if(project){const ownValuesSaved=name.trim()===project.name&&description.trim()===(project.description??'')&&defaultBoard===(project.defaultBoardId??'');if(!same||ownValuesSaved||name===prev.name&&description===prev.description&&defaultBoard===seenDefault.current){setProjectVersion(project.version);setProjectConflict(false);}else if(prev.version!==project.version)setProjectConflict(true);}
+    seenRef.current = { id: project?.id, name: project?.name ?? '', description: project?.description ?? '',version:project?.version };
+  }, [project?.id, project?.name, project?.description,project?.version,project?.role,project?.isArchived]);
   usePollKeys([['boards', project?.id], ['project', project?.id]], !!project);
   const isOwner = role === 'owner';
-  const [defaultBoard, setDefaultBoard] = useState('');
-  useEffect(() => { setDefaultBoard(project?.defaultBoardId ?? ''); }, [project?.id, project?.defaultBoardId]);
+  const [defaultBoard, setDefaultBoard] = useMemoryValue([...scope,'default-board'],project?.defaultBoardId??'');
+  const seenDefault=useMemoryRef([...scope,'default-board-base'],()=>project?.defaultBoardId??'');
+  useEffect(()=>{const next=project?.defaultBoardId??'';setDefaultBoard((value)=>value===seenDefault.current?next:value);seenDefault.current=next;},[project?.id,project?.defaultBoardId]);
   const defaultChanged = isOwner && !!project && defaultBoard !== (project.defaultBoardId ?? '');
   const dirty = !!project && (name !== project.name || description !== (project.description ?? '') || defaultChanged);
 
   const boards = useProjectBoards(project?.id ?? null);
-  const board = boards.data?.find((b) => b.id === params.get('board')) ?? boards.data?.[0];
-  const [boardName, setBoardName] = useState('');
-  const [boardDescription, setBoardDescription] = useState('');
-  useEffect(() => { setBoardName(board?.name ?? ''); setBoardDescription(board?.description ?? ''); }, [board?.id, board?.name, board?.description]);
+  const [rememberedBoard,setRememberedBoard]=useMemoryValue([...scope,'board-context'],'');
+  const requestedBoard=params.get('board')??rememberedBoard;
+  const availableBoards=boards.error instanceof ApiError&&[401,403,404].includes(boards.error.status)?[]:boards.data??[];
+  const board=requestedBoard?availableBoards.find((b)=>b.id===requestedBoard):availableBoards[0];
+  useEffect(()=>{if(!rememberedBoard&&board)setRememberedBoard(board.id);},[rememberedBoard,board?.id]);
+  const [boardName, setBoardName] = useMemoryValue([...scope,'board',board?.id,'name'],'');
+  const [boardDescription, setBoardDescription] = useMemoryValue([...scope,'board',board?.id,'description'],'');
+  const [boardVersion,setBoardVersion]=useMemoryValue([...scope,'board',board?.id,'version'],board?.snapshotVersion??0);
+  const [boardConflict,setBoardConflict]=useMemoryValue([...scope,'board',board?.id,'conflict'],false);
+  const seenBoard=useMemoryRef<{id?:string;name:string;description:string;version?:number}>([...scope,'board',board?.id,'baseline'],()=>({name:'',description:''}));
+  const boardIdForDraft=board?.id;
+  const boardScope=[...scope,'board',boardIdForDraft];
+  const boardProtection=memoryDrafts.protectFields(boardScope,{actorId:sessionActorId,projectId:projectIdForDraft,boardId:boardIdForDraft},{name:{scope:[...boardScope,'name'],base:()=>seenBoard.current.name,empty:''},description:{scope:[...boardScope,'description'],base:()=>seenBoard.current.description,empty:''}},()=>{seenBoard.current={id:boardIdForDraft,name:'',description:''};setBoardVersion(0);setBoardConflict(true);});
+  useEffect(()=>{if(board){const restored=boardProtection.restore({name:board.name,description:board.description??''});if(restored){seenBoard.current={id:board.id,name:board.name,description:board.description??'',version:board.snapshotVersion};setBoardVersion(board.snapshotVersion);setBoardConflict(restored.retained);return;}}const prev=seenBoard.current;setBoardName((value)=>prev.id!==board?.id||value===prev.name?board?.name??'':value);setBoardDescription((value)=>prev.id!==board?.id||value===prev.description?board?.description??'':value);if(board){if(prev.id!==board.id||boardName.trim()===board.name&&boardDescription.trim()===(board.description??'')||boardName===prev.name&&boardDescription===prev.description){setBoardVersion(board.snapshotVersion);setBoardConflict(false);}else if(prev.version!==board.snapshotVersion)setBoardConflict(true);}seenBoard.current={id:board?.id,name:board?.name??'',description:board?.description??'',version:board?.snapshotVersion};},[board?.id,board?.name,board?.description,board?.snapshotVersion]);
   const boardDirty = !!board && (boardName.trim() !== board.name || boardDescription.trim() !== (board.description ?? ''));
-  const boardEditable = isOwner && !project?.isArchived;
+  const boardEditable = canEditBoardDetails(role, !!board?.isArchived, !!project?.isArchived);
 
-  const [displayName, setDisplayName] = useState('');
+  const [displayName, setDisplayName] = useMemoryValue(['profile',actor?.id??'','display-name'],'');
   const [nameBusy, setNameBusy] = useState(false);
   const [nameError, setNameError] = useState('');
-  useEffect(() => { setDisplayName(actor?.displayName ?? ''); }, [actor?.displayName]);
+  const seenActor=useMemoryRef<{id?:string;name:string}>(['profile',actor?.id??'','baseline'],()=>({name:''}));
+  const profileActorId=actor?.id;
+  const profileProtection=memoryDrafts.protectFields(['profile',profileActorId??''],{actorId:profileActorId??''},{name:{scope:['profile',profileActorId??'','display-name'],base:()=>seenActor.current.name,empty:''}},()=>{seenActor.current={id:profileActorId,name:''};});
+  useEffect(()=>{if(actor){const restored=profileProtection.restore({name:actor.displayName});if(restored){seenActor.current={id:actor.id,name:actor.displayName};return;}}const prev=seenActor.current;setDisplayName((value)=>prev.id!==actor?.id||value===prev.name?actor?.displayName??'':value);seenActor.current={id:actor?.id,name:actor?.displayName??''};},[actor?.id,actor?.displayName]);
   const nameDirty = !!actor && displayName.trim() !== actor.displayName;
+  const clearProjectDirty=useMemoryDirty([...scope,'dirty'],dirty);
+  const clearBoardDirty=useMemoryDirty([...scope,'board',board?.id,'dirty'],boardDirty);
+  const clearNameDirty=useMemoryDirty(['profile',actor?.id??'','dirty'],nameDirty);
   const saveName = async (event: FormEvent) => {
     event.preventDefault();
+    if(!actor||nameBusy)return;
     const value = displayName.trim();
     if (!value) { setNameError('Enter a display name.'); return; }
     if (/\p{Cc}/u.test(displayName)) { setNameError('A display name cannot contain line breaks or control characters.'); return; }
@@ -126,12 +161,12 @@ function SettingsScreen() {
 
   const saveProject = async (event: FormEvent) => {
     event.preventDefault();
-    if (!project || !dirty) return;
+    if (!project || !dirty || projectConflict || !editable || !actor || busy) return;
     if (!name.trim()) { setError('Enter a project name.'); return; }
     setBusy(true); setError('');
     try {
       await api.updateProject(project.id, {
-        name: name.trim(), description: description.trim() || null, expectedVersion: project.version,
+        name: name.trim(), description: description.trim() || null, expectedVersion: projectVersion,
         // Owner only: Managers leave the landing board to the Owner (the API refuses it with 403).
         ...(defaultChanged ? { defaultBoardId: defaultBoard || null } : {}),
       });
@@ -141,14 +176,14 @@ function SettingsScreen() {
   };
   const saveBoard = async (event: FormEvent) => {
     event.preventDefault();
-    if (!board || !boardDirty || !boardEditable) return;
+    if (!board || !boardDirty || !boardEditable || boardConflict || !actor || busy) return;
     if (!boardName.trim()) { setError('Enter a board name.'); return; }
     setBusy(true); setError('');
     try {
       await api.updateBoard(board.id, {
         ...(boardName.trim() !== board.name ? { name: boardName.trim() } : {}),
         ...(boardDescription.trim() !== (board.description ?? '') ? { description: boardDescription.trim() || null } : {}),
-        expectedVersion: board.snapshotVersion,
+        expectedVersion: boardVersion,
       });
       toast('Board saved', { icon: 'check' });
       await queryClient.invalidateQueries({ queryKey: ['boards', project?.id] });
@@ -190,7 +225,7 @@ function SettingsScreen() {
                 <div className="panel-actions"><span className="badge">{project?.isArchived ? 'Archived' : 'Active'}</span></div>
               </div>
               <div className="panel-body">
-                <form className="settings-form" onSubmit={saveProject}>
+                <form className="settings-form" onSubmit={saveProject}>{projectConflict&&project&&<div className="note warn"><p>The project changed. Your values are kept. Current: {project.name} · {project.description??'No description'}</p><button className="btn" type="button" onClick={()=>{setProjectVersion(project.version);setProjectConflict(false);}}>Use latest project version, keep my values</button></div>}
                   <div className="form-grid">
                     <div className="field span-2"><label className="field-label" htmlFor="projectName">Project name</label><input className="control" id="projectName" type="text" maxLength={100} value={name} disabled={!editable} onChange={(event) => setName(event.target.value)} /><p className="field-help">Shown in project lists and navigation.</p></div>
                     <div className="field span-2"><label className="field-label" htmlFor="projectDescription">Description</label><textarea className="control textarea" id="projectDescription" maxLength={2000} value={description} disabled={!editable} onChange={(event) => setDescription(event.target.value)} /><p className="field-help">Plain text, up to 2000 characters.</p></div>
@@ -208,7 +243,7 @@ function SettingsScreen() {
                   <div className="form-actions">
                     <span className="dirty-note"><span className="dot" />{dirty ? 'Unsaved changes' : 'No unsaved changes'}</span>
                     <span className="spacer" />
-                    <button className="btn primary" type="submit" disabled={!editable || !dirty || busy}>{busy ? 'Saving…' : 'Save project'}</button>
+                    {dirty&&project&&<button className="btn" type="button" disabled={busy} onClick={()=>{setName(project.name);setDescription(project.description??'');setDefaultBoard(project.defaultBoardId??'');setProjectVersion(project.version);setProjectConflict(false);clearProjectDirty();}}>Discard project changes</button>}<button className="btn primary" type="submit" disabled={!editable || !dirty || busy || projectConflict}>{busy ? 'Saving…' : 'Save project'}</button>
                   </div>
                 </form>
                 <div className="divider" />
@@ -242,7 +277,7 @@ function SettingsScreen() {
                 <div className="panel-actions"><span className="badge">{board?.isArchived ? 'Archived' : 'Active'}</span></div>
               </div>
               <div className="panel-body">
-                <form className="settings-form" onSubmit={saveBoard}>
+                <form className="settings-form" onSubmit={saveBoard}>{boardConflict&&board&&<div className="note warn"><p>The board changed. Your values are kept. Current: {board.name} · {board.description??'No description'}</p><button className="btn" type="button" onClick={()=>{setBoardVersion(board.snapshotVersion);setBoardConflict(false);}}>Use latest board version, keep my values</button></div>}
                   <div className="form-grid">
                     <div className="field span-2"><label className="field-label" htmlFor="boardName">Board name</label><input className="control" id="boardName" type="text" maxLength={100} value={boardName} disabled={!boardEditable || !board} onChange={(event) => setBoardName(event.target.value)} /><p className="field-help">{boardEditable ? 'Only the project Owner can rename a board.' : 'Only the project Owner can change a board name or description.'}</p></div>
                     <div className="field span-2"><label className="field-label" htmlFor="boardDescription">Description</label><textarea className="control textarea" id="boardDescription" maxLength={2000} value={boardDescription} disabled={!boardEditable || !board} onChange={(event) => setBoardDescription(event.target.value)} /><p className="field-help">Shown under the board title. Plain text, up to 2000 characters.</p></div>
@@ -250,14 +285,14 @@ function SettingsScreen() {
                   <div className="stack-sm">
                     <div className="row" style={{ justifyContent: 'space-between' }}>
                       <div><h3 className="settings-section-title">Columns</h3><p className="settings-section-sub">Arrange and name the stages of this board.</p></div>
-                      <button className="btn sm" type="button" disabled={!board || !editable} onClick={() => setColumnsOpen(true)} title={editable ? undefined : 'Only owners and managers can edit columns'}><Icon name="columns" />Edit columns</button>
+                      <button className="btn sm" type="button" disabled={!board || !editable || board.isArchived} onClick={() => setColumnsOpen(true)} title={editable ? undefined : 'Only owners and managers can edit columns'}><Icon name="columns" />Edit columns</button>
                     </div>
                     <p className="field-help">{editable ? 'Add, rename, recolour, reorder and delete columns in the column editor.' : 'Only owners and managers can edit columns.'}</p>
                   </div>
                   {error && <div className="note warn" role="alert"><Icon name="alert" /><span>{error}</span></div>}
                   <div className="form-actions">
                     <span className="spacer" />
-                    <button className="btn primary" type="submit" disabled={!boardEditable || !board || !boardDirty || busy}>{busy ? 'Saving…' : 'Save board'}</button>
+                    {boardDirty&&board&&<button className="btn" type="button" disabled={busy} onClick={()=>{setBoardName(board.name);setBoardDescription(board.description??'');setBoardVersion(board.snapshotVersion);setBoardConflict(false);clearBoardDirty();}}>Discard board changes</button>}<button className="btn primary" type="submit" disabled={!boardEditable || !board || !boardDirty || busy || boardConflict}>{busy ? 'Saving…' : 'Save board'}</button>
                   </div>
                 </form>
               </div>
@@ -273,7 +308,7 @@ function SettingsScreen() {
               <div className="panel-body stack">
                 {actor && (
                   <div className="row" style={{ gap: 12, alignItems: 'flex-start' }}>
-                    <Avatar id={actor.id} name={actor.displayName} className="xl" />
+                    <Avatar id={actor.id} name={actor.displayName} avatarUrl={actor.avatarUrl} className="xl" />
                     <div className="stack-xs" style={{ flex: 1, minWidth: 0 }}>
                       <h3 className="settings-section-title">{actor.displayName}</h3>
                       <p className="settings-section-sub">{actor.email}</p>
@@ -285,11 +320,11 @@ function SettingsScreen() {
                     <label className="field-label" htmlFor="accountDisplayName">Display name</label>
                     <div className="row" style={{ gap: 8 }}>
                       <input className="control" id="accountDisplayName" type="text" autoComplete="name" value={displayName} maxLength={80} aria-invalid={!!nameError} aria-describedby={nameError ? 'accountNameError' : 'accountNameHelp'} onChange={(event) => { setDisplayName(event.target.value); setNameError(''); }} />
-                      <button className="btn primary" type="submit" disabled={nameBusy || !nameDirty}>{nameBusy ? 'Saving…' : 'Save name'}</button>
+                      {nameDirty&&actor&&<button className="btn" type="button" disabled={nameBusy} onClick={()=>{setDisplayName(actor.displayName);clearNameDirty();}}>Discard name change</button>}<button className="btn primary" type="submit" disabled={nameBusy || !nameDirty}>{nameBusy ? 'Saving…' : 'Save name'}</button>
                     </div>
                     {nameError ? <p className="field-error" id="accountNameError" role="alert">{nameError}</p> : <p className="field-help" id="accountNameHelp">Shown to your team on cards, comments and activity. 1 to 80 characters.</p>}
                   </form>
-                  <div className="field"><label className="field-label" htmlFor="accountEmailField">Email</label><input className="control" id="accountEmailField" type="email" value={actor?.email ?? ''} disabled readOnly /><p className="field-help">Your email comes from your Google account.</p></div>
+                  <div className="field"><label className="field-label" htmlFor="accountEmailField">Email</label><input className="control" id="accountEmailField" type="email" value={actor?.email ?? ''} disabled readOnly /><p className="field-help">Your email and avatar come from Google and refresh when you sign in.</p></div>
                 </div>
                 <div className="divider" />
                 <div className="stack-sm">
@@ -303,6 +338,8 @@ function SettingsScreen() {
               </div>
             </section>
           )}
+
+          {tab === 'workspace' && <WorkspacePreferences actorId={actor?.id??''} workspaces={state.status==='ready'?state.session.ownedWorkspaces:[]} currentWorkspaceId={project?.workspaceId} />}
 
           {tab === 'appearance' && (
             <section className="panel" id="panel-appearance" role="tabpanel" aria-labelledby="tab-appearance">
@@ -326,7 +363,7 @@ function SettingsScreen() {
           )}
         </div>
       </div>
-      {board && editable && <ColumnsDialog boardId={board.id} open={columnsOpen} onClose={() => setColumnsOpen(false)} />}
+      {board && editable && <ColumnsDialog readOnly={!!board.isArchived || !!project?.isArchived} boardId={board.id} open={columnsOpen} onClose={() => setColumnsOpen(false)} />}
       <DialogLayer open={leaveOpen} onClose={() => { if (!leaveBusy) setLeaveOpen(false); }} labelledBy="leaveTitle" describedBy="leaveCopy" role="alertdialog">
         <div className="dialog-head"><div className="dialog-head-copy"><h2 id="leaveTitle">{leaveCopy(project?.name ?? 'this project').title}</h2></div></div>
         <div className="dialog-body">

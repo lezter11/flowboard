@@ -1,5 +1,9 @@
 # Flowboard ordered tasks
 
+Current authorized release task (2026-11-03): revalidate all98 product features with real source-bound evidence, repair mandatory gaps, obtain fresh independent review and freeze the candidate, then publish directly to UAT and finish hosted tests. Follow [the execution plan](docs/reviews/FULL-REVALIDATION-20261103/PLAN.md). Do not manually close generated checklist entries. Hosted acceptance remains UAT pending until executed; older completion/score statements below are historical. Production is excluded.
+
+Latest instruction: user requested a checkpoint push and stop to switch GitHub accounts. Continue from [the checkpoint](docs/reviews/FULL-REVALIDATION-20261103/CHECKPOINT-20261103.md) after resumption; all final closure/deployment gates remain pending.
+
 ## MCP repair — 2026-11-03
 
 Task `MCP-HARDENING` repairs the eight findings from the independent review of `62ce05f`. Frozen acceptance: [criteria](docs/reviews/MCP-REPAIR-20261103/criteria.json). The exact source manifest, independent verdict and command results govern closure; this entry is not a backend/UI feature approval.
@@ -7,7 +11,7 @@ Task `MCP-HARDENING` repairs the eight findings from the independent review of `
 - Implement the token route boundary, metadata-only discovery, scoped pagination, stable create retries, canonical Owner issuance, correct search, reproducible MCP binary/CI and safe activity provenance.
 - Run the full local suites and mounted-handler response-loss/concurrency probes against disposable PostgreSQL; preserve actual exit codes.
 - Obtain a fresh independent review of the complete frozen source. Apply BACKEND_REVIEW_GATE; do not self-score.
-- Promote only the reviewed candidate through dev and UAT, then perform signed-in acceptance. Production remains separate. Company installation/external-issue API implementation follows this repair.
+- Promote only the reviewed candidate directly to UAT under the latest explicit user instruction, then perform signed-in acceptance. There is no dev stage for this release. Production remains separate. Company installation/external-issue API implementation follows this repair.
 
 Current result and remaining actions: [repair summary](docs/reviews/MCP-REPAIR-20261103/summary.md).
 

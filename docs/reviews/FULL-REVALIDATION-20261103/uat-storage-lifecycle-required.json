@@ -1,0 +1,19 @@
+{
+  "accountId": "6592b59b0da4771dc346b96c6fdc65fd",
+  "bucket": "flowboard-images-uat",
+  "success": true,
+  "rules": [
+    {
+      "id": "Default Multipart Abort Rule",
+      "enabled": true,
+      "conditions": {},
+      "abortMultipartUploadsTransition": {
+        "condition": {
+          "type": "Age",
+          "maxAge": 604800
+        }
+      }
+    }
+  ],
+  "reason": "Finalized private objects retain their immutable upload key. Database lifecycle owns cleanup; the staging/24h rule would delete referenced images. Remove only this exact UAT rule after local release gates, verify before/after and retain multipart abort policy. Production excluded."
+}

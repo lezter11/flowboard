@@ -1,0 +1,75 @@
+[
+  {
+    "id": "IMP-R2-01",
+    "severity": "high",
+    "description": "Unsupported outer cell content is silently dropped instead of rejecting the workbook.",
+    "disposition": "open",
+    "rationale": "Mounted CRC-valid genuine-template-derived workbooks return201ready with nonempty Description silently blank or partially retained, contrary to literal preservation and strict unsupported-structure acceptance.",
+    "mandatory": true,
+    "blocking": true,
+    "sourcePath": "apps/api/src/services/excel-parser.ts",
+    "sourceLines": [
+      493,
+      519
+    ],
+    "fixtures": [
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round2/str-cell-inline-child.xlsx",
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round2/foreign-cell-value.xlsx",
+      "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round2/mixed-value-inline.xlsx"
+    ],
+    "expected": "Controlled422 for nonempty unsupported/foreign/mixed cell structures.",
+    "actual": "201ready; description empty for str-cell-inline-child/foreign-cell-value, and Visible for mixed-value-inline.",
+    "fix": "Validate every direct cell child against the cell type and namespace, forbid ambiguous mixed representations, preserve valid supported content or reject explicitly.",
+    "counterevidence": "Inner inline rich-text namespace, scalar, duplicate expanded attribute, depth and all original15probes pass."
+  },
+  {
+    "id": "IMP-R2-02",
+    "severity": "high",
+    "description": "Cleaned retained receipt violates the shared response contract and creates an empty-label card link.",
+    "disposition": "open",
+    "rationale": "Actual committed import after+31minute cleanup returns200with empty title/externalId, violating shared min1fields; UI uses title as its only link text. IMP09/11require usable safe result/provenance.",
+    "mandatory": true,
+    "blocking": true,
+    "sourcePaths": {
+      "apps/api/src/services/import-retention.ts": [
+        9,
+        12
+      ],
+      "apps/api/src/adapters/imports.ts": [
+        382,
+        393
+      ],
+      "packages/contracts/src/imports.ts": [
+        43,
+        46
+      ],
+      "apps/web/src/app/import/page.tsx": [
+        97
+      ]
+    },
+    "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round2/retained-receipt-result.json",
+    "expected": "Privacy-preserving typed minimal/redacted result with retained row/card provenance and a nonempty safe link label.",
+    "actual": "200committed row externalId/title empty; importStatusResponseSchema rejects both; Link text is empty.",
+    "fix": "Add an explicit redacted/minimal row representation, preserve source-content cleanup, render safe RowN/Opencreatedcard text and test browser link usability.",
+    "counterevidence": "Domain card remains intact; counts/cardId persist and root retained-browser state assertion passes. Those checks do not establish contract/link correctness."
+  },
+  {
+    "id": "IMP-R2-03",
+    "severity": "medium",
+    "description": "Mandatory invalid preview rows cannot satisfy the current shared import response schema.",
+    "disposition": "open",
+    "rationale": "An XLSX row with missing required Title correctly returns201invalid with a row error, but importStatusResponseSchema rejects title min1. The shared response model covers only valid raw fields despite the mandatory invalid-row workflow.",
+    "mandatory": true,
+    "blocking": true,
+    "sourcePath": "packages/contracts/src/imports.ts",
+    "sourceLines": [
+      43,
+      47
+    ],
+    "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/formal-import-round2/corrected-results.json",
+    "expected": "Invalid preview rows remain expressible with bounded raw field values and row/field errors; successful and redacted rows remain distinct.",
+    "actual": "201invalid body with title empty and validation error cannot parse the advertised shared response contract.",
+    "fix": "Model invalid/raw preview fields explicitly and enforce safe bounds; add mounted schema validation across invalid and terminal states.",
+    "counterevidence": "The UI currently displays raw response values without runtime schema parsing; this makes the present browser appear usable but does not repair the published contract."
+  }
+]

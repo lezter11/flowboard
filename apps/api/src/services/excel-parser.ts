@@ -2,10 +2,16 @@ import crypto from 'node:crypto';
 import zlib from 'node:zlib';
 import { isValidGregorianDate, type Priority } from '@flowboard/contracts';
 import { HttpError } from '../http/errors.ts';
+import path from 'node:path';
+import { attr, child, children, descendants, decodeXmlText, invalidXml, parseXmlPart, requireRoot,
+  SPREADSHEET_NS, STRICT_SPREADSHEET_NS, DOCUMENT_REL_NS, STRICT_DOCUMENT_REL_NS,
+  PACKAGE_REL_NS, CONTENT_TYPES_NS, MAX_XML_TEXT, type XmlElement } from './import-xml.ts';
 
 export const MAX_COMPRESSED_BYTES = 5 * 1024 * 1024; // 5 MiB
 export const MAX_EXPANDED_BYTES = 20 * 1024 * 1024; // 20 MiB
 export const MAX_IMPORT_ROWS = 200;
+export const MAX_IMPORT_CELLS = 10000;
+export const MAX_PARSE_MS = 1000;
 
 export const STANDARD_HEADERS = [
   'External ID',
@@ -75,6 +81,11 @@ function unzipXlsx(buffer: Buffer): Map<string, Buffer> {
 
   const totalEntries = buffer.readUInt16LE(eocdOffset + 10);
   const cdOffset = buffer.readUInt32LE(eocdOffset + 16);
+  const cdSize = buffer.readUInt32LE(eocdOffset + 12);
+  if (buffer.readUInt16LE(eocdOffset + 4) !== 0 || buffer.readUInt16LE(eocdOffset + 6) !== 0
+      || buffer.readUInt16LE(eocdOffset + 8) !== totalEntries
+      || eocdOffset + 22 + buffer.readUInt16LE(eocdOffset + 20) !== buffer.length
+      || cdOffset + cdSize !== eocdOffset) throw invalidXml('Invalid or unsupported ZIP directory.');
 
   if (totalEntries > 100) {
     throw HttpError.unprocessable(
@@ -86,6 +97,8 @@ function unzipXlsx(buffer: Buffer): Map<string, Buffer> {
   const files = new Map<string, Buffer>();
   let totalExpandedBytes = 0;
   let offset = cdOffset;
+  const names = new Set<string>();
+  const segments: Array<[number, number]> = [];
   const expandedTooLarge = () =>
     new HttpError(
       413,
@@ -101,6 +114,8 @@ function unzipXlsx(buffer: Buffer): Map<string, Buffer> {
       );
     }
 
+    const flags = buffer.readUInt16LE(offset + 8);
+    const crc = buffer.readUInt32LE(offset + 16);
     const method = buffer.readUInt16LE(offset + 10);
     const compressedSize = buffer.readUInt32LE(offset + 20);
     const uncompressedSize = buffer.readUInt32LE(offset + 24);
@@ -109,7 +124,15 @@ function unzipXlsx(buffer: Buffer): Map<string, Buffer> {
     const commentLen = buffer.readUInt16LE(offset + 32);
     const localHeaderOffset = buffer.readUInt32LE(offset + 42);
 
-    const fileName = buffer.toString('utf8', offset + 46, offset + 46 + fileNameLen);
+    if (offset + 46 + fileNameLen + extraLen + commentLen > eocdOffset
+        || buffer.readUInt16LE(offset + 34) !== 0 || (flags & ~0x0808) !== 0) throw invalidXml('Invalid or encrypted ZIP entry.');
+    let fileName: string;
+    try { fileName = new TextDecoder('utf-8', { fatal: true }).decode(buffer.subarray(offset + 46, offset + 46 + fileNameLen)); }
+    catch { throw invalidXml('Invalid ZIP filename encoding.'); }
+    if (!fileName || fileName.startsWith('/') || fileName.includes('\\') || fileName.includes('%')
+        || fileName.split('/').some(segment => !segment || segment === '.' || segment === '..')
+        || /[\x00-\x20\x7f:]/.test(fileName) || names.has(fileName.toLowerCase())) throw invalidXml('Unsafe or duplicate ZIP part name.');
+    names.add(fileName.toLowerCase());
     offset += 46 + fileNameLen + extraLen + commentLen;
     const lowerName = fileName.toLowerCase();
 
@@ -156,7 +179,14 @@ function unzipXlsx(buffer: Buffer): Map<string, Buffer> {
     const dataStart = localHeaderOffset + 30 + localFileLen + localExtraLen;
     const dataEnd = dataStart + compressedSize;
 
-    if (dataEnd > buffer.length) {
+    const localName = buffer.subarray(localHeaderOffset + 30, localHeaderOffset + 30 + localFileLen);
+    if (buffer.readUInt16LE(localHeaderOffset + 6) !== flags
+        || buffer.readUInt16LE(localHeaderOffset + 8) !== method
+        || !localName.equals(Buffer.from(fileName))
+        || (!(flags & 8) && (buffer.readUInt32LE(localHeaderOffset + 14) !== crc
+          || buffer.readUInt32LE(localHeaderOffset + 18) !== compressedSize
+          || buffer.readUInt32LE(localHeaderOffset + 22) !== uncompressedSize))) throw invalidXml('ZIP local/central metadata mismatch.');
+    if (dataEnd > cdOffset || localHeaderOffset >= cdOffset || segments.some(([start, end]) => localHeaderOffset < end && dataEnd > start)) {
       throw HttpError.unprocessable(
         'INVALID_WORKBOOK',
         'Invalid workbook package: compressed data segment overflow.',
@@ -198,39 +228,18 @@ function unzipXlsx(buffer: Buffer): Map<string, Buffer> {
       );
     }
 
+    if (uncompressedData.length !== uncompressedSize || zlib.crc32(uncompressedData) !== crc) throw invalidXml('ZIP size or CRC integrity check failed.');
+    segments.push([localHeaderOffset, dataEnd]);
     totalExpandedBytes += uncompressedData.length;
     files.set(fileName, uncompressedData);
   }
 
+  if (offset !== eocdOffset) throw invalidXml('Invalid ZIP directory size.');
   return files;
 }
 
-/**
- * Checks for XML External Entity (XXE) declarations.
- */
-function assertNoXXE(xml: string, fileName: string): void {
-  const upper = xml.toUpperCase();
-  if (upper.includes('<!DOCTYPE') || upper.includes('<!ENTITY')) {
-    throw HttpError.unprocessable(
-      'XXE_DETECTED',
-      `XML External Entity (XXE) declaration detected in ${fileName}. Entity declarations are strictly disallowed.`,
-    );
-  }
-}
-
-/**
- * Unescapes standard XML entities and numeric entities.
- */
-export function unescapeXml(text: string): string {
-  return text
-    .replace(/&quot;/g, '"')
-    .replace(/&apos;/g, "'")
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&')
-    .replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => String.fromCodePoint(parseInt(hex, 16)))
-    .replace(/&#(\d+);/g, (_, dec) => String.fromCodePoint(parseInt(dec, 10)));
-}
+/** Single XML text decode, retained for callers and regression tests. */
+export const unescapeXml = decodeXmlText;
 
 /**
  * Converts column letters (e.g. 'A', 'B', 'AA') to 0-indexed column number.
@@ -287,28 +296,25 @@ export function excelSerialToIsoDate(serial: number, is1904: boolean): string {
   }
 }
 
-/**
- * Parses shared strings XML into an array of string values.
- */
-function parseSharedStrings(xml: string): string[] {
-  assertNoXXE(xml, 'xl/sharedStrings.xml');
-
-  const strings: string[] = [];
-  const siRegex = /<(?:\w+:)?si\b[^>]*>([\s\S]*?)<\/(?:\w+:)?si>/g;
-  let siMatch: RegExpExecArray | null;
-
-  while ((siMatch = siRegex.exec(xml)) !== null) {
-    const siContent = siMatch[1]!;
-    const tRegex = /<(?:\w+:)?t\b[^>]*>([\s\S]*?)<\/(?:\w+:)?t>/g;
-    let tMatch: RegExpExecArray | null;
-    let strVal = '';
-    while ((tMatch = tRegex.exec(siContent)) !== null) {
-      strVal += tMatch[1]!;
+/** Literal text runs only: phonetic annotations are not cell text. */
+function richText(node: XmlElement): string {
+  let value = '';
+  const direct = children(node, 't'), runs = children(node, 'r');
+  if (direct.length > 1 || (direct.length && runs.length) || node.text.trim()) throw invalidXml('Unsupported string representation.');
+  for (const c of node.children) {
+    if (c.ns !== node.ns || !['t', 'r', 'rPh', 'phoneticPr'].includes(c.name)) throw invalidXml('Unsupported string child element.');
+    if (c.name === 't') {
+      if (c.children.length) throw invalidXml('Unsupported nested string text.');
+      value += c.text;
+    } else if (c.name === 'r') {
+      const texts = children(c, 't');
+      if (texts.length !== 1 || c.text.trim() || c.children.some(n => n.ns !== c.ns || !['t', 'rPr'].includes(n.name))) throw invalidXml('Invalid rich-text run.');
+      if (texts[0]!.children.length) throw invalidXml('Unsupported nested string text.');
+      value += texts[0]!.text;
     }
-    strings.push(unescapeXml(strVal));
+    if (value.length > MAX_XML_TEXT) throw HttpError.unprocessable('XML_LIMIT_EXCEEDED', 'Cell text exceeds the supported limit.');
   }
-
-  return strings;
+  return value;
 }
 
 interface RawCellData {
@@ -316,191 +322,212 @@ interface RawCellData {
   colLetter: string;
   type: string;
   isNumericRaw: boolean;
+  dateStyled: boolean;
   value: string;
 }
 
 /**
  * Pure TypeScript Excel Parser for Flowboard Card Import Engine.
  */
-export function parseExcelWorkbook(fileBuffer: Buffer): ParseExcelResult {
-  const files = unzipXlsx(fileBuffer);
+/** Recognize genuine Excel date formats, never general numeric cells. */
+function dateStyleIndexes(root: XmlElement | undefined): Set<number> {
+  if (!root) return new Set();
+  requireRoot(root, 'styleSheet', [SPREADSHEET_NS, STRICT_SPREADSHEET_NS]);
+  const formats = new Map<number, string>();
+  const numFmts = child(root, 'numFmts');
+  if (numFmts) for (const f of children(numFmts, 'numFmt')) formats.set(Number(attr(f, 'numFmtId')), attr(f, 'formatCode') ?? '');
+  const result = new Set<number>();
+  const xfs = child(root, 'cellXfs');
+  if (xfs) children(xfs, 'xf').forEach((xf, index) => {
+    const id = Number(attr(xf, 'numFmtId') ?? 0);
+    const code = (formats.get(id) ?? '').replace(/"[^"]*"|\\.|\[[^\]]*\]/g, '').toLowerCase();
+    if ([14,15,16,17,22].includes(id) || (id >= 27 && id <= 36) || (id >= 50 && id <= 58) || /[yd]/.test(code)) result.add(index);
+  });
+  return result;
+}
 
-  // 1. Read xl/workbook.xml
-  const workbookXmlBuf = files.get('xl/workbook.xml');
-  if (!workbookXmlBuf) {
-    throw HttpError.unprocessable(
-      'INVALID_WORKBOOK',
-      'Invalid workbook package: missing xl/workbook.xml.',
-    );
+const CONTENT = 'application/vnd.openxmlformats-officedocument.';
+function expectedContentType(name: string): string | undefined {
+  if (name === 'xl/workbook.xml') return CONTENT + 'spreadsheetml.sheet.main+xml';
+  if (name === 'xl/styles.xml') return CONTENT + 'spreadsheetml.styles+xml';
+  if (name === 'xl/sharedStrings.xml') return CONTENT + 'spreadsheetml.sharedStrings+xml';
+  if (/^xl\/worksheets\/sheet[^/]+\.xml$/.test(name)) return CONTENT + 'spreadsheetml.worksheet+xml';
+  if (/^xl\/theme\/theme[^/]+\.xml$/.test(name)) return CONTENT + 'theme+xml';
+  if (/^xl\/tables\/table[^/]+\.xml$/.test(name)) return CONTENT + 'spreadsheetml.table+xml';
+  if (name === 'docProps/core.xml') return 'application/vnd.openxmlformats-package.core-properties+xml';
+  if (name === 'docProps/app.xml') return CONTENT + 'extended-properties+xml';
+  if (name === 'docProps/custom.xml') return CONTENT + 'custom-properties+xml';
+  if (name === '_rels/.rels' || /^(?:xl|xl\/worksheets)\/_rels\/[^/]+\.xml\.rels$/.test(name)) return 'application/vnd.openxmlformats-package.relationships+xml';
+  return undefined;
+}
+
+/** All parts are parsed and checked, including unreferenced relationships/XML. */
+function validatePackage(files: Map<string, Buffer>, checkBudget: () => void): {
+  documents: Map<string, XmlElement>; relationships: Map<string, Map<string, { target: string; type: string }>>
+} {
+  const documents = new Map<string, XmlElement>();
+  const xmlBudget = { markup: 0 };
+  // Scan all XML before profile validation so hidden UTF16 declarations cannot be ignored.
+  for (const [name, bytes] of files) if (name.endsWith('.xml') || name.endsWith('.rels')) {
+    documents.set(name, parseXmlPart(bytes, checkBudget, xmlBudget));
   }
-  const workbookXml = workbookXmlBuf.toString('utf8');
-  assertNoXXE(workbookXml, 'xl/workbook.xml');
-
-  // Check 1904 date system
-  const date1904 = /<(?:\w+:)?workbookPr\b[^>]*\bdate1904="(?:1|true)"/i.test(workbookXml);
-
-  // Check sheets
-  const sheetTagRegex = /<(?:\w+:)?sheet\b([^>]*)\/?>/g;
-  let sheetMatch: RegExpExecArray | null;
-  const sheetList: Array<{ name: string; rId: string }> = [];
-
-  while ((sheetMatch = sheetTagRegex.exec(workbookXml)) !== null) {
-    const attrs = sheetMatch[1]!;
-    const nameMatch = attrs.match(/\bname="([^"]+)"/i);
-    const rIdMatch = attrs.match(/\b(?:r:id|id)="([^"]+)"/i);
-    if (nameMatch && rIdMatch) {
-      sheetList.push({ name: nameMatch[1]!, rId: rIdMatch[1]! });
-    }
+  const types = documents.get('[Content_Types].xml');
+  if (!types) throw invalidXml('Missing workbook content types.');
+  requireRoot(types, 'Types', [CONTENT_TYPES_NS]);
+  const defaults = new Map<string, string>(), overrides = new Map<string, string>();
+  const allowedTypes = new Set([
+    CONTENT + 'spreadsheetml.sheet.main+xml', CONTENT + 'spreadsheetml.styles+xml', CONTENT + 'spreadsheetml.sharedStrings+xml',
+    CONTENT + 'spreadsheetml.worksheet+xml', CONTENT + 'theme+xml', CONTENT + 'spreadsheetml.table+xml',
+    CONTENT + 'extended-properties+xml', CONTENT + 'custom-properties+xml',
+    'application/vnd.openxmlformats-package.core-properties+xml', 'application/vnd.openxmlformats-package.relationships+xml', 'application/xml',
+  ]);
+  for (const entry of types.children) {
+    const type = attr(entry, 'ContentType');
+    if (entry.ns !== CONTENT_TYPES_NS || !type || !allowedTypes.has(type)) throw invalidXml('Unsupported workbook content type. Only macro-free XLSX is supported.');
+    if (entry.name === 'Default') {
+      const ext = attr(entry, 'Extension');
+      if (!ext || defaults.has(ext) || !['xml', 'rels'].includes(ext)) throw invalidXml('Invalid default workbook content type.');
+      defaults.set(ext, type);
+    } else if (entry.name === 'Override') {
+      const part = attr(entry, 'PartName');
+      if (!part?.startsWith('/') || overrides.has(part.slice(1)) || !files.has(part.slice(1))) throw invalidXml('Invalid workbook content type override.');
+      overrides.set(part.slice(1), type);
+    } else throw invalidXml('Invalid content type element.');
   }
-
-  if (sheetList.length === 0) {
-    throw HttpError.unprocessable(
-      'EMPTY_WORKBOOK',
-      'Workbook contains no worksheets.',
-    );
+  for (const name of files.keys()) {
+    if (name === '[Content_Types].xml') continue;
+    const expected = expectedContentType(name), actual = overrides.get(name) ?? defaults.get(name.split('.').at(-1)!);
+    if (!expected || actual !== expected) throw invalidXml('Unsupported workbook part or mismatched content type.');
   }
-
-  // Only Cards and optional Instructions worksheets are allowed in v1
-  for (const sheet of sheetList) {
-    const lowerName = sheet.name.trim().toLowerCase();
-    if (lowerName !== 'cards' && lowerName !== 'instructions') {
-      throw HttpError.unprocessable(
-        'UNSUPPORTED_WORKSHEET',
-        `Workbook contains unsupported worksheet '${sheet.name}'. Only 'Cards' and optional 'Instructions' are allowed.`,
-      );
-    }
-  }
-
-  // Select Cards worksheet (or fallback to first worksheet that isn't Instructions)
-  let targetSheet = sheetList.find((s) => s.name.trim().toLowerCase() === 'cards');
-  if (!targetSheet) {
-    targetSheet = sheetList.find((s) => s.name.trim().toLowerCase() !== 'instructions');
-  }
-  if (!targetSheet) {
-    throw HttpError.unprocessable(
-      'CARDS_SHEET_NOT_FOUND',
-      "Workbook is missing required 'Cards' worksheet.",
-    );
-  }
-
-  // 2. Resolve target sheet file path from xl/_rels/workbook.xml.rels
-  const relsXmlBuf = files.get('xl/_rels/workbook.xml.rels');
-  let worksheetRelPath = 'xl/worksheets/sheet1.xml';
-
-  if (relsXmlBuf) {
-    const relsXml = relsXmlBuf.toString('utf8');
-    assertNoXXE(relsXml, 'xl/_rels/workbook.xml.rels');
-
-    const relRegex = /<(?:\w+:)?Relationship\b([^>]*)\/?>/g;
-    let relMatch: RegExpExecArray | null;
-    while ((relMatch = relRegex.exec(relsXml)) !== null) {
-      const attrs = relMatch[1]!;
-      const idMatch = attrs.match(/\bId="([^"]+)"/i);
-      const targetMatch = attrs.match(/\bTarget="([^"]+)"/i);
-      if (idMatch && targetMatch && idMatch[1] === targetSheet.rId) {
-        let t = targetMatch[1]!;
-        if (t.startsWith('/')) t = t.slice(1);
-        if (!t.startsWith('xl/')) t = 'xl/' + t;
-        worksheetRelPath = t;
-        break;
+  const relationships = new Map<string, Map<string, { target: string; type: string }>>();
+  const allowedRelationships = new Set(['officeDocument', 'worksheet', 'styles', 'sharedStrings', 'theme', 'table', 'extended-properties', 'custom-properties']);
+  for (const [name, root] of documents) if (name.endsWith('.rels')) {
+    requireRoot(root, 'Relationships', [PACKAGE_REL_NS]);
+    const source = name === '_rels/.rels' ? '' : name.replace('/_rels/', '/').slice(0, -5);
+    if (source && !files.has(source)) throw invalidXml('Relationship source does not exist.');
+    const rels = new Map<string, { target: string; type: string }>();
+    for (const rel of root.children) {
+      const id = attr(rel, 'Id'), target = attr(rel, 'Target'), type = attr(rel, 'Type'), mode = attr(rel, 'TargetMode');
+      if (rel.name !== 'Relationship' || rel.ns !== PACKAGE_REL_NS || !id || rels.has(id) || !target || !type
+          || (mode && mode !== 'Internal') || /[\\%?#\x00-\x20]/.test(target) || target.startsWith('//') || /^[a-z][a-z0-9+.-]*:/i.test(target)) {
+        throw HttpError.unprocessable('EXTERNAL_LINKS_REJECTED', 'External or invalid package relationships are disallowed.');
       }
+      const kind = type.startsWith(DOCUMENT_REL_NS + '/') ? type.slice(DOCUMENT_REL_NS.length + 1)
+        : type.startsWith(STRICT_DOCUMENT_REL_NS + '/') ? type.slice(STRICT_DOCUMENT_REL_NS.length + 1)
+        : type === PACKAGE_REL_NS + '/metadata/core-properties' ? 'core-properties' : '';
+      if (!allowedRelationships.has(kind) && kind !== 'core-properties') throw invalidXml('Unsupported workbook relationship type.');
+      const base = target.startsWith('/') ? target.slice(1) : path.posix.join(path.posix.dirname(source), target);
+      const resolved = path.posix.normalize(base);
+      if (resolved.startsWith('../') || !files.has(resolved)) throw invalidXml('Relationship target does not exist in the package.');
+      const targetType = expectedContentType(resolved);
+      const expectedKind = kind === 'officeDocument' ? CONTENT + 'spreadsheetml.sheet.main+xml'
+        : kind === 'core-properties' ? 'application/vnd.openxmlformats-package.core-properties+xml'
+        : kind === 'worksheet' ? CONTENT + 'spreadsheetml.worksheet+xml'
+        : kind === 'table' ? CONTENT + 'spreadsheetml.table+xml'
+        : kind === 'styles' ? CONTENT + 'spreadsheetml.styles+xml'
+        : kind === 'sharedStrings' ? CONTENT + 'spreadsheetml.sharedStrings+xml'
+        : CONTENT + kind + '+xml';
+      if (targetType !== expectedKind) throw invalidXml('Relationship type does not match its target.');
+      rels.set(id, { target: resolved, type: kind });
     }
+    relationships.set(source, rels);
   }
+  if (![...(relationships.get('')?.values() ?? [])].some(r => r.type === 'officeDocument' && r.target === 'xl/workbook.xml')) throw invalidXml('Missing root workbook relationship.');
+  return { documents, relationships };
+}
 
-  const worksheetXmlBuf = files.get(worksheetRelPath);
-  if (!worksheetXmlBuf) {
-    throw HttpError.unprocessable(
-      'WORKSHEET_NOT_FOUND',
-      `Worksheet XML not found at ${worksheetRelPath}.`,
-    );
+export function parseExcelWorkbook(fileBuffer: Buffer): ParseExcelResult {
+  const started = performance.now();
+  const checkBudget = () => { if (performance.now() - started > MAX_PARSE_MS) throw HttpError.unprocessable('PARSE_BUDGET_EXCEEDED', 'Workbook validation took too long. Reduce the workbook.'); };
+  const files = unzipXlsx(fileBuffer);
+  const { documents, relationships } = validatePackage(files, checkBudget);
+  const dateStyles = dateStyleIndexes(documents.get('xl/styles.xml'));
+  let cellCount = 0;
+  for (const [name, document] of documents) if (/^xl\/worksheets\/[^/]+\.xml$/.test(name)) {
+    requireRoot(document, 'worksheet', [SPREADSHEET_NS, STRICT_SPREADSHEET_NS]);
+    cellCount += descendants(document, 'c').length;
   }
-  const worksheetXml = worksheetXmlBuf.toString('utf8');
-  assertNoXXE(worksheetXml, worksheetRelPath);
-
-  // 3. Security: Check for formula evaluations in Cards worksheet
-  if (/<(?:\w+:)?f\b[^>]*>/i.test(worksheetXml)) {
-    throw HttpError.unprocessable(
-      'FORMULA_REJECTED',
-      'Formulas and calculated cells are strictly disallowed in the import template.',
-    );
+  if (cellCount > MAX_IMPORT_CELLS) throw HttpError.unprocessable('CELL_LIMIT_EXCEEDED', 'Workbook contains too many cells.');
+  const workbook = documents.get('xl/workbook.xml');
+  if (!workbook) throw invalidXml('Missing xl/workbook.xml.');
+  requireRoot(workbook, 'workbook', [SPREADSHEET_NS, STRICT_SPREADSHEET_NS]);
+  const date1904 = ['1', 'true'].includes(attr(child(workbook, 'workbookPr') ?? workbook, 'date1904') ?? '');
+  const sheets = child(workbook, 'sheets');
+  const sheetList = sheets ? children(sheets, 'sheet').map(s => ({ name: attr(s, 'name') ?? '',
+    rId: attr(s, 'id', DOCUMENT_REL_NS) ?? attr(s, 'id', STRICT_DOCUMENT_REL_NS) ?? '' })) : [];
+  if (sheetList.length === 0) throw HttpError.unprocessable('EMPTY_WORKBOOK', 'Workbook contains no worksheets.');
+  if (sheetList.length > 2 || sheetList.some(s => !['Cards', 'Instructions'].includes(s.name))
+      || new Set(sheetList.map(s => s.name)).size !== sheetList.length) throw HttpError.unprocessable('UNSUPPORTED_WORKSHEET', 'Only Cards and optional Instructions worksheets are allowed.');
+  const targetSheet = sheetList.find(s => s.name === 'Cards');
+  if (!targetSheet) throw HttpError.unprocessable('CARDS_SHEET_NOT_FOUND', "Workbook is missing required 'Cards' worksheet.");
+  const sheetPaths = new Set<string>();
+  for (const sheet of sheetList) {
+    const rel = relationships.get('xl/workbook.xml')?.get(sheet.rId);
+    if (!rel || rel.type !== 'worksheet' || sheetPaths.has(rel.target)) throw invalidXml('Invalid worksheet relationship.');
+    sheetPaths.add(rel.target);
   }
-
-  // 4. Parse shared strings if present
-  let sharedStrings: string[] = [];
-  const sharedStringsXmlBuf = files.get('xl/sharedStrings.xml');
-  if (sharedStringsXmlBuf) {
-    sharedStrings = parseSharedStrings(sharedStringsXmlBuf.toString('utf8'));
-  }
-
-  // 5. Parse sheet rows
-  const rowRegex = /<(?:\w+:)?row\b([^>]*)>([\s\S]*?)<\/(?:\w+:)?row>/g;
-  let rowMatch: RegExpExecArray | null;
-
+  const worksheetRelPath = relationships.get('xl/workbook.xml')!.get(targetSheet.rId)!.target;
+  const worksheet = documents.get(worksheetRelPath)!;
+  if (descendants(worksheet, 'f').length) throw HttpError.unprocessable('FORMULA_REJECTED', 'Formulas and calculated cells are disallowed in Cards.');
+  if (descendants(worksheet, 'mergeCell').length || child(worksheet, 'mergeCells')) throw HttpError.unprocessable('MERGED_CELLS_REJECTED', 'Merged Cards cells are disallowed.');
+  const shared = documents.get('xl/sharedStrings.xml');
+  if (shared) requireRoot(shared, 'sst', [SPREADSHEET_NS, STRICT_SPREADSHEET_NS]);
+  const sharedStrings = shared ? children(shared, 'si').map(richText) : [];
+  if (sharedStrings.length > MAX_IMPORT_CELLS) throw HttpError.unprocessable('CELL_LIMIT_EXCEEDED', 'Workbook contains too many shared strings.');
+  const data = children(worksheet, 'sheetData');
+  if (data.length !== 1) throw invalidXml('Cards requires one sheetData element.');
   let headerMap: Map<number, StandardHeader> | null = null;
   const rows: ParsedImportRow[] = [];
-
-  while ((rowMatch = rowRegex.exec(worksheetXml)) !== null) {
-    const rowAttrs = rowMatch[1]!;
-    const rowContent = rowMatch[2]!;
-    const rAttr = rowAttrs.match(/\br="(\d+)"/i);
-    const rowNum = rAttr ? parseInt(rAttr[1]!, 10) : rows.length + (headerMap ? 2 : 1);
-
-    // Parse cells inside this row
-    const cellRegex = /<(?:\w+:)?c\b([^>]*)>(?:([\s\S]*?)<\/(?:\w+:)?c>)?/g;
-    let cMatch: RegExpExecArray | null;
+  let previousRow = 0;
+  if (data[0]!.children.some(n => n.ns !== worksheet.ns || n.name !== 'row')) throw invalidXml('Invalid sheetData child element.');
+  for (const row of children(data[0]!, 'row')) {
+    if (row.children.some(n => n.ns !== row.ns || !['c', 'extLst'].includes(n.name))) throw invalidXml('Invalid row child element.');
+    checkBudget();
+    const rowNumber = attr(row, 'r');
+    const rowNum = rowNumber === undefined ? previousRow + 1 : Number(rowNumber);
+    if (!Number.isInteger(rowNum) || rowNum <= previousRow || rowNum > 1_048_576 || (rowNumber !== undefined && !/^[1-9]\d*$/.test(rowNumber))) throw invalidXml('Invalid or duplicate worksheet row number.');
+    previousRow = rowNum;
     const cells: RawCellData[] = [];
-
-    while ((cMatch = cellRegex.exec(rowContent)) !== null) {
-      const cAttrs = cMatch[1]!;
-      const cInner = cMatch[2] ?? '';
-
-      const cellRefMatch = cAttrs.match(/\br="([A-Z]+)(\d+)"/i);
-      if (!cellRefMatch) continue;
-
-      const colLetter = cellRefMatch[1]!.toUpperCase();
-      const colIndex = colLettersToIndex(colLetter);
-
-      const typeMatch = cAttrs.match(/\bt="([^"]+)"/i);
-      const cellType = typeMatch ? typeMatch[1]!.toLowerCase() : '';
-
-      // Extract value
-      let cellVal = '';
-      let isNumericRaw = false;
-
+    const columns = new Set<number>();
+    for (const cell of children(row, 'c')) {
+      const ref = attr(cell, 'r')?.match(/^([A-Z]{1,3})([1-9]\d*)$/);
+      if (!ref || Number(ref[2]) !== rowNum) throw invalidXml('Invalid worksheet cell reference.');
+      const colLetter = ref[1]!, colIndex = colLettersToIndex(colLetter);
+      if (columns.has(colIndex) || colIndex >= 16_384) throw invalidXml('Duplicate or invalid cell column.');
+      columns.add(colIndex);
+      const cellType = attr(cell, 't') ?? '';
+      // Validate the whole cell before selecting its value. Filtering by name or
+      // namespace alone would silently discard unsupported/mixed representations.
+      const valueElement = cellType === 'inlineStr' ? 'is' : 'v';
+      if (cell.text.trim() || cell.children.some(n => n.ns !== cell.ns || n.name !== valueElement)
+          || cell.children.length > 1) throw invalidXml('Unsupported or mixed worksheet cell content.');
+      const values = children(cell, 'v');
+      if (values.some(v => v.children.length) || values.length > 1 || !['', 'n', 's', 'str', 'inlineStr', 'b', 'e', 'd'].includes(cellType)) throw invalidXml('Invalid worksheet cell representation.');
+      let cellVal = values[0]?.text ?? '', isNumericRaw = false;
       if (cellType === 'inlineStr') {
-        const isMatch = cInner.match(/<(?:\w+:)?t\b[^>]*>([\s\S]*?)<\/(?:\w+:)?t>/);
-        if (isMatch) cellVal = unescapeXml(isMatch[1]!);
-      } else {
-        const vMatch = cInner.match(/<(?:\w+:)?v\b[^>]*>([\s\S]*?)<\/(?:\w+:)?v>/);
-        if (vMatch) {
-          const rawV = vMatch[1]!.trim();
-          if (cellType === 's') {
-            const strIdx = parseInt(rawV, 10);
-            cellVal = sharedStrings[strIdx] ?? '';
-          } else if (cellType === 'str') {
-            cellVal = unescapeXml(rawV);
-          } else if (cellType === 'b') {
-            cellVal = rawV === '1' ? 'true' : 'false';
-          } else {
-            // Numeric or raw literal
-            cellVal = rawV;
-            isNumericRaw = !isNaN(Number(rawV)) && rawV !== '';
-          }
-        }
+        const inline = children(cell, 'is');
+        if (inline.length > 1 || values.length) throw invalidXml('Invalid inline string cell.');
+        cellVal = inline[0] ? richText(inline[0]) : '';
+      } else if (cellType === 's' && values.length) {
+        if (!/^\d+$/.test(cellVal) || Number(cellVal) >= sharedStrings.length) throw invalidXml('Invalid shared string index.');
+        cellVal = sharedStrings[Number(cellVal)]!;
+      } else if (cellType === 'b' && values.length) {
+        if (!['0', '1'].includes(cellVal)) throw invalidXml('Invalid boolean cell.');
+        cellVal = cellVal === '1' ? 'true' : 'false';
+      } else if (cellType === '' || cellType === 'n') {
+        cellVal = cellVal.trim();
+        isNumericRaw = cellVal !== '' && Number.isFinite(Number(cellVal));
+        if (cellVal && !isNumericRaw) throw invalidXml('Invalid numeric worksheet cell.');
       }
-
-      cells.push({
-        colIndex,
-        colLetter,
-        type: cellType,
-        isNumericRaw,
-        value: cellVal,
-      });
+      const style = attr(cell, 's') ?? '0';
+      if (!/^\d+$/.test(style)) throw invalidXml('Invalid cell style index.');
+      cells.push({ colIndex, colLetter, type: cellType, isNumericRaw, dateStyled: dateStyles.has(Number(style)), value: cellVal });
     }
 
     // Row 1: Header Row
     if (!headerMap) {
-      if (rowNum === 1 || rows.length === 0) {
+      if (rowNum !== 1) throw HttpError.unprocessable('MISSING_REQUIRED_HEADER', 'Cards header must be row 1.');
+      if (rowNum === 1) {
         headerMap = new Map();
         const seenHeaders = new Set<string>();
 
@@ -563,14 +590,17 @@ export function parseExcelWorkbook(fileBuffer: Buffer): ParseExcelResult {
 
     for (const cell of cells) {
       const header = headerMap.get(cell.colIndex);
-      if (!header) continue;
+      if (!header) {
+        if (cell.value.trim()) throw HttpError.unprocessable('UNKNOWN_HEADER', 'Nonempty data requires a supported column header.');
+        continue;
+      }
 
       const val = cell.value;
       switch (header) {
         case 'External ID':
           rawExternalId = val;
           // Check if stored as numeric without text formatting
-          externalIdIsNumeric = cell.isNumericRaw && cell.type !== 's' && cell.type !== 'str' && cell.type !== 'inlineStr';
+          externalIdIsNumeric = cell.isNumericRaw;
           break;
         case 'Title':
           rawTitle = val;
@@ -583,7 +613,8 @@ export function parseExcelWorkbook(fileBuffer: Buffer): ParseExcelResult {
           break;
         case 'Due Date':
           rawDueDate = val;
-          dueDateIsSerial = cell.isNumericRaw;
+          dueDateIsSerial = cell.isNumericRaw && cell.dateStyled;
+          if (cell.isNumericRaw && !cell.dateStyled) rawDueDate = '[general numeric cell]';
           break;
         case 'Assignees':
           rawAssignees = val;
@@ -658,7 +689,7 @@ export function parseExcelWorkbook(fileBuffer: Buffer): ParseExcelResult {
     }
 
     // 3. Description
-    const description = rawDescription.trim();
+    const description = rawDescription;
     if (description.length > 20_000) {
       rawErrors.push({
         field: 'description',
@@ -762,6 +793,8 @@ export function parseExcelWorkbook(fileBuffer: Buffer): ParseExcelResult {
     });
   }
 
+  if (!headerMap) throw HttpError.unprocessable('MISSING_REQUIRED_HEADER', 'Cards requires its row 1 header.');
+  checkBudget();
   return {
     sheetName: targetSheet.name,
     date1904,

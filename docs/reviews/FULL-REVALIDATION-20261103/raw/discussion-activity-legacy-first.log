@@ -1,0 +1,262 @@
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ B-5 activity coverage: writes, atomicity, replay, visibility and leaks
+  ✔ flow: each write records exactly one row with the expected action (174.476917ms)
+  ✔ every written action name is in ACTIVITY_ACTIONS (0.531167ms)
+  ✔ safe_changes carry ids and roles only: no token, no invitee email, no description, no brief text (0.46375ms)
+  ✔ a failed write records nothing: stale board version and duplicate column name (10.924958ms)
+  ✔ idempotent replay writes no duplicate row (9.333958ms)
+  ✔ visibility: owner reads board and project rows in the project feed (5.151125ms)
+  ✔ visibility: manager without a grant sees project rows and no board rows (4.794667ms)
+  ✔ visibility: manager with a grant on b1 sees b1 rows but not b2 rows (5.252125ms)
+  ✔ visibility: member with a grant gets 403 on the project feed and sees b1 rows, no project rows, in overview (9.29275ms)
+  ✔ visibility: member with no grant sees nothing; stranger gets 404 (7.779792ms)
+  ✔ overview (B-6): owner and manager see project rows; member, viewer and no-grant member do not (20.747416ms)
+  ✔ overview (B-6): no token or invitee email in any overview body (9.220208ms)
+  ✔ leak: the owner feed JSON never contains a token or an invitee email (3.868208ms)
+  ✔ removing a member also revokes their pending invitation and logs that revoke once (6.879042ms)
+✔ B-5 activity coverage: writes, atomicity, replay, visibility and leaks (310.026917ms)
+▶ B-9 mentions: only readers of the card may be mentioned; refusals do not reveal who exists
+  ✖ a viewer with a board grant can be mentioned and is notified (25.516291ms)
+  ✔ refuses a member with no board grant with 422 and writes nothing (10.905125ms)
+  ✔ refuses a removed member who once had a grant with 422 and writes nothing (9.730917ms)
+  ✔ refuses a user of another project with 422 and writes nothing (9.533875ms)
+  ✔ refuses a registered user who is not a member of the project with 422 and writes nothing (9.147708ms)
+  ✔ refuses an id that does not exist with 422 and writes nothing (9.2335ms)
+  ✔ the refusals for an existing non-reader and a missing id are identical (0.368416ms)
+  ✖ a self-mention is accepted and notifies nobody (9.120584ms)
+  ✖ an idempotent replay writes no second comment and no second notification (8.866917ms)
+✖ B-9 mentions: only readers of the card may be mentioned; refusals do not reveal who exists (138.043125ms)
+▶ B-9 mentions: edits do not add notifications (v1 rule, documented)
+  ✖ an edit that adds a mention of a reader does not notify (docs/API.md: edits do not re-notify in v1) (9.522791ms)
+✖ B-9 mentions: edits do not add notifications (v1 rule, documented) (32.431292ms)
+✖ B-9 mentions: a notification is re-authorised at read time, so revoked readers lose the snippet and title (19.624959ms)
+▶ mounted activity and notifications enforce board access
+  ✔ project and card activity hide hidden boards and unknown events before pagination (41.444208ms)
+  ✔ inbox hides hidden and legacy rows, and mark operations respect board access (18.126041ms)
+  ✔ revocation invalidates cursors and blocks reads and marks (17.047083ms)
+  ✔ notification read and grant revocation serialize (22.879833ms)
+  ✔ batch read commits before a waiting revocation, then later marks are denied (26.211333ms)
+✔ mounted activity and notifications enforce board access (334.312625ms)
+▶ unmounted activity scope draft on isolated PostgreSQL
+  ✔ manager sees granted board events only; project, unknown and sibling events fail closed (4.09375ms)
+  ✔ owner sees all events in the owned project and members and outsiders are denied (3.844708ms)
+  ✔ pagination filters before LIMIT and preserves microsecond ordering (3.508958ms)
+  ✔ revocation invalidates previous cursor and next reads do not leak board events (4.823875ms)
+  ✔ ancestry constraint and immutable scope reject fabricated changes (5.66725ms)
+  ✔ recordActivity writes automatically scope to board and enforce isolation (13.838708ms)
+✔ unmounted activity scope draft on isolated PostgreSQL (213.292583ms)
+▶ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite
+  ✔ COM-02: Viewers cannot post comments (403 FORBIDDEN) (111.652458ms)
+  ✔ COM-02: Outsiders receive 404 NOT_FOUND on comment post (3.060125ms)
+  ✔ COM-02: Comment post requires mandatory Idempotency-Key header (1.008875ms)
+  ✔ COM-02: Comment body validation (rejects empty or whitespace-only body) (1.290083ms)
+  ✔ COM-02: Member posts valid comment with outbox and activity_log (17.121667ms)
+  ✔ COM-02: Idempotency replay returns identical comment with replayed=true (11.449125ms)
+  ✔ COM-02: Idempotency conflict on same key with different body (4.796541ms)
+  ✔ COM-03: Rejects overlapping mention spans (1.140209ms)
+  ✔ COM-03: Rejects mentions of sibling project users or non-members (9.878916ms)
+  ✖ COM-03: Valid mentions notify teammates but self-mentions do NOT notify (9.043292ms)
+  ✖ COM-01: GET /cards/:cardId/comments returns chronological comments for readers (9.25325ms)
+  ✔ COM-01: Outsiders receive 404 NOT_FOUND on comment listing (2.36075ms)
+  ✖ COM-01: Comment cursor pages are card-scoped and stable across inserts (5.117709ms)
+  ✔ COM-04: Non-author cannot edit another user comment (403 FORBIDDEN) (5.810584ms)
+  ✔ COM-04: Edit comment OCC conflict returns 409 STALE_VERSION (6.343ms)
+  ✔ COM-04: Author successfully edits comment and increments version (9.780375ms)
+  ✔ COM-05: Regular member cannot delete another member comment (403 FORBIDDEN) (13.668625ms)
+  ✔ COM-05: Workspace owner moderates and deletes comment (15.906584ms)
+  ✔ COM-05: Author deletes their own comment (10.940458ms)
+  ✔ DEL-01: Regular member/viewer cannot delete card (403 FORBIDDEN) (4.952958ms)
+  ✔ DEL-01: Delete card OCC check returns 409 STALE_VERSION (7.522208ms)
+  ✔ DEL-01: Manager soft-deletes card with 24-hour restore window and board version increment (9.863541ms)
+  ✔ DEL-08: Trashed card returns 404 NOT_FOUND on direct GET /cards/:cardId (1.0705ms)
+  ✔ DEL-08: Trashed card comments return 404 NOT_FOUND on GET /cards/:cardId/comments (2.272625ms)
+  ✔ COM-06: Posting comment on trashed card is rejected with 400 CARD_IS_TRASHED (2.915083ms)
+  ✔ DEL-02: Non-administrators (members/viewers) receive 403 on trash listing (4.533667ms)
+  ✔ DEL-02: Owner and Manager can list trash with canRestore and blockedReason details (14.788125ms)
+  ✔ DEL-03: Non-admin cannot restore card (403 FORBIDDEN) (2.456375ms)
+  ✔ DEL-03: Manager restores card before deadline with OCC checks (12.338ms)
+  ✔ DEL-04: Destination missing requires explicit toColumnId (32.597042ms)
+  ✔ DEL-05: Expired restore returns HTTP 410 RESTORE_WINDOW_EXPIRED with details (17.169458ms)
+  ✔ Archived project and board reject card and comment writes atomically (30.434125ms)
+  ✔ Comment delete replay rechecks moderator authority after role demotion (21.621917ms)
+  ✔ Comment post retry respects current parent-card trash state (42.6045ms)
+  ✔ DEL-06: Background purge worker, private content redaction, and fenced winner race (62.963084ms)
+✖ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite (523.561875ms)
+✔ comment POST and card move on one card interleave without deadlock (review R2-01) (547.772208ms)
+✔ a board-scoped replay after the grant is revoked returns 404 and no saved body (review R2-04) (190.015125ms)
+▶ replay after revocation: comment edit, comment delete, card trash and import commit (review R3-03)
+  ✔ comment edit (202.914208ms)
+  ✔ comment delete (213.1ms)
+  ✔ card trash (201.06175ms)
+  ✔ import commit (211.699667ms)
+✔ replay after revocation: comment edit, comment delete, card trash and import commit (review R3-03) (829.53675ms)
+ℹ tests 84
+ℹ suites 0
+ℹ pass 73
+ℹ fail 11
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 24239.701959
+
+✖ failing tests:
+
+test at apps/api/test/b9-mention-access.test.ts:86:11
+✖ a viewer with a board grant can be mentioned and is notified (25.516291ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_ERROR","message":"Mention text must match a selected person.","requestId":"c8cf1e71-d4bc-4cca-8b48-bbe2d911206c","details":{"issues":[{"path":"mentions","message":"Mention span must contain the complete selected @name token"}]}}}
+  
+  422 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/b9-mention-access.test.ts:88:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/b9-mention-access.test.ts:86:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/b9-mention-access.test.ts:117:11
+✖ a self-mention is accepted and notifies nobody (9.120584ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/b9-mention-access.test.ts:120:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/b9-mention-access.test.ts:117:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/b9-mention-access.test.ts:124:11
+✖ an idempotent replay writes no second comment and no second notification (8.866917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/b9-mention-access.test.ts:128:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/b9-mention-access.test.ts:124:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/b9-mention-access.test.ts:144:11
+✖ an edit that adds a mention of a reader does not notify (docs/API.md: edits do not re-notify in v1) (9.522791ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_ERROR","message":"Mention text must match a selected person.","requestId":"bff77708-88c4-42fa-9f90-1894d4648dcf","details":{"issues":[{"path":"mentions","message":"Mention span must contain the complete selected @name token"}]}}}
+  
+  422 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/b9-mention-access.test.ts:150:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/b9-mention-access.test.ts:144:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/b9-mention-access.test.ts:155:1
+✖ B-9 mentions: a notification is re-authorised at read time, so revoked readers lose the snippet and title (19.624959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/b9-mention-access.test.ts:159:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/com-del.test.ts:383:11
+✖ COM-03: Valid mentions notify teammates but self-mentions do NOT notify (9.043292ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/com-del.test.ts:401:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/com-del.test.ts:383:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/com-del.test.ts:427:11
+✖ COM-01: GET /cards/:cardId/comments returns chronological comments for readers (9.25325ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(json.data.length >= 2)
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/com-del.test.ts:434:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/com-del.test.ts:427:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/com-del.test.ts:454:11
+✖ COM-01: Comment cursor pages are card-scoped and stable across inserts (5.117709ms)
+  AssertionError [ERR_ASSERTION]: The expression evaluated to a falsy value:
+  
+    assert.ok(firstPage.nextCursor)
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/com-del.test.ts:461:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/com-del.test.ts:454:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

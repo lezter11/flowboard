@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "frozenBeforeNewProbeCode": true,
+  "date": "2026-11-03",
+  "features": [
+    "FND-04",
+    "UX-05"
+  ],
+  "mode": "validation only; no runtime source fixes until root coordination",
+  "target": "actual Node startNode HTTP entry and local workerd Worker entry, loopback PostgreSQL fresh schemas only",
+  "mandatoryProof": [
+    {
+      "id": "runtime-health-protocol",
+      "criteria": "Both actual entry points: liveness and real DB readiness200/no-store, unauthorized401 and private missing404, valid/invalid request IDs, X-Request-Id matches error envelope, Server-Timing valid on app-handled success/errors; HEAD/OPTIONS/CORS do not disclose private data."
+    },
+    {
+      "id": "runtime-workload",
+      "criteria": "Synthetic1000-card board across5columns, long valid titles/descriptions and assignees. Record each raw sample end-to-end fully consumed response bytes/time for first request after fresh runtime startup and5 sequential warm requests per Node/Worker; include startup time separately. Assert counts and bounded projection/cursors, no full private description/email in summary, authorized Member board reads and sibling isolation."
+    },
+    {
+      "id": "runtime-caps",
+      "criteria": "Actual wire standard1MiB and import5MiB+64KiB/image10MiB+64KiB body cap boundaries, signed-in/anonymous control, malformed JSON/validation and structured safe413. At-cap need not be valid business payload; distinguish accepted-size from success."
+    },
+    {
+      "id": "runtime-db-deadline",
+      "criteria": "Separate real SQL connection holds required board write lock beyond configured3s local statement timeout; mounted valid write returns controlled retryable503/504 rather than generic500, no mutation/receipt/activity/outbox commit, response lacks SQL/credential/stack data, later request succeeds after lock release. Report failure without runtime fix."
+    },
+    {
+      "id": "runtime-response-deadline",
+      "criteria": "Existing middleware deadline tested with genuine PostgreSQL pg_sleep (test-only mounted route) under short configured HTTP deadline; record response timing and whether underlying SQL continues/settles. Do not claim cancellation from504 alone."
+    },
+    {
+      "id": "runtime-safe-fault",
+      "criteria": "Real unavailable DB readiness503 leaves liveness200; deliberate exception via test-only app route has private500. Identify direct Worker bootstrap missingbinding as current pre-middleware shape, not same error-envelope guarantee."
+    },
+    {
+      "id": "remaining-source-survey",
+      "criteria": "Read actual98feature definitions and current mounted/backend source/test coverage, reconcile prior discovery/handoff gap reports against changed source; enumerate unresolved backend/evidence gaps with files/lines and existing/new proof references, no builderscore/approval."
+    }
+  ],
+  "measurementLimits": [
+    "Architecture targets warm snapshotp95<=500ms/move<=300ms are explicitly proposed, not newly promoted into release thresholds.",
+    "Local process/workerd start does not measure hosted coldstart, database suspension, Hyperdrive/R2/provider latency or browser input-to-paint.",
+    "Small sequential sample has sample quantiles only, not productionp95/p99/load/SLO proof. No cloud/network/provider calls; local wrangler harness uses synthetic bindings and disables metrics.",
+    "Capture actual installed+declared versions and OS/CPU/RAM/Node/PG config; root currently changing declared deps before coordinated npmci, so evidence may need rerun on final lock.",
+    "Only fresh schemas in identity-extra/import DB, never primary DB; cleanup only generated schema/temp config. Existing external server/process untouched."
+  ],
+  "plannedFiles": [
+    "apps/api/test/runtime-validation.test.ts",
+    "apps/api/test/runtime-protocol-probe.ts if needed",
+    "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-validation-*",
+    "docs/reviews/FULL-REVALIDATION-20261103/runtime-validation-result.md/.json",
+    "docs/reviews/FULL-REVALIDATION-20261103/remaining-backend-validation.md/.json"
+  ],
+  "approval": null,
+  "score": null
+}

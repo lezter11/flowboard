@@ -1,0 +1,316 @@
+✖ import repair: description survives mapping and commit; original row reimport skips after card edit (1.979542ms)
+✖ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (0.526ms)
+✖ import repair: changed duplicate in a separately ready preview rolls back its whole batch (0.23475ms)
+✖ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (0.217625ms)
+✖ import repair: commit cannot override preview default column and stale board structure rejects confirmation (0.216375ms)
+✖ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (0.198834ms)
+✖ import repair: cancel and expired status remove staged titles/emails and prevent commit (0.190042ms)
+✖ import repair: purge removes imported card title/email copies but keeps duplicate identity (0.181333ms)
+✖ import repair: target membership revocation winning its lock makes a concurrent mounted confirmation stale (0.221417ms)
+✖ import repair: confirmation holding recipient locks commits before waiting revocation with no deadlock (0.294583ms)
+✖ import repair: scheduled retention is bounded, repeatable, and preserves live previews/results/duplicate markers (0.193083ms)
+✖ import repair: failure on final card insert rolls back all cards, external markers, activity and receipt (0.157583ms)
+✖ import repair: migration0021 upgrades old previews conservatively and reruns without changing saved cards/markers (0.178458ms)
+✖ import repair: actual Worker scheduled entry cleans expired previews without a browser request (0.149417ms)
+✖ import repair: an unknown source mapping preserves original description/hash and literal inline strings parse (0.149334ms)
+✖ XML mounted: original findings reject422 before any import, receipt, card or activity write (1.881583ms)
+✖ XML mounted: prior legal entity/richtext/UTF16/singlequotes persist exact values (0.591334ms)
+✖ XML mounted: literal identity, CDATA and shared/inline representations compete without duplicate effects (0.296375ms)
+ℹ tests 18
+ℹ suites 0
+ℹ pass 0
+ℹ fail 18
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 443.888834
+
+✖ failing tests:
+
+test at apps/api/test/import-repair.test.ts:119:1
+✖ import repair: description survives mapping and commit; original row reimport skips after card edit (1.979542ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:120:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:151:1
+✖ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (0.526ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:152:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:164:1
+✖ import repair: changed duplicate in a separately ready preview rolls back its whole batch (0.23475ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:165:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:182:1
+✖ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (0.217625ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:183:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:199:1
+✖ import repair: commit cannot override preview default column and stale board structure rejects confirmation (0.216375ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:200:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:214:1
+✖ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (0.198834ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:215:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:246:1
+✖ import repair: cancel and expired status remove staged titles/emails and prevent commit (0.190042ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:247:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:268:1
+✖ import repair: purge removes imported card title/email copies but keeps duplicate identity (0.181333ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:269:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:292:1
+✖ import repair: target membership revocation winning its lock makes a concurrent mounted confirmation stale (0.221417ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:293:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:316:1
+✖ import repair: confirmation holding recipient locks commits before waiting revocation with no deadlock (0.294583ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:317:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:359:1
+✖ import repair: scheduled retention is bounded, repeatable, and preserves live previews/results/duplicate markers (0.193083ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:360:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:400:1
+✖ import repair: failure on final card insert rolls back all cards, external markers, activity and receipt (0.157583ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:401:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:418:1
+✖ import repair: migration0021 upgrades old previews conservatively and reruns without changing saved cards/markers (0.178458ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:419:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:451:1
+✖ import repair: actual Worker scheduled entry cleans expired previews without a browser request (0.149417ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:452:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-repair.test.ts:476:1
+✖ import repair: an unknown source mapping preserves original description/hash and literal inline strings parse (0.149334ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:24:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:477:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-xml-mounted.test.ts:34:1
+✖ XML mounted: original findings reject422 before any import, receipt, card or activity write (1.881583ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async setup (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-mounted.test.ts:18:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-mounted.test.ts:35:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-xml-mounted.test.ts:45:1
+✖ XML mounted: prior legal entity/richtext/UTF16/singlequotes persist exact values (0.591334ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async setup (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-mounted.test.ts:18:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-mounted.test.ts:46:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/import-xml-mounted.test.ts:62:1
+✖ XML mounted: literal identity, CDATA and shared/inline representations compete without duplicate effects (0.296375ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async setup (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-mounted.test.ts:18:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-mounted.test.ts:63:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }

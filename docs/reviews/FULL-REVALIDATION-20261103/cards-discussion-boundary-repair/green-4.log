@@ -1,0 +1,40 @@
+✔ create assignment serializes demotion: assignment wins first (395.950583ms)
+✔ create assignment serializes demotion: eligibility wins first (301.730666ms)
+✔ create assignment serializes revocation: assignment wins first (358.075584ms)
+✔ create assignment serializes revocation: eligibility wins first (313.891292ms)
+✔ update assignment serializes demotion: assignment wins first (311.911166ms)
+✔ update assignment serializes demotion: eligibility wins first (332.9495ms)
+✔ update assignment serializes revocation: assignment wins first (312.363083ms)
+✔ update assignment serializes revocation: eligibility wins first (292.0655ms)
+✔ create locks selected recipients; title-only edit preserves historical assignees and replay still checks the actor (298.806459ms)
+✔ strict command boundaries reject unknown fields without writes or receipts (315.7615ms)
+✔ strict card and comment query boundaries reject malformed and ignored values (455.683458ms)
+✔ comment edit redacts exact notification copies and legacy outbox payload without creating new delivery intentions (382.052875ms)
+✔ failed comment edit rolls source and copied previews back together; a later committed edit sanitizes busy outbox on retry (315.293208ms)
+✔ an edit preserves the accepted creation delivery intent but never adds edited mention recipients (332.443375ms)
+✔ edit wins source lock while actual consumer holds its outbox claim: no deadlock or old copied text after recovery (301.155542ms)
+✔ actual consumer wins source guard and commits once before waiting mounted comment edit redacts its preview (352.177875ms)
+✔ lifecycle retention: column with only expired card reference retires live column and preserves tombstone/history (356.896334ms)
+✔ lifecycle retention: column with only purged card reference retires live column and preserves tombstone/history (279.6935ms)
+✔ lifecycle retention: ready import default-column context survives live column retirement (392.124042ms)
+✔ lifecycle retention: terminal import default-column context survives live column retirement (383.499167ms)
+✔ lifecycle retention: tombstoning own and moderated comments removes copied inbox snippets while retaining facts (403.833709ms)
+✔ lifecycle retention: copied legacy comment outbox fields are scrubbed on deletion and recovery cannot recreate them (309.112084ms)
+✔ lifecycle retention: recovery distinguishes two comment events on the same card and repeats neither (364.641708ms)
+✔ lifecycle retention: unreferenced column deletes once while final/active/restorable guards remain (310.682458ms)
+✔ lifecycle retention: concurrent column delete/card create create wins without partial history (293.137667ms)
+✔ lifecycle retention: concurrent column delete/card create delete wins without partial history (308.56275ms)
+✔ lifecycle retention: delete winning comment lock does not deadlock with an in-flight outbox consumer or resurrect text (325.389ms)
+✔ lifecycle retention: actual consumer holds source share lock and completes before waiting comment deletion (403.204208ms)
+✔ lifecycle retention: failed tombstone commit rolls back comment, inbox redaction, event and receipt (291.255959ms)
+✔ lifecycle retention: legacy migration redacts unknown sources honestly and preserves exact known source/recipient on rerun (289.288708ms)
+✔ Outbox: a real SQL poison error retries/quarantines without aborting independent accepted work (351.024292ms)
+✔ Outbox: transaction rollback/restart and concurrent consumers produce one logical notification (289.83575ms)
+ℹ tests 32
+ℹ suites 0
+ℹ pass 32
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 12306.436292

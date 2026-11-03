@@ -1,0 +1,23 @@
+{
+  "version": "ui-feed-repair-1",
+  "features": [
+    "QRY-03",
+    "NTF-01",
+    "NTF-02",
+    "DEL-02",
+    "ACT-01",
+    "UX-01",
+    "UX-02",
+    "UX-04"
+  ],
+  "mandatoryCriteria": [
+    "My Tasks selects exactly one explicit authorized active project (URL/current/last/first authorized), no per-project fanout or All projects. Server due/priority are sent before pagination; cursor key includes actor/project/filter. Preserve server order and source-board card links. No false total or global search claim over loaded pages.",
+    "Inbox/project activity/trash expose complete actual cursor chains, cancellation, loaded-vs-more counts, in-place stale cursor recovery and explicit failed/loading/permission state. Local-only search/category/person/date controls are labeled filtering loaded rows while further pages remain.",
+    "Feed queries/polling bind actor and current project. Foreground visibility/focus/reconnect refresh live pages; current session expiry wins over cached session data and protected caches are cancelled/removed on actor/access-scope change. Own unsent drafts remain memory-only and are not authorization evidence.",
+    "Trash retains each row version/structureVersion/canRestore and server-clock skew across pages. No restore enabled after expired window or current archived role/context; restore failures preserve picker/draft.",
+    "My Tasks due grouping cannot guess shared workspace calendar day from browser timezone. Until server asOfDate/timezone is available, keep raw due dates/server due filters and canonical order; backend gap communicated to root.",
+    "Meaningful wire/state regressions cover exact opaque cursor/server filters/AbortSignal plus actor/permission fingerprint/session401 precedence; run unit suite/typecheck/build, raw logs preserved. Root real browser+API+PG/final independent target review/hostedUAT remain pending."
+  ],
+  "scope": "apps/web only plus evidence. No shared contracts/backend/dependency edits. Root npmci in progress: no module/test/build commands until ready. Existing comment/invitation drafts and retry identity preserved.",
+  "contractAmendment": "Before final implementation checks root added required MyTasks asOfDate+timezone computed from selected workspace for all permitted roles; response and cursor fingerprint bind date/timezone. UI displays these directly and preserves raw due dates/server order."
+}

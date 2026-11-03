@@ -1,0 +1,126 @@
+✖ My Tasks: both routes traverse tied/null dates with bounded pages and no duplication (237.294542ms)
+✖ My Tasks: due-state and priority are SQL filters; done is never overdue (177.023084ms)
+✖ My Tasks: invalid queries, altered context and grant revocation fail closed (201.085833ms)
+✖ My Tasks: archive lifecycle hides assignments and invalidates a prior cursor (176.040541ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 0
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1026.487333
+
+✖ failing tests:
+
+test at apps/api/test/my-tasks-repair.test.ts:17:1
+✖ My Tasks: both routes traverse tied/null dates with bounded pages and no duplication (237.294542ms)
+  error: column "assigned_by" of relation "card_assignees" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:12:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:18:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 138,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '44',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_target.c',
+    line: '1065',
+    routine: 'checkInsertTargets'
+  }
+
+test at apps/api/test/my-tasks-repair.test.ts:33:1
+✖ My Tasks: due-state and priority are SQL filters; done is never overdue (177.023084ms)
+  error: column "assigned_by" of relation "card_assignees" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:12:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:34:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    length: 138,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '44',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_target.c',
+    line: '1065',
+    routine: 'checkInsertTargets'
+  }
+
+test at apps/api/test/my-tasks-repair.test.ts:42:1
+✖ My Tasks: invalid queries, altered context and grant revocation fail closed (201.085833ms)
+  error: column "assigned_by" of relation "card_assignees" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:12:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:43:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    length: 138,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '44',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_target.c',
+    line: '1065',
+    routine: 'checkInsertTargets'
+  }
+
+test at apps/api/test/my-tasks-repair.test.ts:56:1
+✖ My Tasks: archive lifecycle hides assignments and invalidates a prior cursor (176.040541ms)
+  error: column "assigned_by" of relation "card_assignees" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:12:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/my-tasks-repair.test.ts:57:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    length: 138,
+    severity: 'ERROR',
+    code: '42703',
+    detail: undefined,
+    hint: undefined,
+    position: '44',
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'parse_target.c',
+    line: '1065',
+    routine: 'checkInsertTargets'
+  }

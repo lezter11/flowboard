@@ -1,0 +1,51 @@
+▶ cursor integrity: same-millisecond microseconds and exact ties walk once in both directions
+  ✔ comments (35.654417ms)
+  ✔ trash (13.111834ms)
+  ✔ cardActivity (17.100792ms)
+  ✔ projectActivity (12.318792ms)
+  ✔ workspaceActivity (7.691041ms)
+  ✔ notifications (8.750458ms)
+✔ cursor integrity: same-millisecond microseconds and exact ties walk once in both directions (349.155583ms)
+▶ cursor integrity: forged impossible dates never reach PostgreSQL as500
+  ✔ comments (20.420875ms)
+  ✔ trash (11.612166ms)
+  ✔ cardActivity (12.688625ms)
+  ✔ projectActivity (9.142959ms)
+  ✔ workspaceActivity (6.785583ms)
+  ✔ notifications (8.534083ms)
+✔ cursor integrity: forged impossible dates never reach PostgreSQL as500 (254.91475ms)
+▶ cursor integrity: actor, resource and notification filter scope are bound
+  ✔ /cards/active/comments (10.773875ms)
+  ✔ /projects/prj1/trash (5.755ms)
+  ✔ /projects/prj1/activity (5.010458ms)
+  ✔ /notifications (4.058542ms)
+✔ cursor integrity: actor, resource and notification filter scope are bound (226.200875ms)
+✖ cursor integrity: lexical projects walk ties and reject malformed/cross-scope cursors (190.362667ms)
+ℹ tests 20
+ℹ suites 0
+ℹ pass 19
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1229.036959
+
+✖ failing tests:
+
+test at apps/api/test/cursor-integrity-repair.test.ts:9:62
+✖ cursor integrity: lexical projects walk ties and reject malformed/cross-scope cursors (190.362667ms)
+  AssertionError [ERR_ASSERTION]: {"data":[{"id":"prj2","workspaceId":"ws","name":"A","description":null,"defaultBoardId":null,"isArchived":false,"version":1,"createdAt":"2026-11-03T06:27:40.038Z","updatedAt":"2026-11-03T06:27:40.038Z","role":"owner"}],"nextCursor":"eyJ2IjoyLCJhY3RvcklkIjoidXNyX2E3YThhZjhjM2M4ZDdmYjYiLCJuYW1lIjoiQSIsImlkIjoicHJqMiIsInNjb3BlIjoiYWNjZXNzaWJsZToqIn0"}
+  
+  200 !== 400
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:57:242)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 400,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

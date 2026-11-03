@@ -10,21 +10,22 @@ import { updateProjectMember, removeProjectMember } from '../../adapters/members
 import { HttpError } from '../errors.ts';
 import { authMiddleware } from '../middleware/auth.ts';
 import { acquireWriteGrantLock, acquireWritableProjectContextLock } from '../../adapters/rbac.ts';
+import { lockProjectQuota } from '../../adapters/quotas.ts';
+import { limitsOf } from '../../services/limits.ts';
 
 export const membersRoutes = new Hono();
 
-async function authorizeMemberReplay(
+async function authorizeMemberMutation(
   client: import('pg').ClientBase,
   projectId: string,
   actorId: string,
   targetUserId: string,
   newRole?: string,
+  newStatus?: string,
 ) {
   const grant = await acquireWriteGrantLock(client, projectId, actorId, 'manager');
-  await acquireWritableProjectContextLock(client, projectId);
-
   const target = await client.query<{ role: string }>(
-    `SELECT role FROM project_memberships WHERE project_id = $1 AND user_id = $2 FOR SHARE`,
+    `SELECT role FROM project_memberships WHERE project_id = $1 AND user_id = $2 FOR UPDATE`,
     [projectId, targetUserId],
   );
   if (!target.rows[0]) {
@@ -45,6 +46,10 @@ async function authorizeMemberReplay(
       throw HttpError.forbidden('Only workspace owners can appoint managers.', 'FORBIDDEN');
     }
   }
+  if (newRole !== undefined && (newStatus !== 'removed' || newRole !== target.rows[0].role)) {
+    await acquireWritableProjectContextLock(client, projectId);
+  }
+  return { removalOnly: newStatus === 'removed' && newRole === target.rows[0].role };
 }
 
 // PATCH /api/v1/projects/:projectId/members/:userId (mounted under /api/v1)
@@ -73,6 +78,8 @@ membersRoutes.patch('/projects/:projectId/members/:userId', authMiddleware, asyn
 
   try {
     await client.query('BEGIN');
+    await lockProjectQuota(client, projectId);
+    const authorization = await authorizeMemberMutation(client, projectId, actor.id, userId, body.role, body.status);
 
     const methodPath = `/api/v1/projects/${projectId}/members/${userId}`;
     const replay = await checkOrReplayReceipt(
@@ -86,12 +93,16 @@ membersRoutes.patch('/projects/:projectId/members/:userId', authMiddleware, asyn
     );
 
     if (replay) {
-      await authorizeMemberReplay(client, projectId, actor.id, userId, body.role);
+      const outcome = replay.responseBody as { data: Record<string, unknown> };
+      const { state: classification, ...data } = outcome.data;
+      // A mixed role-change/removal can look like a pure removal after it has run. The safe,
+      // server-derived receipt marker preserves the original command classification. Legacy
+      // receipts without it cannot authorize ambiguous removal replay on archived projects.
+      if (classification !== 'member_access_removed') {
+        await acquireWritableProjectContextLock(client, projectId);
+      }
       await client.query('ROLLBACK');
-      return c.json(
-        { ...(replay.responseBody as object), replayed: true },
-        replay.statusCode as any,
-      );
+      return c.json({ ...outcome, data, replayed: true }, replay.statusCode as any);
     }
 
     const membership = await updateProjectMember(
@@ -102,6 +113,7 @@ membersRoutes.patch('/projects/:projectId/members/:userId', authMiddleware, asyn
       body.role,
       body.status,
       body.expectedVersion,
+      limitsOf(c),
     );
 
     const responsePayload = { data: membership };
@@ -114,16 +126,15 @@ membersRoutes.patch('/projects/:projectId/members/:userId', authMiddleware, asyn
       methodPath,
       body,
       200,
-      responsePayload,
+      { data: { ...membership, state: authorization.removalOnly ? 'member_access_removed' : 'member_role_or_access_changed' } },
     );
 
     await client.query('COMMIT');
 
     if (saved?.replayed) {
-      return c.json(
-        { ...(saved.responseBody as object), replayed: true },
-        saved.statusCode as any,
-      );
+      const outcome = saved.responseBody as { data: Record<string, unknown> };
+      const { state: _classification, ...data } = outcome.data;
+      return c.json({ ...outcome, data, replayed: true }, saved.statusCode as any);
     }
 
     return c.json({ ...responsePayload, replayed: false }, 200);
@@ -158,6 +169,8 @@ membersRoutes.delete('/projects/:projectId/members/:userId', authMiddleware, asy
 
   try {
     await client.query('BEGIN');
+    await lockProjectQuota(client, projectId);
+    await authorizeMemberMutation(client, projectId, actor.id, userId);
 
     const methodPath = `/api/v1/projects/${projectId}/members/${userId}`;
     const replay = await checkOrReplayReceipt(
@@ -171,7 +184,6 @@ membersRoutes.delete('/projects/:projectId/members/:userId', authMiddleware, asy
     );
 
     if (replay) {
-      await authorizeMemberReplay(client, projectId, actor.id, userId);
       await client.query('ROLLBACK');
       return c.json(
         { ...(replay.responseBody as object), replayed: true },

@@ -2,17 +2,25 @@
 
 import { pickFocusTarget } from '@/lib/inert-lock';
 import { projectAccess } from '@/lib/project-access';
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type DragEvent, type ReactNode } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useRouter } from '@/lib/guarded-router';
 import { useRememberLocation } from '@/lib/last-location';
 import { useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { BoardSnapshotData, CardSummary, ColumnSummary, PersonDisplay } from '@flowboard/contracts';
+import type { BoardSnapshotData, CardSummary, ColumnSummary, CreateCardInput, PersonDisplay, PlacementInput } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
+import { undoSessions, type UndoRequest } from '@/lib/move-undo-state';
+import { quickAddSessions } from '@/lib/quick-add-state';
+import { originalUndoInput } from '@/lib/card-drafts';
 import { hasUnsaved } from '@/lib/unsaved';
+import { discardRefusedRows } from '@/lib/feed-state';
+import { createRetainedCommand } from '@/lib/retained-command';
 import { toastFailure } from '@/lib/toast-failure';
 import { describeError } from '@/lib/errors';
 import { boardQueryOptions } from '@/lib/queries';
+import { applyBoardPages, boardPageGeneration, columnPageKey, mergeColumnCards, placementAtIndex, serverBoardFilters, type ColumnPages } from '@/lib/board-pages';
+import { BoardLifecycleDialog } from './board-lifecycle-dialog';
 import { daysUntil } from '@/lib/dates';
 import { EMPTY_FILTERS, filtersActive, neighbours, optimisticMove, sortedCards, toneFor, type Filters } from '@/lib/board-model';
 import { can, normalizeRole, ROLE_META } from '@/lib/roles';
@@ -60,6 +68,14 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
   const cardStyle: CardStyle = params.get('cards') === 'glass' ? 'glass' : 'focus';
 
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
+  const [queryText, setQueryText] = useState('');
+  useEffect(() => { const timer = window.setTimeout(() => setQueryText(filters.q.trim()), 200); return () => window.clearTimeout(timer); }, [filters.q]);
+  const queryFilters = useMemo(() => serverBoardFilters({ ...filters, q: queryText }), [queryText, filters.priority, filters.assignees, filters.due]);
+  const [columnPages, setColumnPages] = useState<ColumnPages>({});
+  const pageControllers = useRef(new Map<string, AbortController>());
+  const [optimistic, setOptimistic] = useState<{ card: CardSummary; boardId: string; toColumnId: string; index: number } | null>(null);
+  const filterIdentity = JSON.stringify(queryFilters);
+  useEffect(() => () => { pageControllers.current.forEach((controller) => controller.abort()); pageControllers.current.clear(); }, [filterIdentity]);
   // "/" focuses the card search (same as the rail's Search cards); the rail sends ?search=1 when it opens a board first.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -86,10 +102,22 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
   const [addBoardPick, setAddBoardPick] = useState<string | null>(null);
   const [newBoardOpen, setNewBoardOpen] = useState(false);
   const [editBoardOpen, setEditBoardOpen] = useState(false);
+  const [lifecycleOpen, setLifecycleOpen] = useState(false);
   const [columnsOpen, setColumnsOpen] = useState(false);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [quickAddBusy, setQuickAddBusy] = useState(false);
   const [quickAddError, setQuickAddError] = useState('');
+  const actorId=state.status==='ready'?state.session.actor.id:'';
+  const boardIdentity=JSON.stringify(boardIds);
+  const quickSession=useMemo(()=>quickAddSessions.forBoards(actorId,boardIds),[actorId,boardIdentity]);
+  const undoSession=useMemo(()=>undoSessions.forBoards(actorId,boardIds),[actorId,boardIdentity]);
+  const undoRequest=useSyncExternalStore(undoSession.subscribe,undoSession.get,undoSession.get);
+  const [undoBusy,setUndoBusy]=useState(false);
+  const quickState=useSyncExternalStore(quickSession.subscribe,quickSession.get,quickSession.get);
+  const quickDrafts=quickState.drafts;const quickAddUnresolved=quickState.unresolved;
+  const setQuickDrafts=quickSession.setDrafts;const setQuickAddUnresolved=quickSession.setUnresolved;
+  const [draftRecoveryColumn,setDraftRecoveryColumn]=useState('');
+  const quickAddCommands={current:quickSession.commands};
   const [moveCard, setMoveCard] = useState<CardSummary | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
   const [drop, setDrop] = useState<DropTarget | null>(null);
@@ -103,39 +131,51 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
   }, [dropHint]);
 
   const { pokeSoon } = usePolling();
-  const boardQueries = useQueries({ queries: boardIds.map((id) => boardQueryOptions(id)) });
+  const boardQueries = useQueries({ queries: boardIds.map((id) => ({...boardQueryOptions(id, queryFilters),enabled:state.status==='ready'})) });
   const boardQuery = boardQueries[0]!;
-  const snapshot = boardQuery.data;
+  const snapshot = state.status==='ready' && !(boardQuery.error instanceof ApiError&&[401,403,404].includes(boardQuery.error.status)) ? boardQuery.data : undefined;
   const boardId = boardIds[0]!;
   useRememberLocation(snapshot?.board.projectId, snapshot?.board.id ?? null);
-  const boardKey = useMemo(() => ['board', boardId] as const, [boardId]);
+  const filtersPending = filters.q.trim() !== queryText || boardQueries.some((query) => query.isPlaceholderData);
   const refresh = useCallback((id?: string) => {
     if (id) void queryClient.invalidateQueries({ queryKey: ['board', id] });
     else for (const each of boardIds) void queryClient.invalidateQueries({ queryKey: ['board', each] });
     pokeSoon(1000);
   }, [queryClient, boardIds, pokeSoon]);
 
-  usePollKeys(boardIds.map((id) => ['board', id] as const), true);
+  usePollKeys(boardIds.map((id) => boardQueryOptions(id, queryFilters).queryKey), state.status==='ready');
 
   const project = state.status === 'ready' ? state.session.accessibleProjects.find((p) => p.id === snapshot?.board.projectId) : undefined;
   const role = normalizeRole(project?.role);
   const projectArchived = !!project?.isArchived;
-  // A 401 while text is unsaved is not "lost": keep the board (and its open card) on screen; the shell offers Sign in (unsaved.ts).
-  const lostOf = (q: (typeof boardQueries)[number]) => q.error instanceof ApiError && [401, 403, 404].includes(q.error.status) && !(q.error.status === 401 && hasUnsaved());
+  const filterPeopleQueries = useQueries({ queries: boardIds.map((id) => ({
+    queryKey: ['board-filter-people', id, state.status === 'ready' ? state.session.actor.id : ''],
+    queryFn: async () => (await api.listProjectPeople(snapshot!.board.projectId, 'assignee', { boardId: id })).data,
+    enabled: !!snapshot && state.status === 'ready',
+    staleTime: 30_000,
+  })) });
+  // Own drafts live separately; a refused read must erase the protected board even while a draft is unsaved.
+  const lostOf = (q: (typeof boardQueries)[number]) => q.error instanceof ApiError && [401, 403, 404].includes(q.error.status);
+
+  const refusedKeys=boardQueries.flatMap((q,index)=>lostOf(q)?[boardQueryOptions(boardIds[index]!,queryFilters).queryKey]:[]);
+  const refusedSignature=JSON.stringify(refusedKeys);
+  useEffect(()=>{for(const key of JSON.parse(refusedSignature))queryClient.getQueryCache().find({queryKey:key,exact:true})?.setState({data:undefined});if(refusedSignature!=='[]'||state.status!=='ready'){setColumnPages({});setOptimistic(null);}},[refusedSignature,state.status,queryClient]);
 
   // Boards that have data and are still reachable; a board that failed or vanished never blanks the others.
-  const live = boardQueries.map((q, i) => ({ id: boardIds[i]!, index: i, query: q, data: q.data, lost: q.isError && lostOf(q) })).filter((b) => b.data && !b.lost);
+  const live = boardQueries.map((q, i) => ({ id: boardIds[i]!, index: i, query: q, data: q.data, lost: q.isError && lostOf(q) })).filter((b) => state.status==='ready'&&b.data&&!b.lost);
   const dataKey = live.map((b) => `${b.id}:${b.query.dataUpdatedAt}`).join('|');
   const boardInfo = useMemo(() => {
     const map = new Map<string, { id: string; name: string; index: number; snap: BoardSnapshotData; canEdit: boolean; canMove: boolean; isArchived: boolean }>();
     for (const b of live) {
       const archived = !!b.data!.board.isArchived || projectArchived;
       const perms = sectionPermissions(can(role, 'edit'), can(role, 'move'), !!b.data!.board.isArchived, projectArchived);
-      map.set(b.id, { id: b.id, name: b.data!.board.name, index: b.index, snap: b.data!, isArchived: archived, ...perms });
+      let snap = applyBoardPages(b.data!, columnPages, queryFilters);
+      if (!filtersActive(filters) && optimistic?.boardId === b.id && snap.columns.find((column) => column.id === optimistic.card.columnId)?.cards.some((card) => card.id === optimistic.card.id && card.version === optimistic.card.version)) snap = optimisticMove(snap, optimistic.card, optimistic.toColumnId, optimistic.index);
+      map.set(b.id, { id: b.id, name: snap.board.name, index: b.index, snap, isArchived: archived, ...perms });
     }
     return map;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dataKey, role, projectArchived]);
+  }, [dataKey, role, projectArchived, columnPages, queryFilters, optimistic, filters]);
   const infos = [...boardInfo.values()];
   const sources: MergeSource[] = useMemo(() => infos.map((i) => ({ id: i.id, name: i.name, isArchived: i.isArchived, columns: i.snap.columns })), [infos]);
   const columns: MergedColumn[] = useMemo(() => (sources.length ? mergeColumns(sources) : []), [sources]);
@@ -148,8 +188,9 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
   const people = useMemo(() => {
     const map = new Map<string, PersonDisplay>();
     for (const i of infos) for (const p of i.snap.people) if (!map.has(p.id) || p.activeInProject) map.set(p.id, p);
+    for (const query of filterPeopleQueries) if (!query.isError) for (const p of query.data ?? []) map.set(p.id, p);
     return map;
-  }, [infos]);
+  }, [infos, filterPeopleQueries]);
   const canEditCard = useCallback((card: CardSummary) => boardInfo.get(boardOfCard.get(card.id) ?? boardId)?.canEdit ?? false, [boardInfo, boardOfCard, boardId]);
   const canMoveCard = useCallback((card: CardSummary) => boardInfo.get(boardOfCard.get(card.id) ?? boardId)?.canMove ?? false, [boardInfo, boardOfCard, boardId]);
   const addBoards = useMemo(() => addableBoards(infos, (i) => i.canEdit), [infos]);
@@ -175,104 +216,64 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
     router.replace(`${pathname}?${next.toString()}`, { scroll: false });
   }, [params, pathname, router]);
 
-  const matches = useCallback((card: CardSummary) => {
-    const q = filters.q.trim().toLowerCase();
-    if (q) {
-      const hay = [card.title, card.key ?? '', card.descriptionExcerpt ?? '', ...card.assigneeIds.map((id) => formatPersonName(people.get(id)))].join(' ').toLowerCase();
-      if (!hay.includes(q)) return false;
-    }
-    if (filters.assignees.length) {
-      const wantsUnassigned = filters.assignees.includes('unassigned');
-      const wantsPerson = filters.assignees.some((id) => id !== 'unassigned');
-      const hit = card.assigneeIds.some((id) => filters.assignees.includes(id));
-      if (!(wantsUnassigned && card.assigneeIds.length === 0) && !(wantsPerson && hit)) return false;
-    }
-    if (filters.due !== 'any') {
-      const done = cardIndex.get(card.id)?.column.category === 'done';
-      if (done) return false;
-      if (filters.due === 'none') return !card.dueDate;
-      if (!card.dueDate) return false;
-      const days = daysUntil(card.dueDate)!;
-      if (filters.due === 'overdue' && days >= 0) return false;
-      if (filters.due === 'soon' && (days < 0 || days > 7)) return false;
-    }
-    return true;
-  }, [filters, people, cardIndex]);
-
-  const snapOf = useCallback((id: string) => queryClient.getQueryData<BoardSnapshotData>(['board', id]), [queryClient]);
+  const snapOf = useCallback((id: string) => {
+    const base = queryClient.getQueryData<BoardSnapshotData>(boardQueryOptions(id, queryFilters).queryKey);
+    return base ? applyBoardPages(base, columnPages, queryFilters) : undefined;
+  }, [queryClient, queryFilters, columnPages]);
 
   const moveMutation = useMutation({
-    mutationFn: ({ card, boardId: id, toColumnId, index }: { card: CardSummary; boardId: string; toColumnId: string; index: number }) => {
-      const snap = snapOf(id)!;
-      const { previousCardId, nextCardId } = neighbours(snap.columns.find((c) => c.id === toColumnId), card.id, index);
+    mutationFn: async ({ card, boardId: id, toColumnId, placement }: { card: CardSummary; boardId: string; toColumnId: string; index: number; placement: PlacementInput }) => {
+      const canonical = (await api.getCardPlacement(id, toColumnId, placement)).data;
       return api.moveCard(card.id, {
-        toColumnId,
-        previousCardId,
-        nextCardId,
-        expectedVersion: card.version,
-        expectedBoardVersion: snap.board.structureVersion,
+        toColumnId: canonical.toColumnId, previousCardId: canonical.previousCardId, nextCardId: canonical.nextCardId,
+        expectedVersion: card.version, expectedBoardVersion: canonical.structureVersion,
       });
     },
-    onMutate: async ({ card, boardId: id, toColumnId, index }) => {
-      await queryClient.cancelQueries({ queryKey: ['board', id] });
-      const previous = queryClient.getQueryData<BoardSnapshotData>(['board', id]);
-      if (previous) queryClient.setQueryData<BoardSnapshotData>(['board', id], optimisticMove(previous, card, toColumnId, index));
-      return { previous, id };
+    onMutate: async (intent) => {
+      await queryClient.cancelQueries({ queryKey: ['board', intent.boardId] });
+      setOptimistic(intent);
     },
-    onError: (error, _vars, context) => {
-      if (context?.previous) queryClient.setQueryData(['board', context.id], context.previous);
-      toastFailure(toast, error, { role, projectName: project?.name });
+    onError: (error) => { toastFailure(toast, error, { role, projectName: project?.name }); },
+    onSettled: async (_data, _error, vars) => {
+      try { await queryClient.invalidateQueries({ queryKey: ['board', vars.boardId] }); }
+      finally { setOptimistic(null); pokeSoon(1000); }
     },
-    onSettled: (_data, _error, vars) => refresh(vars.boardId),
   });
 
   // Do not swap the board under a drag or an optimistic move; the poll result is applied after the drop.
   usePollHold(dragId !== null || moveMutation.isPending);
 
+  const retryUndo=useCallback(async(request:UndoRequest)=>{setUndoBusy(true);try{await request.command.run(request.input,(original,key)=>api.undoCardMove(request.cardId,original,key));undoSession.set(null);toast('Move undone.');refresh(request.boardId);}catch(error){if(request.command.unresolved())undoSession.set(request);else undoSession.set(null);toastFailure(toast,error,{role,projectName:project?.name});refresh(request.boardId);}finally{setUndoBusy(false);}},[undoSession,toast,refresh,role,project?.name]);
+
   /** Moves a card inside its own board: `toColumnId` is that board's own column id, `index` counts that column's cards without the moving one. */
-  const performMove = useCallback((card: CardSummary, id: string, toColumnId: string, index: number) => {
+  const performMove = useCallback(async (card: CardSummary, id: string, toColumnId: string, index: number, placement?: PlacementInput) => {
     const snap = snapOf(id);
-    if (!snap) return;
-    const from = snap.columns.find((c) => c.id === card.columnId);
-    const dest = snap.columns.find((c) => c.id === toColumnId);
-    if (!dest || !from) return;
-    const source = sortedCards(from);
-    const at = source.findIndex((c) => c.id === card.id);
-    const origin = { previousCardId: source[at - 1]?.id ?? null, nextCardId: source[at + 1]?.id ?? null };
-    moveMutation.mutate({ card, boardId: id, toColumnId, index }, {
-      onSuccess: () => {
-        // The trigger may now live in another column; keep keyboard focus on the moved card.
-        window.setTimeout(() => document.querySelector<HTMLElement>(`.card[data-card-id="${card.id}"] .card-open`)?.focus({ preventScroll: true }), 400);
-        toast(`${card.title} moved to ${dest.name}`, {
-          icon: 'move',
-          undo: () => {
-            const latestSnap = snapOf(id);
-            const latest = latestSnap?.columns.flatMap((c) => c.cards).find((c) => c.id === card.id);
-            const structure = latestSnap?.board.structureVersion ?? snap.board.structureVersion;
-            api.moveCard(card.id, {
-              toColumnId: card.columnId,
-              previousCardId: origin.previousCardId,
-              nextCardId: origin.nextCardId,
-              expectedVersion: latest?.version ?? card.version + 1,
-              expectedBoardVersion: structure,
-            }).then(() => { toast('Move undone.'); refresh(id); }).catch((error) => { toastFailure(toast, error, { role, projectName: project?.name }); refresh(id); });
-          },
-        });
-      },
-    });
-  }, [moveMutation, toast, snapOf, refresh]);
+    const from = snap?.columns.find((column) => column.id === card.columnId);
+    const dest = snap?.columns.find((column) => column.id === toColumnId);
+    if (!snap || !from || !dest || filtersPending || undoRequest || undoBusy) throw new Error('Wait for the current board to finish loading.');
+    const moved = await moveMutation.mutateAsync({ card, boardId: id, toColumnId, index, placement: placement ?? placementAtIndex(dest, card.id, index) });
+    window.setTimeout(() => pickFocusTarget(null, () => document.querySelector<HTMLElement>(`.card[data-card-id="${CSS.escape(card.id)}"] .card-open`), () => document.getElementById('boardTitle'))?.focus({ preventScroll: true }), 100);
+    const originalVersion=moved.data.version;
+    const undoCommand=createRetainedCommand<{expectedVersion:number;expectedBoardVersion:number}>();
+    toast(`${card.title} moved to ${dest.name}`, { icon: 'move', undo: typeof originalVersion==='number' ? () => {
+      const boardVersion=snapOf(id)?.board.structureVersion;
+      if(boardVersion===undefined){toast('Reload this board before undoing the move.',{icon:'alert'});return;}
+      const input=originalUndoInput(originalVersion,boardVersion)!;
+      void retryUndo({cardId:card.id,boardId:id,input,command:undoCommand});
+    } : undefined });
+  }, [snapOf, filtersPending, moveMutation, toast, refresh, role, project?.name, retryUndo, undoRequest, undoBusy]);
 
   /** A card dropped on a (merged) column: map it to its own board's column of that name, or say why not. */
   const dropCard = useCallback((cardIdToMove: string, columnId: string, index: number) => {
     const entry = cardIndex.get(cardIdToMove);
     const target = columns.find((c) => c.id === columnId);
-    if (!entry || !target || !boardInfo.get(entry.boardId)?.canMove) return;
+    if (!entry || !target || !boardInfo.get(entry.boardId)?.canMove || moveMutation.isPending || filtersPending) return;
     const info = boardInfo.get(entry.boardId)!;
     const others = displayCards(target, merged).filter((c) => c.id !== cardIdToMove);
     const plan = planMove({ card: entry.card, boardId: entry.boardId, boardName: info.name, target, others, index, boardOf: (id) => boardOfCard.get(id) });
     if (!plan.ok) { setDropHint(plan.hint); return; }
     setDropHint('');
-    performMove(entry.card, plan.boardId, plan.toColumnId, plan.index);
+    void performMove(entry.card, plan.boardId, plan.toColumnId, plan.index).catch(() => undefined);
   }, [cardIndex, columns, boardInfo, merged, boardOfCard, performMove]);
 
   const addCard = useCallback(async (columnId: string, title: string, priority: string) => {
@@ -283,8 +284,10 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
     if (!target) return;
     setQuickAddBusy(true);
     setQuickAddError('');
+    let command = quickAddCommands.current.get(columnId);
+    if (!command) { command = createRetainedCommand(); quickAddCommands.current.set(columnId, command); }
     try {
-      const res = await api.createCard(info.id, {
+      const res = await command.run({ boardId: info.id, input: {
         title,
         description: '',
         priority: priority as CardSummary['priority'],
@@ -292,20 +295,24 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
         dueDate: null,
         assigneeIds: [],
         expectedBoardVersion: info.snap.board.structureVersion,
-      });
+      } }, (original, key) => api.createCard(original.boardId, original.input, key));
+      setQuickAddUnresolved(null);
+      setQuickDrafts((all) => ({ ...all, [columnId]: { title: '', priority: '' } }));
       setComposerColumn(null);
       refresh(info.id);
       toast(merged ? `Card added to ${info.name}, in ${target.columnName}${target.fallback ? ` (it has no “${column.name}” column)` : ''}` : `Card added to ${target.columnName}`, {
         icon: 'check',
-        undo: () => {
+        undo: can(role, 'manageBoard') ? () => {
           const board = snapOf(info.id)?.board ?? info.snap.board;
           api.softDeleteCard(res.data.id, { expectedVersion: res.data.version ?? 1, expectedBoardVersion: board.structureVersion })
             .then(() => { toast('Card removed.'); refresh(info.id); })
             .catch((error) => { toastFailure(toast, error, { role, projectName: project?.name }); refresh(info.id); });
-        },
+        } : undefined,
       });
     } catch (error) {
-      setQuickAddError(describeError(error));
+      const unresolved = command.unresolved();
+      setQuickAddUnresolved(unresolved ? columnId : null);
+      setQuickAddError(unresolved ? `${describeError(error)} The server may have added this card. Retry the original request before editing; it will not create a second card.` : describeError(error));
       refresh(info.id);
     } finally {
       setQuickAddBusy(false);
@@ -316,6 +323,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
   // The dragged id lives in a ref so dragover/drop work even before React re-renders; state only drives visuals.
   const dragRef = useRef<string | null>(null);
   const onDragStart = (card: CardSummary, event: DragEvent<HTMLElement>) => {
+    if (moveMutation.isPending || filtersPending) { event.preventDefault(); return; }
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('text/plain', card.id);
     dragRef.current = card.id;
@@ -355,7 +363,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
   // Proposed enhancement (docs/UI_PARITY_REPORT.md P-033): long-press drag for touch screens, opt-in with ?touchdrag=1.
   // HTML5 drag-and-drop does not start from touch, so this drives the same drop state from pointer events.
   // The Move dialog stays the default touch path.
-  const touchEnabled = params.get('touchdrag') === '1' && canMove && !filtering && view === 'board';
+  const touchEnabled = params.get('touchdrag') === '1' && canMove && !filtering && !moveMutation.isPending && !filtersPending && view === 'board';
   const touchRef = useRef<{ cardId: string; x: number; y: number; timer: number | null; active: boolean; ghost: HTMLElement | null; cardEl: HTMLElement } | null>(null);
   const endTouch = useCallback(() => {
     const t = touchRef.current;
@@ -457,7 +465,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
   }, [params, pathname, router, cardId]);
 
   if (boardQueries.every((q) => q.isPending)) return <div role="status" className="state-note">Loading board…</div>;
-  const lostAccess = boardQuery.error instanceof ApiError && [401, 403, 404].includes(boardQuery.error.status) && !(boardQuery.error.status === 401 && hasUnsaved());
+  const lostAccess = boardQuery.error instanceof ApiError && [401, 403, 404].includes(boardQuery.error.status);
   // A failed background poll keeps the board on screen (the status banner explains it); only a lost board or a first-load failure replaces it.
   // The session is polled: removed from the project while looking at its board.
   if (snapshot && state.status === 'ready' && projectAccess(state.session.accessibleProjects, snapshot.board.projectId).kind === 'removed') {
@@ -489,9 +497,12 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
   const total = merged ? infos.reduce((n, i) => n + i.snap.totals.activeCardCount, 0) : primarySnap.totals.activeCardCount;
   const notDone = allCards.filter((c) => cardIndex.get(c.id)?.column.category !== 'done');
   const sumTotal = (key: 'overdueCount' | 'dueSoonCount', fallback: number) => (infos.every((i) => i.snap.totals[key] != null) ? infos.reduce((n, i) => n + (i.snap.totals[key] ?? 0), 0) : fallback);
-  const overdue = sumTotal('overdueCount', notDone.filter((c) => c.dueDate && (daysUntil(c.dueDate) ?? 0) < 0).length);
-  const soon = sumTotal('dueSoonCount', notDone.filter((c) => c.dueDate && (daysUntil(c.dueDate) ?? -1) >= 0 && (daysUntil(c.dueDate) ?? 99) <= 7).length);
-  const visibleCount = allCards.filter(matches).length;
+  const overdue = sumTotal('overdueCount', notDone.filter((c) => c.dueDate && (daysUntil(c.dueDate,boardInfo.get(c.boardId)?.snap.asOfDate??null) ?? 0) < 0).length);
+  const soon = sumTotal('dueSoonCount', notDone.filter((c) => c.dueDate && (daysUntil(c.dueDate,boardInfo.get(c.boardId)?.snap.asOfDate??null) ?? -1) >= 0 && (daysUntil(c.dueDate,boardInfo.get(c.boardId)?.snap.asOfDate??null) ?? 99) <= 7).length);
+  const visibleColumns = columns.filter((column) => !filters.column || column.name.trim().toLowerCase() === filters.column);
+  const visibleCount = visibleColumns.reduce((sum, column) => sum + column.matchingCardCount, 0);
+  const loadedCount = visibleColumns.reduce((sum, column) => sum + column.cards.length, 0);
+  const strandedDrafts = Object.entries(quickDrafts).filter(([id, draft]) => (draft.title || draft.priority) && !columns.some((column) => column.id === id));
   const selectedAssignees = filters.assignees;
   const assignable = [...people.values()].filter((p) => p.activeInProject);
   const quickAddFirst = columns[0]?.id ?? null;
@@ -502,12 +513,43 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
     const t = info ? addTarget(info.snap.columns, column.name) : null;
     return info && t?.fallback ? `${info.name} has no “${column.name}” column. The card will go to its first column, “${t.columnName}”.` : '';
   };
-  const moveInfo = moveCard ? boardInfo.get(boardOfCard.get(moveCard.id) ?? boardId) : null;
+  const moveInfo = moveCard ? boardInfo.get(boardOfCard.get(moveCard.id) ?? moveCard.boardId) : null;
   const moveColumns = moveInfo ? [...moveInfo.snap.columns].sort((a, b) => a.position - b.position) : [];
   const drawerInfo = cardId ? boardInfo.get(params.get('cardBoard') ?? boardOfCard.get(cardId) ?? boardId) ?? first : null;
 
+  const loadMore = async (id: string, columnId: string) => {
+    const snap = snapOf(id); const column = snap?.columns.find((candidate) => candidate.id === columnId);
+    if (!snap || !column?.nextCursor || pageControllers.current.has(columnPageKey(id, columnId))) return;
+    const key = columnPageKey(id, columnId); const generation = boardPageGeneration(snap, queryFilters);
+    const previous = columnPages[key]?.generation === generation ? columnPages[key] : undefined;
+    const controller = new AbortController(); pageControllers.current.set(key, controller);
+    setColumnPages((all) => ({ ...all, [key]: { generation, cards: previous?.cards ?? [], nextCursor: column.nextCursor, pending: true } }));
+    try {
+      const page = await api.listBoardCards(id, { columnId, query: queryFilters.titleQuery, priority: queryFilters.priority, assigneeId: queryFilters.assigneeId, due: queryFilters.due as 'overdue' | 'today' | 'upcoming' | 'none' | undefined, cursor: column.nextCursor, limit: 50 }, controller.signal);
+      if (page.nextCursor === column.nextCursor) throw new ApiError(409, 'STALE_CURSOR', 'The card cursor did not advance.');
+      const current = queryClient.getQueryData<BoardSnapshotData>(boardQueryOptions(id, queryFilters).queryKey);
+      if (!current || boardPageGeneration(current, queryFilters) !== generation) return;
+      setColumnPages((all) => ({ ...all, [key]: { generation, cards: mergeColumnCards(previous?.cards ?? [], page.data), nextCursor: page.nextCursor, pending: false } }));
+    } catch (error) {
+      if (controller.signal.aborted) {
+        setColumnPages((all) => all[key]?.generation === generation ? { ...all, [key]: { ...all[key]!, pending: false } } : all);
+        return;
+      }
+      setColumnPages((all) => ({ ...all, [key]: { generation, cards: previous?.cards ?? [], nextCursor: column.nextCursor, pending: false, error } }));
+    } finally { if (pageControllers.current.get(key) === controller) pageControllers.current.delete(key); }
+  };
+  const reloadBoard = (id: string) => {
+    setColumnPages((all) => Object.fromEntries(Object.entries(all).filter(([key]) => !key.startsWith(`${id}:`))));
+    refresh(id);
+  };
+
   const openComposer = (columnId: string, trigger?: HTMLElement) => {
-    if (!canEdit) return;
+    if (!canEdit || quickAddBusy) return;
+    if (quickAddUnresolved) {
+      setComposerColumn(quickAddUnresolved);
+      requestAnimationFrame(() => document.getElementById(`quickAdd-${quickAddUnresolved}`)?.focus());
+      return;
+    }
     if (trigger) returnFocus.current = trigger;
     setQuickAddError('');
     setComposerColumn(columnId);
@@ -515,10 +557,12 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
 
   return (
     <>
-      <NewBoardDialog projectId={board.projectId} role={role} open={newBoardOpen} onClose={() => setNewBoardOpen(false)} />
+      {undoRequest&&<p className="note" role="status">The undo request may have succeeded. Retry its original request before another move. <button className="btn sm" type="button" disabled={undoBusy||state.status!=='ready'} onClick={()=>void retryUndo(undoRequest)}>Retry original undo</button></p>}
+      <NewBoardDialog readOnly={projectArchived} projectId={board.projectId} role={role} open={newBoardOpen} onClose={() => setNewBoardOpen(false)} />
       {can(role, 'invite') && !board.isArchived && <InviteDialog projectId={board.projectId} projectName={project?.name ?? 'this project'} actorRole={role} open={inviteOpen} onClose={() => setInviteOpen(false)} />}
-      {!merged && can(role, 'manageBoard') && <ColumnsDialog boardId={board.id} open={columnsOpen} onClose={() => setColumnsOpen(false)} />}
-      {!merged && role === 'owner' && <EditBoardDialog board={board} open={editBoardOpen} onClose={() => setEditBoardOpen(false)} />}
+      {!merged && can(role, 'manageBoard') && <ColumnsDialog readOnly={board.isArchived} boardId={board.id} open={columnsOpen} onClose={() => setColumnsOpen(false)} />}
+      {!merged && can(role, 'manageBoard') && <BoardLifecycleDialog board={primarySnap.board} open={lifecycleOpen} projectArchived={projectArchived} onClose={() => setLifecycleOpen(false)} onChanged={() => { refresh(board.id); void queryClient.invalidateQueries({ queryKey: ['boards', board.projectId] }); }} />}
+      {!merged && role === 'owner' && <EditBoardDialog readOnly={board.isArchived} board={board} open={editBoardOpen} onClose={() => setEditBoardOpen(false)} />}
       <section className="board-head" aria-labelledby="boardTitle">
         <div className="board-title-row">
           <div className="board-heading">
@@ -555,6 +599,7 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
               items={[
                 ...(can(role, 'manageBoard') && !board.isArchived ? [{ kind: 'button' as const, label: 'New board', icon: 'plus', onSelect: () => setNewBoardOpen(true) }] : []),
                 ...(!merged && can(role, 'manageBoard') && !board.isArchived ? [{ kind: 'button' as const, label: 'Edit columns', icon: 'columns', onSelect: () => setColumnsOpen(true) }] : []),
+                ...(!merged && can(role, 'manageBoard') ? [{ kind: 'button' as const, label: primarySnap.board.isArchived ? 'Reopen board' : 'Archive board', icon: 'archive', disabled: projectArchived, hint: projectArchived ? 'Reopen the project first.' : undefined, onSelect: () => setLifecycleOpen(true) }] : []),
                 { kind: 'link' as const, label: 'Project overview', icon: 'folder', href: `/project?id=${encodeURIComponent(board.projectId)}` },
                 ...(can(role, 'invite') && !board.isArchived ? [{ kind: 'button' as const, label: 'Invite people', icon: 'user-plus', onSelect: () => setInviteOpen(true) }] : []),
                 { kind: 'button' as const, label: shell.fullscreen ? 'Exit fullscreen' : 'Fullscreen', icon: shell.fullscreen ? 'minimize' : 'maximize', onSelect: () => shell.toggleFullscreen() },
@@ -589,8 +634,8 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
           <div className={`search-field${filters.q ? ' has-value' : ''}`}>
             <Icon name="search" className="icon-sm" />
             <label className="sr-only" htmlFor="searchInput">Search cards</label>
-            <input id="searchInput" type="search" placeholder="Search…" autoComplete="off" value={filters.q} onChange={(event) => setFilters((f) => ({ ...f, q: event.target.value }))} />
-            <button className="clear-search" type="button" aria-label="Clear search" onClick={() => setFilters((f) => ({ ...f, q: '' }))}><Icon name="x" className="icon-sm" /></button>
+            <input id="searchInput" type="search" placeholder="Search titles…" maxLength={100} autoComplete="off" disabled={quickAddBusy || !!quickAddUnresolved} value={filters.q} onChange={(event) => setFilters((f) => ({ ...f, q: event.target.value }))} />
+            <button className="clear-search" type="button" disabled={quickAddBusy || !!quickAddUnresolved} aria-label="Clear search" onClick={() => setFilters((f) => ({ ...f, q: '' }))}><Icon name="x" className="icon-sm" /></button>
           </div>
 
           <div className="filter-wrap">
@@ -603,16 +648,11 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
               <h2>Assigned to</h2>
               {assignable.map((person) => (
                 <label key={person.id} className="filter-option">
-                  <input type="checkbox" checked={selectedAssignees.includes(person.id)} onChange={(event) => setFilters((f) => ({ ...f, assignees: event.target.checked ? [...f.assignees, person.id] : f.assignees.filter((id) => id !== person.id) }))} />{' '}
-                  <Avatar id={person.id} name={formatPersonName(person)} /> {formatPersonName(person)}
+                  <input type="radio" name="boardAssigneeFilter" disabled={quickAddBusy || !!quickAddUnresolved} checked={selectedAssignees.includes(person.id)} onChange={() => setFilters((f) => ({ ...f, assignees: [person.id] }))} />{' '}
+                  <Avatar id={person.id} name={formatPersonName(person)} avatarUrl={person.avatarUrl} /> {formatPersonName(person)}
                 </label>
               ))}
-              <label className="filter-option">
-                <input type="checkbox" checked={selectedAssignees.includes('unassigned')} onChange={(event) => setFilters((f) => ({ ...f, assignees: event.target.checked ? [...f.assignees, 'unassigned'] : f.assignees.filter((id) => id !== 'unassigned') }))} />{' '}
-                <span className="avatar empty" aria-hidden="true"><Icon name="users" /></span> Unassigned
-              </label>
-              <div className="divider" />
-              <button className="filter-option" type="button" onClick={() => setFilters((f) => ({ ...f, assignees: [] }))}>Clear assignee filter</button>
+              <label className="filter-option"><input type="radio" name="boardAssigneeFilter" disabled={quickAddBusy || !!quickAddUnresolved} checked={!selectedAssignees.length} onChange={() => setFilters((f) => ({ ...f, assignees: [] }))} />Anyone</label>
             </div>
           </div>
 
@@ -624,13 +664,19 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
             </button>
             <div className="filter-menu" id="dueMenu" hidden={menu !== 'due'}>
               <h2>Due date</h2>
-              {([['any', 'Any date'], ['overdue', 'Overdue'], ['soon', 'Due in 7 days'], ['none', 'No due date']] as const).map(([value, label]) => (
-                <label key={value} className="filter-option"><input type="radio" name="dueFilter" checked={filters.due === value} onChange={() => setFilters((f) => ({ ...f, due: value }))} /> {label}</label>
+              {([['any', 'Any date'], ['overdue', 'Overdue'], ['today', 'Due today'], ['upcoming', 'After today'], ['none', 'No due date']] as const).map(([value, label]) => (
+                <label key={value} className="filter-option"><input type="radio" name="dueFilter" disabled={quickAddBusy || !!quickAddUnresolved} checked={filters.due === value} onChange={() => setFilters((f) => ({ ...f, due: value }))} /> {label}</label>
               ))}
             </div>
           </div>
 
-          <button className="clear-filters" type="button" hidden={!filtering} onClick={() => setFilters(EMPTY_FILTERS)}>Clear all</button>
+          <label className="card-style-control"><span>Priority</span><select aria-label="Filter by priority" value={filters.priority} disabled={quickAddBusy || !!quickAddUnresolved} onChange={(event) => setFilters((f) => ({ ...f, priority: event.target.value as Filters['priority'] }))}>
+            <option value="any">Any priority</option>{['none', 'low', 'medium', 'high', 'urgent'].map((priority) => <option key={priority} value={priority}>{priority[0]!.toUpperCase() + priority.slice(1)}</option>)}
+          </select></label>
+          <label className="card-style-control"><span>Column</span><select aria-label="Filter by column" value={filters.column} disabled={quickAddBusy || !!quickAddUnresolved} onChange={(event) => setFilters((f) => ({ ...f, column: event.target.value }))}>
+            <option value="">All columns</option>{columns.map((column) => <option key={column.id} value={column.name.trim().toLowerCase()}>{column.name}</option>)}
+          </select></label>
+          <button className="clear-filters" disabled={quickAddBusy || !!quickAddUnresolved} type="button" hidden={!filtering} onClick={() => setFilters(EMPTY_FILTERS)}>Clear all</button>
           <div className="toolbar-spacer" />
           {view === 'board' && (
             <label className="card-style-control">
@@ -655,9 +701,10 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
             </div>
           </div>
           <span className={`filter-hint${filtering && canMove && view === 'board' ? ' is-visible' : ''}`}><Icon name="move" className="icon-sm" /> Use Move</span>
-          <span className="result-note" aria-live="polite" hidden={!filtering}><strong>{visibleCount}</strong> of {allCards.length} match</span>
+          <span className="result-note" aria-live="polite" hidden={!filtering}>{filtersPending ? 'Updating filters…' : <><strong>{visibleCount}</strong> of {total} match · {loadedCount} loaded</>}</span>
         </div>
         <p className="drop-hint" role="status" hidden={!dropHint}>{dropHint}</p>
+        {filtersPending && <p className="hint" role="status">Updating server filters. Previously loaded cards stay visible until the current result arrives.</p>}
       </section>
 
       <section
@@ -670,28 +717,39 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
         onPointerUp={onBoardPointerUp}
         onPointerCancel={endTouch}
       >
-        {columns.map((column) => (
+        {visibleColumns.map((column) => (
           <BoardColumn
             key={column.id}
             column={column}
-            shown={displayCards(column, merged).filter(matches)}
+            asOfDateForCard={(card)=>boardInfo.get(card.boardId)?.snap.asOfDate??null}
+            shown={displayCards(column, merged)}
             filtering={filtering}
             view={view}
             cardStyle={cardStyle}
             people={people}
             canEdit={canEdit}
-            canMove={canMove}
-            canMoveCard={canMoveCard}
+            canMove={canMove && !moveMutation.isPending && !filtersPending}
+            canMoveCard={(card) => !moveMutation.isPending && !filtersPending && canMoveCard(card)}
             cardChip={chipFor}
             addBoards={merged ? addBoards.map((b) => ({ id: b.id, name: b.name })) : undefined}
             addBoardId={addBoardId ?? undefined}
             onAddBoard={setAddBoardPick}
+            pageSources={[...column.sources.entries()].filter(([, source]) => !!source.nextCursor).map(([id, source]) => {
+              const info = boardInfo.get(id)!; const page = columnPages[columnPageKey(id, source.id)]; const current = page?.generation === boardPageGeneration(info.snap, queryFilters) ? page : undefined;
+              return { boardId: id, columnId: source.id, name: info.name, pending: filtersPending || (current?.pending ?? false), error: current?.error };
+            })}
+            onLoadMore={(id, columnId) => void loadMore(id, columnId)}
+            onReloadBoard={reloadBoard}
+            pagesReset={Array.from(column.sources.keys()).some((id) => { const info = boardInfo.get(id)!; const source = column.sources.get(id)!; const previous = columnPages[columnPageKey(id, source.id)]; return !!previous && previous.generation !== boardPageGeneration(info.snap, queryFilters); })}
             addNote={addNoteFor(column)}
             dragId={dragId}
             drop={drop}
             composerOpen={composerColumn === column.id}
             quickAddBusy={quickAddBusy}
+            quickAddUnresolved={quickAddUnresolved === column.id}
             quickAddError={composerColumn === column.id ? quickAddError : ''}
+            quickAddDraft={quickDrafts[column.id] ?? { title: '', priority: '' }}
+            onQuickAddDraft={(patch) => setQuickDrafts((all) => ({ ...all, [column.id]: { ...(all[column.id] ?? { title: '', priority: '' }), ...patch } }))}
             onOpenComposer={openComposer}
             onCloseComposer={() => { setComposerColumn(null); const t = returnFocus.current; requestAnimationFrame(() => t?.isConnected && t.focus({ preventScroll: true })); }}
             onQuickAdd={(columnId, title, priority) => void addCard(columnId, title, priority)}
@@ -706,6 +764,17 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
         ))}
       </section>
       {columns.length === 0 && <p className="state-note">This board has no columns yet.</p>}
+      {strandedDrafts.map(([id, draft]) => <section key={id} className="state-note" aria-label="Retained new-card draft">
+        <h2>New-card draft kept</h2><p>Its original column is no longer available. Copy the text or choose a current column before creating it.</p>
+        <label>Draft title<textarea className="control" readOnly value={draft.title} /></label><p>Priority: {draft.priority || 'not selected'}</p>
+        {canEdit && columns.length > 0 && <><label>Destination column<select className="control" value={draftRecoveryColumn || columns[0]!.id} onChange={(event) => setDraftRecoveryColumn(event.target.value)}>{columns.map((column) => <option key={column.id} value={column.id}>{column.name}</option>)}</select></label>
+          <button className="btn" type="button" disabled={!!quickAddUnresolved} onClick={(event) => {
+            const target = columns.some((column) => column.id === draftRecoveryColumn) ? draftRecoveryColumn : columns[0]!.id;
+            if (quickDrafts[target]?.title || quickDrafts[target]?.priority) { setDropHint('The destination already has a new-card draft. Finish or cancel that draft first.'); return; }
+            setQuickDrafts((all) => { const next = { ...all, [target]: draft }; delete next[id]; return next; });
+            setFilters(EMPTY_FILTERS); openComposer(target, event.currentTarget);
+          }}>Use draft in selected column</button></>}
+      </section>)}
 
       <footer className="board-foot">
         <span className="foot-role">{ROLE_META[role].label} · {ROLE_META[role].description}</span>
@@ -715,14 +784,15 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
 
       <MoveDialog
         card={moveCard}
+        boardId={moveInfo?.id ?? boardId}
         columns={moveColumns}
         busy={moveMutation.isPending}
         onClose={() => { setMoveCard(null); const t = returnFocus.current; requestAnimationFrame(() => t?.isConnected && t.focus({ preventScroll: true })); }}
-        onConfirm={(card, toColumnId, position) => {
+        onConfirm={async (card, toColumnId, placement) => {
+          const dest = moveColumns.find((column) => column.id === toColumnId);
+          const count = dest ? sortedCards(dest).filter((candidate) => candidate.id !== card.id).length : 0;
+          await performMove(card, moveInfo?.id ?? boardId, toColumnId, placement.at === 'first' ? 0 : count, placement);
           setMoveCard(null);
-          const dest = moveColumns.find((c) => c.id === toColumnId);
-          const count = dest ? sortedCards(dest).filter((c) => c.id !== card.id).length : 0;
-          performMove(card, moveInfo?.id ?? boardId, toColumnId, position === 'top' ? 0 : count);
         }}
       />
 
@@ -730,12 +800,14 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
         <CardDetailDrawer
           key={cardId}
           cardId={cardId}
+          expectedBoardId={drawerInfo.id}
           summary={cardIndex.get(cardId)?.card ?? null}
           columns={[...drawerInfo.snap.columns].sort((a, b) => a.position - b.position)}
           people={people}
-          role={projectArchived ? 'viewer' : role}
+          role={drawerInfo.isArchived ? 'viewer' : role}
           boardName={drawerInfo.name}
           structureVersion={drawerInfo.snap.board.structureVersion}
+          asOfDate={drawerInfo.snap.asOfDate??null}
           onClose={closeCard}
           onChanged={() => refresh(drawerInfo.id)}
           onRequestMove={(card) => { setMoveCard(card); }}

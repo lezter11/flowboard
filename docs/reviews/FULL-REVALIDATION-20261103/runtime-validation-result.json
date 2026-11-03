@@ -1,0 +1,332 @@
+{
+  "kind": "bounded_runtime_validation_and_authorized_safety_repair_not_approval",
+  "date": "2026-11-03",
+  "criteria": [
+    "docs/reviews/FULL-REVALIDATION-20261103/criteria/runtime-validation.json",
+    "docs/reviews/FULL-REVALIDATION-20261103/criteria/runtime-safety-repair.json"
+  ],
+  "sourceManifest": [
+    {
+      "path": "apps/api/src/adapters/rbac.ts",
+      "sha256": "49dfa19076ca3c18ec091978af265776eb2d4ede39b609220148acb02a6d246e"
+    },
+    {
+      "path": "apps/api/src/adapters/comments.ts",
+      "sha256": "d0527f52baca9c2a6eca1489b96a9fc8602e61dec5b89c2b6e500905babbb26f"
+    },
+    {
+      "path": "apps/api/src/http/routes/system.ts",
+      "sha256": "414f01e12297ca5a88d80796b4c1593340f68698c08d0e3168f26020f7d5fa6d"
+    },
+    {
+      "path": "apps/api/src/http/middleware/error-handler.ts",
+      "sha256": "8aea9ad935f7efb675079bb3ed0f89ef3dcce827a1a591bde26dd5b9e543cbc2"
+    },
+    {
+      "path": "apps/api/test/runtime-validation.test.ts",
+      "sha256": "d7f5b94cdb8084b549c74972abeb0870f24a666f46cb043f591c5302d8f0cb2e"
+    },
+    {
+      "path": "apps/api/test/runtime-protocol-probe.ts",
+      "sha256": "10e52e4c6a883697282bc3f9604630ff14e796ca4a0ef050a2ad08007645b720"
+    },
+    {
+      "path": "apps/api/test/runtime-safety-repair.test.ts",
+      "sha256": "88a7997d8edd7106cf3f202edbaeb6e643af19b733be37b2764951c60900cb9d"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/criteria/runtime-validation.json",
+      "sha256": "652aa83db1d23e7d13266a6160a8f5f7aa3aa44dd225221f0006de1fde695229"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/criteria/runtime-safety-repair.json",
+      "sha256": "f2dd5991819020a166ef031febfec0da6216056dcc7bfa1cd7c4fa2d544d87fa"
+    }
+  ],
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "release": "27.0.0",
+    "arch": "arm64",
+    "cpu": "Apple M5",
+    "logicalCPUs": 10,
+    "totalMemoryBytes": 17179869184,
+    "postgres": "PostgreSQL 17.11 on aarch64-unknown-linux-musl, compiled by gcc (Alpine 15.2.0) 15.2.0, 64-bit",
+    "installedPackages": {
+      "hono": "4.13.14",
+      "@hono/node-server": "2.1.5",
+      "pg": "8.23.1",
+      "wrangler": "4.156.2",
+      "zod": "4.6.7",
+      "typescript": "7.0.2"
+    },
+    "declaredApiPackages": {
+      "name": "@flowboard/api",
+      "private": true,
+      "type": "module",
+      "scripts": {
+        "dev:node": "node --watch src/runtime/node.ts",
+        "dev:worker": "node scripts/dev-worker.mjs",
+        "build": "tsc -p tsconfig.build.json && WRANGLER_SEND_METRICS=false wrangler deploy --dry-run --outdir dist/worker",
+        "test": "node scripts/check-test-databases.mjs && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/*.test.ts",
+        "db:migrate": "node --experimental-strip-types src/runtime/migrate.ts"
+      },
+      "dependencies": {
+        "@hono/node-server": "2.1.5",
+        "hono": "4.13.14",
+        "kysely": "0.29.7",
+        "pg": "8.23.1"
+      },
+      "devDependencies": {
+        "wrangler": "4.156.2"
+      }
+    }
+  },
+  "latestLocalMeasurements": {
+    "node": {
+      "startupMs": 5.027375000000006,
+      "firstRequestMs": 55.25845800000002,
+      "snapshotBytes": 37572,
+      "warmSamples": 5,
+      "warmMinMedianMaxMs": [
+        18.452999999999975,
+        19.849749999999972,
+        23.832625000000007
+      ],
+      "myTasksPages": 10,
+      "myTasksPageMinMedianMaxMs": [
+        6.373499999999922,
+        7.914250000000152,
+        11.05879200000004
+      ]
+    },
+    "worker": {
+      "startupMs": 340.57637499999964,
+      "firstRequestMs": 79.7074160000002,
+      "snapshotBytes": 37572,
+      "warmSamples": 5,
+      "warmMinMedianMaxMs": [
+        26.53004200000032,
+        29.302457999999206,
+        31.633832999999868
+      ],
+      "myTasksPages": 10,
+      "myTasksPageMinMedianMaxMs": [
+        13.331958000000668,
+        16.98668799999996,
+        20.941124999999374
+      ]
+    }
+  },
+  "sqlEvidence": [
+    {
+      "runtime": "node",
+      "kind": "sql_capture",
+      "phase": "snapshot1000",
+      "queryCount": 15,
+      "boardRechecks": 0
+    },
+    {
+      "runtime": "node",
+      "kind": "sql_capture",
+      "phase": "my_tasks_1_returned_board",
+      "queryCount": 13,
+      "boardRechecks": 0
+    },
+    {
+      "runtime": "node",
+      "kind": "sql_capture",
+      "phase": "search_filter1000",
+      "queryCount": 18,
+      "boardRechecks": 1
+    },
+    {
+      "runtime": "node",
+      "kind": "sql_capture",
+      "phase": "my_tasks_5_returned_boards",
+      "queryCount": 13,
+      "boardRechecks": 0
+    },
+    {
+      "runtime": "worker",
+      "kind": "sql_capture",
+      "phase": "snapshot1000",
+      "queryCount": 15,
+      "boardRechecks": 0
+    },
+    {
+      "runtime": "worker",
+      "kind": "sql_capture",
+      "phase": "my_tasks_1_returned_board",
+      "queryCount": 13,
+      "boardRechecks": 0
+    },
+    {
+      "runtime": "worker",
+      "kind": "sql_capture",
+      "phase": "search_filter1000",
+      "queryCount": 18,
+      "boardRechecks": 1
+    },
+    {
+      "runtime": "worker",
+      "kind": "sql_capture",
+      "phase": "my_tasks_5_returned_boards",
+      "queryCount": 13,
+      "boardRechecks": 0
+    }
+  ],
+  "rawSqlExplainEvidence": "raw/runtime-validation-transport-repeat.json; captured actual SELECTs and EXPLAIN FORMAT JSON plans, query values/session IDs/row contents omitted",
+  "passingCommands": [
+    {
+      "command": "node --test --test-concurrency=1 apps/api/test/runtime-validation.test.ts",
+      "environment": "env-i synthetic HOME/NODE_ENV=test,WRANGLER_SEND_METRICS=false, syntheticCURSOR_SECRET,loopback identity-extra URL,raw output path; finalrepeat runs without own concurrent legacy suite",
+      "exitCode": 0,
+      "pass": 14,
+      "fail": 0,
+      "skip": 0,
+      "log": "raw/runtime-validation-transport-repeat.log"
+    },
+    {
+      "command": "node --test --test-concurrency=1 apps/api/test/runtime-safety-repair.test.ts apps/api/test/discussion-activity-repair.test.ts",
+      "exitCode": 0,
+      "pass": 11,
+      "fail": 0,
+      "skip": 0,
+      "log": "raw/runtime-safety-final.log",
+      "note": "This command completed before final6th safety test was appended; final combined run below reached all12 safety+discussion cases successfully, plus runtime subtests, with3 runtime/parent failures."
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "raw/runtime-safety-typecheck.log"
+    },
+    {
+      "command": "git diff --check -- <owned source/test paths>",
+      "exitCode": 0
+    }
+  ],
+  "nearestLegacy": {
+    "command": "node --test --test-concurrency=1 apps/api/test/observability.test.ts apps/api/test/rate-limit.test.ts apps/api/test/b7-body-caps.test.ts apps/api/test/b9-mention-access.test.ts apps/api/test/com-del.test.ts apps/api/test/b23-same-name.test.ts apps/api/test/rbac01-matrix.test.ts apps/api/test/error-catalog-scan.test.ts",
+    "exitCode": 1,
+    "pass": 122,
+    "fail": 1,
+    "skip": 0,
+    "log": "raw/runtime-safety-legacy.log",
+    "outstanding": "Sharedcatalogue lacks newly reachable CELL_LIMIT_EXCEEDED/INVALID_LIMIT/PARSE_BUDGET_EXCEEDED; root notified to coordinate. No failures in safety/mention/role/body-cap behavior."
+  },
+  "confirmedRepairs": [
+    "150th searchable/board-granted mention no longer fails due first100 picker page; eligibility/profile lookup only supplied<=20IDs, names-only duplicate suffix query still project-cap work.",
+    "System migration failure now stable MIGRATION_FAILED safe text/requestId; no internal exception echo.",
+    "Unexpected duck-typed5xx status exceptions cannot echo arbitrary code/message/details; known HttpError semantics preserved.",
+    "PostgreSQL57014 statement cancellation maps503 SERVICE_UNAVAILABLE/Retry-After1. Real Node+workerd lock tests prove rollback/nofailedcommandreceipt/effects and successful later validwrite."
+  ],
+  "priorFailureEvidence": [
+    {
+      "path": "raw/runtime-validation-first.log",
+      "result": "fixture setup failed assigned_at nonexistent; no runtime evidence from this attempt on oldWrangler4.152.0"
+    },
+    {
+      "path": "raw/runtime-validation-installed.log",
+      "result": "8pass4failinclparent: both SQLtimeouts safe500; Worker cap case hit shared prior Node rate counter429, corrected fixture isolation"
+    },
+    {
+      "path": "raw/runtime-safety-red.log",
+      "result": "1pass4fail: beyond100recipient failure, coupled comment-wins assertion, migration and unexpected503 privateexception echo"
+    },
+    {
+      "path": "raw/runtime-safety-green.log",
+      "result": "4pass1fail: test Hono route-registration order only after first503privacycasepassed; fixed to register beforerequests"
+    },
+    {
+      "path": "raw/runtime-validation-final.log",
+      "result": "23pass3failinclparent: all12 safety/discussion cases pass; NodecaptransportECONNRESET under own concurrent legacy run; Worker recovery-write fixture reused staleboardrevision1 insteadcurrent2, corrected"
+    },
+    {
+      "path": "raw/runtime-validation-green.log",
+      "result": "12/12 afterSQLrepair, before extrahealth/continuation/recovery controls"
+    }
+  ],
+  "limits": [
+    "No hosted coldstart/database suspension/Hyperdrive/R2/provider/browser workflow acceptance. First request after local runtime startup is not hostedcoldstart. Five warm samples are min/median/max, not productionp95/p99/SLO/load proof.",
+    "One earlier actualNode fetch ECONNRESET for oversized import under concurrent local suite is retained; final solo14/14passes do not erase it or prove every oversize response alwaysstructured413. Installednode-server drainIncoming has500ms deadline; cause plausibly related but not deterministically established. No Node sourcefix claimed.",
+    "Actual Node and Worker MyTasks total13queries for1and5returnedboards after rootbatchedrecheck; earlier13\u219217samples retained. This removes observed query-growthcase, not a generalized performance guarantee.",
+    "HTTPdeadline stopswaiting, not DBcancellation. Test-only Node30ms deadline returns504~40ms and SQLwrite laterfinishes. Test-only workerd50ms deadline waits~162ms because pool.end awaits outstandingSQL; writefinishes. No transaction cancellation or hosted25s responseclaim.",
+    "Worker missingDBbinding response remains pre-middleware500CONFIG_ERROR withoutrequestID; separately documented shape, not covered by generalappIDguarantee.",
+    "Root owns MyTasks/cards.ts changes; hash scope here preserves otherowners comments retention hunks. No primary/access reservations remain.",
+    "Final contracts/artifact and completefullgate remain root-owned; current dedicated nearest gate has one external catalogue failure pending. Independent review/score/featureclosure/UAT remain unclaimed."
+  ],
+  "logs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-safety-final.log",
+      "sha256": "d8fcf6cca7d7d0b1253e16d0fc3c1d4643dcdd4a1f7c87b51cf15a141ada4878"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-safety-green.log",
+      "sha256": "a64ee5e39f3bb1d2d3530df1488ffab5f9240b11ea0f7f705ab8e391fe421eb2"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-safety-legacy.log",
+      "sha256": "652f872dbe25e3df7cd0af848f97026b44644e5e29dac66c19d95f62e0c459bf"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-safety-red.log",
+      "sha256": "33e8be6206efceea95d69a494d630eeaae6b18e3413f88d436d91a19a7e356c4"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-safety-typecheck.log",
+      "sha256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-validation-final.json",
+      "sha256": "085ec3c74058d022178c267cbc2b8e3d497d280d9d2f430c4606383d67c43109"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-validation-final.log",
+      "sha256": "7630c788a161053beb602cc3ecf048e6b4fb54e88c3fec1c3aac534c996be541"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-validation-first.json",
+      "sha256": "c9eb2becba0ce4319e4a60804da5d18473653994d4ea4d2427c9b47fdf1d216b"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-validation-first.log",
+      "sha256": "4cf3f726431a14ca4a918c5497343a8333a7bc87bbc4bd6b1511b4f964b4cf59"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-validation-green.json",
+      "sha256": "3f7e114dead51ea2624d5040336313df863e725a53a23b0d062b9520b25770fd"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-validation-green.log",
+      "sha256": "62da42c96eab27e765ffe3cb9b35154c5f848c926bb90122f39f8b9bf48b360b"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-validation-installed.json",
+      "sha256": "46a0fa4dc073eedc6d6071b99bdffb98eef57a7b55828ef5bfb51e99899f46c3"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-validation-installed.log",
+      "sha256": "57b7ad2cbad42950ee4cb3e978c9e75607aaf98550709b9ac37521350b873695"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-validation-transport-repeat.json",
+      "sha256": "c654a09bfbce7c09ab02d3bb3bf9d09e628b9d7cc6f27ba0bf1ec9bad6ac784f"
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/runtime-validation-transport-repeat.log",
+      "sha256": "44f944f55e616f759ac46cef0388c4e1a96bec3e94add55c7359e7bfa93a7c31"
+    }
+  ],
+  "approval": null,
+  "score": null,
+  "catalogueFollowup": {
+    "command": "node --test apps/api/test/error-catalog-scan.test.ts",
+    "exitCode": 0,
+    "pass": 2,
+    "fail": 0,
+    "codesFound": 112,
+    "unresolvedIdentifiers": 0,
+    "log": "raw/runtime-safety-catalog-recheck.log"
+  }
+}

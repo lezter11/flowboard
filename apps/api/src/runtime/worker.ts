@@ -1,8 +1,10 @@
+import { ImagesBindingVerifier, type ImageVerifierBinding } from '../services/image-verifier-worker.ts';
 import type { ExecutionContext } from 'hono';
 import { createPool, queryDatabase } from '../adapters/postgres.ts';
 import { createApp } from '../http/app.ts';
 import { processPendingStorageDeletions, purgeExpiredTrash } from '../services/trash-purge.ts';
 import { cleanupOrphanUploads } from '../adapters/images.ts';
+import { cleanupExpiredImports } from '../services/import-retention.ts';
 import { processOutboxLease } from '../adapters/notifications.ts';
 import { mailerFromEnv, type MailEnv } from '../services/mailer.ts';
 import { purgeEndedWindows } from '../adapters/rate-limit-postgres.ts';
@@ -16,6 +18,7 @@ export type WorkerBindings = MailEnv & {
   CURSOR_SECRET?: string;
   // Private R2 bucket for image bytes (no public access). Absent means image routes return 503 CONFIG_ERROR.
   IMAGES?: R2BucketBinding;
+  IMAGE_VERIFIER?: ImageVerifierBinding;
 };
 
 export interface ScheduledJob {
@@ -65,17 +68,27 @@ export default {
     }
 
     const pool = createPool(connectionString, 1);
+    let imageWork: Promise<void> | undefined;
     const app = createApp(() => queryDatabase(pool), {
       pool,
       deadlineMs: 25_000,
+      imageDeadlineMs: 10_000,
       rateLimitBindingsRequired: true,
       storage: imageStorage(env),
+      imageVerifier: env.IMAGE_VERIFIER ? new ImagesBindingVerifier(env.IMAGE_VERIFIER) : null,
+      onImageWorkLifetime: work => { imageWork = work; },
       limits: limitsFromEnv(env as unknown as Record<string, unknown>),
     });
     try {
       return await app.fetch(request, env, ctx);
     } finally {
-      await pool.end();
+      if (imageWork) {
+        // A timed-out decoder/handler can still own this request's connection.
+        // Keep its lifetime alive and close the pool only after actual settlement.
+        const close = imageWork.then(() => pool.end());
+        if (ctx) ctx.waitUntil(close);
+        else await close;
+      } else await pool.end();
     }
   },
 
@@ -87,6 +100,7 @@ export default {
     try {
       await runIsolated([
         { name: 'trash-purge', run: () => runWithStorageDriver(storage, () => purgeExpiredTrash(pool)) },
+        { name: 'import-retention', run: () => cleanupExpiredImports(pool) },
         { name: 'orphan-uploads', run: () => runWithStorageDriver(storage, () => cleanupOrphanUploads(pool)) },
         { name: 'pending-storage', run: () => runWithStorageDriver(storage, () => processPendingStorageDeletions(pool)) },
         // Invitation mail is sent only when the mail configuration is complete (see mailerFromEnv).

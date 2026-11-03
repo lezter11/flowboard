@@ -1,0 +1,32 @@
+✔ real mounted restore and purge overlap: restore wins the card lock (744.951708ms)
+purge-first wait graph [{"pid":12994,"wait_event":"ClientRead","blockers":[],"query":"SELECT pg_advisory_xact_lock($1)"},{"pid":12997,"wait_event":"advisory","blockers":[12994],"query":"UPDATE cards\n         SET state = 'purged',\n             title = '[Purged card]',\n             description = NULL,\n             version = version + 1,\n             updated_at = NOW()\n         WHERE id = $1 AND state = 'trashed'\n         RETURNING id"},{"pid":12999,"wait_event":"transactionid","blockers":[12997],"query":"SELECT c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.title, c.position, c.version, c.state,\n            c.restore_until,\n            b.structure_version AS board_structure_version,\n            b.snapshot_version AS board_snapshot_version,\n            b.archived AS board_archived,\n            p.archived AS project_archived\n     FROM cards c\n     JOIN boards b ON c.board_id = b.id\n     JOIN projects p ON c.project_id = p.id\n     WHERE c.id = $1\n     FOR UPDATE"}]
+purge-first actual cycle [{"pid":12994,"wait_event":"ClientRead","blockers":[],"query":"COMMIT"},{"pid":12997,"wait_event":"transactionid","blockers":[12999],"query":"INSERT INTO activity_log (\n           id, workspace_id, project_id, board_id, visibility_scope, card_id, actor_id, action, safe_changes, created_at\n         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, NOW())"},{"pid":12999,"wait_event":"transactionid","blockers":[12997],"query":"SELECT c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.title, c.position, c.version, c.state,\n            c.restore_until,\n            b.structure_version AS board_structure_version,\n            b.snapshot_version AS board_snapshot_version,\n            b.archived AS board_archived,\n            p.archived AS project_archived\n     FROM cards c\n     JOIN boards b ON c.board_id = b.id\n     JOIN projects p ON c.project_id = p.id\n     WHERE c.id = $1\n     FOR UPDATE"}]
+✖ real mounted restore and purge overlap: purge wins the card lock (1465.208834ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 1
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2548.2505
+
+✖ failing tests:
+
+test at apps/api/test/trash-restore-placement.test.ts:199:53
+✖ real mounted restore and purge overlap: purge wins the card lock (1465.208834ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"SERVICE_UNAVAILABLE","message":"The request conflicted with another update. Retry shortly.","requestId":"61e2057c-d6a4-4573-9f46-bac9891eb42e"}}
+  
+  503 !== 404
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/trash-restore-placement.test.ts:235:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 503,
+    expected: 404,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

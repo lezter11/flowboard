@@ -1,0 +1,36 @@
+✔ committed lost reply retries the original comment payload/key through the real API client (12.951833ms)
+✔ quick-add retains expected board version and original explicit priority after an unknown 503 (0.460916ms)
+✔ definitive validation refusal permits a new edited intent, in-flight submissions share one request (0.166875ms)
+✔ a synchronous validation failure does not leave the next operation stuck on a rejected request (0.340417ms)
+✖ a later authorization refusal cannot erase an earlier unknown committed operation (0.572125ms)
+✔ cursor pages keep order, replace edited/deleted duplicates and reject cursor loops (0.257875ms)
+✔ roles distinguish author editing from moderation and never grant Viewer write controls (0.169959ms)
+✔ comment create/edit drafts remain actor/card-scoped through remount and clearing one draft keeps the other (0.203375ms)
+✔ edit restores actual UTF-16 spans, leaves malformed spans literal, and IME Enter is ignored (0.227917ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 148.03
+
+✖ failing tests:
+
+test at apps/web/test/comment-state.test.ts:70:1
+✖ a later authorization refusal cannot erase an earlier unknown committed operation (0.572125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  false !== true
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web/test/comment-state.test.ts:83:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: false,
+    expected: true,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

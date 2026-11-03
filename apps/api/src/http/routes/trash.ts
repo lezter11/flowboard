@@ -110,7 +110,7 @@ trashRoutes.post('/cards/:cardId/delete', authMiddleware, async (c) => {
 
 const trashQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100).optional(),
-  cursor: z.string().optional(),
+  cursor: z.string().min(1).max(4096).optional(),
 });
 
 // 3. GET /projects/:projectId/trash: List project trash for admins (DEL-02)
@@ -122,8 +122,7 @@ trashRoutes.get('/projects/:projectId/trash', authMiddleware, async (c) => {
 
   const projectId = c.req.param('projectId');
   const queryParams = c.req.query();
-  const parsed = trashQuerySchema.safeParse(queryParams);
-  const options = parsed.success ? parsed.data : undefined;
+  const options = parseOrThrow(trashQuerySchema, queryParams);
 
   const pool = getPool();
   const client = await pool.connect();

@@ -1,0 +1,164 @@
+✖ import repair: description survives mapping and commit; original row reimport skips after card edit (244.994583ms)
+✖ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (181.533167ms)
+✖ import repair: changed duplicate in a separately ready preview rolls back its whole batch (170.046625ms)
+✖ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (152.678ms)
+✖ import repair: commit cannot override preview default column and stale board structure rejects confirmation (173.277833ms)
+✖ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (160.144291ms)
+✖ import repair: cancel and expired status remove staged titles/emails and prevent commit (185.091667ms)
+✖ import repair: purge removes imported card title/email copies but keeps duplicate identity (155.550584ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 0
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1659.657542
+
+✖ failing tests:
+
+test at apps/api/test/import-repair.test.ts:85:1
+✖ import repair: description survives mapping and commit; original row reimport skips after card edit (244.994583ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_ERROR","message":"Validation failed: defaultColumnId: Invalid input: expected string, received undefined","requestId":"32fe1125-527d-4e6a-a73a-83dd36a4aa22","details":{"issues":[{"path":"defaultColumnId","message":"Invalid input: expected string, received undefined","code":"invalid_type"}]}}}
+  
+  422 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:90:48)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:97:1
+✖ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (181.533167ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_ERROR","message":"Validation failed: defaultColumnId: Invalid input: expected string, received undefined","requestId":"cbb681e1-8270-449d-a4b9-8e8d1b23f6ac","details":{"issues":[{"path":"defaultColumnId","message":"Invalid input: expected string, received undefined","code":"invalid_type"}]}}}
+  
+  422 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:101:31)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:106:1
+✖ import repair: changed duplicate in a separately ready preview rolls back its whole batch (170.046625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:110:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:115:1
+✖ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (152.678ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:117:49)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:125:1
+✖ import repair: commit cannot override preview default column and stale board structure rejects confirmation (173.277833ms)
+  AssertionError [ERR_ASSERTION]: {"data":{"id":"imp_353afc8d-60f0-4807-b540-21839286c3cf","projectId":"prj","boardId":"brd","defaultColumnId":"col","version":2,"state":"committed","previewDigest":"dc0ca9b4b82ee84ced185a743a9ce34eefddd4452cd16a8a22b43aeb64465656","expiresAt":"2026-11-03T05:28:57.445Z","serverNow":"2026-11-03T04:58:57.462Z","counts":{"total":1,"new":0,"existing":0,"invalid":0,"conflict":0,"created":1,"skipped":0},"canCommit":false,"cancellationAllowed":false,"rows":[{"rowNumber":2,"externalId":"target","title":"Bound target","status":null,"priority":"none","dueDate":null,"assigneeIds":[],"outcome":"created","errors":[],"cardId":"crd_230a8a2a-803d-4ec3-80b4-330f837f655a"}],"nextCursor":null,"error":null}}
+  
+  200 !== 409
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:127:75)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 409,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:133:1
+✖ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (160.144291ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:135:109)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:141:1
+✖ import repair: cancel and expired status remove staged titles/emails and prevent commit (185.091667ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Private staged title'
+  - ''
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:145:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Private staged title',
+    expected: '',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:153:1
+✖ import repair: purge removes imported card title/email copies but keeps duplicate identity (155.550584ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:155:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

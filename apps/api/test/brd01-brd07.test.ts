@@ -618,7 +618,7 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
 
     // Verify positions in DB match exactly 0..4
     const newPosRes = await pool.query<{ id: string; position: number }>(
-      `SELECT id, position FROM columns WHERE board_id = $1 ORDER BY position ASC`,
+      `SELECT id, position FROM columns WHERE board_id = $1 AND deleted_at IS NULL ORDER BY position ASC`,
       [createdBoardId],
     );
     assert.deepEqual(newPosRes.rows.map((r) => r.id), reversedIds);
@@ -749,7 +749,7 @@ test('BRD-01 to BRD-07: Board & Column Lifecycle Suite', async (t) => {
 
     // Verify remaining 4 columns are compacted 0..3
     const remRes = await pool.query<{ id: string; position: number }>(
-      `SELECT id, position FROM columns WHERE board_id = $1 ORDER BY position ASC`,
+      `SELECT id, position FROM columns WHERE board_id = $1 AND deleted_at IS NULL ORDER BY position ASC`,
       [createdBoardId],
     );
     // 6 columns before the delete, 5 after

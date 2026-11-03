@@ -1,0 +1,254 @@
+✖ OpenAPI parity: every explicit mounted method/path and alias exists exactly once, with no phantom operation (1.414875ms)
+✖ OpenAPI parity: exactly the six mounted PAT capabilities advertise bearer authority (0.102916ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 221.920084
+
+✖ failing tests:
+
+test at apps/api/test/openapi-parity.test.ts:11:1
+✖ OpenAPI parity: every explicit mounted method/path and alias exists exactly once, with no phantom operation (1.414875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    [
+      'DELETE /api/v1/boards/{boardId}/columns/{columnId}',
+  -   'DELETE /api/v1/boards/{boardId}/grants/{userId}',
+      'DELETE /api/v1/card-imports/{importId}',
+      'DELETE /api/v1/comments/{commentId}',
+      'DELETE /api/v1/image-uploads/{uploadId}',
+      'DELETE /api/v1/images/{imageId}',
+  -   'DELETE /api/v1/imports/{importId}',
+  -   'DELETE /api/v1/projects/{projectId}/members/{userId}',
+  -   'DELETE /api/v1/tokens/{tokenId}',
+  -   'GET /api/v1/activity/health',
+  -   'GET /api/v1/auth/google',
+  -   'GET /api/v1/auth/google/callback',
+  -   'GET /api/v1/auth/google/start',
+      'GET /api/v1/boards/{boardId}',
+  -   'GET /api/v1/boards/{boardId}/access',
+      'GET /api/v1/boards/{boardId}/card-import-template',
+      'GET /api/v1/boards/{boardId}/cards',
+      'GET /api/v1/boards/{boardId}/columns/{columnId}/placement',
+  -   'GET /api/v1/boards/{boardId}/import-template',
+  -   'GET /api/v1/boards/{boardId}/metadata',
+      'GET /api/v1/card-imports/{importId}',
+      'GET /api/v1/card-imports/{importId}/report',
+      'GET /api/v1/cards/{cardId}',
+      'GET /api/v1/cards/{cardId}/activity',
+      'GET /api/v1/cards/{cardId}/comments',
+  ...
+      'GET /api/v1/images/{imageId}/thumbnail',
+  -   'GET /api/v1/import/template',
+  -   'GET /api/v1/imports/{importId}',
+  -   'GET /api/v1/imports/{importId}/report',
+      'GET /api/v1/me/tasks',
+      'GET /api/v1/notifications',
+  -   'GET /api/v1/notifications/health',
+  -   'GET /api/v1/projects',
+      'GET /api/v1/projects/{projectId}',
+  -   'GET /api/v1/projects/{projectId}/access-summary',
+      'GET /api/v1/projects/{projectId}/activity',
+      'GET /api/v1/projects/{projectId}/boards',
+      'GET /api/v1/projects/{projectId}/cards/search',
+      'GET /api/v1/projects/{projectId}/invitations',
+      'GET /api/v1/projects/{projectId}/members',
+  -   'GET /api/v1/projects/{projectId}/overview',
+      'GET /api/v1/projects/{projectId}/people',
+      'GET /api/v1/projects/{projectId}/trash',
+      'GET /api/v1/session',
+  -   'GET /api/v1/system/status',
+  -   'GET /api/v1/tokens',
+      'GET /api/v1/workspaces',
+      'GET /api/v1/workspaces/{workspaceId}/activity',
+  -   'GET /api/v1/workspaces/{workspaceId}/my-tasks',
+      'GET /api/v1/workspaces/{workspaceId}/projects',
+  -   'GET /health/live',
+  -   'GET /health/ready',
+      'PATCH /api/v1/boards/{boardId}',
+      'PATCH /api/v1/boards/{boardId}/columns/{columnId}',
+      'PATCH /api/v1/cards/{cardId}',
+      'PATCH /api/v1/comments/{commentId}',
+  -   'PATCH /api/v1/notifications/{id}/read',
+      'PATCH /api/v1/projects/{projectId}',
+      'PATCH /api/v1/projects/{projectId}/members/{userId}',
+      'PATCH /api/v1/session/name',
+  -   'PATCH /api/v1/session/profile',
+      'PATCH /api/v1/workspaces/{workspaceId}',
+      'POST /api/v1/boards/{boardId}/archive',
+      'POST /api/v1/boards/{boardId}/card-imports',
+      'POST /api/v1/boards/{boardId}/cards',
+      'POST /api/v1/boards/{boardId}/columns',
+      'POST /api/v1/boards/{boardId}/columns/reorder',
+  -   'POST /api/v1/boards/{boardId}/imports',
+      'POST /api/v1/boards/{boardId}/reopen',
+      'POST /api/v1/card-imports/{importId}/commit',
+      'POST /api/v1/card-imports/{importId}/mappings',
+      'POST /api/v1/cards/{cardId}/comments',
+      'POST /api/v1/cards/{cardId}/delete',
+      'POST /api/v1/cards/{cardId}/image-uploads',
+      'POST /api/v1/cards/{cardId}/move',
+  -   'POST /api/v1/cards/{cardId}/move-undo',
+      'POST /api/v1/cards/{cardId}/restore',
+      'POST /api/v1/image-uploads/{uploadId}/finalize',
+  -   'POST /api/v1/imports/{importId}/commit',
+  -   'POST /api/v1/imports/{importId}/mappings',
+      'POST /api/v1/invitations/accept',
+  +   'POST /api/v1/notifications/{notificationId}/read',
+  -   'POST /api/v1/notifications/mark-all-read',
+  -   'POST /api/v1/projects',
+      'POST /api/v1/projects/{projectId}/archive',
+      'POST /api/v1/projects/{projectId}/boards',
+      'POST /api/v1/projects/{projectId}/invitations',
+      'POST /api/v1/projects/{projectId}/invitations/{invitationId}/resend',
+      'POST /api/v1/projects/{projectId}/invitations/{invitationId}/revoke',
+      'POST /api/v1/projects/{projectId}/leave',
+      'POST /api/v1/projects/{projectId}/reopen',
+  -   'POST /api/v1/session/dev-login',
+      'POST /api/v1/session/logout',
+  -   'POST /api/v1/system/migrate',
+  -   'POST /api/v1/tokens',
+      'POST /api/v1/workspaces',
+      'POST /api/v1/workspaces/{workspaceId}/projects',
+  +   'POST /api/v1/workspaces/{workspaceId}/transfer-owner',
+  -   'POST /api/v1/workspaces/{workspaceId}/transfer-ownership',
+  -   'PUT /api/v1/boards/{boardId}/grants/{userId}',
+      'PUT /api/v1/image-uploads/{uploadId}/content',
+  -   'PUT /api/v1/session/last-location'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/openapi-parity.test.ts:16:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [
+      'DELETE /api/v1/boards/{boardId}/columns/{columnId}',                  'DELETE /api/v1/card-imports/{importId}',
+      'DELETE /api/v1/comments/{commentId}',                                 'DELETE /api/v1/image-uploads/{uploadId}',
+      'DELETE /api/v1/images/{imageId}',                                     'GET /api/v1/boards/{boardId}',
+      'GET /api/v1/boards/{boardId}/card-import-template',                   'GET /api/v1/boards/{boardId}/cards',
+      'GET /api/v1/boards/{boardId}/columns/{columnId}/placement',           'GET /api/v1/card-imports/{importId}',
+      'GET /api/v1/card-imports/{importId}/report',                          'GET /api/v1/cards/{cardId}',
+      'GET /api/v1/cards/{cardId}/activity',                                 'GET /api/v1/cards/{cardId}/comments',
+      'GET /api/v1/cards/{cardId}/images',                                   'GET /api/v1/image-uploads/{uploadId}',
+      'GET /api/v1/images/{imageId}/content',                                'GET /api/v1/images/{imageId}/thumbnail',
+      'GET /api/v1/me/tasks',                                                'GET /api/v1/notifications',
+      'GET /api/v1/projects/{projectId}',                                    'GET /api/v1/projects/{projectId}/activity',
+      'GET /api/v1/projects/{projectId}/boards',                             'GET /api/v1/projects/{projectId}/cards/search',
+      'GET /api/v1/projects/{projectId}/invitations',                        'GET /api/v1/projects/{projectId}/members',
+      'GET /api/v1/projects/{projectId}/people',                             'GET /api/v1/projects/{projectId}/trash',
+      'GET /api/v1/session',                                                 'GET /api/v1/workspaces',
+      'GET /api/v1/workspaces/{workspaceId}/activity',                       'GET /api/v1/workspaces/{workspaceId}/projects',
+      'PATCH /api/v1/boards/{boardId}',                                      'PATCH /api/v1/boards/{boardId}/columns/{columnId}',
+      'PATCH /api/v1/cards/{cardId}',                                        'PATCH /api/v1/comments/{commentId}',
+      'PATCH /api/v1/projects/{projectId}',                                  'PATCH /api/v1/projects/{projectId}/members/{userId}',
+      'PATCH /api/v1/session/name',                                          'PATCH /api/v1/workspaces/{workspaceId}',
+      'POST /api/v1/boards/{boardId}/archive',                               'POST /api/v1/boards/{boardId}/card-imports',
+      'POST /api/v1/boards/{boardId}/cards',                                 'POST /api/v1/boards/{boardId}/columns',
+      'POST /api/v1/boards/{boardId}/columns/reorder',                       'POST /api/v1/boards/{boardId}/reopen',
+      'POST /api/v1/card-imports/{importId}/commit',                         'POST /api/v1/card-imports/{importId}/mappings',
+      'POST /api/v1/cards/{cardId}/comments',                                'POST /api/v1/cards/{cardId}/delete',
+      'POST /api/v1/cards/{cardId}/image-uploads',                           'POST /api/v1/cards/{cardId}/move',
+      'POST /api/v1/cards/{cardId}/restore',                                 'POST /api/v1/image-uploads/{uploadId}/finalize',
+      'POST /api/v1/invitations/accept',                                     'POST /api/v1/notifications/{notificationId}/read',
+      'POST /api/v1/projects/{projectId}/archive',                           'POST /api/v1/projects/{projectId}/boards',
+      'POST /api/v1/projects/{projectId}/invitations',                       'POST /api/v1/projects/{projectId}/invitations/{invitationId}/resend',
+      'POST /api/v1/projects/{projectId}/invitations/{invitationId}/revoke', 'POST /api/v1/projects/{projectId}/leave',
+      'POST /api/v1/projects/{projectId}/reopen',                            'POST /api/v1/session/logout',
+      'POST /api/v1/workspaces',                                             'POST /api/v1/workspaces/{workspaceId}/projects',
+      'POST /api/v1/workspaces/{workspaceId}/transfer-owner',                'PUT /api/v1/image-uploads/{uploadId}/content'
+    ],
+    expected: [
+      'DELETE /api/v1/boards/{boardId}/columns/{columnId}',                  'DELETE /api/v1/boards/{boardId}/grants/{userId}',
+      'DELETE /api/v1/card-imports/{importId}',                              'DELETE /api/v1/comments/{commentId}',
+      'DELETE /api/v1/image-uploads/{uploadId}',                             'DELETE /api/v1/images/{imageId}',
+      'DELETE /api/v1/imports/{importId}',                                   'DELETE /api/v1/projects/{projectId}/members/{userId}',
+      'DELETE /api/v1/tokens/{tokenId}',                                     'GET /api/v1/activity/health',
+      'GET /api/v1/auth/google',                                             'GET /api/v1/auth/google/callback',
+      'GET /api/v1/auth/google/start',                                       'GET /api/v1/boards/{boardId}',
+      'GET /api/v1/boards/{boardId}/access',                                 'GET /api/v1/boards/{boardId}/card-import-template',
+      'GET /api/v1/boards/{boardId}/cards',                                  'GET /api/v1/boards/{boardId}/columns/{columnId}/placement',
+      'GET /api/v1/boards/{boardId}/import-template',                        'GET /api/v1/boards/{boardId}/metadata',
+      'GET /api/v1/card-imports/{importId}',                                 'GET /api/v1/card-imports/{importId}/report',
+      'GET /api/v1/cards/{cardId}',                                          'GET /api/v1/cards/{cardId}/activity',
+      'GET /api/v1/cards/{cardId}/comments',                                 'GET /api/v1/cards/{cardId}/images',
+      'GET /api/v1/image-uploads/{uploadId}',                                'GET /api/v1/images/{imageId}/content',
+      'GET /api/v1/images/{imageId}/thumbnail',                              'GET /api/v1/import/template',
+      'GET /api/v1/imports/{importId}',                                      'GET /api/v1/imports/{importId}/report',
+      'GET /api/v1/me/tasks',                                                'GET /api/v1/notifications',
+      'GET /api/v1/notifications/health',                                    'GET /api/v1/projects',
+      'GET /api/v1/projects/{projectId}',                                    'GET /api/v1/projects/{projectId}/access-summary',
+      'GET /api/v1/projects/{projectId}/activity',                           'GET /api/v1/projects/{projectId}/boards',
+      'GET /api/v1/projects/{projectId}/cards/search',                       'GET /api/v1/projects/{projectId}/invitations',
+      'GET /api/v1/projects/{projectId}/members',                            'GET /api/v1/projects/{projectId}/overview',
+      'GET /api/v1/projects/{projectId}/people',                             'GET /api/v1/projects/{projectId}/trash',
+      'GET /api/v1/session',                                                 'GET /api/v1/system/status',
+      'GET /api/v1/tokens',                                                  'GET /api/v1/workspaces',
+      'GET /api/v1/workspaces/{workspaceId}/activity',                       'GET /api/v1/workspaces/{workspaceId}/my-tasks',
+      'GET /api/v1/workspaces/{workspaceId}/projects',                       'GET /health/live',
+      'GET /health/ready',                                                   'PATCH /api/v1/boards/{boardId}',
+      'PATCH /api/v1/boards/{boardId}/columns/{columnId}',                   'PATCH /api/v1/cards/{cardId}',
+      'PATCH /api/v1/comments/{commentId}',                                  'PATCH /api/v1/notifications/{id}/read',
+      'PATCH /api/v1/projects/{projectId}',                                  'PATCH /api/v1/projects/{projectId}/members/{userId}',
+      'PATCH /api/v1/session/name',                                          'PATCH /api/v1/session/profile',
+      'PATCH /api/v1/workspaces/{workspaceId}',                              'POST /api/v1/boards/{boardId}/archive',
+      'POST /api/v1/boards/{boardId}/card-imports',                          'POST /api/v1/boards/{boardId}/cards',
+      'POST /api/v1/boards/{boardId}/columns',                               'POST /api/v1/boards/{boardId}/columns/reorder',
+      'POST /api/v1/boards/{boardId}/imports',                               'POST /api/v1/boards/{boardId}/reopen',
+      'POST /api/v1/card-imports/{importId}/commit',                         'POST /api/v1/card-imports/{importId}/mappings',
+      'POST /api/v1/cards/{cardId}/comments',                                'POST /api/v1/cards/{cardId}/delete',
+      'POST /api/v1/cards/{cardId}/image-uploads',                           'POST /api/v1/cards/{cardId}/move',
+      'POST /api/v1/cards/{cardId}/move-undo',                               'POST /api/v1/cards/{cardId}/restore',
+      'POST /api/v1/image-uploads/{uploadId}/finalize',                      'POST /api/v1/imports/{importId}/commit',
+      'POST /api/v1/imports/{importId}/mappings',                            'POST /api/v1/invitations/accept',
+      'POST /api/v1/notifications/mark-all-read',                            'POST /api/v1/projects',
+      'POST /api/v1/projects/{projectId}/archive',                           'POST /api/v1/projects/{projectId}/boards',
+      'POST /api/v1/projects/{projectId}/invitations',                       'POST /api/v1/projects/{projectId}/invitations/{invitationId}/resend',
+      'POST /api/v1/projects/{projectId}/invitations/{invitationId}/revoke', 'POST /api/v1/projects/{projectId}/leave',
+      'POST /api/v1/projects/{projectId}/reopen',                            'POST /api/v1/session/dev-login',
+      'POST /api/v1/session/logout',                                         'POST /api/v1/system/migrate',
+      'POST /api/v1/tokens',                                                 'POST /api/v1/workspaces',
+      'POST /api/v1/workspaces/{workspaceId}/projects',                      'POST /api/v1/workspaces/{workspaceId}/transfer-ownership',
+      ... 3 more items
+    ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/openapi-parity.test.ts:19:1
+✖ OpenAPI parity: exactly the six mounted PAT capabilities advertise bearer authority (0.102916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   'GET /api/v1/boards/{boardId}/metadata boards:read',
+  -   'GET /api/v1/cards/{cardId} cards:read',
+  -   'GET /api/v1/projects projects:read',
+  -   'GET /api/v1/projects/{projectId}/boards boards:read',
+  -   'GET /api/v1/projects/{projectId}/cards/search cards:read',
+  -   'POST /api/v1/boards/{boardId}/cards cards:create'
+  - ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/openapi-parity.test.ts:23:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'GET /api/v1/boards/{boardId}/metadata boards:read', 'GET /api/v1/cards/{cardId} cards:read', 'GET /api/v1/projects projects:read', 'GET /api/v1/projects/{projectId}/boards boards:read', 'GET /api/v1/projects/{projectId}/cards/search cards:read', 'POST /api/v1/boards/{boardId}/cards cards:create' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

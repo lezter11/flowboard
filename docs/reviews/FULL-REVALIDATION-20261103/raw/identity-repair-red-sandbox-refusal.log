@@ -1,0 +1,197 @@
+✖ identity repair: reactivation at active-seat cap is refused without member/activity/receipt writes (2.546375ms)
+✖ identity repair: reactivation respects pending invitation seat reservations and expired rows release them (0.562459ms)
+✖ identity repair: archived role changes, reinstatement and role-change-with-removal are refused atomically (0.24675ms)
+✖ identity repair: archived pure PATCH/DELETE removal and their replay remain allowed; leave stays possible (0.234167ms)
+✖ identity repair: archived replay of an earlier role change fails without new side effects (0.218042ms)
+✖ identity repair: PATCH removal revokes pending invitations and board grants like DELETE and replays once (0.213833ms)
+✖ identity repair: role matrix and replay protect self, peer Manager, Owner, and revoked actor (0.188958ms)
+✖ identity repair: two reinstatements and an invitation compete for one seat on separate connections (0.204792ms)
+✖ identity repair: a committed actor revocation wins against a mounted role write waiting on its grant (0.216291ms)
+✖ identity repair: failed activity insertion rolls back membership and receipt together (0.283ms)
+✖ identity repair: exhausted transient invitation delivery strips terminal token, recipient and mail fields (0.20025ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 0
+ℹ fail 11
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 301.803333
+
+✖ failing tests:
+
+test at apps/api/test/identity-repair.test.ts:83:1
+✖ identity repair: reactivation at active-seat cap is refused without member/activity/receipt writes (2.546375ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:22:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:84:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/identity-repair.test.ts:92:1
+✖ identity repair: reactivation respects pending invitation seat reservations and expired rows release them (0.562459ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:22:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:93:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/identity-repair.test.ts:103:1
+✖ identity repair: archived role changes, reinstatement and role-change-with-removal are refused atomically (0.24675ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:22:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:104:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/identity-repair.test.ts:119:1
+✖ identity repair: archived pure PATCH/DELETE removal and their replay remain allowed; leave stays possible (0.234167ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:22:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:120:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/identity-repair.test.ts:141:1
+✖ identity repair: archived replay of an earlier role change fails without new side effects (0.218042ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:22:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:142:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/identity-repair.test.ts:153:1
+✖ identity repair: PATCH removal revokes pending invitations and board grants like DELETE and replays once (0.213833ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:22:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:154:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/identity-repair.test.ts:172:1
+✖ identity repair: role matrix and replay protect self, peer Manager, Owner, and revoked actor (0.188958ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:22:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:173:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/identity-repair.test.ts:207:1
+✖ identity repair: two reinstatements and an invitation compete for one seat on separate connections (0.204792ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:22:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:208:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/identity-repair.test.ts:227:1
+✖ identity repair: a committed actor revocation wins against a mounted role write waiting on its grant (0.216291ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:22:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:228:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/identity-repair.test.ts:244:1
+✖ identity repair: failed activity insertion rolls back membership and receipt together (0.283ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:22:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:245:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }
+
+test at apps/api/test/identity-repair.test.ts:256:1
+✖ identity repair: exhausted transient invitation delivery strips terminal token, recipient and mail fields (0.20025ms)
+  Error: connect EPERM 127.0.0.1:55931 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async fixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:22:3)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/identity-repair.test.ts:257:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 55931
+  }

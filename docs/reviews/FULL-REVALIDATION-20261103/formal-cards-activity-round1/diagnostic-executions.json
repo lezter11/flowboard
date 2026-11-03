@@ -1,0 +1,95 @@
+{
+  "executor": "collaboration:/root/formal_cards_activity_round1",
+  "executionScope": "prefreeze focused diagnostics only, not final global acceptance or hosted verification",
+  "environment": "Node24 local macOS; approved PostgreSQL17.11-alpine on127.0.0.1:55931, flowboard_harness user. Each custom probe used explicit IMPORT/UI URL with own random schema; legacy suites additionally got explicit DATABASE_URL55931/harness and PGOPTIONS search_path=random schema. No production/cloud/provider data.",
+  "runs": [
+    {
+      "id": "retention-observations",
+      "command": "NODE_ENV=test FLOWBOARD_IMPORT_TEST_DATABASE_URL=<approved55931/import> node --test docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1/retention-probe.test.ts",
+      "exitCode": 0,
+      "counts": "2/2 observations",
+      "log": "retention-probe-local-pg.log",
+      "note": "First two tests at time of execution; test source was subsequently extended for third unknown-field observation. Observations intentionally assert defective behavior; not acceptance passes."
+    },
+    {
+      "id": "retention-contract-observations",
+      "command": "NODE_ENV=test DATABASE_URL=<approved55931/harness> FLOWBOARD_IMPORT_TEST_DATABASE_URL=<approved55931/import> node --test docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1/retention-probe.test.ts",
+      "exitCode": 0,
+      "counts": "3/3 observations",
+      "log": "retention-and-contract-probe-local-pg.log"
+    },
+    {
+      "id": "assignee-real-connection-race",
+      "command": "NODE_ENV=test DATABASE_URL=<approved55931/harness> FLOWBOARD_IMPORT_TEST_DATABASE_URL=<approved55931/import> node --test docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1/assignee-race-probe.test.ts",
+      "exitCode": 0,
+      "counts": "1/1 observation",
+      "log": "assignee-race-probe.log"
+    },
+    {
+      "id": "query-contract-observations",
+      "command": "NODE_ENV=test DATABASE_URL=<approved55931/harness> FLOWBOARD_IMPORT_TEST_DATABASE_URL=<approved55931/import> node --test docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1/query-contract-probe.test.ts",
+      "exitCode": 0,
+      "counts": "1/1 observation",
+      "log": "query-contract-probe.log"
+    },
+    {
+      "id": "focused-existing-isolated",
+      "command": "NODE_ENV=test DATABASE_URL=<approved55931/harness> FLOWBOARD_IMPORT_TEST_DATABASE_URL=<approved55931/import> FLOWBOARD_ACCESS_TEST_DATABASE_URL=<approved55931/access> FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL=<approved55931/identity-extra> node docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1/run-focused-existing.mjs",
+      "exitCode": 0,
+      "counts": "127/127,0skipped",
+      "log": "focused-existing-isolated.log",
+      "cleanup": "random schema dropped"
+    },
+    {
+      "id": "cards-extra-isolated",
+      "command": "NODE_ENV=test DATABASE_URL=<approved55931/harness> FLOWBOARD_IMPORT_TEST_DATABASE_URL=<approved55931/import> FLOWBOARD_ACCESS_TEST_DATABASE_URL=<approved55931/access> FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL=<approved55931/identity-extra> node docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1/run-cards-extra.mjs",
+      "exitCode": 0,
+      "counts": "541/541,0skipped; generatedauth465cells,0failures",
+      "log": "cards-extra-isolated.log",
+      "cleanup": "random schema dropped"
+    },
+    {
+      "id": "web-prefreeze",
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "counts": "318/318,0skipped",
+      "log": "web-tests.log"
+    },
+    {
+      "id": "browser-retention-original",
+      "command": "NODE_ENV=test DATABASE_URL=<approved55931/harness> FLOWBOARD_UI_TEST_DATABASE_URL=<approved55931/ui> node docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1/browser-comment-retention.mjs",
+      "exitCode": 0,
+      "log": "browser-comment-retention.log",
+      "note": "Original result.json/next.log accidentally overwritten by subsequent browser script sharing output dir. Original stdout and screenshot retained; use independent v2 rerun for complete per-run network/hashes. Not used as complete JSON evidence."
+    },
+    {
+      "id": "browser-notification-link",
+      "command": "NODE_ENV=test DATABASE_URL=<approved55931/harness> FLOWBOARD_UI_TEST_DATABASE_URL=<approved55931/ui> node docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1/browser-notification-link.mjs",
+      "exitCode": 0,
+      "log": "browser-notification-link.log",
+      "result": "browser-notification-link/result.json",
+      "note": "Script originally wrote to prior retention directory by mistake. Final notification output was preserved by renaming that directory; no rerun or data fabrication."
+    },
+    {
+      "id": "browser-retention-v2",
+      "command": "NODE_ENV=test DATABASE_URL=<approved55931/harness> FLOWBOARD_UI_TEST_DATABASE_URL=<approved55931/ui> node docs/reviews/FULL-REVALIDATION-20261103/formal-cards-activity-round1/browser-comment-retention-v2.mjs",
+      "exitCode": 0,
+      "log": "browser-comment-retention-v2.log",
+      "result": "browser-comment-retention-v2/result.json",
+      "note": "Independent repeat after prior output-path collision; complete unique versioned per-run network/hash evidence. API/Next/Chrome/randomschema/ownNextoutputs cleaned.",
+      "counts": "actualChrome156.0.8078.74, realcomments404, unchangedcanonicaleditorvisible, sourceChanged[]"
+    }
+  ],
+  "excluded": [
+    {
+      "log": "retention-probe.log",
+      "exitCode": 1,
+      "reason": "SandboxEPERM at correct55931, no successful DB execution"
+    },
+    {
+      "log": "focused-existing-tests.log",
+      "exitCode": 1,
+      "reason": "Reviewer omitted primary DATABASE_URL so first alphabetical activity-coverage-b5 fell back55432 and completed14subtests there. Immediately interrupted after discovery. Entire run invalid/excluded; no later legacyTRUNCATE appears in log. Architect informed. No unauthorized cleanup attempted."
+    }
+  ]
+}

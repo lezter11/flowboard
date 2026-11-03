@@ -56,7 +56,7 @@ export function Topbar() {
       {team.length > 0 && (
         <div className="presence" aria-label="Project team">
           <span className="presence-label">Team</span>
-          {team.map((person) => <Avatar key={person.id} id={person.id} name={formatPersonName(person)} />)}
+          {team.map((person) => <Avatar key={person.id} id={person.id} name={formatPersonName(person)} avatarUrl={person.avatarUrl} />)}
         </div>
       )}
       {project && role && <span className="role-badge" data-role={role} role="group" tabIndex={0} aria-label={`Your role in this project: ${ROLE_META[role].label}. ${ROLE_META[role].description}.`} data-tip={`Your role in this project: ${ROLE_META[role].description}`}>
@@ -69,7 +69,7 @@ export function Topbar() {
       </button>
       {actor && (
         <UserMenu placement="top" className="icon-btn topbar-user" label={`Account menu for ${actor.displayName}`}>
-          <Avatar id={actor.id} name={actor.displayName} className="topbar-avatar" />
+          <Avatar id={actor.id} name={actor.displayName} avatarUrl={actor.avatarUrl} className="topbar-avatar" />
         </UserMenu>
       )}
     </header>

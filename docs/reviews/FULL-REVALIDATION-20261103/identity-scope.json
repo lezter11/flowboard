@@ -1,0 +1,1661 @@
+{
+  "schema_version": 1,
+  "report_type": "read_only_discovery_not_acceptance_review",
+  "date": "2026-11-03",
+  "source_commit": "917706ae0433df471c72736be4d548eb022236c4",
+  "scope": {
+    "feature_count": 29,
+    "feature_ids": [
+      "FND-01",
+      "FND-02",
+      "FND-03",
+      "FND-04",
+      "ACC-01",
+      "ACC-02",
+      "ACC-03",
+      "ACC-04",
+      "ACC-05",
+      "ACC-06",
+      "ACC-07",
+      "RBAC-01",
+      "RBAC-02",
+      "RBAC-03",
+      "RBAC-04",
+      "RBAC-05",
+      "PRJ-01",
+      "PRJ-02",
+      "PRJ-03",
+      "PRJ-04",
+      "PRJ-05",
+      "INV-01",
+      "INV-02",
+      "INV-03",
+      "INV-04",
+      "INV-05",
+      "INV-06",
+      "INV-07",
+      "INV-08"
+    ],
+    "owned_outputs": [
+      "docs/reviews/FULL-REVALIDATION-20261103/identity-scope.md",
+      "docs/reviews/FULL-REVALIDATION-20261103/identity-scope.json"
+    ]
+  },
+  "boundaries": {
+    "source_edits": false,
+    "tests_run": false,
+    "install_run": false,
+    "cloud_or_network_access": false,
+    "database_access": false,
+    "credentials_read_or_printed": false,
+    "approval_or_score_issued": false
+  },
+  "accepted_scope_provenance": [
+    "docs/handoffs/proposals/board-access-decisions-2026-10-27.md:3-19",
+    "docs/handoffs/proposals/own-projects-decisions-2026-10-31.md:9-27",
+    "docs/handoffs/proposals/own-projects-backend-handover-2026-10-31.md:129-139"
+  ],
+  "summary": "All 29 assigned features have source/test candidates; no feature is freshly verified or approved by this discovery. Retired workspace/transfer and old all-board inheritance rows require honest stable-ID reconciliation, not reimplementation.",
+  "features": [
+    {
+      "id": "FND-01",
+      "feature": "Local backend harness",
+      "catalogue_acceptance": "Pinned Node/Worker entry points and local PostgreSQL query/rollback run reproducibly; no cloud account required.",
+      "depends_on": [],
+      "current_acceptance_criteria": [
+        "Pinned Node and actual local workerd start without cloud credentials; both mount the same product routes.",
+        "A fresh disposable PostgreSQL instance proves parameterized query, committed positive control, rollback and safe unavailable DB; close pools/workers."
+      ],
+      "source_behavior": "Node binds loopback and injects a four-connection pool; Worker injects a request-scoped one-connection pool, 25-second deadline and environment limits. Local workerd tests exist, not just a Worker-shaped Node function.",
+      "source_references": [
+        "package.json:11-15",
+        "apps/api/src/runtime/node.ts:15-34",
+        "apps/api/src/runtime/worker.ts:49-79",
+        "apps/api/src/http/app.ts:178-195"
+      ],
+      "existing_tests": [
+        "apps/api/test/node.test.ts:9-84",
+        "apps/api/test/worker.test.ts:15-171"
+      ],
+      "unresolved_or_unverified": [
+        "Fresh local runtime/database checks have not run in this survey. Hosted Hyperdrive behavior is explicitly unverified and is not needed for local harness closure."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "FND-02",
+      "feature": "Shared API schemas and fixtures",
+      "catalogue_acceptance": "Validated request/response schemas and generated OpenAPI agree; fixtures include two projects with distinct members.",
+      "depends_on": [
+        "FND-01"
+      ],
+      "current_acceptance_criteria": [
+        "Request/response schemas and generated OpenAPI describe actual mounted paths, roles, fields, errors, retired routes, OAuth and token restrictions.",
+        "Fixtures exercise distinct project memberships, hidden boards and shared-owner context; route inventory parity fails on undocumented/phantom routes."
+      ],
+      "source_behavior": "Zod schemas and distinct project fixtures exist. OPENAPI_ROUTES is handwritten descriptive metadata with no request/response schema generation; it advertises obsolete create/transfer and conflicts with live member-directory authority. Existing OpenAPI test only checks version, 30+ route count and logout.",
+      "source_references": [
+        "packages/contracts/src/openapi/index.ts:1-8",
+        "packages/contracts/src/openapi/index.ts:50-80",
+        "packages/contracts/src/openapi/index.ts:138-142",
+        "packages/contracts/src/fixtures/index.ts:180-248",
+        "packages/contracts/test/contracts.test.ts:554-561"
+      ],
+      "existing_tests": [
+        "packages/contracts/test/contracts.test.ts:554-561",
+        "packages/contracts/test/b17-own-projects.test.ts:1"
+      ],
+      "unresolved_or_unverified": [
+        "Concrete mandatory gap: no generated schema-bearing OpenAPI agreement evidenced; current catalogue is factually stale. Add mounted route/schema parity and current feature fixture coverage."
+      ],
+      "discovery_status": "mandatory_gap_source",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "FND-03",
+      "feature": "PostgreSQL schema and migrations",
+      "catalogue_acceptance": "Clean install and upgrade enforce workspace/project ancestry, versions, uniqueness and receipt/outbox relationships.",
+      "depends_on": [
+        "FND-01"
+      ],
+      "current_acceptance_criteria": [
+        "Clean install plus realistic upgrade to migrations 0001-0020 enforce composite ancestry, versions, uniqueness, receipts and outbox.",
+        "Failure rolls migration back; concurrent runners serialize; 0019 runs twice safely and races with personal-workspace creation; embedded Worker migration SQL equals filesystem SQL."
+      ],
+      "source_behavior": "PostgreSQL migration runner discovers filesystem migrations or uses embedded SQL, takes an advisory migration lock and commits each migration atomically. 0007 clears board grants on membership status changes; 0019 locks each user during deterministic workspace backfill.",
+      "source_references": [
+        "apps/api/src/adapters/migrations.ts:42-123",
+        "database/migrations/0007_board_grants.sql:12-50",
+        "database/migrations/0019_personal_workspace_backfill.sql:13-44",
+        "database/migrations/0020_personal_access_tokens.sql:1"
+      ],
+      "existing_tests": [
+        "apps/api/test/migrations.test.ts:31-597",
+        "apps/api/test/b21-migration-0019.test.ts:48-117",
+        "apps/api/test/b14-migration-0017.test.ts:1"
+      ],
+      "unresolved_or_unverified": [
+        "Read tests and SQL only; no clean/upgrade database evidence captured now. Require dedicated database per destructive migration suite, embedded SQL parity and final migration-version assertions."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "FND-04",
+      "feature": "Failure and observability baseline",
+      "catalogue_acceptance": "Request IDs, safe errors, deadlines, rate/body limits and structured timing work without exposing secrets.",
+      "depends_on": [
+        "FND-01"
+      ],
+      "current_acceptance_criteria": [
+        "Correlation IDs, safe error bodies/logs, timing, no-store, origin checks, route body bounds and rate bounds cover actual Node and Worker entry points.",
+        "Slow/dead request, DB refusal, invalid JSON and limiter failure expose no secrets; side-effect timing after an HTTP deadline is explicitly tested and recoverable through command receipts."
+      ],
+      "source_behavior": "Global middleware is mounted. PostgreSQL statement/query timeouts exist. HTTP deadline delegates to Hono timeout; source alone does not establish that underlying DB/provider work is cancelled. Body cap chooses a larger upload allowance by cookie presence, not session validity. System migration catch returns raw error.message.",
+      "source_references": [
+        "apps/api/src/http/app.ts:122-155",
+        "apps/api/src/http/middleware/limits.ts:15-24",
+        "apps/api/src/http/middleware/limits.ts:54-58",
+        "apps/api/src/adapters/postgres.ts:13-23",
+        "apps/api/src/http/routes/system.ts:66-75"
+      ],
+      "existing_tests": [
+        "apps/api/test/observability.test.ts:26-289",
+        "apps/api/test/rate-limit.test.ts:35-243",
+        "apps/api/test/origin-check.test.ts:7-61",
+        "apps/api/test/b7-body-caps.test.ts:42-116"
+      ],
+      "unresolved_or_unverified": [
+        "Deadline test covers a slow handler response, not delayed commit cancellation. Test invalid-cookie body caps before calling the large cap authenticated. Assess/sanitize system migration exception details; admin-authenticated scope limits exposure, no external incident established."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "medium",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "ACC-01",
+      "feature": "Sign in and session",
+      "catalogue_acceptance": "Chosen OAuth login creates one identity/session; unsupported callbacks fail closed and private data needs a valid session.",
+      "depends_on": [
+        "FND-02",
+        "FND-03"
+      ],
+      "current_acceptance_criteria": [
+        "Google OAuth state/cookie match and verified provider email precede identity/session issuance; failure issues neither.",
+        "One normalized identity and one personal workspace survive concurrent first sign-in; sessions are random bearer secrets stored hashed with secure cookies.",
+        "Hosted Worker never exposes email-only dev login; local opt-in requires proper environment/secret."
+      ],
+      "source_behavior": "Mounted Google start/callback uses server-side code exchange and verified userinfo email, email upsert, personal-workspace helper, hashed seven-day session, and redirect. Callback failures redirect to fixed sign-in state. Dev login explicitly refuses Worker bindings and requires test mode or deliberate local development configuration.",
+      "source_references": [
+        "apps/api/src/http/routes/google-auth.ts:77-109",
+        "apps/api/src/http/routes/google-auth.ts:121-185",
+        "apps/api/src/http/routes/google-auth.ts:202-252",
+        "apps/api/src/http/routes/google-auth.ts:280-289",
+        "apps/api/src/http/routes/session.ts:145-176",
+        "apps/api/src/adapters/session.ts:110-135"
+      ],
+      "existing_tests": [
+        "apps/api/test/google-auth-system.test.ts:19-128",
+        "apps/api/test/err-s10-google-redirects.test.ts:1",
+        "apps/api/test/b17-personal-workspace.test.ts:1",
+        "apps/api/test/acc01-session.test.ts:11-281",
+        "apps/api/test/token-boundaries.test.ts:1"
+      ],
+      "unresolved_or_unverified": [
+        "Provider fetches in local tests are synthetic; real signed-in UAT OAuth remains a later integration gate. Re-run Node and workerd negative config/callback cases and concurrency with isolated PostgreSQL."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "ACC-02",
+      "feature": "Sign out and expired session",
+      "catalogue_acceptance": "Logout revokes server session; expired tabs retain safe drafts but cannot keep reading or writing protected data.",
+      "depends_on": [
+        "ACC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Logout revokes current hashed server session and clears correctly scoped cookie; repeated/expired logout is safe.",
+        "Expired/revoked sessions cannot use reads, writes, private files or cached replays; UI preserves safe unsent drafts and clears protected content when loss is learned."
+      ],
+      "source_behavior": "GET session requires auth; middleware fetches nonexpired session per request; logout optionally authenticates then deletes server session and cookie.",
+      "source_references": [
+        "apps/api/src/http/routes/session.ts:45-48",
+        "apps/api/src/http/routes/session.ts:125-140",
+        "apps/api/src/http/middleware/auth.ts:44-63",
+        "apps/api/src/adapters/session.ts:151-207"
+      ],
+      "existing_tests": [
+        "apps/api/test/acc01-session.test.ts:130-181",
+        "apps/api/test/acc-lifecycle.test.ts:87-136",
+        "apps/api/test/origin-check.test.ts:7-61"
+      ],
+      "unresolved_or_unverified": [
+        "UI draft/expired-tab behavior and signed-in browser behavior belong to UI/integration evidence; not established by server tests. Clarify logout revokes this browser session; PAT revocation is separate, and PAT UI-session routes must remain denied."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "ACC-03",
+      "feature": "Profile and historical identity",
+      "catalogue_acceptance": "Name/avatar updates display correctly; historical actors remain attributable after grant removal without leaking private account fields.",
+      "depends_on": [
+        "ACC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Confirmed first/last names and display-name updates persist; Google refresh does not overwrite chosen name.",
+        "Avatar follows an explicitly agreed source; historical actors remain attributable without exposing email/account-private fields."
+      ],
+      "source_behavior": "Profile PATCH intentionally accepts display name only and rejects avatarUrl; name PATCH saves both names. Google callback refreshes provider avatar and preserves existing display name. Historical source/tests exist.",
+      "source_references": [
+        "apps/api/src/http/routes/session.ts:94-122",
+        "apps/api/src/http/routes/google-auth.ts:209-218",
+        "apps/api/src/adapters/session.ts:257",
+        "packages/contracts/src/auth.ts:1"
+      ],
+      "existing_tests": [
+        "apps/api/test/acc-lifecycle.test.ts:137-184",
+        "apps/api/test/b9-profile-name.test.ts:1",
+        "apps/api/test/b16-names.test.ts:1",
+        "apps/api/test/b23-same-name.test.ts:1",
+        "apps/api/test/parity-fields-privacy.test.ts:1"
+      ],
+      "unresolved_or_unverified": [
+        "Catalogue wording name/avatar updates is broader than intentional display-only profile API; resolve whether provider-synced avatar satisfies acceptance. Re-run removed-actor mapping across cards/comments/activity, not just profile success."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": "Architect to record intended avatar behavior from existing accepted scope; if arbitrary avatar editing is required, freeze a new bounded contract before implementation."
+    },
+    {
+      "id": "ACC-04",
+      "feature": "Create workspace and owner",
+      "catalogue_acceptance": "Account creates a workspace and exactly one owner atomically; a lost response replay does not create a second workspace.",
+      "depends_on": [
+        "ACC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Replace obsolete explicit-workspace creation criteria with personal-workspace ensure on sign-in and POST /projects.",
+        "Authenticated old workspace-create route returns typed 410 without writes; anonymous returns 401.",
+        "Concurrent ensure and 0019 backfill produce one deterministic primary owned workspace without requiring every invite accept to create one."
+      ],
+      "source_behavior": "POST /workspaces is mounted but always retires after authentication. Personal workspace is ensured in Google callback/project creation under user quota advisory lock. 0019 backfills users without workspaces. Old backend handoff still claims workspace POST works.",
+      "source_references": [
+        "apps/api/src/http/routes/workspaces.ts:18-23",
+        "apps/api/src/adapters/personal-workspace.ts:17-32",
+        "apps/api/src/http/routes/projects.ts:218-237",
+        "docs/handoffs/proposals/own-projects-backend-handover-2026-10-31.md:129-160",
+        "docs/handoffs/backend/ACC-04.json:2-11"
+      ],
+      "existing_tests": [
+        "apps/api/test/acc04-workspaces.test.ts:14-50",
+        "apps/api/test/b17-personal-workspace.test.ts:1",
+        "apps/api/test/b21-migration-0019.test.ts:48-117"
+      ],
+      "unresolved_or_unverified": [
+        "Accepted retirement has source/tests, but TSV/generated checklist/OpenAPI/handoff still describe old behavior; replacement acceptance and fresh review remain required. Do not revive POST workspace to satisfy stale row."
+      ],
+      "discovery_status": "superseded_row_needs_reconciliation",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": "Architect must publish amended ACC-04 criteria and retire historical handoff wording; existing accepted decision already authorizes this direction."
+    },
+    {
+      "id": "ACC-05",
+      "feature": "Workspace preferences",
+      "catalogue_acceptance": "Owner sets workspace name/timezone; date-only deadlines retain their selected day and shared overdue semantics.",
+      "depends_on": [
+        "ACC-04"
+      ],
+      "current_acceptance_criteria": [
+        "Owner alone updates workspace name/timezone with expectedVersion; invalid zone/stale version fails without partial update.",
+        "Date-only deadlines keep calendar day and overdue semantics use agreed workspace timezone."
+      ],
+      "source_behavior": "Workspace PATCH locks row FOR UPDATE, checks owner and version, then updates name/timezone. It does not require idempotency despite OpenAPI claiming it does. Nonowner existing workspace yields 403, missing workspace 404.",
+      "source_references": [
+        "apps/api/src/http/routes/workspaces.ts:63-155",
+        "packages/contracts/src/openapi/index.ts:66-72",
+        "packages/contracts/src/workspaces.ts:1"
+      ],
+      "existing_tests": [
+        "apps/api/test/acc-lifecycle.test.ts:185-233",
+        "apps/api/test/crd01-crd11.test.ts:1",
+        "apps/api/test/qry01-qry03.test.ts:1"
+      ],
+      "unresolved_or_unverified": [
+        "Align replay/header documentation with actual version-based update policy. Add date-only/overdue integration checks through preference changes and time-zone/DST boundaries; test fixture timezone alone is not proof. Assess workspace existence response distinction if workspace IDs are meant private."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "ACC-06",
+      "feature": "Owned and invited context switcher",
+      "catalogue_acceptance": "Show only owned containers and explicitly granted projects; being owner elsewhere grants no extra rights here.",
+      "depends_on": [
+        "ACC-04",
+        "RBAC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Session/project switcher shows only owned containers and explicit project grants; owner elsewhere gains no rights.",
+        "Zero-board member still sees project but no hidden board names/counts/default-board IDs.",
+        "Shared-only first visit lands /projects; remembered location is reauthorized after revoke/archive."
+      ],
+      "source_behavior": "Session derives ownedWorkspaces, accessibleProjects, limits, isOwned and validated lastLocation; project summary uses readable default-board join. Accessible session list is unbounded while primary GET /projects is paginated.",
+      "source_references": [
+        "apps/api/src/http/routes/session.ts:51-75",
+        "apps/api/src/adapters/rbac.ts:119-171",
+        "apps/api/src/adapters/last-location.ts:1",
+        "docs/handoffs/proposals/own-projects-decisions-2026-10-31.md:9-27"
+      ],
+      "existing_tests": [
+        "apps/api/test/acc-lifecycle.test.ts:234-266",
+        "apps/api/test/last-location.test.ts:1",
+        "apps/api/test/b18-backstops-session.test.ts:13-64",
+        "apps/api/test/board-description-default-board.test.ts:1"
+      ],
+      "unresolved_or_unverified": [
+        "Browser context switch clearing and first/remembered landing need UI/integration evidence. Unlimited invited memberships make session payload a later scaling risk; do not falsely call session pagination implemented."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "ACC-07",
+      "feature": "Owner transfer",
+      "catalogue_acceptance": "Only current owner transfers to an eligible account atomically; no interval has zero/multiple owners and no stale grant escalates.",
+      "depends_on": [
+        "ACC-04",
+        "RBAC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Ownership transfer stays disabled in beta with authenticated typed 410, unauthenticated 401, and zero owner/version/quota change.",
+        "Former-owner boundary tests may use controlled fixture DB changes; these cannot be called successful transfer API evidence."
+      ],
+      "source_behavior": "Mounted transfer-ownership route always throws TRANSFER_OWNERSHIP_RETIRED after auth. Accepted later handover explicitly disables beta transfer. Lifecycle test checks retirement then changes owner directly as a controlled fixture. Historical handoff/OpenAPI/TSV claim active transfer.",
+      "source_references": [
+        "apps/api/src/http/routes/workspaces.ts:159-164",
+        "docs/handoffs/proposals/own-projects-backend-handover-2026-10-31.md:139-160",
+        "apps/api/test/acc-lifecycle.test.ts:267-284",
+        "docs/handoffs/backend/ACC-07.json:2-8",
+        "packages/contracts/src/openapi/index.ts:74-80"
+      ],
+      "existing_tests": [
+        "apps/api/test/acc-lifecycle.test.ts:267-312",
+        "apps/api/test/board-access.test.ts:1193-1198"
+      ],
+      "unresolved_or_unverified": [
+        "Add explicit anonymous and unrelated authenticated account retirement probes and assert owner/version unchanged. Amend feature/handoff records; do not revive transfer, nor mark old atomic-transfer acceptance fulfilled."
+      ],
+      "discovery_status": "superseded_row_needs_reconciliation",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "RBAC-01",
+      "feature": "Owner manager member viewer matrix",
+      "catalogue_acceptance": "Every endpoint derives active ownership/project grant from session; manager authority is project-scoped and member/viewer cannot administer.",
+      "depends_on": [
+        "FND-02",
+        "FND-03"
+      ],
+      "current_acceptance_criteria": [
+        "Every mounted route and alias enforces active session/PAT route scope, project role and board-grant intersection where board-derived.",
+        "Owner implicit access stays within owned workspace; Manager administration is project-only; Member/Viewer cannot grant/change authority.",
+        "Manager-created new board grants creator only; only Owner administers others."
+      ],
+      "source_behavior": "Shared role helpers resolve owner/project grant; write helper holds workspace/member/grant locks and checks board visibility before role. Board grants are mounted. PAT policy is global before routes, so current acceptance must include both identity modes.",
+      "source_references": [
+        "apps/api/src/http/app.ts:125-126",
+        "apps/api/src/http/app.ts:178-195",
+        "apps/api/src/adapters/rbac.ts:49-87",
+        "apps/api/src/adapters/rbac.ts:300-379",
+        "apps/api/src/http/middleware/auth.ts:23-42",
+        "apps/api/src/http/routes/board-grants.ts:1"
+      ],
+      "existing_tests": [
+        "apps/api/test/rbac01-matrix.test.ts:130-280",
+        "apps/api/test/board-access.test.ts:1",
+        "apps/api/test/b18-own-projects.test.ts:38-73",
+        "apps/api/test/token-boundaries.test.ts:1"
+      ],
+      "unresolved_or_unverified": [
+        "Helper/matrix coverage is not inventory coverage. Freeze complete actual route/method/alias matrix and distinguish retired routes; include token expiry/project binding/admin denial after MCP repair. Member-directory role mismatch and status PATCH path require resolution."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "RBAC-02",
+      "feature": "Project ancestry enforcement",
+      "catalogue_acceptance": "Guessing sibling board/card/comment/file/import IDs returns a consistent private not-found response with no metadata leakage.",
+      "depends_on": [
+        "RBAC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Known-hidden sibling project/board/card/comment/image/upload/import IDs and unknown IDs share agreed private 404 with no private sentinel metadata.",
+        "Check actual endpoints, alternate query/body ID selectors, aliases, binary image routes and token project filters, not only verifyProjectAncestry helper."
+      ],
+      "source_behavior": "Ancestry helper verifies composite workspace/project relationships. Mounted board-aware read/write helpers protect descendants; full-family access test files exist. Database composite foreign keys backstop ancestry.",
+      "source_references": [
+        "apps/api/src/adapters/rbac.ts:179-249",
+        "apps/api/src/adapters/rbac.ts:322-366",
+        "apps/api/src/http/routes/projects.ts:483-505",
+        "database/migrations/0007_board_grants.sql:19-23"
+      ],
+      "existing_tests": [
+        "apps/api/test/rbac-advanced.test.ts:216-331",
+        "apps/api/test/board-access-cards-images.test.ts:1",
+        "apps/api/test/board-access-boards-imports-trash.test.ts:1",
+        "apps/api/test/board-access-activity-notifications.test.ts:1",
+        "apps/api/test/token-boundaries.test.ts:1"
+      ],
+      "unresolved_or_unverified": [
+        "No mounted family suite executed in this discovery. Re-run all route families against actual PostgreSQL and Node/workerd as claimed; privacy includes response bodies/counts/cursors/errors, not just status."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "RBAC-03",
+      "feature": "Revocation versus writes",
+      "catalogue_acceptance": "Grant/owner lock protocol serializes a write against role removal; no write commits after a preceding revocation wins.",
+      "depends_on": [
+        "RBAC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Two real DB connections prove write-before-revoke and revoke-before-write; no subsequent protected write commits after winning role/grant revocation.",
+        "Project/board membership mutations, import commit, image finalization, card/comment writes and replay reauthorization follow one consistent lock order."
+      ],
+      "source_behavior": "Project write helper holds FOR SHARE workspace/membership and optional board-grant row; archived context helper locks project/board. Existing forced-interleave suites exercise mounted project update and member-promotion/removal. Full proof still depends on every caller.",
+      "source_references": [
+        "apps/api/src/adapters/rbac.ts:300-439",
+        "apps/api/src/adapters/members.ts:42-61",
+        "apps/api/src/http/routes/members.ts:88-105",
+        "database/migrations/0007_board_grants.sql:27-50"
+      ],
+      "existing_tests": [
+        "apps/api/test/rbac-advanced.test.ts:389-844",
+        "apps/api/test/lock-order-interleave.test.ts:19-113",
+        "apps/api/test/board-access.test.ts:508-1397"
+      ],
+      "unresolved_or_unverified": [
+        "FLOWBOARD_ACCESS_TEST_DATABASE_URL absence skips important suites; require explicit zero-skip evidence. Status PATCH quota/archive path is outside quota lock protocol; inventory all role/status mutators and test them."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "RBAC-04",
+      "feature": "Picker and notification privacy",
+      "catalogue_acceptance": "Search, people, assignees, mentions, inbox and historical identity responses expose only the actor's authorized project context.",
+      "depends_on": [
+        "RBAC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Display identities are project scoped; assignee/mention picker candidates can actually use target board and permitted role.",
+        "Historical actors and notifications do not expose account-private fields or hidden board participation; revoked access immediately redacts deep links/content."
+      ],
+      "source_behavior": "People route requires boardId for assignees; mentions derive board from active card or explicit board, with empty result when no context. Query helper projects PersonDisplay, filters active grants and eligibility. Separate member-directory endpoint returns email to every active role.",
+      "source_references": [
+        "apps/api/src/http/routes/projects.ts:460-521",
+        "apps/api/src/adapters/rbac.ts:453-488",
+        "apps/api/src/adapters/projects.ts:493-568",
+        "packages/contracts/src/projects.ts:179-207"
+      ],
+      "existing_tests": [
+        "apps/api/test/rbac-advanced.test.ts:845-939",
+        "apps/api/test/b24-assignee-eligibility.test.ts:1",
+        "apps/api/test/b9-mention-access.test.ts:1",
+        "apps/api/test/parity-fields-privacy.test.ts:1",
+        "apps/api/test/board-access-activity-notifications.test.ts:1"
+      ],
+      "unresolved_or_unverified": [
+        "Resolve member-directory email/role policy separately from PersonDisplay. Test no-board/foreign-card/removed-actor/user-with-hidden-board cases and inbox after both role and board revocation."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": "Architect/product needs an explicit current directory-role and email-disclosure policy because source/tests permit all active roles while PRJ-05/OpenAPI describe Owner/Manager administration."
+    },
+    {
+      "id": "RBAC-05",
+      "feature": "Project inheritance disclosure",
+      "catalogue_acceptance": "Board invitation action explicitly grants project access to all its boards; no hidden board-only permission exception exists.",
+      "depends_on": [
+        "INV-01"
+      ],
+      "current_acceptance_criteria": [
+        "Supersede all-board inheritance with explicit disclosure: project invite grants project only, nonowner needs a board grant, Owner implicitly sees own boards.",
+        "Access-summary returns only accessible board counts and no hidden board IDs/counts; invite email cannot promise inherited all-board access."
+      ],
+      "source_behavior": "Access-summary mounted under project read lock returns model explicit_board_grants, allBoardsInherit false, hasBoardOnlyExceptions true and visible board count. Historical backend summary and TSV still state opposite inheritance model.",
+      "source_references": [
+        "apps/api/src/http/routes/projects.ts:526-545",
+        "apps/api/src/adapters/rbac.ts:748-808",
+        "docs/handoffs/proposals/board-access-decisions-2026-10-27.md:3-19",
+        "docs/handoffs/backend/RBAC-05.json:4"
+      ],
+      "existing_tests": [
+        "apps/api/test/rbac-advanced.test.ts:940-999",
+        "apps/api/test/board-access.test.ts:1",
+        "apps/api/test/b10-invitation-email.test.ts:99-145"
+      ],
+      "unresolved_or_unverified": [
+        "Refresh feature definition/handoff prose and invitation disclosure acceptance; source revised payload alone does not approve all affected read/write paths. No new policy decision needed to preserve explicit board grants."
+      ],
+      "discovery_status": "superseded_row_needs_reconciliation",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "PRJ-01",
+      "feature": "Create multiple projects",
+      "catalogue_acceptance": "Owner creates named projects inside their workspace; each has independent membership and boards.",
+      "depends_on": [
+        "ACC-04"
+      ],
+      "current_acceptance_criteria": [
+        "Any signed-in shared-role user can create an owned project through strict POST /projects without choosing/injecting workspace.",
+        "New and legacy own-workspace route share 3 active/20 total owned-project caps, actor rate windows, transaction/receipt identity, concurrent serialization and grandfathering.",
+        "No membership elsewhere counts toward owned quota; independent boards/memberships and versioned project metadata persist."
+      ],
+      "source_behavior": "POST /projects locks user quota, ensures workspace, replays receipt before rate/quota, inserts project and receipt atomically. Legacy own-workspace route remains active. Accepted later handover approves total caps and rates.",
+      "source_references": [
+        "apps/api/src/http/routes/projects.ts:101-175",
+        "apps/api/src/http/routes/projects.ts:198-242",
+        "apps/api/src/services/limits.ts:15-30",
+        "docs/handoffs/proposals/own-projects-backend-handover-2026-10-31.md:129-137"
+      ],
+      "existing_tests": [
+        "apps/api/test/prj01-projects.test.ts:75-251",
+        "apps/api/test/b18-own-projects.test.ts:64-220",
+        "apps/api/test/b18-backstops-session.test.ts:64-127"
+      ],
+      "unresolved_or_unverified": [
+        "Update obsolete Owner-only catalogue framing: every user becomes Owner of their own created context, with no increase inside invited project. Re-run concurrent creates/replay through both routes; full feature approval remains open."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "PRJ-02",
+      "feature": "Project list and navigation",
+      "catalogue_acceptance": "Owned projects and invited projects are paginated and scoped; hidden projects leak no name, count or existence.",
+      "depends_on": [
+        "PRJ-01",
+        "RBAC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Paginated primary project lists include only owned/active granted projects, including zero-board members without hidden board hints.",
+        "Invalid/stale cursors and archive filtering are deterministic; defaultBoardId is readable; no sibling name/count/existence leakage."
+      ],
+      "source_behavior": "GET /projects delegates to scoped paginated query and PAT project filter. Workspace list uses explicit owner/member locking. Session list is a separate unbounded summary path.",
+      "source_references": [
+        "apps/api/src/http/routes/projects.ts:82-97",
+        "apps/api/src/http/routes/projects.ts:252-286",
+        "apps/api/src/adapters/projects.ts:174-245",
+        "apps/api/src/adapters/rbac.ts:119-171"
+      ],
+      "existing_tests": [
+        "apps/api/test/prj02-prj05.test.ts:157-317",
+        "apps/api/test/board-description-default-board.test.ts:1",
+        "apps/api/test/board-access.test.ts:1321-1347"
+      ],
+      "unresolved_or_unverified": [
+        "Browser Yours/Shared grouping and navigation need UI integration. Test revocation during paginated queries, archived visibility and malformed cursors; do not treat unbounded session payload as paginated."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "PRJ-03",
+      "feature": "Project settings",
+      "catalogue_acceptance": "Owner/manager updates project name/description using expected version; managers cannot alter workspace ownership.",
+      "depends_on": [
+        "PRJ-01",
+        "RBAC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Owner/own-project Manager updates validated project name/description/brief with expectedVersion and receipt; Member/Viewer forbidden, sibling invisible.",
+        "Stale/colliding retries cause no partial metadata/activity writes; archive context blocks edits; ownership/default-board authority remains separately Owner-only."
+      ],
+      "source_behavior": "Project PATCH takes actor write-grant lock and writable project lock before replay/update, then saves receipt and commits. Settings adapter owns version/role constraints.",
+      "source_references": [
+        "apps/api/src/http/routes/projects.ts:357-435",
+        "apps/api/src/adapters/projects.ts:270-345",
+        "packages/contracts/src/projects.ts:53-88"
+      ],
+      "existing_tests": [
+        "apps/api/test/prj02-prj05.test.ts:318-540",
+        "apps/api/test/project-overview-brief.test.ts:1",
+        "apps/api/test/board-description-default-board.test.ts:1",
+        "apps/api/test/rbac-advanced.test.ts:508-668"
+      ],
+      "unresolved_or_unverified": [
+        "Re-run stale replay/revocation races and assert canonical field/activity results. OpenAPI/schema agreement and UI draft conflicts remain separate gates."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "PRJ-04",
+      "feature": "Archive and reopen project",
+      "catalogue_acceptance": "Owner archives project as read-only and can reopen; data/history remain, trash deadlines continue and new imports/writes stop.",
+      "depends_on": [
+        "PRJ-01",
+        "DEL-01"
+      ],
+      "current_acceptance_criteria": [
+        "Owner-only project archive/reopen retains data/history, blocks domain writes/import/acceptance and does not pause card trash deadlines.",
+        "Reopen checks active quota with receipt replay before quota; concurrent create/reopen cannot exceed cap.",
+        "Removal/leave must stay available when archived if accepted board decision requires revocation while read-only; role reinstatement must not quietly mutate archived context."
+      ],
+      "source_behavior": "Archive/reopen routes exist with Owner lock/receipt; reopen acquires user quota then checks cap. Domain writes call writable-context helper; invitation accept only reads project archived flag without holding project row context lock. Member update normal path omits writable-context check while replay path includes it.",
+      "source_references": [
+        "apps/api/src/http/routes/projects.ts:551-660",
+        "apps/api/src/http/routes/projects.ts:666-741",
+        "apps/api/src/adapters/rbac.ts:391-439",
+        "apps/api/src/adapters/invitations.ts:338-341",
+        "apps/api/src/adapters/members.ts:42-128"
+      ],
+      "existing_tests": [
+        "apps/api/test/lifecycle-undo.test.ts:330",
+        "apps/api/test/b18-own-projects.test.ts:203-220",
+        "apps/api/test/b22-invitation-caps.test.ts:169-180"
+      ],
+      "unresolved_or_unverified": [
+        "Reproduce role/status PATCH in archived project and archive-vs-invite-accept forced interleave. Sequential archived accept refusal does not prove archive race. Verify card restore cutoff continues with actual clock boundaries.",
+        "Root-produced baseline JSON was inspected after the source pass: cap bypass and archived-role write are reproduced on this commit; repair and fresh independent review remain open."
+      ],
+      "discovery_status": "source_risk_requires_reproduction",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null,
+      "external_evidence": [
+        "docs/reviews/FULL-REVALIDATION-20261103/raw/member-baseline.json"
+      ]
+    },
+    {
+      "id": "PRJ-05",
+      "feature": "Project people directory",
+      "catalogue_acceptance": "Owner/manager sees authorized project members; picker exposes only eligible identities and never enumerates unrelated projects.",
+      "depends_on": [
+        "RBAC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Owner/Manager administrative directory exposes authorized active members; ordinary pickers expose eligible public identity fields within approved project/board context.",
+        "No unrelated project membership, email directory or hidden-board participation leaks; removed identities are excluded as new candidates."
+      ],
+      "source_behavior": "GET members authorizes active project membership of any role, returns full directory with emails, roles, membership IDs and versions, and nextCursor null. Contract requires email; test deliberately permits Manager/Member/Viewer. This conflicts with administrative OpenAPI minimumRole manager and narrower catalogue wording.",
+      "source_references": [
+        "apps/api/src/http/routes/projects.ts:439-457",
+        "apps/api/src/adapters/projects.ts:463-580",
+        "packages/contracts/src/projects.ts:179-194",
+        "packages/contracts/src/openapi/index.ts:138-142",
+        "apps/api/test/prj02-prj05.test.ts:541-607"
+      ],
+      "existing_tests": [
+        "apps/api/test/prj02-prj05.test.ts:541-648",
+        "apps/api/test/b11-cleanup-cap-people.test.ts:1",
+        "apps/api/test/board-access.test.ts:1321-1324"
+      ],
+      "unresolved_or_unverified": [
+        "Authority/email policy must be reconciled before declaring compliant. Pending decision is not proof source is an exploit: active members may intentionally share a directory, but email access is not explicitly settled by current accepted board decision. Pagination remains absent for administrative members; cap bounds active memberships but grandfathering needs consideration."
+      ],
+      "discovery_status": "needs_product_policy_reconciliation",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": "Record whether Member/Viewer may read administrative member emails. Prefer distinct Owner/Manager administration and email-free public identities unless existing accepted user decision states otherwise."
+    },
+    {
+      "id": "INV-01",
+      "feature": "Project invitation",
+      "catalogue_acceptance": "Owner invites manager/member/viewer; project manager invites member/viewer only; invitation names the exact project and inherited boards.",
+      "depends_on": [
+        "PRJ-01",
+        "RBAC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Owner invites Manager/Member/Viewer; project Manager invites only Member/Viewer within own project.",
+        "Invite establishes project membership only, no implicit board grants; email names exact project without hidden board disclosure.",
+        "Name-confirmation, email normalization, 50 seats/pending reservations, rates, transactional activity/outbox/receipt, idempotent replay and duplicate-email race hold."
+      ],
+      "source_behavior": "Mounted route takes project quota then write grant/writable locks, checks role and name, replays before rate/caps, creates invite+outbox and schedules mail. No board-grant insertion is in invitation flow. Invitation response includes raw token on initial creation only; receipt minimization is separate.",
+      "source_references": [
+        "apps/api/src/http/routes/invitations.ts:35-128",
+        "apps/api/src/adapters/invitations.ts:127-225",
+        "apps/api/src/adapters/invitations.ts:1055-1065",
+        "docs/handoffs/proposals/board-access-decisions-2026-10-27.md:10-17"
+      ],
+      "existing_tests": [
+        "apps/api/test/inv01-inv03.test.ts:124-345",
+        "apps/api/test/b22-invitation-caps.test.ts:85-113",
+        "apps/api/test/b22-invitation-caps.test.ts:182-244",
+        "apps/api/test/b10-invitation-email.test.ts:99-145"
+      ],
+      "unresolved_or_unverified": [
+        "Catalogue inherited-boards clause is stale. Add/locate exact same-email parallel invite test; parallel cap tests alone do not prove duplicate-email behavior. UI invite confirmation/disclosure and real mail adapter delivery remain later evidence."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "INV-02",
+      "feature": "Invitation delivery",
+      "catalogue_acceptance": "Durable invite delivery uses a configured email adapter; failure is visible and retryable without logging the secret link.",
+      "depends_on": [
+        "INV-01",
+        "FND-04"
+      ],
+      "current_acceptance_criteria": [
+        "Durable invite outbox survives restart and transient mail failures; configured adapter sends only configured-origin link.",
+        "Delivery failure is visible and actionable to an authorized inviter without exposing link/token to logs.",
+        "Every terminal state, including retry exhaustion, strips raw token/recipient/template payload; retries are bounded and do not falsely promise exactly-once external mail."
+      ],
+      "source_behavior": "Brevo adapter has timeout and outcome classification. Immediate Worker waitUntil send and scheduled outbox drain exist. Invitation list exposes invitation status only, not delivery state. Terminal permanent refusal/delivery sanitize payload, but retry-exhaustion drain branch only sets failed/time/retry_count.",
+      "source_references": [
+        "apps/api/src/adapters/invitation-delivery.ts:30-82",
+        "apps/api/src/adapters/invitation-delivery.ts:150-170",
+        "apps/api/src/services/mailer.ts:54-90",
+        "apps/api/src/adapters/notifications.ts:363-388",
+        "apps/api/src/adapters/invitations.ts:887-921",
+        "apps/api/src/runtime/worker.ts:88-96"
+      ],
+      "existing_tests": [
+        "apps/api/test/b10-invitation-email.test.ts:74-254",
+        "apps/api/test/b14-outbox-privacy.test.ts:64-140",
+        "apps/api/test/uat-immediate-invite-send.test.ts:93-199"
+      ],
+      "unresolved_or_unverified": [
+        "Mandatory visible-failure acceptance lacks API outcome exposure in inspected invitation list. Source candidate: exhausted transient retries retain secret payload until 30-day retention, unlike documented terminal sanitization. Test retry-count at max-1, then final retry, then inspect failed payload. No real provider email sent during discovery."
+      ],
+      "discovery_status": "mandatory_gap_source",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "INV-03",
+      "feature": "Accept matching invitation",
+      "catalogue_acceptance": "Signed-in verified email must match unexpired, hashed, single-use project token; wrong email grants nothing.",
+      "depends_on": [
+        "INV-01",
+        "ACC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Only signed-in verified matching recipient with confirmed name accepts current unexpired hashed single-use token.",
+        "Wrong email/expired/revoked/superseded token grants nothing; accepted state, membership, activity and receipt are atomic.",
+        "Reaccept/replay after revocation fails; accepted project does not silently gain any board access; caps and archive hold under races."
+      ],
+      "source_behavior": "Accept route checks name and token input, locks project quota before invitation; adapter hashes token, FOR UPDATE locks invite, enforces state/expiry/email, supersession timestamp and member cap, then upserts membership. Replay checks active membership; project archive check is unlocked read.",
+      "source_references": [
+        "apps/api/src/http/routes/invitations.ts:139-237",
+        "apps/api/src/adapters/invitations.ts:285-449"
+      ],
+      "existing_tests": [
+        "apps/api/test/inv01-inv03.test.ts:345-706",
+        "apps/api/test/inv04-inv08.test.ts:761-923",
+        "apps/api/test/b22-invitation-caps.test.ts:114-132",
+        "apps/api/test/b22-invitation-caps.test.ts:248-290"
+      ],
+      "unresolved_or_unverified": [
+        "Verified email is established by OAuth/authentication chain, not token alone; test dev-login cannot stand for hosted verification. Add archive-vs-accept and replay-vs-removal interleavings; post-accept zero-board UI state needs integration."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "INV-04",
+      "feature": "Resend and revoke invitation",
+      "catalogue_acceptance": "Authorized resend rotates token; revoke invalidates it; races create at most one grant and invitation outcome.",
+      "depends_on": [
+        "INV-01"
+      ],
+      "current_acceptance_criteria": [
+        "Authorized resend rotates token and invalidates old pending email; revoke invalidates token; Manager cannot administer Manager invitation.",
+        "Resend/revoke/accept races yield one consistent grant/outcome, no deadlock; exact pending/seat caps, expiry rules and replay-before-rate are applied."
+      ],
+      "source_behavior": "Resend route locks quota before invitation, validates state/rate/seats; adapter rotates token and supersedes earlier outbox payload. Revoke route and adapter enforce current role and invitation state. Expired resend refusal overrides older helper comment allowing expired invitations.",
+      "source_references": [
+        "apps/api/src/http/routes/invitations.ts:286-390",
+        "apps/api/src/http/routes/invitations.ts:392-480",
+        "apps/api/src/adapters/invitations.ts:559-637",
+        "apps/api/src/adapters/invitations.ts:693-825"
+      ],
+      "existing_tests": [
+        "apps/api/test/inv04-inv08.test.ts:159-419",
+        "apps/api/test/b22-invitation-caps.test.ts:133-168",
+        "apps/api/test/b22-invitation-caps.test.ts:271-290",
+        "apps/api/test/b10-invitation-email.test.ts:147-174"
+      ],
+      "unresolved_or_unverified": [
+        "Existing forced accept/resend case is not a complete accept/revoke, resend/revoke and duplicate-resend matrix. Include multiple actual connections, final token/status/grant/outbox invariants and stale replay authority."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "INV-05",
+      "feature": "Pending invitations list",
+      "catalogue_acceptance": "Owner sees all own projects; manager sees own project invitations; expired/accepted/revoked states and next actions are clear.",
+      "depends_on": [
+        "INV-01"
+      ],
+      "current_acceptance_criteria": [
+        "Owner and own-project Manager list authorized invitations with pending/expired/accepted/revoked state and actionable resend/revoke restrictions; Member/Viewer forbidden, siblings private.",
+        "Never return token/token hash; history bounds/pagination and delivery outcomes are accurately documented."
+      ],
+      "source_behavior": "Mounted GET takes Manager grant lock then lists project rows with computed expired state; response nextCursor null, query has no LIMIT and includes all historical invitations. Token hash is never selected; delivery outcome not selected.",
+      "source_references": [
+        "apps/api/src/http/routes/invitations.ts:253-275",
+        "apps/api/src/adapters/invitations.ts:835-922",
+        "packages/contracts/src/invitations.ts:53-74"
+      ],
+      "existing_tests": [
+        "apps/api/test/inv04-inv08.test.ts:443-528"
+      ],
+      "unresolved_or_unverified": [
+        "50 pending cap does not bound accepted/revoked/expired history, so list can grow without bound despite paginated envelope. Need bounded cursor query/schema/UI handoff; delivery-failure field/action tracked with INV-02."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "INV-06",
+      "feature": "Change member roles",
+      "catalogue_acceptance": "Owner appoints/removes managers; manager changes member/viewer roles only and cannot promote self or a peer manager.",
+      "depends_on": [
+        "INV-03",
+        "RBAC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Owner controls Manager roles; own-project Manager changes Member/Viewer only and cannot modify self/peer Manager/Owner.",
+        "ExpectedVersion, replay authority and all status changes preserve project seat cap and pending-seat reservation under concurrency.",
+        "Archived project blocks reinstatement/role writes; authorized removal remains possible if revocation exception applies."
+      ],
+      "source_behavior": "Member PATCH forwards both role and arbitrary valid active/removed status to updateProjectMember. Adapter locks actor/target and applies authority/OCC, then directly updates role/status. It never takes project quota lock, counts seats or checks archived context on normal path; replay helper checks archive.",
+      "source_references": [
+        "packages/contracts/src/projects.ts:91-98",
+        "apps/api/src/http/routes/members.ts:51-105",
+        "apps/api/src/http/routes/members.ts:16-47",
+        "apps/api/src/adapters/members.ts:42-128"
+      ],
+      "existing_tests": [
+        "apps/api/test/inv06-inv07.test.ts:143-344",
+        "apps/api/test/rbac-advanced.test.ts:668-844",
+        "apps/api/test/b22-invitation-caps.test.ts:85-132"
+      ],
+      "unresolved_or_unverified": [
+        "High source candidate: PATCH a removed Member to active at 50 active bypasses seat cap; concurrent PATCH reactivations can exceed it because only invite/accept use quota lock. Separate candidate: archived role/status write succeeds. Freeze reinstatement policy, reproduce mounted endpoints, then fix at responsible transaction layer.",
+        "Root-produced baseline JSON was inspected after the source pass: cap bypass and archived-role write are reproduced on this commit; repair and fresh independent review remain open."
+      ],
+      "discovery_status": "source_risk_requires_reproduction",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": "Architect chooses whether member-role PATCH may reinstate removed users at all. If retained, it must obey the same quota/archive policy; fresh invite is the simpler existing alternative.",
+      "external_evidence": [
+        "docs/reviews/FULL-REVALIDATION-20261103/raw/member-baseline.json"
+      ]
+    },
+    {
+      "id": "INV-07",
+      "feature": "Remove project access",
+      "catalogue_acceptance": "Owner removes any grant; manager removes member/viewer in own project; next API/file/import/replay access fails after revocation.",
+      "depends_on": [
+        "INV-03",
+        "RBAC-01"
+      ],
+      "current_acceptance_criteria": [
+        "Owner removes any project grant; Manager removes Member/Viewer only; next protected API/file/import/replay is denied.",
+        "Removal atomically clears board grants and supersedes/revokes prior invitations; rejoin cannot restore dormant boards.",
+        "Both DELETE and PATCH status=removed implement consistent semantics and lock order; removed historical authors remain attributable."
+      ],
+      "source_behavior": "DELETE adapter locks target, sets removed, revokes pending project-email invitations and records activity. 0007 trigger clears grants on status change. PATCH status=removed also clears grants via trigger, but omits DELETE pending-invite cleanup and uses different archive/replay handling.",
+      "source_references": [
+        "apps/api/src/http/routes/members.ts:139-206",
+        "apps/api/src/adapters/members.ts:211-325",
+        "apps/api/src/adapters/members.ts:104-158",
+        "database/migrations/0007_board_grants.sql:27-50",
+        "apps/api/src/adapters/invitations.ts:393-398"
+      ],
+      "existing_tests": [
+        "apps/api/test/inv06-inv07.test.ts:345-462",
+        "apps/api/test/inv04-inv08.test.ts:761-867",
+        "apps/api/test/board-access.test.ts:265-277",
+        "apps/api/test/board-access-cards-images.test.ts:1"
+      ],
+      "unresolved_or_unverified": [
+        "PATCH removal is an alternate path requiring parity regression, including stale invitation created before removal. Supersession timestamp fence is counterevidence to automatic old-token escalation; do not call exploit confirmed without reproduction. Test delete and status patch versus held write/replay/import/file delivery."
+      ],
+      "discovery_status": "source_risk_requires_reproduction",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    },
+    {
+      "id": "INV-08",
+      "feature": "Leave a project",
+      "catalogue_acceptance": "Invitee can leave their own grant with confirmation; owner cannot leave ownership and historical authorship remains.",
+      "depends_on": [
+        "INV-03"
+      ],
+      "current_acceptance_criteria": [
+        "Active invitee can leave own project; Owner cannot leave ownership; repeated same-key leave returns original safe outcome.",
+        "Leaving clears board grants, pending invitations and future API/file access while preserving historical authorship; leave remains possible in archived project per revocation policy."
+      ],
+      "source_behavior": "Leave route checks receipt, refuses Owner even on replay, and delegates transactional leave; helper removes membership and revokes pending project-email invites. 0007 clears old board grants. Replay intentionally returns own previous leave success without requiring active membership.",
+      "source_references": [
+        "apps/api/src/http/routes/invitations.ts:483-551",
+        "apps/api/src/adapters/invitations.ts:930-1047",
+        "database/migrations/0007_board_grants.sql:27-50"
+      ],
+      "existing_tests": [
+        "apps/api/test/inv04-inv08.test.ts:529-671",
+        "apps/api/test/inv04-inv08.test.ts:925",
+        "apps/api/test/board-grants-foundation.test.ts:1"
+      ],
+      "unresolved_or_unverified": [
+        "Browser confirmation, safe context clearing and historical attribution need UI evidence. Test concurrent leave/accept/reinvite, absent/removed membership, replay after leave and archived-project leave; no test run here."
+      ],
+      "discovery_status": "implemented_source_only",
+      "source_confidence": "high",
+      "runtime_verification_this_discovery": "not_run",
+      "independent_approval_this_discovery": false,
+      "product_or_architect_input": null
+    }
+  ],
+  "findings": [
+    {
+      "id": "ID-F01",
+      "priority": "high",
+      "classification": "mandatory contract gap, source confirmed",
+      "features": [
+        "FND-02",
+        "ACC-04",
+        "ACC-07",
+        "PRJ-05",
+        "RBAC-05"
+      ],
+      "summary": "Handwritten OpenAPI and historical feature/handoff prose contradict mounted retirement and board-access behavior; no schema-bearing generated agreement demonstrated.",
+      "references": [
+        "packages/contracts/src/openapi/index.ts:1-8",
+        "packages/contracts/src/openapi/index.ts:50-80",
+        "packages/contracts/src/openapi/index.ts:138-142",
+        "docs/handoffs/backend/RBAC-05.json:4"
+      ]
+    },
+    {
+      "id": "ID-F02",
+      "priority": "high",
+      "classification": "confirmed baseline by root-produced mounted PostgreSQL evidence, inspected by survey agent",
+      "features": [
+        "INV-06",
+        "PRJ-04",
+        "RBAC-03"
+      ],
+      "summary": "Member PATCH reinstatement bypasses shared seat-cap lock/count and ordinary role/status changes omit archived-context lock. Root baseline reproduces cap=1 becoming active=2 with HTTP200, and archived role mutation HTTP200 persisted viewer.",
+      "references": [
+        "apps/api/src/adapters/members.ts:42-128",
+        "apps/api/src/http/routes/members.ts:97-105"
+      ],
+      "evidence": "docs/reviews/FULL-REVALIDATION-20261103/raw/member-baseline.json"
+    },
+    {
+      "id": "ID-F03",
+      "priority": "high",
+      "classification": "mandatory visibility gap plus privacy source candidate",
+      "features": [
+        "INV-02",
+        "INV-05",
+        "FND-04"
+      ],
+      "summary": "Invitation delivery failure is internal only; exhausted transient retries mark failed without clearing token/recipient/template payload.",
+      "references": [
+        "apps/api/src/adapters/invitations.ts:887-921",
+        "apps/api/src/adapters/notifications.ts:381-388",
+        "apps/api/src/adapters/invitation-delivery.ts:74-82"
+      ]
+    },
+    {
+      "id": "ID-F04",
+      "priority": "medium",
+      "classification": "policy mismatch; do not call confirmed authority exploit",
+      "features": [
+        "PRJ-05",
+        "RBAC-04"
+      ],
+      "summary": "Member/Viewer can read administrative member directory with emails, roles and membership IDs despite narrower catalogue/OpenAPI authority.",
+      "references": [
+        "apps/api/src/adapters/projects.ts:493-568",
+        "apps/api/test/prj02-prj05.test.ts:584-607",
+        "packages/contracts/src/openapi/index.ts:138-142"
+      ]
+    },
+    {
+      "id": "ID-F05",
+      "priority": "medium",
+      "classification": "boundedness gap, source confirmed",
+      "features": [
+        "INV-05",
+        "FND-04"
+      ],
+      "summary": "Invitation list is unbounded across historical outcomes; 50-pending cap does not cap history.",
+      "references": [
+        "apps/api/src/adapters/invitations.ts:887-903"
+      ]
+    },
+    {
+      "id": "ID-F06",
+      "priority": "medium",
+      "classification": "race coverage gap/source candidate",
+      "features": [
+        "INV-03",
+        "PRJ-04"
+      ],
+      "summary": "Invitation accept reads project archive state without holding writable-project row lock; sequential archive denial does not prove concurrent archive serialization.",
+      "references": [
+        "apps/api/src/adapters/invitations.ts:338-341",
+        "apps/api/src/http/routes/projects.ts:617-620"
+      ]
+    },
+    {
+      "id": "ID-F07",
+      "priority": "medium",
+      "classification": "alternate-route parity gap/source candidate",
+      "features": [
+        "INV-06",
+        "INV-07"
+      ],
+      "summary": "PATCH status removal omits DELETE pending-invitation cleanup; timestamp supersession fence is relevant counterevidence to automatic rejoin exploit.",
+      "references": [
+        "apps/api/src/adapters/members.ts:104-158",
+        "apps/api/src/adapters/members.ts:292-305",
+        "apps/api/src/adapters/invitations.ts:393-398"
+      ]
+    }
+  ],
+  "dependency_ordered_plan": [
+    {
+      "order": 1,
+      "owner": "Architect",
+      "scope": "Reconcile stable feature IDs and accepted policy before edits",
+      "actions": [
+        "Amend ACC-04 to personal-workspace ensure and retired public create; amend ACC-07 to retired beta transfer; amend RBAC-05/INV-01 to explicit per-board disclosure. Preserve stable IDs and historical failed/obsolete records.",
+        "Record directory email/role and avatar interpretation; decide whether role PATCH may reactivate removed members. Accepted 3/5 active, 20/25 total and seat reservation require no new user approval.",
+        "Freeze full route/method/alias/runtime/token-role inventory and per-feature criteria; attach exact source/dependency hashes."
+      ]
+    },
+    {
+      "order": 2,
+      "owner": "Backend plus independent reproduction reviewer",
+      "scope": "Reproduce smallest meaningful risky paths with synthetic PostgreSQL",
+      "actions": [
+        "At active-seat cap, PATCH removed member to active; force two parallel reactivations; assert active+pending invariant under accept/reactivate.",
+        "Archive project then PATCH role/status; force archive-vs-accept to assert one serialization order. Test DELETE and PATCH removal plus old invitations and board grants.",
+        "Seed invitation at maxRetries-1 with unique token/email sentinel, force transient failure, inspect terminal payload and authorized delivery-status response.",
+        "Use two actual DB clients and barriers, not time-only sleeps; retain positive/negative controls and failed attempts."
+      ]
+    },
+    {
+      "order": 3,
+      "owner": "Backend",
+      "scope": "Bounded source repairs after criteria freeze",
+      "actions": [
+        "Unify permitted membership-state changes at quota/archive/authority transaction layer; preserve removal while archived when allowed and use consistent replay checks.",
+        "Sanitize every terminal invitation outcome and expose minimal delivery state/retry action to authorized inviter. Bound invitation history with cursor.",
+        "Implement authoritative request/response OpenAPI generation or a complete validated spec plus actual route parity; accurately describe retired endpoints, name/profile, project creation and token restrictions."
+      ]
+    },
+    {
+      "order": 4,
+      "owner": "Backend verification",
+      "scope": "Fresh local verification on immutable repaired manifest",
+      "actions": [
+        "Provision only new local disposable PostgreSQL instances; inspect local target guard before tests; never reuse hosted URL. Run relevant focused suites then complete API/contracts/typecheck/build with all access suites enabled.",
+        "Exercise real local workerd entrypoint and Node HTTP, clean migration/upgrade/0019 twice, table constraints and embedded SQL parity.",
+        "Capture exact command, revision/manifest, DB/server version, exit and pass/fail/skip counts; current historical MCP 787-pass evidence is bounded to its repair and does not close all 98."
+      ]
+    },
+    {
+      "order": 5,
+      "owner": "Fresh independent reviewer then Architect/UI",
+      "scope": "Review and acceptance handoff",
+      "actions": [
+        "Fresh read-only reviewer sees frozen full reachable target, all criteria/counterevidence and real logs; no source changes while reviewed. Require actual gate rubric and no blockers.",
+        "Update role-owned records with matching passing reviewPath and regenerate checklist once through Architect; never blindly rerun historical score-generating scripts.",
+        "UI verifies new/retired contracts, logout drafts, directory visibility, invitation failures and zero-board acceptance; integration verifies signed-in flows. Only after all 98 closure and release lock may authorized direct UAT deployment begin; no dev or production stage."
+      ]
+    }
+  ],
+  "suggested_commands_not_run": {
+    "prerequisites": "Not executed. Resolve DATABASE_URL and FLOWBOARD_ACCESS_TEST_DATABASE_URL only to new isolated local synthetic PostgreSQL databases; never print complete URLs. Set both to avoid skipped access suites. Test fixture migrations mutate/reset their local schema.",
+    "focused_identity": "cd apps/api && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/acc01-session.test.ts test/acc04-workspaces.test.ts test/acc-lifecycle.test.ts test/google-auth-system.test.ts test/b17-personal-workspace.test.ts test/b16-names.test.ts",
+    "focused_projects": "cd apps/api && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/prj01-projects.test.ts test/prj02-prj05.test.ts test/b18-own-projects.test.ts test/b18-backstops-session.test.ts test/lifecycle-undo.test.ts",
+    "focused_invites": "cd apps/api && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/inv01-inv03.test.ts test/inv04-inv08.test.ts test/inv06-inv07.test.ts test/b22-invitation-caps.test.ts test/b10-invitation-email.test.ts test/b14-outbox-privacy.test.ts test/uat-immediate-invite-send.test.ts",
+    "focused_authority": "cd apps/api && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/rbac01-matrix.test.ts test/rbac-advanced.test.ts test/board-access.test.ts test/board-access-cards-images.test.ts test/board-access-boards-imports-trash.test.ts test/board-access-activity-notifications.test.ts test/token-boundaries.test.ts test/lock-order-interleave.test.ts",
+    "focused_foundation": "cd apps/api && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/node.test.ts test/worker.test.ts test/migrations.test.ts test/b21-migration-0019.test.ts test/observability.test.ts test/rate-limit.test.ts test/origin-check.test.ts test/b7-body-caps.test.ts",
+    "complete_gate": [
+      "npm run check",
+      "npm run test --workspace @flowboard/contracts",
+      "python3 scripts/check_backend_review.py --help"
+    ],
+    "review_note": "Use actual current validator CLI/schema from --help and fresh review records; existing scripts execute_*_audit.py/generate_stage2_reviews.py contain generated scores/prose and cannot provide fresh independent judgment."
+  },
+  "sampled_dependency_manifest": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "bf7c181f0c141efa14e3c922099be8ad3e5273da3d55bddc06ae242fda37944b"
+    },
+    {
+      "path": "ARCHITECTURE.md",
+      "sha256": "ba81f758365fbfe211515319cb29937f3f5ddbcc7f657666fada5dfd789e38c6"
+    },
+    {
+      "path": "BACKEND_REVIEW_GATE.md",
+      "sha256": "21e021ab590c25f4b275aa2a7aac82b85f4b8e24bfd54d42286cb48e6c729718"
+    },
+    {
+      "path": "DESIGN.md",
+      "sha256": "136d4e4b1e93fcb5a3f0ec4587896daa67199d1588d64cb60c690efcf22c2e6c"
+    },
+    {
+      "path": "PRD.md",
+      "sha256": "5f014ae8fe181f86020b91791762c10b43170f230aebd001a60ae83b360a8e8f"
+    },
+    {
+      "path": "PROGRESS.md",
+      "sha256": "6ecfcf06b0948757fe0a79aad2b9c93546977dbb8c816a0d7970b7df26ac9990"
+    },
+    {
+      "path": "RULES.md",
+      "sha256": "75a876ba37bea66203ebe47de92f1540ee154efc0c1d7168b72f739d1d301a12"
+    },
+    {
+      "path": "TASKS.md",
+      "sha256": "695a739646926d468928d910471c5c1ef81494e1463a1419775f77a9ec09a2cd"
+    },
+    {
+      "path": "apps/api/src/adapters/invitation-delivery.ts",
+      "sha256": "02be9feede113b57afa99fdfb0fb39654e6128c665d8de45e34befce5ec28023"
+    },
+    {
+      "path": "apps/api/src/adapters/invitations.ts",
+      "sha256": "b6ebdcd4a7848b5aefd22293006d49327f3415ab2fde022ee29a7280cd4e62b5"
+    },
+    {
+      "path": "apps/api/src/adapters/last-location.ts",
+      "sha256": "9228c6b119255357e658140d7075c692717e02ccfab96004cbd098ebc4700645"
+    },
+    {
+      "path": "apps/api/src/adapters/members.ts",
+      "sha256": "5a58943fde8ae9d932e7219d199748458a0f8f17d0087859f00256861f67d7f2"
+    },
+    {
+      "path": "apps/api/src/adapters/migrations.ts",
+      "sha256": "712e4719767819f3306f835cc26c23bfa06b9cb702fc8e0a1ba01e51f1612bf4"
+    },
+    {
+      "path": "apps/api/src/adapters/notifications.ts",
+      "sha256": "e665d5093005f19c2ba3877e5cd68559f490d25764c238868e80f00e23c5395a"
+    },
+    {
+      "path": "apps/api/src/adapters/personal-workspace.ts",
+      "sha256": "311ea8cccb039029c337339a39741bb7100972d47b026bbcdf5ff44f532db412"
+    },
+    {
+      "path": "apps/api/src/adapters/postgres.ts",
+      "sha256": "ab4ae6a28487307757cd7008378fc7bf2c07c96d15bd81bc0d41da78eafa6cec"
+    },
+    {
+      "path": "apps/api/src/adapters/projects.ts",
+      "sha256": "bb396ca021d3366e0486edfe1b4e577269327ef0086bca5dcbd0d828ce532d37"
+    },
+    {
+      "path": "apps/api/src/adapters/rbac.ts",
+      "sha256": "0d04984d9978902ba1da2776e6a1b2a81262322077a9b1ef8b62e08ffb34c5e4"
+    },
+    {
+      "path": "apps/api/src/adapters/session.ts",
+      "sha256": "de60c43e273aedd0b44e8dcc3ef58a5ee6558f2fdaf7eadbed8f33d0077659da"
+    },
+    {
+      "path": "apps/api/src/http/app.ts",
+      "sha256": "fe35943086ca3da622d7c96dfac0520f5f42976a1a159d781e9abb68dc61b590"
+    },
+    {
+      "path": "apps/api/src/http/middleware/auth.ts",
+      "sha256": "59a56bb4a726ae9a99811bce387fd4be5692758ebd7aad5ba864ed7021a1feb8"
+    },
+    {
+      "path": "apps/api/src/http/middleware/limits.ts",
+      "sha256": "1ffd30bff85f6c4bd2e9b901a6e656eb9625f03b4e60522697da4eefe9ae4911"
+    },
+    {
+      "path": "apps/api/src/http/routes/board-grants.ts",
+      "sha256": "c9db140bab6483a58f959c7ce1f4e51c8007a64d5877aefbad0f048b107464f4"
+    },
+    {
+      "path": "apps/api/src/http/routes/google-auth.ts",
+      "sha256": "363e3ac2f5f3cb4741943399b12780022305d17bb5b8658a9a3fa64cf1019ffb"
+    },
+    {
+      "path": "apps/api/src/http/routes/invitations.ts",
+      "sha256": "d327d1ae5a4dc693f5f8cb28a8d5fa948673cce8a9a8d54ebd0ec56ae822e371"
+    },
+    {
+      "path": "apps/api/src/http/routes/members.ts",
+      "sha256": "8367fe0a2fd0a15bfdf7f194c50c730468eff4a51345633d8d5805886b3acb67"
+    },
+    {
+      "path": "apps/api/src/http/routes/projects.ts",
+      "sha256": "82203b4f4c45719b6c327b404a198f6c4261637695886b9f8cd178af971fdff0"
+    },
+    {
+      "path": "apps/api/src/http/routes/session.ts",
+      "sha256": "53135aa33995191adeb63ba1a74299404487c3544b3aba7e89e24fddc1394688"
+    },
+    {
+      "path": "apps/api/src/http/routes/system.ts",
+      "sha256": "bc2d94e57670245b12741019c142f232dee9db27c46a7ad902eb0f63b60e8d81"
+    },
+    {
+      "path": "apps/api/src/http/routes/workspaces.ts",
+      "sha256": "834d7e84e27dde2dd163ae7e98c2f9bd978753787e3d81e48d68c2f9d204ba48"
+    },
+    {
+      "path": "apps/api/src/runtime/node.ts",
+      "sha256": "49329092fba9dd3f528683fbb9a75055846a0ac5393b38ce5c8e9871651d01e8"
+    },
+    {
+      "path": "apps/api/src/runtime/worker.ts",
+      "sha256": "4ef9c39a88d2d8cee194dfe59547d38875be753818118119777d41179e7241ec"
+    },
+    {
+      "path": "apps/api/src/services/limits.ts",
+      "sha256": "a896396169192508875fa112aa98244f3db1e29463fb8e74358b5b55512ac8f0"
+    },
+    {
+      "path": "apps/api/src/services/mailer.ts",
+      "sha256": "68aa7a3babdff5f752c469aea1172f13ee2dc8d2e7b8c766c1e602d472853dcf"
+    },
+    {
+      "path": "apps/api/test/acc-lifecycle.test.ts",
+      "sha256": "b8eee7b3a717900c13405b42038828465b4e8c5bfd7f30666d4c496065212235"
+    },
+    {
+      "path": "apps/api/test/acc01-session.test.ts",
+      "sha256": "18d963178143bd4f2b731c8865c1d68cfbd1b1ad986f640a1336dd9d0aef61ab"
+    },
+    {
+      "path": "apps/api/test/acc04-workspaces.test.ts",
+      "sha256": "b1940a7470db7d1bb15010a05eb04472a415eb8d69ae3bdd805da672b2d5faf4"
+    },
+    {
+      "path": "apps/api/test/b10-invitation-email.test.ts",
+      "sha256": "c57dbeb93dde7f1d335d9ff4050df6c8cb24b39a1f0d76b0f54ef4c3414221dd"
+    },
+    {
+      "path": "apps/api/test/b11-cleanup-cap-people.test.ts",
+      "sha256": "8a37310653c9fb7565b32e703abefe2bb08de22f7744131f1f22d1dfd49d54d7"
+    },
+    {
+      "path": "apps/api/test/b14-migration-0017.test.ts",
+      "sha256": "fe753e7245c453968a7cc3a535076189c271a5740ca230aa10b1bc97b343a39b"
+    },
+    {
+      "path": "apps/api/test/b14-outbox-privacy.test.ts",
+      "sha256": "3ee8552f2034ee09dd430c435ddddb25e65c2e7247a380b1d84127678cb82756"
+    },
+    {
+      "path": "apps/api/test/b16-names.test.ts",
+      "sha256": "39d745ec87d44f39772d90301033bb6d666fc0ab1b0a86a47662571d0fcc4202"
+    },
+    {
+      "path": "apps/api/test/b17-personal-workspace.test.ts",
+      "sha256": "9bf5940b6af7a5e68496b59d8d84f77821af50ca43178ee568d2dbc6a087ac37"
+    },
+    {
+      "path": "apps/api/test/b18-backstops-session.test.ts",
+      "sha256": "a264d44762e77ff32db343185f516454592246f1a2c65781ba4871d02274a020"
+    },
+    {
+      "path": "apps/api/test/b18-own-projects.test.ts",
+      "sha256": "0c34aee069d8c7859718ee8b1159177b7a15b04b01baf45bb2e4fe48b451783f"
+    },
+    {
+      "path": "apps/api/test/b21-migration-0019.test.ts",
+      "sha256": "dafa00320ab8bb198e2174f303d293d648217242a6446b91d45076e31537e814"
+    },
+    {
+      "path": "apps/api/test/b22-invitation-caps.test.ts",
+      "sha256": "56e3dd9df323326d1e589252daabcc7c04602404a2cecda2bfde25e6b83bc6dc"
+    },
+    {
+      "path": "apps/api/test/b23-same-name.test.ts",
+      "sha256": "2d424db6617b5a66eb9277725e149e1a36b0b8073f9884423f07ec72a5f25fec"
+    },
+    {
+      "path": "apps/api/test/b24-assignee-eligibility.test.ts",
+      "sha256": "5b10ba9af483ab30211f62abf3d2aeafcfa4eceac0c0ff40bf6470416a65d1f7"
+    },
+    {
+      "path": "apps/api/test/b7-body-caps.test.ts",
+      "sha256": "9646676dd6be6fbdbca2109e4c1f2dd47c0c5d2ffe69a87572ce548c41d1f83a"
+    },
+    {
+      "path": "apps/api/test/b9-mention-access.test.ts",
+      "sha256": "2392cd6ec30b15c68d833e2204e0498102b4b3846c64e5097fb1070b70166f44"
+    },
+    {
+      "path": "apps/api/test/b9-profile-name.test.ts",
+      "sha256": "5438bc6b63069886f03741066b4d375fc71623166f3124f0f3c52bcf7ea1eede"
+    },
+    {
+      "path": "apps/api/test/board-access-activity-notifications.test.ts",
+      "sha256": "b961040b60a1c0cac7c0580a91c17af0e6ac9de95435f7a04765ca8046dbf4bf"
+    },
+    {
+      "path": "apps/api/test/board-access-boards-imports-trash.test.ts",
+      "sha256": "5fa33d2ad55fed11cb3ac7459f9f2b0026c5679ddc3b51b9f2c6cec08adda5f0"
+    },
+    {
+      "path": "apps/api/test/board-access-cards-images.test.ts",
+      "sha256": "8c85973c9f0f49f45115cad382ee0e0cd51da1a43b3e5b2e0dffb39ff1643487"
+    },
+    {
+      "path": "apps/api/test/board-access.test.ts",
+      "sha256": "c2e42ddc4b82a45a2f1e5f2431970151656dcb23d76e52845f2f8ebd51cc1032"
+    },
+    {
+      "path": "apps/api/test/board-description-default-board.test.ts",
+      "sha256": "a1e447bc633e6373e5464691bf5dd8af965673949d27a130cb7d1ff2574f85b8"
+    },
+    {
+      "path": "apps/api/test/board-grants-foundation.test.ts",
+      "sha256": "8ce78acc6ed9ac0a8a63d32722fccb8aabee647ed1b7164ae76068dad396d6cb"
+    },
+    {
+      "path": "apps/api/test/crd01-crd11.test.ts",
+      "sha256": "cc26833254c83634ef2ff06de4268739344ae810e04eed4a51327bf89ef0bf44"
+    },
+    {
+      "path": "apps/api/test/err-s10-google-redirects.test.ts",
+      "sha256": "cf79e5772a9dd0ee570b7912c817eef6e0e5acac603e5142b4c52a9dc1c6265e"
+    },
+    {
+      "path": "apps/api/test/google-auth-system.test.ts",
+      "sha256": "f8f2a429e35bb5bd6e989735bef9889577e02d3213d2f09e2f7cc64429741c1a"
+    },
+    {
+      "path": "apps/api/test/inv01-inv03.test.ts",
+      "sha256": "c815be2ec8f79e51f4e60dd73a8254b754c22360143c51eb0de64631ec010bf9"
+    },
+    {
+      "path": "apps/api/test/inv04-inv08.test.ts",
+      "sha256": "1c426d4264132a5c4002e9737128c53d1fcda8faf5561bfc1c4cbf9dbd75632a"
+    },
+    {
+      "path": "apps/api/test/inv06-inv07.test.ts",
+      "sha256": "f9919dc42cda30390aa9af485f71f60279aa5e8cb4e68e97a97523680d9ce3be"
+    },
+    {
+      "path": "apps/api/test/last-location.test.ts",
+      "sha256": "6bfed4617ae0be5eb30a0e87fa1cd70c11caae527c1350366fbb71a42e47f3db"
+    },
+    {
+      "path": "apps/api/test/lifecycle-undo.test.ts",
+      "sha256": "17150c12dbca2ee51b5013bf9e9a414f4244ee626b8d4745685e1992f1435554"
+    },
+    {
+      "path": "apps/api/test/lock-order-interleave.test.ts",
+      "sha256": "51c79a2126fba2a20d51a11b6aae5d2d218755eff93be9a12d28a270ec6968f9"
+    },
+    {
+      "path": "apps/api/test/migrations.test.ts",
+      "sha256": "8e910e2a8ff5bceffcc8f522de802efa41827001a531be75121873f0819956a1"
+    },
+    {
+      "path": "apps/api/test/node.test.ts",
+      "sha256": "b83dc84b09eecab1825feba02ee0815fd69ddda7fe87395a46512769cc3c7c3a"
+    },
+    {
+      "path": "apps/api/test/observability.test.ts",
+      "sha256": "adb3097eb45667710f60577cd1988eb8ea1f05058779c127af55ec6a617fff1b"
+    },
+    {
+      "path": "apps/api/test/origin-check.test.ts",
+      "sha256": "b8545fb775bc51f41c31597d1dab69af5779cdf65c8b9ac74984b8040c820b16"
+    },
+    {
+      "path": "apps/api/test/parity-fields-privacy.test.ts",
+      "sha256": "3bf763034a7eaf6eb565d3522c0909c3fd0e45ae0909466ee4120e6360d014fb"
+    },
+    {
+      "path": "apps/api/test/prj01-projects.test.ts",
+      "sha256": "fa9a37f423efdf41f1d142992e9da1c7e4095eeb51968569ee6c524e03f18fb1"
+    },
+    {
+      "path": "apps/api/test/prj02-prj05.test.ts",
+      "sha256": "cb41dab7e523850e3660e1e17a1e28353dd95a7ebea8036c11324522729e9585"
+    },
+    {
+      "path": "apps/api/test/project-overview-brief.test.ts",
+      "sha256": "462dfe4753652694a577521ac495fedb94bb8a1a81406051c2d291f8d9979fea"
+    },
+    {
+      "path": "apps/api/test/qry01-qry03.test.ts",
+      "sha256": "dbee9006be9d93ea87ebe40461a898559b2c5c5e184ac82967b0a7bd1856704d"
+    },
+    {
+      "path": "apps/api/test/rate-limit.test.ts",
+      "sha256": "7fec12d44ebf1e3e8292602dde4e0a9b966c8daedf3b280ca350434457c2ee33"
+    },
+    {
+      "path": "apps/api/test/rbac-advanced.test.ts",
+      "sha256": "aeb6796296dd4156f95b9a48a1357106a9cad7fe1c08b296bc714929b811b2c2"
+    },
+    {
+      "path": "apps/api/test/rbac01-matrix.test.ts",
+      "sha256": "e0becbdcfafade24390ca9c8d0272a8b4abff78c8e53eed3e8f21c5301d5008b"
+    },
+    {
+      "path": "apps/api/test/token-boundaries.test.ts",
+      "sha256": "8f9ce8dae709743800a8fc568775556cffbded30099aedeacd19ee9976628468"
+    },
+    {
+      "path": "apps/api/test/uat-immediate-invite-send.test.ts",
+      "sha256": "443baac8b728bb2f219c6f4865b368c7c924d45f2ca26fba201a5fa266ed47f2"
+    },
+    {
+      "path": "apps/api/test/worker.test.ts",
+      "sha256": "10fb781fdb50604f260aabe34f9bb09c37535559147d68aedc397db018ec6a7a"
+    },
+    {
+      "path": "database/migrations/0007_board_grants.sql",
+      "sha256": "affe269525fd76557447d8b688515d4c992bb655930abd4c9c4e1b52d3bc95a9"
+    },
+    {
+      "path": "database/migrations/0019_personal_workspace_backfill.sql",
+      "sha256": "05f450ad0f197a4c54a270d01da14e7dc1a96037652ae1968cee4b58d3ea8430"
+    },
+    {
+      "path": "database/migrations/0020_personal_access_tokens.sql",
+      "sha256": "ea31e73a873ce56f38954c45f498c2e9d2dc888f4ca97a4efce4d7c1d1c4f488"
+    },
+    {
+      "path": "docs/ENGINEERING_CHECKLIST.md",
+      "sha256": "9fd0d23ce7b73717dd7fd5e5b2697c46e6750b92ae4ee08abf1326c4ce1c803d"
+    },
+    {
+      "path": "docs/FEATURE_CHECKLIST.md",
+      "sha256": "ed9e95d6988139e60d51826357dffe3619801ca9be2d944d879e0062536df7e3"
+    },
+    {
+      "path": "docs/FEATURE_SPEC.md",
+      "sha256": "4f90fe308996b1267d0bd1c142b36bec6a1493d23271b4840ec71554906607a5"
+    },
+    {
+      "path": "docs/IMPORT_SPEC.md",
+      "sha256": "fd769bb8801a145f89327abcf23dd5de3936aa1334f8500a76a02d05a47de42c"
+    },
+    {
+      "path": "docs/features.tsv",
+      "sha256": "3860115f40611f913bc430c2210e0684a5a9ff6f249ab3e04291c2105a4f4d00"
+    },
+    {
+      "path": "docs/handoffs/README.md",
+      "sha256": "fdc1b50f4fc976fa334d8d79b198694ec10b103695552472d0279099c5ee8b9a"
+    },
+    {
+      "path": "docs/handoffs/backend/ACC-04.json",
+      "sha256": "f22d922e60e3b4c18ab9009e5dd118c9e3d6de0524981844d345e3a1fea2bc10"
+    },
+    {
+      "path": "docs/handoffs/backend/ACC-07.json",
+      "sha256": "654dd518d09e84e1cab63ec270d6f2dbdc15b29b1944fb4606bc1cb67eede5ca"
+    },
+    {
+      "path": "docs/handoffs/backend/RBAC-05.json",
+      "sha256": "c762d1c7e60b6dd0ffca5f7bf2f8a0e981aa93dcbecfa6075e95e3ee8c034fdc"
+    },
+    {
+      "path": "docs/handoffs/proposals/board-access-decisions-2026-10-27.md",
+      "sha256": "0489efa189cc7c39f26c36fb8c4b5977c277d643514ccb461168cea3d5d8087a"
+    },
+    {
+      "path": "docs/handoffs/proposals/own-projects-backend-handover-2026-10-31.md",
+      "sha256": "ad8ff2bc38c8050165341cfe2bad875cb4805b5cdc02f9302fb2424f06b0e640"
+    },
+    {
+      "path": "docs/handoffs/proposals/own-projects-decisions-2026-10-31.md",
+      "sha256": "1a09e7ea7f1299be4e55c7012f6dad8ea4b5598d83e839115bf3d911367c773a"
+    },
+    {
+      "path": "docs/references/README.md",
+      "sha256": "2b9a91cf0e8b394f8a8529936b5574c2082188abf5a1a569f5b540497633d370"
+    },
+    {
+      "path": "package.json",
+      "sha256": "cee4f9c03f45c19b23965b2ea692a58d754146f2f05d875475f82437281a257d"
+    },
+    {
+      "path": "packages/contracts/src/auth.ts",
+      "sha256": "fefc39aa9d11862d854d0abdc8190c964ec51802b493492dacf8f6aca2cf78d3"
+    },
+    {
+      "path": "packages/contracts/src/fixtures/index.ts",
+      "sha256": "b067ff72bfd110d2b8accf46519dc6fd8e42a49f7669d2e5eaea1b3e2c4177f1"
+    },
+    {
+      "path": "packages/contracts/src/invitations.ts",
+      "sha256": "68396d940c351ac1a143189dacb9824d70b032f61df09c0c19d57a2b77dd4e71"
+    },
+    {
+      "path": "packages/contracts/src/openapi/index.ts",
+      "sha256": "f910df306b070ed5e4c3b7d4145322bfd162a4428cb5ed14b22617e7f1e7a53e"
+    },
+    {
+      "path": "packages/contracts/src/projects.ts",
+      "sha256": "e5719a7fa53baa178e4f97e816af96c43f8d2981a52c1da57bcd977a6acad83a"
+    },
+    {
+      "path": "packages/contracts/src/workspaces.ts",
+      "sha256": "6caab9af3a5c63b565333740c0ec4b2042a7a9c65712775f28c36c3260502a39"
+    },
+    {
+      "path": "packages/contracts/test/b17-own-projects.test.ts",
+      "sha256": "0e562d7eccdef731d41a5044a7f731f598457b6e1a727b92dfe275d30afa7fd9"
+    },
+    {
+      "path": "packages/contracts/test/contracts.test.ts",
+      "sha256": "bbd5b0ef32aacd265d76c36b592d176d206072981605aa7e212a067697ffa1ed"
+    }
+  ],
+  "manifest_limit": "Hashes bind inspected paths only. Independent review needs complete reachable task/dependency manifest including configurations, shared middleware, SQL and tests; this discovery subset is not sufficient for closure.",
+  "external_current_evidence": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/member-baseline.json",
+      "producer": "Root agent, independently executed during survey",
+      "baseline_commit": "917706ae0433df471c72736be4d548eb022236c4",
+      "environment": "Synthetic mounted handlers; PostgreSQL 17.11 on loopback 55931",
+      "observed": [
+        "With configured member seat cap 1, PATCH removed member to active returned 200 and activeMembers became 2.",
+        "On archived project, role PATCH returned 200 and persisted role viewer."
+      ],
+      "limit": "This agent read the root-produced JSON; this agent did not run database or test commands. The baseline confirms two defects, not all 29 feature outcomes."
+    }
+  ],
+  "criteria_conflict_for_architect": {
+    "reference": "docs/handoffs/proposals/board-access-decisions-2026-10-27.md:14-20",
+    "text": "Existing working implementation choice says removal must still revoke effective board access while archived. New root identity-repair criteria say all membership mutations/replays reject archived writes. Reconcile whether an authorized removal/leave is a read-only-context security exception before coding; this working choice is explicitly not a separate user-confirmed policy."
+  }
+}

@@ -1,7 +1,7 @@
 /**
  * Client-side image preparation before upload (S-15).
  *
- * Why in the browser: the API runs on Workers, which have no image library, and the server limits (10 MiB, 20 megapixels,
+ * Why in the browser: reduce upload/verification work while the API independently validates bytes. The server limits (10 MiB, 20 megapixels,
  * 8192 px, PNG/JPEG/WebP) stay as the safety net. We shrink big photos so the upload is faster and the stored bytes smaller,
  * and the re-encode also drops EXIF (GPS, camera, timestamps) as a side effect.
  *
@@ -24,7 +24,7 @@ export const WEBP_QUALITY = 0.82;
 export const JPEG_QUALITY = 0.85;
 const RETRY_QUALITIES = [0.7, 0.55];
 
-export type PrepareFailure = 'unsupported-type' | 'too-large-input' | 'too-many-pixels' | 'still-too-large' | 'unreadable';
+export type PrepareFailure = 'unsupported-type' | 'too-large-input' | 'too-many-pixels' | 'still-too-large' | 'unreadable' | 'conversion-required';
 export class PrepareError extends Error {
   readonly reason: PrepareFailure;
   constructor(reason: PrepareFailure, message: string) { super(message); this.name = 'PrepareError'; this.reason = reason; }
@@ -92,6 +92,25 @@ export function readDimensions(b: Uint8Array): { width: number; height: number }
   return null;
 }
 
+/** Read the JPEG frame's component count without decoding pixels. No result authorizes server admission. */
+export function readJpegComponents(bytes: Uint8Array): number | null {
+  if(bytes[0]!==0xff||bytes[1]!==0xd8)return null;
+  let offset=2;
+  while(offset+1<bytes.length){
+    if(bytes[offset++]!==0xff)return null;
+    while(bytes[offset]===0xff)offset++;
+    const marker=bytes[offset++];
+    if(marker===undefined||marker===0xda||marker===0xd9)return null;
+    if(marker===0x01||marker>=0xd0&&marker<=0xd7)continue;
+    if(offset+2>bytes.length)return null;
+    const size=(bytes[offset]!<<8)|bytes[offset+1]!;
+    if(size<2||offset+size>bytes.length)return null;
+    if(marker>=0xc0&&marker<=0xcf&&![0xc4,0xc8,0xcc].includes(marker))return size>=8?bytes[offset+7]??null:null;
+    offset+=size;
+  }
+  return null;
+}
+
 /** True for a WebP whose VP8X header sets the animation flag (bit 1 of the flags byte). createImageBitmap would keep only the first frame. */
 export function isAnimatedWebp(b: Uint8Array): boolean {
   const tag = (o: number) => String.fromCharCode(b[o] ?? 0, b[o + 1] ?? 0, b[o + 2] ?? 0, b[o + 3] ?? 0);
@@ -137,7 +156,9 @@ export async function prepareImage(file: File, env: ImageEnv): Promise<Prepared>
   if (!(ACCEPTED_TYPES as readonly string[]).includes(file.type)) throw new PrepareError('unsupported-type', 'Only PNG, JPEG and WebP images can be added.');
   if (file.size > INPUT_MAX_BYTES) throw new PrepareError('too-large-input', 'This file is too large to prepare in the browser (over 40 MB).');
 
+  let requiresColorConversion=false;
   const keep = async (note: string, outcome: Prepared['outcome'], dims: { width: number; height: number } | null): Promise<Prepared> => {
+    if(requiresColorConversion)throw new PrepareError('conversion-required','This JPEG needs color conversion. Export an RGB JPEG or PNG, or try a browser that can convert this image.');
     if (file.size > SERVER_MAX_BYTES) throw new PrepareError('still-too-large', 'This image is over 10 MB and could not be made smaller. Try a smaller image.');
     const sha = await env.sha256(await file.arrayBuffer());
     return { blob: file, filename: file.name, contentType: file.type as AcceptedType, byteLength: file.size, sha256: sha, width: dims?.width ?? null, height: dims?.height ?? null, outcome, originalBytes: file.size, note };
@@ -145,6 +166,12 @@ export async function prepareImage(file: File, env: ImageEnv): Promise<Prepared>
 
   // Cheap header read first, so a 40-megapixel file is refused before we decode it.
   const head = new Uint8Array(await file.slice(0, 1024 * 1024).arrayBuffer());
+  if(file.type==='image/jpeg'){
+    let components=readJpegComponents(head);
+    // A valid frame may follow large bounded metadata segments beyond the cheap header read.
+    if(components===null&&head[0]===0xff&&head[1]===0xd8&&file.size>head.length)components=readJpegComponents(new Uint8Array(await file.arrayBuffer()));
+    requiresColorConversion=components!==null&&components!==1&&components!==3;
+  }
   const known = readDimensions(head);
   if (known && known.width * known.height > SERVER_MAX_PIXELS) throw new PrepareError('too-many-pixels', `This image is ${(known.width * known.height / 1e6).toFixed(0)} megapixels. The limit is 20.`);
 
@@ -159,7 +186,9 @@ export async function prepareImage(file: File, env: ImageEnv): Promise<Prepared>
     bitmap = await env.decode(file);
     const source: Source = { bytes: file.size, type: file.type, width: bitmap.width, height: bitmap.height };
     if (source.width * source.height > SERVER_MAX_PIXELS) throw new PrepareError('too-many-pixels', `This image is ${(source.width * source.height / 1e6).toFixed(0)} megapixels. The limit is 20.`);
-    const plan = decide(source);
+    const initialPlan = decide(source);
+    const plan:Decision = requiresColorConversion&&initialPlan.action==='original'
+      ?{action:'encode',width:source.width,height:source.height,resized:false}:initialPlan;
     if (plan.action === 'original') return await keep(`${mb(file.size)}, already small`, 'unchanged', source);
 
     const alpha = file.type !== 'image/jpeg' && (await env.hasAlpha(bitmap, plan.width, plan.height));
@@ -176,7 +205,7 @@ export async function prepareImage(file: File, env: ImageEnv): Promise<Prepared>
     }
     if (!result) return await keep(`${mb(file.size)}, could not optimise; uploading the original`, 'fallback', source);
 
-    if (chooseResult(source, result.size, plan.resized) === 'original') {
+    if (!requiresColorConversion && chooseResult(source, result.size, plan.resized) === 'original') {
       return await keep(`${mb(file.size)}, already efficient`, 'unchanged', source);
     }
     if (result.size > SERVER_MAX_BYTES) throw new PrepareError('still-too-large', 'This image is still over 10 MB after optimising. Try a smaller image.');

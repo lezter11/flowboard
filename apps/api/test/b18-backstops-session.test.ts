@@ -1,3 +1,4 @@
+import { versionedBoardLifecycleBody, versionedProjectLifecycleBody } from './support/board-lifecycle-fixture.ts';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import test from 'node:test';
@@ -22,7 +23,7 @@ test('backstops count archived items and session exposes effective limits', asyn
     const session = await createSession(userId, 24, pool);
     const cookie = `flowboard_session=${session.id}`;
     let serial = 0;
-    const post = async (path: string, body: object = {}, key = `total-${suffix}-${serial++}`) => app.request(path, { method: 'POST', headers: { cookie, 'content-type': 'application/json', 'idempotency-key': key }, body: JSON.stringify(body) });
+    const post = async (path: string, body: object = {}, key = `total-${suffix}-${serial++}`) => app.request(path, { method: 'POST', headers: { cookie, 'content-type': 'application/json', 'idempotency-key': key }, body: JSON.stringify(await versionedProjectLifecycleBody(pool,path,await versionedBoardLifecycleBody(pool,path,body,key),key)) });
     const projectKey = `total-first-project-${suffix}`;
     const projectResponse = await post('/api/v1/projects', { name: 'First' }, projectKey);
     assert.equal(projectResponse.status, 201, await projectResponse.clone().text());
@@ -145,7 +146,7 @@ test('default 20-project and 25-board backstops include archived rows', async ()
     }
     const session = await createSession(userId, 24, pool);
     let serial = 0;
-    const post = async (path: string, body: object = {}) => app.request(path, { method: 'POST', headers: { cookie: `flowboard_session=${session.id}`, 'content-type': 'application/json', 'idempotency-key': `default-${suffix}-${serial++}` }, body: JSON.stringify(body) });
+    const post = async (path: string, body: object = {}) => {const key=`default-${suffix}-${serial++}`;return app.request(path, { method: 'POST', headers: { cookie: `flowboard_session=${session.id}`, 'content-type': 'application/json', 'idempotency-key': key }, body: JSON.stringify(await versionedProjectLifecycleBody(pool,path,await versionedBoardLifecycleBody(pool,path,body,key),key)) });};
     const boardResponse = await post(`/api/v1/projects/${projectId}/boards`, { name: 'Twenty fifth' });
     assert.equal(boardResponse.status, 201, await boardResponse.clone().text());
     const board = (await boardResponse.json() as any).data;

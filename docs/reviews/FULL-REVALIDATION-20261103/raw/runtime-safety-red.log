@@ -1,0 +1,87 @@
+✖ runtime safety: searchable eligible mention beyond100 is accepted, inaccessible identities remain private (247.040042ms)
+✔ runtime safety: committed target revocation wins before comment board lock and cannot notify (189.038625ms)
+✖ runtime safety: comment winning board lock commits before removal; delayed consumer cannot renotify removed target (215.765167ms)
+✖ runtime safety: admin migration exception masks internal details and unauthorized calls remain403 (159.484917ms)
+✖ runtime safety: unexpected library503/504 error messages/details are masked (158.084708ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 1
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3284.9015
+
+✖ failing tests:
+
+test at apps/api/test/runtime-safety-repair.test.ts:11:63
+✖ runtime safety: searchable eligible mention beyond100 is accepted, inaccessible identities remain private (247.040042ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"VALIDATION_ERROR","message":"A mentioned user cannot be mentioned on this card.","requestId":"837e1d23-b9ef-42fa-8e4e-764b8da3b0f0","details":{"issues":[{"path":"mentions","message":"Mentioned user cannot access this board"}]}}}
+  
+  422 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:41:33)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/runtime-safety-repair.test.ts:11:63
+✖ runtime safety: comment winning board lock commits before removal; delayed consumer cannot renotify removed target (215.765167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:51:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/runtime-safety-repair.test.ts:11:63
+✖ runtime safety: admin migration exception masks internal details and unauthorized calls remain403 (159.484917ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /synthetic_private_sql_sentinel|private_password|private_host|SELECT private_column/. Input:
+  
+  '{"error":{"code":"MIGRATION_FAILED","message":"synthetic_private_sql_sentinel postgres://private_user:private_password@private_host/db SELECT private_column","requestId":"da1ac356-4279-4dfa-8b36-6958aee4dd7c"}}'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:59:77)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '{"error":{"code":"MIGRATION_FAILED","message":"synthetic_private_sql_sentinel postgres://private_user:private_password@private_host/db SELECT private_column","requestId":"da1ac356-4279-4dfa-8b36-6958aee4dd7c"}}',
+    expected: /synthetic_private_sql_sentinel|private_password|private_host|SELECT private_column/,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }
+
+test at apps/api/test/runtime-safety-repair.test.ts:11:63
+✖ runtime safety: unexpected library503/504 error messages/details are masked (158.084708ms)
+  AssertionError [ERR_ASSERTION]: The input was expected to not match the regular expression /synthetic_private_sql_sentinel|private_password|private_host|SELECT private_column/. Input:
+  
+  '{"error":{"code":"synthetic_private_sql_sentinel postgres://private_user:private_password@private_host/db SELECT private_column","message":"synthetic_private_sql_sentinel postgres://private_user:private_password@private_host/db SELECT private_column","requestId":"097ebc8a-927d-4a1c-828a-a9f0cc99e10a","details":{"internal":"synthetic_private_sql_sentinel postgres://private_user:private_password@private_host/db SELECT private_column"}}}'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/runtime-safety-repair.test.ts:63:310)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '{"error":{"code":"synthetic_private_sql_sentinel postgres://private_user:private_password@private_host/db SELECT private_column","message":"synthetic_private_sql_sentinel postgres://private_user:private_password@private_host/db SELECT private_column","requestId":"097ebc8a-927d-4a1c-828a-a9f0cc99e10a","details":{"internal":"synthetic_private_sql_sentinel postgres://private_user:private_password@private_host/db SELECT private_column"}}}',
+    expected: /synthetic_private_sql_sentinel|private_password|private_host|SELECT private_column/,
+    operator: 'doesNotMatch',
+    diff: 'simple'
+  }

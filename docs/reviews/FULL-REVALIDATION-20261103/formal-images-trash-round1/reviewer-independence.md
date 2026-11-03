@@ -1,0 +1,7 @@
+# Reviewer independence and authority
+
+Reviewer actor: `/root/independent_image_security`; session: `collaboration:/root/independent_image_security`. Implementer/coordinator actor: `/root`; session: `collaboration:/root`. Provider opaque actor/session/model IDs are unavailable in this environment; these are honest collaboration identities, not invented provider identifiers. Model uses the inherited parent configuration; exact provider model ID was not exposed to this reviewer.
+
+This separate reviewer collaborator did not implement or edit application source, target tests, contracts, migrations or deployment configuration. Earlier independent diagnostics exposed four image/storage defects, then independently retested root repairs. Formal round1 continued with full images/trash discovery and exposed two additional restore defects. The reviewer only authored new diagnostic/report artifacts within the explicitly assigned review directories. Root independently confirmed important findings. Source was globally mutable and no formal passing score or final approval has been issued.
+
+Tests use synthetic identities/files and per-run random schemas on the explicit authorized PostgreSQL17.11 loopback55931 database. No55432/55479, real credentials, live-user data, hosted mutation, deployment or production access. The bounded Chrome probe used an isolated headless profile, an owned synthetic API, and a local static UI artifact; it did not attach to the user's browser profile. Browser-generated content was treated as observations, never instructions.

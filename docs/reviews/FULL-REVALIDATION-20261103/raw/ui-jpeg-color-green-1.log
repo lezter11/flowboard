@@ -1,0 +1,42 @@
+✔ small file within limits is kept as it is (1.343666ms)
+✔ exactly 300 KB and 2560 px is still skipped (0.122ms)
+✔ mid-size file at normal dimensions is re-encoded without resizing (0.092292ms)
+✔ landscape over 2560 is scaled by its longest side, keeping the aspect ratio (0.079625ms)
+✔ tall phone photo is scaled by height (0.073958ms)
+✔ a small file that is over 2560 px is still resized (0.062ms)
+✔ a small file outside server limits is not skipped (0.07275ms)
+✔ keeps the original unless the result is at least 10% smaller (no resize) (0.091625ms)
+✔ a resized result wins when it is smaller at all (0.074375ms)
+✔ a resized result wins when the original breaks a server limit (0.140291ms)
+✔ a result over 10 MiB is never chosen (0.07375ms)
+✔ file name extension follows the new type (0.229583ms)
+✔ reads PNG dimensions (0.183667ms)
+✔ reads JPEG dimensions after other segments (0.0735ms)
+✔ reads WebP VP8X dimensions (0.085416ms)
+✔ unknown bytes give null (0.066083ms)
+✔ photo: resized, converted to WebP, renamed, hashed from the exact bytes (2.283833ms)
+✔ small file is uploaded untouched and never encoded (0.263292ms)
+✔ a result that is not 10% smaller keeps the original (1.101375ms)
+✔ PNG with alpha and no WebP encoder keeps PNG; opaque PNG falls back to JPEG (3.093916ms)
+✔ alpha is only checked for formats that can have it (1.535916ms)
+✔ decode failure falls back to the original with a note, when the server can take it (1.7465ms)
+✔ decode failure on an over-10 MB file is reported, not uploaded (4.039ms)
+✔ over 20 megapixels is refused from the header, before decoding (0.712333ms)
+✔ over 20 megapixels is also refused when only decoding reveals it (2.713417ms)
+✔ 12 megapixel image is accepted and resized (2.769125ms)
+✔ wrong type and huge input are refused (24.318875ms)
+✔ retries with lower quality when the first result is over 10 MiB (31.369291ms)
+✔ alpha sample never exceeds 256 px a side and keeps the aspect ratio (0.181708ms)
+✔ detects the VP8X animation flag (0.125667ms)
+✔ an animated WebP is uploaded as it is and never decoded or encoded (1.260833ms)
+✔ an animated WebP over 10 MiB is refused with a clear message (3.230166ms)
+✔ CMYK: even a small efficient JPEG is converted before upload (0.306584ms)
+✔ CMYK: decode or encode failure never silently uploads incompatible original bytes (0.796542ms)
+ℹ tests 34
+ℹ suites 0
+ℹ pass 34
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 233.7485

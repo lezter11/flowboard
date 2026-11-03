@@ -1,3 +1,5 @@
+import { SharpImageVerifier } from '../src/services/image-verifier-node.ts';
+import { validPng } from './support/image-fixtures.ts';
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -61,7 +63,7 @@ test('mounted card discovery and image routes require a current board grant', {
       (id,workspace_id,project_id,card_id,uploader_id,filename,byte_length,content_type,storage_key,sha256,version,created_at,updated_at)
       VALUES ('img1','w','p','card1',$1,'a.png',3,'image/png','synthetic/visible','abc',1,NOW(),NOW()),
              ('img2','w','p','card2',$1,'b.png',3,'image/png','synthetic/hidden','abc',1,NOW(),NOW())`, [owner.user.id]);
-    const app = createApp(async () => {}, { pool });
+    const app = createApp(async () => {}, { pool, imageVerifier:new SharpImageVerifier() });
     setGlobalPool(pool);
     await searchProjectCards(pool, 'p', {}, manager.user.id);
     const req = (path: string, session: string) => app.request(`http://localhost/api/v1${path}`, {
@@ -96,7 +98,7 @@ test('mounted card discovery and image routes require a current board grant', {
     assert.notEqual(ownerSecond.data[0].id, ownerFirst.data[0].id);
     assert.equal(ownerSecond.nextCursor, null);
     assert.equal((await req(`/projects/p/cards/search?limit=1&cursor=${encodeURIComponent(ownerFirst.nextCursor)}`, manager.session.id)).status, 409);
-    assert.equal((await req('/me/tasks', manager.session.id)).status, 400);
+    assert.equal((await req('/me/tasks', manager.session.id)).status, 422);
     const tasks = await req('/me/tasks?projectId=p', manager.session.id);
     assert.deepEqual((await tasks.json() as any).data.map((card: any) => card.id), ['card1']);
     assert.equal((await req('/cards/card2', manager.session.id)).status, 404);
@@ -106,15 +108,7 @@ test('mounted card discovery and image routes require a current board grant', {
     assert.equal((await req('/cards/card1/images', manager.session.id)).status, 200);
     assert.equal((await req('/cards/card1/images', viewer.session.id)).status, 404);
 
-    const pngHeader = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-    const ihdr = Buffer.alloc(25);
-    ihdr.writeUInt32BE(13, 0);
-    ihdr.write('IHDR', 4, 'ascii');
-    ihdr.writeUInt32BE(1, 8);
-    ihdr.writeUInt32BE(1, 12);
-    ihdr[16] = 8;
-    ihdr[17] = 2;
-    const png = Buffer.concat([pngHeader, ihdr, Buffer.from([0, 0, 0, 0, 0x49, 0x45, 0x4e, 0x44, 0xae, 0x42, 0x60, 0x82])]);
+    const png = validPng();
     const stageBody = {
       filename: 'synthetic.png', byteLength: png.byteLength, contentType: 'image/png',
       sha256: crypto.createHash('sha256').update(png).digest('hex'),
@@ -126,7 +120,7 @@ test('mounted card discovery and image routes require a current board grant', {
     assert.equal((await req(`/image-uploads/${uploadId}`, manager.session.id)).status, 200);
     const content = await app.request(`http://localhost/api/v1/image-uploads/${uploadId}/content`, {
       method: 'PUT', headers: { cookie: `flowboard_session=${manager.session.id}`, 'content-type': 'image/png' },
-      body: png,
+      body: new Uint8Array(png).buffer,
     });
     assert.equal(content.status, 200, await content.clone().text());
     const finalize = await mutation('POST', `/image-uploads/${uploadId}/finalize`, manager.session.id);

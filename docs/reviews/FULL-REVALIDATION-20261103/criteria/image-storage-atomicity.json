@@ -1,0 +1,37 @@
+{
+  "status": "frozen_before_repair_not_approval",
+  "featureIds": [
+    "ATT-01",
+    "ATT-02",
+    "ATT-04",
+    "ATT-05",
+    "ATT-06",
+    "ATT-07",
+    "DEL-06"
+  ],
+  "evidence": [
+    "independent-image-preflight/preflight-findings.md",
+    "raw/root-confirm-image-finalize-rollback.log"
+  ],
+  "decision": "Promote the existing immutable private upload object by a database reference; no physical copy/delete before finalization commits. Storage-key prefixes do not grant access. Hosted bucket lifecycle must not expire referenced keys independently of database lifecycle.",
+  "criteria": [
+    "A real deferred PostgreSQL COMMIT failure leaves staged bytes/state, image/receipt/activity unchanged and the exact original finalize command retryable; no untracked permanent object.",
+    "Successful finalization stores the exact verified original bytes at the original stable private key. Current actor/grant/card/upload/version/digest checks and one-image semantics stay intact.",
+    "Expiration cleanup preserves terminal finalized state, current image references and seven-day same-key retry; old distinct staging keys are still cleaned without deleting their live permanent objects.",
+    "Cancellation rollback cannot delete bytes; successful cancellation records durable deletion intent inside the transaction and deletes only after commit; storage failure leaves a retryable key.",
+    "Cleanup/finalize/cancel/delete/purge interleavings cannot delete a live image. Pending deletion is never created for a live referenced promoted key. A failed finalization abandoned to expiry cleans its single known object.",
+    "Real mounted PostgreSQL and actual Node/Worker nearest image/retention/race checks, followed by independent reviewer retest and final frozen review, are required. No local test establishes hosted R2 lifetime/policy acceptance.",
+    "An idempotent additive migration repairs prior expiry/cancellation state only when an existing finalized image matches the upload ancestry; increment version once, preserve bytes/receipt and do not resurrect a removed image."
+  ],
+  "deploymentRequiredChange": {
+    "before": "uat-storage-lifecycle-before.json",
+    "desired": "uat-storage-lifecycle-required.json",
+    "status": "not_applied",
+    "reason": "Read-only UAT bucket config actually has enabled staging/ deleteObjects age86400. Must remove only this rule and verify retained multipart abort before new Worker traffic; no production mutation."
+  },
+  "snapshotRaceAddendum": {
+    "evidence": "independent-image-preflight/cleanup-snapshot-race-v2-red.log",
+    "reason": "A correlated reference check in the locking SELECT can retain a pre-finalize statement snapshot even when LockRows returns the updated finalized upload. Read reference keys in one fresh statement only after all upload locks are held. RR concurrent tuple updates must abort rather than delete.",
+    "status": "recorded_before_snapshot_repair"
+  }
+}

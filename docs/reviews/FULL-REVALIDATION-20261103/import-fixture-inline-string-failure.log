@@ -1,0 +1,170 @@
+✖ import repair: description survives mapping and commit; original row reimport skips after card edit (202.518ms)
+✖ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (164.471208ms)
+✖ import repair: changed duplicate in a separately ready preview rolls back its whole batch (169.065166ms)
+✖ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (185.236458ms)
+✖ import repair: commit cannot override preview default column and stale board structure rejects confirmation (170.78975ms)
+✖ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (174.044709ms)
+✖ import repair: cancel and expired status remove staged titles/emails and prevent commit (163.957334ms)
+✖ import repair: purge removes imported card title/email copies but keeps duplicate identity (189.9295ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 0
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1602.891166
+
+✖ failing tests:
+
+test at apps/api/test/import-repair.test.ts:83:1
+✖ import repair: description survives mapping and commit; original row reimport skips after card edit (202.518ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"MISSING_REQUIRED_HEADER","message":"Missing required header: 'External ID'.","requestId":"1478602d-1d36-416e-bb6a-0488fd6490a3"}}
+  
+  422 !== 201
+  
+      at Object.preview (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:75:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:85:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:95:1
+✖ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (164.471208ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"MISSING_REQUIRED_HEADER","message":"Missing required header: 'External ID'.","requestId":"52e7f276-0dd5-47bb-84a4-533e1ef7808d"}}
+  
+  422 !== 201
+  
+      at Object.preview (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:75:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:97:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:104:1
+✖ import repair: changed duplicate in a separately ready preview rolls back its whole batch (169.065166ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"MISSING_REQUIRED_HEADER","message":"Missing required header: 'External ID'.","requestId":"ed56e193-ad5a-4dd6-846a-0295a0d8ccf4"}}
+  
+  422 !== 201
+  
+      at Object.preview (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:75:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:106:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:113:1
+✖ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (185.236458ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"MISSING_REQUIRED_HEADER","message":"Missing required header: 'External ID'.","requestId":"b3bd97ef-965d-4267-a2e6-e3e9f9890961"}}
+  
+  422 !== 201
+  
+      at Object.preview (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:75:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:115:18)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:123:1
+✖ import repair: commit cannot override preview default column and stale board structure rejects confirmation (170.78975ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"MISSING_REQUIRED_HEADER","message":"Missing required header: 'External ID'.","requestId":"f913d188-beed-40f8-9136-c74bf72742ad"}}
+  
+  422 !== 201
+  
+      at Object.preview (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:75:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:124:41)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:131:1
+✖ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (174.044709ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"MISSING_REQUIRED_HEADER","message":"Missing required header: 'External ID'.","requestId":"fb73823c-2915-44b6-838b-a54c2727edd1"}}
+  
+  422 !== 201
+  
+      at Object.preview (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:75:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:133:19)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:139:1
+✖ import repair: cancel and expired status remove staged titles/emails and prevent commit (163.957334ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"MISSING_REQUIRED_HEADER","message":"Missing required header: 'External ID'.","requestId":"82185cfe-3ba2-4475-ab21-08b085df2443"}}
+  
+  422 !== 201
+  
+      at Object.preview (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:75:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:141:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:151:1
+✖ import repair: purge removes imported card title/email copies but keeps duplicate identity (189.9295ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"MISSING_REQUIRED_HEADER","message":"Missing required header: 'External ID'.","requestId":"a9d5dcb5-5bab-4ccc-a684-6434733a23e7"}}
+  
+  422 !== 201
+  
+      at Object.preview (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:75:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:152:41)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,15 @@
+# My Tasks local repair — implementation evidence, not approval
+
+QRY-03 retains a mandatory selected project. Both existing routes now validate full query input, filter due state/priority before a bounded SQL page, and return `nextCursor`. Ordering is due date ascending, null dates last, then immutable card ID; equal dates no longer depend on update timing. Overdue excludes done columns and uses workspace calendar date. Archived projects/boards are excluded.
+
+Cursor context includes actor/project/workspace, filters/limit/date, visible board snapshot and access revisions. A changed context yields409 STALE_CURSOR and requires starting again. The cursor is pagination state, not a credential; every request still checks current project membership and board grants while the route holds read authorization locks. Context checks intentionally favor restarting after changes rather than promising a historical database snapshot.
+
+Evidence: `raw/my-tasks-red-3.log` records four actual pre-repair mounted PostgreSQL failures: missing next page, ignored due filter, permissive malformed limit and unchanged archived continuation. Earlier red/red-2 logs are fixture failures (incorrect assignee columns/required ancestry), retained as such and not product findings. `raw/my-tasks-green-1.log` records4/4 passing tests,0 skipped, exit0, on owned PostgreSQL17.11-alpine loopback55931, isolated schemas within flowboard_import_test. Root typecheck attempt1 exit1 was blocked by another in-progress board test's UUID-key typing; it is not reported as passing.
+
+Still required: UI cursor/filter consumption, final full suite, query/load measurement, frozen source hashes and fresh independent review. These tests do not approve deployment or hosted acceptance.
+
+## Follow-through evidence (not independent approval)
+
+`raw/root-calendar-query-outbox-green.log` records10/10 passing tests,0 skipped (eight My Tasks/calendar plus two outbox), exit0. The same owned PostgreSQL17.11/55931 fixture environment applies. My Tasks now returns the selected workspace `asOfDate` and `timezone`, including to invitees. Unsupported timezone writes return422 without row/version changes; invalid legacy stored zones return safe503 CONFIG_ERROR, with no silent UTC replacement. Valid changes keep existing date-only deadlines unchanged and invalidate previous task cursors.
+
+A real before/after query-count regression removed per-board authorization queries: adapter reads are7 for both one and three returned boards. Independent runtime probes (`runtime-validation-result.md/json`) measured13 HTTP queries for both one and five boards on Node and actual local workerd, rather than claiming a hosted speed guarantee. Their1000-row/10-page task fixture and bounded50-card snapshot are local runtime evidence. UI ownership supplied the selected-project task UI; the separate browser-product probe exercised61 assignments across two boards with a sibling-project exclusion sentinel. Final immutable whole-source review and hosted calendar/latency acceptance are still pending.

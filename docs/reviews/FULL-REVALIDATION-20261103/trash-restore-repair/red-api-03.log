@@ -1,0 +1,75 @@
+✖ restore retains nearest surviving gap after normal moves exhaust rank spacing (576.479916ms)
+✔ restore placement control: both (331.816666ms)
+✔ restore placement control: previous-only (349.3475ms)
+✔ restore placement control: next-only (336.46525ms)
+✔ restore placement control: neither (387.913458ms)
+✔ restore placement control: head (324.707959ms)
+✔ restore placement control: tail (308.508709ms)
+✔ restore placement control: empty (326.651834ms)
+✖ restore preserves head insertion when normal moves exhaust the first rank (474.4065ms)
+✔ restore replay is exactly once and stale/forbidden requests leave order and events unchanged (355.541ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 8
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4152.070208
+
+✖ failing tests:
+
+test at apps/api/test/trash-restore-placement.test.ts:18:1
+✖ restore retains nearest surviving gap after normal moves exhaust rank spacing (576.479916ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    [
+      'card',
+  +   'crd_7fe37de4-1579-4378-92d0-99a77d9220e1',
+  +   'crd_932c862e-e2f3-42f7-989b-8c2c5997e55e',
+  +   'crd_62a6e3ad-a9a5-4791-abd1-49163a9ffd46',
+      'crd_5abbdeed-93c9-4c95-a858-2bddd8a83fdd',
+      'crd_c2fa3fdc-3296-4061-a1d3-ba55f21087d2',
+      'crd_565d4843-c981-4858-8d5b-c46111cb4a6d',
+      'crd_3e653558-685b-46ae-b35c-de76bd8e0972',
+      'crd_5f84ab87-21eb-4245-8d06-9ccb023e69eb',
+  ...
+      'crd_43fb211c-d43f-47b8-82e0-2d898ed04c0a',
+  -   'crd_7fe37de4-1579-4378-92d0-99a77d9220e1',
+  -   'crd_932c862e-e2f3-42f7-989b-8c2c5997e55e',
+  -   'crd_62a6e3ad-a9a5-4791-abd1-49163a9ffd46'
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/trash-restore-placement.test.ts:34:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'card', 'crd_7fe37de4-1579-4378-92d0-99a77d9220e1', 'crd_932c862e-e2f3-42f7-989b-8c2c5997e55e', 'crd_62a6e3ad-a9a5-4791-abd1-49163a9ffd46', 'crd_5abbdeed-93c9-4c95-a858-2bddd8a83fdd', 'crd_c2fa3fdc-3296-4061-a1d3-ba55f21087d2', 'crd_565d4843-c981-4858-8d5b-c46111cb4a6d', 'crd_3e653558-685b-46ae-b35c-de76bd8e0972', 'crd_5f84ab87-21eb-4245-8d06-9ccb023e69eb', 'crd_8414bad0-cd1d-4239-81f3-8b562317d05b', 'crd_f9a2756a-cdde-4418-976f-b54707116ae6', 'crd_51d1c536-0b42-4126-abfc-1fbb6d74f948', 'crd_43fb211c-d43f-47b8-82e0-2d898ed04c0a' ],
+    expected: [ 'card', 'crd_5abbdeed-93c9-4c95-a858-2bddd8a83fdd', 'crd_c2fa3fdc-3296-4061-a1d3-ba55f21087d2', 'crd_565d4843-c981-4858-8d5b-c46111cb4a6d', 'crd_3e653558-685b-46ae-b35c-de76bd8e0972', 'crd_5f84ab87-21eb-4245-8d06-9ccb023e69eb', 'crd_8414bad0-cd1d-4239-81f3-8b562317d05b', 'crd_f9a2756a-cdde-4418-976f-b54707116ae6', 'crd_51d1c536-0b42-4126-abfc-1fbb6d74f948', 'crd_43fb211c-d43f-47b8-82e0-2d898ed04c0a', 'crd_7fe37de4-1579-4378-92d0-99a77d9220e1', 'crd_932c862e-e2f3-42f7-989b-8c2c5997e55e', 'crd_62a6e3ad-a9a5-4791-abd1-49163a9ffd46' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/trash-restore-placement.test.ts:65:1
+✖ restore preserves head insertion when normal moves exhaust the first rank (474.4065ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'crd_31ee7719-c9bc-4039-803d-ddcf3b25fe07'
+  - 'crd_a6f74fdd-5d4f-4b38-b2d3-08f5dae908d7'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/trash-restore-placement.test.ts:82:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'crd_31ee7719-c9bc-4039-803d-ddcf3b25fe07',
+    expected: 'crd_a6f74fdd-5d4f-4b38-b2d3-08f5dae908d7',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

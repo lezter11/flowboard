@@ -1,3 +1,4 @@
+import { versionedBoardLifecycleBody } from './support/board-lifecycle-fixture.ts';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import test from 'node:test';
@@ -97,7 +98,7 @@ test('B-5 activity coverage: writes, atomicity, replay, visibility and leaks', a
   const { p1, owner, manager, managerNoGrant, member, memberNoGrant, invitee, other, stranger } = fx;
 
   // Every request carries a fresh Idempotency-Key unless the test passes one.
-  const call = (who: Who | null, method: string, path: string, body?: unknown, key?: string) =>
+  const call = async (who: Who | null, method: string, path: string, body?: unknown, key?: string) =>
     app.request(`${BASE}${path}`, {
       method,
       headers: {
@@ -105,7 +106,7 @@ test('B-5 activity coverage: writes, atomicity, replay, visibility and leaks', a
         ...(body !== undefined ? { 'content-type': 'application/json' } : {}),
         ...(method !== 'GET' ? { 'Idempotency-Key': key ?? crypto.randomUUID() } : {}),
       },
-      body: body !== undefined ? JSON.stringify(body) : null,
+      body: body !== undefined ? JSON.stringify(await versionedBoardLifecycleBody(pool,path,body,key)) : null,
     });
   const json = async (res: Response) => (await res.json()) as any;
 

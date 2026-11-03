@@ -1,0 +1,321 @@
+{
+  "kind": "bounded_builder_handoff_not_independent_review",
+  "status": "source_held_openapi_global_review_pending",
+  "approval": false,
+  "score": null,
+  "at": "2026-11-03T10:34:35.327150+00:00",
+  "featureIds": [
+    "CRD-01",
+    "CRD-04",
+    "CRD-06",
+    "CRD-07",
+    "CRD-12",
+    "COM-01",
+    "COM-02",
+    "COM-03",
+    "COM-04",
+    "COM-05",
+    "NTF-01",
+    "NTF-03",
+    "QRY-01",
+    "QRY-02",
+    "RBAC-01",
+    "RBAC-02",
+    "RBAC-03"
+  ],
+  "criteria": "criteria.md",
+  "manifest": "manifest.json",
+  "manifestSHA256": "c54567b5cf1eba85741966a84577b9e4b54a63f6c482a60b1f4f6a8743803ee0",
+  "ownedFiles": [
+    "apps/api/src/adapters/cards.ts",
+    "apps/api/src/adapters/comments.ts",
+    "apps/api/src/http/routes/cards.ts",
+    "apps/api/src/http/routes/comments.ts",
+    "apps/api/src/http/routes/boards.ts",
+    "apps/api/src/services/assignee-locks.ts",
+    "apps/api/src/services/comment-retention.ts",
+    "packages/contracts/src/cards.ts",
+    "packages/contracts/src/discussion.ts",
+    "apps/api/test/card-assignee-concurrency.test.ts",
+    "apps/api/test/cards-discussion-boundary.test.ts",
+    "apps/api/test/comment-edit-retention.test.ts"
+  ],
+  "commands": [
+    {
+      "command": [
+        "npm",
+        "run",
+        "build"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 0,
+      "log": "build-1.log",
+      "at": "2026-11-03T10:31:34.025622+00:00",
+      "logSHA256": "997842151be64eec4df4a04d04e8f390e0914ecd7876fd2febc96e680ae8720d",
+      "counts": {}
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "test",
+        "--workspace",
+        "@flowboard/contracts"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 1,
+      "log": "contracts-1.log",
+      "at": "2026-11-03T10:27:54.346380+00:00",
+      "logSHA256": "8ac9e0d67b833e59cfe98eda852a9ed8acac5c73a21c1702719323603c2b435a",
+      "counts": {
+        "tests": 128,
+        "pass": 127,
+        "fail": 1,
+        "skipped": 0
+      }
+    },
+    {
+      "command": [
+        "node",
+        "--test-concurrency=1",
+        "--test",
+        "apps/api/test/cards-discussion-boundary.test.ts",
+        "apps/api/test/comment-edit-retention.test.ts",
+        "apps/api/test/card-assignee-concurrency.test.ts"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 1,
+      "log": "green-1.log",
+      "at": "2026-11-03T10:24:45.116674+00:00",
+      "logSHA256": "462c9ad23092b14af073dce79506788aa3dbb5f92e8b503eaecc788c8c5fb52c",
+      "counts": {
+        "tests": 9,
+        "pass": 8,
+        "fail": 1,
+        "skipped": 0
+      }
+    },
+    {
+      "command": [
+        "node",
+        "--test-concurrency=1",
+        "--test",
+        "apps/api/test/cards-discussion-boundary.test.ts",
+        "apps/api/test/comment-edit-retention.test.ts",
+        "apps/api/test/card-assignee-concurrency.test.ts"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 1,
+      "log": "green-2.log",
+      "at": "2026-11-03T10:26:20.655523+00:00",
+      "logSHA256": "09d101abd6ef41a20163c958809020a5315886819d82f85a6b54d45c55e14ce1",
+      "counts": {
+        "tests": 13,
+        "pass": 12,
+        "fail": 1,
+        "skipped": 0
+      }
+    },
+    {
+      "command": [
+        "node",
+        "--test-concurrency=1",
+        "--test",
+        "apps/api/test/cards-discussion-boundary.test.ts",
+        "apps/api/test/comment-edit-retention.test.ts",
+        "apps/api/test/card-assignee-concurrency.test.ts"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 0,
+      "log": "green-3.log",
+      "at": "2026-11-03T10:27:03.925700+00:00",
+      "logSHA256": "2d96ecf2c98be77f4afc94e7981ef5b021915b5e9384b490a92d17955824364c",
+      "counts": {
+        "tests": 14,
+        "pass": 14,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "command": [
+        "node",
+        "--test-concurrency=1",
+        "--test",
+        "apps/api/test/cards-discussion-boundary.test.ts",
+        "apps/api/test/comment-edit-retention.test.ts",
+        "apps/api/test/card-assignee-concurrency.test.ts",
+        "apps/api/test/lifecycle-retention-repair.test.ts",
+        "apps/api/test/outbox-recovery.test.ts"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 0,
+      "log": "green-4.log",
+      "at": "2026-11-03T10:28:50.985152+00:00",
+      "logSHA256": "c7bc6fffec7dba1451769431448f92a20302dc316fae8141b1a108622e1b3db5",
+      "counts": {
+        "tests": 32,
+        "pass": 32,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "command": [
+        "node",
+        "--test-concurrency=1",
+        "--test",
+        "apps/api/test/cards-discussion-boundary.test.ts",
+        "apps/api/test/comment-edit-retention.test.ts",
+        "apps/api/test/card-assignee-concurrency.test.ts",
+        "apps/api/test/crd01-crd11.test.ts",
+        "apps/api/test/qry01-qry03.test.ts",
+        "apps/api/test/b9-mention-access.test.ts",
+        "apps/api/test/comment-move-replay.test.ts",
+        "apps/api/test/board-access-activity-notifications.test.ts",
+        "apps/api/test/lifecycle-retention-repair.test.ts",
+        "apps/api/test/outbox-recovery.test.ts",
+        "apps/api/test/b14-outbox-privacy.test.ts",
+        "apps/api/test/board-notification-scope-draft.test.ts"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 0,
+      "log": "legacy-1.log",
+      "at": "2026-11-03T10:30:33.206000+00:00",
+      "logSHA256": "9941aae835d809db16003da784e02c5b9f3b5506c7e4e4ed0acf87efb8c345ea",
+      "counts": {
+        "tests": 93,
+        "pass": 93,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "command": [
+        "node",
+        "--test-concurrency=1",
+        "--test",
+        "apps/api/test/cards-discussion-boundary.test.ts",
+        "apps/api/test/comment-edit-retention.test.ts",
+        "apps/api/test/card-assignee-concurrency.test.ts",
+        "apps/api/test/crd01-crd11.test.ts",
+        "apps/api/test/qry01-qry03.test.ts",
+        "apps/api/test/b9-mention-access.test.ts",
+        "apps/api/test/comment-move-replay.test.ts",
+        "apps/api/test/board-access-activity-notifications.test.ts",
+        "apps/api/test/lifecycle-retention-repair.test.ts",
+        "apps/api/test/outbox-recovery.test.ts",
+        "apps/api/test/b14-outbox-privacy.test.ts",
+        "apps/api/test/board-notification-scope-draft.test.ts"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 0,
+      "log": "legacy-final.log",
+      "at": "2026-11-03T10:32:52.347183+00:00",
+      "logSHA256": "664d871c21068480e2400aa77da214cc812bf33a730775064c2c5f328ab55f72",
+      "counts": {
+        "tests": 95,
+        "pass": 95,
+        "fail": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "command": [
+        "node",
+        "--test-concurrency=1",
+        "--test",
+        "apps/api/test/cards-discussion-boundary.test.ts",
+        "apps/api/test/comment-edit-retention.test.ts",
+        "apps/api/test/card-assignee-concurrency.test.ts"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 1,
+      "log": "red-1.log",
+      "at": "2026-11-03T10:22:18.025514+00:00",
+      "logSHA256": "1aace0a8307677447f37a82180c2ce56108f2d487b7a07deb8e6c6c317fa87ae",
+      "counts": {
+        "tests": 9,
+        "pass": 2,
+        "fail": 7,
+        "skipped": 0
+      }
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 1,
+      "log": "typecheck-1.log",
+      "at": "2026-11-03T10:25:45.870491+00:00",
+      "logSHA256": "521a8c1383f2a428c779b2f41f41a9688326a079a68c0b637736244b52357ac7",
+      "counts": {}
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 0,
+      "log": "typecheck-2.log",
+      "at": "2026-11-03T10:27:18.666897+00:00",
+      "logSHA256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1",
+      "counts": {}
+    },
+    {
+      "command": [
+        "npm",
+        "run",
+        "typecheck"
+      ],
+      "cwd": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard",
+      "port": 55931,
+      "image": "postgres:17.11-alpine",
+      "exitCode": 0,
+      "log": "typecheck-3.log",
+      "at": "2026-11-03T10:30:41.835821+00:00",
+      "logSHA256": "691fd4b3c7ed0e0e32c3fe2743310e651d9cebdd45c17a977e4eb6db92fa2ed1",
+      "counts": {}
+    }
+  ],
+  "finalApiGate": {
+    "tests": 95,
+    "pass": 95,
+    "fail": 0,
+    "skipped": 0,
+    "exitCode": 0,
+    "log": "legacy-final.log"
+  },
+  "pending": [
+    "Architect OpenAPI binding/artifact regeneration and contracts rerun (127/128 currently, sole byte parity failure)",
+    "Fresh complete immutable dependency snapshot and independent review",
+    "Final root full gates and hosted acceptance"
+  ]
+}

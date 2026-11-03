@@ -1,0 +1,118 @@
+{
+  "kind": "bounded_builder_handoff_not_independent_approval",
+  "featureIds": [
+    "ATT-02"
+  ],
+  "baseline": "917706ae0433df471c72736be4d548eb022236c4",
+  "criteria": "criteria/image-integrity.json",
+  "scopeExplanation": "image-integrity-scope.md",
+  "sourceHashes": {
+    "apps/api/src/services/image-validator.ts": "413a0efe59bff2049b9cd1d66013035a7e7287bba0ecf2de2bb53dd3b9308e24",
+    "apps/api/src/adapters/images.ts": "350794ea840b155209c88ec809cda65b729c508f31ee969fda935aef406d6647",
+    "apps/api/test/image-integrity-repair.test.ts": "2f1c775a73163ee9874b0578b792a2f7c461eb87bfb917cf6cca9b154c56ce8f",
+    "apps/api/test/image-integrity-worker.test.ts": "0daac3cb01edbde0098a933fcd89b556f437038bfa65626f6c61ecf80a257b6c",
+    "apps/api/test/support/image-fixtures.ts": "6a425549b427521f676538c87b12dc0208cece4dcf11dae264689c69d024048c",
+    "apps/api/test/support/image-fixtures.json": "f90d4479fe24dd2dd40cb3495eb7a45b05a18d79cfa2d003f657420461bb5939",
+    "apps/api/test/att01-att07.test.ts": "82364d822734b0ad30844778cde590ed5e461b58fa0a0efcf259ce2c044fe40f",
+    "apps/api/test/b7-image-storage-r2.test.ts": "be262dfa06d05b35469fd7c2dc9264db76b1213c4dfe01efb9eee3b249210f6c",
+    "apps/api/test/board-access-cards-images.test.ts": "4fadcd5a078e9daa89fc3b8817b6fe24a8147b22d62a5ff75fc0c186b8f5d903"
+  },
+  "runtime": {
+    "node": "v24.15.0",
+    "wrangler": "4.156.2",
+    "miniflare": "5.20261102.0-beta",
+    "undici": "7.30.1"
+  },
+  "commands": [
+    {
+      "command": "FLOWBOARD_IMPORT_TEST_DATABASE_URL=<synthetic localhost55931/flowboard_import_test> NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test apps/api/test/image-integrity-repair.test.ts",
+      "exitCode": 1,
+      "pass": 1,
+      "fail": 5,
+      "skipped": 0,
+      "log": "raw/image-integrity-expanded-red.log",
+      "phase": "Pre-implementation mounted Node baseline; malformed PNG/JPEG/WebP accepted."
+    },
+    {
+      "command": "FLOWBOARD_IMPORT_TEST_DATABASE_URL=<synthetic localhost55931/flowboard_import_test> NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test --test-name-pattern=\"finalization rechecks\" apps/api/test/image-integrity-repair.test.ts",
+      "exitCode": 1,
+      "pass": 0,
+      "fail": 1,
+      "skipped": 0,
+      "log": "raw/image-finalize-integrity-red.log",
+      "phase": "After first container repair: malformed legacy staged finalization500 instead422. Earlier incorrect audit table fixture error is separately retained, not runtime proof."
+    },
+    {
+      "command": "FLOWBOARD_IMPORT_TEST_DATABASE_URL=<synthetic localhost55931/flowboard_import_test> NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test apps/api/test/image-integrity-repair.test.ts apps/api/test/image-integrity-worker.test.ts",
+      "exitCode": 0,
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0,
+      "log": "raw/image-integrity-final-runtime.log",
+      "phase": "Final installed runtime; mounted Node + actual local workerd/private R2 emulator + isolated real PostgreSQL."
+    },
+    {
+      "command": "DATABASE_URL=<synthetic localhost55931/flowboard_harness> FLOWBOARD_ACCESS_TEST_DATABASE_URL=<synthetic localhost55931/flowboard_access_test> ALLOW_REMOTE_DB=false NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test apps/api/test/att01-att07.test.ts apps/api/test/b7-image-storage-r2.test.ts apps/api/test/b8-image-delete-after-commit.test.ts apps/api/test/board-access-cards-images.test.ts apps/api/test/b11-cleanup-cap-people.test.ts",
+      "exitCode": 0,
+      "pass": 37,
+      "fail": 0,
+      "skipped": 0,
+      "log": "raw/image-integrity-nearest-final-runtime.log",
+      "phase": "Final installed runtime nearest existing integration/caps/storage/revocation/cleanup suites."
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "raw/image-integrity-typecheck-final.log"
+    },
+    {
+      "command": "git diff --check -- <owned image tracked paths>",
+      "exitCode": 0,
+      "result": "No whitespace errors."
+    },
+    {
+      "command": "Offline sharp/libvips raw pixel decoding of every static genuine fixture",
+      "exitCode": 0,
+      "count": 10,
+      "log": "raw/image-fixture-decoder-proof.json",
+      "phase": "Fixture provenance/validity only, not production decoder proof."
+    },
+    {
+      "command": "Synthetic valid-CRC PNG invalid-DEFLATE boundary versus runtime validator and independent libvips decoder",
+      "exitCode": 0,
+      "log": "raw/image-entropy-boundary.json",
+      "result": "Container validator accepts67bytes; pixel decoder rejects. Explicit unresolved fidelity boundary, not a passing acceptance test."
+    }
+  ],
+  "coverage": {
+    "mountedMalformedVariants": 15,
+    "genuineSavedVariantsPerRuntime": 8,
+    "staticFixturesIndependentlyPixelDecoded": 10,
+    "everyByteTruncationVariants": 1345,
+    "actualWorkerd": true,
+    "realPostgreSQL": true,
+    "localR2Emulator": true,
+    "finalizeLegacyMalformed422NoEffects": true
+  },
+  "preservedFailures": [
+    "raw/image-integrity-red.log",
+    "raw/image-integrity-red-finalize.log",
+    "raw/image-integrity-expanded-red.log",
+    "raw/image-finalize-fixture-error.log",
+    "raw/image-finalize-integrity-red.log",
+    "raw/image-integrity-typecheck-round1.log",
+    "raw/image-integrity-typecheck-round2.log",
+    "raw/image-integrity-typecheck-legacy-body-error.log",
+    "raw/image-integrity-nearest-mytasks-contract-failure.log"
+  ],
+  "legacyNearestFailureExplanation": "First nearest invocation had20tests19pass1fail: missing-project MyTasks now422 per shared strict schema, fixture expected400. Corrected one assertion. Initial command accidentally named nonexistent b11-stage-attachment-cap.test.ts; final command uses actual b11-cleanup-cap-people.test.ts and37tests. No failing source behavior hidden. Original header-only legacy fixtures are preserved as text snapshots; root pre-repair header probe is the confirmed failure evidence, not an invented legacy pre-fixture test run.",
+  "limits": [
+    "No DEFLATE/JPEG/VP8/VP8L pixel entropy reconstruction or re-encoding; valid-envelope corrupt pixel streams can pass. Concrete boundary artifact is mandatory independent review input.",
+    "Unsupported lossless/arithmetic/hierarchical JPEG variants fail closed; ancillary metadata semantics are not exhaustively checked/sanitized.",
+    "No untrusted decompression or decoded-pixel allocation. Input remains capped10MiB, dimensions8192/20MP; no Worker/runtime dependency added.",
+    "Successful genuine fixture bytes/private headers are not hosted durability, browser pixel rendering, maximum-payload CPU/load or production acceptance proof.",
+    "Existing B7 direct Worker-function tests emit expected missing soft binding/client-address diagnostics; actual workerd test provides binding/IP. These warning lines are retained.",
+    "Parent full frozen gate and fresh independent score/review remain mandatory; builder does not approve ATT02 or deploy."
+  ],
+  "status": "Header-only/container-integrity and finalize-error defects locally repaired. Full feature closure pending independent fidelity decision and complete parent gates/UAT."
+}

@@ -92,6 +92,16 @@ export type FinalizedImageResponse = z.infer<typeof finalizedImageResponseSchema
 export const finalizedImageListResponseSchema = createPaginatedEnvelopeSchema(finalizedImageSchema);
 export type FinalizedImageListResponse = z.infer<typeof finalizedImageListResponseSchema>;
 
+/** Actual card gallery response; stage uploads never appear as saved items. */
+export const imageGalleryResponseSchema = z.object({
+  data:z.object({
+    items:z.array(finalizedImageSchema),
+    nextCursor:z.null(),
+    totalCount:z.number().int().nonnegative(),
+  }),
+});
+export type ImageGalleryResponse = z.infer<typeof imageGalleryResponseSchema>;
+
 export const deleteImageInputSchema = z.object({
   expectedVersion: z.number().int().nonnegative(),
 });

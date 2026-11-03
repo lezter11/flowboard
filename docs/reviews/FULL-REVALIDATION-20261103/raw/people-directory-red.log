@@ -1,0 +1,68 @@
+✖ People policy: only inherited Owner/current Manager read emails; Member/Viewer deny without directory data (247.132125ms)
+✔ People policy: Member/Viewer board-scoped pickers remain available and contain no emails (197.620375ms)
+✖ People policy: demotion winning membership lock prevents an in-flight directory disclosure (196.657125ms)
+✖ People policy: authorized directory assembly serializes before concurrent Manager demotion (221.508ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3028.59225
+
+✖ failing tests:
+
+test at apps/api/test/people-directory-policy.test.ts:10:67
+✖ People policy: only inherited Owner/current Manager read emails; Member/Viewer deny without directory data (247.132125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 403
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:36:79)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 403,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/people-directory-policy.test.ts:10:67
+✖ People policy: demotion winning membership lock prevents an in-flight directory disclosure (196.657125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 403
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:53:36)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 403,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/people-directory-policy.test.ts:10:67
+✖ People policy: authorized directory assembly serializes before concurrent Manager demotion (221.508ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  200 !== 403
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/people-directory-policy.test.ts:67:89)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 403,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

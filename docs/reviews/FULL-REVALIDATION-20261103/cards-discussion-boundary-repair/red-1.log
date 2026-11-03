@@ -1,0 +1,139 @@
+✖ new assignment serializes demotion: assignment wins first (2124.802333ms)
+✖ new assignment serializes demotion: eligibility wins first (2041.741ms)
+✔ new assignment serializes revocation: assignment wins first (297.614791ms)
+✔ new assignment serializes revocation: eligibility wins first (291.850833ms)
+✖ create locks selected recipients; title-only edit preserves historical assignees and replay still checks the actor (244.608208ms)
+✖ strict command boundaries reject unknown fields without writes or receipts (377.835292ms)
+✖ strict card and comment query boundaries reject malformed and ignored values (317.87225ms)
+✖ comment edit redacts exact notification copies and legacy outbox payload without creating new delivery intentions (452.188583ms)
+✖ failed comment edit rolls source and copied previews back together; a later committed edit sanitizes busy outbox on retry (297.358167ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 2
+ℹ fail 7
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7432.535167
+
+✖ failing tests:
+
+test at apps/api/test/card-assignee-concurrency.test.ts:10:113
+✖ new assignment serializes demotion: assignment wins first (2124.802333ms)
+  AssertionError [ERR_ASSERTION]: opposite mounted writer must wait on the first writer, not pass eligibility unchecked
+      at waitFor (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/card-assignee-concurrency.test.ts:8:9)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/card-assignee-concurrency.test.ts:31:18)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at apps/api/test/card-assignee-concurrency.test.ts:10:113
+✖ new assignment serializes demotion: eligibility wins first (2041.741ms)
+  AssertionError [ERR_ASSERTION]: opposite mounted writer must wait on the first writer, not pass eligibility unchecked
+      at waitFor (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/card-assignee-concurrency.test.ts:8:9)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/card-assignee-concurrency.test.ts:31:18)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: undefined,
+    operator: 'fail',
+    diff: 'simple'
+  }
+
+test at apps/api/test/card-assignee-concurrency.test.ts:48:1
+✖ create locks selected recipients; title-only edit preserves historical assignees and replay still checks the actor (244.608208ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"IDEMPOTENCY_KEY_REQUIRED","message":"Missing or invalid Idempotency-Key header.","requestId":"ee03069d-83f8-4fd6-9ca3-822cffadec71"}}
+  
+  400 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/card-assignee-concurrency.test.ts:50:178)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 400,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cards-discussion-boundary.test.ts:5:1
+✖ strict command boundaries reject unknown fields without writes or receipts (377.835292ms)
+  AssertionError [ERR_ASSERTION]: POST /boards/brd/cards {"data":{"id":"crd_89148a94-0205-46b6-8e82-58f9dc21d985","key":"PRJ-2","workspaceId":"ws","projectId":"prj","boardId":"brd","columnId":"col","title":"Rejected","description":"","priority":"none","dueDate":null,"assigneeIds":[],"position":1000,"version":1,"state":"active","deletedAt":null,"deletedBy":null,"restoreUntil":null,"commentCount":0,"imageCount":0,"createdAt":"2026-11-03T10:22:16.487Z","updatedAt":"2026-11-03T10:22:16.487Z"}}
+  
+  201 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cards-discussion-boundary.test.ts:18:124)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 201,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cards-discussion-boundary.test.ts:27:1
+✖ strict card and comment query boundaries reject malformed and ignored values (317.87225ms)
+  AssertionError [ERR_ASSERTION]: /cards/card/comments?limit=1junk {"data":[{"id":"cmt_fc6274b1-9121-407d-b8ca-f48325e8b60e","projectId":"prj","cardId":"card","authorId":"usr_ead3672ee9394d24","body":"Private deleted comment @Retention manager","mentions":[{"userId":"usr_4e125f0e42f0bfbf","start":24,"end":42}],"version":1,"deletedAt":null,"createdAt":"2026-11-03T10:22:16.796Z","updatedAt":"2026-11-03T10:22:16.796Z","author":{"id":"usr_ead3672ee9394d24","displayName":"Retention member","avatarUrl":null,"activeInProject":true,"scopedRole":"member","assignable":true,"mentionable":true}}],"nextCursor":null}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cards-discussion-boundary.test.ts:30:65)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/comment-edit-retention.test.ts:8:1
+✖ comment edit redacts exact notification copies and legacy outbox payload without creating new delivery intentions (452.188583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/comment-edit-retention.test.ts:14:24)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/comment-edit-retention.test.ts:27:1
+✖ failed comment edit rolls source and copied previews back together; a later committed edit sanitizes busy outbox on retry (297.358167ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  true !== false
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/comment-edit-retention.test.ts:31:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: true,
+    expected: false,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

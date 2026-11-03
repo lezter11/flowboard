@@ -1,0 +1,65 @@
+✔ import repair: description survives mapping and commit; original row reimport skips after card edit (359.541208ms)
+✔ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (264.252375ms)
+✔ import repair: changed duplicate in a separately ready preview rolls back its whole batch (243.10875ms)
+✔ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (231.516875ms)
+✔ import repair: commit cannot override preview default column and stale board structure rejects confirmation (206.618209ms)
+✔ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (217.27275ms)
+✔ import repair: cancel and expired status remove staged titles/emails and prevent commit (224.994167ms)
+✔ import repair: purge removes imported card title/email copies but keeps duplicate identity (234.928458ms)
+✔ import repair: target membership revocation winning its lock makes a concurrent mounted confirmation stale (238.54875ms)
+✔ import repair: confirmation holding recipient locks commits before waiting revocation with no deadlock (206.606625ms)
+✔ import repair: scheduled retention is bounded, repeatable, and preserves live previews/results/duplicate markers (217.2815ms)
+✔ import repair: failure on final card insert rolls back all cards, external markers, activity and receipt (204.62575ms)
+✖ import repair: migration0021 upgrades old previews conservatively and reruns without changing saved cards/markers (189.867042ms)
+{"event":"scheduled_job_failed","jobs":["trash-purge","orphan-uploads","pending-storage"]}
+✖ import repair: actual Worker scheduled entry cleans expired previews without a browser request (190.419667ms)
+✔ import repair: an unknown source mapping preserves original description/hash and literal inline strings parse (205.39825ms)
+ℹ tests 15
+ℹ suites 0
+ℹ pass 13
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3642.941375
+
+✖ failing tests:
+
+test at apps/api/test/import-repair.test.ts:470:1
+✖ import repair: migration0021 upgrades old previews conservatively and reruns without changing saved cards/markers (189.867042ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'preserve whitespace'
+  - '  preserve whitespace  '
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:487:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'preserve whitespace',
+    expected: '  preserve whitespace  ',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-repair.test.ts:492:1
+✖ import repair: actual Worker scheduled entry cleans expired previews without a browser request (190.419667ms)
+  Error [HttpError]: Image storage is not configured for this deployment.
+      at getStorageDriver (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/adapters/storage.ts:115:11)
+      at processPendingStorageDeletions (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/trash-purge.ts:59:21)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async purgeExpiredTrash (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/trash-purge.ts:154:7)
+      at async runIsolated (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/runtime/worker.ts:35:7)
+      at async Object.scheduled (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/runtime/worker.ts:89:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-repair.test.ts:497:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    res: undefined,
+    status: 503,
+    code: 'CONFIG_ERROR',
+    details: undefined,
+    [cause]: undefined
+  }

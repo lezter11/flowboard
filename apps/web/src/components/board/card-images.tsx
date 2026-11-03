@@ -3,6 +3,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type DragEvent } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import type { FinalizedImage } from '@flowboard/contracts';
+import { currentSessionActor } from '@/lib/session-identity';
+import { discardRefusedRows } from '@/lib/feed-state';
+import { usePollKeys } from '@/components/polling';
 import { api, ApiError } from '@/lib/api';
 import { describeError, describeUploadError } from '@/lib/errors';
 import { browserEnv, prepareImage } from '@/lib/image-prepare';
@@ -16,11 +19,13 @@ import { useToast } from '@/components/ui/toasts';
 const MAX_IMAGES = 10;
 const ACCEPT = 'image/png,image/jpeg,image/webp';
 /** The API's /thumbnail currently returns the full image (same bytes as /content), so one download serves tile and viewer. */
-const imagesKey = (cardId: string) => ['card-images', cardId] as const;
+const imagesKey = (cardId: string,actorId:string) => ['card-images', cardId,actorId] as const;
 
 // One queue for the whole app, so an upload survives the drawer re-mounting when the card's version changes.
 let queryClientRef: ReturnType<typeof useQueryClient> | null = null;
-const store = createUploadStore({
+const stores=new Map<string,ReturnType<typeof createUploadStore>>();
+function uploadsFor(actorId:string){let store=stores.get(actorId);if(!store){store=createUploadStore({
+  isActive:()=>!!actorId&&currentSessionActor()===actorId,
   prepare: (file) => prepareImage(file, browserEnv),
   createUpload: async (cardId, input, key) => (await api.createImageUpload(cardId, input as never, key)).data,
   putContent: (id, blob, opts) => api.putImageContent(id, blob, opts),
@@ -28,25 +33,30 @@ const store = createUploadStore({
   cancel: (id) => api.cancelImageUpload(id),
   describe: describeUploadError,
   onFinalized: (cardId) => {
-    void queryClientRef?.invalidateQueries({ queryKey: imagesKey(cardId) });
+    void queryClientRef?.invalidateQueries({ queryKey: imagesKey(cardId,actorId) });
     void queryClientRef?.invalidateQueries({ queryKey: ['card', cardId] });
   },
-});
+});stores.set(actorId,store);}return store;}
 
 const labelOf = (filename: string) => filename.replace(/\.[A-Za-z0-9]{1,5}$/, '').replace(/[_-]+/g, ' ').trim() || 'Image';
 const sizeOf = (n: number) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 
 /** Fetches a private image through the authenticated API and exposes it as an object URL that is revoked on cleanup. */
 function useImageUrl(imageId: string, enabled: boolean) {
-  const blob = useQuery({ queryKey: ['image-blob', imageId], queryFn: () => api.fetchImageBlob(imageId, 'content'), enabled, staleTime: Infinity, gcTime: 120_000, retry: (n, e) => !(e instanceof ApiError && [401, 403, 404].includes(e.status)) && n < 1 });
+  const {state}=useSession();const actorId=state.status==='ready'?state.session.actor.id:'';const client=useQueryClient();
+  const key=useMemo(()=>['image-blob',imageId,actorId] as const,[imageId,actorId]);
+  const blob = useQuery({ queryKey:key, queryFn: () => api.fetchImageBlob(imageId, 'content'), enabled:enabled&&!!actorId, staleTime: 15_000, gcTime: 120_000, retry: (n, e) => !(e instanceof ApiError && [401, 403, 404].includes(e.status)) && n < 1 });
+  usePollKeys([key],enabled&&!!actorId);
+  useEffect(()=>{discardRefusedRows(client,key,blob.error);},[client,key,blob.error]);
+  const denied=blob.error instanceof ApiError&&[401,403,404].includes(blob.error.status);
   const [url, setUrl] = useState<string | null>(null);
   useEffect(() => {
-    if (!blob.data) { setUrl(null); return; }
+    if (!blob.data||denied||!actorId) { setUrl(null); return; }
     const made = URL.createObjectURL(blob.data);
     setUrl(made);
     return () => URL.revokeObjectURL(made);
-  }, [blob.data]);
-  return { url, error: blob.isError, loading: blob.isPending && enabled };
+  }, [blob.data,denied,actorId]);
+  return { url:denied||!actorId?null:url, error: blob.isError, loading: blob.isPending && enabled };
 }
 
 function Tile({ image, canRemove, onOpen, onRemove }: { image: FinalizedImage; canRemove: boolean; onOpen: () => void; onRemove: () => void }) {
@@ -107,15 +117,17 @@ export function CardImages({ cardId, role, count }: { cardId: string; role: Role
   const toast = useToast();
   const { state } = useSession();
   const actorId = state.status === 'ready' ? state.session.actor.id : '';
-  const canUpload = can(role, 'edit');
+  const mayUpload = !!actorId&&can(role, 'edit');
+  const store=useMemo(()=>uploadsFor(actorId),[actorId]);
   const privileged = role === 'owner' || role === 'manager';
 
-  const list = useQuery({ queryKey: imagesKey(cardId), queryFn: async (): Promise<FinalizedImage[]> => {
-      // The API answers {data:{items,...}} while the contract schema says {data:[...]}; accept both until they agree.
-      const data = (await api.listCardImages(cardId)).data as unknown;
-      return Array.isArray(data) ? (data as FinalizedImage[]) : ((data as { items?: FinalizedImage[] }).items ?? []);
-    }, retry: false });
-  const images = useMemo(() => list.data ?? [], [list.data]);
+  const galleryKey=useMemo(()=>imagesKey(cardId,actorId),[cardId,actorId]);
+  const list=useQuery({queryKey:galleryKey,queryFn:async()=>(await api.listCardImages(cardId)).data,enabled:!!actorId,retry:false});
+  usePollKeys([galleryKey],!!actorId);
+  useEffect(()=>{discardRefusedRows(queryClient,galleryKey,list.error);},[queryClient,galleryKey,list.error]);
+  const denied=list.error instanceof ApiError&&[401,403,404].includes(list.error.status);
+  const images=useMemo(()=>!actorId||denied?[]:list.data?.items??[],[actorId,denied,list.data]);
+  const canUpload=mayUpload&&list.isSuccess&&!denied;
   const uploads = useSyncExternalStore((fn) => store.subscribe(cardId, fn), () => store.get(cardId), () => store.get(cardId));
   const [viewing, setViewing] = useState<number | null>(null);
   const [removing, setRemoving] = useState<FinalizedImage | null>(null);
@@ -126,7 +138,7 @@ export function CardImages({ cardId, role, count }: { cardId: string; role: Role
   const input = useRef<HTMLInputElement>(null);
 
   const unavailable = list.error instanceof ApiError && list.error.status === 503 && list.error.code === 'CONFIG_ERROR';
-  const total = images.length + uploads.filter((u) => u.status !== 'failed').length;
+  const total = (list.data?.totalCount??count) + uploads.filter((u) => u.status !== 'failed').length;
   const room = Math.max(0, MAX_IMAGES - total);
 
   const addFiles = useCallback((files: File[]) => {
@@ -137,7 +149,7 @@ export function CardImages({ cardId, role, count }: { cardId: string; role: Role
     const take = list.slice(0, free);
     setNotice(take.length < list.length ? `Only ${take.length} of ${list.length} images were added: a card holds at most 10.` : list.length < files.length ? 'Some files were skipped: only PNG, JPEG and WebP images can be added.' : '');
     store.add(cardId, take);
-  }, [cardId, images.length]);
+  }, [cardId, images.length,store]);
 
   // Paste an image from the clipboard while the drawer is open (not while typing text).
   useEffect(() => {
@@ -159,11 +171,11 @@ export function CardImages({ cardId, role, count }: { cardId: string; role: Role
       await api.deleteImage(removing.id, removing.version);
       toast('Image removed', { icon: 'check' });
       setRemoving(null);
-      await queryClient.invalidateQueries({ queryKey: imagesKey(cardId) });
+      await queryClient.invalidateQueries({ queryKey: imagesKey(cardId,actorId) });
       void queryClient.invalidateQueries({ queryKey: ['card', cardId] });
     } catch (error) {
       setRemoveError(describeError(error));
-      void queryClient.invalidateQueries({ queryKey: imagesKey(cardId) });
+      void queryClient.invalidateQueries({ queryKey: imagesKey(cardId,actorId) });
     } finally { setRemoveBusy(false); }
   };
 
@@ -191,7 +203,7 @@ export function CardImages({ cardId, role, count }: { cardId: string; role: Role
 
       {uploads.length > 0 && (
         <ul className="upload-list" aria-label="Images being added">
-          {uploads.map((u) => <UploadRow key={u.id} item={u} onCancel={() => store.cancel(cardId, u.id)} onRetry={() => store.retry(cardId, u.id)} />)}
+          {uploads.map((u) => <UploadRow key={u.id} item={u} canRetry={canUpload} onCancel={() => store.cancel(cardId, u.id)} onRetry={() => store.retry(cardId, u.id)} />)}
         </ul>
       )}
 
@@ -223,7 +235,7 @@ export function CardImages({ cardId, role, count }: { cardId: string; role: Role
 
 const STATUS_TEXT: Record<UploadItem['status'], string> = { optimising: 'Optimising…', staging: 'Preparing upload…', uploading: 'Uploading…', validating: 'Checking the image…', failed: 'Not added' };
 
-function UploadRow({ item, onCancel, onRetry }: { item: UploadItem; onCancel: () => void; onRetry: () => void }) {
+function UploadRow({ item, onCancel, onRetry,canRetry }: { canRetry:boolean;item: UploadItem; onCancel: () => void; onRetry: () => void }) {
   const failed = item.status === 'failed';
   return (
     <li className={`upload-row${failed ? ' is-failed' : ''}`}>
@@ -234,8 +246,8 @@ function UploadRow({ item, onCancel, onRetry }: { item: UploadItem; onCancel: ()
           <div className="upload-progress"><span className="progress-track" role="progressbar" aria-label={`Uploading ${item.name}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(item.progress * 100)}><i style={{ transform: `scaleX(${Math.max(0.02, item.progress)})` }} /></span><span>{Math.round(item.progress * 100)}%</span></div>
         )}
       </div>
-      {failed && item.retryable && <button className="btn sm" type="button" onClick={onRetry}>Try again</button>}
-      <button className="btn sm" type="button" onClick={onCancel} aria-label={failed ? `Dismiss ${item.name}` : `Cancel adding ${item.name}`}>{failed ? 'Dismiss' : 'Cancel'}</button>
+      {failed && item.retryable && <button className="btn sm" type="button" disabled={!canRetry} onClick={onRetry}>{item.needsConfirmation?'Retry original confirmation':'Try again'}</button>}
+      <button className="btn sm" type="button" onClick={onCancel} disabled={!item.canCancel} aria-label={failed ? `Dismiss ${item.name}` : `Cancel adding ${item.name}`}>{failed ? 'Dismiss' : 'Cancel'}</button>
     </li>
   );
 }

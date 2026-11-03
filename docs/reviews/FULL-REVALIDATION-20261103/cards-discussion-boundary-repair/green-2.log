@@ -1,0 +1,41 @@
+✔ create assignment serializes demotion: assignment wins first (233.9805ms)
+✔ create assignment serializes demotion: eligibility wins first (210.218625ms)
+✔ create assignment serializes revocation: assignment wins first (187.113708ms)
+✔ create assignment serializes revocation: eligibility wins first (188.426667ms)
+✔ update assignment serializes demotion: assignment wins first (218.113292ms)
+✔ update assignment serializes demotion: eligibility wins first (238.554208ms)
+✔ update assignment serializes revocation: assignment wins first (280.435125ms)
+✔ update assignment serializes revocation: eligibility wins first (281.68075ms)
+✔ create locks selected recipients; title-only edit preserves historical assignees and replay still checks the actor (317.534291ms)
+✔ strict command boundaries reject unknown fields without writes or receipts (328.482ms)
+✖ strict card and comment query boundaries reject malformed and ignored values (380.875ms)
+✔ comment edit redacts exact notification copies and legacy outbox payload without creating new delivery intentions (449.669291ms)
+✔ failed comment edit rolls source and copied previews back together; a later committed edit sanitizes busy outbox on retry (344.57225ms)
+ℹ tests 13
+ℹ suites 0
+ℹ pass 12
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4501.241042
+
+✖ failing tests:
+
+test at apps/api/test/cards-discussion-boundary.test.ts:27:1
+✖ strict card and comment query boundaries reject malformed and ignored values (380.875ms)
+  AssertionError [ERR_ASSERTION]: /boards/brd/cards
+  
+  422 !== 404
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cards-discussion-boundary.test.ts:41:101)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 404,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

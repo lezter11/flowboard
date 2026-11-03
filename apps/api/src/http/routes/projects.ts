@@ -8,6 +8,7 @@ import {
   createOwnProjectInputSchema,
   createProjectInputSchema,
   updateProjectInputSchema,
+  projectLifecycleInputSchema,
   idempotencyKeySchema,
   parseOrThrow,
   projectPeopleQuerySchema,
@@ -44,10 +45,11 @@ function projectKeyPrefix(name: string): string {
 export const projectsRoutes = new Hono();
 
 async function lockProjectOwner(
-  client: import('pg').ClientBase,
+  client: import('pg').ClientBase | import('pg').Pool,
   projectId: string,
   actorId: string,
   action: 'archive' | 'reopen' = 'archive',
+  lock = true,
 ) {
   const res = await client.query<{ owner_id: string; role: string | null }>(
     `SELECT w.owner_id, pm.role
@@ -55,7 +57,7 @@ async function lockProjectOwner(
      JOIN workspaces w ON w.id = p.workspace_id
      LEFT JOIN project_memberships pm ON pm.project_id = p.id AND pm.user_id = $2 AND pm.status = 'active'
      WHERE p.id = $1
-     FOR SHARE OF w`,
+     ${lock ? 'FOR SHARE OF w' : ''}`,
     [projectId, actorId],
   );
   const row = res.rows[0];
@@ -447,7 +449,6 @@ projectsRoutes.get('/api/v1/projects/:projectId/members', authMiddleware, async 
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
-    await lockProjectBoardReadScope(client, projectId, actor.id);
     const result = await getProjectMembers(client, actor, projectId);
     await client.query('COMMIT');
     return c.json(result, 200);
@@ -479,6 +480,15 @@ projectsRoutes.get('/api/v1/projects/:projectId/people', authMiddleware, async (
   try {
     await client.query('BEGIN');
     await lockProjectBoardReadScope(client, projectId, actor.id);
+
+    // A name-only full roster is still the People directory. Check before any
+    // optional board lookup; a board/query/cursor must not turn it into a picker.
+    if (!parsedQuery.purpose || parsedQuery.purpose === 'display') {
+      const role = await resolveProjectRole(projectId, actor.id, client);
+      if (role !== 'owner' && role !== 'manager') {
+        throw HttpError.forbidden('Only the Owner or a Project Manager can view the full People directory.', 'FORBIDDEN');
+      }
+    }
 
     // Mentions are limited to people who can read the card's board (B-11). A card the caller cannot
     // read gets the same 404 as a card that does not exist, so card ids are not probed.
@@ -564,6 +574,11 @@ projectsRoutes.post('/api/v1/projects/:projectId/archive', authMiddleware, async
   }
 
   const pool = getPool();
+  // Check authority before exposing input errors, without holding a database
+  // transaction/lock while the request body arrives. Reauthorize below.
+  await lockProjectOwner(pool, projectId, actor.id, 'archive', false);
+  const rawBody = await c.req.text();
+  const body = parseOrThrow(projectLifecycleInputSchema.strict(), rawBody ? JSON.parse(rawBody) : {});
   const client = await pool.connect();
 
   try {
@@ -578,7 +593,7 @@ projectsRoutes.post('/api/v1/projects/:projectId/archive', authMiddleware, async
       projectId,
       idempotencyKey,
       methodPath,
-      {},
+      body,
     );
 
     if (replay) {
@@ -604,6 +619,14 @@ projectsRoutes.post('/api/v1/projects/:projectId/archive', authMiddleware, async
       throw HttpError.forbidden('Only workspace owner can archive projects.', 'FORBIDDEN');
     }
 
+    const current = await client.query<{ archived: boolean; version: number }>(
+      'SELECT archived, version FROM projects WHERE id = $1 FOR UPDATE', [projectId],
+    );
+    if (!current.rows[0]) throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+    if (current.rows[0].version !== body.expectedVersion) {
+      throw HttpError.conflict('Stale project version.', 'STALE_VERSION');
+    }
+
     const updateRes = await client.query<{
       id: string;
       workspace_id: string;
@@ -616,12 +639,13 @@ projectsRoutes.post('/api/v1/projects/:projectId/archive', authMiddleware, async
     }>(
       `UPDATE projects
        SET archived = TRUE, version = version + 1, updated_at = NOW()
-       WHERE id = $1
+       WHERE id = $1 AND version = $2
        RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
-      [projectId],
+      [projectId, body.expectedVersion],
     );
 
-    const row = updateRes.rows[0]!;
+    const row = updateRes.rows[0];
+    if (!row) throw HttpError.conflict('Stale project version.', 'STALE_VERSION');
     const project = {
       id: row.id,
       workspaceId: row.workspace_id,
@@ -641,7 +665,7 @@ projectsRoutes.post('/api/v1/projects/:projectId/archive', authMiddleware, async
       projectId,
       idempotencyKey,
       methodPath,
-      {},
+      body,
       200,
       responsePayload,
     );
@@ -679,6 +703,11 @@ projectsRoutes.post('/api/v1/projects/:projectId/reopen', authMiddleware, async 
   }
 
   const pool = getPool();
+  // Check authority before exposing input errors, without holding a database
+  // transaction/lock while the request body arrives. Reauthorize below.
+  await lockProjectOwner(pool, projectId, actor.id, 'reopen', false);
+  const rawBody = await c.req.text();
+  const body = parseOrThrow(projectLifecycleInputSchema.strict(), rawBody ? JSON.parse(rawBody) : {});
   const client = await pool.connect();
 
   try {
@@ -695,7 +724,7 @@ projectsRoutes.post('/api/v1/projects/:projectId/reopen', authMiddleware, async 
       projectId,
       idempotencyKey,
       methodPath,
-      {},
+      body,
     );
 
     if (replay) {
@@ -721,8 +750,14 @@ projectsRoutes.post('/api/v1/projects/:projectId/reopen', authMiddleware, async 
       throw HttpError.forbidden('Only workspace owner can reopen projects.', 'FORBIDDEN');
     }
 
-    const archivedNow = await client.query<{ archived: boolean }>('SELECT archived FROM projects WHERE id = $1', [projectId]);
-    if (archivedNow.rows[0]?.archived) {
+    const current = await client.query<{ archived: boolean; version: number }>(
+      'SELECT archived, version FROM projects WHERE id = $1 FOR UPDATE', [projectId],
+    );
+    if (!current.rows[0]) throw HttpError.notFound('Project not found.', 'NOT_FOUND');
+    if (current.rows[0].version !== body.expectedVersion) {
+      throw HttpError.conflict('Stale project version.', 'STALE_VERSION');
+    }
+    if (current.rows[0].archived) {
       await assertOwnedProjectRoom(client, actor.id, limitsOf(c));
     }
 
@@ -738,12 +773,13 @@ projectsRoutes.post('/api/v1/projects/:projectId/reopen', authMiddleware, async 
     }>(
       `UPDATE projects
        SET archived = FALSE, version = version + 1, updated_at = NOW()
-       WHERE id = $1
+       WHERE id = $1 AND version = $2
        RETURNING id, workspace_id, name, description, archived, version, created_at, updated_at`,
-      [projectId],
+      [projectId, body.expectedVersion],
     );
 
-    const row = updateRes.rows[0]!;
+    const row = updateRes.rows[0];
+    if (!row) throw HttpError.conflict('Stale project version.', 'STALE_VERSION');
     const project = {
       id: row.id,
       workspaceId: row.workspace_id,
@@ -763,7 +799,7 @@ projectsRoutes.post('/api/v1/projects/:projectId/reopen', authMiddleware, async 
       projectId,
       idempotencyKey,
       methodPath,
-      {},
+      body,
       200,
       responsePayload,
     );

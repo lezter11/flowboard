@@ -1,3 +1,4 @@
+import { isCursorTimestamp, isCursorText } from '../services/cursor-timestamp.ts';
 import { projectNameSuffixes, withNameSuffix } from '../services/person-suffix.ts';
 import crypto from 'node:crypto';
 import type pg from 'pg';
@@ -40,6 +41,8 @@ export interface ListTrashResult {
 }
 
 export interface TrashCursorPayload {
+  v: 2;
+  actorId: string;
   pId: string;
   dAt: string;
   id: string;
@@ -52,14 +55,17 @@ export function encodeTrashCursor(payload: TrashCursorPayload): string {
 export function decodeTrashCursor(cursor?: string): TrashCursorPayload | null {
   if (!cursor) return null;
   try {
+    if(cursor.length>4096)return null;
     const raw = Buffer.from(cursor, 'base64url').toString('utf8');
     const parsed = JSON.parse(raw);
     if (
       parsed &&
       typeof parsed === 'object' &&
+      parsed.v === 2 &&
+      typeof parsed.actorId === 'string' &&
       typeof parsed.pId === 'string' &&
-      typeof parsed.dAt === 'string' &&
-      typeof parsed.id === 'string'
+      isCursorTimestamp(parsed.dAt) &&
+      isCursorText(parsed.id)
     ) {
       return parsed as TrashCursorPayload;
     }
@@ -344,7 +350,7 @@ export async function listProjectTrash(
   let cursorPayload: TrashCursorPayload | null = null;
   if (options?.cursor) {
     cursorPayload = decodeTrashCursor(options.cursor);
-    if (!cursorPayload || cursorPayload.pId !== projectId) {
+    if (!cursorPayload || cursorPayload.pId !== projectId || cursorPayload.actorId !== actorId) {
       throw HttpError.conflict('Stale or malformed pagination cursor.', 'STALE_CURSOR');
     }
   }
@@ -382,6 +388,7 @@ export async function listProjectTrash(
     version: number;
     structure_version: number;
     deleted_at: Date;
+    cursor_time: string;
     deleted_by: string;
     restore_until: Date;
     project_archived: boolean;
@@ -402,6 +409,7 @@ export async function listProjectTrash(
        c.version,
        b.structure_version,
        c.deleted_at,
+       to_char(c.deleted_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS cursor_time,
        c.deleted_by,
        c.restore_until,
        p.archived AS project_archived,
@@ -413,7 +421,7 @@ export async function listProjectTrash(
      FROM cards c
      JOIN boards b ON c.board_id = b.id
      JOIN projects p ON c.project_id = p.id${grantJoin}
-     LEFT JOIN columns col ON col.id = c.column_id AND col.board_id = c.board_id
+     LEFT JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL AND col.board_id = c.board_id
      LEFT JOIN users u ON u.id = c.deleted_by
      WHERE c.project_id = $1 AND c.state = 'trashed'${cursorClause}${lockedBoardClause}
      ORDER BY c.deleted_at DESC, c.id DESC
@@ -427,8 +435,10 @@ export async function listProjectTrash(
   const nextCursor =
     hasMore && lastRow
       ? encodeTrashCursor({
+          v: 2,
+          actorId,
           pId: projectId,
-          dAt: new Date(lastRow.deleted_at).toISOString(),
+          dAt: lastRow.cursor_time,
           id: lastRow.id,
         })
       : null;
@@ -589,7 +599,7 @@ export async function restoreCard(
   if (validated.toColumnId) {
     // Explicit toColumnId provided: verify it belongs to this board
     const colRes = await client.query<{ id: string }>(
-      `SELECT id FROM columns WHERE id = $1 AND board_id = $2`,
+      `SELECT id FROM columns WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL`,
       [validated.toColumnId, card.board_id],
     );
     if (colRes.rows.length === 0) {
@@ -602,13 +612,13 @@ export async function restoreCard(
   } else {
     // No toColumnId provided: verify original column still exists on this board
     const colRes = await client.query<{ id: string }>(
-      `SELECT id FROM columns WHERE id = $1 AND board_id = $2`,
+      `SELECT id FROM columns WHERE id = $1 AND board_id = $2 AND deleted_at IS NULL`,
       [card.column_id, card.board_id],
     );
     if (colRes.rows.length === 0) {
       // The caller can read this board (lockCardBoard above), so its columns may be listed for the picker (ERR-R1 S14).
       const boardColumns = await client.query<{ id: string; name: string }>(
-        'SELECT id, name FROM columns WHERE board_id = $1 ORDER BY position ASC, id ASC',
+        'SELECT id, name FROM columns WHERE board_id = $1 AND deleted_at IS NULL ORDER BY position ASC, id ASC',
         [card.board_id],
       );
       throw HttpError.conflict(
@@ -645,7 +655,6 @@ export async function restoreCard(
     id: r.id,
     position: Number(r.position),
   }));
-  destCards.sort((a, b) => a.position - b.position || a.id.localeCompare(b.id));
 
   // Retrieve trash metadata from activity_log if available
   const actLogRes = await client.query<{ safe_changes: any }>(
@@ -661,29 +670,24 @@ export async function restoreCard(
   const nextAnchorId: string | null = safeChanges?.nextCardId ?? null;
   const originalPos: number = safeChanges?.originalPosition ?? Number(card.position);
 
-  let newPosition: number;
-
-  if (destCards.length === 0) {
-    newPosition = 1000;
-  } else {
+  // Keep the logical gap separately from its numeric rank. Compaction changes
+  // numbers, but must not change which surviving cards surround the restore.
+  let insertionIndex = 0;
+  if (destCards.length > 0) {
     const prevIdx = prevAnchorId ? destCards.findIndex((c) => c.id === prevAnchorId) : -1;
     const nextIdx = nextAnchorId ? destCards.findIndex((c) => c.id === nextAnchorId) : -1;
 
     if (prevIdx !== -1 && nextIdx !== -1 && nextIdx === prevIdx + 1) {
-      newPosition = Math.floor((destCards[prevIdx]!.position + destCards[nextIdx]!.position) / 2);
+      insertionIndex = nextIdx;
     } else if (prevIdx !== -1) {
-      const prevPos = destCards[prevIdx]!.position;
-      const nextCard = destCards[prevIdx + 1];
-      newPosition = nextCard ? Math.floor((prevPos + nextCard.position) / 2) : prevPos + 1000;
+      insertionIndex = prevIdx + 1;
     } else if (nextIdx !== -1) {
-      const nextPos = destCards[nextIdx]!.position;
-      const prevCard = destCards[nextIdx - 1];
-      newPosition = prevCard ? Math.floor((prevCard.position + nextPos) / 2) : Math.max(1, Math.floor(nextPos / 2));
+      insertionIndex = nextIdx;
     } else {
       if (originalPos < destCards[0]!.position) {
-        newPosition = Math.max(1, Math.floor(destCards[0]!.position / 2));
+        insertionIndex = 0;
       } else if (originalPos > destCards[destCards.length - 1]!.position) {
-        newPosition = destCards[destCards.length - 1]!.position + 1000;
+        insertionIndex = destCards.length;
       } else {
         let foundIdx = -1;
         for (let i = 0; i < destCards.length - 1; i++) {
@@ -693,19 +697,30 @@ export async function restoreCard(
           }
         }
         if (foundIdx !== -1) {
-          newPosition = Math.floor((destCards[foundIdx]!.position + destCards[foundIdx + 1]!.position) / 2);
+          insertionIndex = foundIdx + 1;
         } else {
-          newPosition = destCards[destCards.length - 1]!.position + 1000;
+          insertionIndex = destCards.length;
         }
       }
     }
+  }
 
-    if (destCards.some((c) => c.position === newPosition)) {
-      for (let i = 0; i < destCards.length; i++) {
-        await client.query('UPDATE cards SET position = $1 WHERE id = $2', [(i + 1) * 1000, destCards[i]!.id]);
-      }
-      newPosition = (destCards.length + 1) * 1000;
-    }
+  const rankAtGap = (): number => {
+    const previous = destCards[insertionIndex - 1];
+    const next = destCards[insertionIndex];
+    if (!previous) return next ? Math.max(1, Math.floor(next.position / 2)) : 1000;
+    return next ? Math.floor((previous.position + next.position) / 2) : previous.position + 1000;
+  };
+  let newPosition = rankAtGap();
+  if (destCards.some((c) => c.position === newPosition)) {
+    // Match ordinary card moves: one set-based update under the board lock,
+    // preserving canonical database order and each existing card's version.
+    await client.query(`WITH ranked AS (
+      SELECT id,(row_number() OVER (ORDER BY position,id)*1000)::bigint AS new_position
+      FROM cards WHERE column_id=$1 AND state='active' AND id<>$2
+    ) UPDATE cards c SET position=r.new_position FROM ranked r WHERE c.id=r.id`, [targetColumnId, cardId]);
+    for (let i = 0; i < destCards.length; i++) destCards[i]!.position = (i + 1) * 1000;
+    newPosition = rankAtGap();
   }
 
   const nowIso = serverNow.toISOString();

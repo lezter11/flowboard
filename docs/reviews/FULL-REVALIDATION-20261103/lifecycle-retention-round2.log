@@ -1,0 +1,22 @@
+✔ lifecycle retention: column with only expired card reference returns safe409 and preserves tombstone/history (240.410708ms)
+✔ lifecycle retention: column with only purged card reference returns safe409 and preserves tombstone/history (176.651042ms)
+✔ lifecycle retention: ready import default-column reference is an explicit safe409 (196.145375ms)
+✔ lifecycle retention: terminal import default-column reference is an explicit safe409 (208.381166ms)
+✔ lifecycle retention: tombstoning own and moderated comments removes copied inbox snippets while retaining facts (230.91675ms)
+✔ lifecycle retention: copied legacy comment outbox fields are scrubbed on deletion and recovery cannot recreate them (213.465709ms)
+✔ lifecycle retention: recovery distinguishes two comment events on the same card and repeats neither (229.385125ms)
+✔ lifecycle retention: unreferenced column deletes once while final/active/restorable guards remain (234.909875ms)
+✔ lifecycle retention: concurrent column delete/card create create wins without partial history (234.748459ms)
+✔ lifecycle retention: concurrent column delete/card create delete wins without partial history (239.468125ms)
+✔ lifecycle retention: delete winning comment lock does not deadlock with an in-flight outbox consumer or resurrect text (207.757041ms)
+✔ lifecycle retention: actual consumer holds source share lock and completes before waiting comment deletion (212.003875ms)
+✔ lifecycle retention: failed tombstone commit rolls back comment, inbox redaction, event and receipt (204.443959ms)
+✔ lifecycle retention: legacy migration redacts unknown sources honestly and preserves exact known source/recipient on rerun (199.333625ms)
+ℹ tests 14
+ℹ suites 0
+ℹ pass 14
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3251.590667

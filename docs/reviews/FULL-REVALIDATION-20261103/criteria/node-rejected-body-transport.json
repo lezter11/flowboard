@@ -1,0 +1,29 @@
+{
+  "status": "frozen_before_application_repair_not_approval",
+  "featureIds": [
+    "FND-04",
+    "UX-05"
+  ],
+  "redEvidence": "raw/body-cap-app-transport-2.json",
+  "mechanism": "On one explicit HTTP keepalive connection an early413 finishes with the incoming body incomplete; the next legitimate request is not emitted by the server parser and resets when adapter500mscleanupcloses the socket. Closing413 alone repairs subsequent request but can causeEPIPEon the rejected upload. Draining the cached Web Request stream before replying, rather than the already-wrapped IncomingMessage, succeeded in the isolated control.",
+  "criteria": [
+    "Node only: retain the adapter default bounded cleanup, and preserve Worker behavior.",
+    "Before an unread413 response, discard only a declared bounded request body via the actual Web Request stream; no chunk retention/fullbody allocation. Header must be a canonical safe integer within IMAGE_BODY_LIMIT_BYTES+1; unknown/abusive larger/locked bodies are not read without bound.",
+    "Bound discard duration to1000ms, honor request abort and stream errors, cancel/release reader without unhandled rejection or waiting forever for cancellation. Always close the rejected unread HTTP connection so it cannot be reused with an incomplete framed body.",
+    "Keep the original global-Fetch body boundary regression, plus actual single-connection keepalive tests: normal controls reuse a connection; early413 returns complete JSON/PAYLOAD_TOO_LARGE; a subsequent legitimate upload returns its controlled response, never a transport reset.",
+    "Slow or aborted oversized clients must not block healthy subsequent requests, mutate data, disable cleanup, or retain unbounded body buffers. No transport error may count as a passingHTTPresponse.",
+    "Actual mounted PostgreSQL/runtime tests and final source-specific independent review remain required."
+  ],
+  "controlEvidence": [
+    "raw/body-cap-app-transport-close-control.json",
+    "raw/body-cap-app-transport-drain-control.json",
+    "raw/body-cap-app-transport-web-drain-control.json"
+  ],
+  "version": 2,
+  "scopeExpansionBeforeImplementation": {
+    "reason": "The same early unread-error HTTP framing failure was reproduced with invalid-cookie401, so use one>=400unreaderror policy instead of a brittle status allowlist. Root explicitly authorized this extension before code.",
+    "redEvidence": "raw/body-cap-auth-transport-repro-baseline-red.json",
+    "controlEvidence": "raw/body-cap-auth-transport-repro-web-drain-green.json",
+    "requiredRegression": "Actual401completeUNAUTHORIZED/no-data then validOwner5MiB request; normalkeepalive and strict413case remain mandatory."
+  }
+}

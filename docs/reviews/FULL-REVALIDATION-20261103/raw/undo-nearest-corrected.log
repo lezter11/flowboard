@@ -1,0 +1,142 @@
+✔ comment POST and card move on one card interleave without deadlock (review R2-01) (543.290333ms)
+✔ a board-scoped replay after the grant is revoked returns 404 and no saved body (review R2-04) (192.377459ms)
+▶ replay after revocation: comment edit, comment delete, card trash and import commit (review R3-03)
+  ✔ comment edit (202.701292ms)
+  ✔ comment delete (210.828209ms)
+  ✔ card trash (186.985375ms)
+  ✔ import commit (218.675833ms)
+✔ replay after revocation: comment edit, comment delete, card trash and import commit (review R3-03) (819.938583ms)
+▶ CRD-01 through CRD-11: Card Lifecycle, Movement, OCC & Discovery Suite
+  ✔ CRD-01: Quick creation, permissions, position ranks & board structure version (129.162208ms)
+  ✔ CRD-02: Compact CardSummary representation and lightweight payload (12.13325ms)
+  ✔ CRD-03: Card detail entity, independent authorization & assignees PersonDisplay (11.217084ms)
+  ✔ CRD-04: Title & description bounds, OCC conflict (409 STALE_VERSION) (17.02525ms)
+  ✔ CRD-05: Priority & Gregorian calendar date validation (leap years & month bounds) (9.500208ms)
+  ✔ CRD-06: Assign active teammates, reject sibling/outsider/removed, max 20 limit (34.009542ms)
+  ✖ CRD-07: Card movement, relative neighbor ranking, empty column, dual OCC (24.320541ms)
+  ✖ CRD-08 & CRD-09: Placement query for first, last, before, after and movingCard exclusion (12.466875ms)
+  ✖ CRD-10: Concurrent edit conflict & concurrent move conflict error envelopes (10.806084ms)
+  ✖ CRD-11: Mandatory Idempotency-Key, exact replay, conflict detection & 422 error details (5.411375ms)
+  ✔ Discovery: Search project cards & My Tasks assigned view (22.052667ms)
+  ✔ CRD-11: Receipt replay rechecks current role and stores only a minimal outcome (10.098416ms)
+  ✔ CRD-11: Parallel same-key creates commit one card and replay its identifier (9.288625ms)
+  ✖ CRD-11: Card update and move receipt replay serialize with trash on separate DB connections (37.778959ms)
+✖ CRD-01 through CRD-11: Card Lifecycle, Movement, OCC & Discovery Suite (348.194042ms)
+✔ Move Undo: cross-column restores original order once, lost-response replay is safe (246.409041ms)
+✔ Move Undo: same-column restores original order once, lost-response replay is safe (184.397625ms)
+✔ Move Undo: intervening edit gives conflict without overwriting (190.473334ms)
+✔ Move Undo: changed original gap refuses with409 and no partial effects (195.0245ms)
+✔ Move Undo: concurrent fresh requests have one effect and one conflict (190.368334ms)
+{"maxCardRowsInMoveRead":2}
+✔ Move rank calculation: a 1000-card destination never materializes all card rows (212.425541ms)
+ℹ tests 28
+ℹ suites 0
+ℹ pass 22
+ℹ fail 6
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3678.946791
+
+✖ failing tests:
+
+test at apps/api/test/crd01-crd11.test.ts:674:11
+✖ CRD-07: Card movement, relative neighbor ranking, empty column, dual OCC (24.320541ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/crd01-crd11.test.ts:738:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/crd01-crd11.test.ts:674:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/crd01-crd11.test.ts:833:11
+✖ CRD-08 & CRD-09: Placement query for first, last, before, after and movingCard exclusion (12.466875ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  400 !== 200
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/crd01-crd11.test.ts:872:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/crd01-crd11.test.ts:833:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 400,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/crd01-crd11.test.ts:935:11
+✖ CRD-10: Concurrent edit conflict & concurrent move conflict error envelopes (10.806084ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  6 !== 8
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/crd01-crd11.test.ts:976:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/crd01-crd11.test.ts:935:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 6,
+    expected: 8,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/crd01-crd11.test.ts:982:11
+✖ CRD-11: Mandatory Idempotency-Key, exact replay, conflict detection & 422 error details (5.411375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  409 !== 201
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/crd01-crd11.test.ts:1017:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/crd01-crd11.test.ts:982:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 409,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/crd01-crd11.test.ts:1247:11
+✖ CRD-11: Card update and move receipt replay serialize with trash on separate DB connections (37.778959ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  422 !== 200
+  
+      at verifyLifecycleRace (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/crd01-crd11.test.ts:1289:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/crd01-crd11.test.ts:1339:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/crd01-crd11.test.ts:1247:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

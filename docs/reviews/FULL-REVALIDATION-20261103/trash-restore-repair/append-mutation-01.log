@@ -1,0 +1,65 @@
+{"kind":"Isolated mutation reintroduces append fallback after compaction; corrected numeric-order assertions must catch it","sourceSHA256":"2a65a8ced09fa39e144cfeb93b7889d7b70308b7fd1547cf2a95b0beb707522c","mutationSHA256":"1f6bed2179f556eea718083f92399f9a27ad008dd3b1cc36f735b1678537ec93","productionSourceEdited":false}
+✖ restore retains nearest surviving gap after normal moves exhaust rank spacing (533.654209ms)
+✖ restore preserves head insertion when normal moves exhaust the first rank (537.520583ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1282.125584
+
+✖ failing tests:
+
+test at apps/api/test/trash-restore-placement.test.ts:20:1
+✖ restore retains nearest surviving gap after normal moves exhaust rank spacing (533.654209ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  ... Skipped lines
+  
+    [
+      'card',
+  -   'crd_93191f96-8a48-4826-abc3-b95fc2ae9695',
+      'crd_1849414b-9c97-46a5-adb8-0a4f74200dcc',
+      'crd_a933252a-da2f-446f-a223-12aa695effd7',
+      'crd_b2f304fa-d966-4a59-9df2-4035f561f131',
+      'crd_a6d705be-cbd1-4a76-b028-43e8d18a7704',
+      'crd_4ad77a0e-98c2-4bee-8f8e-812994f0f4d2',
+  ...
+      'crd_0be71688-02c8-4469-9f49-d2730ca396f6',
+  +   'crd_93191f96-8a48-4826-abc3-b95fc2ae9695'
+    ]
+  
+      at TestContext.<anonymous> (file:///private/tmp/flowboard-restore-mutation-jTzNMJ/apps/api/test/trash-restore-placement.test.ts:36:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'card', 'crd_1849414b-9c97-46a5-adb8-0a4f74200dcc', 'crd_a933252a-da2f-446f-a223-12aa695effd7', 'crd_b2f304fa-d966-4a59-9df2-4035f561f131', 'crd_a6d705be-cbd1-4a76-b028-43e8d18a7704', 'crd_4ad77a0e-98c2-4bee-8f8e-812994f0f4d2', 'crd_f157320c-d300-477a-8fa3-c0e9caa26a83', 'crd_23763a98-68b8-4b85-84fc-62c1ef5df0b3', 'crd_7930e507-797e-447d-a46a-145193d3f2e2', 'crd_2ea8c01d-b84d-433c-838d-b1a621e40611', 'crd_6e20ac85-c46e-4c2d-af34-ca592997f710', 'crd_0be71688-02c8-4469-9f49-d2730ca396f6', 'crd_93191f96-8a48-4826-abc3-b95fc2ae9695' ],
+    expected: [ 'card', 'crd_93191f96-8a48-4826-abc3-b95fc2ae9695', 'crd_1849414b-9c97-46a5-adb8-0a4f74200dcc', 'crd_a933252a-da2f-446f-a223-12aa695effd7', 'crd_b2f304fa-d966-4a59-9df2-4035f561f131', 'crd_a6d705be-cbd1-4a76-b028-43e8d18a7704', 'crd_4ad77a0e-98c2-4bee-8f8e-812994f0f4d2', 'crd_f157320c-d300-477a-8fa3-c0e9caa26a83', 'crd_23763a98-68b8-4b85-84fc-62c1ef5df0b3', 'crd_7930e507-797e-447d-a46a-145193d3f2e2', 'crd_2ea8c01d-b84d-433c-838d-b1a621e40611', 'crd_6e20ac85-c46e-4c2d-af34-ca592997f710', 'crd_0be71688-02c8-4469-9f49-d2730ca396f6' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/trash-restore-placement.test.ts:67:1
+✖ restore preserves head insertion when normal moves exhaust the first rank (537.520583ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'crd_92a2ab61-bf1a-4dc7-8b40-3dd5b61a40f5'
+  - 'crd_cd58573d-efa2-4f90-82af-088b1a36769b'
+  
+      at TestContext.<anonymous> (file:///private/tmp/flowboard-restore-mutation-jTzNMJ/apps/api/test/trash-restore-placement.test.ts:84:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'crd_92a2ab61-bf1a-4dc7-8b40-3dd5b61a40f5',
+    expected: 'crd_cd58573d-efa2-4f90-82af-088b1a36769b',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+MUTATED_TEST_EXIT:1; EXPECTED:1; HARNESS_EXIT:0

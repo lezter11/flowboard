@@ -1,0 +1,25 @@
+{
+  "version": "ui-final-scope-repair-1",
+  "features": [
+    "ACC-05",
+    "CRD-05",
+    "QRY-03",
+    "ATT-01",
+    "ATT-03",
+    "ATT-05",
+    "PRJ-02",
+    "AUD-03",
+    "AUD-04",
+    "UX-01",
+    "UX-04"
+  ],
+  "mandatoryCriteria": [
+    "Canonical due colors and Today/overdue labels use each source board snapshot.asOfDate, passed through board columns/cards/drawer. No browser Date fallback for canonical state; missing context yields neutral rawdate rather than invented overdue. Mergedboards keep source-specific day.",
+    "Image gallery consumes confirmed actual shared data.items/nextCursor:null/totalCount schema only, removes incompatible array fallback. Gallery/blob queries actor scoped, refused/currentpermission reads erase cached metadata/blob and objectURLs; currentviewer cannot access anotheractor uploadqueue.",
+    "Image create/finalize retries preserve original preparedbytes/input/uploadId/stage/key through uncertain replies. Unknownfinalize does notcancel staging or restart anotherupload. Retry resumes original stage; cancellation is explicit and honest if final outcome uncertain. Guard stages when session actor is no longer current; no queuebody/file leaks across actors.",
+    "Owner can use actual workspace crossproject activity endpoint with server project/card/actor/action/fromDate/toDate filters and cursor beforepages. Manager sees only selectedproject feed with supported filters; Member/Viewer have only allowed cardtimeline links and honest scope state. No local-loaded-only controls pretending serverfilter.",
+    "Projects page uses actual paginated GET projects envelope/cursor; session still provides currentrole/ownership metadata. Allpermitted projects reachable, scopes/keyscancel/freshread current. Counts/search overloaded pages are labeled honestly; unavailable boardstats cannot be displayed as0/fullcounts.",
+    "Wire/state tests cover canonical dates including timezoneedges, exactaudit/projectcursor parameters, typedgallery/refusal/isolation, loststage/finalize originalkeys/bytes. Fullwebsuite/typecheck/build rawlogs and exactmanifest. Root realbrowser/API/PG + independent immutable review and hostedUAT remain required."
+  ],
+  "scope": "apps/web only plus reviewevidence. Architect/root exports actualgalleryschema; no backend/sharedcontract/dependency/cloud/deploy edits. Inspect actualroute/filter/response before consuming, notify missing prerequisites."
+}

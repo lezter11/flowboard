@@ -1,0 +1,159 @@
+▶ cursor integrity: notification malformed queries reject422 and literalfalse staysfalse
+  ✖ limit=0 (17.412875ms)
+  ✖ limit=101 (2.931667ms)
+  ✖ limit=garbage (2.584166ms)
+  ✖ unreadOnly=garbage (2.542667ms)
+  ✖ unreadOnly= (2.366625ms)
+  ✖ cursor= (2.355875ms)
+  ✖ extra=ignored (2.278958ms)
+✖ cursor integrity: notification malformed queries reject422 and literalfalse staysfalse (260.208458ms)
+ℹ tests 8
+ℹ suites 0
+ℹ pass 0
+ℹ fail 8
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 477.889334
+
+✖ failing tests:
+
+test at apps/api/test/cursor-integrity-repair.test.ts:71:131
+✖ limit=0 (17.412875ms)
+  AssertionError [ERR_ASSERTION]: {"data":[{"id":"notif_owner_d","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_c","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_b","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_a","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"}],"nextCursor":null}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:204)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:123)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:71:131
+✖ limit=101 (2.931667ms)
+  AssertionError [ERR_ASSERTION]: {"data":[{"id":"notif_owner_d","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_c","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_b","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_a","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"}],"nextCursor":null}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:204)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:123)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:71:131
+✖ limit=garbage (2.584166ms)
+  AssertionError [ERR_ASSERTION]: {"data":[{"id":"notif_owner_d","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_c","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_b","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_a","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"}],"nextCursor":null}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:204)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:123)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:71:131
+✖ unreadOnly=garbage (2.542667ms)
+  AssertionError [ERR_ASSERTION]: {"data":[{"id":"notif_owner_d","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_c","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_b","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_a","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"}],"nextCursor":null}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:204)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:123)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:71:131
+✖ unreadOnly= (2.366625ms)
+  AssertionError [ERR_ASSERTION]: {"data":[{"id":"notif_owner_d","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_c","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_b","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_a","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"}],"nextCursor":null}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:204)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:123)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:71:131
+✖ cursor= (2.355875ms)
+  AssertionError [ERR_ASSERTION]: {"data":[{"id":"notif_owner_d","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_c","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_b","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_a","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"}],"nextCursor":null}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:204)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:123)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/cursor-integrity-repair.test.ts:71:131
+✖ extra=ignored (2.278958ms)
+  AssertionError [ERR_ASSERTION]: {"data":[{"id":"notif_owner_d","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_c","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_b","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"},{"id":"notif_owner_a","userId":"usr_960bbd05a5bea8d1","type":"mention","title":"Visible","body":"Safe","link":"/visible","read":false,"createdAt":"2026-11-03T05:00:00.123Z"}],"nextCursor":null}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:204)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cursor-integrity-repair.test.ts:71:123)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

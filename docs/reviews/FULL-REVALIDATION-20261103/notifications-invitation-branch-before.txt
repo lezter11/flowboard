@@ -1,0 +1,57 @@
+        } else if (row.event_type === 'invitation.created') {
+          if (!mailer) continue;
+          // deliverInvitationRow records the final status and drops the token itself.
+          const outcome = await deliverInvitationRow(client, row, mailer);
+          if (outcome.kind === 'retry') {
+            throw new Error(`Email delivery failed: ${outcome.reason}`);
+          }
+          if (outcome.kind === 'delivered') delivered++;
+          else failed++;
+          continue;
+        }
+
+        // Successfully delivered
+        await client.query(
+          `UPDATE outbox SET status = 'delivered', settled_at = NOW() WHERE id = $1`,
+          [row.id],
+        );
+        delivered++;
+      } catch (err) {
+        const nextRetry = row.retry_count + 1;
+        if (nextRetry >= maxRetries) {
+          // Dead-letter quarantine
+          await client.query(
+            `UPDATE outbox SET status = 'failed', settled_at = NOW(), retry_count = $1,
+                 payload = CASE WHEN event_type = 'invitation.created' THEN
+                   jsonb_strip_nulls(jsonb_build_object('invitationId', (SELECT i.id FROM project_invitations i
+                     WHERE i.id=outbox.payload->>'invitationId' AND i.project_id=outbox.project_id AND i.workspace_id=outbox.workspace_id)))
+                   ELSE payload END
+             WHERE id = $2`,
+            [nextRetry, row.id],
+          );
+          failed++;
+        } else {
+          // Exponential backoff
+          const backoffSec = Math.pow(2, nextRetry);
+          await client.query(
+            `UPDATE outbox
+             SET status = 'pending',
+                 retry_count = $1,
+                 next_retry_at = NOW() + ($2 || ' seconds')::interval
+             WHERE id = $3`,
+            [nextRetry, backoffSec, row.id],
+          );
+          retried++;
+        }
+      }
+    }
+
+    await client.query('COMMIT');
+    return { processed, delivered, failed, retried };
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}

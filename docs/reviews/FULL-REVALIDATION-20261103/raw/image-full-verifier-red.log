@@ -1,0 +1,37 @@
+✖ Full image verifier: mounted content rejects corrupt entropy even with a valid container envelope (262.469083ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 480.8635
+
+✖ failing tests:
+
+test at apps/api/test/image-full-verifier.test.ts:9:1
+✖ Full image verifier: mounted content rejects corrupt entropy even with a valid container envelope (262.469083ms)
+  AssertionError [ERR_ASSERTION]: [{"name":"png-corrupt-deflate","status":200},{"name":"jpeg-corrupt-entropy","status":200},{"name":"webp-corrupt-entropy","status":200}]
+  + actual - expected
+  
+    [
+  +   200,
+  +   200,
+  +   200
+  -   422,
+  -   422,
+  -   422
+    ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-full-verifier.test.ts:18:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: [ 200, 200, 200 ],
+    expected: [ 422, 422, 422 ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

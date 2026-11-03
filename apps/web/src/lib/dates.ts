@@ -13,23 +13,27 @@ export function parseDateOnly(value: string | null | undefined): Date | null {
   return new Date(parts[0]!, parts[1]! - 1, parts[2]!);
 }
 
-export function daysUntil(value: string | null | undefined): number | null {
-  const due = parseDateOnly(value);
-  if (!due) return null;
-  return Math.round((due.getTime() - startOfToday().getTime()) / DAY);
+function dateOrdinal(value:string|null|undefined):number|null {
+  if(!value||!/^\d{4}-\d{2}-\d{2}$/.test(value))return null;
+  const date=new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(date.getTime())&&date.toISOString().slice(0,10)===value?date.getTime()/DAY:null;
+}
+export function daysUntil(value: string | null | undefined, asOfDate?:string|null): number | null {
+  if(asOfDate!==undefined){const due=dateOrdinal(value),today=dateOrdinal(asOfDate);return due===null||today===null?null:due-today;}
+  const due=parseDateOnly(value);return due?Math.round((due.getTime()-startOfToday().getTime())/DAY):null;
 }
 
 export function formatShort(value: string | null | undefined): string {
-  const d = parseDateOnly(value);
-  return d ? d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }) : '';
+  const day=dateOrdinal(value);
+  return day!==null?new Date(day*DAY).toLocaleDateString(undefined,{month:'short',day:'numeric',timeZone:'UTC'}):'';
 }
 
 export type DueInfo = { label: string; state: 'done' | 'overdue' | 'soon' | 'normal'; detail?: string };
 
-export function dueInfo(due: string | null | undefined, done: boolean): DueInfo | null {
+export function dueInfo(due: string | null | undefined, done: boolean, asOfDate?:string|null): DueInfo | null {
   if (!due) return null;
-  const days = daysUntil(due);
-  if (days === null) return null;
+  const days = daysUntil(due,asOfDate);
+  if (days === null) return {label:`${done?'Done':'Due'} · ${formatShort(due)}`,state:done?'done':'normal'};
   if (done) return { label: `Done · ${formatShort(due)}`, state: 'done' };
   if (days < 0) {
     const n = Math.abs(days);

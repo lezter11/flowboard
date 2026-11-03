@@ -1,0 +1,23 @@
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ B-5 activity coverage: writes, atomicity, replay, visibility and leaks
+  ✔ flow: each write records exactly one row with the expected action (186.094833ms)
+  ✔ every written action name is in ACTIVITY_ACTIONS (0.536375ms)
+  ✔ safe_changes carry ids and roles only: no token, no invitee email, no description, no brief text (0.49025ms)
+  ✔ a failed write records nothing: stale board version and duplicate column name (11.906875ms)
+  ✔ idempotent replay writes no duplicate row (8.968917ms)
+  ✔ visibility: owner reads board and project rows in the project feed (8.24775ms)
+  ✔ visibility: manager without a grant sees project rows and no board rows (4.825042ms)
+  ✔ visibility: manager with a grant on b1 sees b1 rows but not b2 rows (5.566875ms)
+  ✔ visibility: member with a grant gets 403 on the project feed and sees b1 rows, no project rows, in overview (22.443375ms)
+  ✔ visibility: member with no grant sees nothing; stranger gets 404 (12.629708ms)
+  ✔ overview (B-6): owner and manager see project rows; member, viewer and no-grant member do not (25.81625ms)
+  ✔ overview (B-6): no token or invitee email in any overview body (9.475459ms)
+  ✔ leak: the owner feed JSON never contains a token or an invitee email (3.810458ms)
+  ✔ removing a member also revokes their pending invitation and logs that revoke once (6.486166ms)
+✔ B-5 activity coverage: writes, atomicity, replay, visibility and leaks (405.656083ms)
+
+Interrupted while running:
+
+⚠ apps/api/test/activity-coverage-b5.test.ts (apps/api/test/activity-coverage-b5.test.ts:1:1)

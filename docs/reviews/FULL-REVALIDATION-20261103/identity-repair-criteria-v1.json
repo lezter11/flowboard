@@ -1,0 +1,19 @@
+{
+  "version": "identity-repair-1",
+  "risk": "high",
+  "baseline": "917706ae0433df471c72736be4d548eb022236c4",
+  "affectedFeatureIds": ["INV-02", "INV-06", "INV-07", "RBAC-01", "RBAC-03", "PRJ-04", "NTF-03"],
+  "confirmedBaselineEvidence": "docs/reviews/FULL-REVALIDATION-20261103/raw/member-baseline.json",
+  "mandatoryCriteria": [
+    "Member PATCH and DELETE retain current Owner/Manager authority, target-role protection, current grant checks and optimistic versions; a Manager cannot modify self, Owner or peer Manager or promote a Manager.",
+    "Every membership mutation and replay enforces current writable project context. Archived project state rejects the change with no member, activity, receipt or invitation side effect.",
+    "Reactivation cannot exceed configured project seats or bypass pending invitation reservations. All operations that increase or reserve seats use the established project quota lock before row locks; no new row-then-quota lock cycle is introduced.",
+    "PATCH removal has the same access/invitation invalidation and safe cleanup semantics as the canonical DELETE removal. No stale pending invitation can resurrect deliberately removed access, and current grants are checked before replay.",
+    "Member change, activity and receipt remain atomic. Replayed writes do not spend quota or generate duplicate effects. Credential/session scope policies remain unchanged.",
+    "Invitation delivery exhausted transient retries settles failed status while removing raw invitation token, recipient and mail body from terminal outbox payloads. Existing permanent-refusal/delivered cleanup continues to work; logs contain reason codes only.",
+    "Mounted synthetic PostgreSQL regressions cover capacity, pending reservations, archived state, role matrix, stale/replay behavior and real separate-connection competing seat changes. Preserve failing baseline evidence and report actual command counts/exit codes.",
+    "Builders do not approve this repair. Complete reachable behavior is independently reviewed on the final full-product frozen target under BACKEND_REVIEW_GATE before any related feature closure."
+  ],
+  "requiredChecks": ["Root typecheck", "Contracts suite", "Targeted mounted member/quota/invitation privacy and concurrency tests", "Full API suite", "Node and Worker runtime regression", "Fresh independent backend review"],
+  "scopeLimits": "No deployment, production, real credentials or hosted test data during local repair. Use disposable PostgreSQL on loopback55931. Reconcile product definitions separately; this bounded repair does not itself close every affected product feature."
+}

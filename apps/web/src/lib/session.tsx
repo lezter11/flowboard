@@ -1,16 +1,13 @@
 'use client';
 
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useMemo, useEffect, useRef, useState, type ReactNode } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { SessionData } from '@flowboard/contracts';
 import { api, ApiError } from '@/lib/api';
 import { describeError } from '@/lib/errors';
 
-type SessionState =
-  | { status: 'loading' }
-  | { status: 'signedOut' }
-  | { status: 'error'; message: string }
-  | { status: 'ready'; session: SessionData };
+import { redactProtectedDrafts, redactRefusedDrafts, redactSessionDraftTransition } from './protected-drafts';
+import { setCurrentSessionActor } from './session-identity';
+import { sessionState, accessFingerprint, type SessionState } from './session-state';
 
 interface SessionContextValue {
   state: SessionState;
@@ -28,10 +25,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     retry: (count, error) => !(error instanceof ApiError && error.status === 401) && count < 1,
   });
 
+  useEffect(()=>queryClient.getQueryCache().subscribe((event)=>{if(event.type!=='updated'||event.action.type!=='error')return;const error=event.query.state.error;if(error instanceof ApiError&&[401,403,404].includes(error.status)){if(error.status===401)redactProtectedDrafts();else redactRefusedDrafts(event.query.queryKey);}}),[queryClient]);
+
   const signOut = useCallback(async () => {
     try {
       await api.logout();
     } finally {
+      redactProtectedDrafts();
       queryClient.clear();
       // Clear any board data cached in browser storage by earlier builds.
       try {
@@ -45,16 +45,25 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
   }, [queryClient]);
 
-  const state: SessionState = useMemo(() => {
-    if (query.data) return { status: 'ready', session: query.data };
-    if (query.isError) {
-      if (query.error instanceof ApiError && query.error.status === 401) return { status: 'signedOut' };
-      return { status: 'error', message: describeError(query.error) };
+  const state = useMemo(() => sessionState(query.data,query.error,query.isError,describeError(query.error)),[query.data,query.error,query.isError]);
+  const fingerprint = accessFingerprint(state);
+  const previousScope = useRef<string|null>(null);
+  const [verifiedActor,setVerifiedActor]=useState<string|null>(null);
+  useEffect(() => {
+    if(fingerprint===null) return;
+    if(previousScope.current!==null && previousScope.current!==fingerprint) {
+      redactSessionDraftTransition(previousScope.current,fingerprint);
+      const protectedQuery = (entry:{queryKey:readonly unknown[]}) => entry.queryKey[0]!=='session';
+      void queryClient.cancelQueries({predicate:protectedQuery});
+      queryClient.removeQueries({predicate:protectedQuery});
     }
-    return { status: 'loading' };
-  }, [query.data, query.isError, query.error]);
+    previousScope.current=fingerprint;
+    setVerifiedActor(state.status==='ready'?state.session.actor.id:null);
+  },[fingerprint,queryClient]);
 
-  const value = useMemo(() => ({ state, refetch: () => void query.refetch(), signOut }), [state, query, signOut]);
+  const trustedState:SessionState=state.status==='ready'&&verifiedActor!==state.session.actor.id?{status:'loading'}:state;
+  useEffect(()=>{setCurrentSessionActor(trustedState.status==='ready'?trustedState.session.actor.id:null);},[trustedState]);
+  const value = useMemo(() => ({ state:trustedState, refetch: () => void query.refetch(), signOut }), [trustedState, query, signOut]);
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
 }
 

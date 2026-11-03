@@ -1,0 +1,517 @@
+✖ XML repair: prior entity-like literal is decoded once (3.792708ms)
+✖ XML repair: prior inline rich text keeps every run (1.893ms)
+✖ XML repair: prior UTF16 worksheet keeps its row (1.18825ms)
+✖ XML repair: legal single quoted attributes are recognized (0.559875ms)
+✖ XML repair: prior utf16-formula rejects safely (1.482834ms)
+✖ XML repair: prior macro-content-type rejects safely (0.913875ms)
+✖ XML repair: prior external-relationship rejects safely (0.894458ms)
+✖ XML repair: prior actual-image-package rejects safely (0.90275ms)
+✖ XML repair: prior invalid-numeric-entity rejects safely (0.651875ms)
+✖ XML repair: prior merged-data rejects safely (0.816584ms)
+✔ XML repair: prior xxe rejects safely (0.435416ms)
+✔ XML repair: prior formula rejects safely (0.412417ms)
+✖ XML repair: text leading zero IDs and description whitespace survive (0.506917ms)
+✖ XML repair: missing/malformed/row2 header <worksheet/> rejects (0.387334ms)
+✖ XML repair: missing/malformed/row2 header <worksheet><sheetData/></worksheet> rejects (0.296542ms)
+✖ XML repair: missing/malformed/row2 header <worksheet><sheetData></worksheet> rejects (0.23175ms)
+✖ XML repair: missing/malformed/row2 header <worksheet><sheetData><row r="2"><c r="A2" t= rejects (0.245709ms)
+✖ XML repair: invalid XML text "&#x110000;" rejects safely (0.275625ms)
+✖ XML repair: invalid XML text "&#0;" rejects safely (0.235167ms)
+✖ XML repair: invalid XML text "&#xD800;" rejects safely (0.471125ms)
+✖ XML repair: invalid XML text "&unknown;" rejects safely (0.311208ms)
+✖ XML repair: invalid XML text "&oops" rejects safely (0.224333ms)
+✖ XML repair: invalid XML text "\u0001" rejects safely (0.216875ms)
+✖ XML repair: mismatched and unsupported encoding declarations reject (0.23625ms)
+✖ XML repair: invalid UTF8 rejects instead of replacement-character corruption (0.361875ms)
+✖ XML repair: all XML parts reject hidden declarations including UTF16 (0.260542ms)
+✔ XML repair: actual supplied blank template is valid with zero domain rows (1.032833ms)
+ℹ tests 27
+ℹ suites 0
+ℹ pass 3
+ℹ fail 24
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 131.380208
+
+✖ failing tests:
+
+test at apps/api/test/import-xml-parser.test.ts:13:1
+✖ XML repair: prior entity-like literal is decoded once (3.792708ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'Literal A and A'
+  - 'Literal &#x41; and &#65;'
+             ^
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:13:76)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'Literal A and A',
+    expected: 'Literal &#x41; and &#65;',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:14:1
+✖ XML repair: prior inline rich text keeps every run (1.893ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'First'
+  - 'First Second'
+          ^
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:14:73)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'First',
+    expected: 'First Second',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:15:1
+✖ XML repair: prior UTF16 worksheet keeps its row (1.18825ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  0 !== 1
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:15:70)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 1,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:16:1
+✖ XML repair: legal single quoted attributes are recognized (0.559875ms)
+  Error [HttpError]: Workbook contains no worksheets.
+      at HttpError.unprocessable (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/http/errors.ts:151:12)
+      at parseExcelWorkbook (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/excel-parser.ts:388:21)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:16:86)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    res: undefined,
+    status: 422,
+    code: 'EMPTY_WORKBOOK',
+    details: undefined,
+    [cause]: undefined
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:18:3
+✖ XML repair: prior utf16-formula rejects safely (1.482834ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:18:58)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:18:3
+✖ XML repair: prior macro-content-type rejects safely (0.913875ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:18:58)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:18:3
+✖ XML repair: prior external-relationship rejects safely (0.894458ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:18:58)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:18:3
+✖ XML repair: prior actual-image-package rejects safely (0.90275ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:18:58)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:18:3
+✖ XML repair: prior invalid-numeric-entity rejects safely (0.651875ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  RangeError: Invalid code point 1114112
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:18:58)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: RangeError: Invalid code point 1114112
+        at String.fromCodePoint (<anonymous>)
+        at file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/excel-parser.ts:233:56
+        at String.replace (<anonymous>)
+        at unescapeXml (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/excel-parser.ts:233:6)
+        at parseExcelWorkbook (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/excel-parser.ts:508:32)
+        at file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:58
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+        at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:18:58),
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:18:3
+✖ XML repair: prior merged-data rejects safely (0.816584ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:18:58)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:20:1
+✖ XML repair: text leading zero IDs and description whitespace survive (0.506917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + '  Keep\n whitespace & A  '
+  - '  Keep\n whitespace & &#65;  '
+                           ^
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:22:90)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: '  Keep\n whitespace & A  ',
+    expected: '  Keep\n whitespace & &#65;  ',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:25:3
+✖ XML repair: missing/malformed/row2 header <worksheet/> rejects (0.387334ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:25:86)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:25:3
+✖ XML repair: missing/malformed/row2 header <worksheet><sheetData/></worksheet> rejects (0.296542ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:25:86)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:25:3
+✖ XML repair: missing/malformed/row2 header <worksheet><sheetData></worksheet> rejects (0.23175ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:25:86)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:25:3
+✖ XML repair: missing/malformed/row2 header <worksheet><sheetData><row r="2"><c r="A2" t= rejects (0.245709ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:25:86)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:28:3
+✖ XML repair: invalid XML text "&#x110000;" rejects safely (0.275625ms)
+  AssertionError [ERR_ASSERTION]: The validation function is expected to return "true". Received false
+  
+  Caught error:
+  
+  RangeError: Invalid code point 1114112
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:28:86)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: RangeError: Invalid code point 1114112
+        at String.fromCodePoint (<anonymous>)
+        at file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/excel-parser.ts:233:56
+        at String.replace (<anonymous>)
+        at unescapeXml (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/excel-parser.ts:233:6)
+        at parseExcelWorkbook (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/services/excel-parser.ts:508:32)
+        at file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:58
+        at getActual (node:assert:611:5)
+        at strict.throws (node:assert:759:24)
+        at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+        at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:28:86),
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:28:3
+✖ XML repair: invalid XML text "&#0;" rejects safely (0.235167ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:28:86)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:28:3
+✖ XML repair: invalid XML text "&#xD800;" rejects safely (0.471125ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:28:86)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:28:3
+✖ XML repair: invalid XML text "&unknown;" rejects safely (0.311208ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:28:86)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:28:3
+✖ XML repair: invalid XML text "&oops" rejects safely (0.224333ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:28:86)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:28:3
+✖ XML repair: invalid XML text "\u0001" rejects safely (0.216875ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:28:86)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:30:1
+✖ XML repair: mismatched and unsupported encoding declarations reject (0.23625ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:31:54)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:33:1
+✖ XML repair: invalid UTF8 rejects instead of replacement-character corruption (0.361875ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:33:92)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }
+
+test at apps/api/test/import-xml-parser.test.ts:34:1
+✖ XML repair: all XML parts reject hidden declarations including UTF16 (0.260542ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:34:84)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }

@@ -1,0 +1,98 @@
+{
+  "phase": "cursor-feeds",
+  "criteria": "ui-feed-repair-criteria.json",
+  "status": "local implementation/checks; root browser plus final independent review pending",
+  "manifest": [
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "22ddf941869d418bdb528d0632d9c8a68b9337c0e1600ba3204016427ea642c6"
+    },
+    {
+      "path": "apps/web/src/lib/cursor-feed.ts",
+      "sha256": "9c1583117a43684aca24a85aca0f2146535a378f36e722f9d074382317f25043"
+    },
+    {
+      "path": "apps/web/src/lib/feed-state.ts",
+      "sha256": "93ab71f1d7a4e3bf63e289c621369c36b82be5289cbef5a16ac0e6f8f3e40705"
+    },
+    {
+      "path": "apps/web/src/lib/session-state.ts",
+      "sha256": "142cf86860b258db137c1523fc58c7ed7158bbaaaa55fa4df197f92b8a5ad30b"
+    },
+    {
+      "path": "apps/web/src/lib/session.tsx",
+      "sha256": "54d81eea018e3140d33eeaed5e10010b7e1b4dc85067c547f12c77465893f2b2"
+    },
+    {
+      "path": "apps/web/src/lib/task-scope.ts",
+      "sha256": "bb0d007a18872930825290d830cc259a9bcc23777c7f542fadd3390b29a69603"
+    },
+    {
+      "path": "apps/web/src/lib/active-project.ts",
+      "sha256": "792ae498024729541412e7557a9eb888035afdb0021a9312af71808b01319d52"
+    },
+    {
+      "path": "apps/web/src/components/ui/feed-controls.tsx",
+      "sha256": "df5981229598ab2aab81a87af530f1bfe86ac1eb5fdb053d27dd3fa30176b4a9"
+    },
+    {
+      "path": "apps/web/src/components/shell/rail.tsx",
+      "sha256": "b0551a2720cea31703b786901bf35038a33cab719d6f4208ddc1901c028a51e2"
+    },
+    {
+      "path": "apps/web/src/app/my-tasks/page.tsx",
+      "sha256": "c25c98623fad7f688116e4359d825fe78ba46af3caa14bfbf98cd243707e1b5d"
+    },
+    {
+      "path": "apps/web/src/app/inbox/page.tsx",
+      "sha256": "d2d70c15680a06a816e128a5770171d984d929af488d4f2075a775d9f804ddb3"
+    },
+    {
+      "path": "apps/web/src/app/activity/page.tsx",
+      "sha256": "88c302030a8bc31ac8034762d80982720bfcaa15592e63d6fc20c07aa37f10b1"
+    },
+    {
+      "path": "apps/web/src/app/trash/page.tsx",
+      "sha256": "e13b7c9b65f9afa1832b06e80a2a5e40a804b2c3a128f2a1eb8ec31fc46fc284"
+    },
+    {
+      "path": "apps/web/test/feed-api.test.ts",
+      "sha256": "df5e4eb0a45f151b99bf3a7469d3d813196e13916fad485857ae19780f4c6386"
+    },
+    {
+      "path": "apps/web/test/feed-client.test.ts",
+      "sha256": "9694e2f701b0c9c2610415fa1c039f8c9a707ddc4de5dbfb28eb924ef318e9a6"
+    }
+  ],
+  "checks": {
+    "web": "275/275 exit0 raw/ui-feed-web-tests-final.log",
+    "typecheck": "exit0 raw/ui-feed-typecheck-final.log",
+    "build": "19/19 optimized Next exit0 raw/ui-feed-build-final.log"
+  },
+  "changes": [
+    "MyTasks one explicit selected active project, URL/current session last project/first authorized default, no Rail/allProjects fanout, server due+priority applied before cursor, direct response asOfDate/timezone, preserves server ordering/source board links. Inaccessible explicit project never silently falls back.",
+    "Inbox/activity/trash infinite cursor chains; actor/project scoped live polling and AbortSignal; honest loaded counts and local-search scope, actual Load more and stale Reload only that query. Whole loaded infinite chain refetch uses new server cursors.",
+    "Trash keeps serverNow/receivedAt per page, row versions/restore flags and server-skew deadline, expiry/project archive disables restore.",
+    "Session401 wins old cached actor. Actor/project-role/archive/removal fingerprint change cancels/removes protected query caches, preserving memory-only drafts. Refused cursor feed clears old private rows while preserving denial status. Rail unread badge advertised only if whole feed chain known."
+  ],
+  "newTests": [
+    "Exact MyTasks cursor/serverfilter/abort/calendar envelope",
+    "Inbox/activity/trash continuation parameters/abort",
+    "Explicit unauthorized project/current default",
+    "Stale session401 precedence/access fingerprints",
+    "Actual TanStack InfiniteQueryObserver2page refetch replaces complete chain, no generation mix",
+    "Actual QueryClient private cached row erasure preserves403 refusal"
+  ],
+  "browserCases": [
+    "Two projects >50 assigned tasks: opening MyTasks performs only selected project query. Select priority+Today filters beforepage; continue preserves sameproject/filter/cursor and source links. Calendar note matches backend shared workspace timezone.",
+    "Inbox/activity/trash >50 records: every row available via Load more; loaded-only search has no global total claim. Force409 then in-place Reload; independent comment/invite/card/create drafts preserved.",
+    "Foreground poll/reconnect refresh loaded chains using fresh nextCursor; revoke board/project role while feed open, old titles/bodies/emails cleared. Session401 must immediately become signedOut despite cached session. Own safe draft recovery tested later navigation phase.",
+    "Trash lastpage server skew/deadline/current canRestore respected; expired/archive disabled; actual destination-missing picker preserved."
+  ],
+  "limits": [
+    "No browser/realHTTP/PostgreSQL run by this child. Root diagnostics and independent exact-final-target review are separate; hostedUAT pending deployment.",
+    "Session purge covers actor and project role/archive/removal changes from session. Board-specific revocation reaches each protected feed through actual403/404; query hook erases refused cached content. Broader card-field drafts/session navigation are next bounded phase.",
+    "Search/person/category/date filters on inbox/activity/trash are explicitly local to loaded data because current API offers no corresponding server search; next pages remain accessible. No globaltotal invented.",
+    "No red-before-green claim for new feed regressions: root npmci held module execution while criteria/source were prepared; first executed regression round passed. Actual query-client behavior rather than source-string-only checks is recorded."
+  ]
+}

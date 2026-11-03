@@ -1,0 +1,28 @@
+✖ Image admission: concurrent apps refuse a second image before its body is pulled; status/cancel/stage stay available (2228.454ms)
+✖ Image admission: response timeout retains underlying verifier lease, blocks finalize, then releases after actual settlement (2021.359458ms)
+ℹ tests 2
+ℹ suites 0
+ℹ pass 0
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4761.948667
+
+✖ failing tests:
+
+test at apps/api/test/image-admission.test.ts:24:1
+✖ Image admission: concurrent apps refuse a second image before its body is pulled; status/cancel/stage stay available (2228.454ms)
+  Error: Expected bounded test barrier
+      at file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-admission.test.ts:12:83
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-admission.test.ts:32:19)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+
+test at apps/api/test/image-admission.test.ts:39:1
+✖ Image admission: response timeout retains underlying verifier lease, blocks finalize, then releases after actual settlement (2021.359458ms)
+  Error: Expected bounded test barrier
+      at file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-admission.test.ts:12:83
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-admission.test.ts:46:19)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

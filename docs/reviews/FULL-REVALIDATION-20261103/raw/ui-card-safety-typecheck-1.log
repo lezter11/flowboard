@@ -1,0 +1,13 @@
+
+> @flowboard/web@0.1.0 typecheck
+> tsc --noEmit
+
+test/card-drafts.test.ts(6,12): error TS2352: Conversion of type '{ id: string; title: string; description: string; priority: "high"; dueDate: null; assigneeIds: never[]; columnId: string; version: number; }' to type '{ id: string; workspaceId: string; projectId: string; boardId: string; columnId: string; title: string; description: string; priority: "none" | "low" | "medium" | "high" | "urgent"; dueDate: string | null; ... 12 more ...; createdBy?: { ...; } | ... 1 more ... | undefined; }' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type '{ id: string; title: string; description: string; priority: "high"; dueDate: null; assigneeIds: never[]; columnId: string; version: number; }' is missing the following properties from type '{ id: string; workspaceId: string; projectId: string; boardId: string; columnId: string; title: string; description: string; priority: "none" | "low" | "medium" | "high" | "urgent"; dueDate: string | null; ... 12 more ...; createdBy?: { ...; } | ... 1 more ... | undefined; }': workspaceId, projectId, boardId, position, and 8 more.
+npm error Lifecycle script `typecheck` failed with error:
+npm error code 2
+npm error path /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web
+npm error workspace @flowboard/web@0.1.0
+npm error location /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/web
+npm error command failed
+npm error command sh -c tsc --noEmit

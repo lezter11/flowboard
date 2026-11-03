@@ -1,0 +1,67 @@
+✔ XML repair: prior entity-like literal is decoded once (21.402667ms)
+✔ XML repair: prior inline rich text keeps every run (12.257042ms)
+✔ XML repair: prior UTF16 worksheet keeps its row (10.927209ms)
+✔ XML repair: legal single quoted attributes are recognized (8.951875ms)
+✔ XML repair: prior utf16-formula rejects safely (8.760666ms)
+✔ XML repair: prior macro-content-type rejects safely (7.585375ms)
+✔ XML repair: prior external-relationship rejects safely (9.224834ms)
+✔ XML repair: prior actual-image-package rejects safely (8.485ms)
+✔ XML repair: prior invalid-numeric-entity rejects safely (4.267083ms)
+✔ XML repair: prior merged-data rejects safely (10.6015ms)
+✔ XML repair: prior xxe rejects safely (1.152958ms)
+✔ XML repair: prior formula rejects safely (8.2175ms)
+✔ XML repair: text leading zero IDs and description whitespace survive (0.786084ms)
+✔ XML repair: missing/malformed/row2 header <worksheet/> rejects (0.58775ms)
+✔ XML repair: missing/malformed/row2 header <worksheet><sheetData/></worksheet> rejects (0.514584ms)
+✔ XML repair: missing/malformed/row2 header <worksheet><sheetData></worksheet> rejects (0.423334ms)
+✔ XML repair: missing/malformed/row2 header <worksheet><sheetData><row r="2"><c r="A2" t= rejects (0.49175ms)
+✔ XML repair: invalid XML text "&#x110000;" rejects safely (0.535ms)
+✔ XML repair: invalid XML text "&#0;" rejects safely (0.525459ms)
+✔ XML repair: invalid XML text "&#xD800;" rejects safely (0.496708ms)
+✔ XML repair: invalid XML text "&unknown;" rejects safely (0.489166ms)
+✔ XML repair: invalid XML text "&oops" rejects safely (0.385625ms)
+✔ XML repair: invalid XML text "\u0001" rejects safely (0.365792ms)
+✔ XML repair: mismatched and unsupported encoding declarations reject (0.766292ms)
+✔ XML repair: invalid UTF8 rejects instead of replacement-character corruption (0.45925ms)
+✔ XML repair: all XML parts reject hidden declarations including UTF16 (0.566125ms)
+✔ XML repair: actual supplied blank template is valid with zero domain rows (8.648625ms)
+✔ XML repair: CDATA is literal while normal references decode exactly once (0.784708ms)
+✔ XML repair: shared rich text preserves all runs excluding phonetic annotations (0.668417ms)
+✔ XML repair: alternative namespace prefixes and UTF16BE/LE declarations work (2.996334ms)
+✔ XML repair: invalid namespace/reference/unsupported cell text structure rejects (0.555708ms)
+✔ XML repair: invalid namespace/reference/unsupported cell text structure rejects (0.393375ms)
+✔ XML repair: invalid namespace/reference/unsupported cell text structure rejects (0.471375ms)
+✔ XML repair: invalid namespace/reference/unsupported cell text structure rejects (0.4455ms)
+✔ XML repair: invalid namespace/reference/unsupported cell text structure rejects (0.408334ms)
+✖ XML repair: invalid namespace/reference/unsupported cell text structure rejects (0.666541ms)
+✔ XML repair: XML forest, excessive nesting and gigantic text are bounded before unbounded AST allocation (186.798959ms)
+✔ XML repair: external relationships are rejected in every rels part, including unused UTF16rels (0.667291ms)
+✔ XML repair: ZIP CRC and duplicate names are enforced (0.140458ms)
+ℹ tests 39
+ℹ suites 0
+ℹ pass 38
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 465.9035
+
+✖ failing tests:
+
+test at apps/api/test/import-xml-parser.test.ts:69:3
+✖ XML repair: invalid namespace/reference/unsupported cell text structure rejects (0.666541ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception.
+      at reject422 (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:9:45)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/import-xml-parser.test.ts:69:97)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }

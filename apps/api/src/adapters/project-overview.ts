@@ -97,7 +97,7 @@ export async function getProjectOverview(
               )::text AS unassigned_open
        FROM cards c
        JOIN readable r ON r.id = c.board_id
-       JOIN columns col ON col.id = c.column_id
+       JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL
        WHERE c.project_id = $1 AND c.state = 'active'
        GROUP BY col.category`,
       [projectId, actorId, today],
@@ -128,7 +128,7 @@ export async function getProjectOverview(
        FROM card_assignees ca
        JOIN cards c ON c.id = ca.card_id AND c.state = 'active' AND c.project_id = $1
        JOIN readable r ON r.id = c.board_id
-       JOIN columns col ON col.id = c.column_id AND col.category <> 'done'
+       JOIN columns col ON col.id = c.column_id AND col.deleted_at IS NULL AND col.category <> 'done'
        JOIN users u ON u.id = ca.user_id
        GROUP BY u.id, u.display_name, u.avatar_url
        ORDER BY COUNT(*) DESC, u.id ASC

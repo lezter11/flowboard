@@ -1,0 +1,180 @@
+{
+  "kind": "remaining_mandatory_inventory_not_gate_approval",
+  "currentCatalogue": "docs/features.tsv",
+  "scope": "69 lifecycle backend rows; original per-ID matrix is lifecycle-backend.json; current catalogue replacements take precedence",
+  "gaps": [
+    {
+      "id": "LIFE-OPEN-01",
+      "features": [
+        "BRD-06",
+        "DEL-04"
+      ],
+      "kind": "locally_repaired_pending_frozen_gate_independent_review_UAT",
+      "source": [
+        "apps/api/src/adapters/boards.ts:811",
+        "database/migrations/0001_initial.sql:101",
+        "database/migrations/0001_initial.sql:216"
+      ],
+      "gap": "See boards-lifecycle-handoff.json for current implementation,45 focused tests and83 nearest legacy tests; no approval inferred.",
+      "next": "Parent final source manifest/full local gate/independent review and UAT checks.",
+      "historicalGap": "Interim409 retained-reference guard prevents FK500/data loss, but user expects an active-empty column to be removable once all restore windows expire. Physical restrictive FKs retain history; full feature needs a coordinated soft-column lifecycle, not permanent blocking."
+    },
+    {
+      "id": "LIFE-OPEN-02",
+      "features": [
+        "CRD-08",
+        "CRD-09",
+        "BRD-05"
+      ],
+      "kind": "locally_repaired_pending_frozen_gate_independent_review_UAT",
+      "source": [
+        "apps/api/src/adapters/boards.ts:946",
+        "apps/api/src/adapters/boards.ts:1029"
+      ],
+      "gap": "See boards-lifecycle-handoff.json for current implementation,45 focused tests and83 nearest legacy tests; no approval inferred.",
+      "next": "Parent final source manifest/full local gate/independent review and UAT checks.",
+      "historicalGap": "getPlacement selects every destination card ID and finds anchors in memory. It is not bounded by a SQL LIMIT. UI needs canonical off-page before/after positioning and bounded destination choice paging."
+    },
+    {
+      "id": "LIFE-OPEN-03",
+      "features": [
+        "BRD-08"
+      ],
+      "kind": "locally_repaired_pending_frozen_gate_independent_review_UAT",
+      "source": [
+        "apps/api/src/adapters/boards.ts:238",
+        "apps/api/src/http/routes/boards.ts:144"
+      ],
+      "gap": "See boards-lifecycle-handoff.json for current implementation,45 focused tests and83 nearest legacy tests; no approval inferred.",
+      "next": "Parent final source manifest/full local gate/independent review and UAT checks.",
+      "historicalGap": "listProjectBoards always filters archived=false. Reopen mutation exists, but after navigation an authorized admin cannot rediscover archived board IDs through this list."
+    },
+    {
+      "id": "LIFE-OPEN-04",
+      "features": [
+        "QRY-03"
+      ],
+      "kind": "mandatory_source_gap_against_current_catalogue",
+      "source": [
+        "docs/features.tsv:94",
+        "apps/api/src/adapters/cards.ts:1215",
+        "apps/api/src/http/routes/cards.ts:474"
+      ],
+      "gap": "Current catalogue explicitly requires selected-project due-state filters/pagination. getMyTasks accepts projectId/limit only and silently returns at most100 rows; no cursor/next page or due-state filter.",
+      "next": "Separate bounded My Tasks criterion/contract and mounted tests, retain one-project scope and current board grants; do not add cross-project aggregation."
+    },
+    {
+      "id": "LIFE-OPEN-05",
+      "features": [
+        "COM-03"
+      ],
+      "kind": "source_grounded_lead_not_runtime_confirmed",
+      "source": [
+        "docs/API.md:106",
+        "apps/api/src/adapters/comments.ts:241",
+        "packages/contracts/src/discussion.ts:9"
+      ],
+      "gap": "Mention validation checks integer bounds/overlap/eligible identity, but does not verify selected token boundaries or reject a UTF16 surrogate split. API requires these. Trimmed body may also shift supplied spans; needs explicit normalization proof.",
+      "next": "Freeze mention normalization criterion and reproduce through mounted POST/PATCH; preserve v1 no-renotify on edit and no directory leakage."
+    },
+    {
+      "id": "LIFE-OPEN-06",
+      "features": [
+        "BRD-08"
+      ],
+      "kind": "locally_repaired_pending_frozen_gate_independent_review_UAT",
+      "source": [
+        "docs/API.md:114",
+        "packages/contracts/src/boards.ts:47",
+        "apps/api/src/http/routes/boards.ts:737",
+        "apps/api/src/http/routes/boards.ts:856"
+      ],
+      "gap": "See boards-lifecycle-handoff.json for current implementation,45 focused tests and83 nearest legacy tests; no approval inferred.",
+      "next": "Parent final source manifest/full local gate/independent review and UAT checks.",
+      "historicalGap": "API/schema declare expectedVersion for board archive/reopen, but mounted routes ignore body and apply transition without version guard. No newer explicit server-contract retirement was located."
+    },
+    {
+      "id": "LIFE-OPEN-07",
+      "features": [
+        "ATT-02"
+      ],
+      "kind": "full_decoder_locally_implemented_mandatory_maximum_acceptance_blocked_not_closed",
+      "source": [
+        "apps/api/src/services/image-validator.ts",
+        "apps/api/src/services/jpeg-entropy.ts",
+        "apps/api/src/services/image-verifier.ts",
+        "apps/api/src/adapters/images.ts"
+      ],
+      "gap": "Full native/Images decode, strict JPEG entropy check, every-WebP-frame verification and explicit APNG refusal are implemented. Known corruptDEFLATE and266-byte warning-recoveredJPEG fail422. Currentv5 focused62tests:60pass2fail0skip exit1; textured20MPNodeCMYK andactualworkerdRGB fail503processingbudget. Isolatedv5maxRGBpassesbothruntimes,CMYKfailsboth. No currentATT02closure.",
+      "next": "Parent scope/architecture decision before further edits; preserve currentcaps/budgets/fuel and all failures. Fresh frozenmanifest/fullgate/independenthighparserreview and hostedCPU/plan/privatebinding acceptance stillrequired. See image-full-verifier-handoff.json and image-maximum-blocker-options.md.",
+      "historicalGap": "Header-only uploads/finalize were mounted-confirmed and bounded container repair now passes8focused+37nearest tests on final installed runtime. Valid-envelope corrupt DEFLATE remains accepted; see raw/image-entropy-boundary.json and image-integrity-handoff.json. No full ATT02 closure claimed."
+    },
+    {
+      "id": "LIFE-OPEN-08",
+      "features": [
+        "NTF-03"
+      ],
+      "kind": "source_design_evidence_gap",
+      "source": [
+        "apps/api/src/adapters/notifications.ts:245",
+        "database/migrations/0001_initial.sql:272"
+      ],
+      "gap": "Outbox uses transaction-held SKIP LOCKED claims; there is no expiring token/fencing lease persisted outside transaction. Crash rollback can safely retry database-only notification work, but does not by itself prove all lease/fencing/provider-failure acceptance. SQL poison failures can abort the transaction before retry update.",
+      "next": "Freeze failure-recovery criterion and test actual SQL error/crash/restart/overlap; independent review must decide whether database-lock equivalent satisfies the exact claimed runtime before closure."
+    },
+    {
+      "id": "LIFE-OPEN-09",
+      "features": [
+        "AUD-03",
+        "AUD-04"
+      ],
+      "kind": "source_grounded_input_validation_lead_not_runtime_confirmed",
+      "source": [
+        "apps/api/src/http/routes/activity.ts:44",
+        "apps/api/src/http/routes/activity.ts:77",
+        "apps/api/src/adapters/activity.ts:270",
+        "apps/api/src/adapters/activity.ts:442"
+      ],
+      "gap": "Activity fromDate/toDate filters are read as raw strings then used as timestamp SQL parameters. Invalid date behavior needs mounted validation rather than assuming all malformed inputs yield safe4xx.",
+      "next": "Adversarial timestamp/range/cursor probes; root owns any shared query schema coordination."
+    },
+    {
+      "id": "LIFE-OPEN-10",
+      "features": [
+        "UX-05",
+        "DEL-05",
+        "DEL-06",
+        "ATT-04"
+      ],
+      "kind": "verification_or_hosted_acceptance_pending",
+      "source": [
+        "apps/api/test/ux-integration.test.ts:351",
+        "docs/reviews/FULL-REVALIDATION-20261103/import-repair-handoff.md"
+      ],
+      "gap": "Focused local suite/one200row workerd wall-time sample are not representative warm/cold/load/maximum-payload/hosted storage/cron/signed-in acceptance. Exact restore cutoff and separate-connection full coverage must bind final frozen target.",
+      "next": "Parent local full gate/independent review, then explicit UAT-pending acceptance per latest release order."
+    }
+  ],
+  "uiOnlyOrUIOwned": {
+    "features": [
+      "UX-01",
+      "UX-02",
+      "UX-03",
+      "UX-04",
+      "CRD-03",
+      "CRD-08",
+      "CRD-09",
+      "CRD-11",
+      "COM-06"
+    ],
+    "status": "UI_and_integrated_evidence_owned_by_UI_root",
+    "requirements": "Focus/keyboard/narrow views, filtered drag explanation, pending/unsaved drafts, poll/reconnect reconciliation and explicit Low/Medium/High/Urgent UI selection require browser proof. Existing API/MCP none-priority compatibility remains unchanged. No browser or screenshot in this backend stream closes these."
+  },
+  "notRevived": [
+    "workspace-wide board inheritance",
+    "cross-project combined board view",
+    "Manager board name/description edits",
+    "retired workspace create/ownership transfer",
+    "mandatory new API/MCP priority restriction"
+  ]
+}

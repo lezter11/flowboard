@@ -1,0 +1,56 @@
+{
+  "expectedInflatedBytes": 26,
+  "results": [
+    {
+      "name": "original",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "count": 26
+      }
+    },
+    {
+      "name": "extra-deflated-pixels",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "count": 30
+      }
+    },
+    {
+      "name": "truncated-deflated-pixels",
+      "status": 200,
+      "body": {
+        "ok": true,
+        "count": 25
+      }
+    },
+    {
+      "name": "trailing-compressed-junk",
+      "status": 422,
+      "body": {
+        "ok": false,
+        "count": 0,
+        "message": "Trailing bytes after end of compressed data"
+      }
+    },
+    {
+      "name": "concatenated-zlib-stream",
+      "status": 422,
+      "body": {
+        "ok": false,
+        "count": 0,
+        "message": "Trailing bytes after end of compressed data"
+      }
+    },
+    {
+      "name": "bad-adler",
+      "status": 422,
+      "body": {
+        "ok": false,
+        "count": 0,
+        "message": "Decompression failed."
+      }
+    }
+  ]
+}

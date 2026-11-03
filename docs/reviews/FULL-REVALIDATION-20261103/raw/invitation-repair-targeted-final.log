@@ -1,0 +1,240 @@
+▶ ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Administration Suite
+  ✔ ACC-02: Sign out and expired session revocation (92.598833ms)
+  ✔ ACC-03: Profile updates and historical identity preservation (6.3095ms)
+  ✔ ACC-05: Workspace preferences (name and timezone with OCC) (5.964ms)
+  ✔ ACC-06: Owned and invited context switcher (12.37675ms)
+  ✔ ACC-07: Owner transfer atomic transition and idempotency (5.733792ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ INV-02: Invitation delivery through the configured mailer (18.925375ms)
+✔ ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Administration Suite (144.776292ms)
+▶ B-10 email: the disabled mailer does nothing and the pending row keeps its link
+  ✔ no key, no sender or a bad origin means no mailer (0.493334ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ an invitation with mail disabled stays pending and untouched, and the API still answers (60.708333ms)
+✔ B-10 email: the disabled mailer does nothing and the pending row keeps its link (61.532792ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ B-10 email: create sends the accept link to the invitee, then drops the token
+  ✔ the drain sends one email with the accept link on the configured origin (3.552458ms)
+  ✔ after the send the row is delivered, holds no token, and records only the provider id (0.479916ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ an idempotent replay of the create writes no second row and sends nothing more (12.394375ms)
+✔ B-10 email: create sends the accept link to the invitee, then drops the token (33.804291ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-10 email: resend supersedes the earlier pending email, so only the newest link works (22.819042ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ B-10 email: Brevo 5xx, 429 and network errors retry; other 4xx is permanent and drops the token
+  ✔ 5xx retries (14.094167ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ 429 retries (16.809792ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ network error retries (15.106541ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ 400 is permanent (19.383917ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ 401 is permanent (15.303792ms)
+✔ B-10 email: Brevo 5xx, 429 and network errors retry; other 4xx is permanent and drops the token (81.159125ms)
+✔ B-10 email: the HTML is escaped, the subject is one line, and names cannot inject markup or headers (0.138917ms)
+✔ B-10 email: the app origin comes from configuration only and must be https or a local dev host (0.06475ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-10 email: no token, key or provider body reaches a log on any send path (13.689667ms)
+✔ B-14: a delivered invitation keeps only a receipt with the provider message id (241.699083ms)
+✔ B-14: a permanently refused invitation keeps an empty receipt, with no recipient or template fields (184.312333ms)
+✔ B-14: a retryable failure keeps the payload, so the drain can still send it (176.704042ms)
+✔ B-14: the retention purge deletes settled rows older than 30 days, and nothing else (169.235041ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 seats: the pending limit refuses the next invitation; expired pending rows are not counted (89.368708ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 seats: active members plus pending invitations reserve the member limit (rule 6) (27.96675ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 accept: a project at the member limit refuses the next accept; the Owner is not counted (24.011792ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 resend: an expired invitation is refused and is not revived (18.810041ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 resend spends the inviter buckets: a burst of resends is refused with RATE_LIMITED (154.345041ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 accept into an archived project is refused with READ_ONLY_CONTEXT (16.463625ms)
+✔ B-22 invite: a stored name is required before an invitation is sent (NAME_REQUIRED) (9.732209ms)
+✔ B-22 names: project and board names refuse control, zero-width and bidirectional characters (10.0135ms)
+✔ B-22 email: format characters are stripped from the project and inviter names in the text and subject (0.766167ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 races: parallel invitations at the pending limit never exceed it (forced interleaving) (69.109708ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 races: parallel accepts at the member limit admit exactly the free seats (59.969458ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 races: accept and resend of the same invitation never deadlock (F-04) (90.290541ms)
+✔ identity repair: reactivation at active-seat cap is refused without member/activity/receipt writes (218.831542ms)
+✔ identity repair: reactivation respects pending invitation seat reservations and expired rows release them (172.060708ms)
+✔ identity repair: archived role changes, reinstatement and role-change-with-removal are refused atomically (187.941709ms)
+✔ identity repair: archived pure PATCH/DELETE removal and their replay remain allowed; leave stays possible (204.95675ms)
+✔ identity repair: archived replay of an earlier role change fails without new side effects (181.446917ms)
+✔ identity repair: PATCH removal revokes pending invitations and board grants like DELETE and replays once (177.724458ms)
+✔ identity repair: role matrix and replay protect self, peer Manager, Owner, and revoked actor (211.544667ms)
+✔ identity repair: two reinstatements and an invitation compete for one seat on separate connections (214.194125ms)
+✔ identity repair: a committed actor revocation wins against a mounted role write waiting on its grant (194.677ms)
+✔ identity repair: failed activity insertion rolls back membership and receipt together (179.678333ms)
+✔ identity repair: exhausted transient invitation delivery strips terminal token, recipient and mail fields (169.949875ms)
+✔ identity repair: mixed role/removal works while active but its replay cannot edit archived authority (166.240625ms)
+✔ identity repair: legacy unclassified removal receipt replays while active and refuses ambiguous archived replay (171.098958ms)
+✔ identity repair: a reactivation receipt replays at the full cap without another seat or activity (175.551458ms)
+✔ identity repair: archived access revocation retains actor and protected-target authority (180.273167ms)
+✔ identity repair: activity failure rolls PATCH removal and invitation cleanup back together (179.250875ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ INV-01 & INV-03: Project Invitations Lifecycle Suite
+  ✔ Test 1: Workspace owner invites a manager -> succeeds, token_hash stored in DB, outbox record created (95.010708ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 2: Project manager invites a member -> succeeds (10.2345ms)
+  ✔ Test 3: Project manager attempts to invite another manager -> returns 403 FORBIDDEN (3.168792ms)
+  ✔ Test 4: Member/viewer attempts to invite someone -> returns 403 FORBIDDEN (or 404 for outsider) (12.925291ms)
+  ✔ Test 5: Accept matching invitation -> updates status to accepted, inserts project_memberships row, user gains access (22.206041ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 6: Accept with mismatched email (signed in as another user) -> returns 403 EMAIL_MISMATCH, no membership created (12.938666ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 7: Accept expired or already accepted token -> returns 400 (24.326125ms)
+  ✔ Test 8: Idempotency replay and conflict handling on invitation creation (4.996583ms)
+  ✔ Test 9: Self-invites and invitations to active project members are rejected with 400 ALREADY_MEMBER (16.393375ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 10: Duplicate active pending invitations are rejected with 400 INVITATION_ALREADY_EXISTS (13.42475ms)
+✔ INV-01 & INV-03: Project Invitations Lifecycle Suite (218.465417ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Suite
+  ✔ Setup: Create initial manager and member invitations (105.199417ms)
+  ✔ INV-04: PM cannot resend manager invitation -> 403 FORBIDDEN (2.746375ms)
+  ✔ INV-04: Member / Viewer / Outsider cannot resend invitation -> 403 / 404 (5.76475ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ INV-04: Owner resends manager invitation -> succeeds, rotates token, outbox event emitted (8.27675ms)
+  ✔ INV-04: Old rotated token cannot be accepted (400 INVALID_INVITATION) (2.004209ms)
+  ✔ INV-04: Idempotency replay confirms resend without retaining the invitation token (2.720583ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ INV-04: PM resends member invitation -> succeeds (7.710625ms)
+  ✔ INV-04: PM cannot revoke manager invitation -> 403 FORBIDDEN (2.327834ms)
+  ✔ INV-04: PM revokes member invitation -> succeeds (4.970792ms)
+  ✔ INV-04: Revoked invitation token cannot be accepted -> 400 INVALID_INVITATION (4.073167ms)
+  ✔ INV-04: Revoked invitation cannot be revoked again or resent -> 400 INVALID_INVITATION (8.935958ms)
+  ✔ INV-04: Newly rotated token can be accepted; accepted invite cannot be resent -> 400 (12.389958ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Setup: Create an expired invitation for Heidi (9.186917ms)
+  ✔ INV-05: Workspace owner lists invitations -> succeeds, matches schema, token_hash omitted (3.675375ms)
+  ✔ INV-05: Project Manager can list invitations (3.643584ms)
+  ✔ INV-05: Member / Viewer cannot list invitations -> 403 FORBIDDEN (2.902625ms)
+  ✔ INV-05: Outsider attempting to list invitations -> 404 NOT_FOUND (1.505417ms)
+  ✔ INV-08: Workspace owner cannot leave their own project -> 403 FORBIDDEN (1.667ms)
+  ✔ INV-08: Outsider attempting to leave project -> 404 NOT_FOUND (1.690583ms)
+  ✔ INV-08: Charlie (Member) leaves project -> status="removed", version incremented (5.6695ms)
+  ✔ INV-08: Charlie subsequent access to project returns 404 NOT_FOUND (1.697333ms)
+  ✔ INV-08: Charlie leave request idempotency replay returns 200 replayed=true (3.148583ms)
+  ✔ INV-08: Dave (Viewer) leaves project -> succeeds (5.192792ms)
+  ✔ INV-08: Bob (Manager) leaves project -> succeeds (5.103292ms)
+  ✔ Setup R2: Create user Oscar and seed pending invite + manager membership (1.56475ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ R2 - Step 1: Active manager cannot create self-invite or duplicate pending invite (22.815208ms)
+  ✔ R2 - Steps 2 & 3: Owner removes Manager -> pending invitation is atomically marked revoked (6.095916ms)
+  ✔ R2 - Step 4: Attacker presenting old revoked token fails -> 400 INVALID_INVITATION, access remains removed (4.774791ms)
+  ✔ R2 - Step 4b (Defense-in-depth): If invitation was pending but issued before removal, acceptance fails -> 400 INVITATION_SUPERSEDED (5.498792ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ R2 - Step 5: Owner issues fresh invitation to the deliberately removed user -> succeeds (201) (7.120291ms)
+  ✔ R2 - Step 6: User accepts fresh invitation -> succeeds (200), membership reactivated to active (7.154041ms)
+  ✔ R2 - Step 7: Member leaves project -> pending invitations for that email are atomically revoked (8.8915ms)
+✔ INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Suite (279.562083ms)
+▶ INV-06 & INV-07: Change Member Roles & Remove Project Access Suite
+  ✔ Test 0: Missing or invalid Idempotency-Key on member mutations returns 400 IDEMPOTENCY_KEY_REQUIRED (81.69175ms)
+  ✔ Test 1: Workspace owner promotes a member to manager -> succeeds (22.785375ms)
+  ✔ Test 2: Project manager attempts to promote a member to manager -> returns 403 FORBIDDEN (2.685833ms)
+  ✔ Test 3: Project manager modifies role between member and viewer -> succeeds (11.061958ms)
+  ✔ Test 4: Project manager attempts to modify another manager -> returns 403 FORBIDDEN (2.3085ms)
+  ✔ Test 5: Project manager attempts to modify themselves -> returns 403 FORBIDDEN (2.330167ms)
+  ✔ Test 6: Stale version in PATCH returns 409 STALE_VERSION (3.68625ms)
+  ✔ Test 7: Immediate revocation: removing project access sets status="removed"; next request by that user to read the project returns 404 NOT_FOUND (11.939459ms)
+  ✔ Test 8: Project manager cannot DELETE another manager -> returns 403 FORBIDDEN (2.139042ms)
+  ✔ Test 9: Project manager cannot DELETE themselves -> returns 403 FORBIDDEN (1.984209ms)
+  ✔ Test 10: Non-member outsider attempting to manage members returns 404 NOT_FOUND (1.826917ms)
+  ✔ Test 11: Member attempting to manage members returns 403 FORBIDDEN (1.749167ms)
+  ✔ Test 12: Sibling project privacy: manager of sibling project attempting to manage members in another project receives 404 NOT_FOUND (3.385166ms)
+✔ INV-06 & INV-07: Change Member Roles & Remove Project Access Suite (152.173333ms)
+✔ invitation repair: expired direct adapter call never commits caller-owned work (208.159083ms)
+✔ invitation repair: accepted receipt is denied after archive or access removal (245.397042ms)
+✔ invitation repair: archive winning its row lock makes concurrent acceptance fail without effects (177.468ms)
+✔ invitation repair: acceptance winning lifecycle lock commits before concurrent archive (201.605833ms)
+✔ invitation repair: leave waits for quota before touching grant or receipt; archived leave replays safely (192.080417ms)
+✔ invitation repair: invitation history defaults50, caps100 and keysets timestamp ties without duplicates (202.821375ms)
+✔ invitation repair: cursor scope, tamper, role revision and lifecycle changes are rejected after authorization (183.043333ms)
+✔ invitation repair: list exposes only safe latest delivery status and role-aware retry hint (195.71275ms)
+✔ invitation repair: terminal delivered, permanent failure and exhausted retries retain only safe invitation association (165.092292ms)
+✔ invitation repair: migration0022 indexes are present/idempotent and list makes one bounded history/delivery query (199.084583ms)
+✔ invitation repair: terminal receipt never retains forged or foreign-project invitation association (155.867625ms)
+✔ Node HTTP: liveness, real PostgreSQL readiness, missing product routes, and authenticated queries (49.092042ms)
+✔ Node pg/Kysely: real parameterized query, rollback and committed positive control (14.362375ms)
+✔ Node HTTP: refused local database returns safe 503; liveness stays independent (4.180875ms)
+✔ local harness rejects nonlocal and non-harness database targets (0.130458ms)
+▶ RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)
+  ✔ RBAC-02: verifyProjectAncestry succeeds for valid project and resources (71.467417ms)
+  ✔ RBAC-02: Guessing sibling project or resources returns consistent 404 NOT_FOUND without metadata leakage (3.421917ms)
+  ✔ RBAC-02: requireProjectAncestry HTTP middleware enforces boundary (16.3135ms)
+  ✔ RBAC-03: acquireWriteGrantLock validates role hierarchy and removed status (4.174791ms)
+  ✔ RBAC-03: Concurrency: In-flight write transaction aborts when concurrent role revocation wins (4.156333ms)
+  ✔ RBAC-03: Concurrency: Writer holding grant lock blocks concurrent revocation until write commits (63.306917ms)
+  ✔ RBAC-03: Concurrency Probe 1: Mounted updateProjectSettings serializes with concurrent actor revocation (80.023208ms)
+  ✔ RBAC-03: Concurrency Probe 2: Manager starts removeProjectMember while Owner concurrently promotes target; deletion rejected with 403 FORBIDDEN (24.751541ms)
+  ✔ RBAC-04: getEligibleAssignees and getEligibleMentionees enforce role and sibling privacy (6.11925ms)
+  ✔ RBAC-04: HTTP GET /api/v1/projects/:projectId/people enforces privacy and purpose filtering (15.856083ms)
+  ✔ RBAC-05: GET /api/v1/projects/:projectId/access-summary discloses explicit board grants without hidden counts (3.950375ms)
+  ✔ RBAC-05: Workspace owner requests access summary -> actor role is owner inherited from workspace (2.696458ms)
+  ✔ RBAC-05: Sibling project member or outsider access-summary returns 404 NOT_FOUND (1.623666ms)
+  ✔ RBAC-05: Unauthenticated request returns 401 UNAUTHORIZED (0.205834ms)
+✔ RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05) (301.257292ms)
+{"event":"invitation_immediate_send","result":"delivered"}
+✔ UAT: the invite route hands the immediate send to waitUntil, and the row is delivered before the drain runs (219.539542ms)
+{"level":"warn","event":"rate_limit_client_ip_missing"}
+{"event":"invitation_immediate_send","result":"delivered"}
+✔ UAT: the Worker passes its ExecutionContext to the app, so the immediate send starts on a real request (169.26325ms)
+✔ UAT: with no ExecutionContext the invite still succeeds, and the skip is logged as a reason code only (169.017542ms)
+✔ UAT: each skip path logs its reason code, and nothing is sent (185.144083ms)
+✔ UAT: a Brevo 500 is logged as a retry reason and the row stays pending for the drain (171.111667ms)
+✔ local workerd: shared HTTP routes, real pg/Kysely query, transaction rollback, and authenticated product routes (533.954625ms)
+✔ local workerd: scheduled callback runs purge and outbox jobs against the isolated DB binding (56.491208ms)
+ℹ tests 151
+ℹ suites 0
+ℹ pass 151
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31943.548208

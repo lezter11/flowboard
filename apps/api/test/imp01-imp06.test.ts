@@ -30,7 +30,7 @@ function buildZipFile(files: Record<string, string | Buffer>): Buffer {
     local.writeUInt16LE(8, 8); // compression method (deflate)
     local.writeUInt16LE(0, 10); // mod time
     local.writeUInt16LE(0, 12); // mod date
-    local.writeUInt32LE(0, 14); // crc32
+    local.writeUInt32LE(zlib.crc32(dataBuf), 14); // crc32
     local.writeUInt32LE(compressedSize, 18);
     local.writeUInt32LE(uncompressedSize, 22);
     local.writeUInt16LE(nameBuf.length, 26);
@@ -48,7 +48,7 @@ function buildZipFile(files: Record<string, string | Buffer>): Buffer {
     cd.writeUInt16LE(8, 10); // method
     cd.writeUInt16LE(0, 12); // mod time
     cd.writeUInt16LE(0, 14); // mod date
-    cd.writeUInt32LE(0, 16); // crc32
+    cd.writeUInt32LE(zlib.crc32(dataBuf), 16); // crc32
     cd.writeUInt32LE(compressedSize, 20);
     cd.writeUInt32LE(uncompressedSize, 24);
     cd.writeUInt16LE(nameBuf.length, 28);
@@ -176,7 +176,7 @@ function createCustomXlsx(rows: TestXlsxRow[], options: CreateXlsxOptions = {}):
     // E: Due Date
     if (r.dueDate !== undefined) {
       if (typeof r.dueDate === 'number') {
-        rowXml += `<c r="E${rowIdx}" t="n"><v>${r.dueDate}</v></c>`;
+        rowXml += `<c r="E${rowIdx}" t="n" s="1"><v>${r.dueDate}</v></c>`;
       } else {
         const sIdx = addSharedString(r.dueDate);
         rowXml += `<c r="E${rowIdx}" t="s"><v>${sIdx}</v></c>`;
@@ -238,6 +238,8 @@ function createCustomXlsx(rows: TestXlsxRow[], options: CreateXlsxOptions = {}):
     <Default Extension="xml" ContentType="application/xml"/>
     <Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
     <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+    <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
+    ${options.extraSheetName ? '<Override PartName="/xl/worksheets/sheet2.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>' : ''}
     <Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/>
   </Types>`;
 
@@ -252,6 +254,8 @@ function createCustomXlsx(rows: TestXlsxRow[], options: CreateXlsxOptions = {}):
     'xl/_rels/workbook.xml.rels': workbookRelsXml,
     'xl/worksheets/sheet1.xml': sheetXml,
     'xl/sharedStrings.xml': sstXml,
+    // Numeric Due Date fixtures are genuine date cells, not General numbers.
+    'xl/styles.xml': '<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cellXfs count="2"><xf numFmtId="0"/><xf numFmtId="14"/></cellXfs></styleSheet>',
   };
 
   if (options.extraSheetName) {

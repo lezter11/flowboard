@@ -1,0 +1,107 @@
+{"syntheticHeaderBytes":24,"uploadStatus":200,"finalizedStatus":200,"savedImages":1}
+✖ Image integrity: header-only PNG must not reach verified saved gallery (247.031541ms)
+✖ Image integrity: mounted upload rejects malformed complete-container candidates image/png (164.779708ms)
+✖ Image integrity: mounted upload rejects malformed complete-container candidates image/jpeg (190.140542ms)
+✖ Image integrity: mounted upload rejects malformed complete-container candidates image/webp (183.546084ms)
+✔ Image integrity: genuine PNG variants, baseline/progressive JPEG and lossless/lossy WebP save with private delivery (346.135542ms)
+✖ Image integrity: every truncation of genuine containers is rejected without generic runtime errors (0.780708ms)
+ℹ tests 6
+ℹ suites 0
+ℹ pass 1
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1349.001083
+
+✖ failing tests:
+
+test at apps/api/test/image-integrity-repair.test.ts:8:1
+✖ Image integrity: header-only PNG must not reach verified saved gallery (247.031541ms)
+  AssertionError [ERR_ASSERTION]: A PNG with no complete IHDR/IDAT/IEND is not a valid saved image
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-integrity-repair.test.ts:22:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/image-integrity-repair.test.ts:30:3
+✖ Image integrity: mounted upload rejects malformed complete-container candidates image/png (164.779708ms)
+  AssertionError [ERR_ASSERTION]: png-header-only: {"data":{"id":"upl_bfad94af-273e-43c0-96e1-b991f4cc414e","projectId":"prj","cardId":"card","version":2,"state":"content_received","expectedBytes":24,"receivedBytes":24,"expiresAt":"2026-11-03T06:59:40.508Z","serverNow":"2026-11-03T05:59:40.519Z","finalizedImageId":null,"error":null}}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-integrity-repair.test.ts:39:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/image-integrity-repair.test.ts:30:3
+✖ Image integrity: mounted upload rejects malformed complete-container candidates image/jpeg (190.140542ms)
+  AssertionError [ERR_ASSERTION]: jpeg-frame-only: {"data":{"id":"upl_64a34106-b45a-4e8f-97d8-2551ad91bd10","projectId":"prj","cardId":"card","version":2,"state":"content_received","expectedBytes":161,"receivedBytes":161,"expiresAt":"2026-11-03T06:59:40.696Z","serverNow":"2026-11-03T05:59:40.707Z","finalizedImageId":null,"error":null}}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-integrity-repair.test.ts:39:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/image-integrity-repair.test.ts:30:3
+✖ Image integrity: mounted upload rejects malformed complete-container candidates image/webp (183.546084ms)
+  AssertionError [ERR_ASSERTION]: webp-extended-header-only: {"data":{"id":"upl_95decce7-8adf-4202-a11f-091d55372d57","projectId":"prj","cardId":"card","version":2,"state":"content_received","expectedBytes":30,"receivedBytes":30,"expiresAt":"2026-11-03T06:59:40.876Z","serverNow":"2026-11-03T05:59:40.887Z","finalizedImageId":null,"error":null}}
+  
+  200 !== 422
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-integrity-repair.test.ts:39:14)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 200,
+    expected: 422,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at apps/api/test/image-integrity-repair.test.ts:59:1
+✖ Image integrity: every truncation of genuine containers is rejected without generic runtime errors (0.780708ms)
+  AssertionError [ERR_ASSERTION]: Missing expected exception: png@24
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/image-integrity-repair.test.ts:61:47)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    operator: 'throws',
+    diff: 'simple'
+  }

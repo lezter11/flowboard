@@ -1,3 +1,6 @@
+import { validateJpegEntropy } from '../services/jpeg-entropy.ts';
+import { validatePngPixelStream } from '../services/png-stream.ts';
+import { assertImageWorkActive, retainImageWork } from '../services/image-admission.ts';
 import crypto from 'node:crypto';
 import pg from 'pg';
 import type {
@@ -6,6 +9,7 @@ import type {
   FinalizedImage,
 } from '@flowboard/contracts';
 import { HttpError } from '../http/errors.ts';
+import { verifyImagePixels, imageVerificationUnavailable, IMAGE_VERIFICATION_DEADLINE_MS } from '../services/image-verifier.ts';
 import { getStorageDriver } from './storage.ts';
 import {
   validateImageBinary,
@@ -92,7 +96,7 @@ function mapUploadRowToContract(row: CardImageUploadRow): ImageUpload {
     projectId: row.project_id,
     cardId: row.card_id,
     version: row.version,
-    state: row.state as any,
+    state: row.finalized_image_id ? 'finalized' : row.state as any,
     expectedBytes: row.byte_length,
     receivedBytes: row.received_bytes,
     expiresAt: row.expires_at.toISOString(),
@@ -226,9 +230,10 @@ export async function receiveImageContent(
   actorId: string,
   uploadId: string,
   rawBytes: Uint8Array,
+  verification?: ImageVerificationTicket | null,
 ): Promise<ImageUpload> {
   const uploadRes = await clientOrPool.query<CardImageUploadRow>(
-    'SELECT * FROM card_image_uploads WHERE id = $1',
+    'SELECT * FROM card_image_uploads WHERE id = $1 FOR UPDATE',
     [uploadId],
   );
 
@@ -255,7 +260,7 @@ export async function receiveImageContent(
   }
 
   // Check upload state
-  if (upload.state === 'finalized') {
+  if (upload.state === 'finalized' || upload.finalized_image_id) {
     return mapUploadRowToContract(upload);
   }
 
@@ -290,7 +295,7 @@ export async function receiveImageContent(
     );
   }
 
-  // Binary validation (magic bytes, dimensions, script/svg polyglots)
+  // Complete-container validation, dimensions and script/SVG rejection (no pixel decoding).
   try {
     validateImageBinary(rawBytes, upload.content_type as any, upload.sha256);
   } catch (err) {
@@ -307,6 +312,10 @@ export async function receiveImageContent(
     );
     throw HttpError.unprocessable(message, code);
   }
+
+  requireVerificationTicket(verification, upload, actorId);
+  const cardState=await clientOrPool.query<{state:string}>('SELECT state FROM cards WHERE id=$1 FOR SHARE',[upload.card_id]);
+  if(cardState.rows[0]?.state!=='active') throw HttpError.conflict('Cannot attach images to an inactive card.','CARD_TRASHED');
 
   // Store staged object in storage driver
   const storage = getStorageDriver();
@@ -331,6 +340,71 @@ export async function receiveImageContent(
   return mapUploadRowToContract(updateRes.rows[0]);
 }
 
+// A ticket is minted only after full decode outside the mutation transaction. Its private
+// record binds actor, upload version and digest; an HTTP body cannot manufacture one.
+export interface ImageVerificationTicket {
+  readonly verified: true;
+}
+const verificationTickets = new WeakMap<ImageVerificationTicket, {
+  actorId: string;
+  uploadId: string;
+  version: number;
+  sha256: string;
+}>();
+async function checkedBinary(upload: CardImageUploadRow, bytes: Uint8Array, signal: AbortSignal | undefined, deadlineAt: number) {
+  if (bytes.byteLength !== upload.byte_length) throw HttpError.badRequest('The upload does not match what was declared. Start the upload again.', 'SIZE_MISMATCH');
+  if (crypto.createHash('sha256').update(bytes).digest('hex') !== upload.sha256.toLowerCase()) throw HttpError.badRequest('The upload does not match the staged digest.', 'DIGEST_MISMATCH');
+  try {
+    const dimensions = validateImageBinary(bytes, upload.content_type as any, upload.sha256);
+    if (upload.content_type === 'image/jpeg') await validateJpegEntropy(bytes, signal, deadlineAt);
+    if (upload.content_type === 'image/png') await validatePngPixelStream(bytes, signal, deadlineAt);
+    return dimensions;
+  } catch (error) {
+    if (error instanceof ImageValidationError) throw HttpError.unprocessable(error.message, error.code);
+    throw error;
+  }
+}
+function requireVerificationTicket(ticket: ImageVerificationTicket | null | undefined, upload: CardImageUploadRow, actorId: string) {
+  assertImageWorkActive();
+  if (!ticket) throw imageVerificationUnavailable();
+  const fact = verificationTickets.get(ticket);
+  if (!fact || fact.actorId !== actorId || fact.uploadId !== upload.id || fact.version !== upload.version || fact.sha256 !== upload.sha256.toLowerCase()) throw HttpError.conflict('Upload changed during verification. Try again.', 'INVALID_UPLOAD_STATE');
+}
+export async function prepareImageVerification(pool: pg.Pool, actorId: string, uploadId: string, content?: Uint8Array, signal?: AbortSignal): Promise<ImageVerificationTicket | null> {
+  const release = retainImageWork();
+  try {
+    const verificationStarted = Date.now();
+    const verificationDeadline = verificationStarted + IMAGE_VERIFICATION_DEADLINE_MS;
+    const upload = (await pool.query<CardImageUploadRow>('SELECT * FROM card_image_uploads WHERE id=$1', [uploadId])).rows[0];
+    if (!upload) throw HttpError.notFound('Upload staging record not found.', 'NOT_FOUND');
+    const access = await requireImageBoardAccess(pool, upload.card_id, actorId);
+    if (access.role === 'viewer') throw HttpError.forbidden('Viewers cannot upload images.');
+    if (actorId !== upload.uploader_id && access.role !== 'owner' && access.role !== 'manager') throw HttpError.forbidden('Only the uploader or a project manager can verify this upload.');
+    if (upload.state === 'finalized' || upload.finalized_image_id) return null;
+    if (upload.state === 'cancelled') throw HttpError.conflict('Upload staging has been cancelled.', 'UPLOAD_CANCELLED');
+    if (upload.state === 'expired' || upload.expires_at.getTime() < Date.now()) throw HttpError.badRequest('Upload staging has expired.', 'UPLOAD_EXPIRED');
+    if (!content && upload.state !== 'content_received') throw HttpError.conflict('Upload has no received content.', 'INVALID_UPLOAD_STATE');
+    const bytes = content ?? (await getStorageDriver().get(stagingKeyOf(upload)))?.data;
+    if (!bytes) throw HttpError.badRequest('Staged image content missing from storage.', 'CONTENT_MISSING');
+    assertImageWorkActive();
+    const dimensions = await checkedBinary(upload, bytes, signal, verificationDeadline);
+    await verifyImagePixels(bytes, upload.content_type as any, dimensions, signal, verificationDeadline - Date.now());
+    assertImageWorkActive();
+    const ticket: ImageVerificationTicket = {
+      verified: true
+    };
+    verificationTickets.set(ticket, {
+      actorId,
+      uploadId,
+      version: upload.version,
+      sha256: upload.sha256.toLowerCase()
+    });
+    return ticket;
+  } finally {
+    release();
+  }
+}
+
 /**
  * Validates staged image bytes and finalizes the attachment to the card.
  * Enforces transaction atomicity, card locking, board version bump, and activity log.
@@ -339,6 +413,7 @@ export async function finalizeImageUpload(
   clientOrPool: pg.Pool | pg.ClientBase,
   actorId: string,
   uploadId: string,
+  verification?: ImageVerificationTicket | null,
 ): Promise<FinalizedImage> {
   const isPool = clientOrPool instanceof pg.Pool;
   const client = isPool ? await (clientOrPool as pg.Pool).connect() : clientOrPool as pg.ClientBase;
@@ -379,7 +454,7 @@ export async function finalizeImageUpload(
     }
 
     // If already finalized, return existing finalized record (idempotency)
-    if (upload.state === 'finalized' && upload.finalized_image_id) {
+    if (upload.finalized_image_id) {
       const imgRes = await client.query<CardImageRow>(
         'SELECT * FROM card_images WHERE id = $1',
         [upload.finalized_image_id],
@@ -465,15 +540,23 @@ export async function finalizeImageUpload(
       throw HttpError.badRequest('Staged image content missing from storage.', 'CONTENT_MISSING');
     }
 
-    // Full validation
-    const validation = validateImageBinary(stored.data, upload.content_type as any, upload.sha256);
+    // Recheck persisted bytes too: an older uploader may have accepted a malformed container.
+    // Keep validation failures typed and roll back before any permanent storage/card effects.
+    let validation: ReturnType<typeof validateImageBinary>;
+    try {
+      validation = validateImageBinary(stored.data, upload.content_type as any, upload.sha256);
+    } catch (error) {
+      if (error instanceof ImageValidationError) throw HttpError.unprocessable(error.message, error.code);
+      throw error;
+    }
+
+    requireVerificationTicket(verification, upload, actorId);
 
     const imageId = 'img_' + crypto.randomUUID();
-    const finalStorageKey = `images/${upload.project_id}/${upload.card_id}/${imageId}`;
-
-    // Store permanently in storage driver
-    await storage.put(finalStorageKey, stored.data, upload.content_type);
-    await storage.delete(stagingKey);
+    // The object is already private and immutable for this upload. Promote its
+    // database reference only: a failed COMMIT must leave exactly the original
+    // known object for retry, not delete it and orphan a random copied object.
+    const finalStorageKey = stagingKey;
 
     // Insert card_images record
     const insertImageRes = await client.query<CardImageRow>(
@@ -588,12 +671,12 @@ export async function getImageUpload(
  * Cancels a pending upload staging record and removes any staged bytes.
  */
 export async function cancelImageUpload(
-  clientOrPool: pg.Pool | pg.ClientBase,
+  clientOrPool: pg.ClientBase,
   actorId: string,
   uploadId: string,
 ): Promise<ImageUpload> {
   const uploadRes = await clientOrPool.query<CardImageUploadRow>(
-    'SELECT * FROM card_image_uploads WHERE id = $1',
+    'SELECT * FROM card_image_uploads WHERE id = $1 FOR UPDATE',
     [uploadId],
   );
 
@@ -616,7 +699,7 @@ export async function cancelImageUpload(
     throw HttpError.forbidden('Only the original uploader or a project manager can cancel an upload.');
   }
 
-  if (upload.state === 'finalized') {
+  if (upload.state === 'finalized' || upload.finalized_image_id) {
     throw HttpError.conflict('Cannot cancel an upload that has already been finalized.', 'ALREADY_FINALIZED');
   }
 
@@ -628,10 +711,13 @@ export async function cancelImageUpload(
     await acquireWriteGrantLock(clientOrPool as pg.ClientBase, access.projectId, actorId, 'member', access.boardId);
   }
 
-  // Delete staged bytes if present
-  const storage = getStorageDriver();
+  // Commit cleanup intent with cancellation. Object storage cannot roll back
+  // with PostgreSQL; the mounted route performs deletion only after COMMIT.
   const stagingKey = stagingKeyOf(upload);
-  await storage.delete(stagingKey).catch(() => {});
+  await clientOrPool.query(
+    `INSERT INTO pending_storage_deletions (storage_key) VALUES ($1)
+     ON CONFLICT (storage_key) DO NOTHING`, [stagingKey],
+  );
 
   const updateRes = await clientOrPool.query<CardImageUploadRow>(
     `UPDATE card_image_uploads
@@ -885,44 +971,60 @@ export async function deleteStorageAfterCommit(client: pg.ClientBase, storageKey
 }
 
 /**
- * Cleans up expired or cancelled upload staging records and unreferenced storage objects.
- */
-/**
- * Sweeps staged uploads that will never be finalized (B-11): expired, cancelled or failed, or still
- * awaiting content past expiry. Each row is settled once (staging_cleaned). Its staging key is
- * queued in pending_storage_deletions in the same transaction, then deleted after commit. A failed
- * delete stays queued for processPendingStorageDeletions to retry. A missing bucket throws before
- * any bytes are touched, and the queued keys wait for the next run.
+ * Settle expired/cancelled/failed staging once. A finalized upload stays finalized:
+ * its object may now be the live image object, so reference checks follow the
+ * upload locks in a fresh statement. Only unreferenced keys enter the durable
+ * deletion queue. Legacy separate staging keys remain eligible for cleanup.
+ * Storage deletion happens after commit; failures keep their retryable keys.
  */
 export async function cleanupOrphanUploads(
   pool: pg.Pool,
   limit = 100,
 ): Promise<{ cleanedCount: number }> {
+  if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw HttpError.badRequest('Cleanup batch size must be between1 and100.', 'INVALID_LIMIT');
   const client = await pool.connect();
-  let settled: Array<{ id: string; filename: string; staging_storage_key: string | null }> = [];
+  let settled: Array<{ id: string; card_id: string; filename: string; staging_storage_key: string | null }> = [];
+  const keys: string[] = [];
   try {
     await client.query('BEGIN');
-    const rows = await client.query<{ id: string; filename: string; staging_storage_key: string | null }>(
-      `SELECT id, filename, staging_storage_key FROM card_image_uploads
-       WHERE staging_cleaned = FALSE
-         AND (state IN ('expired', 'cancelled', 'failed') OR expires_at < NOW())
-       ORDER BY expires_at ASC, id ASC
+    const rows = await client.query<{ id: string; card_id: string; filename: string; staging_storage_key: string | null }>(
+      `SELECT u.id, u.card_id, u.filename, u.staging_storage_key
+       FROM card_image_uploads u
+       WHERE u.staging_cleaned = FALSE
+         AND (u.state IN ('expired', 'cancelled', 'failed') OR u.expires_at < NOW())
+       ORDER BY u.expires_at ASC, u.id ASC
        LIMIT $1
-       FOR UPDATE SKIP LOCKED`,
+       FOR UPDATE OF u SKIP LOCKED`,
       [limit],
     );
     settled = rows.rows;
+    // LockRows can return a just-committed finalized tuple after this SELECT's
+    // snapshot was taken. Only a new READ COMMITTED statement sees the matching
+    // image insert. All upload locks remain held, so a later finalizer cannot race
+    // this bounded batch check. REPEATABLE READ aborts on a changed locked tuple.
+    const referenced = settled.length ? await client.query<{ storage_key:string }>(
+      `SELECT DISTINCT storage_key FROM card_images
+       WHERE card_id=ANY($1::text[]) AND storage_key=ANY($2::text[])`,
+      [[...new Set(settled.map(upload=>upload.card_id))],settled.map(stagingKeyOf)],
+    ) : {rows:[]};
+    const referencedKeys = new Set(referenced.rows.map(row=>row.storage_key));
     for (const upload of settled) {
-      await client.query(
+      if (!referencedKeys.has(stagingKeyOf(upload))) {
+        const key=stagingKeyOf(upload);
+        keys.push(key);
+        await client.query(
         `INSERT INTO pending_storage_deletions (storage_key) VALUES ($1)
          ON CONFLICT (storage_key) DO NOTHING`,
-        [stagingKeyOf(upload)],
-      );
+        [key],
+        );
+      }
       // Version moves only when the state actually changes (a non-terminal row becomes expired).
       await client.query(
         `UPDATE card_image_uploads
-         SET version = version + CASE WHEN state IN ('expired', 'cancelled', 'failed') THEN 0 ELSE 1 END,
-             state = CASE WHEN state IN ('expired', 'cancelled', 'failed') THEN state ELSE 'expired' END,
+         SET version = version + CASE WHEN finalized_image_id IS NOT NULL AND state<>'finalized' THEN 1
+                                      WHEN state IN ('finalized', 'expired', 'cancelled', 'failed') THEN 0 ELSE 1 END,
+             state = CASE WHEN state='finalized' OR finalized_image_id IS NOT NULL THEN 'finalized'
+                          WHEN state IN ('expired', 'cancelled', 'failed') THEN state ELSE 'expired' END,
              staging_cleaned = TRUE,
              updated_at = NOW()
          WHERE id = $1`,
@@ -937,11 +1039,10 @@ export async function cleanupOrphanUploads(
     client.release();
   }
 
-  const storage = getStorageDriver();
-  for (const upload of settled) {
-    const key = stagingKeyOf(upload);
+  const storage = keys.length ? getStorageDriver() : null;
+  for (const key of keys) {
     try {
-      await storage.delete(key);
+      await storage!.delete(key);
       await pool.query('DELETE FROM pending_storage_deletions WHERE storage_key = $1', [key]);
     } catch {
       // Stays in pending_storage_deletions; processPendingStorageDeletions retries it.
