@@ -1,0 +1,1047 @@
+Command: npm test --workspace @flowboard/api
+Started: 2026-11-03T04:02:27.867843+00:00
+Environment: sanitized, synthetic localhost PostgreSQL55923, PostgreSQL17.11-alpine image266d3c257594
+
+
+> test
+> node scripts/check-test-databases.mjs && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/*.test.ts
+
+▶ ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Administration Suite
+  ✔ ACC-02: Sign out and expired session revocation (68.006208ms)
+  ✔ ACC-03: Profile updates and historical identity preservation (5.035834ms)
+  ✔ ACC-05: Workspace preferences (name and timezone with OCC) (5.85ms)
+  ✔ ACC-06: Owned and invited context switcher (8.436958ms)
+  ✔ ACC-07: Owner transfer atomic transition and idempotency (5.071625ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ INV-02: Invitation delivery through the configured mailer (14.400875ms)
+✔ ACC-02, ACC-03, ACC-05, ACC-06, ACC-07, INV-02: Account Lifecycle & Administration Suite (109.178417ms)
+▶ ACC-01: Sign in, Sessions and Authentication Suite
+  ✔ 1. POST /api/v1/session/dev-login creates user, session, and sets cookie (103.795ms)
+  ✔ 2. GET /api/v1/session with valid cookie returns actor, owned workspaces, and accessible projects (8.249459ms)
+  ✔ 3. GET /api/v1/session without cookie returns 401 UNAUTHORIZED (0.435ms)
+  ✔ 4. GET /api/v1/session with expired session returns 401 UNAUTHORIZED (1.30925ms)
+  ✔ 5. POST /api/v1/session/logout revokes session in DB and clears cookie (204 No Content) (2.18675ms)
+  ✔ 6. POST /api/v1/session/dev-login rejects existing user without X-Dev-Secret (403 FORBIDDEN) (0.882667ms)
+  ✔ 7. POST /api/v1/session/dev-login rejects existing user with invalid X-Dev-Secret (403 FORBIDDEN) (0.823041ms)
+  ✔ 8. POST /api/v1/session/dev-login succeeds for existing user with valid X-Dev-Secret (1.536291ms)
+  ✔ 9. POST /api/v1/session/dev-login returns 404 NOT_FOUND when NODE_ENV === "production" (0.328166ms)
+  ✔ 10. Cookies have Secure flag when request is not from localhost (1.427375ms)
+  ✔ 11. R3-10: Session token hashing prevents bearer token leakage via database read (0.973875ms)
+✔ ACC-01: Sign in, Sessions and Authentication Suite (124.355667ms)
+▶ ACC-04 (B-20): workspace routes after the retirement
+  ✔ 1. An anonymous POST gets 401, not 410: authentication still comes first (12.415375ms)
+  ✔ 2. An authenticated POST gets 410 WORKSPACE_CREATE_RETIRED and creates nothing (5.529792ms)
+  ✔ 3. GET lists owned workspaces only, and never one the caller is merely a member of (7.539041ms)
+✔ ACC-04 (B-20): workspace routes after the retirement (43.948834ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ B-5 activity coverage: writes, atomicity, replay, visibility and leaks
+  ✔ flow: each write records exactly one row with the expected action (163.642083ms)
+  ✔ every written action name is in ACTIVITY_ACTIONS (0.496375ms)
+  ✔ safe_changes carry ids and roles only: no token, no invitee email, no description, no brief text (0.47125ms)
+  ✔ a failed write records nothing: stale board version and duplicate column name (10.261875ms)
+  ✔ idempotent replay writes no duplicate row (8.841041ms)
+  ✔ visibility: owner reads board and project rows in the project feed (4.856875ms)
+  ✔ visibility: manager without a grant sees project rows and no board rows (4.466875ms)
+  ✔ visibility: manager with a grant on b1 sees b1 rows but not b2 rows (5.154833ms)
+  ✔ visibility: member with a grant gets 403 on the project feed and sees b1 rows, no project rows, in overview (9.48875ms)
+  ✔ visibility: member with no grant sees nothing; stranger gets 404 (8.009334ms)
+  ✔ overview (B-6): owner and manager see project rows; member, viewer and no-grant member do not (20.025209ms)
+  ✔ overview (B-6): no token or invitee email in any overview body (9.219083ms)
+  ✔ leak: the owner feed JSON never contains a token or an invitee email (3.678791ms)
+  ✔ removing a member also revokes their pending invitation and logs that revoke once (5.142625ms)
+✔ B-5 activity coverage: writes, atomicity, replay, visibility and leaks (289.143791ms)
+▶ ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Suite
+  ✔ 0. Setup Workspace, Projects, Members and Initial Card (178.988417ms)
+  ✔ ATT-01: Stage upload authorization and bounds (33.386792ms)
+  ✔ ATT-02: Binary upload, validation, spoofing rejection, and finalization (96.317625ms)
+  ✔ ATT-03: Gallery listing shows finalized images only (11.246042ms)
+  ✔ ATT-04: Authenticated proxy delivery and security headers (12.945958ms)
+  ✔ ATT-05: Remove attached image with OCC, role check, and activity (27.679917ms)
+  ✔ ATT-06: Quota enforcement (max 10) and orphan upload cleanup (185.3205ms)
+  ✔ ATT-07: Attachment preservation in trash, restore, and purge (82.408125ms)
+✔ ATT-01 to ATT-07: Image Upload Staging, Validation, Delivery, Lifecycle Suite (631.930416ms)
+▶ AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite
+  ✔ 0. Setup Workspace, Projects, Members and Initial Board Structure (117.698375ms)
+  ✔ AUD-01 & AUD-02: Card Activity Timeline and Movement History (58.015125ms)
+(node:65538) DeprecationWarning: Calling client.query() when the client is already executing a query is deprecated and will be removed in pg@9.0. Use async/await or an external async flow control mechanism instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+  ✔ AUD-03: Workspace Owner Cross-Project Activity & Sibling Privacy (25.072084ms)
+  ✔ AUD-04: Manager vs Member vs Viewer Audit Scopes (12.780958ms)
+  ✔ AUD-06: Append-only Immutability and Retention Redaction (4.107291ms)
+  ✔ NTF-01: Durable In-App Mention Inbox & Self-Mention Omission (25.319041ms)
+  ✔ NTF-02: Inbox Read State & Access Revocation Redaction (28.238625ms)
+  ✔ NTF-03: Outbox Leased Worker Processing, Idempotency & Quarantine (14.893375ms)
+  ✔ AUD-05: Lifecycle import and image events (29.903959ms)
+✔ AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite (318.708875ms)
+▶ B-10 email: the disabled mailer does nothing and the pending row keeps its link
+  ✔ no key, no sender or a bad origin means no mailer (0.454459ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ an invitation with mail disabled stays pending and untouched, and the API still answers (51.219666ms)
+✔ B-10 email: the disabled mailer does nothing and the pending row keeps its link (51.984958ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ B-10 email: create sends the accept link to the invitee, then drops the token
+  ✔ the drain sends one email with the accept link on the configured origin (2.741834ms)
+  ✔ after the send the row is delivered, holds no token, and records only the provider id (0.382292ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ an idempotent replay of the create writes no second row and sends nothing more (11.502458ms)
+✔ B-10 email: create sends the accept link to the invitee, then drops the token (26.794125ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-10 email: resend supersedes the earlier pending email, so only the newest link works (18.852833ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ B-10 email: Brevo 5xx, 429 and network errors retry; other 4xx is permanent and drops the token
+  ✔ 5xx retries (12.64275ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ 429 retries (12.330917ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ network error retries (12.580666ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ 400 is permanent (11.192083ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ 401 is permanent (14.795875ms)
+✔ B-10 email: Brevo 5xx, 429 and network errors retry; other 4xx is permanent and drops the token (63.889083ms)
+✔ B-10 email: the HTML is escaped, the subject is one line, and names cannot inject markup or headers (0.182375ms)
+✔ B-10 email: the app origin comes from configuration only and must be https or a local dev host (0.082542ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-10 email: no token, key or provider body reaches a log on any send path (13.418125ms)
+▶ B-11 orphan uploads: expired staging bytes are removed once, and a failed delete is retried
+  ✔ the sweep removes the expired staged bytes and leaves a live upload alone (4.262583ms)
+  ✔ a second sweep does not revisit a settled row (1.528166ms)
+{"event":"scheduled_job_failed","jobs":["first","third"]}
+  ✔ a failing delete stays queued and is retried by the pending-deletion job (4.08075ms)
+✔ B-11 orphan uploads: expired staging bytes are removed once, and a failed delete is retried (52.332875ms)
+✔ B-11 scheduled jobs: one failing job does not stop the others, and the failure is still reported (0.533333ms)
+▶ B-11 image cap: staged uploads count, expired ones do not, and two concurrent stages cannot both pass
+  ✔ nine images plus one live staged upload refuse a further stage (36.32325ms)
+  ✔ an expired staged upload does not count toward the cap (27.385333ms)
+  ✔ a stage waits for an in-flight stage on the same card, then counts its staged upload (326.404167ms)
+✔ B-11 image cap: staged uploads count, expired ones do not, and two concurrent stages cannot both pass (390.461625ms)
+▶ B-11 mention people: only people who can read the card's board
+  ✔ by card: the viewer with a board grant and the manager are listed; the member without a grant is not (12.2765ms)
+  ✔ by board: the same answer (13.875833ms)
+  ✔ with neither card nor board, mention lists nobody (backward compatible, no leak) (2.667666ms)
+  ✔ a member without the board grant cannot list mentionees for the card (404, no list) (3.54775ms)
+  ✔ an unknown card and an unreadable card give the same 404 (5.526375ms)
+  ✔ the display purpose is unchanged: project members are still listed (3.410542ms)
+  ✔ no email field is returned to anyone (7.247041ms)
+✔ B-11 mention people: only people who can read the card's board (60.117958ms)
+✔ B-15 structure: nested tables, 600px cap, preheader, lockup, and the fingerprint (1.800625ms)
+✔ B-15 email: the intro, column, card and steps follow the approved preview (1.86625ms)
+✔ B-15 email: inline styles only, dark mode in one style block, no script, no web font (0.191958ms)
+✔ B-15 dark mode: every dark class in the style block uses the dark palette (0.07725ms)
+✔ B-15 email: one primary button to the accept link, and a plain fallback link under it (0.309708ms)
+✔ B-15 email footer: states why the person received it, in both parts (0.053833ms)
+✔ B-15 cards for all three roles: role chip, description, abilities, due date, and card key (0.192792ms)
+✔ B-15 card key and initials: from the invitation id tail and the recipient local part only (0.057166ms)
+✔ B-15 the token appears only inside the accept link, never in the card key or initials (0.096209ms)
+✔ B-12 escaping: names with markup become text, and no raw < from a name reaches the HTML (0.155333ms)
+✔ B-12 subject: names only, one line, bounded, no header injection (0.104ms)
+✔ B-15 colours: every text and fill pair meets WCAG AA in both themes, and every graphic meets 3:1 (0.346625ms)
+✔ B-15 colours: the dark theme is the approved palette (0.0365ms)
+✔ B-12 escapeHtml: the five characters (0.024375ms)
+✔ B-15 due date: a real UTC day only, and no due chip without one (0.25725ms)
+✔ B-15 plain text mirrors the card: column, card, steps, abilities, footer (0.058167ms)
+✔ B-14 migration 0017: 0001 to 0017 migrate from empty and the file runs twice without error (203.423417ms)
+✔ B-14 migration 0017: rate_limit_windows rejects a negative request_count and accepts zero (162.534709ms)
+✔ B-14 migration 0017: the child-side indexes exist (158.279625ms)
+✔ B-14 migration 0017: a settled outbox row without settled_at is backfilled from created_at on re-run; pending rows stay unsettled (201.977ms)
+✔ B-14: a delivered invitation keeps only a receipt with the provider message id (170.988125ms)
+✔ B-14: a permanently refused invitation keeps an empty receipt, with no recipient or template fields (161.243833ms)
+✔ B-14: a retryable failure keeps the payload, so the drain can still send it (162.106125ms)
+✔ B-14: the retention purge deletes settled rows older than 30 days, and nothing else (151.09975ms)
+✔ B-14: the trash-then-purge path leaves no card title, description or comment text in notifications, activity or the outbox (221.916708ms)
+✔ B-16 migration 0018: adds the three columns, is idempotent, and enforces the length bounds (58.100666ms)
+▶ B-16 Google sign-in: given and family name are suggestions only, and the name stays unconfirmed
+  ✔ a second sign-in refreshes the suggestion while the name is unconfirmed (8.3615ms)
+  ✔ a profile with no given or family name gives no suggestion, and sign-in still works (10.307209ms)
+  ✔ after the user saves a name, a later sign-in changes neither the names nor the confirmation (9.443208ms)
+✔ B-16 Google sign-in: given and family name are suggestions only, and the name stays unconfirmed (67.563208ms)
+✔ B-16 session: an existing or Google user is asked for a name; a dev fixture user is not (8.269042ms)
+✔ B-16 save: names are trimmed and collapsed, display_name follows, and saving again is idempotent (7.689042ms)
+▶ B-16 hostile input: refused with 422 and nothing stored; plain text is kept as text
+  ✔ NUL control (1.385334ms)
+  ✔ zero-width space (1.561708ms)
+  ✔ zero-width joiner (2.764583ms)
+  ✔ BOM (1.467208ms)
+  ✔ right-to-left override (1.050125ms)
+  ✔ left-to-right isolate (1.237417ms)
+  ✔ line separator (0.840334ms)
+  ✔ paragraph separator (0.913834ms)
+  ✔ CRLF injection (0.919083ms)
+  ✔ too long (61) (0.957042ms)
+  ✔ whitespace only (0.932708ms)
+  ✔ empty last name (0.802125ms)
+  ✔ missing last name (0.870208ms)
+  ✔ number (1.061375ms)
+  ✔ unknown field (1.096625ms)
+✔ B-16 hostile input: refused with 422 and nothing stored; plain text is kept as text (23.869875ms)
+✔ B-16 authorization: the save needs a signed-in session and a same-site Origin (1.806084ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-16 accept gate: an unnamed user cannot accept an invitation; a named user can (28.696458ms)
+✔ B-17 ensure: parallel callers for a person with no workspace make exactly one (78.369417ms)
+✔ B-17 ensure: the primary workspace is the oldest owned one, by created_at then id (4.925792ms)
+✔ B-17 sign-in: a long display name never makes a workspace the session cannot parse (43.712083ms)
+✔ B-17 double Google sign-in: the callback twice gives the person one workspace (13.636458ms)
+▶ backstops count archived items and session exposes effective limits
+  ✔ Node runtime applies environment overrides to session limits (43.745208ms)
+  ✔ Worker handler applies environment overrides to session limits (134.313375ms)
+  ✔ board archive cycles reach the total backstop (129.235709ms)
+  ✔ project archive cycles reach the total backstop (51.05575ms)
+  ✔ invalid overrides fall back and valid overrides apply (0.217458ms)
+✔ backstops count archived items and session exposes effective limits (435.702042ms)
+✔ default 20-project and 25-board backstops include archived rows (126.216417ms)
+▶ B-18: owned project and shared board permissions
+  ✔ member and viewer cannot create shared boards; manager can (50.206834ms)
+  ✔ each shared role can create a project of their own without a workspace (33.809584ms)
+  ✔ a supplied workspaceId is rejected (1.447083ms)
+  ✔ project limit rejects the fourth create but allows replay at the cap (129.67575ms)
+  ✔ board limit applies across creators and hides the count from a manager (100.422209ms)
+  ✔ archive frees a board slot and an archived board cannot reopen at the cap (85.0845ms)
+  ✔ two project creates waiting at the same quota lock cannot exceed the cap (106.051ms)
+  ✔ two board creates waiting at the project quota lock cannot exceed the cap (61.007084ms)
+  ✔ project archive frees a slot and reopening at the cap is rejected (53.014167ms)
+  ✔ existing over-limit projects are preserved and further creation is refused (8.74825ms)
+✔ B-18: owned project and shared board permissions (785.56ms)
+✔ B-21 0019: a user with no workspace gets one fixed-name personal workspace, and a second run inserts nothing (1012.721917ms)
+✔ B-21 0019: existing workspaces and their projects survive the migration unchanged (563.880625ms)
+✔ B-21 0019: the owner index exists, and boards.created_by is nullable with a foreign key to users (412.784167ms)
+✔ B-21 0019: the backfill waits for a live sign-in that holds the same user lock, and creates no second workspace (953.212542ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 seats: the pending limit refuses the next invitation; expired pending rows are not counted (213.085416ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 seats: active members plus pending invitations reserve the member limit (rule 6) (77.086292ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 accept: a project at the member limit refuses the next accept; the Owner is not counted (45.21225ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 resend: an expired invitation is refused and is not revived (41.815334ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 resend spends the inviter buckets: a burst of resends is refused with RATE_LIMITED (359.287375ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 accept into an archived project is refused with READ_ONLY_CONTEXT (32.500375ms)
+✔ B-22 invite: a stored name is required before an invitation is sent (NAME_REQUIRED) (25.448917ms)
+✔ B-22 names: project and board names refuse control, zero-width and bidirectional characters (10.94475ms)
+✔ B-22 email: format characters are stripped from the project and inviter names in the text and subject (1.824125ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 races: parallel invitations at the pending limit never exceed it (forced interleaving) (245.103917ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 races: parallel accepts at the member limit admit exactly the free seats (263.077709ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 races: accept and resend of the same invitation never deadlock (F-04) (197.019792ms)
+✔ B-23 unique names carry no number (86.495625ms)
+✔ B-23 two, three and four duplicates number in join order, the Owner first (25.075583ms)
+✔ B-23 the Owner is first even when a same-named member joined before the Owner existed (26.11125ms)
+✔ B-23 case and accent insensitive: "José Pérez" collides with "jose perez" (NFKC, accents removed) (21.497042ms)
+✔ B-23 stable when an unrelated person joins; numbers do not move with unrelated members (30.336375ms)
+✔ B-23 the number drops when the first duplicate leaves, and the remaining one is unique again (25.70275ms)
+✔ B-23 a rename that makes two names collide numbers the later member; renaming away removes the number (29.645208ms)
+✔ B-23 people endpoint: the number is project-wide, so a filtered or paged response carries the same numbers (15.98925ms)
+✔ B-23 the board snapshot and the people endpoint agree on the numbers (65.024042ms)
+✔ B-23 no email in any person object, and the contract stays backward compatible (19.496083ms)
+✔ B-23 the helper numbers from the stored rows alone, for any caller (17.337958ms)
+✔ B-24 the picker and the validator agree for every role and grant combination (260.113416ms)
+✔ B-24 owner is always offered; a manager without a grant is absent until the grant is made (81.342916ms)
+✔ B-24 a viewer is never assignable, with or without a grant (61.092709ms)
+✔ B-24 a caller who cannot read the board gets 404 from the picker, and no person list (21.181417ms)
+✔ B-24 no email appears in any assignee picker response (20.686458ms)
+✔ B-24 the picker refuses assignee without a board (BOARD_REQUIRED, 422) (18.002375ms)
+▶ B-7 assignees: a viewer cannot be assigned and the card is untouched
+  ✔ PATCH assigning a viewer returns 422 and leaves the card and activity unchanged (93.237334ms)
+  ✔ POST creating a card with a viewer assignee returns 422 and creates nothing (10.7845ms)
+  ✔ the owner and a member with a grant are still assignable (positive control) (199.213041ms)
+✔ B-7 assignees: a viewer cannot be assigned and the card is untouched (367.49275ms)
+✔ B-7 body caps: the cap depends on the route, the method and the session (0.562416ms)
+▶ B-7 body caps: the boundary is enforced on the wire, with and without a session
+  ✔ a signed-in import at exactly 5 MiB plus envelope is not refused for size (44.277167ms)
+  ✔ a signed-in import one byte over the cap is refused with 413 (6.515833ms)
+  ✔ an anonymous import over 1 MiB is refused with 413 before auth (1.231083ms)
+  ✔ a signed-in image content upload at the envelope size is not refused for size (21.00925ms)
+  ✔ a signed-in image content upload one byte over the cap is refused with 413 (5.045542ms)
+  ✔ a signed-in import body is still capped at 5 MiB, not at the image cap (4.499166ms)
+  ✔ other signed-in routes stay at 1 MiB (1.085583ms)
+✔ B-7 body caps: the boundary is enforced on the wire, with and without a session (179.8215ms)
+▶ B-7 Google token exchange: a failure logs the status only, never the provider body
+  ✔ the response is a 302 to sign-in with state=failed, and the log holds no provider text (3.182958ms)
+✔ B-7 Google token exchange: a failure logs the status only, never the provider body (3.768875ms)
+✔ B-7 images: R2 driver round-trips bytes and content type, and tolerates repeat deletes (1.079291ms)
+✔ B-7 images: with no bucket bound, image routes fail closed before any database write (99.02975ms)
+✔ B-7 images: the Worker without an IMAGES binding answers 503 CONFIG_ERROR on image routes (36.731875ms)
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"warn","event":"rate_limit_client_ip_missing"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"warn","event":"rate_limit_client_ip_missing"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+✔ B-7 images: upload, finalize, read and delete through the Worker, across separate isolates (230.76075ms)
+✔ B-7 images: cancelling a staged upload removes its staged object (66.786458ms)
+✔ B-7 images: the default driver is not used when a scope binds none (0.502ms)
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+{"level":"error","event":"rate_limit_binding_absent","binding":"FB_RL_WRITES"}
+✔ B-14 images: storage keys carry no user filename, and filenames with separators or control characters are refused (180.556792ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ B-7 invitations: per inviter and per project limits hold across rotating client addresses
+  ✔ an inviter gets 20 a minute, then 429 with a retry hint, whatever the client address (624.596625ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ a second manager shares the project allowance: 30 a minute in total (251.831583ms)
+  ✔ refused attempts roll back: the counters stay at the allowance, not above it (1.665333ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ an idempotent replay does not spend the allowance (43.520375ms)
+  ✔ an outsider cannot spend the project allowance (11.093ms)
+  ✔ the hourly ceiling applies even when the minute window is empty (28.674958ms)
+✔ B-7 invitations: per inviter and per project limits hold across rotating client addresses (1042.342334ms)
+✔ B-7 invitations: a failing counter refuses the attempt with 503 (fail closed) (0.527459ms)
+✔ B-7 migration 0015: 0001 to 0020 migrate clean from empty, and a second run changes nothing (569.1065ms)
+✔ B-7 migration 0015: the SQL file runs twice without error (425.908333ms)
+✔ B-7 migration 0015: a link cannot name a workspace other than its project's (386.232417ms)
+✔ B-7 XLSX: a bomb is stopped by the decompressor cap, not after allocation (63.114833ms)
+✔ B-7 XLSX: an honest declared size over the remaining budget is refused before inflation (50.321208ms)
+✔ B-7 XLSX: a garbage payload with an oversize declared size reports the size, not a decode error (0.172208ms)
+✔ B-7 XLSX: a stored (uncompressed) member is capped by the same budget (5.695667ms)
+✔ B-7 XLSX: a corrupt deflate stream still reports DECOMPRESSION_FAILED (3.876ms)
+▶ B-7 XLSX import: callers without an import right never reach the parser
+  ✔ no grant gets 404 before any parsing (the bytes are not a workbook) (7.8075ms)
+  ✔ a viewer with a grant gets 403 before any parsing (2.516ms)
+  ✔ a member with a grant gets 403 before any parsing (3.070625ms)
+  ✔ an unknown board gets 404 before any parsing (1.731125ms)
+  ✔ a no-grant caller sending a bomb never inflates it (41.333333ms)
+  ✔ an authorised manager sending a bomb is stopped by the parser cap (59.376875ms)
+  ✔ an authorised manager with a non-workbook reaches the parser and gets its error (3.086667ms)
+✔ B-7 XLSX import: callers without an import right never reach the parser (174.023959ms)
+✔ B-8 image delete: a failed commit keeps the row and the bytes (117.023375ms)
+✔ B-8 image delete: a storage failure after commit leaves a retryable pending row (46.671375ms)
+✔ B-8 image delete: a successful delete removes the bytes at once and leaves no pending row (40.085041ms)
+▶ B-9 mentions: only readers of the card may be mentioned; refusals do not reveal who exists
+  ✔ a viewer with a board grant can be mentioned and is notified (71.325292ms)
+  ✔ refuses a member with no board grant with 422 and writes nothing (24.340667ms)
+  ✔ refuses a removed member who once had a grant with 422 and writes nothing (24.297583ms)
+  ✔ refuses a user of another project with 422 and writes nothing (18.273042ms)
+  ✔ refuses a registered user who is not a member of the project with 422 and writes nothing (17.265125ms)
+  ✔ refuses an id that does not exist with 422 and writes nothing (23.909958ms)
+  ✔ the refusals for an existing non-reader and a missing id are identical (0.52275ms)
+  ✔ a self-mention is accepted and notifies nobody (37.99075ms)
+  ✔ an idempotent replay writes no second comment and no second notification (50.830541ms)
+✔ B-9 mentions: only readers of the card may be mentioned; refusals do not reveal who exists (370.644458ms)
+▶ B-9 mentions: edits do not add notifications (v1 rule, documented)
+  ✔ an edit that adds a mention of a reader does not notify (docs/API.md: edits do not re-notify in v1) (25.877125ms)
+✔ B-9 mentions: edits do not add notifications (v1 rule, documented) (82.463625ms)
+▶ B-9 mentions: a notification is re-authorised at read time, so revoked readers lose the snippet and title
+  ✔ while the grant is held, the viewer sees the notification with the snippet (8.881ms)
+  ✔ after the board grant is removed the notification disappears from the inbox (5.360417ms)
+  ✔ marking it read after revocation is refused and does not change the row (5.447916ms)
+  ✔ a removed membership hides it too, even with a grant row left behind (12.726792ms)
+  ✔ a trashed card hides the notification from its readers (13.171083ms)
+✔ B-9 mentions: a notification is re-authorised at read time, so revoked readers lose the snippet and title (104.538917ms)
+▶ B-9 profile: the display name changes, is trimmed, and shows everywhere it is read
+  ✔ a valid name is saved trimmed and returned (26.849166ms)
+  ✔ the session read shows the new name (15.658541ms)
+  ✔ the project people list shows the new name to another member (15.921417ms)
+  ✔ a name of exactly 80 characters is accepted, 81 is refused (4.831458ms)
+  ✔ empty, whitespace-only and non-string names are refused (7.856958ms)
+  ✔ control characters are refused, including a trailing newline that trim would hide (12.657708ms)
+  ✔ avatarUrl and any other field are refused: the avatar is Google-owned (3.369584ms)
+  ✔ no session is refused with 401 and nothing changes (3.202083ms)
+  ✔ refused edits leave the stored name unchanged (2.251042ms)
+✔ B-9 profile: the display name changes, is trimmed, and shows everywhere it is read (149.120542ms)
+✔ B-9 profile: a Google sign-in keeps an edited name and refreshes only Google-owned fields (30.80175ms)
+▶ mounted activity and notifications enforce board access
+  ✔ project and card activity hide hidden boards and unknown events before pagination (94.87525ms)
+  ✔ inbox hides hidden and legacy rows, and mark operations respect board access (41.370833ms)
+  ✔ revocation invalidates cursors and blocks reads and marks (45.66525ms)
+  ✔ notification read and grant revocation serialize (45.384417ms)
+  ✔ batch read commits before a waiting revocation, then later marks are denied (50.296875ms)
+✔ mounted activity and notifications enforce board access (937.460041ms)
+✔ mounted board, import and trash routes require current board access (859.772083ms)
+✔ mounted card discovery and image routes require a current board grant (900.699583ms)
+✔ Web Crypto cursor round-trips exact fields including Unicode and deterministic canonical serialization (6.202583ms)
+✔ rejects altered token, altered scope and another key (6.806041ms)
+✔ rejects missing and weak keys before issuing or verifying tokens (0.579625ms)
+✔ rejects malformed, overlong, noncanonical and invalid signed payloads (1.82025ms)
+▶ board access comprehensive integration on isolated PostgreSQL
+  ✔ Criterion 1: Owner has implicit access to all boards; nonowner without grant gets 404 (49.521542ms)
+  ✔ Criterion 3: Only workspace Owner can administer board grants; reject self-elevation and foreign targets (56.189917ms)
+  ✔ Criterion 4: Project Manager can create a board; receives no implicit grant until Owner grants it (54.247ms)
+  ✔ Criterion 2: Project removal atomically clears board grants; re-adding member does not resurrect grants (17.99ms)
+  ✔ Criterion 7: Revocation advances access revision and rejects stale retries (45.841791ms)
+  ✔ Criterion 6: Activity scope & mention delivery isolate by board grant (28.794166ms)
+  ✔ Criterion 5: Project members with zero grants see empty board list; granted members see only granted boards (28.412541ms)
+  ✔ Criterion 1 & 9: Role action limits are strictly preserved on granted boards (73.387792ms)
+  ✔ Board-scoped people picker includes only people who can open that board (24.832833ms)
+  ✔ Mounted comment list requires the current board grant (27.788583ms)
+  ✔ Mounted card list holds its grant until delivery, then revocation denies the next read (89.552125ms)
+  ✔ Mounted comment list holds its grant until delivery, then revocation denies the next read (57.424875ms)
+  ✔ Mounted board snapshot holds its grant until delivery, then revocation denies the next read (66.244917ms)
+  ✔ Mounted placement read holds its grant until delivery, then Owner revocation denies the next read (58.452375ms)
+  ✔ Mounted project Trash read holds its board grant until delivery, then revocation denies the next read (79.303167ms)
+  ✔ Mounted project search counts an off-page granted board and holds that grant through delivery (92.718542ms)
+  ✔ Mounted project Trash read holds Manager access until delivery, then demotion denies the next read (32.475334ms)
+  ✔ Mounted My Tasks across two granted boards holds both grants through delivery (94.225834ms)
+  ✔ Scheduled mention cannot cross the outbox project boundary even for an Owner (5.777083ms)
+  ✔ Criterion 8: PostgreSQL DDL rollback safety in transactional migration block (13.862459ms)
+  ✔ Mounted trashed-card image list holds Manager authority through delivery during demotion (71.699875ms)
+  ✔ Mounted image content and thumbnail recheck Manager access after storage delivery (63.296792ms)
+  ✔ Mounted access summary holds Owner scope through board count during ownership transfer (21.348042ms)
+  ✔ Mounted people, directory and workspace project reads retain authorization through response assembly (127.863792ms)
+  ✔ Mounted project board list holds Owner authority through delivery during ownership transfer (37.504334ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ BAR7: Project, invitation, and membership authority and replay gates reject former owner after ownership transfer (115.182375ms)
+  ✔ Scheduled mention delivery fails closed when board_grants is missing (18.068459ms)
+✔ board access comprehensive integration on isolated PostgreSQL (1906.97825ms)
+▶ unmounted activity scope draft on isolated PostgreSQL
+  ✔ manager sees granted board events only; project, unknown and sibling events fail closed (7.199625ms)
+  ✔ owner sees all events in the owned project and members and outsiders are denied (7.650541ms)
+  ✔ pagination filters before LIMIT and preserves microsecond ordering (13.560667ms)
+  ✔ revocation invalidates previous cursor and next reads do not leak board events (14.26875ms)
+  ✔ ancestry constraint and immutable scope reject fabricated changes (22.788458ms)
+  ✔ recordActivity writes automatically scope to board and enforce isolation (48.499125ms)
+✔ unmounted activity scope draft on isolated PostgreSQL (796.969708ms)
+✔ parallel writes on one board never deadlock into 500 (1073.098833ms)
+✔ PostgreSQL deadlock and serialization failures become a retryable 503, not a 500 (0.5825ms)
+✔ a deployed Worker never accepts the test-only admin secret, even if NODE_ENV=test was bundled (0.140375ms)
+✔ embedded migrations match database/migrations byte for byte (1.547625ms)
+▶ board description: create, read and update, with owner-only edits
+  ✔ a new board stores an optional description; without one it reads null (146.589292ms)
+  ✔ a description over 2000 characters is refused on create and on update (9.750208ms)
+  ✔ owner edits only the description; name and other fields stay as they were (19.367709ms)
+  ✔ owner renames without touching the description (15.87775ms)
+  ✔ null clears the description (18.050417ms)
+  ✔ a PATCH with neither name nor description is refused and writes nothing (8.651292ms)
+  ✔ a stale expectedVersion is a 409 and writes nothing (10.531375ms)
+  ✔ a project manager with a board grant gets 403 and nothing is written (21.031ms)
+  ✔ a project manager with no grant on the board gets 404 (board boundary first) (8.79475ms)
+  ✔ a member and a viewer, each with a board grant, get 403 (19.418041ms)
+  ✔ a stranger with no membership gets 404 (15.939375ms)
+  ✔ a project manager can still create boards and rename the project (79.398042ms)
+✔ board description: create, read and update, with owner-only edits (461.57325ms)
+▶ default landing board: owner-only set, board checks and access-safe reads
+  ✔ owner sets the landing board; the project read and the session both show it (39.689292ms)
+  ✔ a project manager cannot set the landing board: 403, nothing written (33.261375ms)
+  ✔ a manager request that also sets the landing board is refused whole: no rename either (28.454667ms)
+  ✔ a member, a viewer and a stranger cannot set it (24.77125ms)
+  ✔ a board from another project is 404 and not set (11.533083ms)
+  ✔ an archived board is refused with 422 BOARD_ARCHIVED (13.204042ms)
+  ✔ a stale expectedVersion is a 409 and writes nothing (16.438791ms)
+  ✔ the database refuses a pointer to a board in another project (2.00725ms)
+  ✔ reads are access-safe: a member with a grant sees the board; without one, null (87.423125ms)
+  ✔ a revoked board grant reads null, and the stored pointer is kept (30.01425ms)
+  ✔ a removed member gets no project and no session entry, so no landing board (10.152ms)
+  ✔ an archived landing board reads null for everyone, and returns when reopened (23.479083ms)
+  ✔ deleting the landing board clears the pointer; the project is untouched (8.667375ms)
+  ✔ the owner clears the landing board with null (30.689916ms)
+✔ default landing board: owner-only set, board checks and access-safe reads (409.23075ms)
+✔ migration 0013 is additive, idempotent and embedded byte-for-byte (8.263583ms)
+▶ unmounted board-grant foundation on isolated PostgreSQL
+  ✔ owner access is implicit and everyone else needs a board grant (17.248583ms)
+  ✔ only owner grants to active project members and project role remains unchanged (32.340459ms)
+  ✔ removal and later reactivation cannot resurrect old grants (5.753ms)
+  ✔ ownership of another workspace does not grant board access (22.989917ms)
+  ✔ access revision advances for changes and removal, not no-ops (45.903458ms)
+  ✔ grant row locks serialize revocation against a held access check (160.653042ms)
+  ✔ authorized write lock wins before a concurrent revocation (39.652542ms)
+  ✔ revocation wins before a concurrent access check (41.076916ms)
+  ✔ project removal waits for an in-flight owner grant, then removes it (14.642541ms)
+  ✔ owner grant waits for removal, then rejects the removed project member (17.893ms)
+  ✔ stale retries and no-ops cannot undo a later revocation (32.06325ms)
+  ✔ concurrent absent-grant mutations serialize via the board revision (34.353834ms)
+  ✔ concurrent multi-board removals complete and invalidate every affected board (61.440125ms)
+  ✔ draft DDL and its prerequisite schema roll back atomically (316.984417ms)
+✔ unmounted board-grant foundation on isolated PostgreSQL (1396.419083ms)
+▶ draft board grant routes on isolated PostgreSQL
+  ✔ authentication, owner scope, and non-enumerating denial (69.835625ms)
+  ✔ owner grant and revoke use explicit revisions and audit only changes (47.521792ms)
+  ✔ revision validation and stale retries cannot undo revocation (56.040625ms)
+  ✔ archived project or board rolls back a grant and audit (22.198084ms)
+  ✔ audit insertion failure rolls back grant and revision (21.646917ms)
+  ✔ paged access cursors bind board, actor and revision (49.352417ms)
+✔ draft board grant routes on isolated PostgreSQL (811.979958ms)
+▶ unmounted notification visibility draft on disposable PostgreSQL
+  ✔ filters before paging and hides unclassified legacy (13.007792ms)
+  ✔ mark operations never update hidden or another person's records (19.609459ms)
+  ✔ single mark and revocation serialize in both orders (109.139125ms)
+  ✔ batch mark all and revocation serialize in both orders (82.904833ms)
+  ✔ revocation blocks later reads, marking and notification delivery (23.901625ms)
+  ✔ processOutboxLease enforces board grants when delivering mention notifications (31.487875ms)
+✔ unmounted notification visibility draft on disposable PostgreSQL (734.485625ms)
+▶ BRD-01 to BRD-07: Board & Column Lifecycle Suite
+  ✔ BRD-01: Workspace owner can create board with atomic default columns (363.980709ms)
+  ✔ BRD-01a: a board that already exists keeps its four columns when new defaults ship (33.555958ms)
+  ✔ BRD-01: Project manager can also create boards (37.950458ms)
+  ✔ BRD-01: Members and viewers receive 403 FORBIDDEN when attempting to create board (22.017708ms)
+  ✔ BRD-01: Ungranted user receives 404 NOT_FOUND when attempting to create board (7.265333ms)
+  ✔ BRD-01: Idempotency enforcement on board creation (19.501917ms)
+  ✔ BRD-02: Listing boards returns active boards for granted project members (24.520417ms)
+  ✔ BRD-02: Updating board name with OCC check (78.116ms)
+  ✔ BRD-04: Add column verifies OCC, uniqueness, and role (104.5975ms)
+  ✔ BRD-04: Updating column fields & enforcing name uniqueness (53.860333ms)
+  ✔ BRD-04: Maximum 12 columns bound enforced (182.886875ms)
+  ✔ BRD-05: Reordering columns requires complete exact set and OCC (65.454833ms)
+  ✔ BRD-05: Card placement neighbor calculation (first, last, before, after) (42.453584ms)
+  ✔ BRD-06: Column deletion guards: active cards, restorable trash, final column (83.990583ms)
+  ✔ BRD-03: Consistent bounded snapshot with active vs matching counts and people disclosure (64.50275ms)
+  ✔ BRD-07: Paginated cards query with cursor resumption and filters (70.501625ms)
+✔ BRD-01 to BRD-07: Board & Column Lifecycle Suite (1261.71875ms)
+▶ card key, description excerpt, due counters and createdBy are granted-only and correct
+  ✔ card keys use the project prefix and never repeat (0.787375ms)
+  ✔ snapshot: key, descriptionExcerpt (plain text, <=160), and board-wide overdue and due-soon counts (30.597459ms)
+  ✔ card detail: createdBy is the creator with activeInProject, and key is present (19.67975ms)
+  ✔ privacy: outsider and viewer without a board grant get no snapshot, counts or createdBy (20.762083ms)
+✔ card key, description excerpt, due counters and createdBy are granted-only and correct (964.872333ms)
+▶ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite
+  ✔ COM-02: Viewers cannot post comments (403 FORBIDDEN) (348.434667ms)
+  ✔ COM-02: Outsiders receive 404 NOT_FOUND on comment post (18.622584ms)
+  ✔ COM-02: Comment post requires mandatory Idempotency-Key header (2.995708ms)
+  ✔ COM-02: Comment body validation (rejects empty or whitespace-only body) (3.628334ms)
+  ✔ COM-02: Member posts valid comment with outbox and activity_log (74.636042ms)
+  ✔ COM-02: Idempotency replay returns identical comment with replayed=true (40.598875ms)
+  ✔ COM-02: Idempotency conflict on same key with different body (16.447041ms)
+  ✔ COM-03: Rejects overlapping mention spans (4.650958ms)
+  ✔ COM-03: Rejects mentions of sibling project users or non-members (29.219875ms)
+  ✔ COM-03: Valid mentions notify teammates but self-mentions do NOT notify (41.993708ms)
+  ✔ COM-01: GET /cards/:cardId/comments returns chronological comments for readers (18.0045ms)
+  ✔ COM-01: Outsiders receive 404 NOT_FOUND on comment listing (6.00175ms)
+  ✔ COM-01: Comment cursor pages are card-scoped and stable across inserts (87.842541ms)
+  ✔ COM-04: Non-author cannot edit another user comment (403 FORBIDDEN) (14.913916ms)
+  ✔ COM-04: Edit comment OCC conflict returns 409 STALE_VERSION (24.922833ms)
+  ✔ COM-04: Author successfully edits comment and increments version (34.01175ms)
+  ✔ COM-05: Regular member cannot delete another member comment (403 FORBIDDEN) (45.855417ms)
+  ✔ COM-05: Workspace owner moderates and deletes comment (38.605833ms)
+  ✔ COM-05: Author deletes their own comment (24.222583ms)
+  ✔ DEL-01: Regular member/viewer cannot delete card (403 FORBIDDEN) (11.916875ms)
+  ✔ DEL-01: Delete card OCC check returns 409 STALE_VERSION (18.574584ms)
+  ✔ DEL-01: Manager soft-deletes card with 24-hour restore window and board version increment (28.542625ms)
+  ✔ DEL-08: Trashed card returns 404 NOT_FOUND on direct GET /cards/:cardId (2.5605ms)
+  ✔ DEL-08: Trashed card comments return 404 NOT_FOUND on GET /cards/:cardId/comments (5.500917ms)
+  ✔ COM-06: Posting comment on trashed card is rejected with 400 CARD_IS_TRASHED (6.141083ms)
+  ✔ DEL-02: Non-administrators (members/viewers) receive 403 on trash listing (15.202ms)
+  ✔ DEL-02: Owner and Manager can list trash with canRestore and blockedReason details (48.072708ms)
+  ✔ DEL-03: Non-admin cannot restore card (403 FORBIDDEN) (5.146542ms)
+  ✔ DEL-03: Manager restores card before deadline with OCC checks (36.034041ms)
+  ✔ DEL-04: Destination missing requires explicit toColumnId (93.968834ms)
+  ✔ DEL-05: Expired restore returns HTTP 410 RESTORE_WINDOW_EXPIRED with details (56.75775ms)
+  ✔ Archived project and board reject card and comment writes atomically (90.595583ms)
+  ✔ Comment delete replay rechecks moderator authority after role demotion (63.203375ms)
+  ✔ Comment post retry respects current parent-card trash state (144.129166ms)
+  ✔ DEL-06: Background purge worker, private content redaction, and fenced winner race (171.577666ms)
+✔ COM-01 to COM-06 & DEL-01 to DEL-08: Comments, Mentions & Trash Suite (1683.881792ms)
+✔ comment POST and card move on one card interleave without deadlock (review R2-01) (1991.347959ms)
+✔ a board-scoped replay after the grant is revoked returns 404 and no saved body (review R2-04) (619.138458ms)
+▶ replay after revocation: comment edit, comment delete, card trash and import commit (review R3-03)
+  ✔ comment edit (703.27625ms)
+  ✔ comment delete (630.261625ms)
+  ✔ card trash (560.718417ms)
+  ✔ import commit (578.541166ms)
+✔ replay after revocation: comment edit, comment delete, card trash and import commit (review R3-03) (2474.00725ms)
+✔ CORS: credentialed access is limited to localhost and CORS_ORIGIN (22.051958ms)
+✔ session cookies stay SameSite=Lax and are Secure off localhost (0.648083ms)
+▶ CRD-01 through CRD-11: Card Lifecycle, Movement, OCC & Discovery Suite
+  ✔ CRD-01: Quick creation, permissions, position ranks & board structure version (415.912625ms)
+  ✔ CRD-02: Compact CardSummary representation and lightweight payload (34.971667ms)
+  ✔ CRD-03: Card detail entity, independent authorization & assignees PersonDisplay (47.133125ms)
+  ✔ CRD-04: Title & description bounds, OCC conflict (409 STALE_VERSION) (64.856958ms)
+  ✔ CRD-05: Priority & Gregorian calendar date validation (leap years & month bounds) (27.802334ms)
+  ✔ CRD-06: Assign active teammates, reject sibling/outsider/removed, max 20 limit (129.558375ms)
+  ✔ CRD-07: Card movement, relative neighbor ranking, empty column, dual OCC (164.766958ms)
+  ✔ CRD-08 & CRD-09: Placement query for first, last, before, after and movingCard exclusion (94.200375ms)
+  ✔ CRD-10: Concurrent edit conflict & concurrent move conflict error envelopes (32.321542ms)
+  ✔ CRD-11: Mandatory Idempotency-Key, exact replay, conflict detection & 422 error details (60.25375ms)
+  ✔ Discovery: Search project cards & My Tasks assigned view (60.130666ms)
+  ✔ CRD-11: Receipt replay rechecks current role and stores only a minimal outcome (44.281291ms)
+  ✔ CRD-11: Parallel same-key creates commit one card and replay its identifier (40.08525ms)
+  ✔ CRD-11: Card update and move receipt replay serialize with trash on separate DB connections (157.459083ms)
+✔ CRD-01 through CRD-11: Card Lifecycle, Movement, OCC & Discovery Suite (1380.845292ms)
+✔ ERR-R1 S1: each refused user gets the reason that matches the rule (table test) (147.040375ms)
+✔ ERR-R1 S1: the reason is no_board_access for a member, and it clears once the grant is made (73.232542ms)
+✔ ERR-R1 S1: the ASSIGNEE_NOT_ELIGIBLE details schema is registered for the catalog (0.167459ms)
+{"event":"google_callback_failed","code":"OAUTH_ERROR"}
+{"event":"google_callback_failed","code":"CSRF_MISMATCH"}
+{"event":"google_callback_failed","code":"INVALID_CALLBACK"}
+{"event":"google_callback_failed","code":"UNEXPECTED"}
+{"event":"google_callback_failed","code":"EMAIL_REQUIRED"}
+{"event":"google_callback_failed","code":"EMAIL_NOT_VERIFIED"}
+✔ ERR-R1 S10: the provider denial redirects with state=denied, and its text is never reflected (70.342041ms)
+✔ ERR-R1 S10: a state that does not match the cookie redirects with state=expired (1.377417ms)
+✔ ERR-R1 S10: a missing code or state redirects with state=failed (0.872959ms)
+✔ ERR-R1 S10: a network failure while exchanging the code redirects with state=failed, not a 500 JSON (0.82325ms)
+✔ ERR-R1 S10: a profile with no email redirects with state=email_missing (2.451708ms)
+✔ ERR-R1 S10: an unverified email redirects with state=email_unverified and issues no session (6.457709ms)
+✔ ERR-R1 S11: the scope is named from the path and the bucket (43.619333ms)
+{"level":"warn","event":"rate_limit_refused","binding":"FB_RL_WRITES"}
+✔ ERR-R1 S11: the sixth project create in a minute is 429 with retryAfterSeconds and scope in details and header (54.763333ms)
+✔ ERR-R1 S11: the edge limiter refusal names the scope and the 60-second hint (9.904334ms)
+✔ ERR-R1 S13 and ERR-R1b: every error code the API throws is in the shared catalog (20.253584ms)
+ℹ scan found 109 codes, 0 unresolved identifiers
+✔ ERR-R1 S13: every catalog entry that carries details has a details schema (0.180042ms)
+{"event":"google_callback_failed","code":"EMAIL_NOT_VERIFIED"}
+{"event":"google_callback_failed","code":"EMAIL_NOT_VERIFIED"}
+{"event":"google_callback_failed","code":"CSRF_MISMATCH"}
+▶ Google sign-in and system routes
+  ✔ rejects an unverified Google email and issues no session (81.105667ms)
+  ✔ rejects a missing email_verified claim (1.867375ms)
+  ✔ rejects a state that does not match the cookie (1.001208ms)
+  ✔ a cookie with a valid next (21.62825ms)
+  ✔ preserves custom display_name on subsequent Google sign-in and updates avatar (R3-11) (25.769209ms)
+  ✔ admin secret has no public default outside tests and needs 32+ chars (0.372042ms)
+  ✔ system migrate and status are closed without the secret (1.933375ms)
+✔ Google sign-in and system routes (138.854667ms)
+▶ Google ?next= round trip, tampering and fallback
+  ✔ a legitimate /board?id=abc survives the round trip (78.118375ms)
+  ✔ the /google/start alias carries next the same way (6.863083ms)
+  ✔ hostile next values never reach the redirect; the default landing is used (42.007792ms)
+{"event":"google_callback_failed","code":"CSRF_MISMATCH"}
+{"event":"google_callback_failed","code":"CSRF_MISMATCH"}
+  ✔ a forged cookie with a hostile next is revalidated and ignored at the callback (5.314916ms)
+  ✔ a cookie with a valid next but a different state is refused (1.088709ms)
+  ✔ a state swapped for the cookie next value is refused (0.630625ms)
+  ✔ a missing next keeps the existing behaviour (4.739333ms)
+  ✔ FRONTEND_URL is prefixed only to a validated path (12.919166ms)
+✔ Google ?next= round trip, tampering and fallback (163.466333ms)
+▶ IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite
+  ✔ 0. Setup Workspace, Projects, Members and Boards (301.789292ms)
+  ✔ IMP-01: Download Excel template with versioned 7-column schema (18.430083ms)
+  ✔ IMP-02: Role authorization and target boundaries (Owner/Manager pass, Member/Viewer 403, Outsider 404) (62.150042ms)
+  ✔ IMP-03: Security boundaries: formulas, macros, external links, OLE, XXE, row limits (52.225458ms)
+  ✔ IMP-04: Header validation, leading zeros, numeric rejection, date systems, assignee resolution (97.418ms)
+  ✔ IMP-05a: a Blocked status maps to the default Blocked column on a new board (case-insensitive) (29.463ms)
+  ✔ IMP-05: Dry run preview, pagination, unmapped status update, and cancel before commit (61.777541ms)
+  ✔ IMP-06: Atomic confirmation, OCC guards, role re-check, and single transaction commit (103.191541ms)
+  ✔ IMP-07: Duplicate skips unchanged row, conflicts on changed payload, and protects 24-hour trash (35.115708ms)
+  ✔ IMP-09: Safe CSV report download with formula injection neutralization (5.221084ms)
+  ✔ Adversarial: Revoked manager authority race between preview and commit returns 403 FORBIDDEN (16.627417ms)
+  ✔ Adversarial: Removed assignee between preview and commit returns 409 PREVIEW_STALE (24.058083ms)
+  ✔ IMP-11: Batch and card provenance activity log links (0.665ms)
+✔ IMP-01 to IMP-06: Excel Import Engine Integration & Concurrency Test Suite (814.071791ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ INV-01 & INV-03: Project Invitations Lifecycle Suite
+  ✔ Test 1: Workspace owner invites a manager -> succeeds, token_hash stored in DB, outbox record created (163.263083ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 2: Project manager invites a member -> succeeds (14.671416ms)
+  ✔ Test 3: Project manager attempts to invite another manager -> returns 403 FORBIDDEN (4.927042ms)
+  ✔ Test 4: Member/viewer attempts to invite someone -> returns 403 FORBIDDEN (or 404 for outsider) (9.998042ms)
+  ✔ Test 5: Accept matching invitation -> updates status to accepted, inserts project_memberships row, user gains access (26.777875ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 6: Accept with mismatched email (signed in as another user) -> returns 403 EMAIL_MISMATCH, no membership created (26.636833ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 7: Accept expired or already accepted token -> returns 400 (40.414542ms)
+  ✔ Test 8: Idempotency replay and conflict handling on invitation creation (8.037792ms)
+  ✔ Test 9: Self-invites and invitations to active project members are rejected with 400 ALREADY_MEMBER (25.313333ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 10: Duplicate active pending invitations are rejected with 400 INVITATION_ALREADY_EXISTS (21.178041ms)
+✔ INV-01 & INV-03: Project Invitations Lifecycle Suite (345.455333ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Suite
+  ✔ Setup: Create initial manager and member invitations (228.030959ms)
+  ✔ INV-04: PM cannot resend manager invitation -> 403 FORBIDDEN (9.658625ms)
+  ✔ INV-04: Member / Viewer / Outsider cannot resend invitation -> 403 / 404 (15.823042ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ INV-04: Owner resends manager invitation -> succeeds, rotates token, outbox event emitted (15.500625ms)
+  ✔ INV-04: Old rotated token cannot be accepted (400 INVALID_INVITATION) (7.14175ms)
+  ✔ INV-04: Idempotency replay confirms resend without retaining the invitation token (10.804042ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ INV-04: PM resends member invitation -> succeeds (25.482708ms)
+  ✔ INV-04: PM cannot revoke manager invitation -> 403 FORBIDDEN (4.312417ms)
+  ✔ INV-04: PM revokes member invitation -> succeeds (9.284834ms)
+  ✔ INV-04: Revoked invitation token cannot be accepted -> 400 INVALID_INVITATION (5.742125ms)
+  ✔ INV-04: Revoked invitation cannot be revoked again or resent -> 400 INVALID_INVITATION (25.137583ms)
+  ✔ INV-04: Newly rotated token can be accepted; accepted invite cannot be resent -> 400 (40.175375ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Setup: Create an expired invitation for Heidi (16.447625ms)
+  ✔ INV-05: Workspace owner lists invitations -> succeeds, matches schema, token_hash omitted (4.618375ms)
+  ✔ INV-05: Project Manager can list invitations (8.441416ms)
+  ✔ INV-05: Member / Viewer cannot list invitations -> 403 FORBIDDEN (9.103292ms)
+  ✔ INV-05: Outsider attempting to list invitations -> 404 NOT_FOUND (2.802291ms)
+  ✔ INV-08: Workspace owner cannot leave their own project -> 403 FORBIDDEN (3.366083ms)
+  ✔ INV-08: Outsider attempting to leave project -> 404 NOT_FOUND (3.890084ms)
+  ✔ INV-08: Charlie (Member) leaves project -> status="removed", version incremented (8.382833ms)
+  ✔ INV-08: Charlie subsequent access to project returns 404 NOT_FOUND (2.479167ms)
+  ✔ INV-08: Charlie leave request idempotency replay returns 200 replayed=true (3.938708ms)
+  ✔ INV-08: Dave (Viewer) leaves project -> succeeds (8.126041ms)
+  ✔ INV-08: Bob (Manager) leaves project -> succeeds (26.026417ms)
+  ✔ Setup R2: Create user Oscar and seed pending invite + manager membership (3.72ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ R2 - Step 1: Active manager cannot create self-invite or duplicate pending invite (39.079625ms)
+  ✔ R2 - Steps 2 & 3: Owner removes Manager -> pending invitation is atomically marked revoked (8.223875ms)
+  ✔ R2 - Step 4: Attacker presenting old revoked token fails -> 400 INVALID_INVITATION, access remains removed (9.430333ms)
+  ✔ R2 - Step 4b (Defense-in-depth): If invitation was pending but issued before removal, acceptance fails -> 400 INVITATION_SUPERSEDED (8.077917ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ R2 - Step 5: Owner issues fresh invitation to the deliberately removed user -> succeeds (201) (11.871042ms)
+  ✔ R2 - Step 6: User accepts fresh invitation -> succeeds (200), membership reactivated to active (12.498ms)
+  ✔ R2 - Step 7: Member leaves project -> pending invitations for that email are atomically revoked (11.719417ms)
+✔ INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Suite (605.709875ms)
+▶ INV-06 & INV-07: Change Member Roles & Remove Project Access Suite
+  ✔ Test 0: Missing or invalid Idempotency-Key on member mutations returns 400 IDEMPOTENCY_KEY_REQUIRED (162.832208ms)
+  ✔ Test 1: Workspace owner promotes a member to manager -> succeeds (28.400792ms)
+  ✔ Test 2: Project manager attempts to promote a member to manager -> returns 403 FORBIDDEN (7.957708ms)
+  ✔ Test 3: Project manager modifies role between member and viewer -> succeeds (16.996041ms)
+  ✔ Test 4: Project manager attempts to modify another manager -> returns 403 FORBIDDEN (4.33925ms)
+  ✔ Test 5: Project manager attempts to modify themselves -> returns 403 FORBIDDEN (4.089375ms)
+  ✔ Test 6: Stale version in PATCH returns 409 STALE_VERSION (4.392708ms)
+  ✔ Test 7: Immediate revocation: removing project access sets status="removed"; next request by that user to read the project returns 404 NOT_FOUND (25.28225ms)
+  ✔ Test 8: Project manager cannot DELETE another manager -> returns 403 FORBIDDEN (8.982125ms)
+  ✔ Test 9: Project manager cannot DELETE themselves -> returns 403 FORBIDDEN (4.876916ms)
+  ✔ Test 10: Non-member outsider attempting to manage members returns 404 NOT_FOUND (6.147916ms)
+  ✔ Test 11: Member attempting to manage members returns 403 FORBIDDEN (6.918459ms)
+  ✔ Test 12: Sibling project privacy: manager of sibling project attempting to manage members in another project receives 404 NOT_FOUND (14.64025ms)
+✔ INV-06 & INV-07: Change Member Roles & Remove Project Access Suite (300.357042ms)
+▶ last location: write rules, read re-check and the no-op write
+  ✔ owner sets project and board; GET /session returns them (38.019917ms)
+  ✔ omitted boardId stores a project-only location (7.069291ms)
+  ✔ an unchanged PUT writes no row version (xmin is stable) (6.597917ms)
+  ✔ a member with a board grant may set that board (2.491875ms)
+  ✔ a member without a board grant cannot set that board; nothing is written (5.506417ms)
+  ✔ a user with no membership gets 404 and no write (2.971292ms)
+  ✔ another project's member cannot set this project; nothing is written (7.135042ms)
+  ✔ a board from another project is rejected even for the owner (2.521625ms)
+  ✔ a request with no session is 401 (0.348042ms)
+  ✔ unknown fields are refused and nothing is written (2.176625ms)
+  ✔ a revoked member reads null, never the stale id (6.888083ms)
+  ✔ a revoked board grant reads null for the whole location (9.426042ms)
+  ✔ an archived project reads null and cannot be set (10.521792ms)
+  ✔ an archived board reads null (8.511792ms)
+  ✔ a user who never set a location reads null (3.550708ms)
+✔ last location: write rules, read re-check and the no-op write (173.689458ms)
+✔ migration 0012 is additive, idempotent and embedded byte-for-byte (4.724042ms)
+▶ PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Suite
+  ✔ CRD-12: Move undo reverts move and respects OCC version conflict (160.649625ms)
+  ✔ BRD-08: Archive and reopen board makes board read-only and resumes writes on reopen (77.166833ms)
+  ✔ PRJ-04: Archive and reopen project makes project read-only and resumes writes on reopen (43.193208ms)
+✔ PRJ-04, BRD-08, CRD-12: Project Archiving, Board Archiving & Move Undo Suite (284.097625ms)
+▶ comment PATCH/DELETE, import commit and their controls never return a server error under forced interleaving
+  ✔ P1 move vs comment PATCH (400.869209ms)
+  ✔ P2 move vs comment DELETE (387.487125ms)
+  ✔ P4 import commit vs the same import commit (669.635625ms)
+  ✔ P3 control: move vs card create (618.494083ms)
+  ✔ P5 control: import commit vs card create (894.599875ms)
+  ✔ P6 control: comment POST vs move (934.364917ms)
+✔ comment PATCH/DELETE, import commit and their controls never return a server error under forced interleaving (4302.692166ms)
+✔ migration 0009 numbers existing cards and derives project prefixes without changing data (343.860666ms)
+▶ PostgreSQL Migrations & Relational Integrity Suite
+  ✔ 1. Runs migrations and records applied versions (486.4665ms)
+  ✔ 2. Migration runner is idempotent: subsequent runs apply 0 migrations (18.046292ms)
+  ✔ 3. Relational integrity: inserting valid full hierarchy (32.925209ms)
+  ✔ 4. Negative foreign key test: card with invalid column_id throws error code 23503 (1.812084ms)
+  ✔ 5. Negative unique test: duplicate column name on same board throws error code 23505 (1.891792ms)
+  ✔ 6. Negative unique test: duplicate project membership throws error code 23505 (2.780541ms)
+  ✔ 7. Restricted delete: deleting a column with active card throws error code 23503 (3.031125ms)
+  ✔ 8. Negative foreign key test: inserting workspace with non-existent owner_id throws error code 23503 (1.544334ms)
+  ✔ 9. Restricted delete: deleting a user who owns an active workspace is blocked (ON DELETE RESTRICT) (5.013834ms)
+  ✔ 10. Tenant ancestry: inserting project_memberships with mismatched workspace_id and project_id throws error code 23503 (6.263583ms)
+  ✔ 11. Tenant ancestry: inserting board with mismatched workspace_id and project_id throws error code 23503 (1.416417ms)
+  ✔ 12. Tenant ancestry: inserting column with mismatched board_id, project_id, and workspace_id throws error code 23503 (4.1745ms)
+  ✔ 13. Relational integrity: inserting card with mismatched column_id and board_id throws error code 23503 (4.165792ms)
+  ✔ 14. Tenant ancestry: inserting outbox event with mismatched project_id and workspace_id throws error code 23503 (1.240917ms)
+  ✔ 15. Migration failure rollback evidence: failed migration leaves schema and tracking table unpolluted (7.091791ms)
+  ✔ 16. Migration concurrency evidence: concurrent runMigrations calls serialize cleanly via advisory lock (35.427333ms)
+✔ PostgreSQL Migrations & Relational Integrity Suite (620.507958ms)
+✔ Node HTTP: liveness, real PostgreSQL readiness, missing product routes, and authenticated queries (145.593458ms)
+✔ Node pg/Kysely: real parameterized query, rollback and committed positive control (36.932208ms)
+✔ Node HTTP: refused local database returns safe 503; liveness stays independent (8.571083ms)
+✔ local harness rejects nonlocal and non-harness database targets (0.270958ms)
+▶ FND-04: Observability, Correlation, Limits & Safe Error Baseline
+  ▶ 1. Correlation Middleware & Request IDs
+    ✔ generates a valid UUID request ID when x-request-id header is absent (60.1275ms)
+    ✔ propagates incoming valid ASCII x-request-id header faithfully (13.026375ms)
+    ✔ replaces invalid x-request-id (<8 chars, spaces, non-allowed chars, >64 chars) with a safe UUID (12.819959ms)
+    ✔ guarantees x-request-id header is attached on both success and error responses (10.329875ms)
+  ✔ 1. Correlation Middleware & Request IDs (97.780417ms)
+  ▶ 2. Server-Timing Header
+    ✔ measures request duration and attaches Server-Timing: app;dur=<ms> header on 200 OK (13.570709ms)
+    ✔ attaches Server-Timing header on 404 and error responses (2.034375ms)
+  ✔ 2. Server-Timing Header (15.7675ms)
+  ▶ 3. Not Found Handler (404)
+    ✔ returns standard error envelope with NOT_FOUND code and no-store cache header (10.365459ms)
+  ✔ 3. Not Found Handler (404) (10.532458ms)
+  ▶ 4. Validation Error Formatting (400 and 422)
+    ✔ returns 400 MALFORMED_REQUEST when request body contains invalid JSON syntax (6.582334ms)
+    ✔ returns 422 VALIDATION_ERROR with structured issues when @flowboard/contracts validation fails (7.6085ms)
+  ✔ 4. Validation Error Formatting (400 and 422) (14.340041ms)
+  ▶ 5. Safe 500 Handler & Sensitive Internal Error Masking
+    ✔ masks unhandled errors and NEVER leaks database credentials, connection strings, or SQL internals (2.458917ms)
+  ✔ 5. Safe 500 Handler & Sensitive Internal Error Masking (2.522291ms)
+  ▶ 6. Body Size Limits (413 PAYLOAD_TOO_LARGE)
+    ✔ rejects request bodies larger than configured limit with 413 PAYLOAD_TOO_LARGE (4.1385ms)
+    ✔ enforces default 1 MiB (1,048,576 bytes) limit on standard app (1.851083ms)
+  ✔ 6. Body Size Limits (413 PAYLOAD_TOO_LARGE) (6.434917ms)
+  ▶ 7. Request Deadline / Timeout Middleware (504 DEADLINE_EXCEEDED)
+    ✔ aborts long-running requests exceeding deadline with HTTP 504 DEADLINE_EXCEEDED (54.334875ms)
+    ✔ allows fast requests within deadline to succeed normally (2.604ms)
+  ✔ 7. Request Deadline / Timeout Middleware (504 DEADLINE_EXCEEDED) (57.070583ms)
+  ▶ 8. Custom HTTP Errors and Status Mappings
+    ✔ maps 401 UNAUTHORIZED correctly (2.035292ms)
+    ✔ maps 403 FORBIDDEN correctly (1.820375ms)
+    ✔ maps 409 CONFLICT with domain-specific codes (STALE_VERSION, STALE_CURSOR) (1.948625ms)
+    ✔ maps 410 RESTORE_WINDOW_EXPIRED with details (1.539583ms)
+    ✔ maps 429 RATE_LIMITED and attaches Retry-After: 60 header (1.277333ms)
+    ✔ uses the actual retry interval and the same code for a Hono 429 (1.389208ms)
+    ✔ maps 503 SERVICE_UNAVAILABLE / DATABASE_UNAVAILABLE safely (1.143208ms)
+  ✔ 8. Custom HTTP Errors and Status Mappings (11.357041ms)
+✔ FND-04: Observability, Correlation, Limits & Safe Error Baseline (216.699584ms)
+✔ cookie-authenticated state changes require a same-site Origin or Referer (79.813916ms)
+✔ Pages-proxied requests keep the user-facing URL, so same-origin Origin passes without CORS_ORIGIN (6.746708ms)
+▶ optional parity fields (trash key, column tone, my-tasks key, card activity links) respect board grants
+  ✔ card activity carries cardTitle, cardKey and boardId for a granted reader (11.973167ms)
+  ✔ viewer without a board grant gets no card activity, so no title or key (8.017167ms)
+  ✔ my-tasks rows carry key for a granted assignee, and nothing for an ungranted one (18.135041ms)
+  ✔ trash rows carry key for a granted manager; no-grant viewer sees no trash row (38.024375ms)
+  ✔ column tone is null by default, exposed when set, and rejects unknown names (43.992625ms)
+✔ optional parity fields (trash key, column tone, my-tasks key, card activity links) respect board grants (666.435084ms)
+▶ PRJ-01: Create multiple projects & sibling isolation Suite
+  ✔ 1. Project creation by workspace owner succeeds (218.071041ms)
+  ✔ 2. Non-owner attempting to create project in workspace returns 404 NOT_FOUND (10.927167ms)
+  ✔ 3. Workspace owner creates second project (Project Beta) (11.73525ms)
+  ✔ 4. Sibling project privacy: user in Project A requesting Project B gets 404 NOT_FOUND (13.8415ms)
+  ✔ 5. GET /api/v1/workspaces/:workspaceId/projects scopes accessible projects per role (16.410875ms)
+  ✔ 6. Idempotency replay on project creation returns replayed: true (12.612125ms)
+  ✔ 7. Idempotency conflict on project creation returns 409 IDEMPOTENCY_CONFLICT (6.160958ms)
+✔ PRJ-01: Create multiple projects & sibling isolation Suite (294.312375ms)
+▶ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite
+  ✔ PRJ-02.1: Workspace Owner sees all projects in workspace, paginated (196.240209ms)
+  ✔ PRJ-02.2: Cursor pagination for workspace projects (17.59325ms)
+  ✔ PRJ-02.3: Project Manager / Member sees only granted projects; sibling projects are hidden (20.601834ms)
+  ✔ PRJ-02.4: Outsider querying workspace projects gets 404 NOT_FOUND (sibling privacy) (3.922125ms)
+  ✔ PRJ-02.5: GET /api/v1/projects lists accessible projects across all workspaces for current session (10.659292ms)
+  ✔ PRJ-02.6: Malformed or bounded limit queries gracefully fall back to bounded limits without NaN SQL error (17.006042ms)
+  ✔ PRJ-03.0: Missing or invalid Idempotency-Key returns 400 IDEMPOTENCY_KEY_REQUIRED (2.428208ms)
+  ✔ PRJ-03.1: Workspace Owner updates project name and description with OCC (28.4805ms)
+  ✔ PRJ-03.2: Project Manager updates project description with OCC (17.356959ms)
+  ✔ PRJ-03.3: Member & Viewer cannot update project settings -> 403 FORBIDDEN (6.941417ms)
+  ✔ PRJ-03.4: Sibling PM & Outsider get 404 NOT_FOUND on project settings (7.80725ms)
+  ✔ PRJ-03.5: Stale expectedVersion rejected with 409 STALE_VERSION (12.208333ms)
+  ✔ PRJ-05.1: Owner sees project members directory including workspace owner and active members (7.474291ms)
+  ✔ PRJ-05.2: Project Manager, Member, and Viewer can all view the project directory (24.904667ms)
+  ✔ PRJ-05.3: Sibling project member & outsider get 404 NOT_FOUND on members directory (6.410459ms)
+  ✔ PRJ-05.4: Removed project member is excluded from directory and cannot access it (17.189958ms)
+✔ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite (404.54725ms)
+▶ project overview: counts over readable boards, privacy, and the snapshot rules
+  ✔ owner sees every non-archived board: totals match the fixture by hand (39.839875ms)
+  ✔ recent activity: board rows on readable boards, and project rows for the owner (B-6) (14.7865ms)
+  ✔ a manager or member with a grant sees only that board: no counts from b2 (8.789708ms)
+  ✔ a viewer with a grant sees the same board-only view as a member (13.210209ms)
+  ✔ a member with no board grant gets empty counts and must not see b1 or b2 at all (10.631625ms)
+  ✔ stranger and removed member get 404 (9.893625ms)
+  ✔ a revoked board grant drops that board from the member view at once (11.087333ms)
+  ✔ the archived board is excluded for the owner too (15.011ms)
+✔ project overview: counts over readable boards, privacy, and the snapshot rules (226.055458ms)
+▶ project brief and links: manager edit, https-only, whole-list replace, read rules
+  ✔ manager sets the brief and links; the response carries them in order (33.154083ms)
+  ✔ members, viewers and strangers can read the brief and links; strangers cannot read the project (10.93525ms)
+  ✔ a member or viewer cannot edit the brief or links: 403, nothing written (14.085042ms)
+  ✔ a stranger gets 404 (4.25625ms)
+  ✔ brief over 5000 characters is refused (2.558ms)
+  ✔ more than 10 links is refused (2.20525ms)
+  ✔ non-https, credentials and other schemes are refused, and nothing is written (23.436ms)
+  ✔ the database refuses a non-https link even if the API is bypassed (1.508625ms)
+  ✔ links replace the whole list; an empty list removes them all (45.856375ms)
+  ✔ a stale expectedVersion is 409 and changes nothing (9.7755ms)
+  ✔ an empty PATCH is refused (6.260709ms)
+✔ project brief and links: manager edit, https-only, whole-list replace, read rules (202.840583ms)
+✔ migration 0014 is additive, idempotent and embedded byte-for-byte (7.048ms)
+▶ QRY-01 to QRY-03: Discovery, Search, Multi-Facet Filters & My Tasks Suite
+  ✔ QRY-01: Project-scoped card search matches title and description while enforcing boundaries (166.248125ms)
+  ✔ QRY-02: Combine assignee, priority, column, and due date facets with active vs matching counts (79.751167ms)
+  ✔ QRY-03: My assigned tasks within one project with revocation and sibling protection (40.199958ms)
+✔ QRY-01 to QRY-03: Discovery, Search, Multi-Facet Filters & My Tasks Suite (290.595959ms)
+✔ exact: 30 parallel requests on one key with limit 10 give exactly 10 passes and 20 refusals (61.591167ms)
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+✔ exact over HTTP: 30 parallel sign-in requests give exactly 10 non-429 responses (57.927333ms)
+✔ window: the counter returns the seconds left in the current window, between 1 and the window length (18.991625ms)
+✔ window: a new window starts a fresh count after the old one ends (2310.939416ms)
+✔ isolation: separate keys and separate buckets never share a count (11.702916ms)
+✔ purge: removes only windows that have ended, and a repeat run deletes nothing for them (11.799834ms)
+✔ migration 0011 is additive and idempotent (6.638125ms)
+{"level":"error","event":"rate_limit_store_error","bucket":"auth","errorClass":"Error"}
+✔ fail closed: a database error on a sensitive route returns 503 and never reaches the route (9.021458ms)
+✔ health is never counted in the database (15.948458ms)
+{"level":"warn","event":"rate_limit_refused","binding":"FB_RL_WRITES"}
+{"level":"warn","event":"rate_limit_window_refused","bucket":"auth"}
+{"level":"error","event":"rate_limit_store_error","bucket":"auth","errorClass":"Error"}
+{"level":"warn","event":"rate_limit_refused","binding":"FB_RL_WRITES"}
+✔ soft limit: a refused general write returns 429 TOO_MANY_REQUESTS with Retry-After 60 (20.313833ms)
+✔ soft limit: a throwing binding fails open and logs the error class only (4.769084ms)
+✔ limits: health probes are never counted by either limiter (7.2185ms)
+✔ limits: the key is the Cloudflare client IP and ignores spoofable forwarding headers (2.292125ms)
+✔ limits: reads outside Google sign-in are not counted (1.441583ms)
+✔ buckets: each sensitive route family maps to its bucket and nothing else (0.173584ms)
+✔ window: a count over the limit returns 429 with Retry-After from the counter (1.467375ms)
+✔ window: a count within the limit reaches the route (1.270375ms)
+✔ window: the invitation route counts in the invite bucket with its 60-second window (6.368459ms)
+✔ window: when the counter throws, the request fails closed with 503 and the route is not reached (1.392291ms)
+✔ window: no database pool on a Worker fails closed; on Node a request without a client address is not counted (1.990125ms)
+✔ window: on the Worker a missing client address uses the shared fallback key and logs it without a value (1.12475ms)
+✔ soft binding: on the Worker an absent binding is logged loudly and the request still passes (0.992875ms)
+✔ soft binding: the default resolver reads the Cloudflare binding from the Worker environment (1.156416ms)
+✔ binding status: booleans for the Cloudflare binding the runtime can see (0.257708ms)
+✔ admin status route reports the binding and needs the admin secret (6.38275ms)
+✔ config: wrangler declares only the soft writes binding, with the documented limit, in production and UAT (0.695167ms)
+▶ RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)
+  ✔ RBAC-02: verifyProjectAncestry succeeds for valid project and resources (210.837917ms)
+  ✔ RBAC-02: Guessing sibling project or resources returns consistent 404 NOT_FOUND without metadata leakage (6.754541ms)
+  ✔ RBAC-02: requireProjectAncestry HTTP middleware enforces boundary (32.263833ms)
+  ✔ RBAC-03: acquireWriteGrantLock validates role hierarchy and removed status (12.692583ms)
+  ✔ RBAC-03: Concurrency: In-flight write transaction aborts when concurrent role revocation wins (8.851083ms)
+  ✔ RBAC-03: Concurrency: Writer holding grant lock blocks concurrent revocation until write commits (72.871125ms)
+  ✔ RBAC-03: Concurrency Probe 1: Mounted updateProjectSettings serializes with concurrent actor revocation (91.907916ms)
+  ✔ RBAC-03: Concurrency Probe 2: Manager starts removeProjectMember while Owner concurrently promotes target; deletion rejected with 403 FORBIDDEN (39.137ms)
+  ✔ RBAC-04: getEligibleAssignees and getEligibleMentionees enforce role and sibling privacy (15.659291ms)
+  ✔ RBAC-04: HTTP GET /api/v1/projects/:projectId/people enforces privacy and purpose filtering (33.338458ms)
+  ✔ RBAC-05: GET /api/v1/projects/:projectId/access-summary discloses explicit board grants without hidden counts (6.77025ms)
+  ✔ RBAC-05: Workspace owner requests access summary -> actor role is owner inherited from workspace (4.2965ms)
+  ✔ RBAC-05: Sibling project member or outsider access-summary returns 404 NOT_FOUND (2.992458ms)
+  ✔ RBAC-05: Unauthenticated request returns 401 UNAUTHORIZED (0.314417ms)
+✔ RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05) (544.952459ms)
+▶ RBAC-01: Owner/Manager/Member/Viewer Matrix & Sibling Privacy Suite
+  ✔ 1. Workspace Owner role resolution and workspace inheritance (206.667125ms)
+  ✔ 2. Project Manager permissions in granted project (17.023083ms)
+  ✔ 3. Project Member can write and read, but blocked (403 FORBIDDEN) from manager actions (15.588125ms)
+  ✔ 4. Project Viewer can read, but blocked (403 FORBIDDEN) from member and manager actions (8.427208ms)
+  ✔ 5. Sibling Project Privacy: user granted in Project 1 querying Project 2 gets 404 NOT_FOUND (17.272209ms)
+  ✔ 6. Inactive / removed membership drops permissions immediately and returns 404 NOT_FOUND (5.290125ms)
+✔ RBAC-01: Owner/Manager/Member/Viewer Matrix & Sibling Privacy Suite (275.960792ms)
+✔ rejects open-redirect and scheme payloads (1.176042ms)
+✔ rejects unknown paths and prefix lookalikes (0.256416ms)
+✔ rejects overlong input and non-string values (0.166459ms)
+✔ accepts allowlisted app paths, with a query in the allowed characters (0.099833ms)
+▶ PAT capability boundary through every mounted route
+  ✔ real Owner issuance without membership, finite default expiry, no secret persistence (5.296458ms)
+  ✔ generated route inventory: every route outside the six capabilities rejects PAT (124.426916ms)
+  ✔ metadata contains only allowlisted fields; full snapshot always denied (15.042583ms)
+  ✔ project filtering happens before pagination and foreign cursors are refused (4.57425ms)
+  ✔ project restrictions apply to metadata, board listing, card reads/search/create (49.581958ms)
+  ✔ missing scope, malformed bearer and invalid token never inherit a cookie (11.117208ms)
+  ✔ current underlying membership and board grants remain authoritative (60.889625ms)
+  ✔ expired/revoked tokens fail without cookie fallback and cannot manage peers (12.366333ms)
+  ✔ parallel issuance cannot exceed the active credential cap; expired/revoked slots free capacity (100.216542ms)
+✔ PAT capability boundary through every mounted route (629.608958ms)
+ℹ Generated 97 negative method/path cases from 103 mounted routes; six explicit PAT capabilities.
+▶ Personal Access Tokens & Scoped Bearer Authentication Suite
+  ✔ 1. POST /api/v1/tokens: mint token with session cookie (177.372833ms)
+  ✔ 2. POST /api/v1/tokens: mint read-only token (9.163042ms)
+  ✔ 3. POST /api/v1/tokens: mint project-restricted token (5.675166ms)
+  ✔ 4. GET /api/v1/tokens: list user tokens (4.635458ms)
+  ✔ 5. GET /api/v1/projects: accessible with Bearer token (4.723459ms)
+  ✔ 6. GET /api/v1/projects: project-restricted token sees only its assigned project (2.863625ms)
+  ✔ 7. POST /api/v1/boards/:boardId/cards: successfully creates card with cards:create token (32.595709ms)
+  ✔ 8. POST /api/v1/boards/:boardId/cards: fails 403 when token lacks cards:create scope (1.8935ms)
+  ✔ 9. POST /api/v1/boards/:boardId/cards: fails 403 when token is restricted to a different project (1.733084ms)
+  ✔ 10. DELETE /api/v1/tokens/:tokenId: revokes token (1.868583ms)
+  ✔ 11. POST /api/v1/boards/:boardId/cards: fails 401 with revoked token (1.285708ms)
+  ✔ 12. POST /api/v1/tokens: a token cannot mint another token (1.8705ms)
+✔ Personal Access Tokens & Scoped Bearer Authentication Suite (250.938625ms)
+{"event":"invitation_immediate_send","result":"delivered"}
+✔ UAT: the invite route hands the immediate send to waitUntil, and the row is delivered before the drain runs (465.397ms)
+{"level":"warn","event":"rate_limit_client_ip_missing"}
+{"event":"invitation_immediate_send","result":"delivered"}
+✔ UAT: the Worker passes its ExecutionContext to the app, so the immediate send starts on a real request (454.242875ms)
+✔ UAT: with no ExecutionContext the invite still succeeds, and the skip is logged as a reason code only (413.811ms)
+✔ UAT: each skip path logs its reason code, and nothing is sent (465.941375ms)
+✔ UAT: a Brevo 500 is logged as a retry reason and the row stays pending for the drain (417.571459ms)
+▶ UX-01 to UX-05: UX Integration, State Envelopes, Boundaries & Performance Suite
+  ✔ UX-01: Standard empty states and safe error envelopes (245.1245ms)
+  ✔ UX-02: Accessible movement and card detail dialog payload (37.864625ms)
+  ✔ UX-03: Narrow viewport payload safety and long content boundaries (31.1815ms)
+  ✔ UX-04: Refresh reconnect, version reconciliation and stale overwrite prevention (26.648459ms)
+  ✔ UX-05: Performance benchmarks, project isolation, and exact restore boundary (36.567417ms)
+✔ UX-01 to UX-05: UX Integration, State Envelopes, Boundaries & Performance Suite (382.360416ms)
+✔ local workerd: shared HTTP routes, real pg/Kysely query, transaction rollback, and authenticated product routes (1004.318ms)
+✔ local workerd: scheduled callback runs purge and outbox jobs against the isolated DB binding (139.554375ms)
+ℹ tests 786
+ℹ suites 9
+ℹ pass 786
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 263603.507042
+
+Exit code: 0

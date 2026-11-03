@@ -612,11 +612,18 @@ export async function redactCardActivity(
 ): Promise<void> {
   await client.query(
     `UPDATE activity_log
-     SET safe_changes = jsonb_build_object('cardId', $1::text, 'purged', true)
+     SET safe_changes = jsonb_strip_nulls(jsonb_build_object(
+       'cardId', $1::text, 'purged', true, 'source', safe_changes->'source'
+     ))
      WHERE card_id = $1`,
     [cardId],
   );
 }
+
+/** Trusted server context only. Never a bearer value or caller-supplied actor. */
+export type ActivitySource =
+  | { type: 'session' }
+  | { type: 'personal_access_token'; credentialId: string; operationIdHash: string };
 
 export interface RecordActivityOptions {
   id?: string | undefined;
@@ -627,6 +634,7 @@ export interface RecordActivityOptions {
   actorId: string;
   action: string;
   safeChanges?: Record<string, unknown> | null | undefined;
+  source?: ActivitySource | undefined;
   visibilityScope?: 'board' | 'project' | 'unknown' | undefined;
   createdAt?: string | Date | undefined;
 }
@@ -641,7 +649,9 @@ export async function recordActivity(
   options: RecordActivityOptions,
 ): Promise<string> {
   const actId = options.id ?? 'act_' + crypto.randomUUID();
-  const safeChangesJson = options.safeChanges ? JSON.stringify(options.safeChanges) : '{}';
+  const safeChanges = { ...options.safeChanges };
+  if (options.source) safeChanges.source = options.source;
+  const safeChangesJson = JSON.stringify(safeChanges);
 
   // Check if visibility_scope column exists on activity_log
   const scopeRes = await client.query<{ exists: boolean }>(

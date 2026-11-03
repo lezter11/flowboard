@@ -1,5 +1,7 @@
 # Flowboard progress
 
+2026-11-03 MCP repair: source work is isolated on `codex/mcp-uat-hardening`, based on `62ce05f49aed3179bf6af97ffb3f5415512ef392`. The eight MCP audit findings are the bounded repair scope, with fixed acceptance criteria before implementation. [Current result/evidence](docs/reviews/MCP-REPAIR-20261103/summary.md) separates implemented behavior, local checks, independent review and hosted acceptance. Original shared checkouts and production are untouched. Older self-recorded scores below are historical claims, not approval for this repair.
+
 ## Mounted board grants cutover & frontend Next.js implementation — 2026-10-28
 
 Completed backend router cutover and migration formalization, together with production Next.js frontend implementation in `apps/web`. Both workstreams were independently audited and certified with passing review records.

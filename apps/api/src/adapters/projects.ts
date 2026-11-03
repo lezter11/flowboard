@@ -21,6 +21,7 @@ function isPool(target: pg.Pool | pg.ClientBase): target is pg.Pool {
 export interface PaginationOptions {
   limit?: number | undefined;
   cursor?: string | undefined;
+  projectId?: string | undefined;
 }
 
 export interface PaginatedResult<T> {
@@ -31,10 +32,11 @@ export interface PaginatedResult<T> {
 interface ProjectCursorPayload {
   name: string;
   id: string;
+  scope?: string;
 }
 
-export function encodeProjectCursor(item: { name: string; id: string }): string {
-  return Buffer.from(JSON.stringify({ name: item.name, id: item.id })).toString('base64url');
+export function encodeProjectCursor(item: { name: string; id: string }, scope?: string): string {
+  return Buffer.from(JSON.stringify({ name: item.name, id: item.id, ...(scope ? { scope } : {}) })).toString('base64url');
 }
 
 export function decodeProjectCursor(cursor?: string): ProjectCursorPayload | null {
@@ -178,6 +180,9 @@ export async function getAllAccessibleProjects(
       : 50;
   const limit = Math.min(rawLimit, 100);
   const cursorPayload = decodeProjectCursor(options.cursor);
+  if (options.projectId && options.cursor && cursorPayload?.scope !== options.projectId) {
+    throw HttpError.badRequest('Cursor does not belong to this project scope.', 'INVALID_CURSOR');
+  }
 
   const query = `
     SELECT DISTINCT
@@ -200,6 +205,7 @@ export async function getAllAccessibleProjects(
       ON pm.project_id = p.id AND pm.user_id = $1 AND pm.status = 'active'
     ${readableDefaultBoardJoin('$1')}
     WHERE (w.owner_id = $1 OR (pm.user_id = $1 AND pm.status = 'active'))
+      AND ($5::text IS NULL OR p.id = $5)
       AND ($2::text IS NULL OR (p.name > $2 OR (p.name = $2 AND p.id > $3)))
     ORDER BY p.name ASC, p.id ASC
     LIMIT $4
@@ -216,7 +222,7 @@ export async function getAllAccessibleProjects(
     updated_at: Date;
     role: Role;
     default_board_id: string | null;
-  }>(query, [actor.id, cursorPayload?.name ?? null, cursorPayload?.id ?? null, limit + 1]);
+  }>(query, [actor.id, cursorPayload?.name ?? null, cursorPayload?.id ?? null, limit + 1, options.projectId ?? null]);
 
   const hasMore = res.rows.length > limit;
   const pageRows = hasMore ? res.rows.slice(0, limit) : res.rows;
@@ -235,7 +241,7 @@ export async function getAllAccessibleProjects(
   }));
 
   const nextCursor = hasMore && pageRows.length > 0
-    ? encodeProjectCursor(pageRows[pageRows.length - 1]!)
+    ? encodeProjectCursor(pageRows[pageRows.length - 1]!, options.projectId)
     : null;
 
   return {

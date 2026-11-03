@@ -90,12 +90,9 @@ projectsRoutes.get('/api/v1/projects', authMiddleware, requireTokenScope('projec
   const cursor = queryParams.cursor;
 
   const pool = getPool();
-  const result = await getAllAccessibleProjects(pool, actor, { limit, cursor });
-
-  const tokenProjectId = c.get('tokenProjectId');
-  if (tokenProjectId) {
-    result.data = result.data.filter((p) => p.id === tokenProjectId);
-  }
+  const result = await getAllAccessibleProjects(pool, actor, {
+    limit, cursor, projectId: c.get('authType') === 'token' ? c.get('tokenProjectId') ?? undefined : undefined,
+  });
 
   return c.json(result, 200);
 });

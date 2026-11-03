@@ -1,0 +1,296 @@
+# API contract v0.3
+
+## MCP / personal access tokens — repair contract, 2026-11-03
+
+The local stdio MCP package uses the existing HTTPS API through a personal access token (PAT). A PAT is a separate credential acting for a human; it never inherits all of that person's session routes. Every request intersects the explicit route capability, its scope, any project restriction and the human's current role/board grant. Invalid Authorization headers fail with401 instead of falling back to a session cookie or public share. Full board snapshots, account/session operations, invitations, imports, images, comments and credential administration are unavailable to PATs. New routes are denied unless explicitly added to the capability policy and generated route tests.
+
+| Allowed PAT operation | Required scope | Response boundary |
+| --- | --- | --- |
+| GET `/api/v1/projects` | `projects:read` | Project restriction applied before SQL ordering, limit and cursor construction |
+| GET `/api/v1/projects/:projectId/boards` | `boards:read` | Currently accessible board metadata |
+| GET `/api/v1/boards/:boardId/metadata` | `boards:read` | `{data:{id,name,structureVersion,columns:[{id,name,category,position}]}}`; no cards, counts or people |
+| GET `/api/v1/projects/:projectId/cards/search?query=...` | `cards:read` | One bounded authorized page, with `nextCursor` |
+| GET `/api/v1/cards/:cardId` | `cards:read` | Current authorized card |
+| POST `/api/v1/boards/:boardId/cards` | `cards:create` | Validated card command and minimal retry receipt |
+
+Session-only credential administration: POST `/api/v1/tokens` accepts `{name,scopes,projectId?,expiresInDays?}` with strict unknown-field rejection, default30-day expiry and maximum365days. The canonical Owner inheritance applies without a redundant membership row; non-Owners need active project membership. Maximum20 active/unexpired credentials per user is serialized during issuance. GET `/api/v1/tokens` returns at most100 active summaries (including legacy credentials); DELETE `/api/v1/tokens/:tokenId` revokes only that user's credential. The raw bearer is returned once at issuance, never in list responses or server activity. Token prefixes are safe identification hints, not authentication. There is no PAT management screen in this repair. Use the signed-in API; the local database CLI is for disposable local development only.
+
+PAT card creation uses the caller's stable `Idempotency-Key` (16–128 allowed ASCII characters). Its stored receipt key hashes credential ID plus the caller key. The request fingerprint contains validated semantic card fields, excluding only `expectedBoardVersion`; session write semantics are unchanged. Same credential/key/input replays for seven days even when the board revision advances. Changed semantic input or board with the same key returns409 `IDEMPOTENCY_CONFLICT`. A credential row lock, current grants and writable project/board locks precede replay. Revocation waits for an already-protected transaction to finish; a write waiting behind committed revocation fails. A receipt contains identifiers/versions only. A replay does not fetch a current card or recover trashed/purged content.
+
+`card_created` activity has the human `actorId` plus `safeChanges.source`: `{type:"session"}` or `{type:"personal_access_token",credentialId,operationIdHash}`. The hash is SHA-256 of the caller operation key. These safe origin facts survive card-content redaction. No raw bearer or raw machine operation key is copied to activity/receipt metadata. Older activity without a source remains historical/unspecified. Last-used token timestamps are historical/optional; authentication does not launch an untracked write.
+
+Client setup, exact tool schemas, finite retry window, timeouts and rotation limits: [MCP guide](../packages/mcp/README.md). MCP HTTP calls reject redirects, cap response size and duration, and never echo arbitrary upstream error bodies. The tool host must retain operation ID/input before making a create call; search is not a uniqueness control. A durable fleet/compliance installation API is future work. This repair establishes no deployed or production acceptance; review and UAT steps live in [the repair record](reviews/MCP-REPAIR-20261103/summary.md).
+
+Own-project beta limits use optional environment variables `FB_LIMIT_OWNED_PROJECTS` (3 active owned projects), `FB_LIMIT_BOARDS_PER_PROJECT` (5 active boards), `FB_LIMIT_OWNED_PROJECTS_TOTAL` (20 including archived), `FB_LIMIT_BOARDS_PER_PROJECT_TOTAL` (25 including archived), `FB_LIMIT_MEMBERS_PER_PROJECT` (50), and `FB_LIMIT_PENDING_INVITES_PER_PROJECT` (50). Values must be whole numbers from 1 to 1000; invalid or missing values use the default. `GET /api/v1/session` provides effective active limits and per-project `isOwned`; total backstops return `QUOTA_EXCEEDED` with scopes `owned_projects_total` or `boards_per_project_total` and remedy `none`. Board counts in quota errors are supplied only to the Owner.
+
+Status: feature-level contract; implementation and review status are tracked separately in [FEATURE_CHECKLIST.md](FEATURE_CHECKLIST.md). This supersedes workspace-wide visibility, card archive-only deletion, and deferred images/imports in v0.2. [FEATURE_SPEC.md](FEATURE_SPEC.md) owns product flows, permissions and lifecycle.
+
+## Common rules
+
+Prefix /api/v1, same-origin JSON and verified cookie session. Strict Origin/CSRF checks on domain writes. IDs are opaque; derive actor from server session, never client identity headers. UTC timestamps; date-only deadlines as YYYY-MM-DD. Unknown fields fail validation; PATCH omitted means unchanged, null clears only nullable fields. Lists: {data:[],nextCursor:null|string}; resources: {data:resource}; related display identities may be included as people:[PersonDisplay]. Counts always state their filter/archive/trash scope. Default list size 50, maximum 100; stable cursors bind project/filter/order/snapshot.
+
+Errors: {error:{code,message,requestId,details?}}. 400 malformed; 401 invalid session; 403 insufficient role inside a visible project; consistent 404 for unknown/inaccessible project/resources; 409 stale version/cursor/preview/idempotency or domain conflict; 410 expired restore/preview only to authorized administrators; 413 upload/body too large; 422 invalid fields/relationships; 429 `RATE_LIMITED` with `Retry-After` when a per-client-IP limit refuses. Exact one-minute limits (PostgreSQL, fail closed) apply to Google sign-in (10), invitation create (10), import preview and commit (5), and image upload and finalize (10); `Retry-After` is the seconds left in the window. General writes have an approximate per-location soft limit (60 per minute, `Retry-After: 60`; a limiter fault lets the request through). Health is never limited. A limiter that cannot read its count returns 503 `SERVICE_UNAVAILABLE` with `Retry-After: 1` on the sensitive routes. Never expose SQL/token/internal object details. Private API and image responses are no-store.
+
+Body caps (B-7, FB-AUD-08): every request is capped at 1 MiB (413 `PAYLOAD_TOO_LARGE`) except two routes, and those only for a request carrying a session cookie: `POST /boards/:bid/imports` and `/card-imports` (5 MiB file) and `PUT /image-uploads/:uid/content` (10 MiB image). The body cap is the file cap plus a 64 KiB multipart allowance; the parser and validator still enforce the exact file limits. An anonymous request keeps the 1 MiB cap, so it cannot make the Worker buffer a large body before auth.
+
+All domain mutations require Idempotency-Key (exception: PUT /session/last-location, a personal value set that is idempotent by nature, so it takes no key), 16–128 ASCII characters A–Z/a–z/0–9/._:-. Scope actor+project+key where project exists, actor+workspace for workspace administration, actor+key for workspace creation/invite acceptance. Hash normalized method/path and canonical validated JSON; sorted object keys, preserved array order, omitted distinct from null. Successful receipt retention at least seven days; clients stop automatic retries within 24 hours. After purged receipt expiry a key may be new; no indefinite replay guarantee. Identical intent replays minimal operation outcome; changed hash conflicts. Recheck current ownership/project access before replay. Logout always clears cookie/revokes session and returns 204 even if already expired, without needing a receipt.
+
+Persist receipt outcome as resource IDs, versions, operation/status metadata, not deleted content copies. Mutation response: {data:{id,version?,structureVersion?,snapshotVersion?,operationId},replayed:boolean}. Client refetches canonical resource/list after success, including replays; older receipt metadata must not overwrite a later server state. No raw descriptions/comment bodies/image bytes in receipts. Upload bytes bind a digest instead of hashing unbounded raw body inside the transaction.
+
+## Authorization model
+
+**Revision pending implementation:** the user has selected separate per-board grants for non-Owners, Owner-only board-grant administration, and no automatic grants for existing project members. Project Managers may create boards. See [board-access decisions](handoffs/proposals/board-access-decisions-2026-10-27.md). The route descriptions below document the older implemented project-inheritance behavior until the full authorization cutover is completed; they must not be treated as the new access contract or as deployment approval.
+
+Exactly one workspace owner has access to all owned projects. project_memberships stores role manager/member/viewer, active/removed status and version. Workspace membership alone is not project access. The workspace owner is included as an eligible project person without requiring an accidental blanket grant for other workspace users. Every child query joins/checks workspace/project/board ancestry. Owner invited elsewhere receives only the destination grant.
+
+Manager configures its project/boards, invites/changes/removes member/viewer, trashes/restores cards, moderates and imports. Only owner creates/archives projects, appoints/removes managers and transfers ownership. Member creates/edits/moves cards, comments and uploads, without administration/trash/import. Viewer reads granted project cards/history/images only. [Full matrix](FEATURE_SPEC.md#2-people-projects-and-permissions). No project manager can modify peer manager/owner grants.
+
+Grant check and mutation serialize under a common lock order: owner/workspace or project grant guard, project state, board coordination row, sorted cards. Revocation winning first denies the later write; write winning first records its event before revocation. Do not hold locks while parsing/uploading/sending email. Active-project/board guards also stop writes after archive. Reads authorize at the request, not via a stale cache.
+
+## Account, project and invitations (S1)
+
+| Method and route | Input/result and authority |
+|---|---|
+| GET /session | Actor, ownerships and accessible-project summaries; no sibling-project details. Adds optional `lastLocation`: `{projectId, boardId\|null}` or `null`. B-16 adds `needsName` (true until the user saves a first and last name, that is while `name_confirmed_at` is null) and `suggestedFirstName` / `suggestedLastName` (nullable): Google's given and family name, offered as suggestions only, and null once the name is confirmed. Both suggestions and `needsName` are required fields of the response. `null` also when the stored project or board is no longer readable (revoked, archived, deleted); access is re-checked on every read, so a stale id is never returned |
+| PUT /session/last-location | Body `{projectId, boardId?: string\|null}` (strict; unknown fields 422). Returns 200 `{data:{projectId,boardId}}`. Owner, or an active member with a board grant for `boardId`; otherwise 404 `NOT_FOUND` (`Project not found.` / `Board not found.`) and no write. Archived projects and boards are not accessible. An unchanged value writes no row. No Idempotency-Key: the call sets a value rather than creating one, and repeating it is harmless |
+| PATCH /session/profile (B-9) | Body `{displayName}` only (strict; any other field, including avatarUrl or email, is 422). Trimmed, 1 to 80 characters, no control characters (checked before trim). Returns 200 with the actor. Only the signed-in user's own name; no Idempotency-Key, since setting a value is idempotent. Email and avatar are Google-owned: Google sign-in keeps a non-empty edited name and refreshes the avatar. The users row has no version column, so this is last-writer-wins. Rate-limited by the general write limiter |
+| PATCH /session/name (B-16) | Body `{firstName, lastName}`, both required (strict; unknown fields 422). Each is trimmed and has runs of whitespace collapsed to one space; 1 to 60 characters; control, format (zero-width, bidirectional override and isolate), line and paragraph separator characters refused with 422 (a tab is whitespace and is collapsed). Stored as plain text. Sets `display_name` to `First Last` and `name_confirmed_at` the first time (kept afterwards), so saving again changes only the names. Returns 200 `{data:{actor,firstName,lastName,needsName:false}}`. Signed-in user's own name only; cookie writes need a same-site Origin (403 otherwise) and count against the write rate limit. No Idempotency-Key: setting the same value is idempotent. Google sign-in (GET /auth/google/callback) stores the profile given_name and family_name as suggestions only while the name is unconfirmed; it never sets name_confirmed_at. Migration 0018 adds `users.first_name`, `users.last_name` and `users.name_confirmed_at` (additive, idempotent, no backfill). |
+| POST /session/logout | Revoke and clear cookie; 204 |
+| GET /auth/google/callback (ERR-R1 S10) | Every failure is a **302** to `${frontend}/signin?state=`: `denied` (provider refused), `expired` (state mismatch or expired cookie), `failed` (anything else), `email_unverified`, `email_missing`. The provider's error text is never reflected; only a code is logged. No failure on this top-level navigation is JSON. |
+| GET /auth/google (alias /auth/google/start) | Starts Google sign-in (302). Optional `?next=` is a same-app path only: starts with one `/`, no `//`, backslash, scheme, control character or `%`; max 300 characters; path must be one of /projects, /project, /board, /activity, /trash, /people, /inbox, /my-tasks, /settings, /import, /add-card, /all-work, /invitation, /invitations/accept (or below them); query limited to `A-Za-z0-9_=&.-`. Anything else is dropped silently. The value travels in the HttpOnly state cookie and is validated again at the callback, which redirects to it (prefixed with `FRONTEND_URL` when set) or to /projects |
+| GET /workspaces | B-20: owned workspaces only (`owner_id` is the caller). A membership in another person's project does not list that workspace. |
+| POST /workspaces | B-20: retired. Authenticated callers get **410** `WORKSPACE_CREATE_RETIRED`; anonymous callers get 401. Every person has one personal workspace, made at sign-in and by the first project create. Create projects with POST /api/v1/projects. |
+| PATCH /workspaces/:wid | Owner updates name/timezone with expectedVersion |
+| POST /workspaces/:wid/transfer-ownership | B-20 / F-06: retired for the beta. Authenticated callers get **410** `TRANSFER_OWNERSHIP_RETIRED` and nothing changes. The route moved whole workspaces without the target's consent or any limit. |
+| GET /projects/:pid/access-summary | Project access summary for an actor who can read the project; board read scope is locked for the read |
+| GET/POST /workspaces/:wid/projects | List only owned/granted projects; create owner-only {name,description?} |
+| GET/PATCH /projects/:pid | Owner/grant read; owner/manager edit name/description+expectedVersion; owner only for `defaultBoardId` (B-3) |
+| Database (B-7, migration 0015) | project_links(project_id, workspace_id) references projects(id, workspace_id): a link cannot name another workspace's project (FK 23503) |
+| GET /projects/:pid/overview | Any active member (owner or any role). Real counts over readable boards only: active cards by column category, overdue and due-soon (open cards, same rule as the board snapshot), unassigned open, open cards per assignee (max 50), last 10 activity rows (board rows on readable boards; project-scope rows only for owner and managers, B-6), and readableBoardCount. Archived boards excluded for everyone. Unreadable boards contribute nothing; no names, ids or counts of them. No percentages |
+| PATCH /projects/:pid `brief` / `links` | Owner/manager with expectedVersion. brief: plain text, max 5000, null clears. links: the whole list, max 10, each {title 1-100, url}; url must be https with no username or password, max 2000 characters, no whitespace; [] removes all. GET /projects/:pid returns brief and links to any member; list endpoints omit them |
+| PATCH /projects/:pid `defaultBoardId` | Owner only: a board id in this project (404 if not, 422 `BOARD_ARCHIVED` if archived), or null to clear; body needs expectedVersion. Managers get 403 even in the same request as a name change. Read back only when the caller can read that board (owner, or active board grant, and not archived); otherwise null |
+| POST /projects/:pid/archive or /reopen | Owner-only, expectedVersion; archive read-only, deadlines continue (S6) |
+| GET /projects/:pid/people?purpose=mention (B-11) | Pass `cardId` (preferred) or `boardId`. The caller must read that board, else 404; an unknown card and an unreadable card give the same 404. The answer is the owner plus active members holding a board grant. With neither parameter, mention returns `data: []`. Names and avatars only, no emails |
+| GET /projects/:pid/people | Active eligible people, query/purpose=display,assignee,mention, cursor; purpose changes eligibility, not authorization |
+| B-24 assignee picker (`purpose=assignee`) | With `boardId`: a person is assignable only by the same rule the card validator uses (`services/board-assignees.ts`): the workspace owner always; a manager or member only with an active grant on that board; never a viewer. Without `boardId`: 422 `BOARD_REQUIRED` ("Choose a card or board first."), so a list that the save rule would refuse cannot be shown. The UI reloads on this code (stale tabs). purpose=display and purpose=mention are unchanged. A caller who cannot read the board gets 404. |
+| B-24 card assignee 422 | Assigning someone the rule refuses returns **422** `ASSIGNEE_NOT_ELIGIBLE` with `error.details = { boardId, reasons: [{ userId, reason }], ineligibleUserIds, issues: [...], invalidAssigneeIds }`. `reason` is `no_board_access` (manager or member without a grant), `viewer`, or `not_active` (left or never a member). `invalidAssigneeIds` is kept for older clients. Create and update card return it. |
+| GET /projects/:pid/members | Owner/manager administration view, paginated status/role/version; no global directory |
+| Invitation email (B-10) | Create and resend write an outbox row holding the link token, the project name and the inviter's display name. The email is sent right after commit (Worker waitUntil, fail-soft) and retried by the scheduled drain: 5xx, 429 and network errors retry with backoff; other 4xx is permanent. Plain text and HTML in the Flowboard theme (B-12: table layout, 600px cap, inline styles, preheader, plum logo from `${APP_ORIGIN}/apple-touch-icon.png`, one accept button, role badge, expiry, fallback link, footer; preview in `docs/references/email/`). B-13: dark plum header with the gradient lockup image, a hosted kanban hero, an initials avatar cell, a project card with role and expiry chips, role-specific abilities, a bulletproof button and a copy-link box. Hosted images: `${APP_ORIGIN}/email/flowboard-lockup-dark.png` and `${APP_ORIGIN}/email/invite-board-hero.png` (static files in apps/web/public/email). Every user value escaped; names are one line, no control characters. Link: `${APP_ORIGIN}/invitation?token=...`, the shape the web accept screen reads. Once sent or refused, the token and the recipient are removed from the row and only the provider message id is kept (B-14: a settled row holds `{providerMessageId}` only, or `{}` after a permanent refusal; settled rows are deleted 30 days after they settle). Delivery is at-least-once: Brevo's transactional send API documents no idempotency key (https://developers.brevo.com/reference/send-transac-email, read 2026-10-30), so a crash between Brevo accepting a message and the row settling can send the same link twice. The `headers` field is not used for this: it sets email headers, not an idempotency key. Resend settles any earlier pending email for the invitation, so only the newest link works. With no mail configuration the row waits and no failure is counted. No token in logs or errors. Not independently reviewed |
+| POST /projects/:pid/invitations | {email,role}; owner manager/member/viewer, manager member/viewer only; durable email intent. Limits (B-7): per IP 10/min, per inviter 20/min and 200/h, per project 30/min and 300/h; refusal 429 RATE_LIMITED with details.retryAfterSeconds; limiter outage 503. Email (B-7, contracts `isValidInvitationEmail`): one plain address, trimmed and lowercased, at most 254 characters; refused: control characters (CR, LF, tab), spaces, non-ASCII, display-name forms such as `Name <a@b.c>`, quoted parts, local part over 64, domain over 255, leading, trailing or doubled dots |
+| GET /projects/:pid/invitations | Owner/manager scoped states; never raw token/hash |
+| POST /invitations/accept | Verified matching signed-in email + single-use token; safe wrong/expired/revoked state. B-16: while the signed-in user has not saved a name (`needsName` true) the accept is refused with **409** `{error:{code:"NAME_REQUIRED", message}}` and nothing is written. The request is validated first (Idempotency-Key, body), so a malformed request still gets 400/422. The UI must send the user to the name screen, then retry. |
+| RATE_LIMITED 429 (ERR-R1 S11) | Every 429 carries `details.retryAfterSeconds` and `details.scope` (`invitations`, `projects`, or `general`) as well as the `Retry-After` header. The edge (soft) limiter reports 60 seconds; the window limiters report their window. |
+| B-23 same-name numbers (`PersonDisplay.nameSuffix`) | Optional and additive. When two or more active members of one project (the Owner counts) share a full name, the first keeps no number and the later joiners get 2, 3, and so on. Name equality: trim, collapse whitespace, Unicode NFKC, case-insensitive and accent-insensitive (so "José" and "Jose" collide). Order: the Owner first, then membership `created_at`, then user id. Computed on read over every active member of the project, never over one page, filter or board, so numbers do not move with filters. Absent or null when the name is unique. Recomputed on every read: a member who leaves or is removed stops counting, so a remaining duplicate becomes unique again; a rename that collides numbers the later member. The stored display name never changes. Applied to: GET /projects/:id/people (every purpose), the board snapshot people, card creator, comment authors, project activity actors, and project trash actors. Not applied to the workspace-wide activity feed (no single project; see the handover). No email, handle or other field is added to any person object. |
+
+**Known gaps (accepted for the beta, not missed):**
+- The workspace-wide activity feed (GET /workspaces/:id/activity) does not number same-named actors: it spans projects, so a per-project number has no single meaning.
+- Project overview rows (GET /projects/:id/overview) for assignees and recent activity actors are not PersonDisplay in the contract, so they do not carry nameSuffix.
+| B-22 invitation caps (edge-case review rules 4-6, 10; F-04, F-07, F-11, F-18, F-24) | Pending invitations per project: at most 50 unexpired (`FB_LIMIT_PENDING_INVITES_PER_PROJECT`). Members per project: at most 50 active, the Owner not counted (`FB_LIMIT_MEMBERS_PER_PROJECT`). Seat reservation: an invite or resend is refused when pending is at the pending limit, or when active members plus pending invitations reach the member limit. Accept is refused when active members reach the member limit. Each refusal is 409 `QUOTA_EXCEEDED` with `details { scope: pending_invitations \| members, limit, current?, remedy: revoke_invitation \| remove_member }`; `current` appears because the caller is Owner or Manager. |
+| B-22 resend | Resend spends the same per-inviter and per-project buckets as create (`invite-inviter`, `invite-project`, with the hour windows); refusals are 429 `RATE_LIMITED`. An expired invitation is never revived: resend answers 409 `INVITATION_EXPIRED`, and the inviter sends a new invitation. |
+| B-22 lock order | Create, resend and accept take the project quota advisory lock before any row lock (edge-case review F-04). Accept reads the project id by token without a lock, takes that lock, then locks the invitation row. Concurrent accept and resend do not deadlock (tested). |
+| B-22 other refusals | Accept into an archived project: 409 `READ_ONLY_CONTEXT`. Invite while the inviter has no stored name: 409 `NAME_REQUIRED` (F-24). Archiving a board inside an archived project: 409 `READ_ONLY_CONTEXT` (F-30). Project and board names refuse control, zero-width, bidirectional and separator characters with 422 (F-17). Invitation email text strips format characters (F-17). |
+| POST /projects/:pid/invitations/:iid/resend or /revoke | Owner/manager within role authority; resend rotates token and prior token fails |
+| PATCH /projects/:pid/members/:uid | {role,status,expectedVersion}; owner any grant, manager member/viewer only |
+| POST /projects/:pid/leave | Actor leaves own grant; owner cannot leave ownership |
+
+Invitation tokens are random/hashed/expiry-checked; initial expiry proposal seven days. Email verification must come from chosen identity provider or explicit verification flow; unverified identity never accepts an invitation. User-facing login/callback/account-profile routes follow the selected auth adapter, not invented insecure custom passwords. Invitation delivery has production email adapter, local synthetic sink and inspectable retries; no public test-token bypass.
+
+## Core resources and validation
+
+Card: id,workspaceId,projectId,boardId,columnId,title,description,priority,dueDate,assigneeIds,position,version,state(active|trashed|purged),deletedAt|null,deletedBy|null,restoreUntil|null,createdAt,updatedAt. Purged rows expose only authorized tombstone metadata, never a full Card body. Details include finalized image metadata and paginated discussion/activity links.
+
+CardSummary: id,boardId,columnId,title,priority,dueDate,assigneeIds,position,version,commentCount,imageCount,createdAt,updatedAt. PersonDisplay: id,displayName,avatarUrl|null,activeInProject. Each response includes only referenced/eligible display identities; removed authors remain historical, without email/global directory leakage. Invitation/import email resolution is separately privileged and server-side.
+
+Title trimmed 1–200; description ≤20,000; comment trimmed 1–10,000; column name trimmed 1–80 and unique after case normalization; priority none/low/medium/high/urgent; up to 20 distinct eligible assignees/mentions; real Gregorian due date or null. Assignees active owner/manager/member; mentions active eligible project readers. Field limits apply to API and importer through shared validators.
+
+Comment: id,projectId,cardId,authorId,body,mentions:[{userId,start,end}],version,createdAt,updatedAt,deletedAt|null. Mention offsets are UTF-16 code units with no overlap/surrogate split; validate selected token boundaries and project eligibility. Literal at-name text does not notify. Edits do not re-notify in v1. Tombstones hide removed body/mentions. B-9: a mention of a user who cannot read the card's board (not a member, removed, another project, no board grant, or not existing) is refused with 422 VALIDATION_ERROR and the same message; the id is not echoed, so the response does not reveal who exists. Notifications are re-checked on every read: a recipient who loses membership, the board grant, or sight of an active card no longer sees the notification, its title or its snippet, and cannot mark it read.
+
+## Boards and columns (S2)
+
+| Method and route | Behavior |
+|---|---|
+| GET/POST /projects/:pid/boards | Read granted project; owner/manager creates {name, description?} with five default columns atomically (Not started, In progress, Testing, Blocked, Completed; new boards only). description is optional plain text, max 2000, null when omitted |
+| PATCH /boards/:bid | Owner only (B-3): {name?, description?, expectedVersion}, at least one of name/description; null clears description. Manager with a board grant gets 403; grantless user 404; member/viewer 403 |
+| POST /boards/:bid/archive or /reopen | Owner/manager, expectedVersion, read-only archive (S6) |
+| GET /boards/:bid | Consistent bounded snapshot with filter/count contract below |
+| GET /boards/:bid/cards | columnId, title query, priority, assigneeId, due, cursor, limit; canonical active order |
+| POST /boards/:bid/columns | Owner/manager {name,color,category,expectedBoardVersion}; max 12 columns |
+| PATCH /boards/:bid/columns/:cid | Owner/manager field edit + expectedBoardVersion |
+| POST /boards/:bid/columns/reorder | Owner/manager complete column-ID order + expectedBoardVersion |
+| DELETE /boards/:bid/columns/:cid | Owner/manager expectedBoardVersion; reject final column or active/restorable references |
+| GET /boards/:bid/columns/:cid/placement | movingCardId, at=first|last|before|after, optional anchorCardId; bounded canonical neighbors + structureVersion |
+
+Snapshot: {board:{id,workspaceId,projectId,name,structureVersion,snapshotVersion},filters,asOfDate,totals:{activeCardCount,matchingCardCount},columns:[{id,name,category,color,position,activeCardCount,matchingCardCount,cards:CardSummary[],nextCursor}],people:PersonDisplay[]}. Maximum 12 columns; cardLimitPerColumn default 10, range 1–15, at most 180 returned summaries. Counts exclude trash; active counts ignore filters, matching counts apply all filters to the whole authorized active set. No inferred business progress percentage.
+
+Read multi-query snapshots under short read-only Repeatable Read, or one proven consistent statement. structureVersion changes on card create/move/delete/restore or column changes. snapshotVersion changes for any displayed/filter/count-affecting card/column/comment/image update. Cursor binds scope/filter/snapshot; stale returns 409 STALE_CURSOR. Later pages do not hold a transaction open.
+
+## Card fields, movement and discovery (S2)
+
+| Method and route | Behavior |
+|---|---|
+| POST /boards/:bid/cards | Owner/manager/member title,columnId,optional fields,expectedBoardVersion; append, create once |
+| GET /cards/:cid | Full active card and referenced display identities; project authorizes independently |
+| PATCH /cards/:cid | Editable fields + expectedVersion; excludes ancestry, creator, position and lifecycle |
+| POST /cards/:cid/move | toColumnId, previousCardId|null, nextCardId|null, expectedVersion, expectedBoardVersion |
+| POST /cards/:cid/move-undo | expectedVersion, expectedBoardVersion; reverts the card's last move (CRD-12) |
+| GET /projects/:pid/cards/search | Bounded active title/filter query, project-only |
+| GET /me/tasks?projectId=:id | Actor assignments within the selected accessible project only; explicit board grants still apply |
+| GET /workspaces/:wid/my-tasks?projectId=:id | The same list under the workspace path (QRY-03); `limit` optional, default 50 |
+
+Both null neighbors mean empty destination. First uses next=first, previous=null; last uses previous=last, next=null; exclude moving card and verify adjacency/correct board. Rank is server-owned and compaction guarded. Filtered views use placement+Move menu and disable ambiguous drag. Undo (S6) is a new normal move under current versions, not a state overwrite. Save affects fields only; comment posting and uploads are independent.
+
+## Discussion, activity, inbox and jobs (S3)
+
+| Method and route | Behavior |
+|---|---|
+| GET/POST /cards/:cid/comments | Project readers list; owner/manager/member post {body,mentions}; same-transaction event/outbox/receipt |
+| PATCH /comments/:id | Author edit {body,mentions,expectedVersion}; valid project writer; owner/manager moderation is delete, not impersonated editing |
+| DELETE /comments/:id | Author or owner/manager, expectedVersion; tombstone + audit fact |
+| GET /cards/:cid/activity | Active project readers; stable chronology, safe field/move/comment/lifecycle facts |
+| GET /projects/:pid/activity | Owner/manager; filters card/actor/action/date/cursor |
+| GET /workspaces/:wid/activity | Owner-only cross-project feed + ownership/access events |
+| GET /notifications | Actor-only, reauthorize project, redact/hide lost-access references |
+| PATCH /notifications/:id/read | Actor-only idempotent read marker. Route is PATCH, not POST (FB-AUD2-06) |
+| POST /notifications/mark-all-read | Actor-only; marks every notification visible to the actor as read |
+
+### Activity action names (B-5)
+
+Every write below records one activity_log row in the same transaction as the write. A failed write records nothing, and an idempotent replay records nothing new. The `action` value is listed in `ACTIVITY_ACTIONS` (packages/contracts). The UI maps each name to text.
+
+| Action | Written by | Scope | Who reads it in GET /projects/:pid/activity | Suggested text | safeChanges |
+|---|---|---|---|---|---|
+| board_created | POST /projects/:pid/boards | board (new board) | Owner, or a grant holder on that board | created a board | name |
+| board_renamed | PATCH /boards/:bid (name) | board | Owner, or grant holder | renamed a board | name |
+| board_described | PATCH /boards/:bid (description) | board | Owner, or grant holder | changed a board description | cleared (bool); text never logged |
+| board_archived | POST /boards/:bid/archive | board | Owner, or grant holder | archived a board | name |
+| board_reopened | POST /boards/:bid/reopen | board | Owner, or grant holder | reopened a board | name |
+| default_board_changed | PATCH /projects/:pid (defaultBoardId) | board on the new board; project when cleared | Owner, or grant holder; project-scope rows: owner/manager | changed the default board | defaultBoardId |
+| column_added | POST /boards/:bid/columns | board | Owner, or grant holder | added a column | columnId, name, category |
+| column_renamed | PATCH /boards/:bid/columns/:cid (name) | board | Owner, or grant holder | renamed a column | columnId, name |
+| column_recoloured | PATCH column (color) | board | Owner, or grant holder | recoloured a column | columnId, color |
+| column_recategorised | PATCH column (category) | board | Owner, or grant holder | changed a column's category | columnId, category |
+| columns_reordered | POST /boards/:bid/columns/reorder | board | Owner, or grant holder | reordered columns | columnIds |
+| column_deleted | DELETE /boards/:bid/columns/:cid | board | Owner, or grant holder | deleted a column | columnId, name |
+| project_brief_updated | PATCH /projects/:pid (brief) | project | Owner, manager | edited the project brief | cleared (bool); text never logged |
+| project_links_updated | PATCH /projects/:pid (links) | project | Owner, manager | edited project links | count |
+| invitation_sent | POST /projects/:pid/invitations | project | Owner, manager | sent an invitation | invitationId, role (no email, no token) |
+| invitation_resent | POST invitation resend | project | Owner, manager | resent an invitation | invitationId, role |
+| invitation_revoked | POST invitation revoke; also revoked as a side effect of member removal or leave | project | Owner, manager | revoked an invitation | invitationId, role, reason (absent on a direct revoke; member_removed or member_left otherwise) |
+| invitation_accepted | POST /invitations/accept | project | Owner, manager | accepted an invitation | invitationId, role |
+| member_role_changed | PATCH /projects/:pid/members/:uid (role changed) | project | Owner, manager | changed a member's role | userId, fromRole, toRole |
+| member_removed | PATCH (status removed) or DELETE member | project | Owner, manager | removed a member | userId, role |
+| member_reinstated | PATCH (status back to active) | project | Owner, manager | reinstated a member | userId, role |
+| member_left | POST /projects/:pid/leave | project | Owner, manager | left the project | userId, role |
+
+Scope rules. Board rows are visible to the owner and to members who hold a grant on that board. Project rows are visible only to the owner and managers, in the feed and in the overview's recentActivity (B-6). Members and viewers never see them in either place. No row ever carries an invitation token, a token hash, or an invitee email address.
+
+Decisions: managers read project-scope rows in the Activity page (FEATURE_SPEC AUD-04; B-5). Owner and managers also see them in the overview's recentActivity (B-6). The overview keeps its last-10 cap and one query, and still excludes unreadable boards.
+
+No user audit-edit API. Sensitive body copies/tokens are excluded or redacted under FEATURE_SPEC retention. Outbox/invitation dispatcher uses versioned events, leases/fencing, bounded retries/jitter and failed-work replay with operator authorization. Job completion/notification insertion in one DB can be atomic; external email cannot be recalled or declared exactly once.
+
+## Private images and trash (S4)
+
+| Method and route | Behavior |
+|---|---|
+| POST /cards/:cid/image-uploads | Authorized writer, filename,byteLength,contentType,sha256; allocate private uploadId/expiry and authenticated upload path |
+| PUT /image-uploads/:uid/content | Authenticated bounded binary body; verify project/card scope and actual digest; stage only |
+| POST /image-uploads/:uid/finalize | Reauthorize active card and valid verified bytes; attach once or report validating/failed; no false saved image |
+| GET /image-uploads/:uid | Actor/project-authorized validation/progress state; no raw credential disclosure |
+| DELETE /image-uploads/:uid | Uploader/owner/manager cancel pending upload; durable orphan cleanup |
+| GET /cards/:cid/images | Authorized active-card finalized metadata, bounded cursor |
+| GET /images/:iid/content or /thumbnail | Authenticated proxy, current project/card visibility check, safe content type/disposition, private/no-store |
+| DELETE /images/:iid | Uploader or owner/manager, expectedVersion; detach + activity and retryable cleanup |
+| POST /cards/:cid/delete | Owner/manager {expectedVersion,expectedBoardVersion}; soft delete with server restoreUntil |
+| GET /projects/:pid/trash | Owner/manager; trashed metadata, actor, restoreUntil and state |
+| POST /cards/:cid/restore | Owner/manager {expectedVersion,expectedBoardVersion,toColumnId?}; exact cutoff, safe placement |
+
+PNG/JPEG/WebP only; proposed 10 MiB each/10 finalized per card/20 megapixels/8192 max dimension. Verify actual content; no SVG/HTML/arbitrary files or remote URL fetching. Use a private storage adapter, no public bucket or reusable URL bypassing current access. Presigned URLs are not the v1 authorization path. Bytes live in the private R2 bucket bound as `IMAGES` (B-7, FB-AUD-01). Deployment needs: a private R2 bucket (no public access, no r2.dev or custom public domain) named per environment, bound to the Worker as `IMAGES`. Without that binding every image route returns 503 `CONFIG_ERROR` before any database write, so no image is ever recorded without bytes.
+
+Operators never hand-delete card rows with SQL. A raw DELETE removes the card but leaves notification titles and bodies, activity copies and outbox payloads that name it (Codex C-02). Use the purge. The purge scrubs all of them (B-14 regression: `apps/api/test/b14-purge-redaction.test.ts`).
+
+State active → trashed → restored active OR purged. restoreUntil=server deletedAt+24h; restore strictly before cutoff. At/after cutoff, authorized administrator gets 410 RESTORE_WINDOW_EXPIRED even with delayed cleanup. Nonadministrator normal card reads stay private/not-found. Restore preserves same ID/content/comments/finalized files; unavailable original destination needs explicit active target, not silent relocation. Project/board archive must be reopened before restore there. Restore/purge are fenced conditional winners. Purged cards retain only a placeholder title and minimal audit/duplicate markers; descriptions, comment bodies, notification copies and images are removed. Object deletion uses durable retry keys after the purge transition, so a temporary storage failure cannot erase the key needed to retry. No immediate permanent-delete or card-archive API in v1.
+
+## Excel imports (S5)
+
+| Method and route | Behavior |
+|---|---|
+| GET /boards/:bid/card-import-template | Owner/manager, versioned seven-column XLSX; default labels/instructions for board; do not expose global member emails |
+| POST /boards/:bid/card-imports | Owner/manager multipart XLSX + defaultColumnId; verify project, stage input and return 202 with importId/status link if validation async |
+| GET /card-imports/:iid | Owner/manager, state/counts/digest/expiry and bounded preview row cursor; no cards created yet |
+| POST /card-imports/:iid/mappings | Owner/manager explicit source-status → existing column IDs; revalidate and refresh preview digest |
+| POST /card-imports/:iid/commit | Owner/manager previewDigest + Idempotency-Key; recheck all eligibility/state and atomically create new rows |
+| DELETE /card-imports/:iid | Owner/manager cancellation only before committing; no fake cancellation after commit begins |
+| GET /card-imports/:iid/report | Authorized result metadata/row outcomes/card links, safely escaped export |
+
+[IMPORT_SPEC.md](IMPORT_SPEC.md) owns exact headers, dates, 200-row/size proposals, formula/macro/package rejection, explicit preview, expiry, cleanup and original-row hash duplicate semantics. Same source ID is not an update; neither trash nor purge can be bypassed by re-upload. All-or-nothing new-card commit; no hidden valid-row partial import. Parser/runtime/library choice needs compatibility and resource tests.
+
+## Compatibility and delivery gates
+
+### Explicit UI-facing lifecycle shapes
+
+Project people: `{data:PersonDisplay[],nextCursor}` where PersonDisplay additionally includes scopedRole(owner|manager|member|viewer), assignable:boolean and mentionable:boolean when the request is a picker. `activeInProject` is true for the active workspace owner or a valid active project grant. Historical referenced people may be inactive, but picker responses exclude them. Do not include unverified/global email addresses; privileged invitation/import resolution has separate validation.
+
+Trash list: `{data:TrashRow[],nextCursor,serverNow}`. TrashRow is `{id,title,projectId,boardId,originalColumnId,version,structureVersion,deletedAt,deletedBy,restoreUntil,canRestore,blockedReason|null}`. Referenced actors use related PersonDisplay. `serverNow` and deadlines are UTC instants; browser countdown uses the server offset as guidance and never authorizes recovery. `blockedReason` enumerates `window_expired`, `project_archived`, `board_archived`, `destination_missing`. A 410 RESTORE_WINDOW_EXPIRED returns authorized `{serverNow,restoreUntil}` details. A 409 RESTORE_DESTINATION_REQUIRED (ERR-R1 S14: `details.columns` lists `[{id,name}]` of that board, only to a caller who can read it) returns `{reason,boardId}`; UI queries that board's active columns for explicit choice. A 409 READ_ONLY_CONTEXT identifies project/board archive and the authorized reopen action. No cross-board restore in v1; reopen the original context if required. Role loss remains 404/403 rather than a misleading restore destination error.
+
+ImageUpload: `{id,projectId,cardId,version,state,expectedBytes,receivedBytes|null,expiresAt,serverNow,finalizedImageId|null,error|null}`. Server states `awaiting_content`, `content_received`, `validating`, `finalized`, `failed`, `cancelled`, `expired`. Browser byte-transfer progress is separate from server validation; no invented validation percentage. Error is `{code,message,retryable}` with bounded safe text. Content retry uses the same upload ID and digest; finalize retry is idempotent. Finalize returns 202 with status URL while validation runs; the gallery shows finalized objects only. Cancel after finalized returns 409 ALREADY_FINALIZED and directs the user to the normal image removal action. Reauthorization and active-card checks apply at every state-changing step.
+
+ImportStatus: `{id,projectId,boardId,defaultColumnId,version,state,previewDigest|null,expiresAt|null,serverNow,counts:{total,new,existing,invalid,conflict,created,skipped},canCommit,cancellationAllowed,rows:ImportRow[],nextCursor,error|null}`. States exactly `uploaded`, `validating`, `invalid`, `ready`, `committing`, `committed`, `failed`, `cancelled`, `expired`. ImportRow is `{rowNumber,externalId,title,status,priority,dueDate,assigneeIds,outcome,errors:[{field,code,message}],cardId|null}`; outcome is `new`, `already_imported`, `invalid`, `conflict`, `created` or `skipped`. Authorized preview includes safe description excerpt if requested; do not persist it in a permanent receipt/report. Counts cover the whole batch, rows are paginated. Commit requires expected import version and previewDigest. A lost commit response is resolved through GET status and the same-key retry, never by making a new import blindly. Cancellation after `committing` returns 409 COMMIT_IN_PROGRESS with status URL; terminal committed remains committed. Expired preview returns 410 PREVIEW_EXPIRED, no new cards. Mapping changes increment import version and invalidate its prior digest. These shapes become validated shared schemas in FND-02 before corresponding handlers/UI are built.
+
+Before feature handlers, shared schemas/OpenAPI/fixtures must cover two workspaces, sibling projects with different roles, owner invited elsewhere, manager of only one project, removed user, read-only board, unseen pages, historical authors, comment/attachment counts, invalid dates/mentions, exact cutoff, restore/purge race and repeated import. Preserve all original engineering controls while adding project-specific scope. Historical SQLite tests do not prove this PostgreSQL model. Each feature's evidence and UI readiness is recorded through [handoffs](handoffs/README.md).
+
+## Scheduled maintenance and image cap (B-11)
+
+The scheduled handler runs each job in isolation: trash purge, orphan staged-upload cleanup, pending storage deletions, the invitation outbox, settled-outbox retention (B-14: delete delivered or failed rows whose settled time is over 30 days old, in batches of 1000; pending rows are never deleted) and rate-window cleanup. One failing job does not stop the others, and the run is still reported as failed. Orphan cleanup settles each expired, cancelled or failed staged upload once (`staging_cleaned`, migration 0016), queues its bytes for deletion and deletes them after commit; failed deletes are retried.
+
+The 10-image cap counts finalized images plus staged uploads that have not expired. The stage transaction locks the card row first, so concurrent stages for one card are serialised.
+
+## Routes and error catalogue, complete list (ERR-R1b)
+
+Added after a docs drift audit (docs/reviews/HAIKU-AUDIT-20261031/docs-drift.md). Every item was checked against the code. The list below is the source for the routes that were missing.
+
+| Route | Behaviour |
+|---|---|
+| GET /api/v1/projects | Projects the caller can read, across workspaces: owned (role owner) or accessible. Query `limit` (default 50, capped at 100; a missing, non-numeric or lower-than-1 value means 50) and `cursor`. Returns `{data, nextCursor}`. |
+| POST /api/v1/projects | Creates a project in the caller's personal workspace. Body `{name, description?}`, strict (a workspaceId is 422). Idempotency-Key required; the idempotency scope is the actor. 201 `{data: Project}`. Owned-project quota applies (see QUOTA_EXCEEDED below). |
+| POST /api/v1/workspaces/:wid/projects | Kept for compatibility. Owner only (404 otherwise). The same owned-project quota applies. |
+| GET /api/v1/boards/:bid/access | Board access state for a caller who can read the board. Board-access cutover is still pending, so the response contract is not final. |
+| GET /api/v1/import/template | Legacy blank workbook template (authenticated). |
+| GET /api/v1/boards/:bid/import-template, GET /api/v1/boards/:bid/card-import-template | Board-scoped template download (same handler). |
+| POST /api/v1/boards/:bid/imports, POST /api/v1/boards/:bid/card-imports | Creates an import from an uploaded workbook. |
+| GET /api/v1/imports/:iid, GET /api/v1/card-imports/:iid | Reads an import. |
+| POST /api/v1/imports/:iid/mappings, POST /api/v1/card-imports/:iid/mappings | Updates the column mappings. |
+| POST /api/v1/imports/:iid/commit, POST /api/v1/card-imports/:iid/commit | Commits a validated import. |
+| DELETE /api/v1/imports/:iid, DELETE /api/v1/card-imports/:iid | Cancels an import. |
+| GET /api/v1/imports/:iid/report, GET /api/v1/card-imports/:iid/report | The import report. |
+| GET /api/v1/activity/health, GET /api/v1/notifications/health | Unauthenticated liveness, `{data:{status:"ok"}}`. Never rate limited. |
+| GET /health/live | Unauthenticated liveness at the root, `{data:{status:"ok"}}`. |
+| GET /health/ready | Root readiness. 200 `{data:{status:"ready"}}` when the database answers. 503 `DATABASE_UNAVAILABLE` otherwise. |
+| GET /api/v1/system/status | Operator route. Needs the administrative secret header (`x-dev-secret`); otherwise 403 `FORBIDDEN`. Returns the applied migrations and which rate-limit bindings the runtime sees (booleans only). |
+| POST /api/v1/system/migrate | Operator route, **mutates the schema**. Needs the administrative secret. Applies pending migrations; on failure returns 500 `MIGRATION_FAILED`. Use only under the deployment runbook. |
+
+### QUOTA_EXCEEDED scopes and remedies (complete)
+
+Scopes: `owned_projects`, `boards_per_project`, `members`, `pending_invitations`, `owned_projects_total`, `boards_per_project_total`.
+Remedies: `archive_project`, `archive_board`, `remove_member`, `revoke_invitation`, `none`.
+The two `_total` scopes are the archived-item backstops (archived items count). Their remedy is `none`, because archiving does not free a slot.
+
+### Error statuses that differ by site
+
+The catalogue (`ERROR_CATALOG` in packages/contracts/src/common.ts) records the most common status for each code. These codes also use another status at some sites:
+- `VALIDATION_ERROR`: 422 for field problems. 400 for board anchor refusals (`boards.ts`) and comment mention range refusals (`comments.ts`).
+- `BOARD_ARCHIVED`: 422 when a project's default board is set to an archived board. 409 when a board import targets an archived board.
+- `INVITATION_EXPIRED`: 400 on accept, 409 on resend.
+- `ALREADY_MEMBER`: 400 on accept (a 409 with `details.role` is planned for Release 2).
+- `DATABASE_UNAVAILABLE`: 503 (readiness probe). `MIGRATION_FAILED`: 500 (operator migrate).
+
+Default codes when a route does not name one: `MALFORMED_REQUEST` (400), `UNAUTHORIZED` (401), `FORBIDDEN` (403), `NOT_FOUND` (404), `CONFLICT` (409).
+
+Every code the API throws is listed in `ERROR_CATALOG`. A static scan test in apps/api fails when a code is thrown without being in the catalogue, including codes passed through imported constants.
+
+### Image upload error codes (ImageUpload.error.code)
+
+These are stored with the upload, not thrown as HTTP errors: `EMPTY_FILE`, `MALFORMED_IMAGE`, `MIME_SPOOF_DETECTED`, `REJECTED_FORMAT`, `DIMENSIONS_EXCEEDED`, `MEGAPIXELS_EXCEEDED`, `INVALID_IMAGE`.
+
+### Session limits and ownership (shape)
+
+`GET /api/v1/session` `data.limits` (optional, additive): `{ownedProjects:{limit,used}, boardsPerProject:{limit}, membersPerProject:{limit}, pendingInvitationsPerProject:{limit}}`. The archived-item backstops (20 owned, 25 boards) are not listed; the UI does not need them. Each `accessibleProjects` entry carries `isOwned` (optional boolean; true when the caller owns the project's workspace).

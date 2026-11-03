@@ -1,0 +1,35 @@
+Command: npm test --workspace @flowboard/mcp
+Started: 2026-11-03T04:26:58.792842+00:00
+Environment: sanitized, synthetic localhost PostgreSQL55923, PostgreSQL17.11-alpine image266d3c257594
+
+
+> @flowboard/mcp@0.2.0 test
+> node --test --test-concurrency=1 test/*.test.ts
+
+✔ create uses metadata, resolves a unique name and sends caller operationId (121.173417ms)
+✔ metadata projection strips accidental cards, counts and other fields at runtime (1.243125ms)
+✔ metadata must identify the requested board and an exact column ID wins over a colliding label (4.210791ms)
+✔ lost response: new client retry preserves key and accepts minimal replay with a newer metadata revision (4.288791ms)
+✔ only STALE_BOARD_VERSION retries, once, with unchanged key and semantic input (4.222875ms)
+✔ a second stale-version conflict is returned without a third POST (3.474792ms)
+✔ generic 409 and idempotency conflict never retry (66.407333ms)
+✔ missing or ambiguous target column causes no POST (10.339209ms)
+✔ stale recovery refuses a deleted column and never changes requested column (1.405084ms)
+✔ search uses query and explicit pagination, returning only the bounded safe projection (3.946416ms)
+✔ list projects exposes the cursor and never silently follows extra pages (2.243792ms)
+✔ configuration rejects missing tokens, credential URLs, insecure remote HTTP and non-origin URLs (1.097917ms)
+✔ input validation rejects impossible dates, oversized text, path-like IDs and absent operation IDs before fetch (5.371208ms)
+✔ real leap-day date is accepted (0.76275ms)
+✔ non-JSON and JSON server errors are consumed once and do not echo bodies, tokens or messages (0.921417ms)
+✔ oversized responses fail safely and are not retried (0.526333ms)
+✔ HTTP timeout aborts the request and reports unknown create outcome without secrets (9.845542ms)
+ℹ tests 17
+ℹ suites 0
+ℹ pass 17
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1491.186125
+
+Exit code: 0

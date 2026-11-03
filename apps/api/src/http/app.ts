@@ -13,6 +13,7 @@ import {
   DEFAULT_DEADLINE_MS,
 } from './middleware/index.ts';
 import { originCheckMiddleware, isTrustedOrigin } from './middleware/origin.ts';
+import { personalAccessTokenMiddleware } from './middleware/auth.ts';
 import { rateLimitMiddleware, windowRateLimitMiddleware, type RateLimiterResolver, type WindowCounterResolver } from './middleware/rate-limit.ts';
 import { cloudflareRateLimiter } from '../adapters/rate-limit-cloudflare.ts';
 import { postgresWindowCounter } from '../adapters/rate-limit-postgres.ts';
@@ -120,6 +121,9 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
 
   // 1. Correlation middleware: assigns or validates x-request-id and sets requestId in context
   app.use('*', correlationMiddleware);
+
+  // Explicit bearer credentials never inherit cookie/public route authority.
+  app.use('*', personalAccessTokenMiddleware);
 
   // 1b. CSRF defence for cookie-authenticated state changes (same-site Origin/Referer required)
   app.use('*', originCheckMiddleware);

@@ -1,0 +1,378 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "MCP-HARDENING"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/MCP-REPAIR-20261103/criteria.json",
+  "startedAt": "2026-11-03T04:28:35.308011+00:00",
+  "completedAt": "2026-11-03T04:35:36.359052+00:00",
+  "implementer": {
+    "actorId": "Codex root implementation team",
+    "sessionId": "/root; /root/backend_token_hardening; /root/mcp_client_hardening",
+    "model": "Builder model identity not exposed"
+  },
+  "reviewer": {
+    "actorId": "independent-reviewer-mcp_gate_round2",
+    "sessionId": "/root/mcp_gate_round2",
+    "model": "gpt-6.1-sol / high (coordinator-specified; provider session ID not exposed)",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "AGENTS.md",
+      "RULES.md",
+      "BACKEND_REVIEW_GATE.md",
+      "PRD.md",
+      "ARCHITECTURE.md",
+      "DESIGN.md",
+      "TASKS.md",
+      "PROGRESS.md",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      ".node-version",
+      ".gitignore",
+      ".github/workflows/ci.yml",
+      "apps/api/src",
+      "apps/api/test",
+      "apps/api/scripts",
+      "apps/api/package.json",
+      "apps/api/tsconfig.build.json",
+      "apps/api/wrangler.jsonc",
+      "apps/web/src",
+      "apps/web/functions",
+      "apps/web/test",
+      "apps/web/public",
+      "apps/web/package.json",
+      "apps/web/next.config.ts",
+      "apps/web/tsconfig.json",
+      "apps/web/postcss.config.mjs",
+      "apps/web/tailwind.config.ts",
+      "apps/web/wrangler.uat.jsonc",
+      "apps/web/wrangler.prod.jsonc",
+      "database/migrations",
+      "database/compose.local.yaml",
+      "packages/contracts/src",
+      "packages/contracts/test",
+      "packages/contracts/package.json",
+      "packages/mcp/src",
+      "packages/mcp/test",
+      "packages/mcp/scripts",
+      "packages/mcp/package.json",
+      "packages/mcp/tsconfig.json",
+      "packages/mcp/tsconfig.test.json",
+      "packages/mcp/README.md",
+      "scripts/create_pat.ts",
+      "scripts/check_backend_review.py",
+      "scripts/generate_review_record.py",
+      "scripts/render_feature_checklist.py",
+      "scripts/stage-pages-functions.mjs",
+      "docs/API.md",
+      "docs/FEATURE_SPEC.md",
+      "docs/FEATURE_CHECKLIST.md",
+      "docs/IMPORT_SPEC.md",
+      "docs/features.tsv",
+      "docs/handoffs/README.md",
+      "docs/ENGINEERING_CHECKLIST.md",
+      "docs/references/README.md",
+      "docs/SECURITY_ROADMAP.md",
+      "docs/decisions/2026-10-28-beta-risk-acceptance.md",
+      "docs/decisions/2026-10-28-uat-first-release-policy.md",
+      "docs/decisions/2026-11-03-mcp-capability-boundary.md",
+      "docs/reviews/README.md",
+      "docs/reviews/record.template.json",
+      "docs/reviews/criteria.template.json",
+      "docs/reviews/MCP-REPAIR-20261103/criteria.json",
+      "docs/reviews/MCP-REPAIR-20261103/probes",
+      "docs/reviews/MCP-REPAIR-20261103/run-check.py",
+      "docs/reviews/MCP-REPAIR-20261103/freeze.py",
+      "docs/reviews/MCP-REPAIR-20261103/preflight.md",
+      "docs/reviews/MCP-REPAIR-20261103/UAT-TEST-PLAN.md",
+      "docs/reviews/MCP-REPAIR-20261103/source-manifest-round-2.json",
+      "docs/reviews/MCP-REPAIR-20261103/raw-round-2",
+      "docs/reviews/MCP-REPAIR-20261103/raw/npm-audit-prod.json",
+      "docs/reviews/MCP-REPAIR-20261103/raw/npm-audit-all.json",
+      "docs/reviews/MCP-REPAIR-20261103/cd1e01b70bbcd8ba1a3cffa4a93edcedd6cd27228af89b75cda10df711061ca2-round-1.json",
+      "docs/reviews/MCP-REPAIR-20261103/independent/review.md",
+      "docs/reviews/MCP-REPAIR-20261103/independent/adversarial.mjs",
+      "docs/reviews/MCP-REPAIR-20261103/independent/adversarial-results.json",
+      "docs/reviews/MCP-REPAIR-20261103/independent/adversarial.log",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance-results.json",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance-sandbox-denied.log",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance.log",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/adversarial-results.json",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/adversarial.log",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/adversarial.mjs",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/commands.json",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/contracts.log",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended-results.json",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended.log",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended.mjs",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/mcp-artifact.log",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/mcp.log",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/original-audit-findings.md",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/review.md",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/reviewer-session.md",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/source-verification.log",
+      "docs/reviews/MCP-REPAIR-20261103/independent-round-2/typecheck.log"
+    ],
+    "files": {},
+    "digest": "COMPUTED_ON_FINALIZE",
+    "baseRevision": "62ce05f49aed3179bf6af97ffb3f5415512ef392",
+    "sourceDigest": "459b4fa9cdddc4bb9c499572203aaf2334f909a9a69a5ec82372a2a75c14acd4",
+    "sourceManifestPath": "docs/reviews/MCP-REPAIR-20261103/source-manifest-round-2.json"
+  },
+  "criteriaResults": {
+    "PAT authentication denies all mounted routes by default except an explicit method/path policy; permitted operations enforce every required scope, bound project, current human role and board grant. Invalid bearer authentication cannot fall back to a cookie or public share.": "pass",
+    "Board/column discovery uses a metadata-only response with an explicit runtime projection. boards:read alone cannot return cards, descriptions, assignees, counts, or full snapshots.": "pass",
+    "Restricted project discovery applies its restriction before SQL pagination and cursor construction; data and cursors cannot disclose another project.": "pass",
+    "Card creation requires a caller-preserved operation ID. Lost successful responses, process/client retries, parallel identical operations and stale-version recovery cannot duplicate effects within the documented receipt window. Different semantic input conflicts; only the documented stale-board error may be retried. Current credential and resource permissions are checked before receipt replay, and credential revocation serializes with protected writes.": "pass",
+    "A real Owner without a redundant membership can issue a project-bound credential through the session route. Outsiders, removed members and token-authenticated credential administration are denied. Credentials have bounded issuance/list policy and default finite expiry; no bearer value enters persisted metadata, receipts or logs.": "pass",
+    "MCP search sends the actual query contract, excludes nonmatching cards in mounted-handler tests, and documents bounded pagination. IDs, dates and configuration are validated; HTTP calls have bounded duration and safe failure behavior.": "pass",
+    "A clean MCP build typechecks and produces the advertised executable. A real SDK stdio handshake/tool call succeeds through the built artifact. Root checks and CI include MCP typecheck, build and tests, and existing API/contracts/web checks pass on this source.": "pass",
+    "Token-created card activity records the human actor separately from safe credential provenance and operation identity, atomically with the card and receipt. Session activity remains distinguishable; provenance never contains a raw bearer or supplied identity.": "pass",
+    "Regression evidence uses disposable localhost PostgreSQL with real mounted routes and separate connections for relevant races. The final review freezes the complete reachable source, criteria and nonempty command evidence, and is performed by a fresh independent reviewer.": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "Independently executed; sanitized credentials environment, Node24.15; isolated synthetic localhost PostgreSQL17.11:55923 when applicable; no hosted/real data",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/typecheck.log",
+      "executionOwner": "independent reviewer"
+    },
+    {
+      "id": "typecheck-web",
+      "command": "npm run typecheck:web",
+      "exitCode": 0,
+      "environment": "Coordinator executed; final command JSON and complete log independently inspected; sanitized credentials environment, Node24.15; isolated synthetic localhost PostgreSQL17.11:55923 when applicable; no hosted/real data",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/raw-round-2/typecheck-web.log",
+      "executionOwner": "root coordinator"
+    },
+    {
+      "id": "contracts",
+      "command": "npm test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "environment": "Independently executed; sanitized credentials environment, Node24.15; isolated synthetic localhost PostgreSQL17.11:55923 when applicable; no hosted/real data",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/contracts.log",
+      "executionOwner": "independent reviewer"
+    },
+    {
+      "id": "api",
+      "command": "npm test --workspace @flowboard/api",
+      "exitCode": 0,
+      "environment": "Coordinator executed; final command JSON and complete log independently inspected; sanitized credentials environment, Node24.15; isolated synthetic localhost PostgreSQL17.11:55923 when applicable; no hosted/real data",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/raw-round-2/api.log",
+      "executionOwner": "root coordinator"
+    },
+    {
+      "id": "mcp",
+      "command": "npm test --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "environment": "Independently executed; sanitized credentials environment, Node24.15; isolated synthetic localhost PostgreSQL17.11:55923 when applicable; no hosted/real data",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/mcp.log",
+      "executionOwner": "independent reviewer"
+    },
+    {
+      "id": "build-mcp",
+      "command": "npm run build --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "environment": "Coordinator executed; final command JSON and complete log independently inspected; sanitized credentials environment, Node24.15; isolated synthetic localhost PostgreSQL17.11:55923 when applicable; no hosted/real data",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/raw-round-2/build-mcp.log",
+      "executionOwner": "root coordinator"
+    },
+    {
+      "id": "mcp-artifact",
+      "command": "npm run test:artifact --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "environment": "Independently executed; sanitized credentials environment, Node24.15; isolated synthetic localhost PostgreSQL17.11:55923 when applicable; no hosted/real data",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/mcp-artifact.log",
+      "executionOwner": "independent reviewer"
+    },
+    {
+      "id": "build-worker",
+      "command": "npm run build --workspace @flowboard/api",
+      "exitCode": 0,
+      "environment": "Coordinator executed; final command JSON and complete log independently inspected; sanitized credentials environment, Node24.15; isolated synthetic localhost PostgreSQL17.11:55923 when applicable; no hosted/real data",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/raw-round-2/build-worker.log",
+      "executionOwner": "root coordinator"
+    },
+    {
+      "id": "build-web",
+      "command": "npm run build:web",
+      "exitCode": 0,
+      "environment": "Coordinator executed; final command JSON and complete log independently inspected; sanitized credentials environment, Node24.15; isolated synthetic localhost PostgreSQL17.11:55923 when applicable; no hosted/real data",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/raw-round-2/build-web.log",
+      "executionOwner": "root coordinator"
+    },
+    {
+      "id": "independent-probes",
+      "command": "node docs/reviews/MCP-REPAIR-20261103/probes/acceptance.mjs",
+      "exitCode": 0,
+      "environment": "Independently executed; sanitized credentials environment, Node24.15; isolated synthetic localhost PostgreSQL17.11:55923 when applicable; no hosted/real data",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance.log",
+      "executionOwner": "independent reviewer"
+    },
+    {
+      "id": "independent-adversarial",
+      "command": "node docs/reviews/MCP-REPAIR-20261103/independent-round-2/adversarial.mjs",
+      "exitCode": 0,
+      "environment": "Isolated synthetic local data; independently executed",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/adversarial.log"
+    },
+    {
+      "id": "independent-extended",
+      "command": "node docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended.mjs",
+      "exitCode": 0,
+      "environment": "Isolated synthetic local data; independently executed",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended.log"
+    },
+    {
+      "id": "web-regressions",
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "environment": "Coordinator executed; final local web239/239 command evidence independently inspected",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/raw-round-2/web-tests.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.1",
+      "reason": "All six capabilities and97 mounted denials, current roles/grants and explicit discovery projections pass; bounded local threat coverage limits maximum confidence.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/review.md",
+        "apps/api/src/http/middleware/token-policy.ts",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended-results.json"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.0",
+      "reason": "All nine frozen criteria pass through real entry points; seven-day replay/credential rotation/column-discovery product limits explicitly remain.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/review.md",
+        "packages/mcp/src/client.ts",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended-results.json"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.2",
+      "reason": "Atomic card/activity/receipt, real concurrent same-key operations, both revoke/write lock schedules and current-role-before-replay pass; fault schedules are bounded.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/review.md",
+        "apps/api/src/http/routes/cards.ts",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended-results.json"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.0",
+      "reason": "Final mandatory checks exit0 including API787; independent117contracts/17MCP/SDK1 and22+3+4adversarial groups; root full suite/build execution distinguished from independent reruns.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/review.md",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/commands.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended-results.json"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "8.7",
+      "reason": "Small explicit policy/shared schemas, coherent pool lifecycle and tested Node/Pages/workerd portability; manual matcher and repeated projection boundaries carry upkeep cost.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/review.md",
+        "apps/api/src/adapters/postgres.ts",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended-results.json"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "8.0",
+      "reason": "Bounded deadlines/bodies, safe errors, finite credential cap/expiry and recovery work locally; existing disclosed advisory debt and unmeasured aggregate/hosted behavior reduce score.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/review.md",
+        "packages/mcp/README.md",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended-results.json"
+      ]
+    }
+  },
+  "weightedScore": "8.98",
+  "findings": [
+    {
+      "id": "MCP-R1-01",
+      "severity": "medium",
+      "description": "Round1 direct boards:read listing disclosed descriptions; now resolved by explicit PAT server projection at apps/api/src/http/routes/boards.ts:160-167. Independent original reproduction returns only id/name/structureVersion; mounted sentinel regression preserves session description. Full reproduction/fix/counterevidence in report.",
+      "disposition": "resolved",
+      "rationale": "Mandatory response boundary now enforced server-side; adversarial and acceptance probes pass and API787 includes direct-list/session-preservation regression. Prior failed round remains preserved.",
+      "mandatory": true,
+      "blocking": false
+    }
+  ],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass",
+  "reportPath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/review.md",
+  "sourceCriteriaSHA256": "3be72ce6e3c254aed458b43c27050b9a4065a107515d77d3787a6abad190fb88",
+  "limitations": [
+    "Local reviewed candidate only; no deployment/public-company/production approval.",
+    "Hosted signed-in/OAuth, real Hyperdrive, durable external issue/company installation APIs and per-installation budgets are frozen exclusions.",
+    "Advisory reports disclose existing production Next/PostCSS2findings and all-tree5; no new external advisory lookup or clean dependency claim.",
+    "Packed executable smoke reuses locked installed dependencies; no fresh registry installation or performance benchmark claim."
+  ],
+  "rejectedCandidates": [
+    {
+      "id": "R2-CANDIDATE-01",
+      "description": "Apparently reversed stale-conflict error arguments",
+      "reason": "HttpError.conflict supports both argument conventions; actual mounted409\u2192201 observed with one operation ID/effect."
+    },
+    {
+      "id": "R2-CANDIDATE-02",
+      "description": "Credential rotation/retry expiry/column rename gaps",
+      "reason": "Separate namespaces, seven-day window and exact-ID/manual outcome limitations are explicit accepted scope; no duplicate within promised window observed."
+    },
+    {
+      "id": "R2-CANDIDATE-03",
+      "description": "CLI one-time token emission and fixed-minute quota alignment",
+      "reason": "CLI output is intentional local-only issuance, not server log persistence; quota test retains actual counter and limits."
+    }
+  ]
+}

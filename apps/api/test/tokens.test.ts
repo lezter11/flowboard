@@ -46,12 +46,7 @@ test('Personal Access Tokens & Scoped Bearer Authentication Suite', async (t) =>
       );
       projectId = projRes.rows[0]!.id;
 
-      // Membership in Project 1
-      await client.query(
-        `INSERT INTO project_memberships (id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at)
-         VALUES ('pm_alice_1', $1, 'ws_alice', $2, 'manager', 'active', 1, NOW(), NOW())`,
-        [projectId, aliceUserId],
-      );
+      // A real Owner inherits access: deliberately no redundant project membership.
 
       // 4. Create Project 2
       const otherProjRes = await client.query<{ id: string }>(
@@ -60,12 +55,6 @@ test('Personal Access Tokens & Scoped Bearer Authentication Suite', async (t) =>
          RETURNING id`,
       );
       otherProjectId = otherProjRes.rows[0]!.id;
-
-      await client.query(
-        `INSERT INTO project_memberships (id, project_id, workspace_id, user_id, role, status, version, created_at, updated_at)
-         VALUES ('pm_alice_2', $1, 'ws_alice', $2, 'manager', 'active', 1, NOW(), NOW())`,
-        [otherProjectId, aliceUserId],
-      );
 
       // 5. Create Board in Project 1
       const boardRes = await client.query<{ id: string }>(

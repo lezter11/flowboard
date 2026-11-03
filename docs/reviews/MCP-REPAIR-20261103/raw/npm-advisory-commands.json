@@ -1,0 +1,41 @@
+[
+  {
+    "scope": "prod",
+    "command": "npm audit --package-lock-only --ignore-scripts --json --omit=dev",
+    "exitCode": 1,
+    "counts": {
+      "info": 0,
+      "low": 0,
+      "moderate": 1,
+      "high": 1,
+      "critical": 0,
+      "total": 2
+    },
+    "packages": [
+      "next",
+      "postcss"
+    ],
+    "environment": "public package manifests only, empty user/global npm configs, no credentials"
+  },
+  {
+    "scope": "all",
+    "command": "npm audit --package-lock-only --ignore-scripts --json",
+    "exitCode": 1,
+    "counts": {
+      "info": 0,
+      "low": 0,
+      "moderate": 3,
+      "high": 2,
+      "critical": 0,
+      "total": 5
+    },
+    "packages": [
+      "miniflare",
+      "next",
+      "postcss",
+      "undici",
+      "wrangler"
+    ],
+    "environment": "public package manifests only, empty user/global npm configs, no credentials"
+  }
+]

@@ -1,0 +1,336 @@
+{
+  "schemaVersion": 1,
+  "featureIds": [
+    "MCP-HARDENING"
+  ],
+  "criteriaVersion": "backend-review-v1",
+  "criteriaPath": "docs/reviews/MCP-REPAIR-20261103/criteria.json",
+  "startedAt": "2026-11-03T04:19:21.020460Z",
+  "completedAt": "2026-11-03T04:24:13.845738+00:00",
+  "implementer": {
+    "actorId": "Codex root implementation team",
+    "sessionId": "/root; /root/backend_token_hardening; /root/mcp_client_hardening",
+    "model": "Builder model identity not exposed"
+  },
+  "reviewer": {
+    "actorId": "independent-reviewer-mcp_gate_review",
+    "sessionId": "/root/mcp_gate_review",
+    "model": "gpt-6.1-sol / high (requested configuration; provider session ID not exposed)",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/MCP-REPAIR-20261103/independent/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "AGENTS.md",
+      "RULES.md",
+      "BACKEND_REVIEW_GATE.md",
+      "PRD.md",
+      "ARCHITECTURE.md",
+      "DESIGN.md",
+      "TASKS.md",
+      "PROGRESS.md",
+      "package.json",
+      "package-lock.json",
+      "tsconfig.json",
+      ".node-version",
+      ".gitignore",
+      ".github/workflows/ci.yml",
+      "apps/api/src",
+      "apps/api/test",
+      "apps/api/scripts",
+      "apps/api/package.json",
+      "apps/api/tsconfig.build.json",
+      "apps/api/wrangler.jsonc",
+      "apps/web/src",
+      "apps/web/functions",
+      "apps/web/test",
+      "apps/web/public",
+      "apps/web/package.json",
+      "apps/web/next.config.ts",
+      "apps/web/tsconfig.json",
+      "apps/web/postcss.config.mjs",
+      "apps/web/tailwind.config.ts",
+      "apps/web/wrangler.uat.jsonc",
+      "apps/web/wrangler.prod.jsonc",
+      "database/migrations",
+      "database/compose.local.yaml",
+      "packages/contracts/src",
+      "packages/contracts/test",
+      "packages/contracts/package.json",
+      "packages/mcp/src",
+      "packages/mcp/test",
+      "packages/mcp/scripts",
+      "packages/mcp/package.json",
+      "packages/mcp/tsconfig.json",
+      "packages/mcp/tsconfig.test.json",
+      "packages/mcp/README.md",
+      "scripts/create_pat.ts",
+      "scripts/check_backend_review.py",
+      "scripts/generate_review_record.py",
+      "scripts/render_feature_checklist.py",
+      "scripts/stage-pages-functions.mjs",
+      "docs/API.md",
+      "docs/FEATURE_SPEC.md",
+      "docs/FEATURE_CHECKLIST.md",
+      "docs/IMPORT_SPEC.md",
+      "docs/features.tsv",
+      "docs/handoffs/README.md",
+      "docs/ENGINEERING_CHECKLIST.md",
+      "docs/references/README.md",
+      "docs/SECURITY_ROADMAP.md",
+      "docs/decisions/2026-10-28-beta-risk-acceptance.md",
+      "docs/decisions/2026-10-28-uat-first-release-policy.md",
+      "docs/decisions/2026-11-03-mcp-capability-boundary.md",
+      "docs/reviews/README.md",
+      "docs/reviews/record.template.json",
+      "docs/reviews/criteria.template.json",
+      "docs/reviews/MCP-REPAIR-20261103/criteria.json",
+      "docs/reviews/MCP-REPAIR-20261103/probes",
+      "docs/reviews/MCP-REPAIR-20261103/run-check.py",
+      "docs/reviews/MCP-REPAIR-20261103/freeze.py",
+      "docs/reviews/MCP-REPAIR-20261103/preflight.md",
+      "docs/reviews/MCP-REPAIR-20261103/UAT-TEST-PLAN.md",
+      "docs/reviews/MCP-REPAIR-20261103/source-manifest.json",
+      "docs/reviews/MCP-REPAIR-20261103/raw",
+      "docs/reviews/MCP-REPAIR-20261103/independent"
+    ],
+    "files": {},
+    "digest": "COMPUTED_ON_FINALIZE",
+    "sourceOnlyDigest": "1e36dcd48c64570b0273f75dc8fc531aced4bd53151c6ffc21e2a87eb2515126",
+    "baseRevision": "62ce05f49aed3179bf6af97ffb3f5415512ef392",
+    "branch": "codex/mcp-uat-hardening"
+  },
+  "criteriaResults": {
+    "PAT authentication denies all mounted routes by default except an explicit method/path policy; permitted operations enforce every required scope, bound project, current human role and board grant. Invalid bearer authentication cannot fall back to a cookie or public share.": "pass",
+    "Board/column discovery uses a metadata-only response with an explicit runtime projection. boards:read alone cannot return cards, descriptions, assignees, counts, or full snapshots.": "fail",
+    "Restricted project discovery applies its restriction before SQL pagination and cursor construction; data and cursors cannot disclose another project.": "pass",
+    "Card creation requires a caller-preserved operation ID. Lost successful responses, process/client retries, parallel identical operations and stale-version recovery cannot duplicate effects within the documented receipt window. Different semantic input conflicts; only the documented stale-board error may be retried. Current credential and resource permissions are checked before receipt replay, and credential revocation serializes with protected writes.": "pass",
+    "A real Owner without a redundant membership can issue a project-bound credential through the session route. Outsiders, removed members and token-authenticated credential administration are denied. Credentials have bounded issuance/list policy and default finite expiry; no bearer value enters persisted metadata, receipts or logs.": "pass",
+    "MCP search sends the actual query contract, excludes nonmatching cards in mounted-handler tests, and documents bounded pagination. IDs, dates and configuration are validated; HTTP calls have bounded duration and safe failure behavior.": "pass",
+    "A clean MCP build typechecks and produces the advertised executable. A real SDK stdio handshake/tool call succeeds through the built artifact. Root checks and CI include MCP typecheck, build and tests, and existing API/contracts/web checks pass on this source.": "pass",
+    "Token-created card activity records the human actor separately from safe credential provenance and operation identity, atomically with the card and receipt. Session activity remains distinguishable; provenance never contains a raw bearer or supplied identity.": "pass",
+    "Regression evidence uses disposable localhost PostgreSQL with real mounted routes and separate connections for relevant races. The final review freezes the complete reachable source, criteria and nonempty command evidence, and is performed by a fresh independent reviewer.": "pass"
+  },
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "environment": "macOS Node24.15; sanitized credentials; synthetic disposable PostgreSQL17.11 localhost55923; local workerd and offline packed-bin stub where applicable",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent/typecheck.log",
+      "executionOwner": "independent reviewer"
+    },
+    {
+      "id": "typecheck-web",
+      "command": "npm run typecheck:web",
+      "exitCode": 0,
+      "environment": "macOS Node24.15; sanitized credentials; synthetic disposable PostgreSQL17.11 localhost55923; local workerd and offline packed-bin stub where applicable",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/raw/typecheck-web.log",
+      "executionOwner": "builder evidence inspected independently"
+    },
+    {
+      "id": "contracts",
+      "command": "npm test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "environment": "macOS Node24.15; sanitized credentials; synthetic disposable PostgreSQL17.11 localhost55923; local workerd and offline packed-bin stub where applicable",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent/contracts.log",
+      "executionOwner": "independent reviewer"
+    },
+    {
+      "id": "api",
+      "command": "npm test --workspace @flowboard/api",
+      "exitCode": 0,
+      "environment": "macOS Node24.15; sanitized credentials; synthetic disposable PostgreSQL17.11 localhost55923; local workerd and offline packed-bin stub where applicable",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/raw/api.log",
+      "executionOwner": "builder evidence inspected independently"
+    },
+    {
+      "id": "mcp",
+      "command": "npm test --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "environment": "macOS Node24.15; sanitized credentials; synthetic disposable PostgreSQL17.11 localhost55923; local workerd and offline packed-bin stub where applicable",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent/mcp.log",
+      "executionOwner": "independent reviewer"
+    },
+    {
+      "id": "build-mcp",
+      "command": "npm run build --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "environment": "macOS Node24.15; sanitized credentials; synthetic disposable PostgreSQL17.11 localhost55923; local workerd and offline packed-bin stub where applicable",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent/build-mcp.log",
+      "executionOwner": "independent reviewer"
+    },
+    {
+      "id": "mcp-artifact",
+      "command": "npm run test:artifact --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "environment": "macOS Node24.15; sanitized credentials; synthetic disposable PostgreSQL17.11 localhost55923; local workerd and offline packed-bin stub where applicable",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent/mcp-artifact.log",
+      "executionOwner": "independent reviewer"
+    },
+    {
+      "id": "build-worker",
+      "command": "npm run build --workspace @flowboard/api",
+      "exitCode": 0,
+      "environment": "macOS Node24.15; sanitized credentials; synthetic disposable PostgreSQL17.11 localhost55923; local workerd and offline packed-bin stub where applicable",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/raw/build-worker.log",
+      "executionOwner": "builder evidence inspected independently"
+    },
+    {
+      "id": "build-web",
+      "command": "npm run build:web",
+      "exitCode": 0,
+      "environment": "macOS Node24.15; sanitized credentials; synthetic disposable PostgreSQL17.11 localhost55923; local workerd and offline packed-bin stub where applicable",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/raw/build-web.log",
+      "executionOwner": "builder evidence inspected independently"
+    },
+    {
+      "id": "independent-probes",
+      "command": "node docs/reviews/MCP-REPAIR-20261103/probes/acceptance.mjs",
+      "exitCode": 0,
+      "environment": "macOS Node24.15; sanitized credentials; synthetic disposable PostgreSQL17.11 localhost55923; local workerd and offline packed-bin stub where applicable",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent/independent-probes.log",
+      "executionOwner": "independent reviewer"
+    },
+    {
+      "id": "reviewer-adversarial",
+      "command": "node docs/reviews/MCP-REPAIR-20261103/independent/adversarial.mjs",
+      "exitCode": 1,
+      "environment": "Independent mounted handlers; disposable localhost55923/flowboard_mcp_probe; separate PostgreSQL connections; unique synthetic fixtures",
+      "isolatedSynthetic": true,
+      "targetDigest": "COMPUTED_ON_FINALIZE",
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent/adversarial.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "8.0",
+      "reason": "Global credential authority and current permissions work, but allowed board listing exposes descriptions against the mandatory boundary; below9 minimum.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent/review.md",
+        "docs/reviews/MCP-REPAIR-20261103/independent/adversarial-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent/independent-probes.log",
+        "docs/reviews/MCP-REPAIR-20261103/raw/api.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "8.2",
+      "reason": "All eight repaired paths traced; metadata-only discovery remains incomplete at allowed board list; below8.5 minimum.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent/review.md",
+        "docs/reviews/MCP-REPAIR-20261103/independent/adversarial-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent/independent-probes.log",
+        "docs/reviews/MCP-REPAIR-20261103/raw/api.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.2",
+      "reason": "Real concurrent same-key, response-loss restart, current-grant replay and both token-revocation lock interleavings pass; bounded local fault schedules remain.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent/review.md",
+        "docs/reviews/MCP-REPAIR-20261103/independent/adversarial-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent/independent-probes.log",
+        "docs/reviews/MCP-REPAIR-20261103/raw/api.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "8.3",
+      "reason": "Required suites pass and independent executions confirm major behavior; reviewer adversarial test finds an allowed-route response shape omitted by existing coverage; below8.5 minimum.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent/review.md",
+        "docs/reviews/MCP-REPAIR-20261103/independent/adversarial-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent/independent-probes.log",
+        "docs/reviews/MCP-REPAIR-20261103/raw/api.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "8.6",
+      "reason": "Small explicit route capability policy, schemas, coherent transactions and compiled distribution; duplicated response boundaries caused a missed projection.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent/review.md",
+        "docs/reviews/MCP-REPAIR-20261103/independent/adversarial-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent/independent-probes.log",
+        "docs/reviews/MCP-REPAIR-20261103/raw/api.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "8.2",
+      "reason": "Bounded HTTP duration/body/errors and documented finite receipts/credential limits; existing dependency debt and aggregate load are not resolved by local evidence.",
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent/review.md",
+        "docs/reviews/MCP-REPAIR-20261103/independent/adversarial-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent/independent-probes.log",
+        "docs/reviews/MCP-REPAIR-20261103/raw/api.log"
+      ]
+    }
+  },
+  "weightedScore": "8.345",
+  "findings": [
+    {
+      "id": "MCP-R1-01",
+      "severity": "medium",
+      "description": "Allowed boards:read project board listing serializes board description. apps/api/src/http/routes/boards.ts:144,158-160 returns Board[] from adapters/boards.ts:267,277,285-295. Unique synthetic boards-only PAT request returns200 with exact description sentinel. Independent adversarial command exits1. No cross-project leak is claimed.",
+      "disposition": "open",
+      "rationale": "Frozen mandatory criterion excludes descriptions from boards-only discovery. Correct client/column projection does not protect direct API consumers. Architect independently confirmed preservation/fix requirement. Add PAT-specific projection at listing and a real-route absence regression; submit new frozen target.",
+      "mandatory": true,
+      "blocking": true,
+      "evidencePaths": [
+        "docs/reviews/MCP-REPAIR-20261103/independent/adversarial.mjs",
+        "docs/reviews/MCP-REPAIR-20261103/independent/adversarial-results.json",
+        "docs/reviews/MCP-REPAIR-20261103/independent/adversarial.log"
+      ]
+    },
+    {
+      "id": "REJECTED-STALE-CODE",
+      "severity": "info",
+      "description": "Apparent swapped stale-board error arguments were examined.",
+      "disposition": "rejected",
+      "rationale": "HttpError.conflict supports both orders; independent mounted probe observed409 then201, same operation key and one card.",
+      "mandatory": false,
+      "blocking": false
+    }
+  ],
+  "hardBlockers": [
+    "MCP-R1-01 contradicts mandatory metadata-only discovery criterion; required reviewer adversarial assertion exits1."
+  ],
+  "coverageGaps": [
+    "Allowed board-list discovery response projection is not covered correctly by existing negative/metadata tests; independent probe demonstrates mandatory failure."
+  ],
+  "verdict": "fail",
+  "knownLimits": [
+    "Only local synthetic candidate behavior reviewed; no deployed UAT/production/OAuth/public installation acceptance.",
+    "Builder final API and web/Worker checks inspected; independent full primary API suite was not rerun.",
+    "Existing sanitized advisory reports disclosed; no independent external advisory lookup; dependency tree not clean.",
+    "Packed executable uses offline locked dependency links; no fresh registry-install claim.",
+    "Provider session/model identity attestation unavailable; framework identities and requested configuration declared."
+  ]
+}

@@ -5,6 +5,7 @@ import { getSessionWithUser } from '../../adapters/session.ts';
 import { verifyPersonalAccessToken } from '../../adapters/tokens.ts';
 import { getPool } from '../../adapters/postgres.ts';
 import type { SessionActor, TokenScope } from '@flowboard/contracts';
+import { enforcePersonalAccessTokenPolicy } from './token-policy.ts';
 
 declare module 'hono' {
   interface ContextVariableMap {
@@ -19,22 +20,31 @@ declare module 'hono' {
 
 export const SESSION_COOKIE_NAME = 'flowboard_session';
 
-export const authMiddleware: MiddlewareHandler = async (c, next) => {
+/** Also mounted globally, so an explicit bearer cannot fall through to a public/UI route. */
+export const personalAccessTokenMiddleware: MiddlewareHandler = async (c, next) => {
   const authHeader = c.req.header('Authorization');
-  if (authHeader?.startsWith('Bearer ')) {
-    const rawToken = authHeader.slice(7).trim();
-    if (rawToken.startsWith('flw_pat_')) {
-      const tokenData = await verifyPersonalAccessToken(getPool(), rawToken);
-      if (!tokenData) {
-        throw HttpError.unauthorized('Invalid, expired or revoked API token.');
-      }
-      c.set('actor', tokenData.user);
-      c.set('tokenScopes', tokenData.token.scopes);
-      c.set('tokenId', tokenData.token.id);
-      c.set('tokenProjectId', tokenData.token.projectId);
-      c.set('authType', 'token');
-      return await next();
+  if (authHeader !== undefined) c.header('Cache-Control', 'no-store');
+  if (authHeader !== undefined && c.get('authType') !== 'token') {
+    const match = /^Bearer (flw_pat_[a-f0-9]{64})$/i.exec(authHeader);
+    if (!match) throw HttpError.unauthorized('Invalid, expired or revoked API token.');
+    const tokenData = await verifyPersonalAccessToken(getPool(), match[1]!);
+    if (!tokenData) {
+      throw HttpError.unauthorized('Invalid, expired or revoked API token.');
     }
+    c.set('actor', tokenData.user);
+    c.set('tokenScopes', tokenData.token.scopes);
+    c.set('tokenId', tokenData.token.id);
+    c.set('tokenProjectId', tokenData.token.projectId);
+    c.set('authType', 'token');
+  }
+  if (c.get('authType') === 'token') await enforcePersonalAccessTokenPolicy(c);
+  await next();
+};
+
+export const authMiddleware: MiddlewareHandler = async (c, next) => {
+  // Defense in depth when a route module is mounted without createApp (e.g. a focused harness).
+  if (c.req.header('Authorization') !== undefined) {
+    return personalAccessTokenMiddleware(c, next);
   }
 
   const sessionId = getCookie(c, SESSION_COOKIE_NAME) || getCookie(c, 'session');
@@ -67,20 +77,8 @@ export function requireTokenScope(requiredScope: TokenScope): MiddlewareHandler 
 }
 
 export const optionalAuthMiddleware: MiddlewareHandler = async (c, next) => {
-  const authHeader = c.req.header('Authorization');
-  if (authHeader?.startsWith('Bearer ')) {
-    const rawToken = authHeader.slice(7).trim();
-    if (rawToken.startsWith('flw_pat_')) {
-      const tokenData = await verifyPersonalAccessToken(getPool(), rawToken);
-      if (tokenData) {
-        c.set('actor', tokenData.user);
-        c.set('tokenScopes', tokenData.token.scopes);
-        c.set('tokenId', tokenData.token.id);
-        c.set('tokenProjectId', tokenData.token.projectId);
-        c.set('authType', 'token');
-        return await next();
-      }
-    }
+  if (c.req.header('Authorization') !== undefined) {
+    return personalAccessTokenMiddleware(c, next);
   }
 
   const sessionId = getCookie(c, SESSION_COOKIE_NAME) || getCookie(c, 'session');

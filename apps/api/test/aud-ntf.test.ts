@@ -458,7 +458,10 @@ test('AUD-01 to AUD-06 & NTF-01 to NTF-03: Activity & Notifications Test Suite',
     assert.ok(actJson.data.length >= 4);
 
     for (const item of actJson.data) {
-      assert.deepEqual(item.safeChanges, { cardId, purged: true });
+      // Redact card content, while keeping only the server-derived origin fact.
+      assert.deepEqual(item.safeChanges, item.action === 'card_created'
+        ? { cardId, purged: true, source: { type: 'session' } }
+        : { cardId, purged: true });
       assert.ok(item.actorId);
       assert.ok(item.action);
       assert.ok(item.createdAt);

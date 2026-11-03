@@ -1,5 +1,7 @@
 # Flowboard architecture v0.3
 
+Implementation checkpoint2026-11-03: the MCP repair keeps the existing Hono modular monolith and PostgreSQL, adding a deny-by-default machine-credential boundary rather than a new service. Local MCP stdio → Pages API proxy (or direct Node API) → PAT policy → current project/board authority → transactional command/receipt/activity. Metadata discovery has its own small response. Protected PAT writes hold a credential row lock through commit; semantic retry receipts are credential-scoped and expire after seven days. Activity keeps the human actor and safe credential/operation-hash provenance. See [decision](docs/decisions/2026-11-03-mcp-capability-boundary.md), [API contract](docs/API.md) and [review/evidence](docs/reviews/MCP-REPAIR-20261103/summary.md). Historical plans below are not the current implementation inventory. No hosted rollout is established here.
+
 Updated 2026-10-26. Status: v0.3 implementation plan; first local foundation task handed off. See PROGRESS.md and role-owned handoff evidence for current runtime state; no hosted deployment/auth readiness is established by this document. User priorities: performance first, free-tier start, portable modules, explain decisions while building.
 
 ## Decision and alternatives

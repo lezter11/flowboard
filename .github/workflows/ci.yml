@@ -6,6 +6,7 @@ on:
       - main
       - 'chore/**'
       - 'feat/**'
+      - 'codex/**'
   pull_request:
     branches:
       - main
@@ -63,6 +64,12 @@ jobs:
 
       - name: Contracts Tests
         run: npm test --workspace @flowboard/contracts
+
+      - name: MCP tests and installed stdio artifact
+        run: |
+          npm test --workspace @flowboard/mcp
+          npm run build --workspace @flowboard/mcp
+          npm run test:artifact --workspace @flowboard/mcp
 
       # The board-access tests use their own fence: a localhost database named
       # flowboard_access_test. Create it next to flowboard_harness, using the pg

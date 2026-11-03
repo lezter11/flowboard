@@ -10,7 +10,8 @@ import {
 } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
 import { lockProjectBoardReadScope } from '../../adapters/board-grants-foundation.ts';
-import { checkOrReplayProjectWriteReceipt, saveReceipt } from '../../adapters/idempotency.ts';
+import { checkOrReplayProjectWriteReceipt, saveReceipt, sha256 } from '../../adapters/idempotency.ts';
+import { lockPersonalAccessToken } from '../../adapters/tokens.ts';
 import {
   createCard,
   getCard,
@@ -68,15 +69,35 @@ cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, requireTokenSc
   try {
     await client.query('BEGIN');
 
+    const tokenId = c.get('tokenId');
+    if (tokenId) {
+      // Keep this credential's authorization stable until the card, activity and
+      // receipt commit. Revocation must take the conflicting row lock.
+      await lockPersonalAccessToken(client, {
+        tokenId, userId: actor.id, projectId, requiredScope: 'cards:create',
+      });
+    }
+
+    // A machine operation survives client/process retries. Its receipt is bound
+    // to the credential, and excludes only the transient optimistic revision.
+    // The caller's raw key is never persisted for token-authenticated writes.
+    const receiptKey = tokenId
+      ? `pat:${sha256(JSON.stringify([tokenId, idempotencyKey]))}`
+      : idempotencyKey;
+    const { expectedBoardVersion: _revision, ...semanticInput } = input;
+    const receiptBody = tokenId
+      ? { ...semanticInput, assigneeIds: [...semanticInput.assigneeIds].sort() }
+      : rawBody;
+
     const methodPath = `/api/v1/boards/${boardId}/cards`;
     const replay = await checkOrReplayProjectWriteReceipt(
       client,
       actor.id,
       projectId,
       'member',
-      idempotencyKey,
+      receiptKey,
       methodPath,
-      rawBody,
+      receiptBody,
       boardId,
     );
 
@@ -88,7 +109,11 @@ cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, requireTokenSc
       );
     }
 
-    const card = await createCard(client, boardId, input, actor.id);
+    const card = await createCard(client, boardId, input, actor.id, tokenId ? {
+      type: 'personal_access_token',
+      credentialId: tokenId,
+      operationIdHash: sha256(idempotencyKey),
+    } : { type: 'session' });
     const responseBody = { data: card };
 
     await saveReceipt(
@@ -96,9 +121,9 @@ cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, requireTokenSc
       actor.id,
       'project',
       projectId,
-      idempotencyKey,
+      receiptKey,
       methodPath,
-      rawBody,
+      receiptBody,
       201,
       responseBody,
     );

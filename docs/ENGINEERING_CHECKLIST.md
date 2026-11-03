@@ -1,5 +1,7 @@
 # Engineering checklist: 50 concerns
 
+MCP repair checkpoint2026-11-03: items01/03/06/13/14/25/26/35/39/44/47 are relevant to credential/grant locks, atomic card/receipt/activity writes, seven-day semantic retries and bounded client failures. [Frozen acceptance and actual evidence](reviews/MCP-REPAIR-20261103/summary.md) track this bounded repair; no blanket closure of these50 concerns follows. No new queue, cache, microservice or distributed transaction is introduced. Dependency debt, deployed rate-limit behavior, hosted runtime permissions and signed-in acceptance remain separate evidence.
+
 Audit checkpoint 2026-10-26: backend `a715345` fails independent acceptance. See TASKS.md R1–R7 and docs/audits/README.md. Actual grant-lock adoption, receipt races, runtime connection wiring and tenant ancestry remain unverified/broken despite helper tests. Keep delivery boxes open; passing 178 existing tests does not prove the 50 controls. BACKEND_REVIEW_GATE.md governs future closure.
 
 Updated 2026-10-26. Owner: Flowboard Architect; Backend implements runtime/data controls, UI implements client behavior. This is a living delivery checklist, not a claim that every distributed-systems technique belongs in the first release.

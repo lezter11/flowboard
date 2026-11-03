@@ -1,0 +1,27 @@
+# Reviewed MCP candidate: dev then UAT
+
+This is a promotion/test plan, not deployment evidence. Production is excluded. The source manifest and independent verdict in summary.md determine whether the candidate is ready. Do not promote a different tree using this review.
+
+## Promotion prerequisites
+
+1. Confirm the independent record passes `scripts/check_backend_review.py` and all required checks pass on the same source. Preserve the reviewed source digest and subsequent commit ID. Merge only into the development branch first; run its CI. A conflict resolution or additional source change needs fresh matching evidence.
+2. Use the UAT-only Worker `flowboard-api-uat`, UAT Hyperdrive and private UAT image bucket from `apps/api/wrangler.jsonc` (`--env uat`). The credential-free UAT dry run uploads nothing. Validate actual account/environment identity before any real deployment. Never use the top-level production environment for this test.
+3. Check the UAT migration ledger using the existing authorized release procedure. Migration0020 creates `personal_access_tokens`; it must be present before the repaired API accepts bearer credentials. The repair adds no migration0021 and changes no already-applied SQL bytes. Embedded migration0020 now exactly matches its SQL file, including comments. Use UAT backup/release procedures before an authorized migration; do not point a local test harness or PAT CLI at a hosted database.
+4. Deploy the exact reviewed API candidate to UAT only after authorization, preserving artifact/version IDs. Deploy/rebuild the Pages candidate too if promoting its error-catalogue wording. Rebuild the local MCP executable from this candidate. Do not assume a local build proves hosted bindings or permissions.
+
+## Signed-in acceptance (synthetic UAT records only)
+
+- Owner with two projects: use an Owner account with ordinary inherited access, not a fake Owner-as-Manager membership. Create a temporary board/card in each project. Issue a30-day project-A credential through session-authenticated POST `/api/v1/tokens`, with only `projects:read`, `boards:read`, `cards:read`, `cards:create`. Put the once-returned bearer directly into a protected local MCP host environment. Do not paste it into chat, screenshots, Git or test evidence. There is no credential-management UI in this repair.
+- Connect the local compiled stdio server using packages/mcp/README.md. Discover projects/boards/columns. Only A appears for that credential; columns contain no card data. Asking the token for session/account/credential administration or project-B resources must yield401/403/404 without resource data. Ordinary browser navigation and editing must still work with the session.
+- Search a unique phrase after creating both a matching and nonmatching card. Only matching, currently authorized cards should appear. Follow `nextCursor` explicitly if present. It is not duplicate prevention.
+- Before creation, retain a UUID operation ID and exact board/column ID/input in the host's local operation record. Create once, repeat with the same operation ID/input and verify one card and one `card_created` event. Then change a semantic field while reusing the ID: expect409 `IDEMPOTENCY_CONFLICT`. Never try a new ID to resolve an unknown outcome.
+- Simulate an unknown response using an approved local host/network interruption, then retry the same operation ID/input within seven days and using the same credential. Verify the saved card ID is replayed. Local automated tests already simulate a response dropped after commit; hosted interruption acceptance remains unverified until performed.
+- Member/Viewer checks: issue a separate credential for an active project member with a board grant. Confirm allowed reads; remove the board grant and retry discovery/create/replay. Expect denial. A Viewer can read a granted board but cannot create, regardless of the token's stated create scope. Restore only synthetic test grants deliberately afterward.
+- Audit: Owner opens the created card's activity. Inspect the authorized API response for human actor plus safe `source.type`, `credentialId` and operation hash. The current UI may not render a human-friendly credential label; that display is outside this repair. No bearer/raw operation key should be stored in activity or receipt data.
+- Revoke the credential using the signed-in session and its safe token ID. Restart/retry the MCP operation: expect401 and no resource data. Rotation uses a new retry namespace; resolve any uncertain create first with its original credential/ID. Clean up synthetic cards/credentials through normal authorized product flows.
+
+Record artifact/Worker version, Pages deployment, source SHA/digest, timestamp, roles, case/result and safe operation/card IDs. Never record bearer values, session cookies or signed-in request headers. Local test counts cannot fill in these hosted acceptance results.
+
+## Remaining limits
+
+Known Next/PostCSS and development Wrangler/Miniflare/Undici advisories remain in the lockfile; see current sanitized advisory reports. This is an internal UAT candidate, not approval for a public integration launch or production. Per-company/per-installation budgets, single-board credentials, durable external-issue IDs, remote MCP OAuth and credential-management UI are future work. Those are necessary design decisions before a fleet system sends daily compliance alerts into Flowboard.

@@ -1,0 +1,30 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": ["MCP-HARDENING"],
+  "risk": "high",
+  "baseRevision": "62ce05f49aed3179bf6af97ffb3f5415512ef392",
+  "mandatoryCriteria": [
+    "PAT authentication denies all mounted routes by default except an explicit method/path policy; permitted operations enforce every required scope, bound project, current human role and board grant. Invalid bearer authentication cannot fall back to a cookie or public share.",
+    "Board/column discovery uses a metadata-only response with an explicit runtime projection. boards:read alone cannot return cards, descriptions, assignees, counts, or full snapshots.",
+    "Restricted project discovery applies its restriction before SQL pagination and cursor construction; data and cursors cannot disclose another project.",
+    "Card creation requires a caller-preserved operation ID. Lost successful responses, process/client retries, parallel identical operations and stale-version recovery cannot duplicate effects within the documented receipt window. Different semantic input conflicts; only the documented stale-board error may be retried. Current credential and resource permissions are checked before receipt replay, and credential revocation serializes with protected writes.",
+    "A real Owner without a redundant membership can issue a project-bound credential through the session route. Outsiders, removed members and token-authenticated credential administration are denied. Credentials have bounded issuance/list policy and default finite expiry; no bearer value enters persisted metadata, receipts or logs.",
+    "MCP search sends the actual query contract, excludes nonmatching cards in mounted-handler tests, and documents bounded pagination. IDs, dates and configuration are validated; HTTP calls have bounded duration and safe failure behavior.",
+    "A clean MCP build typechecks and produces the advertised executable. A real SDK stdio handshake/tool call succeeds through the built artifact. Root checks and CI include MCP typecheck, build and tests, and existing API/contracts/web checks pass on this source.",
+    "Token-created card activity records the human actor separately from safe credential provenance and operation identity, atomically with the card and receipt. Session activity remains distinguishable; provenance never contains a raw bearer or supplied identity.",
+    "Regression evidence uses disposable localhost PostgreSQL with real mounted routes and separate connections for relevant races. The final review freezes the complete reachable source, criteria and nonempty command evidence, and is performed by a fresh independent reviewer."
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "typecheck-web": "npm run typecheck:web",
+    "contracts": "npm test --workspace @flowboard/contracts",
+    "api": "npm test --workspace @flowboard/api",
+    "mcp": "npm test --workspace @flowboard/mcp",
+    "build-mcp": "npm run build --workspace @flowboard/mcp",
+    "mcp-artifact": "npm run test:artifact --workspace @flowboard/mcp",
+    "build-worker": "npm run build --workspace @flowboard/api",
+    "build-web": "npm run build:web",
+    "independent-probes": "node docs/reviews/MCP-REPAIR-20261103/probes/acceptance.mjs"
+  },
+  "scopeAndExclusions": "Repair all eight MCP-INTEGRATION-20261102 findings and directly related bounded credential/client failures in the Hono Node/Worker API, PostgreSQL, shared contracts and local stdio MCP package. Use synthetic disposable localhost PostgreSQL only; never production or hosted mutations. Preserve existing cookie/UI behavior. Public remote MCP/OAuth, durable fleet external-issue synchronization, company installation APIs and production approval are separate future work. Existing Next/PostCSS/Wrangler advisory debt must be disclosed and assessed, never called clean. Passing local evidence authorizes only a reviewed development/UAT candidate; deployment and signed-in hosted acceptance remain separate."
+}

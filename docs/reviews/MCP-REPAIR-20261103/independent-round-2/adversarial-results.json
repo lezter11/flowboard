@@ -1,0 +1,50 @@
+{
+  "results": [
+    {
+      "name": "board-listing-response-observation",
+      "status": "observation",
+      "details": {
+        "status": 200,
+        "returnedKeys": [
+          "id",
+          "name",
+          "structureVersion"
+        ],
+        "containsDescription": false
+      }
+    },
+    {
+      "name": "boards-only listing omits descriptions",
+      "status": "pass",
+      "details": {
+        "status": 200,
+        "returnedKeys": [
+          "id",
+          "name",
+          "structureVersion"
+        ],
+        "containsDescription": false
+      }
+    },
+    {
+      "name": "actual mounted stale-board recovery retains semantic identity",
+      "status": "pass",
+      "details": {
+        "statuses": [
+          409,
+          201
+        ],
+        "effects": 1
+      }
+    },
+    {
+      "name": "write-wins token lock makes revocation wait until effect commits",
+      "status": "pass",
+      "details": {
+        "revocationBlocked": true,
+        "effects": 1,
+        "afterRevokeStatus": 401
+      }
+    }
+  ]
+}

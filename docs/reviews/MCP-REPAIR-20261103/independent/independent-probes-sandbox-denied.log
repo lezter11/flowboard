@@ -1,0 +1,23 @@
+Command: node docs/reviews/MCP-REPAIR-20261103/probes/acceptance.mjs
+Started: 2026-11-03T04:19:21.020460+00:00
+Independent reviewer /root/mcp_gate_review; sanitized environment; synthetic localhost PostgreSQL55923 only
+
+/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45
+    Error.captureStackTrace(err)
+          ^
+
+Error: connect EPERM 127.0.0.1:55923 - Local (0.0.0.0:0)
+    at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async runMigrations (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/adapters/migrations.ts:140:20)
+    at async file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/MCP-REPAIR-20261103/probes/acceptance.mjs:44:3 {
+  errno: -1,
+  code: 'EPERM',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 55923
+}
+
+Node.js v24.15.0
+
+Exit code: 1

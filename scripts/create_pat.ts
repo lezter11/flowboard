@@ -17,7 +17,7 @@ async function main() {
   const name = getArg('--name') || 'Claude MCP Token';
   const rawScopes = getArg('--scopes') || 'cards:create,boards:read,projects:read';
   const projectId = getArg('--project');
-  const days = getArg('--days') ? parseInt(getArg('--days')!, 10) : 90;
+  const days = getArg('--days') ? Number(getArg('--days')) : 30;
 
   if (!email) {
     console.error('Error: --email <user_email> is required.');
@@ -33,7 +33,13 @@ async function main() {
     }
   }
 
-  const dbUrl = process.env['DATABASE_URL'] || localDatabaseUrl();
+  // This administrative CLI is local-only. Hosted users issue credentials through their signed-in session.
+  const dbUrl = localDatabaseUrl(process.env['DATABASE_URL']);
+  const target = new URL(dbUrl);
+  if (!['localhost', '127.0.0.1', '[::1]'].includes(target.hostname)
+      || target.pathname !== '/flowboard_harness' || target.username !== 'flowboard_harness' || target.search) {
+    throw new Error('This credential-minting CLI is limited to the disposable local harness.');
+  }
   const pool = new pg.Pool({ connectionString: dbUrl });
 
   try {
@@ -49,17 +55,7 @@ async function main() {
 
     const user = userRes.rows[0]!;
 
-    if (projectId) {
-      const projRes = await pool.query<{ id: string }>(
-        'SELECT id FROM projects WHERE id = $1',
-        [projectId],
-      );
-      if (projRes.rows.length === 0) {
-        console.error(`Error: Project "${projectId}" not found.`);
-        process.exit(1);
-      }
-    }
-
+    // The same adapter as POST /tokens checks actual Owner inheritance/current membership and the cap.
     const result = await createPersonalAccessToken(pool, {
       userId: user.id,
       name,
@@ -87,6 +83,7 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error('Fatal error:', err);
+  console.error('Token creation failed. Check local account/project access, input and active-token limit.',
+    typeof err?.code === 'string' ? err.code : 'INVALID_INPUT');
   process.exit(1);
 });

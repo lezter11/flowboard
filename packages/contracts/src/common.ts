@@ -97,6 +97,10 @@ export const ERROR_CATALOG = {
   STALE_CURSOR: { status: 409, hasDetails: false },
   STALE_VERSION: { status: 409, hasDetails: true },
   TOKEN_EXCHANGE_FAILED: { status: 400, hasDetails: false },
+  TOKEN_LIMIT_REACHED: { status: 409, hasDetails: false },
+  TOKEN_OPERATION_FORBIDDEN: { status: 403, hasDetails: false },
+  TOKEN_PROJECT_FORBIDDEN: { status: 403, hasDetails: false },
+  TOKEN_SCOPE_REQUIRED: { status: 403, hasDetails: false },
   TRANSFER_OWNERSHIP_RETIRED: { status: 410, hasDetails: false },
   UNAUTHORIZED: { status: 401, hasDetails: false },
   UNKNOWN_HEADER: { status: 422, hasDetails: true },
@@ -164,7 +168,8 @@ export function isValidGregorianDate(dateStr: string): boolean {
   const year = Number(yearStr);
   const month = Number(monthStr);
   const day = Number(dayStr);
-  if (month < 1 || month > 12) return false;
+  // PostgreSQL's Gregorian DATE type has no year zero.
+  if (year < 1 || month < 1 || month > 12) return false;
   if (day < 1) return false;
   const isLeap = (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
   const daysInMonth = [31, isLeap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];

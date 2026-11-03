@@ -1,0 +1,62 @@
+{
+  "environment": "env-i;HOME=/private/tmp/flowboard-mcp-review-round-2;PATH=/usr/local/bin:/usr/bin:/bin;NODE_ENV=test;telemetry disabled;only explicitly synthetic DB env where needed;no real secrets",
+  "tests": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/typecheck.log",
+      "execution": "independently executed"
+    },
+    {
+      "id": "contracts",
+      "command": "npm test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/contracts.log",
+      "execution": "independently executed;117pass"
+    },
+    {
+      "id": "mcp",
+      "command": "npm test --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/mcp.log",
+      "execution": "independently executed;17pass"
+    },
+    {
+      "id": "mcp-artifact",
+      "command": "npm run test:artifact --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/mcp-artifact.log",
+      "execution": "independently executed;1pass;already-built executable;offlinepack"
+    },
+    {
+      "id": "acceptance",
+      "command": "node docs/reviews/MCP-REPAIR-20261103/probes/acceptance.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance.log",
+      "execution": "independently executed;22groups pass;localPG/Pages/workerd"
+    },
+    {
+      "id": "adversarial",
+      "command": "node docs/reviews/MCP-REPAIR-20261103/independent-round-2/adversarial.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/adversarial.log",
+      "execution": "independently executed;3groups pass;copied original probe"
+    },
+    {
+      "id": "extended",
+      "command": "node docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/extended.log",
+      "execution": "independently authored/executed;4groups pass;97denials/103routes"
+    }
+  ],
+  "unsuccessfulAttempts": [
+    {
+      "command": "node docs/reviews/MCP-REPAIR-20261103/probes/acceptance.mjs",
+      "exitCode": 1,
+      "evidencePath": "docs/reviews/MCP-REPAIR-20261103/independent-round-2/acceptance-sandbox-denied.log",
+      "reason": "Sandbox denied loopback PostgreSQL connection EPERM; authorized local rerun separately passed."
+    }
+  ]
+}

@@ -20,7 +20,7 @@ import { HttpError, validationError } from '../http/errors.ts';
 import { resolveProjectRole, acquireWriteGrantLock, acquireWritableProjectContextLock, getHistoricalPersonDisplay } from './rbac.ts';
 import { getPool } from './postgres.ts';
 import { getWorkspaceToday } from './boards.ts';
-import { recordActivity } from './activity.ts';
+import { recordActivity, type ActivitySource } from './activity.ts';
 
 export interface CardRow {
   id: string;
@@ -256,6 +256,7 @@ export async function createCard(
   boardId: string,
   input: CreateCardAdapterInput,
   actorId: string,
+  source?: ActivitySource,
 ): Promise<Card> {
   const accessBoard = await client.query<{ project_id: string }>(
     'SELECT project_id FROM boards WHERE id = $1', [boardId],
@@ -405,6 +406,7 @@ export async function createCard(
     cardId,
     actorId,
     action: 'card_created',
+    source: source ?? { type: 'session' },
     safeChanges: {
       title: trimmedTitle,
       columnId: input.columnId,

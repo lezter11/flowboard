@@ -157,7 +157,44 @@ boardsRoutes.get('/api/v1/projects/:projectId/boards', authMiddleware, requireTo
     const boardIds = await lockProjectBoardReadScope(client, projectId, actor.id);
     const result = await listProjectBoards(client, projectId, actor.id, boardIds);
     await client.query('COMMIT');
+    if (c.get('authType') === 'token') {
+      // A direct API caller must receive the same narrow discovery boundary as
+      // the MCP client. Never rely on client-side projection for confidentiality.
+      return c.json({ data: result.data.map((board) => ({
+        id: board.id, name: board.name, structureVersion: board.structureVersion,
+      })) }, 200);
+    }
     return c.json(result, 200);
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
+});
+
+// Metadata is deliberately constructed without loading card data or card counts.
+boardsRoutes.get('/api/v1/boards/:boardId/metadata', authMiddleware, requireTokenScope('boards:read'), async (c) => {
+  const actor = getActorOrThrow(c);
+  const boardId = c.req.param('boardId');
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN');
+    await lockBoardAccess(client, boardId, actor.id);
+    const board = await client.query<{ id: string; name: string; structure_version: number }>(
+      'SELECT id, name, structure_version FROM boards WHERE id = $1 FOR SHARE', [boardId],
+    );
+    if (!board.rows[0]) throw HttpError.notFound('Board not found.', 'NOT_FOUND');
+    const columns = await client.query<{ id: string; name: string; category: string; position: number }>(
+      'SELECT id, name, category, position FROM columns WHERE board_id = $1 ORDER BY position, id LIMIT 100', [boardId],
+    );
+    const row = board.rows[0];
+    const data = {
+      id: row.id, name: row.name, structureVersion: row.structure_version,
+      columns: columns.rows.map((column) => ({ id: column.id, name: column.name, category: column.category, position: column.position })),
+    };
+    await client.query('COMMIT');
+    return c.json({ data }, 200);
   } catch (error) {
     await client.query('ROLLBACK').catch(() => {});
     throw error;
@@ -175,17 +212,6 @@ boardsRoutes.get('/api/v1/boards/:boardId', optionalAuthMiddleware, async (c) =>
   const boardCheck = await pool.query<{ id: string; project_id: string }>('SELECT id, project_id FROM boards WHERE id = $1', [boardId]);
   if (boardCheck.rows.length === 0) {
     throw HttpError.notFound('Board not found.', 'NOT_FOUND');
-  }
-
-  if (c.get('authType') === 'token') {
-    const scopes = c.get('tokenScopes') || [];
-    if (!scopes.includes('boards:read')) {
-      throw HttpError.forbidden('Token lacks required scope: boards:read');
-    }
-    const tokenProjectId = c.get('tokenProjectId');
-    if (tokenProjectId && boardCheck.rows[0]!.project_id !== tokenProjectId) {
-      throw HttpError.forbidden('Token is restricted to a different project.');
-    }
   }
 
   const actor = getActorOrThrow(c);

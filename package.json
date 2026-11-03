@@ -13,18 +13,18 @@
   },
   "packageManager": "npm@11.12.1",
   "scripts": {
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && npm run typecheck --workspace @flowboard/mcp",
     "build": "npm run build --workspace @flowboard/api",
     "build:web": "npm run build --workspace @flowboard/web",
     "dev:web": "npm run dev --workspace @flowboard/web",
     "typecheck:web": "npm run typecheck --workspace @flowboard/web",
-    "test": "npm run test --workspace @flowboard/api && npm run test --workspace @flowboard/contracts",
+    "test": "npm run test --workspace @flowboard/api && npm run test --workspace @flowboard/contracts && npm run test --workspace @flowboard/mcp",
     "dev:api": "npm run dev:node --workspace @flowboard/api",
     "dev:worker": "npm run dev:worker --workspace @flowboard/api",
     "db:up": "docker compose -f database/compose.local.yaml up -d --wait",
     "db:down": "docker compose -f database/compose.local.yaml down",
     "db:migrate": "npm run db:migrate --workspace @flowboard/api",
-    "check": "npm run typecheck && npm run build && npm test"
+    "check": "npm run typecheck && npm run build && npm run build --workspace @flowboard/mcp && npm test && npm run test:artifact --workspace @flowboard/mcp"
   },
   "devDependencies": {
     "@types/node": "24.19.2",

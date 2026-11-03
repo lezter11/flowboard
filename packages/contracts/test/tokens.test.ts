@@ -9,6 +9,14 @@ import {
 } from '../src/tokens.ts';
 
 test('Personal Access Token Schemas', async (t) => {
+  await t.test('defaults to finite 30-day expiry and rejects unknown fields/non-finite or oversized values', () => {
+    assert.equal(createTokenInputSchema.parse({ name: 'Automation', scopes: ['cards:create'] }).expiresInDays, 30);
+    for (const expiresInDays of [0, 366, 1.5, Number.NaN, Number.POSITIVE_INFINITY, null]) {
+      assert.equal(createTokenInputSchema.safeParse({ name: 'Automation', scopes: ['cards:read'], expiresInDays }).success, false);
+    }
+    assert.equal(createTokenInputSchema.safeParse({ name: 'Automation', scopes: ['cards:read'], userId: 'another-user' }).success, false);
+    assert.equal(createTokenInputSchema.safeParse({ name: 'Automation', scopes: ['cards:read'], projectId: 'x'.repeat(201) }).success, false);
+  });
   await t.test('createTokenInputSchema: validates valid inputs', () => {
     const valid = {
       name: 'Claude Desktop Integration',

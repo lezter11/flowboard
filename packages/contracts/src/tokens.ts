@@ -23,9 +23,9 @@ export const createTokenInputSchema = z.object({
     .refine((items) => new Set(items).size === items.length, {
       message: 'Scopes must be unique',
     }),
-  projectId: z.string().min(1, 'Project ID cannot be empty').optional(),
-  expiresInDays: z.number().int().min(1).max(365).optional(),
-});
+  projectId: z.string().trim().min(1, 'Project ID cannot be empty').max(200).optional(),
+  expiresInDays: z.number().int().min(1).max(365).default(30),
+}).strict();
 export type CreateTokenInput = z.infer<typeof createTokenInputSchema>;
 
 export const tokenSummarySchema = z.object({

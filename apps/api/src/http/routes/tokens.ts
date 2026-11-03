@@ -31,18 +31,7 @@ tokensRoutes.post('/api/v1/tokens', authMiddleware, async (c) => {
 
   const pool = getPool();
 
-  // If token is scoped to a project, verify actor has active membership in that project
-  if (input.projectId) {
-    const memRes = await pool.query<{ id: string }>(
-      `SELECT id FROM project_memberships
-       WHERE project_id = $1 AND user_id = $2 AND status = 'active'`,
-      [input.projectId, actor.id],
-    );
-    if (memRes.rows.length === 0) {
-      throw HttpError.forbidden('You do not have access to the specified project.');
-    }
-  }
-
+  // The adapter validates Owner inheritance/current project membership and the issuance cap atomically.
   const result = await createPersonalAccessToken(pool, {
     userId: actor.id,
     name: input.name,
@@ -61,6 +50,8 @@ tokensRoutes.get('/api/v1/tokens', authMiddleware, async (c) => {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
   }
 
+  if (c.get('authType') !== 'session') throw HttpError.forbidden('A signed-in session is required.');
+
   const pool = getPool();
   const tokens = await listPersonalAccessTokens(pool, actor.id);
   return c.json({ data: tokens }, 200);
@@ -72,6 +63,7 @@ tokensRoutes.delete('/api/v1/tokens/:tokenId', authMiddleware, async (c) => {
   if (!actor) {
     throw HttpError.unauthorized('Invalid or missing authentication session.');
   }
+  if (c.get('authType') !== 'session') throw HttpError.forbidden('A signed-in session is required.');
 
   const tokenId = c.req.param('tokenId');
   const pool = getPool();

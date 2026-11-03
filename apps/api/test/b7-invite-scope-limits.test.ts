@@ -69,6 +69,19 @@ async function count(bucket: string, key: string): Promise<number> {
 test('B-7 invitations: per inviter and per project limits hold across rotating client addresses', async (t) => {
   const fx = await fixture();
 
+  // These three linked assertions spend one fixed database-clock minute. If
+  // they start just before its boundary, a legitimate reset looks like bypass.
+  // Keep the real clock/counter/HTTP requests; align the fixture rather than
+  // mocking the counter, increasing its allowance or retrying failed asserts.
+  const clock = await pool.query<{ now_s: string }>(
+    'SELECT floor(extract(epoch FROM clock_timestamp()))::bigint AS now_s',
+  );
+  const remainingSeconds = 60 - Number(clock.rows[0]!.now_s) % 60;
+  if (remainingSeconds < 10) {
+    t.diagnostic('Aligning invitation quota assertions with a fresh fixed database-clock minute.');
+    await new Promise((resolve) => setTimeout(resolve, remainingSeconds * 1000 + 50));
+  }
+
   await t.test('an inviter gets 20 a minute, then 429 with a retry hint, whatever the client address', async () => {
     for (let i = 0; i < 20; i++) {
       const res = await invite(fx.project, fx.m1.session);

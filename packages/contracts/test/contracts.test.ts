@@ -85,6 +85,8 @@ describe('Contracts Schema Validation Tests', () => {
       assert.strictEqual(isValidGregorianDate('2026-13-01'), false);
       assert.strictEqual(isValidGregorianDate('2026-00-10'), false);
       assert.strictEqual(isValidGregorianDate('invalid-string'), false);
+      assert.strictEqual(isValidGregorianDate('0000-01-01'), false);
+      assert.strictEqual(isValidGregorianDate('0001-01-01'), true);
     });
 
     it('parses valid date-only strings and rejects invalid ones via Zod', () => {
