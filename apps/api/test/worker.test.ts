@@ -45,9 +45,12 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
       assert.deepEqual(await rollbackResponse.json(), { seenInside: 1, afterRollback: 0, afterCommit: 1 });
 
       // 3. 404 handling
-      const missing = await worker.fetch('http://localhost/api/v1/boards/not-implemented');
+      const missing = await worker.fetch('http://localhost/api/v1/not-implemented');
       assert.equal(missing.status, 404);
       assert.equal(((await missing.json()) as { error: { code: string } }).error.code, 'NOT_FOUND');
+      const privateBoard = await worker.fetch('http://localhost/api/v1/boards/not-implemented');
+      assert.equal(privateBoard.status, 401);
+      assert.equal(((await privateBoard.json()) as { error: { code: string } }).error.code, 'UNAUTHORIZED');
 
       // 4. Unauthenticated product routes reject with 401 UNAUTHORIZED
       const unauthSession = await worker.fetch('http://localhost/api/v1/session');

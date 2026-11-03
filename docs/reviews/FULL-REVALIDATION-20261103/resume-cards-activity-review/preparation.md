@@ -1,0 +1,7 @@
+# Preliminary source review; no approval
+
+Read RULES, BACKEND_REVIEW_GATE, review record policy, PLAN, CHECKPOINT-20261103, both unchanged feature criteria, prior all35-ID coverage and five findings, cards/discussion boundary handoff, activity reference criteria and resumed UI handoff. Traced actual mounted card/comment/activity/notification routes into authority, transaction, recipient-lock, history, retention, outbox, cursor and UI session paths.
+
+Candidate counterevidence: selected assignee membership/grant SHARE locks precede board ordering and remain in the writing transaction; exact receipt replay reauthorizes actor but does not impose recipient eligibility on an already accepted write. Comment edits redact exact materialized previews and sanitize outbox payloads while retaining the accepted original recipient set. Busy consumer/editor orders share card-before-comment resource ordering and editor skips busy outbox rows. Strict command/query schemas now reject unknown fields, malformed limits and conflicting delete query/body versions. Unchanged fetched edit baselines are registered for access-refusal redaction while user-authored drafts and unresolved original requests remain protected. Notification links preserve the card target and reject normalization/foreign-origin ambiguity. Activity identities hydrate only bounded allowlisted assignment references in authorized rows and never expose email/picker authority.
+
+No new confirmed mandatory defect during this preliminary trace. No final target, scores or unchanged-source claim yet.

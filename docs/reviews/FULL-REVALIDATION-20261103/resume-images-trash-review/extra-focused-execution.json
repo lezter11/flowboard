@@ -1,0 +1,27 @@
+{
+  "executor": "collaboration:/root/resume_images_trash_review",
+  "sourceManifestPath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-1/source-before.json",
+  "sourceDigest": "84d10ab7ddfb5454cbe0af2d63b3e3f8f2028899375ddab428716f130d91200a",
+  "tests": [
+    {
+      "id": "image-trash-ui-helpers",
+      "command": "NODE_ENV=test node --test --test-concurrency=1 apps/web/test/image-prepare.test.ts apps/web/test/image-uploads.test.ts apps/web/test/restore-destination.test.ts apps/web/test/trash-restore.test.ts",
+      "exitCode": 0,
+      "passCount": 51,
+      "failCount": 0,
+      "skipCount": 0,
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/resume-images-trash-review/ui-helpers-01.log",
+      "environment": "Node v24.15.0; NODE_ENV=test; pure/injected browser helper tests, no actual browser claimed"
+    },
+    {
+      "id": "jpeg-png-bounded-selection",
+      "command": "NODE_ENV=test node --test --test-concurrency=1 --test-name-pattern='JPEG shared deadline|PNG native stream|JPEG entropy genuine oracle corpus|JPEG entropy rejects bounded malformed scan' apps/api/test/jpeg-deadline.test.ts apps/api/test/jpeg-entropy.test.ts apps/api/test/png-stream.test.ts",
+      "exitCode": 0,
+      "passCount": 53,
+      "failCount": 0,
+      "skipCount": 0,
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/resume-images-trash-review/codec-boundaries-01.log",
+      "environment": "Node v24.15.0; NODE_ENV=test; selected pure/native codec tests; excludes separate JPEG differential and20MP max tests from own execution; those remain mandatory full API executor coverage"
+    }
+  ]
+}

@@ -1,18 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/ACC-01/d86d3f93688b6fdc6d5ba03e64bcae3ab7011f2c5e46603888fd35a03a13c5a6-round-1.json",
-  "summary": "ACC-01 Sign in and session: implemented secure database-backed session management in PostgreSQL, cookie-based session extraction (flowboard_session), /api/v1/session returning actor, owned workspaces, and accessible projects, /api/v1/session/logout with DB session revocation and cookie clearing, and dev-login helper for automated testing. All 11 unit and integration tests passed; independently audited and passed with score 9.61/10.0.",
-  "api_contract": "docs/API.md v0.3 (GET /session, POST /session/logout)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-account-round4.json",
+  "summary": "ACC-01 Sign in and session: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/account.json per-ID criterion ACC-01",
   "limitations": [
-    "External OAuth provider integrations (Google/GitHub) deferred to hosted identity tasks; dev-login and database sessions tested locally."
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
   ],
   "evidence": [
     {
-      "path": "docs/evidence/ACC-01-local.md",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/acc01-session.test.ts",
-      "result": "Strict typecheck passed with 0 errors; 5 integration tests passed, 0 failed, 0 skipped. Independent audit score: 10.0 / 10.0.",
-      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine official digest."
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-account-round4.json",
+      "sha256": "d75eefa5cf24696b221ada92eb267d35a4a328bad25c81af633a712968b3032a",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-account-round4.json --feature ACC-01",
+      "result": "PASS: 9.06/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "next_dependency_ready_task": "ACC-02 (Sign out and expired session), ACC-03 (Profile & historical identity)."
+  ]
 }

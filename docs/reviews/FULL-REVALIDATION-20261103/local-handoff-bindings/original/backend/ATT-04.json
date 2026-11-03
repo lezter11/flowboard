@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/ATT-04/af44f1e96485018d1b81f031a1537ab32d650a511ff32655e3294027538a72a4-round-1.json",
+  "summary": "ATT-04 Private image delivery verified. Implemented zero-trust authenticated proxy delivery checking fresh project authorization on every byte request, preventing post-revocation access, enforcing Cache-Control: private, no-cache, no-store, must-revalidate and nosniff headers, and rejecting outsider and sibling requests with 404 NOT_FOUND. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "GET /api/v1/images/:imageId/content & GET /api/v1/images/:imageId/thumbnail (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/ATT-04/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Supported formats restricted to PNG, JPEG, and WebP (max 10 MiB, <=8192px, <=20 MP).",
+    "Max 10 attachments per card; temporary storage cleaned after 1-hour TTL."
+  ]
+}

@@ -1,19 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/UX-01/6d35f8cff71590294aedc7719cb90d76be68e979b9283be7c6d8b090ec33b0f0-round-1.json",
-  "summary": "UX-01 Empty loading failed and forbidden states verified. Implemented standard empty list payloads ({ data: [], nextCursor: null }), zero-card empty board snapshot handling, and standard safe error envelopes with deterministic error codes (400, 401, 403, 404, 409, 422, 503) protecting backend secrets. Audited with unrounded score 9.610/10.0.",
-  "api_contract": "Structured envelopes & safe error taxonomy (docs/API.md v0.3)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/activity-discovery-ux-7d8875b267d87fadf245bcedb755f37a4ca7a182f560e27b3b1f6293ec511b15-round-2.json",
+  "summary": "UX-01 Empty loading failed and forbidden states: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/activity-discovery-ux.json per-ID criterion UX-01",
+  "limitations": [
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
+  ],
   "evidence": [
     {
-      "path": "docs/reviews/UX-01/test.log",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/ux-integration.test.ts",
-      "result": "All 6 test suites passed. Independent audit score 9.62/10.",
-      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/activity-discovery-ux-7d8875b267d87fadf245bcedb755f37a4ca7a182f560e27b3b1f6293ec511b15-round-2.json",
+      "sha256": "1a2c99ddcfd102362124668418f6707b62032f111d10b4f4894abe3527e9ba18",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/activity-discovery-ux-7d8875b267d87fadf245bcedb755f37a4ca7a182f560e27b3b1f6293ec511b15-round-2.json --feature UX-01",
+      "result": "PASS: 9.04/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "limitations": [
-    "Empty states return clean structured empty array data envelopes.",
-    "Relative keyboard movement requires active project member grant.",
-    "Restore deadline is strictly 24 hours from soft-delete timestamp."
   ]
 }

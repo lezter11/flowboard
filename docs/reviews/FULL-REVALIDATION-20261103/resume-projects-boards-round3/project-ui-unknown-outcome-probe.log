@@ -1,0 +1,33 @@
+✖ independent actual Settings changeLifecycle function plus API and mounted PostgreSQL: unknown Archive retry preserves original action (216.782792ms)
+ℹ {"calls":[{"path":"/api/v1/projects/prj/archive","body":{"expectedVersion":1},"key":"idemp_1793718645405_woxjn0x9","status":200},{"path":"/api/v1/projects/prj/reopen","body":{"expectedVersion":2},"key":"idemp_1793718645422_kpjyie9q","status":200}],"finalProject":{"id":"prj","name":"Retention","isArchived":false,"version":3},"dialogOpen":false}
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 394.101875
+
+✖ failing tests:
+
+test at docs/reviews/FULL-REVALIDATION-20261103/resume-projects-boards-round3/project-ui-unknown-outcome-probe.test.ts:7:1
+✖ independent actual Settings changeLifecycle function plus API and mounted PostgreSQL: unknown Archive retry preserves original action (216.782792ms)
+  AssertionError [ERR_ASSERTION]: A retry of the unresolved Archive should keep the original action
+  + actual - expected
+  
+  + '/api/v1/projects/prj/reopen'
+  - '/api/v1/projects/prj/archive'
+                          ^
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/resume-projects-boards-round3/project-ui-unknown-outcome-probe.test.ts:25:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: '/api/v1/projects/prj/reopen',
+    expected: '/api/v1/projects/prj/archive',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

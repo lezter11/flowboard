@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/ACC-06/8e73ad970d402c11cb1bd97d7261e51bd8f58cac82d1c84852e4d05a59eb63ca-round-1.json",
+  "summary": "ACC-06 Owned and invited context switcher verified. Implemented actor context aggregation returning owned workspaces and accessible projects, strictly enforcing container boundaries such that being owner of Workspace A grants zero rights in Workspace B. Audited with unrounded score 9.610/10.0.",
+  "api_contract": "GET /api/v1/session (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/ACC-06/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/acc-lifecycle.test.ts",
+      "result": "All 7 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Server session revocation deletes DB token; local client tabs retain drafts locally.",
+    "Ownership transfer is atomic and immediate; former owner loses administrative rights.",
+    "Outbox processor dispatches invitations via configured email adapter without storing secret links."
+  ]
+}

@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { createCommentSessions } from '../src/lib/comment-state.ts';
 import { redactProtectedDrafts, redactRefusedDrafts, redactSessionDraftTransition } from '../src/lib/protected-drafts.ts';
 import { notificationHref } from '../src/lib/notification-link.ts';
+import { hasUnsaved, resetUnsavedForTests } from '../src/lib/unsaved.ts';
 
 const original = { commentId: 'comment', expectedVersion: 2, body: 'Fetched @Jo', mentions: [{ userId: 'jo', start: 8, end: 11, name: 'Jo' }] };
 test('comment refusal drops untouched fetched edit copies, including through remount and later successful unrelated reads', () => {
@@ -55,6 +56,19 @@ test('clearing an unchanged fetched editor does not cancel an original edit whos
   assert.equal(session.get().edit,null);assert.equal(session.edit.unresolved(),true);
   await session.edit.retry(async(command)=>{assert.equal(command.id,original.commentId);assert.equal(command.input.body,original.body);assert.equal(command.input.expectedVersion,original.expectedVersion);});
   await assert.rejects(session.edit.retry(async()=>assert.fail('No pending command may be invented')),/No original request/);
+});
+test('a pending original edit keeps unload protection after its fetched editor is redacted until replay settles', async () => {
+  resetUnsavedForTests();
+  const session=createCommentSessions().forCard('dirty-actor','dirty-card',{projectId:'dirty-project',boardId:'dirty-board'});
+  session.beginEdit(original);
+  await assert.rejects(session.edit.run({id:original.commentId,input:{body:original.body,mentions:[],expectedVersion:original.expectedVersion}},async()=>{throw new TypeError('committed reply lost');}));
+  redactRefusedDrafts(['comments','dirty-card','dirty-actor']);
+  assert.equal(session.get().edit,null);
+  assert.equal(session.edit.unresolved(),true);
+  assert.equal(hasUnsaved(),true,'an uncertain original request must still protect against unloading');
+  await session.edit.retry(async()=>({saved:true}));
+  session.update({edit:null}); // The mounted mutation reconciles on success.
+  assert.equal(hasUnsaved(),false);
 });
 test('notification server links map once-encoded exact board and card identifiers', () => {
   assert.equal(notificationHref('/projects/p/boards/b?cardId=c'), '/board?id=b&card=c');

@@ -1,19 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/ACC-03/e5882dce861188312d4bbc6f0760c413999cc5ffd5d31c31df39c558064eeb86-round-1.json",
-  "summary": "ACC-03 Profile and historical identity verified. Implemented displayName and avatarUrl updates with validation, and guaranteed historical actor attribution in card activity, comments, and board snapshots after membership revocation without leaking private fields like email or password_hash. Audited with unrounded score 9.610/10.0.",
-  "api_contract": "PATCH /api/v1/session/profile (docs/API.md v0.3)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-account-round4.json",
+  "summary": "ACC-03 Profile and historical identity: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/account.json per-ID criterion ACC-03",
+  "limitations": [
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
+  ],
   "evidence": [
     {
-      "path": "docs/reviews/ACC-03/test.log",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/acc-lifecycle.test.ts",
-      "result": "All 7 test suites passed. Independent audit score 9.62/10.",
-      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-account-round4.json",
+      "sha256": "d75eefa5cf24696b221ada92eb267d35a4a328bad25c81af633a712968b3032a",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-account-round4.json --feature ACC-03",
+      "result": "PASS: 9.06/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "limitations": [
-    "Server session revocation deletes DB token; local client tabs retain drafts locally.",
-    "Ownership transfer is atomic and immediate; former owner loses administrative rights.",
-    "Outbox processor dispatches invitations via configured email adapter without storing secret links."
   ]
 }

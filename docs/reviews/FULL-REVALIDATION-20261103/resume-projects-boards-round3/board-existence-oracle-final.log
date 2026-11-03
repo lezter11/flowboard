@@ -1,0 +1,30 @@
+✖ round3 board privacy: anonymous and expired sessions cannot distinguish an inaccessible existing board from a nonexistent board (224.8835ms)
+ℹ [{"actor":"anonymous","responses":[{"target":"brd","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."},{"target":"missing_board","status":404,"code":"NOT_FOUND","message":"Board not found."}]},{"actor":"expired","responses":[{"target":"brd","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."},{"target":"missing_board","status":404,"code":"NOT_FOUND","message":"Board not found."}]},{"actor":"authenticated-outsider","responses":[{"target":"brd","status":404,"code":"NOT_FOUND","message":"Board not found."},{"target":"missing_board","status":404,"code":"NOT_FOUND","message":"Board not found."}]}]
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 422.648916
+
+✖ failing tests:
+
+test at docs/reviews/FULL-REVALIDATION-20261103/resume-projects-boards-round3/board-existence-oracle-probe.test.ts:5:1
+✖ round3 board privacy: anonymous and expired sessions cannot distinguish an inaccessible existing board from a nonexistent board (224.8835ms)
+  AssertionError [ERR_ASSERTION]: anonymous response status must not reveal private board existence
+  
+  401 !== 404
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/resume-projects-boards-round3/board-existence-oracle-probe.test.ts:19:58)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 401,
+    expected: 404,
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

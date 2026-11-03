@@ -1,0 +1,38 @@
+✔ private board snapshot authenticates before existence lookup; outsiders receive consistent no-data refusal (232.636708ms)
+✔ matching import marker preserves malformed source errors: {"priority":"not-a-priority"} (282.848667ms)
+✔ matching import marker preserves malformed source errors: {"dueDate":"2026-02-31"} (223.337291ms)
+✔ matching import marker preserves malformed source errors: {"externalId":1} (228.301417ms)
+✔ matching import markers cannot hide duplicate IDs within the same workbook (228.727959ms)
+✔ import repair: description survives mapping and commit; original row reimport skips after card edit (261.253ms)
+✔ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (219.077ms)
+✔ import repair: changed duplicate in a separately ready preview rolls back its whole batch (237.603709ms)
+✔ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (212.160417ms)
+✔ import repair: commit cannot override preview default column and stale board structure rejects confirmation (202.011375ms)
+✔ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (228.089ms)
+✔ import repair: cancel and expired status remove staged titles/emails and prevent commit (225.867375ms)
+✔ import repair: purge removes imported card title/email copies but keeps duplicate identity (221.619125ms)
+✔ import repair: target membership revocation winning its lock makes a concurrent mounted confirmation stale (197.276083ms)
+✔ import repair: confirmation holding recipient locks commits before waiting revocation with no deadlock (245.093125ms)
+✔ import repair: scheduled retention is bounded, repeatable, and preserves live previews/results/duplicate markers (217.417041ms)
+✔ import repair: failure on final card insert rolls back all cards, external markers, activity and receipt (197.606125ms)
+✔ import repair: migration0021 upgrades old previews conservatively and reruns without changing saved cards/markers (222.036541ms)
+✔ import repair: actual Worker scheduled entry cleans expired previews without a browser request (188.001083ms)
+✔ import repair: an unknown source mapping preserves original description/hash and literal inline strings parse (228.702125ms)
+✔ Import response: invalid previews preserve missing/oversized raw fields and still match their response contract (247.25ms)
+✔ Import response: cleaned committed receipt retains only explicit minimal row/card provenance (202.491791ms)
+✔ Import response: expired and cancelled receipts are schema-valid after immediate redaction (234.889666ms)
+✔ Import response: per-card purge redacts one row without relabeling the remaining live content (221.325208ms)
+✔ round3 board privacy: anonymous and expired sessions cannot distinguish an inaccessible existing board from a nonexistent board (227.701875ms)
+ℹ [{"actor":"anonymous","responses":[{"target":"brd","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."},{"target":"missing_board","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."}]},{"actor":"expired","responses":[{"target":"brd","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."},{"target":"missing_board","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."}]},{"actor":"authenticated-outsider","responses":[{"target":"brd","status":404,"code":"NOT_FOUND","message":"Board not found."},{"target":"missing_board","status":404,"code":"NOT_FOUND","message":"Board not found."}]}]
+✔ Changed invalid duplicate must keep validation errors and block a mixed batch (289.894709ms)
+✔ Previously imported row retains invalid-field errors {"priority":"not-a-priority"} (265.826625ms)
+✔ Previously imported row retains invalid-field errors {"dueDate":"2026-02-31"} (218.26275ms)
+✔ Previously imported row retains invalid-field errors {"externalId":1} (227.691458ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 29
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7935.725958

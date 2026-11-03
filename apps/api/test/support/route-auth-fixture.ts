@@ -11,6 +11,7 @@ import {getImportTemplateBytes} from '../../src/services/import-template.ts';
 import {imageFixture} from './image-fixtures.ts';
 import {OPENAPI_SCHEMAS} from '../../../../packages/contracts/src/openapi/schemas.ts';
 import type {OpenApiOperationDefinition} from '@flowboard/contracts/openapi';
+import {deleteCommentInputSchema} from '@flowboard/contracts';
 
 export async function routeAuthFixture(t:TestContext){
   const uri=process.env['FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL']!;
@@ -67,7 +68,7 @@ export async function routeAuthFixture(t:TestContext){
       CreateInvitationInput:{email:'matrix.newinvite@flowboard.example',role:'viewer'},AcceptInvitationInput:{token:inviteToken},CreateBoardInput:{name:'Matrix board'},BoardLifecycleInput:{expectedVersion:Number(revisions.snapshot_version)},UpdateBoardInput:{name:'Matrix renamed',expectedVersion:1},BoardGrantInput:{expectedAccessRevision:'1'},
       CreateColumnInput:{name:'Matrix column',color:'#64748b',category:'todo',expectedBoardVersion:version},UpdateColumnInput:{name:'Matrix renamed',expectedBoardVersion:version},ReorderColumnsInput:{columnIds:['col','col2'],expectedBoardVersion:version},DeleteColumnInput:{expectedBoardVersion:version},
       CreateCardInput:{title:'Matrix PAT created',columnId:'col',expectedBoardVersion:version},UpdateCardInput:{title:'Matrix renamed',expectedVersion:1},MoveCardInput:{toColumnId:'col2',previousCardId:null,nextCardId:null,expectedVersion:1,expectedBoardVersion:version},MoveUndoInput:{expectedVersion:1,expectedBoardVersion:version},
-      PostCommentInput:{body:'Matrix comment',mentions:[]},EditCommentInput:{body:'Edited matrix',mentions:[],expectedVersion:1},DeleteCommentInput:{expectedVersion:1},CreateImageUploadInput:{filename:'matrix.png',byteLength:png.length,contentType:'image/png',sha256:pngHash},DeleteImageInput:{expectedVersion:1},
+      PostCommentInput:{body:'Matrix comment',mentions:[]},EditCommentInput:{body:'Edited matrix',mentions:[],expectedVersion:1},DeleteCommentInput:{expectedVersion:1},DeleteCommentBodyInput:deleteCommentInputSchema.parse({expectedVersion:1}),CreateImageUploadInput:{filename:'matrix.png',byteLength:png.length,contentType:'image/png',sha256:pngHash},DeleteImageInput:{expectedVersion:1},
       SoftDeleteCardInput:{expectedVersion:1,expectedBoardVersion:version},RestoreCardInput:{expectedVersion:1,expectedBoardVersion:version,toColumnId:'col'},UpdateImportMappingsInput:{mappings:{},expectedVersion:1},CommitImportInput:{previewDigest:'matrix_digest',defaultColumnId:'col',expectedVersion:1},CreateTokenInput:{name:'Matrix nested',scopes:['projects:read'],projectId:'prj'},
     };
     let body=op.requestSchema?inputs[op.requestSchema]:undefined;

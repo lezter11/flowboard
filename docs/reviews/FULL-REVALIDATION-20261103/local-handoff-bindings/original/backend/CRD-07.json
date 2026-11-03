@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-07/19208f8abc70e30955853440e667aa4423656d715a8a728597bf1c20a0fccf0d-round-1.json",
+  "summary": "CRD-07 Card movement & relative ranking verified. Implemented cross-column and intra-column movement with fractional integer positioning between neighbors, empty column handling, automatic recompaction on space exhaustion, and dual OCC verification on both card version and board structure version. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "POST /api/v1/cards/:cardId/move (docs/API.md v0.3)",
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-07/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 14 tests passed. Review score 9.425/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ]
+}

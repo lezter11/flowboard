@@ -1,0 +1,72 @@
+[
+  {
+    "id": "original-xml-contract-rechecks",
+    "command": "node --test docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/original-probes.test.ts docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/corrected-probes.test.ts docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/extension-probes.test.ts",
+    "exitCode": 0,
+    "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/probes-allowed.log",
+    "counts": {
+      "tests": 27,
+      "pass": 27,
+      "fail": 0,
+      "skipped": 0
+    },
+    "environment": "NODE_ENV=test; all6explicit disposable URLs on127.0.0.1:55931; flowboard_harness user; lifecycle/import fixtures own random schemas; no live data/runtime/provider.",
+    "isolatedSynthetic": true,
+    "executedBy": "collaboration:/root/resume_import_review"
+  },
+  {
+    "id": "independent-focused-import",
+    "command": "node --test apps/api/test/import-xml-parser.test.ts apps/api/test/import-xml-cell-parser.test.ts apps/api/test/import-xml-mounted.test.ts apps/api/test/import-repair.test.ts apps/api/test/import-response-contract.test.ts apps/api/test/import-receipt-mapping.test.ts",
+    "exitCode": 0,
+    "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/focused-import.log",
+    "counts": {
+      "tests": 148,
+      "pass": 148,
+      "fail": 0,
+      "skipped": 0
+    },
+    "environment": "NODE_ENV=test; all6explicit disposable URLs on127.0.0.1:55931; flowboard_harness user; lifecycle/import fixtures own random schemas; no live data/runtime/provider.",
+    "isolatedSynthetic": true,
+    "executedBy": "collaboration:/root/resume_import_review"
+  },
+  {
+    "id": "invalid-duplicate-boundaries",
+    "command": "node --test docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/validation-duplicate-probes.test.ts",
+    "exitCode": 1,
+    "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/validation-duplicate-probes.log",
+    "counts": {
+      "tests": 3,
+      "pass": 0,
+      "fail": 3,
+      "skipped": 0
+    },
+    "environment": "NODE_ENV=test; all6explicit disposable URLs on127.0.0.1:55931; flowboard_harness user; lifecycle/import fixtures own random schemas; no live data/runtime/provider.",
+    "isolatedSynthetic": true,
+    "executedBy": "collaboration:/root/resume_import_review"
+  },
+  {
+    "id": "invalid-duplicate-mixed-control",
+    "command": "node --test docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/validation-duplicate-detail.test.ts",
+    "exitCode": 1,
+    "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/validation-duplicate-detail.log",
+    "counts": {
+      "tests": 1,
+      "pass": 0,
+      "fail": 1,
+      "skipped": 0
+    },
+    "environment": "NODE_ENV=test; all6explicit disposable URLs on127.0.0.1:55931; flowboard_harness user; lifecycle/import fixtures own random schemas; no live data/runtime/provider.",
+    "isolatedSynthetic": true,
+    "executedBy": "collaboration:/root/resume_import_review"
+  },
+  {
+    "id": "sandbox-loopback-initial",
+    "command": "node --test docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/original-probes.test.ts docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/corrected-probes.test.ts docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/extension-probes.test.ts",
+    "exitCode": 1,
+    "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/probes.log",
+    "limitation": "EPERM127.0.0.1:55931before DBsetup; environmental failure superseded by permitted retry, not a product finding.",
+    "environment": "NODE_ENV=test; all6explicit disposable URLs on127.0.0.1:55931; flowboard_harness user; lifecycle/import fixtures own random schemas; no live data/runtime/provider.",
+    "isolatedSynthetic": true,
+    "executedBy": "collaboration:/root/resume_import_review"
+  }
+]

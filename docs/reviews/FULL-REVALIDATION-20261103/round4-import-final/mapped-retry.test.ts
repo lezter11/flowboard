@@ -1,0 +1,22 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import fs from 'node:fs/promises';
+import { lifecycleFixture } from '../../../../apps/api/test/support/lifecycle-fixture.ts';
+import { workbook } from '../../../../apps/api/test/support/import-workbook.ts';
+import { importStatusResponseSchema } from '../../../../packages/contracts/src/imports.ts';
+test('Independent mapped original retry after card edit and recipient revocation skips old row but creates only a valid new row',async t=>{
+ const f=await lifecycleFixture(t);
+ const original={externalId:'00001',title:'Original text',description:'Original description',status:'Needs explicit map',assignees:'retention-member@flowboard.example'};
+ const upload=async(rows:Parameters<typeof workbook>[0])=>{const r=await f.app.request('http://localhost/api/v1/boards/brd/imports?defaultColumnId=col2',{method:'POST',headers:{cookie:`flowboard_session=${f.actors.owner!.session.id}`,origin:'http://localhost','content-type':'application/octet-stream'},body:new Uint8Array(workbook(rows)).buffer});assert.equal(r.status,201);const b=await r.json()as any;assert.ok(importStatusResponseSchema.safeParse(b).success);return b.data;};
+ const commit=async(p:any)=>{const r=await f.request('POST',`/imports/${p.id}/commit`,'owner',{expectedVersion:p.version,previewDigest:p.previewDigest,defaultColumnId:'col2'});assert.equal(r.status,200,await r.clone().text());return(await r.json()as any).data;};
+ const first=await upload([original]);assert.equal(first.state,'invalid');
+ const mapped=await f.request('POST',`/imports/${first.id}/mappings`,'owner',{expectedVersion:first.version,mappings:{'Needs explicit map':'col'}});assert.equal(mapped.status,200);const done=await commit((await mapped.json()as any).data);const cardId=done.rows[0].cardId;
+ await f.pool.query("UPDATE cards SET title='Later human edit',description='Keep this current content',version=version+1 WHERE id=$1",[cardId]);
+ await f.pool.query('DELETE FROM board_grants WHERE board_id=$1 AND user_id=$2',['brd',f.actors.member!.user.id]);
+ const before=(await f.pool.query('SELECT id,title,description,column_id,version FROM cards WHERE id=$1',[cardId])).rows[0];
+ const retry=await upload([original,{externalId:'new-safe',title:'Safe new task',priority:'high'}]);assert.equal(retry.state,'ready');assert.equal(retry.rows[0].outcome,'already_imported');assert.deepEqual(retry.rows[0].errors,[]);
+ const result=await commit(retry);assert.equal(result.counts.created,1);assert.equal(result.counts.skipped,1);assert.equal(result.rows[0].cardId,cardId);
+ const after=(await f.pool.query('SELECT id,title,description,column_id,version FROM cards WHERE id=$1',[cardId])).rows[0];assert.deepEqual(after,before);
+ assert.equal(Number((await f.pool.query("SELECT COUNT(*)n FROM activity_log WHERE action='card_created' AND card_id=$1",[cardId])).rows[0].n),1);
+ await fs.writeFile(new URL('./mapped-retry-result.json',import.meta.url),JSON.stringify({before,after,preview:retry,result},null,2)+'\n');
+});

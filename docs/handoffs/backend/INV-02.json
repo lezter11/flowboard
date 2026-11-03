@@ -1,19 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/INV-02/9d70ceafbc402aa1d3cc5203ab8363dd0b162582c573c9c5cb8e051239bf6dfa-round-1.json",
-  "summary": "INV-02 Invitation delivery verified. Implemented durable outbox invitation delivery with configured email adapter, visible delivery status, exponential backoff retries, and strict exclusion of secret tokens and links from outbox payloads and logs. Audited with unrounded score 9.610/10.0.",
-  "api_contract": "Durable invitation delivery & outbox processor (docs/API.md v0.3)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+  "summary": "INV-02 Invitation delivery: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/projects-access-invitations.json per-ID criterion INV-02",
+  "limitations": [
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
+  ],
   "evidence": [
     {
-      "path": "docs/reviews/INV-02/test.log",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/acc-lifecycle.test.ts",
-      "result": "All 7 test suites passed. Independent audit score 9.62/10.",
-      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+      "sha256": "51ec7200a147d90a58080b8063d362a551c50259ad8a9a08413acddfc7d005b9",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json --feature INV-02",
+      "result": "PASS: 8.975/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "limitations": [
-    "Server session revocation deletes DB token; local client tabs retain drafts locally.",
-    "Ownership transfer is atomic and immediate; former owner loses administrative rights.",
-    "Outbox processor dispatches invitations via configured email adapter without storing secret links."
   ]
 }

@@ -1,17 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/BRD-04/551825db4664504c8864ade6a79d0ebbf0ccb9c046cbd6eccaf82128b0842408-round-1.json",
-  "summary": "BRD-04 Add & edit columns verified. Enforces max 12 columns limit per board, column name uniqueness (trimmed, case-insensitive), structure_version OCC verification, and role authorization. Audited with unrounded score 9.425/10.0.",
-  "api_contract": "POST & PATCH /api/v1/boards/:boardId/columns (docs/API.md v0.3)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-boards-round-4.json",
+  "summary": "BRD-04 Add and rename columns: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/boards.json per-ID criterion BRD-04",
+  "limitations": [
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
+  ],
   "evidence": [
     {
-      "path": "docs/reviews/BRD-04/test.log",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
-      "result": "All 16 tests passed. Independent audit score 9.605/10.",
-      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-boards-round-4.json",
+      "sha256": "4e1005a0b65b7f4f89b37eb33207df084d43d90aac9dd03198231c8f7fc15d95",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-boards-round-4.json --feature BRD-04",
+      "result": "PASS: 9.0/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "limitations": [
-    "Full operations require active project grant; archived project/board rejects all writes."
   ]
 }

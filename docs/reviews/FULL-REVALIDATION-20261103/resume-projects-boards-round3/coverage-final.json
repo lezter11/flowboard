@@ -1,0 +1,226 @@
+{
+  "sourceDigest": "6f0df7007c67963b3625bd902ed2f13b212064fd73f73c6932a4051718add04c",
+  "featureCount": 26,
+  "reviewRound": 3,
+  "verdict": "fail",
+  "features": [
+    {
+      "id": "PRJ-01",
+      "backendTrace": "projects.ts own/workspace creation; own-projects.ts; personal-workspace.ts; quotas.ts",
+      "testEvidence": "b18-own-projects; b18-backstops-session; Browser new project/board creation",
+      "uiTrace": "new-project-dialog.tsx; projects/page.tsx",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "PRJ-02",
+      "backendTrace": "projects.ts listings/detail; adapters/projects.ts actor/scope cursors; default-board.ts",
+      "testEvidence": "prj02-prj05; board-access scoped reads; cursor-integrity-repair",
+      "uiTrace": "projects/page.tsx; project-view.tsx; project-switcher; portfolio-state",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "PRJ-03",
+      "backendTrace": "projects PATCH; updateProjectSettings; shared projects schema",
+      "testEvidence": "prj02-prj05 stale/settings/default-board cases; rbac-advanced mounted revoke interleaving",
+      "uiTrace": "settings/page.tsx; brief-card.tsx; expected version/draft conflicts",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "PRJ-04",
+      "backendTrace": "projects.ts archive561-687/reopen690-819; owner preflight and in-transaction recheck; strict projectLifecycleInputSchema; original-body receipt identity; locked project version + conditional UPDATE; quota reopen",
+      "testEvidence": "Own project-lifecycle-occ9pass: invalid/missing bodies, stale archive/reopen, exact replay/body conflict, removed Owner, active/archived distinct-connection races and pending-body authority change; own additional archived write/replay no-effects probe",
+      "uiTrace": "settings/page.tsx sends expectedVersion; API72 documents it;321 contradictory stale note",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "PRJ-05",
+      "backendTrace": "projects /members+people; getProjectMembers; rbac display actor+lock guard",
+      "testEvidence": "Own people-directory-policy9pass + direct-Pool3pass cover aliases, display administration, pickers, no-board Manager administration, direct adapter and both demotion lock orders",
+      "uiTrace": "people/page.tsx rejects Member/Viewer; member-controls; no directory cache rendering on refusal",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "INV-01",
+      "backendTrace": "invitations POST; createInvitation role/recipient/token/outbox; grant creation acceptance only",
+      "testEvidence": "inv01-inv03; inv04-inv08; b22 quotas; board-access no automatic grants",
+      "uiTrace": "invite-dialog roles/access explanation; accept-screen",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "INV-02",
+      "backendTrace": "invitation-delivery waitUntil/private pool; mailer timeout/error mapping; worker scheduled outbox",
+      "testEvidence": "Own invitation-repair terminal redaction; uat-immediate-invite-send fake provider; outbox recovery",
+      "uiTrace": "invite-dialog delivery summary/retry states; real mail remains UAT pending",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending. Configured adapter exercised with synthetic provider; actual mail delivery is UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "INV-03",
+      "backendTrace": "accept route actor+token receipt; adapter quota/lifecycle/invitation/membership/email/expiry",
+      "testEvidence": "Own invitation-repair12 pass; inv01-inv03 wrong email/duplicate/expired; b22 accept races",
+      "uiTrace": "accept-screen identity/name/expired token outcomes; real Google UAT pending",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "INV-04",
+      "backendTrace": "resend/revoke route current actor/target role before receipts; token hash rotation",
+      "testEvidence": "inv04-inv08; b22 accept/resend; own invitation-repair archive/receipt",
+      "uiTrace": "invite-dialog retained commands/revoke confirmation; invitation-state role-aware controls",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "INV-05",
+      "backendTrace": "listInvitations signed keyset bound actor/role/project/lifecycle; latest outbox summary",
+      "testEvidence": "Own invitation-repair limits/ties/cursor/delivery pass",
+      "uiTrace": "invite-dialog status filters/load-more/stale reset/error/empty states",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "INV-06",
+      "backendTrace": "members PATCH authorizeMemberMutation before receipt; adapter target role/version checks",
+      "testEvidence": "inv04-inv08; rbac-advanced owner promotion vs Manager removal race",
+      "uiTrace": "people/member-controls owner/Manager target-role matrix",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "INV-07",
+      "backendTrace": "member DELETE/PATCH removal; quota->actor->target; grant-removal trigger; invitation revocation",
+      "testEvidence": "board-access/tests cards/images/imports/trash scopes; own People demotion tests",
+      "uiTrace": "session fingerprint query clearing; board/refused cached rows; browser revocation flows",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "INV-08",
+      "backendTrace": "leave route quota/workspace/current membership->receipt; adapter removal/invite revoke",
+      "testEvidence": "Own invitation-repair archived leave/block ordering pass; inv04-inv08 owner denial",
+      "uiTrace": "settings confirmed leave/cache removal; historical displays use safe identity",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "RBAC-01",
+      "backendTrace": "app mounted route registry; session/PAT auth; origin/body/deadline/rate middleware; rbac helpers",
+      "testEvidence": "route-auth-matrix; cookie-mutation-matrix; identity/runtime tests; own People controls; own board-existence-oracle-final1fail real mounted PostgreSQL, outsider404/404 control",
+      "uiTrace": "roles.ts/action-specific owner-only metadata/grants; role scoped from selected project",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "FAIL: PB03 anonymous/expired board existence disclosure"
+    },
+    {
+      "id": "RBAC-02",
+      "backendTrace": "project ancestry + board/grant helpers; nested card/comment/file/import handlers",
+      "testEvidence": "board-access-cards-images; boards-imports-trash; route-auth matrix; own board-existence-oracle-final1fail real mounted PostgreSQL, outsider404/404 control",
+      "uiTrace": "deep link error/refusal state; clear private rows on403/404",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "FAIL: PB03 anonymous/expired board existence disclosure"
+    },
+    {
+      "id": "RBAC-03",
+      "backendTrace": "quota->workspace->membership->grant->project->board locks; transaction receipts",
+      "testEvidence": "rbac-advanced separate connection cases; board-access held delivery; own9People+3Pool; own rbac-advanced and project-lifecycle-OCC separate-connection cases pass, PB02 repaired",
+      "uiTrace": "expected versions/recovery UI; PB02 lifecycle stale overwrite fails integrity",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "RBAC-04",
+      "backendTrace": "People fixed display directory; scoped assignee/mention; notifications/activity ancestry",
+      "testEvidence": "Own39current scoped tests; safe historical person maps; b9 mention tests",
+      "uiTrace": "people denial; picker eligibility; inbox/refused state; session identity draft redaction",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "RBAC-05",
+      "backendTrace": "Owner implicit board access; nonowner current membership+grant; Owner grants; Manager creator atomic grant",
+      "testEvidence": "board-access comprehensive; b18 own/shared permissions; own scoped cursor role controls; own creator-only grant/revoked receipt counterprobe passes",
+      "uiTrace": "People Board access Owner-only; invite disclosure; empty zero-grant board lists",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "BRD-01",
+      "backendTrace": "boards create route quota/receipt; createBoard five columns; creator grant/activity",
+      "testEvidence": "brd01-brd07; b18 permission/quota/atomic create; browser creation; own creator-only grant/revoked receipt counterprobe passes",
+      "uiTrace": "new-board-dialog retained command/draft/role guard",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "BRD-02",
+      "backendTrace": "list scope transaction; Owner-only updateBoard expected snapshot version; metadata PAT projection",
+      "testEvidence": "brd01-brd07; identity-repair PAT; own lifecycle PAT/archive discovery controls pass",
+      "uiTrace": "edit-board-dialog/settings owner-only; navigation context source fix and browser observation",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "BRD-03",
+      "backendTrace": "getBoardSnapshot repeatable read+authorization locks; bounded15 first pages; filters/counts",
+      "testEvidence": "brd01-brd07; qry01-qry03; board-access snapshot revocation; own lifecycle cursors; own board-existence-oracle-final1fail real mounted PostgreSQL, outsider404/404 control",
+      "uiTrace": "board-view server filter generation; total/matching counts; pages explicit",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "FAIL: PB03 anonymous/expired board existence disclosure"
+    },
+    {
+      "id": "BRD-04",
+      "backendTrace": "add/updateColumn structure OCC; normalized unique live names; bounded12; category/color",
+      "testEvidence": "brd01-brd07; own lifecycle name/cap/migration tests; own malformed exact-set/stale-no-effects/canonical reorder counterprobe passes",
+      "uiTrace": "columns-dialog add/rename/category/tone retained drafts/stale reapply; browser observation",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "BRD-05",
+      "backendTrace": "reorderColumns exact complete ID set, board lock, structure version/activity/receipt",
+      "testEvidence": "brd01-brd07 duplicate/missing/foreign/stale; browser actual UI reorder; own malformed exact-set/stale-no-effects/canonical reorder counterprobe passes",
+      "uiTrace": "columns-dialog earlier/later buttons give pointer/click/tap/keyboard action; board-card Move separate",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "BRD-06",
+      "backendTrace": "deleteColumn soft retirement; final/active/restorable checks; migration0024 triggers",
+      "testEvidence": "Own lifecycle15 includes direct SQL deadlock/RR/upgrade/name conflict/history cases",
+      "uiTrace": "columns-dialog confirmation/error/retained drafts; no implicit card cascade",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "BRD-07",
+      "backendTrace": "listBoardCards actor/accessRevision/snapshot/structure/filter cursors; bounded100",
+      "testEvidence": "Own lifecycle actor/revision/page summary probes; brd01-brd07 pagination",
+      "uiTrace": "board-pages dedupe/version/generation; stale cursors refresh; visible unseen count/load more",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    },
+    {
+      "id": "BRD-08",
+      "backendTrace": "archive/reopen board grant+Manager/project lifecycle+snapshot OCC/receipt; reopen quota",
+      "testEvidence": "Own lifecycle stale/late transition/exact replay pass; lifecycle-undo archived writes/trash deadlines",
+      "uiTrace": "board-lifecycle-dialog retained original body/key; project archived block; browser archive/reopen",
+      "limits": "No feature or release closure. Own scoped196passing acceptance tests have overlap; separate14-gate executor attribution is retained; original run9zero/API1 and4unrun. Browser evidence belongs to root/executor, not this reviewer. Hosted/provider checks remain UAT pending.",
+      "round3CriterionOutcome": "local behavior evidenced; grouped acceptance FAIL PB03 and required API failure"
+    }
+  ],
+  "coverageBasis": "Fresh current source/contract/route/runtime/UI review using prior coverage only as navigation; PB01/PB02 and representative entire domains rerun independently on actual mounted PostgreSQL; no old review score reused.",
+  "requiredGates": {
+    "executed": 14,
+    "passed": 13,
+    "failed": [
+      "api"
+    ],
+    "unrun": []
+  },
+  "continuationEvidence": "docs/reviews/FULL-REVALIDATION-20261103/resume-projects-boards-round3/independent-continuation-observed.json"
+}

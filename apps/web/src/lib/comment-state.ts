@@ -27,7 +27,7 @@ export function createCommentSessions() {
       update(patch: Partial<CommentDrafts>) {
         drafts = { ...drafts, ...structuredClone(patch) };
         if (patch.edit === null) editBaseline = null;
-        setUnsaved(key, !!drafts.create.body || drafts.edit !== null || drafts.remove !== null);
+        setUnsaved(key, !!drafts.create.body || drafts.edit !== null || drafts.remove !== null || post.unresolved() || edit.unresolved() || remove.unresolved());
         listeners.forEach((listener) => listener());
       },
       beginEdit(draft: EditDraft) { editBaseline = structuredClone(draft); this.update({ edit: draft }); },

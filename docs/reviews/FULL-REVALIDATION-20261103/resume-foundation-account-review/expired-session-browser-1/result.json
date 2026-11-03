@@ -1,0 +1,28 @@
+{
+  "kind": "independently executed local synthetic expired-session UI acceptance; real Google renewal remains UAT pending",
+  "startedAt": "2026-11-03T15:18:50.161Z",
+  "sourceDigest": "6f0df7007c67963b3625bd902ed2f13b212064fd73f73c6932a4051718add04c",
+  "checks": [
+    {
+      "name": "expired session detected by real polling; private baseline hidden and direct reads/writes401 with unchanged row",
+      "status": "pass"
+    },
+    {
+      "name": "same-actor UI recovery refetches authorized baseline and restores only own unsent title without mutation",
+      "status": "pass"
+    }
+  ],
+  "blockedExternalOrigins": [],
+  "browser": "156.0.8078.80",
+  "sharedBoardExistence": {
+    "existingStatus": 401,
+    "missingStatus": 404,
+    "privacyInvariant": "fail",
+    "source": "apps/api/src/http/routes/boards.ts:211-221",
+    "note": "Known shared mandatory finding; query must not distinguish board existence before identity."
+  },
+  "expiryChecksStatus": "pass",
+  "status": "fail",
+  "changedSources": [],
+  "completedAt": "2026-11-03T15:18:57.015Z"
+}

@@ -1,0 +1,105 @@
+✖ round3 board privacy: anonymous and expired sessions cannot distinguish an inaccessible existing board from a nonexistent board (230.258458ms)
+ℹ [{"actor":"anonymous","responses":[{"target":"brd","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."},{"target":"missing_board","status":404,"code":"NOT_FOUND","message":"Board not found."}]},{"actor":"expired","responses":[{"target":"brd","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."},{"target":"missing_board","status":404,"code":"NOT_FOUND","message":"Board not found."}]},{"actor":"authenticated-outsider","responses":[{"target":"brd","status":404,"code":"NOT_FOUND","message":"Board not found."},{"target":"missing_board","status":404,"code":"NOT_FOUND","message":"Board not found."}]}]
+✖ Changed invalid duplicate must keep validation errors and block a mixed batch (270.903458ms)
+✖ Previously imported row retains invalid-field errors {"priority":"not-a-priority"} (256.137291ms)
+✖ Previously imported row retains invalid-field errors {"dueDate":"2026-02-31"} (220.767ms)
+✖ Previously imported row retains invalid-field errors {"externalId":1} (266.486459ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1774.697375
+
+✖ failing tests:
+
+test at docs/reviews/FULL-REVALIDATION-20261103/architect-round3-confirmation/board-existence-oracle-probe.test.ts:5:1
+✖ round3 board privacy: anonymous and expired sessions cannot distinguish an inaccessible existing board from a nonexistent board (230.258458ms)
+  AssertionError [ERR_ASSERTION]: anonymous response status must not reveal private board existence
+  
+  401 !== 404
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/architect-round3-confirmation/board-existence-oracle-probe.test.ts:19:58)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 401,
+    expected: 404,
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at docs/reviews/FULL-REVALIDATION-20261103/architect-round3-confirmation/validation-duplicate-detail.test.ts:5:1
+✖ Changed invalid duplicate must keep validation errors and block a mixed batch (270.903458ms)
+  AssertionError [ERR_ASSERTION]: A prior marker must not erase the mandatory invalid-date error
+  
+  'ready' !== 'invalid'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/architect-round3-confirmation/validation-duplicate-detail.test.ts:16:9)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'ready',
+    expected: 'invalid',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at docs/reviews/FULL-REVALIDATION-20261103/architect-round3-confirmation/validation-duplicate-probes.test.ts:7:90
+✖ Previously imported row retains invalid-field errors {"priority":"not-a-priority"} (256.137291ms)
+  AssertionError [ERR_ASSERTION]: Invalid changed source values must not be silently reclassified as already imported
+  
+  'ready' !== 'invalid'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/architect-round3-confirmation/validation-duplicate-probes.test.ts:13:9)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'ready',
+    expected: 'invalid',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at docs/reviews/FULL-REVALIDATION-20261103/architect-round3-confirmation/validation-duplicate-probes.test.ts:7:90
+✖ Previously imported row retains invalid-field errors {"dueDate":"2026-02-31"} (220.767ms)
+  AssertionError [ERR_ASSERTION]: Invalid changed source values must not be silently reclassified as already imported
+  
+  'ready' !== 'invalid'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/architect-round3-confirmation/validation-duplicate-probes.test.ts:13:9)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'ready',
+    expected: 'invalid',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at docs/reviews/FULL-REVALIDATION-20261103/architect-round3-confirmation/validation-duplicate-probes.test.ts:7:90
+✖ Previously imported row retains invalid-field errors {"externalId":1} (266.486459ms)
+  AssertionError [ERR_ASSERTION]: Invalid changed source values must not be silently reclassified as already imported
+  
+  'ready' !== 'invalid'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/architect-round3-confirmation/validation-duplicate-probes.test.ts:13:9)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 'ready',
+    expected: 'invalid',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,490 @@
+{
+  "featureId": "ATT-01",
+  "acceptance": "Authorized editor requests bounded upload and sees progress/cancel; private staging cannot attach files across projects.",
+  "functionalSourceDigest": "c1f1364e7072c1b8989ae227e5ef9721fa19226bb1d38494ff446abe008249bb",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "uiRequired": true,
+  "independentCoverage": null,
+  "originalBackend": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/original/backend/ATT-01.json",
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/app/activity/page.tsx",
+      "sha256": "401576146fe9cca079f46dd9c122be5449d974f27704d5abff45aaa9c1c5a635",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/projects/page.tsx",
+      "sha256": "84a5806fb1cf23a362ad098306c5ebf23c04dc39b061afd4d5f7f80e17136121",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/board-card.tsx",
+      "sha256": "f3c34287008acc018c6e6c6630007c34aa59547c989f8fff47fe458cdb4d2cd6",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/board-column.tsx",
+      "sha256": "7be08c95cd717ee1049e37c9fd913c2b699189023278697d411759b9788b77ab",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/board-view.tsx",
+      "sha256": "bde0a6ac1406d2af43452940efdd14a48e669bcfc240a54d061c3457bd838ddf",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/card-detail-drawer.tsx",
+      "sha256": "6edb7009d2edf7e44876247ab7fdedf29d493b7ebbeff3f9665d15025b7c0fd6",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/card-images.tsx",
+      "sha256": "236949a4d2acaf8942ad67a0f158936aa1ea7b3eb2eefe5f9a971dbc9418a5ed",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/ui/feed-controls.tsx",
+      "sha256": "c4406526a7fe5447571a91edcdb25eb11e33e617075a581a5f954482f286c967",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "7e1c95273648826d6e79ed6323c1c949e2bb48daec0439fabaf85a8def61393d",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/audit-filters.ts",
+      "sha256": "ab8f585049f2792b9faedf1abfc17d5d1348c69c5e21b9cea61fa852016b363c",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/dates.ts",
+      "sha256": "1e566235a1a33d77a7ed6a629b483e982ddb1564e438c0271f3edcbdfd934a69",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/image-prepare.ts",
+      "sha256": "d9087ee917f6a7ae0068140b82bbd88be760975359fba5d416a9f470513ab3c7",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/image-uploads.ts",
+      "sha256": "6f0f49a08e85693333c562bfd6d91411399e860bcc06cce252fdd8a5f9e7bafa",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/portfolio.ts",
+      "sha256": "4892933b23cfe81a12ed22eccf4d52f8e9a53571462a61938102c768600c75ad",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/session-identity.ts",
+      "sha256": "0ab888703ac5b6d79d616fd9e3f573b3a16f573e210a9b4589bd624ebb89ca9c",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/session.tsx",
+      "sha256": "1230e2de12ff353d422e6ae1557dc0c946b8cd129126ac54e713ae2032e6108e",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/test/final-scope.test.ts",
+      "sha256": "c4a06d8f6c5771efdb2293f25c0aab3dd658da33ae1e9e5d3fcd62700061f602",
+      "testNames": [
+        "canonical workspace calendar controls colors regardless of browser day or a skipped local date",
+        "audit dates cover explicit UTC days and invalid ranges never query",
+        "workspace/project audit and accessible project list forward exact opaque cursors/server filters and abort",
+        "image gallery actual shared envelope retains items/count/null cursor without legacy fallback"
+      ]
+    },
+    {
+      "path": "apps/web/test/image-prepare.test.ts",
+      "sha256": "88d7b5e7f3219173c0553dd7f5070652e58f3de02bb343dcfd532a8d78eccb0f",
+      "testNames": [
+        "small file within limits is kept as it is",
+        "exactly 300 KB and 2560 px is still skipped",
+        "mid-size file at normal dimensions is re-encoded without resizing",
+        "landscape over 2560 is scaled by its longest side, keeping the aspect ratio",
+        "tall phone photo is scaled by height",
+        "a small file that is over 2560 px is still resized",
+        "a small file outside server limits is not skipped",
+        "keeps the original unless the result is at least 10% smaller (no resize)",
+        "a resized result wins when it is smaller at all",
+        "a resized result wins when the original breaks a server limit",
+        "a result over 10 MiB is never chosen",
+        "file name extension follows the new type",
+        "reads PNG dimensions",
+        "reads JPEG dimensions after other segments",
+        "reads WebP VP8X dimensions",
+        "unknown bytes give null",
+        "photo: resized, converted to WebP, renamed, hashed from the exact bytes",
+        "small file is uploaded untouched and never encoded",
+        "a result that is not 10% smaller keeps the original",
+        "PNG with alpha and no WebP encoder keeps PNG; opaque PNG falls back to JPEG",
+        "alpha is only checked for formats that can have it",
+        "decode failure falls back to the original with a note, when the server can take it",
+        "decode failure on an over-10 MB file is reported, not uploaded",
+        "over 20 megapixels is refused from the header, before decoding",
+        "over 20 megapixels is also refused when only decoding reveals it",
+        "12 megapixel image is accepted and resized",
+        "wrong type and huge input are refused",
+        "retries with lower quality when the first result is over 10 MiB",
+        "alpha sample never exceeds 256 px a side and keeps the aspect ratio",
+        "detects the VP8X animation flag",
+        "an animated WebP is uploaded as it is and never decoded or encoded",
+        "an animated WebP over 10 MiB is refused with a clear message",
+        "CMYK: even a small efficient JPEG is converted before upload",
+        "CMYK: decode or encode failure never silently uploads incompatible original bytes"
+      ]
+    },
+    {
+      "path": "apps/web/test/image-uploads.test.ts",
+      "sha256": "b70bc0105d9dc34fcdd735e36654af1ff60223472e04d86eccf47e3c291c4f4b",
+      "testNames": [
+        "one file goes prepare, create, put, finalize and then leaves the list",
+        "several files are handled one at a time, in order",
+        "the item says validating, not saved, while finalize is pending",
+        "a failed transfer keeps its original staging and prepared bytes until retry or explicit cancellation",
+        "cancel during upload aborts the transfer, cancels the staged upload and never finalizes",
+        "cancel of a waiting file removes it before any work starts",
+        "uploads of different cards do not mix",
+        "lost staging reply retries the same original key/input and prepares only once",
+        "unknown finalize never cancels/restarts and keeps original finalize key across retry",
+        "identity loss between prepare and staging prevents another protected request"
+      ]
+    }
+  ],
+  "backendStatus": "verified",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261103/resume-images-trash-review/final-local-review.json",
+  "backendReviewSHA256": "bfd88de2ff0d0a635d2dbf022dc45dac7bd95bdb9391bce9350734ed14edc189",
+  "backendValidator": {
+    "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/resume-images-trash-review/final-local-review.json --feature ATT-01",
+    "exitCode": 0,
+    "stdout": "PASS: 9.01/10\n",
+    "stderr": ""
+  },
+  "uiStatus": "verified",
+  "uiProofMethod": "Per-ID current UI source/test inspection plus current independently executed332web tests and actual matching Chrome flows; independent numerical Backend score alone is not UI evidence.",
+  "uiProofs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/web.log",
+      "sha256": "a27b936f1663eb3901f86f96b6a25cba0103c5eebb08c714374e58553d7c5ca4",
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "result": "332web checks pass; inspect per-ID source/test list for applicable assertions. Group total is not per-ID test count."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/browser-integration.log",
+      "sha256": "59ee76dbb2c31f12d98a4e4e1208408f7903a3d8ab842a379254177e68752681",
+      "command": "npm run test:browser",
+      "exitCode": 0,
+      "result": "14 actual passed flows plus2observations; role directory/access, pagination/search, Save, comment retry/edit, focus/narrow/Move/Undo and draft navigation. Exact results in log."
+    }
+  ],
+  "browserProofs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/browser-product-final-round4/result.json",
+      "sha256": "e748275f8a1f064cc0c15dc5e9e638548742c7b2160d13b95475d9f01ee71ca6",
+      "observations": [
+        {
+          "name": "CMYK JPEG is converted by real browser before private upload",
+          "status": "pass",
+          "sourceColorModel": "cmyk",
+          "sourceBytes": 308,
+          "storedColorModel": "srgb",
+          "storedContentType": "image/webp",
+          "convertedBeforeUpload": true
+        },
+        {
+          "name": "Private image choose/upload/finalize/gallery/lightbox/remove retains unsaved fields",
+          "status": "pass",
+          "anonymousStatus": 401
+        },
+        {
+          "name": "Official Excel package filled with real ZIP CRC; unknown Status mapping; preview/commit/card link/safe report",
+          "status": "pass",
+          "zipCRC": "verified with Python zipfile testzip",
+          "createdCards": 1,
+          "externalId": "0001",
+          "batchId": "imp_6f8fad58-c4c6-41ad-814d-ecf01e080a41",
+          "importedCardId": "crd_49061c68-ed58-42fa-8160-cf88317b0985"
+        },
+        {
+          "name": "New project and board creation plus explicit unsent draft restoration",
+          "status": "pass",
+          "createdProjects": 1,
+          "createdBoards": 1,
+          "defaultColumns": 5
+        },
+        {
+          "name": "Column add rename reorder delete through actual UI",
+          "status": "pass"
+        },
+        {
+          "name": "Mention real Member then recipient notification",
+          "status": "pass",
+          "recipientRole": "member",
+          "notificationRows": 1
+        },
+        {
+          "name": "Full selected-project My Tasks and Owner workspace activity UI",
+          "status": "pass",
+          "loadedTasks": 61,
+          "continuationPages": 1,
+          "selectedProjectIsolation": true
+        },
+        {
+          "name": "Invitation honest delivery state lost reply stable retry and history revoke (no provider)",
+          "status": "pass",
+          "oneInvitation": true,
+          "stableRetryKey": true,
+          "providerConfigured": false
+        },
+        {
+          "name": "Current board access revoke removes already displayed private cached content",
+          "status": "pass",
+          "displayedPrivateDescriptionRemoved": true
+        },
+        {
+          "name": "Native Back/Forward restores full add-card draft and settings save/lifecycle work",
+          "status": "pass",
+          "projectSave": true,
+          "boardSave": true,
+          "archiveReopenBoard": true,
+          "archiveReopenProject": true,
+          "unsentCardDraftRestored": true
+        },
+        {
+          "name": "Import retained receipt survives temporary row-content cleanup with synthetic advanced clock",
+          "status": "pass",
+          "clock": "injected asOfDate +31 minutes, not a real scheduled timer",
+          "cleanedImports": 1,
+          "receiptState": "committed",
+          "domainCardRetained": true,
+          "actualGetContractValid": true,
+          "removedFieldsRemainNull": true,
+          "safeRowLinkOpenedCorrectCard": true
+        },
+        {
+          "name": "Live revocation hides a previously downloaded private image and its open lightbox",
+          "status": "pass",
+          "cachedImagePreviouslyVisible": true,
+          "lightboxPreviouslyOpen": true,
+          "privateImageAndLightboxRemoved": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/browser-layout/result.json",
+      "sha256": "d540f4558beff7ac35bfdb7a945c6f29a1fa14877aff95f7962f9f0235e19890",
+      "observations": [
+        {
+          "flow": "long detail lists and keyboard",
+          "titleLength": 200,
+          "descriptionLength": 12044,
+          "assignees": 20,
+          "commentsLoaded": 55,
+          "commentContinuation": true,
+          "finalizedImages": 3,
+          "tabStepsContained": 30,
+          "backgroundInert": true
+        },
+        {
+          "flow": "narrow360-long-detail",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "viewport": 360,
+          "scrollWidth": 360,
+          "clientWidth": 360,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 302,
+          "assigneeClientWidth": 302,
+          "rootZoom": "1",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "css200percent-zoom-long-detail",
+          "left": 200,
+          "right": 1440,
+          "width": 1240,
+          "viewport": 1440,
+          "scrollWidth": 619,
+          "clientWidth": 619,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 261,
+          "assigneeClientWidth": 261,
+          "rootZoom": "2",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "equivalent200percent-reflow720",
+          "left": 0,
+          "right": 720,
+          "width": 720,
+          "viewport": 720,
+          "scrollWidth": 720,
+          "clientWidth": 720,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 662,
+          "assigneeClientWidth": 662,
+          "rootZoom": "1",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "zoom qualification",
+          "nativeShortcutApplied": false,
+          "nativeBefore": {
+            "width": 1440,
+            "dpr": 1
+          },
+          "nativeAfter": {
+            "width": 1440,
+            "dpr": 1
+          },
+          "checked": "actual CSS zoom2 and720CSSpx reflow equivalent to200percent on1440; not native Chrome menu zoom"
+        },
+        {
+          "flow": "Escape focus restoration",
+          "sourceCardFocused": true
+        },
+        {
+          "flow": "filtered keyboard before Move and Undo",
+          "ambiguousDragDisabled": true,
+          "fullDestinationReferenceOptions": 23,
+          "actualNeighborPairVerified": true,
+          "undoRestoredFirst": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/discussion-notification-ui-repair/browser-final/result.json",
+      "sha256": "f11589b640f2e0e369b6fb9ee41b5dbf5a8fbf849e9a876d1470b455e76ef4a2",
+      "observations": [
+        {
+          "flow": "comment refusal before other reads",
+          "changed": false,
+          "editorCount": 0,
+          "editorValue": null,
+          "heldOtherReadResponses": 6
+        },
+        {
+          "flow": "unchanged baseline remount after access restoration",
+          "canonicalCopyDidNotReappear": true
+        },
+        {
+          "flow": "comment refusal before other reads",
+          "changed": true,
+          "editorCount": 1,
+          "editorValue": "My newly authored unsent edit",
+          "heldOtherReadResponses": 6
+        },
+        {
+          "flow": "unknown edit reply then revocation and recovery",
+          "canonicalEditorHidden": true,
+          "retryDisabledWhileDenied": true,
+          "retryOriginalAfterAuthorizedRead": true,
+          "sameOriginalPayloadAndKey": true,
+          "oneSavedEdit": true
+        },
+        {
+          "flow": "notification keyboard Open",
+          "renderedHref": "/board?id=brd_050f4b7d-6d8b-40e1-b6f4-d7378c00c0ca&card=crd_fe845f6a-a66d-497d-831f-b0759d78662a",
+          "cardDialogCount": 1,
+          "targetCardDetailVisible": true
+        },
+        {
+          "flow": "board ancestry",
+          "contradictoryAuthorizedBoardHidden": true,
+          "offpageDeepLinkVisible": true,
+          "aggregateSourceBoardVisible": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/final-expired-session-browser-1/result.json",
+      "sha256": "818cd4bd193602201c98e2e2a10907db9e878ed770b99f0ecf9b2a84fd21db95",
+      "observations": [
+        {
+          "name": "expired session detected by real polling; private baseline hidden and direct reads/writes401 with unchanged row",
+          "status": "pass"
+        },
+        {
+          "name": "same-actor UI recovery refetches authorized baseline and restores only own unsent title without mutation",
+          "status": "pass"
+        }
+      ]
+    }
+  ],
+  "uiPassedTestNames": [
+    {
+      "path": "apps/web/test/final-scope.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "canonical workspace calendar controls colors regardless of browser day or a skipped local date",
+        "audit dates cover explicit UTC days and invalid ranges never query",
+        "workspace/project audit and accessible project list forward exact opaque cursors/server filters and abort",
+        "image gallery actual shared envelope retains items/count/null cursor without legacy fallback"
+      ]
+    },
+    {
+      "path": "apps/web/test/image-prepare.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "small file within limits is kept as it is",
+        "exactly 300 KB and 2560 px is still skipped",
+        "mid-size file at normal dimensions is re-encoded without resizing",
+        "landscape over 2560 is scaled by its longest side, keeping the aspect ratio",
+        "tall phone photo is scaled by height",
+        "a small file that is over 2560 px is still resized",
+        "a small file outside server limits is not skipped",
+        "keeps the original unless the result is at least 10% smaller (no resize)",
+        "a resized result wins when it is smaller at all",
+        "a resized result wins when the original breaks a server limit",
+        "a result over 10 MiB is never chosen",
+        "file name extension follows the new type",
+        "reads PNG dimensions",
+        "reads JPEG dimensions after other segments",
+        "reads WebP VP8X dimensions",
+        "unknown bytes give null",
+        "photo: resized, converted to WebP, renamed, hashed from the exact bytes",
+        "small file is uploaded untouched and never encoded",
+        "a result that is not 10% smaller keeps the original",
+        "PNG with alpha and no WebP encoder keeps PNG; opaque PNG falls back to JPEG",
+        "alpha is only checked for formats that can have it",
+        "decode failure falls back to the original with a note, when the server can take it",
+        "decode failure on an over-10 MB file is reported, not uploaded",
+        "over 20 megapixels is refused from the header, before decoding",
+        "over 20 megapixels is also refused when only decoding reveals it",
+        "12 megapixel image is accepted and resized",
+        "wrong type and huge input are refused",
+        "retries with lower quality when the first result is over 10 MiB",
+        "alpha sample never exceeds 256 px a side and keeps the aspect ratio",
+        "detects the VP8X animation flag",
+        "an animated WebP is uploaded as it is and never decoded or encoded",
+        "an animated WebP over 10 MiB is refused with a clear message",
+        "CMYK: even a small efficient JPEG is converted before upload",
+        "CMYK: decode or encode failure never silently uploads incompatible original bytes"
+      ]
+    },
+    {
+      "path": "apps/web/test/image-uploads.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "one file goes prepare, create, put, finalize and then leaves the list",
+        "several files are handled one at a time, in order",
+        "the item says validating, not saved, while finalize is pending",
+        "a failed transfer keeps its original staging and prepared bytes until retry or explicit cancellation",
+        "cancel during upload aborts the transfer, cancels the staged upload and never finalizes",
+        "cancel of a waiting file removes it before any work starts",
+        "uploads of different cards do not mix",
+        "lost staging reply retries the same original key/input and prepares only once",
+        "unknown finalize never cancels/restarts and keeps original finalize key across retry",
+        "identity loss between prepare and staging prevents another protected request"
+      ]
+    }
+  ],
+  "uiCriterionTrace": {
+    "criterion": "Authorized editor requests bounded upload and sees progress/cancel; private staging cannot attach files across projects.",
+    "method": "Read current UI implementation and named current passing tests in sourceAndTests/uiPassedTestNames; match actual browser evidence where applicable. Backend scoring alone does not pass this phase.",
+    "scope": "Local behavior only; no real provider or hosted runtime."
+  }
+}

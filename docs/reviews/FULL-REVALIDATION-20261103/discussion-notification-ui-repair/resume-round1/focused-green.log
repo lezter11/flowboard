@@ -1,0 +1,29 @@
+✔ assignment-only edits have an assignment description and referenced names without directory lookup (1.062959ms)
+✔ safe field edits and from/to moves are readable without dumping unknown payload fields (0.103125ms)
+✔ purged/redacted history and comment payloads never resurrect copied text or names (0.066167ms)
+✔ history values and assignee sets are bounded; unresolved legacy references use generic names (0.106333ms)
+✔ committed lost reply retries the original comment payload/key through the real API client (15.963083ms)
+✔ quick-add retains expected board version and original explicit priority after an unknown 503 (0.318959ms)
+✔ definitive validation refusal permits a new edited intent, in-flight submissions share one request (0.115292ms)
+✔ a synchronous validation failure does not leave the next operation stuck on a rejected request (0.122167ms)
+✔ a later authorization refusal cannot erase an earlier unknown committed operation (0.285333ms)
+✔ cursor pages keep order, replace edited/deleted duplicates and reject cursor loops (0.176791ms)
+✔ roles distinguish author editing from moderation and never grant Viewer write controls (0.067625ms)
+✔ comment create/edit drafts remain actor/card-scoped through remount and clearing one draft keeps the other (0.166042ms)
+✔ edit restores actual UTF-16 spans, leaves malformed spans literal, and IME Enter is ignored (0.158334ms)
+✔ comment refusal drops untouched fetched edit copies, including through remount and later successful unrelated reads (1.047208ms)
+✔ refusal preserves user-edited work, create draft and original uncertain command without leaking across actors (2.17725ms)
+✔ card refusal, role transition and logout clear unchanged baselines but scope gain does not (0.157792ms)
+✔ deleted comment tombstones clear fetched copies, while mention-only edits count as authored work (0.289333ms)
+✔ clearing an unchanged fetched editor does not cancel an original edit whose reply was lost (0.189708ms)
+✔ a pending original edit keeps unload protection after its fetched editor is redacted until replay settles (0.126542ms)
+✔ notification server links map once-encoded exact board and card identifiers (0.59175ms)
+✔ notification mapping rejects external, malformed, ambiguous and wrong-resource routes (0.133333ms)
+ℹ tests 21
+ℹ suites 0
+ℹ pass 21
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 144.220459

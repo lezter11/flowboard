@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/ATT-03/36eaff13eddc710ff46657bea6563266ee0c3c38a0a0208267105e858e9e9899-round-1.json",
+  "summary": "ATT-03 Card image gallery verified. Implemented card gallery listing querying only finalized attachments, excluding staged, failed, or cancelled uploads, providing complete image dimensions, sizes, and proxy delivery URLs, and maintaining badge count parity with CardSummary. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "GET /api/v1/cards/:cardId/images (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/ATT-03/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Supported formats restricted to PNG, JPEG, and WebP (max 10 MiB, <=8192px, <=20 MP).",
+    "Max 10 attachments per card; temporary storage cleaned after 1-hour TTL."
+  ]
+}

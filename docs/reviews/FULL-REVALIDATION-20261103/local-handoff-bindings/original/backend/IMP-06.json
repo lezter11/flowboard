@@ -1,0 +1,20 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/IMP-06/b0907efcdacd591fdf100fad00a0d76e9a99784d5d914ccf73a01a67ffd930ed-round-1.json",
+  "summary": "IMP-06 Explicit atomic confirmation verified. Atomic commit binds preview digest, expectedVersion, and project grant; requires zero invalid/conflict rows; re-checks manager role and assignee eligibility; inserts all new cards in ONE bounded PostgreSQL transaction; allocates positions; records duplicate markers (IMP-07); logs provenance (IMP-11); enforces idempotency and blocks post-commit cancellation. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "POST /api/v1/imports/:importId/commit (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/IMP-06/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts",
+      "result": "All 13 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant (Owner or Project Manager).",
+    "Accepts supported macro-free XLSX only (<= 5 MiB compressed, <= 20 MiB expanded XML, <= 200 non-empty rows).",
+    "Formulas, external package links, macros, and XXE declarations strictly disallowed.",
+    "Atomic all-or-nothing confirmation: any row validation failure rolls back the entire batch."
+  ]
+}

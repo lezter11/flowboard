@@ -1,0 +1,35 @@
+✖ round4 new independent control: invalid query never bypasses auth-first denial, no domain writes, current authorized snapshot survives (236.369917ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 405.030333
+
+✖ failing tests:
+
+test at docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/privacy-counterprobe.test.ts:6:1
+✖ round4 new independent control: invalid query never bypasses auth-first denial, no domain writes, current authorized snapshot survives (236.369917ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+      code: 'UNAUTHORIZED',
+      message: 'Invalid or missing authentication session.',
+  +   requestId: '07ee249c-59d4-4203-96fe-1eda3f38deae'
+  -   requestId: '45af976d-2211-42ed-ba79-ade80cc09a06'
+    }
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/privacy-counterprobe.test.ts:17:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { code: 'UNAUTHORIZED', message: 'Invalid or missing authentication session.', requestId: '07ee249c-59d4-4203-96fe-1eda3f38deae' },
+    expected: { code: 'UNAUTHORIZED', message: 'Invalid or missing authentication session.', requestId: '45af976d-2211-42ed-ba79-ade80cc09a06' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

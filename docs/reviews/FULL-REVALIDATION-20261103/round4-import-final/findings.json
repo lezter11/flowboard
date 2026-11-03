@@ -1,0 +1,20 @@
+[
+  {
+    "id": "IMP-R3-01",
+    "severity": "medium",
+    "description": "Prior marker erased parser errors and allowed mixed invalid batches to confirm.",
+    "disposition": "resolved",
+    "rationale": "hasSourceErrors captured before contextual validation now guards marker classification. Unchanged numeric/date/priority/mixed probes pass; permanent DUPLICATE_IN_BATCH test passes; new mapped-original retry still skips preserving current card fields.",
+    "mandatory": true,
+    "blocking": false
+  },
+  {
+    "id": "IMP-R4-OPTIONAL-CLOCK",
+    "severity": "low",
+    "description": "Optional repeated focused run152/153: immediate postmigration cleanup test expected1but saw0 at import-repair.test.ts:433.",
+    "disposition": "rejected",
+    "rationale": "Rejected as product defect: own40row clock diagnosis confirms DB microsecond due time ahead of Node millisecond asOf time in3cases; all40clean on bounded next sweep. No within-hour retention breach. Original14required checks pass; successful first focused153/153retained. Failed optional run transparently excluded as passing acceptance evidence. Test timing reliability remains an explicit score deduction and follow-up; no source edits.",
+    "mandatory": false,
+    "blocking": false
+  }
+]

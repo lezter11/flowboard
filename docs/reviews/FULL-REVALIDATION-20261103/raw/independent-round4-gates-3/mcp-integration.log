@@ -1,0 +1,27 @@
+
+> test:mcp-integration
+> NODE_ENV=test WRANGLER_SEND_METRICS=false node scripts/e2e/mcp-acceptance.mjs
+
+PASS MCP-05 Owner without membership can mint a restricted token through session route
+PASS MCP-01 session/account/credential administration denied to PAT
+PASS MCP-01 cross-project read/write denied and private card unchanged
+PASS MCP-01 invalid bearer cannot fall back to a valid cookie
+PASS MCP-02 boards:read cannot retrieve full card snapshots
+PASS MCP-03 project filter precedes pagination, with no foreign cursor
+PASS MCP-02 client columns tool explicitly excludes card properties
+PASS MCP-06 actual MCP search filters matches through mounted route
+PASS Invalid year-zero calendar dates fail before PostgreSQL writes
+PASS MCP-04 committed response lost, fresh client retry creates exactly one card
+PASS MCP-04 changed semantic input conflicts with the original operation
+PASS MCP-04 parallel identical requests on separate connections have one effect
+PASS MCP-04 identical caller keys under different credentials are distinct operations
+PASS MCP-08 atomic activity identifies human, safe credential and hashed operation
+PASS MCP-08 privacy redaction preserves safe machine provenance
+PASS Session card creation retains a distinguishable human origin
+PASS Current board grant checked both initially and before receipt replay
+PASS Removed member and outsider cannot issue scoped credentials
+PASS Expired credential and subsequent revoked-credential replay are denied
+PASS Revoke-versus-create: committed revocation wins while write waits on real token row lock
+PASS MCP through the actual Pages proxy preserves bearer capability and no-store response
+PASS Real local workerd: PAT metadata/create/lost-response replay and session denial
+Acceptance probes: 22/22 groups passed; synthetic tokens created=9; no hosted calls.

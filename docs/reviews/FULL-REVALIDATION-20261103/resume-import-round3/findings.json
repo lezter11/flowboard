@@ -1,0 +1,33 @@
+[
+  {
+    "id": "IMP-R3-01",
+    "severity": "medium",
+    "description": "Matching original duplicate marker erases mandatory raw field-validation errors and permits mixed invalid batches to commit.",
+    "disposition": "open",
+    "rationale": "Real mounted PostgreSQL repros show invalid priority, impossible Gregorian date and genuinely numeric External ID are201ready/already_imported/errors[] after a valid original marker exists; mixed batch commits1new card despite invalid source.",
+    "mandatory": true,
+    "blocking": true,
+    "sourcePath": "apps/api/src/adapters/imports.ts",
+    "sourceLines": [
+      266,
+      278
+    ],
+    "criteria": [
+      "IMP-04",
+      "IMP-05",
+      "IMP-06",
+      "IMP-08"
+    ],
+    "reproduction": "Commit valid textExternalID1/titleStable original title with blank date/priority; upload same ID/title with priority not-a-priority, dueDate2026-02-31, or numericID1; compare unseen invalid control; add new-row and commit.",
+    "expected": "Preserved invalid field errors; invalid preview; no new card effect until corrected.",
+    "actual": "Three variants201ready/already_imported/errors[]; mixed201ready existing1/new1/invalid0 then200committed created1/skipped1.",
+    "counterevidence": "Original card is unchanged; no cross-project/privilege/execution exploit. Unseen invalid date is correctly invalid and parser rawErrors contains INVALID_DATE. All27prior probes and148focused tests pass.",
+    "fix": "Preserve parser validation errors before duplicate classification; only valid original normalized payloads may become already_imported. Add boundary/mixed-batch regressions without weakening valid reimport/tombstone/revocation behavior.",
+    "evidencePaths": [
+      "docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/validation-duplicate-results.json",
+      "docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/validation-duplicate-probes.log",
+      "docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/validation-duplicate-detail.json",
+      "docs/reviews/FULL-REVALIDATION-20261103/resume-import-round3/validation-duplicate-detail.log"
+    ]
+  }
+]

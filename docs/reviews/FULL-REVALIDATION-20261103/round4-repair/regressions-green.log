@@ -1,0 +1,58 @@
+✖ private board snapshot authenticates before existence lookup; outsiders receive consistent no-data refusal (236.357417ms)
+✔ matching import marker preserves malformed source errors: {"priority":"not-a-priority"} (274.04525ms)
+✔ matching import marker preserves malformed source errors: {"dueDate":"2026-02-31"} (230.33525ms)
+✔ matching import marker preserves malformed source errors: {"externalId":1} (230.587708ms)
+✔ matching import markers cannot hide duplicate IDs within the same workbook (208.396458ms)
+✔ import repair: description survives mapping and commit; original row reimport skips after card edit (282.72675ms)
+✔ import repair: two separately ready identical previews create one card under concurrent mounted confirmation (221.958291ms)
+✔ import repair: changed duplicate in a separately ready preview rolls back its whole batch (231.154416ms)
+✔ import repair: project member without target board grant is ineligible at preview and revocation invalidates ready preview (215.870834ms)
+✔ import repair: commit cannot override preview default column and stale board structure rejects confirmation (203.075792ms)
+✔ import repair: generic numeric date rejected while Excel date style and1904/ISO are accepted (216.542084ms)
+✔ import repair: cancel and expired status remove staged titles/emails and prevent commit (211.921333ms)
+✔ import repair: purge removes imported card title/email copies but keeps duplicate identity (209.543542ms)
+✔ import repair: target membership revocation winning its lock makes a concurrent mounted confirmation stale (211.159208ms)
+✔ import repair: confirmation holding recipient locks commits before waiting revocation with no deadlock (232.610834ms)
+✔ import repair: scheduled retention is bounded, repeatable, and preserves live previews/results/duplicate markers (227.774167ms)
+✔ import repair: failure on final card insert rolls back all cards, external markers, activity and receipt (179.552083ms)
+✔ import repair: migration0021 upgrades old previews conservatively and reruns without changing saved cards/markers (232.4945ms)
+✔ import repair: actual Worker scheduled entry cleans expired previews without a browser request (182.399084ms)
+✔ import repair: an unknown source mapping preserves original description/hash and literal inline strings parse (232.746583ms)
+✔ Import response: invalid previews preserve missing/oversized raw fields and still match their response contract (256.966292ms)
+✔ Import response: cleaned committed receipt retains only explicit minimal row/card provenance (211.485167ms)
+✔ Import response: expired and cancelled receipts are schema-valid after immediate redaction (193.656834ms)
+✔ Import response: per-card purge redacts one row without relabeling the remaining live content (219.26875ms)
+✔ round3 board privacy: anonymous and expired sessions cannot distinguish an inaccessible existing board from a nonexistent board (234.218833ms)
+ℹ [{"actor":"anonymous","responses":[{"target":"brd","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."},{"target":"missing_board","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."}]},{"actor":"expired","responses":[{"target":"brd","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."},{"target":"missing_board","status":401,"code":"UNAUTHORIZED","message":"Invalid or missing authentication session."}]},{"actor":"authenticated-outsider","responses":[{"target":"brd","status":404,"code":"NOT_FOUND","message":"Board not found."},{"target":"missing_board","status":404,"code":"NOT_FOUND","message":"Board not found."}]}]
+✔ Changed invalid duplicate must keep validation errors and block a mixed batch (273.762792ms)
+✔ Previously imported row retains invalid-field errors {"priority":"not-a-priority"} (235.683541ms)
+✔ Previously imported row retains invalid-field errors {"dueDate":"2026-02-31"} (193.785458ms)
+✔ Previously imported row retains invalid-field errors {"externalId":1} (210.416916ms)
+ℹ tests 29
+ℹ suites 0
+ℹ pass 28
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7769.853917
+
+✖ failing tests:
+
+test at apps/api/test/board-snapshot-privacy.test.ts:6:1
+✖ private board snapshot authenticates before existence lookup; outsiders receive consistent no-data refusal (236.357417ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  undefined !== 'brd'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/board-snapshot-privacy.test.ts:29:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: undefined,
+    expected: 'brd',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

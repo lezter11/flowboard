@@ -1,0 +1,326 @@
+{
+  "featureId": "IMP-06",
+  "acceptance": "Bind preview to actor/target/digest/expiry; revalidate grant/columns/assignees and create all new rows in one bounded transaction or none.",
+  "functionalSourceDigest": "c1f1364e7072c1b8989ae227e5ef9721fa19226bb1d38494ff446abe008249bb",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "uiRequired": true,
+  "independentCoverage": null,
+  "originalBackend": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/original/backend/IMP-06.json",
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/app/import/page.tsx",
+      "sha256": "7c4c90e419cef3d68605b376c01e10c347fd75bc18e02e15376bdfc392863041",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "7e1c95273648826d6e79ed6323c1c949e2bb48daec0439fabaf85a8def61393d",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/import-state.ts",
+      "sha256": "73e2ed3a653305b1c935d1cad188d2e9e65e101604ea306f1b98c01437105cc3",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/test/import-state.test.ts",
+      "sha256": "85de15bef220ba3c6c38d43e9ef128d3155be7461b6482a4d035f04f6539cc04",
+      "testNames": [
+        "retained receipt links have a nonempty safe label without resurrecting original content",
+        "preview page retains row-number cursor and refuses a mixed generation",
+        "only committed state says committed; processing and failures are distinct",
+        "status cursor and mappings send exact current backend contracts",
+        "lost commit reply survives remount and retries original digest/default/version/key",
+        "CSV report downloads server bytes with same-origin credentials and refuses HTML success",
+        "workbook status labels cannot select inherited object keys as mappings",
+        "receipt attribution uses backend facts and never invents the current viewer",
+        "prototype-like source status is encoded as mappingEntries, not stripped record keys"
+      ]
+    }
+  ],
+  "backendStatus": "verified",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-import-final/review.json",
+  "backendReviewSHA256": "431064e2358c0da83d7e496a027af84eadfe0beaae41e401aabeaff027918641",
+  "backendValidator": {
+    "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-import-final/review.json --feature IMP-06",
+    "exitCode": 0,
+    "stdout": "PASS: 8.905/10\n",
+    "stderr": ""
+  },
+  "uiStatus": "verified",
+  "uiProofMethod": "Per-ID current UI source/test inspection plus current independently executed332web tests and actual matching Chrome flows; independent numerical Backend score alone is not UI evidence.",
+  "uiProofs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/web.log",
+      "sha256": "a27b936f1663eb3901f86f96b6a25cba0103c5eebb08c714374e58553d7c5ca4",
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "result": "332web checks pass; inspect per-ID source/test list for applicable assertions. Group total is not per-ID test count."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/browser-integration.log",
+      "sha256": "59ee76dbb2c31f12d98a4e4e1208408f7903a3d8ab842a379254177e68752681",
+      "command": "npm run test:browser",
+      "exitCode": 0,
+      "result": "14 actual passed flows plus2observations; role directory/access, pagination/search, Save, comment retry/edit, focus/narrow/Move/Undo and draft navigation. Exact results in log."
+    }
+  ],
+  "browserProofs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/browser-product-final-round4/result.json",
+      "sha256": "e748275f8a1f064cc0c15dc5e9e638548742c7b2160d13b95475d9f01ee71ca6",
+      "observations": [
+        {
+          "name": "CMYK JPEG is converted by real browser before private upload",
+          "status": "pass",
+          "sourceColorModel": "cmyk",
+          "sourceBytes": 308,
+          "storedColorModel": "srgb",
+          "storedContentType": "image/webp",
+          "convertedBeforeUpload": true
+        },
+        {
+          "name": "Private image choose/upload/finalize/gallery/lightbox/remove retains unsaved fields",
+          "status": "pass",
+          "anonymousStatus": 401
+        },
+        {
+          "name": "Official Excel package filled with real ZIP CRC; unknown Status mapping; preview/commit/card link/safe report",
+          "status": "pass",
+          "zipCRC": "verified with Python zipfile testzip",
+          "createdCards": 1,
+          "externalId": "0001",
+          "batchId": "imp_6f8fad58-c4c6-41ad-814d-ecf01e080a41",
+          "importedCardId": "crd_49061c68-ed58-42fa-8160-cf88317b0985"
+        },
+        {
+          "name": "New project and board creation plus explicit unsent draft restoration",
+          "status": "pass",
+          "createdProjects": 1,
+          "createdBoards": 1,
+          "defaultColumns": 5
+        },
+        {
+          "name": "Column add rename reorder delete through actual UI",
+          "status": "pass"
+        },
+        {
+          "name": "Mention real Member then recipient notification",
+          "status": "pass",
+          "recipientRole": "member",
+          "notificationRows": 1
+        },
+        {
+          "name": "Full selected-project My Tasks and Owner workspace activity UI",
+          "status": "pass",
+          "loadedTasks": 61,
+          "continuationPages": 1,
+          "selectedProjectIsolation": true
+        },
+        {
+          "name": "Invitation honest delivery state lost reply stable retry and history revoke (no provider)",
+          "status": "pass",
+          "oneInvitation": true,
+          "stableRetryKey": true,
+          "providerConfigured": false
+        },
+        {
+          "name": "Current board access revoke removes already displayed private cached content",
+          "status": "pass",
+          "displayedPrivateDescriptionRemoved": true
+        },
+        {
+          "name": "Native Back/Forward restores full add-card draft and settings save/lifecycle work",
+          "status": "pass",
+          "projectSave": true,
+          "boardSave": true,
+          "archiveReopenBoard": true,
+          "archiveReopenProject": true,
+          "unsentCardDraftRestored": true
+        },
+        {
+          "name": "Import retained receipt survives temporary row-content cleanup with synthetic advanced clock",
+          "status": "pass",
+          "clock": "injected asOfDate +31 minutes, not a real scheduled timer",
+          "cleanedImports": 1,
+          "receiptState": "committed",
+          "domainCardRetained": true,
+          "actualGetContractValid": true,
+          "removedFieldsRemainNull": true,
+          "safeRowLinkOpenedCorrectCard": true
+        },
+        {
+          "name": "Live revocation hides a previously downloaded private image and its open lightbox",
+          "status": "pass",
+          "cachedImagePreviouslyVisible": true,
+          "lightboxPreviouslyOpen": true,
+          "privateImageAndLightboxRemoved": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/browser-layout/result.json",
+      "sha256": "d540f4558beff7ac35bfdb7a945c6f29a1fa14877aff95f7962f9f0235e19890",
+      "observations": [
+        {
+          "flow": "long detail lists and keyboard",
+          "titleLength": 200,
+          "descriptionLength": 12044,
+          "assignees": 20,
+          "commentsLoaded": 55,
+          "commentContinuation": true,
+          "finalizedImages": 3,
+          "tabStepsContained": 30,
+          "backgroundInert": true
+        },
+        {
+          "flow": "narrow360-long-detail",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "viewport": 360,
+          "scrollWidth": 360,
+          "clientWidth": 360,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 302,
+          "assigneeClientWidth": 302,
+          "rootZoom": "1",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "css200percent-zoom-long-detail",
+          "left": 200,
+          "right": 1440,
+          "width": 1240,
+          "viewport": 1440,
+          "scrollWidth": 619,
+          "clientWidth": 619,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 261,
+          "assigneeClientWidth": 261,
+          "rootZoom": "2",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "equivalent200percent-reflow720",
+          "left": 0,
+          "right": 720,
+          "width": 720,
+          "viewport": 720,
+          "scrollWidth": 720,
+          "clientWidth": 720,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 662,
+          "assigneeClientWidth": 662,
+          "rootZoom": "1",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "zoom qualification",
+          "nativeShortcutApplied": false,
+          "nativeBefore": {
+            "width": 1440,
+            "dpr": 1
+          },
+          "nativeAfter": {
+            "width": 1440,
+            "dpr": 1
+          },
+          "checked": "actual CSS zoom2 and720CSSpx reflow equivalent to200percent on1440; not native Chrome menu zoom"
+        },
+        {
+          "flow": "Escape focus restoration",
+          "sourceCardFocused": true
+        },
+        {
+          "flow": "filtered keyboard before Move and Undo",
+          "ambiguousDragDisabled": true,
+          "fullDestinationReferenceOptions": 23,
+          "actualNeighborPairVerified": true,
+          "undoRestoredFirst": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/discussion-notification-ui-repair/browser-final/result.json",
+      "sha256": "f11589b640f2e0e369b6fb9ee41b5dbf5a8fbf849e9a876d1470b455e76ef4a2",
+      "observations": [
+        {
+          "flow": "comment refusal before other reads",
+          "changed": false,
+          "editorCount": 0,
+          "editorValue": null,
+          "heldOtherReadResponses": 6
+        },
+        {
+          "flow": "unchanged baseline remount after access restoration",
+          "canonicalCopyDidNotReappear": true
+        },
+        {
+          "flow": "comment refusal before other reads",
+          "changed": true,
+          "editorCount": 1,
+          "editorValue": "My newly authored unsent edit",
+          "heldOtherReadResponses": 6
+        },
+        {
+          "flow": "unknown edit reply then revocation and recovery",
+          "canonicalEditorHidden": true,
+          "retryDisabledWhileDenied": true,
+          "retryOriginalAfterAuthorizedRead": true,
+          "sameOriginalPayloadAndKey": true,
+          "oneSavedEdit": true
+        },
+        {
+          "flow": "notification keyboard Open",
+          "renderedHref": "/board?id=brd_050f4b7d-6d8b-40e1-b6f4-d7378c00c0ca&card=crd_fe845f6a-a66d-497d-831f-b0759d78662a",
+          "cardDialogCount": 1,
+          "targetCardDetailVisible": true
+        },
+        {
+          "flow": "board ancestry",
+          "contradictoryAuthorizedBoardHidden": true,
+          "offpageDeepLinkVisible": true,
+          "aggregateSourceBoardVisible": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/final-expired-session-browser-1/result.json",
+      "sha256": "818cd4bd193602201c98e2e2a10907db9e878ed770b99f0ecf9b2a84fd21db95",
+      "observations": [
+        {
+          "name": "expired session detected by real polling; private baseline hidden and direct reads/writes401 with unchanged row",
+          "status": "pass"
+        },
+        {
+          "name": "same-actor UI recovery refetches authorized baseline and restores only own unsent title without mutation",
+          "status": "pass"
+        }
+      ]
+    }
+  ],
+  "uiPassedTestNames": [
+    {
+      "path": "apps/web/test/import-state.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "retained receipt links have a nonempty safe label without resurrecting original content",
+        "preview page retains row-number cursor and refuses a mixed generation",
+        "only committed state says committed; processing and failures are distinct",
+        "status cursor and mappings send exact current backend contracts",
+        "lost commit reply survives remount and retries original digest/default/version/key",
+        "CSV report downloads server bytes with same-origin credentials and refuses HTML success",
+        "workbook status labels cannot select inherited object keys as mappings",
+        "receipt attribution uses backend facts and never invents the current viewer",
+        "prototype-like source status is encoded as mappingEntries, not stripped record keys"
+      ]
+    }
+  ],
+  "uiCriterionTrace": {
+    "criterion": "Bind preview to actor/target/digest/expiry; revalidate grant/columns/assignees and create all new rows in one bounded transaction or none.",
+    "method": "Read current UI implementation and named current passing tests in sourceAndTests/uiPassedTestNames; match actual browser evidence where applicable. Backend scoring alone does not pass this phase.",
+    "scope": "Local behavior only; no real provider or hosted runtime."
+  },
+  "supplementalLimit": "Independent import reviewer preserves optional clock-sensitive repeat152/153, first153pass and32otherprobes pass; required14gates all pass. This does not silently replace the retained failed attempt."
+}

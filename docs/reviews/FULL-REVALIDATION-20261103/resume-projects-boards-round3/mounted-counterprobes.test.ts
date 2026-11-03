@@ -1,0 +1,42 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { lifecycleFixture } from '../../../../apps/api/test/support/lifecycle-fixture.ts';
+
+test('round3 independent: Manager-created board grants only its creator, and revoked creator cannot recover receipt',async t=>{
+ const f=await lifecycleFixture(t); await f.pool.query('DELETE FROM board_grants WHERE user_id=$1',[f.actors.manager.user.id]);
+ const key=crypto.randomUUID(),input={name:'Independent creator-only board'};
+ const first=await f.request('POST','/projects/prj/boards','manager',input,key);assert.equal(first.status,201,await first.clone().text());const board=(await first.json()as any).data;
+ const cols=await f.pool.query('SELECT id FROM columns WHERE board_id=$1',[board.id]);assert.equal(cols.rows.length,5);
+ const grants=await f.pool.query('SELECT user_id FROM board_grants WHERE board_id=$1',[board.id]);assert.deepEqual(grants.rows.map(r=>r.user_id),[f.actors.manager.user.id]);
+ assert.equal((await f.request('GET',`/boards/${board.id}`,'member')).status,404);
+ const listing=await f.request('GET','/projects/prj/boards','manager');assert.equal(listing.status,200);assert.deepEqual((await listing.json()as any).data.map((b:any)=>b.id),[board.id]);
+ assert.equal((await f.request('PATCH',`/boards/${board.id}`,'manager',{name:'Forbidden metadata',expectedVersion:board.snapshotVersion})).status,403);
+ const before=(await f.pool.query('SELECT COUNT(*)::int AS n FROM boards')).rows[0].n;
+ assert.equal((await f.request('DELETE',`/projects/prj/members/${f.actors.manager.user.id}`,'owner')).status,200);
+ const replay=await f.request('POST','/projects/prj/boards','manager',input,key);assert.equal(replay.status,404);assert.equal((await replay.json()as any).data,undefined);
+ assert.equal((await f.pool.query('SELECT COUNT(*)::int AS n FROM boards')).rows[0].n,before);
+ assert.equal((await f.pool.query('SELECT COUNT(*)::int AS n FROM board_grants WHERE user_id=$1',[f.actors.manager.user.id])).rows[0].n,0);
+});
+
+test('round3 independent: archive blocks retained project-write replay and board creation while existing data remains readable',async t=>{
+ const f=await lifecycleFixture(t),key=crypto.randomUUID(),input={name:'Confirmed rename',expectedVersion:1};
+ assert.equal((await f.request('PATCH','/projects/prj','owner',input,key)).status,200);
+ assert.equal((await f.request('POST','/projects/prj/archive','owner',{expectedVersion:2})).status,200);
+ const before=(await f.pool.query("SELECT version,(SELECT COUNT(*)::int FROM idempotency_receipts) receipts,(SELECT COUNT(*)::int FROM boards) boards FROM projects WHERE id='prj'")).rows[0];
+ for(const [method,path,body,k]of [['PATCH','/projects/prj',input,key],['POST','/projects/prj/boards',{name:'No archived create'},undefined]]as const){const r=await f.request(method,path,'owner',body,k);assert.equal(r.status,409,await r.clone().text());assert.equal((await r.json()as any).error.code,'READ_ONLY_CONTEXT');}
+ assert.deepEqual((await f.pool.query("SELECT version,(SELECT COUNT(*)::int FROM idempotency_receipts) receipts,(SELECT COUNT(*)::int FROM boards) boards FROM projects WHERE id='prj'")).rows[0],before);
+ assert.equal((await f.request('GET','/boards/brd','member')).status,200);
+ assert.equal((await f.request('GET','/cards/card','member')).status,200);
+ assert.equal((await f.pool.query("SELECT title FROM cards WHERE id='card'")).rows[0].title,'Discussion');
+});
+
+test('round3 independent: column malformed sets and stale lifecycle have no activity/receipt/version side effects',async t=>{
+ const f=await lifecycleFixture(t);
+ const snapshot=async()=>(await f.pool.query("SELECT structure_version,snapshot_version,archived,(SELECT COUNT(*)::int FROM activity_log) activity,(SELECT COUNT(*)::int FROM idempotency_receipts) receipts FROM boards WHERE id='brd'")).rows[0];
+ const before=await snapshot();
+ for(const [ids,status] of [[['col'],400],[['col','col'],422],[['col','foreign'],400]]as const){const r=await f.request('POST','/boards/brd/columns/reorder','manager',{columnIds:ids,expectedBoardVersion:before.structure_version});assert.equal(r.status,status);assert.deepEqual(await snapshot(),before);}
+ const stale=await f.request('POST','/boards/brd/archive','manager',{expectedVersion:before.snapshot_version+1});assert.equal(stale.status,409);assert.deepEqual(await snapshot(),before);
+ const moved=await f.request('POST','/boards/brd/columns/reorder','manager',{columnIds:['col2','col'],expectedBoardVersion:before.structure_version});assert.equal(moved.status,200);
+ assert.deepEqual((await f.pool.query("SELECT id FROM columns WHERE board_id='brd' ORDER BY position")).rows.map(r=>r.id),['col2','col']);
+ const after=await snapshot();assert.equal(after.structure_version,before.structure_version+1);assert.equal(after.activity,before.activity+1);assert.equal(after.receipts,before.receipts+1);
+});

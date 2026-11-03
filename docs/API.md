@@ -25,6 +25,10 @@ Own-project beta limits use optional environment variables `FB_LIMIT_OWNED_PROJE
 
 Status: feature-level contract; implementation and review status are tracked separately in [FEATURE_CHECKLIST.md](FEATURE_CHECKLIST.md). This supersedes workspace-wide visibility, card archive-only deletion, and deferred images/imports in v0.2. [FEATURE_SPEC.md](FEATURE_SPEC.md) owns product flows, permissions and lifecycle.
 
+Private board snapshots authenticate before inspecting board existence. Anonymous or expired-session requests receive the same401 refusal for existing and absent board IDs; an authenticated outsider receives the same private404 for either. A PAT cannot read a full snapshot.
+
+Import duplicate matching does not override malformed source cells or duplicate IDs within the uploaded workbook. Invalid dates/priorities and numeric external-ID cells remain invalid even if normalization produces an earlier row's hash; a mixed invalid batch cannot commit new cards. A source-valid identical previously accepted row remains a no-write duplicate skip, including its original status mapping, without overwriting the card's later edits.
+
 ## Common rules
 
 Prefix /api/v1, same-origin JSON and verified cookie session. Strict Origin/CSRF checks on domain writes. IDs are opaque; derive actor from server session, never client identity headers. UTC timestamps; date-only deadlines as YYYY-MM-DD. Unknown fields fail validation; PATCH omitted means unchanged, null clears only nullable fields. Lists: {data:[],nextCursor:null|string}; resources: {data:resource}; related display identities may be included as people:[PersonDisplay]. Counts always state their filter/archive/trash scope. Default list size 50, maximum 100; stable cursors bind project/filter/order/snapshot.

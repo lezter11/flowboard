@@ -19,11 +19,14 @@ test('Node HTTP: liveness, real PostgreSQL readiness, missing product routes, an
       assert.equal(response.headers.get('cache-control'), 'no-store');
       assert.deepEqual(await response.json(), { data: { status } });
     }
-    const missing = await fetch(`${base}/api/v1/boards/not-implemented`);
+    const missing = await fetch(`${base}/api/v1/not-implemented`);
     assert.equal(missing.status, 404);
     const body = await missing.json();
     assert.equal(body.error.code, 'NOT_FOUND');
     assert.ok(body.error.requestId);
+    const privateBoard = await fetch(`${base}/api/v1/boards/not-implemented`);
+    assert.equal(privateBoard.status, 401);
+    assert.equal((await privateBoard.json()).error.code, 'UNAUTHORIZED');
 
     // Verify product routes execute against the injected pool
     const unauth = await fetch(`${base}/api/v1/session`);

@@ -1,0 +1,221 @@
+{"kind":"independent isolated legacy suite","schema":"pb_round3_4c5f01cf776f4492aab4c0d73d1ce00f","files":["prj01-projects","prj02-prj05","brd01-brd07","rbac-advanced","b18-own-projects","b18-backstops-session","b22-invitation-caps","inv01-inv03","inv04-inv08","inv06-inv07"],"port":"55931"}
+▶ backstops count archived items and session exposes effective limits
+  ✔ Node runtime applies environment overrides to session limits (19.458583ms)
+  ✔ Worker handler applies environment overrides to session limits (15.921375ms)
+  ✔ board archive cycles reach the total backstop (61.750834ms)
+  ✔ project archive cycles reach the total backstop (39.92125ms)
+  ✔ invalid overrides fall back and valid overrides apply (0.101083ms)
+✔ backstops count archived items and session exposes effective limits (307.933375ms)
+✔ default 20-project and 25-board backstops include archived rows (63.770167ms)
+▶ B-18: owned project and shared board permissions
+  ✔ member and viewer cannot create shared boards; manager can (23.901625ms)
+  ✔ each shared role can create a project of their own without a workspace (19.415042ms)
+  ✔ a supplied workspaceId is rejected (1.163083ms)
+  ✔ project limit rejects the fourth create but allows replay at the cap (43.236834ms)
+  ✔ board limit applies across creators and hides the count from a manager (31.45475ms)
+  ✔ archive frees a board slot and an archived board cannot reopen at the cap (30.19675ms)
+  ✔ two project creates waiting at the same quota lock cannot exceed the cap (40.184625ms)
+  ✔ two board creates waiting at the project quota lock cannot exceed the cap (39.421834ms)
+  ✔ project archive frees a slot and reopening at the cap is rejected (30.506625ms)
+  ✔ existing over-limit projects are preserved and further creation is refused (6.44375ms)
+✔ B-18: owned project and shared board permissions (330.978333ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 seats: the pending limit refuses the next invitation; expired pending rows are not counted (79.663792ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 seats: active members plus pending invitations reserve the member limit (rule 6) (32.080833ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 accept: a project at the member limit refuses the next accept; the Owner is not counted (28.520042ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 resend: an expired invitation is refused and is not revived (25.803791ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 resend spends the inviter buckets: a burst of resends is refused with RATE_LIMITED (162.025041ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 accept into an archived project is refused with READ_ONLY_CONTEXT (18.842666ms)
+✔ B-22 invite: a stored name is required before an invitation is sent (NAME_REQUIRED) (9.421666ms)
+✔ B-22 names: project and board names refuse control, zero-width and bidirectional characters (8.371542ms)
+✔ B-22 email: format characters are stripped from the project and inviter names in the text and subject (0.6765ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 races: parallel invitations at the pending limit never exceed it (forced interleaving) (81.21525ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 races: parallel accepts at the member limit admit exactly the free seats (75.085875ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+✔ B-22 races: accept and resend of the same invitation never deadlock (F-04) (107.610791ms)
+▶ BRD-01 to BRD-07: Board & Column Lifecycle Suite
+  ✔ BRD-01: Workspace owner can create board with atomic default columns (94.831583ms)
+  ✔ BRD-01a: a board that already exists keeps its four columns when new defaults ship (12.613334ms)
+  ✔ BRD-01: Project manager can also create boards (10.966416ms)
+  ✔ BRD-01: Members and viewers receive 403 FORBIDDEN when attempting to create board (5.05775ms)
+  ✔ BRD-01: Ungranted user receives 404 NOT_FOUND when attempting to create board (2.227916ms)
+  ✔ BRD-01: Idempotency enforcement on board creation (5.743958ms)
+  ✔ BRD-02: Listing boards returns active boards for granted project members (10.07ms)
+  ✔ BRD-02: Updating board name with OCC check (16.034625ms)
+  ✔ BRD-04: Add column verifies OCC, uniqueness, and role (18.08925ms)
+  ✔ BRD-04: Updating column fields & enforcing name uniqueness (13.215584ms)
+  ✔ BRD-04: Maximum 12 columns bound enforced (63.2295ms)
+  ✔ BRD-05: Reordering columns requires complete exact set and OCC (24.7055ms)
+  ✔ BRD-05: Card placement neighbor calculation (first, last, before, after) (18.17475ms)
+  ✔ BRD-06: Column deletion guards: active cards, restorable trash, final column (29.406875ms)
+  ✔ BRD-03: Consistent bounded snapshot with active vs matching counts and people disclosure (26.559375ms)
+  ✔ BRD-07: Paginated cards query with cursor resumption and filters (25.624125ms)
+✔ BRD-01 to BRD-07: Board & Column Lifecycle Suite (379.402791ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ INV-01 & INV-03: Project Invitations Lifecycle Suite
+  ✔ Test 1: Workspace owner invites a manager -> succeeds, token_hash stored in DB, outbox record created (110.46325ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 2: Project manager invites a member -> succeeds (10.816875ms)
+  ✔ Test 3: Project manager attempts to invite another manager -> returns 403 FORBIDDEN (3.140167ms)
+  ✔ Test 4: Member/viewer attempts to invite someone -> returns 403 FORBIDDEN (or 404 for outsider) (6.715958ms)
+  ✔ Test 5: Accept matching invitation -> updates status to accepted, inserts project_memberships row, user gains access (18.924833ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 6: Accept with mismatched email (signed in as another user) -> returns 403 EMAIL_MISMATCH, no membership created (12.32225ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 7: Accept expired or already accepted token -> returns 400 (26.127959ms)
+  ✔ Test 8: Idempotency replay and conflict handling on invitation creation (5.028459ms)
+  ✔ Test 9: Self-invites and invitations to active project members are rejected with 400 ALREADY_MEMBER (16.97075ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Test 10: Duplicate active pending invitations are rejected with 400 INVITATION_ALREADY_EXISTS (13.363208ms)
+✔ INV-01 & INV-03: Project Invitations Lifecycle Suite (226.403083ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+▶ INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Suite
+  ✔ Setup: Create initial manager and member invitations (106.17975ms)
+  ✔ INV-04: PM cannot resend manager invitation -> 403 FORBIDDEN (2.790208ms)
+  ✔ INV-04: Member / Viewer / Outsider cannot resend invitation -> 403 / 404 (5.658375ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ INV-04: Owner resends manager invitation -> succeeds, rotates token, outbox event emitted (8.434292ms)
+  ✔ INV-04: Old rotated token cannot be accepted (400 INVALID_INVITATION) (2.078542ms)
+  ✔ INV-04: Idempotency replay confirms resend without retaining the invitation token (2.693083ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ INV-04: PM resends member invitation -> succeeds (11.382083ms)
+  ✔ INV-04: PM cannot revoke manager invitation -> 403 FORBIDDEN (2.194833ms)
+  ✔ INV-04: PM revokes member invitation -> succeeds (4.878375ms)
+  ✔ INV-04: Revoked invitation token cannot be accepted -> 400 INVALID_INVITATION (3.820791ms)
+  ✔ INV-04: Revoked invitation cannot be revoked again or resent -> 400 INVALID_INVITATION (8.323875ms)
+  ✔ INV-04: Newly rotated token can be accepted; accepted invite cannot be resent -> 400 (10.405ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ Setup: Create an expired invitation for Heidi (7.735541ms)
+  ✔ INV-05: Workspace owner lists invitations -> succeeds, matches schema, token_hash omitted (3.386416ms)
+  ✔ INV-05: Project Manager can list invitations (2.82725ms)
+  ✔ INV-05: Member / Viewer cannot list invitations -> 403 FORBIDDEN (2.816458ms)
+  ✔ INV-05: Outsider attempting to list invitations -> 404 NOT_FOUND (1.426042ms)
+  ✔ INV-08: Workspace owner cannot leave their own project -> 403 FORBIDDEN (1.4695ms)
+  ✔ INV-08: Outsider attempting to leave project -> 404 NOT_FOUND (1.613583ms)
+  ✔ INV-08: Charlie (Member) leaves project -> status="removed", version incremented (5.223042ms)
+  ✔ INV-08: Charlie subsequent access to project returns 404 NOT_FOUND (1.172416ms)
+  ✔ INV-08: Charlie leave request idempotency replay returns 200 replayed=true (2.197416ms)
+  ✔ INV-08: Dave (Viewer) leaves project -> succeeds (4.682166ms)
+  ✔ INV-08: Bob (Manager) leaves project -> succeeds (5.116875ms)
+  ✔ Setup R2: Create user Oscar and seed pending invite + manager membership (1.433667ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ R2 - Step 1: Active manager cannot create self-invite or duplicate pending invite (19.5295ms)
+  ✔ R2 - Steps 2 & 3: Owner removes Manager -> pending invitation is atomically marked revoked (5.767791ms)
+  ✔ R2 - Step 4: Attacker presenting old revoked token fails -> 400 INVALID_INVITATION, access remains removed (4.615459ms)
+  ✔ R2 - Step 4b (Defense-in-depth): If invitation was pending but issued before removal, acceptance fails -> 400 INVITATION_SUPERSEDED (5.221167ms)
+{"event":"invitation_immediate_send","result":"skipped:mail_not_configured"}
+  ✔ R2 - Step 5: Owner issues fresh invitation to the deliberately removed user -> succeeds (201) (7.179167ms)
+  ✔ R2 - Step 6: User accepts fresh invitation -> succeeds (200), membership reactivated to active (7.035208ms)
+  ✔ R2 - Step 7: Member leaves project -> pending invitations for that email are atomically revoked (8.7005ms)
+✔ INV-04, INV-05 & INV-08: Invitations Lifecycle, Listing & Project Leave Suite (271.467083ms)
+▶ INV-06 & INV-07: Change Member Roles & Remove Project Access Suite
+  ✔ Test 0: Missing or invalid Idempotency-Key on member mutations returns 400 IDEMPOTENCY_KEY_REQUIRED (73.436708ms)
+  ✔ Test 1: Workspace owner promotes a member to manager -> succeeds (23.726208ms)
+  ✔ Test 2: Project manager attempts to promote a member to manager -> returns 403 FORBIDDEN (3.003667ms)
+  ✔ Test 3: Project manager modifies role between member and viewer -> succeeds (13.0805ms)
+  ✔ Test 4: Project manager attempts to modify another manager -> returns 403 FORBIDDEN (2.65475ms)
+  ✔ Test 5: Project manager attempts to modify themselves -> returns 403 FORBIDDEN (2.405208ms)
+  ✔ Test 6: Stale version in PATCH returns 409 STALE_VERSION (3.729ms)
+  ✔ Test 7: Immediate revocation: removing project access sets status="removed"; next request by that user to read the project returns 404 NOT_FOUND (12.902541ms)
+  ✔ Test 8: Project manager cannot DELETE another manager -> returns 403 FORBIDDEN (2.069792ms)
+  ✔ Test 9: Project manager cannot DELETE themselves -> returns 403 FORBIDDEN (1.999084ms)
+  ✔ Test 10: Non-member outsider attempting to manage members returns 404 NOT_FOUND (2.463291ms)
+  ✔ Test 11: Member attempting to manage members returns 403 FORBIDDEN (2.630875ms)
+  ✔ Test 12: Sibling project privacy: manager of sibling project attempting to manage members in another project receives 404 NOT_FOUND (4.176208ms)
+✔ INV-06 & INV-07: Change Member Roles & Remove Project Access Suite (151.452625ms)
+▶ PRJ-01: Create multiple projects & sibling isolation Suite
+  ✔ 1. Project creation by workspace owner succeeds (70.06525ms)
+  ✔ 2. Non-owner attempting to create project in workspace returns 404 NOT_FOUND (1.804333ms)
+  ✔ 3. Workspace owner creates second project (Project Beta) (6.260208ms)
+  ✔ 4. Sibling project privacy: user in Project A requesting Project B gets 404 NOT_FOUND (5.58075ms)
+  ✔ 5. GET /api/v1/workspaces/:workspaceId/projects scopes accessible projects per role (7.577792ms)
+  ✔ 6. Idempotency replay on project creation returns replayed: true (3.325125ms)
+  ✔ 7. Idempotency conflict on project creation returns 409 IDEMPOTENCY_CONFLICT (2.560833ms)
+✔ PRJ-01: Create multiple projects & sibling isolation Suite (99.616541ms)
+▶ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite
+  ✔ PRJ-02.1: Workspace Owner sees all projects in workspace, paginated (66.724542ms)
+  ✔ PRJ-02.2: Cursor pagination for workspace projects (4.728084ms)
+  ✔ PRJ-02.3: Project Manager / Member sees only granted projects; sibling projects are hidden (9.62375ms)
+  ✔ PRJ-02.4: Outsider querying workspace projects gets 404 NOT_FOUND (sibling privacy) (1.777875ms)
+  ✔ PRJ-02.5: GET /api/v1/projects lists accessible projects across all workspaces for current session (4.299875ms)
+  ✔ PRJ-02.6: Malformed or bounded limit queries gracefully fall back to bounded limits without NaN SQL error (4.809209ms)
+  ✔ PRJ-03.0: Missing or invalid Idempotency-Key returns 400 IDEMPOTENCY_KEY_REQUIRED (0.99875ms)
+  ✔ PRJ-03.1: Workspace Owner updates project name and description with OCC (12.534458ms)
+  ✔ PRJ-03.2: Project Manager updates project description with OCC (5.273959ms)
+  ✔ PRJ-03.3: Member & Viewer cannot update project settings -> 403 FORBIDDEN (3.131292ms)
+  ✔ PRJ-03.4: Sibling PM & Outsider get 404 NOT_FOUND on project settings (3.064416ms)
+  ✔ PRJ-03.5: Stale expectedVersion rejected with 409 STALE_VERSION (4.23375ms)
+  ✔ PRJ-05.1: Owner sees project members directory including workspace owner and active members (4.026541ms)
+  ✔ PRJ-05.2: Project Manager sees full directory; Member and Viewer are forbidden without email data (6.325875ms)
+  ✔ PRJ-05.3: Sibling project member & outsider get 404 NOT_FOUND on members directory (2.88375ms)
+  ✔ PRJ-05.4: Removed project member is excluded from directory and cannot access it (4.413583ms)
+✔ PRJ-02, PRJ-03 & PRJ-05: Project Navigation, Settings & People Directory Suite (141.759584ms)
+▶ RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05)
+  ✔ RBAC-02: verifyProjectAncestry succeeds for valid project and resources (73.259416ms)
+  ✔ RBAC-02: Guessing sibling project or resources returns consistent 404 NOT_FOUND without metadata leakage (3.703ms)
+  ✔ RBAC-02: requireProjectAncestry HTTP middleware enforces boundary (13.965083ms)
+  ✔ RBAC-03: acquireWriteGrantLock validates role hierarchy and removed status (4.131708ms)
+  ✔ RBAC-03: Concurrency: In-flight write transaction aborts when concurrent role revocation wins (4.002125ms)
+  ✔ RBAC-03: Concurrency: Writer holding grant lock blocks concurrent revocation until write commits (57.413375ms)
+  ✔ RBAC-03: Concurrency Probe 1: Mounted updateProjectSettings serializes with concurrent actor revocation (68.630458ms)
+  ✔ RBAC-03: Concurrency Probe 2: Manager starts removeProjectMember while Owner concurrently promotes target; deletion rejected with 403 FORBIDDEN (20.307959ms)
+  ✔ RBAC-04: getEligibleAssignees and getEligibleMentionees enforce role and sibling privacy (4.466375ms)
+  ✔ RBAC-04: HTTP GET /api/v1/projects/:projectId/people enforces privacy and purpose filtering (15.198ms)
+  ✔ RBAC-05: GET /api/v1/projects/:projectId/access-summary discloses explicit board grants without hidden counts (3.320959ms)
+  ✔ RBAC-05: Workspace owner requests access summary -> actor role is owner inherited from workspace (2.427167ms)
+  ✔ RBAC-05: Sibling project member or outsider access-summary returns 404 NOT_FOUND (1.434333ms)
+  ✔ RBAC-05: Unauthenticated request returns 401 UNAUTHORIZED (0.177708ms)
+✔ RBAC Advanced Suite (RBAC-02, RBAC-03, RBAC-04, RBAC-05) (275.44925ms)
+ℹ tests 145
+ℹ suites 0
+ℹ pass 145
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 14703.0515

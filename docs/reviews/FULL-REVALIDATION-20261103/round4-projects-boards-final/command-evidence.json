@@ -1,0 +1,65 @@
+{
+  "ownExecutedBy": "/root/round4_projects_boards_final",
+  "ownCommands": [
+    {
+      "id": "scoped-pg",
+      "command": "node --test-concurrency=1 --test apps/api/test/people-directory-policy.test.ts apps/api/test/project-lifecycle-occ.test.ts apps/api/test/invitation-repair.test.ts apps/api/test/boards-lifecycle-repair.test.ts apps/api/test/board-snapshot-privacy.test.ts docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/direct-pool-controls.test.ts docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/mounted-counterprobes.test.ts",
+      "exitCode": 0,
+      "tests": 52,
+      "pass": 52,
+      "fail": 0,
+      "skipped": 0,
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/scoped-pg.log"
+    },
+    {
+      "id": "legacy-isolated",
+      "command": "node docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/run-legacy-isolated.mjs",
+      "exitCode": 0,
+      "tests": 145,
+      "pass": 145,
+      "fail": 0,
+      "skipped": 0,
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/legacy-isolated.log"
+    },
+    {
+      "id": "privacy-counterprobe",
+      "command": "node --test docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/privacy-counterprobe.test.ts",
+      "exitCode": 0,
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "skipped": 0,
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/privacy-counterprobe.log"
+    }
+  ],
+  "ownPassCount": 198,
+  "countsOverlap": true,
+  "sharedExecutedBy": "/root/round4_foundation_executor",
+  "requiredPassed": 14,
+  "sharedCommandsPath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+  "environment": {
+    "NODE_ENV": "test",
+    "host": "127.0.0.1",
+    "port": 55931,
+    "primaryDatabase": "flowboard_harness",
+    "specializedDatabases": [
+      "flowboard_access_test",
+      "flowboard_import_test",
+      "flowboard_identity_extra_test",
+      "flowboard_ui_test",
+      "flowboard_mcp_probe"
+    ],
+    "allSixURLsExplicit": true,
+    "isolation": "New random lifecycle/import schemas; legacy uses own random schema via PGOPTIONS. No default/55432/55479/remote DB."
+  },
+  "excludedAttempts": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/scoped-pg-sandbox-eperm.log",
+      "reason": "Local loopback socket EPERM before behavior; approved escalated rerun passes52."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/privacy-counterprobe-initial.log",
+      "reason": "Reviewer incorrectly compared random correlation requestId across requests; stable status/code/message are equal. Original test preserved; corrected contract-specific comparison passes1. No application defect."
+    }
+  ]
+}

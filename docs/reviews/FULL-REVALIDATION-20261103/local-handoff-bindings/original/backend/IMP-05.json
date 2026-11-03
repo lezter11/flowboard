@@ -1,0 +1,20 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/IMP-05/29f3e62b511469b845482aadcb077dba9b17842276ff1caaeb9ab64f437ede6d-round-1.json",
+  "summary": "IMP-05 Preview new existing and conflict rows verified. Dry-run preview creates temporary staging records only (zero cards/users modified); computes deterministic preview digest; calculates new/existing/invalid/conflict counts; supports bounded cursor pagination; enables status mapping updates; allows cancellation before commit. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "GET /api/v1/imports/:importId & POST /api/v1/imports/:importId/mappings & DELETE /api/v1/imports/:importId (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/IMP-05/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts",
+      "result": "All 13 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant (Owner or Project Manager).",
+    "Accepts supported macro-free XLSX only (<= 5 MiB compressed, <= 20 MiB expanded XML, <= 200 non-empty rows).",
+    "Formulas, external package links, macros, and XXE declarations strictly disallowed.",
+    "Atomic all-or-nothing confirmation: any row validation failure rolls back the entire batch."
+  ]
+}

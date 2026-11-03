@@ -1,0 +1,5 @@
+# Builder verification corrections
+
+The first green attempt ran 29 tests: 28 passed and one failed because the new positive-control assertion incorrectly expected a board snapshot at `data.id`. The actual published envelope is `data.board.id`; the test now parses the actual response with the shared boardSnapshotResponseSchema. No product behavior was changed to satisfy this fixture mistake. `regressions-green.log` and its exit1 record remain intact.
+
+That same attempt reran the unchanged second-reader probes from `architect-round3-confirmation/`. Those probes write auxiliary JSON beside their source, so the two root-only diagnostic JSON files there were replaced with the new green observations. The original red command, exit1 log, exact probe hashes and independently owned reviewers' red JSON/logs are unchanged and preserve the failed result. Do not describe those two root auxiliary JSON files as original red observations. Subsequent reruns copy the byte-identical probes into a new run folder so output paths cannot overwrite earlier observations. No independent failed review record is rewritten.

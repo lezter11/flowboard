@@ -1,0 +1,625 @@
+{
+  "featureId": "CRD-01",
+  "acceptance": "Member/manager/owner creates title in an active authorized column; required field and retry failures retain draft and create once.",
+  "functionalSourceDigest": "c1f1364e7072c1b8989ae227e5ef9721fa19226bb1d38494ff446abe008249bb",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "uiRequired": true,
+  "independentCoverage": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/coverage.json",
+    "detail": {
+      "id": "CRD-01",
+      "acceptance": "CRD-01: Member/manager/owner creates title in an active authorized column; required field and retry failures retain draft and create once.",
+      "sourceTrace": "cards.ts:createCard; routes/cards.ts POST; board-column/board-view quick-add",
+      "evidence": "crd01-crd11; comment-move-replay idempotency; web create-card-state",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own strict-input test rejects unknown create body422 and zero extra writes/receipts; exact create replay and demoted actor refusal pass.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    }
+  },
+  "originalBackend": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/original/backend/CRD-01.json",
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/app/add-card/page.tsx",
+      "sha256": "e3e1cd2418a33afd6fdfce57ffa99bb6b9e1f5a45e6291e85708cc59f7461938",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/all-work/page.tsx",
+      "sha256": "9642ecbf9589a300082ff95779afd6233bc485ea11b5d68f3ccdf4dee1f5eb71",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/globals.css",
+      "sha256": "b918816dca47c86f28316f742a698a8b5b2493e2819a2e2a474b1d8ea90632d8",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/import/page.tsx",
+      "sha256": "7c4c90e419cef3d68605b376c01e10c347fd75bc18e02e15376bdfc392863041",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/page.tsx",
+      "sha256": "70cb21265c1f706d093e4862b971cf3ca295da087418ccc09cde84083662ae3d",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/people/page.tsx",
+      "sha256": "bfa80bb360988afc53110a84a8f5c277ce2537b70214e9cd7c9148511188afbc",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/projects/page.tsx",
+      "sha256": "84a5806fb1cf23a362ad098306c5ebf23c04dc39b061afd4d5f7f80e17136121",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/settings/page.tsx",
+      "sha256": "06c237acafc2cdf12c12f21f8f96737336844ff0cf631266fe083ba81486e2fe",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/signin/page.tsx",
+      "sha256": "833412c6aeb0c25e7941155549a1020019436c4a8a3b16345eb2d3ca15152eba",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/board-column.tsx",
+      "sha256": "7be08c95cd717ee1049e37c9fd913c2b699189023278697d411759b9788b77ab",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/board-view.tsx",
+      "sha256": "bde0a6ac1406d2af43452940efdd14a48e669bcfc240a54d061c3457bd838ddf",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/card-comments.tsx",
+      "sha256": "17c622221933391c44491dac5d648f0d0ae4d816ed8e5d41219c76d5b0d23474",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/card-detail-drawer.tsx",
+      "sha256": "6edb7009d2edf7e44876247ab7fdedf29d493b7ebbeff3f9665d15025b7c0fd6",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/comment-composer.tsx",
+      "sha256": "fb4d2e86e913e29961d23c2ad2a3741ad2ef85f17f2ab7ed5984dfea233ed471",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/navigation-guard.tsx",
+      "sha256": "a320d4c4e694b0263f43bd6b8e62958a6c96be38766c4c54f86df7255491e680",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/project/new-project-dialog.tsx",
+      "sha256": "dac72506cf84974db917b0755c7d50b372c458b72f727e59d5c1a97e04dc2467",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/providers.tsx",
+      "sha256": "ef57cf73695b8ae9b6bf1b8896c5de08615b80c6cdd36011de459863619ff233",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/shell/rail.tsx",
+      "sha256": "aa8548db207e8975ce3d6d5ba588f6cc7d653c2461145da2bad87bcd36a0bd8f",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/shell/session-gate.tsx",
+      "sha256": "0c125e4de780fa53956eabb82da5217175dcfde9685a03c6967d9c5660ced5ff",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/ui/dialog-layer.tsx",
+      "sha256": "538ff6d4e3107b1e27dcd0b7c0d1cce6fa28c19c5cd2bfd23fa3049ba13b6f39",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/ui/new-board-dialog.tsx",
+      "sha256": "98e637ae501a9fda2f118b248ba5da2a256efbeca1ee8f5d1bec8d4d565f527f",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "7e1c95273648826d6e79ed6323c1c949e2bb48daec0439fabaf85a8def61393d",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/card-drafts.ts",
+      "sha256": "c71b93475b964fc631267bf3bfdf1908f92d990f633851c786ae022c834bff5d",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/comment-state.ts",
+      "sha256": "115211b6722e79fec57effa7ddf84e2b17b1306f8e44a8906952d116b2a9a8f0",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/create-card-state.ts",
+      "sha256": "309fa69c42f03d489434814d27c315a0580e45a3f3c04d5507a199bb94554929",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/cursor-feed.ts",
+      "sha256": "9c1583117a43684aca24a85aca0f2146535a378f36e722f9d074382317f25043",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/error-catalogue.ts",
+      "sha256": "13e567a5954206f4fe0e984538f37b05f31bf43806f5fcb2be31f321b89184de",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/guarded-router.ts",
+      "sha256": "b10205fd3b48c7348fa9c1d3cf8290ef0321679795fca0cf89a56e0a0a933be4",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/inert-lock.ts",
+      "sha256": "2975558f7c30c93288636a06cffdd24d3950acc2ae7fe943c3ac93165debf5e5",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/move-undo-state.ts",
+      "sha256": "c5cb0280f5973fa4f1514939e9ce5a2f72584aeebc4408cc95ed3b03eaaa866e",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/navigation-state.ts",
+      "sha256": "990c458b841a2d18700a48c52f3f9f58046c09701c4c9756cc525375e88333e8",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/quick-add-state.ts",
+      "sha256": "9cb14cb9501d28985f7ecc4eb1af020e96a8d8200ec66c4cf076b9c683cd9989",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/retained-command.ts",
+      "sha256": "cdebf0df3881f7073ac42cbd8f50497cbee863708a6b28f2c5f0855c0d87f75c",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/session.tsx",
+      "sha256": "1230e2de12ff353d422e6ae1557dc0c946b8cd129126ac54e713ae2032e6108e",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/test/assignees.test.ts",
+      "sha256": "f21a48afce55cef3d9064bc88a1fcec65a19ed95b2deadc3fd65d9027cb679f3",
+      "testNames": [
+        "fresh board: the Owner is offered even though the snapshot has nobody",
+        "Viewers and people who left are never offered, owner first then managers then members",
+        "a server that forgets to flag a viewer is still filtered",
+        "picker states: loading, error, empty, ready",
+        "chip names keep people already on cards from the snapshot, and current project people win",
+        "can\u2019t-be-assigned: judged against the project list once loaded, against the snapshot before that",
+        "the 20-assignee cap",
+        "the assignee query carries the card board, and the project-wide query does not",
+        "people without a grant are not selectable: only the board list is offered, the rest are listed as blocked",
+        "a 422 names the people: by new code, by today\u2019s details, and not for other failures",
+        "error text names people with and, and falls back to the server sentence",
+        "the save bar never sits on ",
+        "BOARD_REQUIRED means reload, and a new-contract 422 names people by ineligibleUserIds"
+      ]
+    },
+    {
+      "path": "apps/web/test/card-drafts.test.ts",
+      "sha256": "e55ca1056d764409152dca961f0714b028fba0fe0138903b45ed1226bc9c24cb",
+      "testNames": [
+        "field Save excludes status, and acknowledging fields preserves a separate pending status choice",
+        "actor/card draft survives remount/poll and requires deliberate conflict review",
+        "undo transport retains original move result version even when another read is newer",
+        "lost field save reply keeps original payload/key across remount and prohibits discard",
+        "quick-add text/priority and original operation survive cross-view remount and actor isolation",
+        "navigation blocks context changes, continues only on explicit choice and allows same-board filter/card changes",
+        "known create receipt survives failed detail read and cannot be mistaken for another create",
+        "unknown undo command and original versions survive view remount without crossing actors"
+      ]
+    },
+    {
+      "path": "apps/web/test/comment-api.test.ts",
+      "sha256": "a7d70135b6921a37ae2d0bc00f608963040d72937f79c0aea841fb494d9828a1",
+      "testNames": [
+        "comment and card activity reads forward opaque cursors and preserve the next page envelope",
+        "versioned comment edit and delete send exact IDs, mention spans and retained operation keys"
+      ]
+    },
+    {
+      "path": "apps/web/test/comment-state.test.ts",
+      "sha256": "f6dfe256e2d00f8a64dd040e95e31e8bd681664603e68ced7ee8a621baf3528a",
+      "testNames": [
+        "committed lost reply retries the original comment payload/key through the real API client",
+        "quick-add retains expected board version and original explicit priority after an unknown 503",
+        "definitive validation refusal permits a new edited intent, in-flight submissions share one request",
+        "a synchronous validation failure does not leave the next operation stuck on a rejected request",
+        "a later authorization refusal cannot erase an earlier unknown committed operation",
+        "cursor pages keep order, replace edited/deleted duplicates and reject cursor loops",
+        "roles distinguish author editing from moderation and never grant Viewer write controls",
+        "comment create/edit drafts remain actor/card-scoped through remount and clearing one draft keeps the other",
+        "edit restores actual UTF-16 spans, leaves malformed spans literal, and IME Enter is ignored"
+      ]
+    },
+    {
+      "path": "apps/web/test/mention-ui.test.ts",
+      "sha256": "228b3b349b98c4d904619c4fef7210b64d80cbc34159cac96cc24dc0d9167bd2",
+      "testNames": [
+        "the mention query sends the card id, keyed by card, and the client method puts it in the URL",
+        "with a second member, candidates appear and are searchable",
+        "a Viewer with board access can be mentioned; someone without a grant or who left cannot",
+        "empty wording: loading, failed, only you, no match",
+        "listbox pattern: combobox textarea, listbox, options named ",
+        "saved mentions show the current full name on hover, not the stored text"
+      ]
+    },
+    {
+      "path": "apps/web/test/signin-states.test.ts",
+      "sha256": "aae78368cb3417db50fd2e76456a83fdcfb829448037fe9decce67501254a0f1",
+      "testNames": [
+        "every new sign-in state has plain copy that follows the style guide",
+        "unknown or crafted states show nothing, so a link cannot put words on the page",
+        "unsaved text is tracked and announced to subscribers",
+        "a session that ends keeps the page while text is unsaved, and offers Sign in",
+        "a failed save with an ended session offers Sign in and keeps the draft in place"
+      ]
+    }
+  ],
+  "backendStatus": "verified",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/cards-comments-7d8875b267d87fadf245bcedb755f37a4ca7a182f560e27b3b1f6293ec511b15-round-2.json",
+  "backendReviewSHA256": "b27fef3d5096f921e6fc5d27dfecb10f24f00946a36ab27b0e663c633523afe6",
+  "backendValidator": {
+    "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/cards-comments-7d8875b267d87fadf245bcedb755f37a4ca7a182f560e27b3b1f6293ec511b15-round-2.json --feature CRD-01",
+    "exitCode": 0,
+    "stdout": "PASS: 9.085/10\n",
+    "stderr": ""
+  },
+  "uiStatus": "verified",
+  "uiProofMethod": "Per-ID current UI source/test inspection plus current independently executed332web tests and actual matching Chrome flows; independent numerical Backend score alone is not UI evidence.",
+  "uiProofs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/web.log",
+      "sha256": "a27b936f1663eb3901f86f96b6a25cba0103c5eebb08c714374e58553d7c5ca4",
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "result": "332web checks pass; inspect per-ID source/test list for applicable assertions. Group total is not per-ID test count."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/browser-integration.log",
+      "sha256": "59ee76dbb2c31f12d98a4e4e1208408f7903a3d8ab842a379254177e68752681",
+      "command": "npm run test:browser",
+      "exitCode": 0,
+      "result": "14 actual passed flows plus2observations; role directory/access, pagination/search, Save, comment retry/edit, focus/narrow/Move/Undo and draft navigation. Exact results in log."
+    }
+  ],
+  "browserProofs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/browser-product-final-round4/result.json",
+      "sha256": "e748275f8a1f064cc0c15dc5e9e638548742c7b2160d13b95475d9f01ee71ca6",
+      "observations": [
+        {
+          "name": "CMYK JPEG is converted by real browser before private upload",
+          "status": "pass",
+          "sourceColorModel": "cmyk",
+          "sourceBytes": 308,
+          "storedColorModel": "srgb",
+          "storedContentType": "image/webp",
+          "convertedBeforeUpload": true
+        },
+        {
+          "name": "Private image choose/upload/finalize/gallery/lightbox/remove retains unsaved fields",
+          "status": "pass",
+          "anonymousStatus": 401
+        },
+        {
+          "name": "Official Excel package filled with real ZIP CRC; unknown Status mapping; preview/commit/card link/safe report",
+          "status": "pass",
+          "zipCRC": "verified with Python zipfile testzip",
+          "createdCards": 1,
+          "externalId": "0001",
+          "batchId": "imp_6f8fad58-c4c6-41ad-814d-ecf01e080a41",
+          "importedCardId": "crd_49061c68-ed58-42fa-8160-cf88317b0985"
+        },
+        {
+          "name": "New project and board creation plus explicit unsent draft restoration",
+          "status": "pass",
+          "createdProjects": 1,
+          "createdBoards": 1,
+          "defaultColumns": 5
+        },
+        {
+          "name": "Column add rename reorder delete through actual UI",
+          "status": "pass"
+        },
+        {
+          "name": "Mention real Member then recipient notification",
+          "status": "pass",
+          "recipientRole": "member",
+          "notificationRows": 1
+        },
+        {
+          "name": "Full selected-project My Tasks and Owner workspace activity UI",
+          "status": "pass",
+          "loadedTasks": 61,
+          "continuationPages": 1,
+          "selectedProjectIsolation": true
+        },
+        {
+          "name": "Invitation honest delivery state lost reply stable retry and history revoke (no provider)",
+          "status": "pass",
+          "oneInvitation": true,
+          "stableRetryKey": true,
+          "providerConfigured": false
+        },
+        {
+          "name": "Current board access revoke removes already displayed private cached content",
+          "status": "pass",
+          "displayedPrivateDescriptionRemoved": true
+        },
+        {
+          "name": "Native Back/Forward restores full add-card draft and settings save/lifecycle work",
+          "status": "pass",
+          "projectSave": true,
+          "boardSave": true,
+          "archiveReopenBoard": true,
+          "archiveReopenProject": true,
+          "unsentCardDraftRestored": true
+        },
+        {
+          "name": "Import retained receipt survives temporary row-content cleanup with synthetic advanced clock",
+          "status": "pass",
+          "clock": "injected asOfDate +31 minutes, not a real scheduled timer",
+          "cleanedImports": 1,
+          "receiptState": "committed",
+          "domainCardRetained": true,
+          "actualGetContractValid": true,
+          "removedFieldsRemainNull": true,
+          "safeRowLinkOpenedCorrectCard": true
+        },
+        {
+          "name": "Live revocation hides a previously downloaded private image and its open lightbox",
+          "status": "pass",
+          "cachedImagePreviouslyVisible": true,
+          "lightboxPreviouslyOpen": true,
+          "privateImageAndLightboxRemoved": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/browser-layout/result.json",
+      "sha256": "d540f4558beff7ac35bfdb7a945c6f29a1fa14877aff95f7962f9f0235e19890",
+      "observations": [
+        {
+          "flow": "long detail lists and keyboard",
+          "titleLength": 200,
+          "descriptionLength": 12044,
+          "assignees": 20,
+          "commentsLoaded": 55,
+          "commentContinuation": true,
+          "finalizedImages": 3,
+          "tabStepsContained": 30,
+          "backgroundInert": true
+        },
+        {
+          "flow": "narrow360-long-detail",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "viewport": 360,
+          "scrollWidth": 360,
+          "clientWidth": 360,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 302,
+          "assigneeClientWidth": 302,
+          "rootZoom": "1",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "css200percent-zoom-long-detail",
+          "left": 200,
+          "right": 1440,
+          "width": 1240,
+          "viewport": 1440,
+          "scrollWidth": 619,
+          "clientWidth": 619,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 261,
+          "assigneeClientWidth": 261,
+          "rootZoom": "2",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "equivalent200percent-reflow720",
+          "left": 0,
+          "right": 720,
+          "width": 720,
+          "viewport": 720,
+          "scrollWidth": 720,
+          "clientWidth": 720,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 662,
+          "assigneeClientWidth": 662,
+          "rootZoom": "1",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "zoom qualification",
+          "nativeShortcutApplied": false,
+          "nativeBefore": {
+            "width": 1440,
+            "dpr": 1
+          },
+          "nativeAfter": {
+            "width": 1440,
+            "dpr": 1
+          },
+          "checked": "actual CSS zoom2 and720CSSpx reflow equivalent to200percent on1440; not native Chrome menu zoom"
+        },
+        {
+          "flow": "Escape focus restoration",
+          "sourceCardFocused": true
+        },
+        {
+          "flow": "filtered keyboard before Move and Undo",
+          "ambiguousDragDisabled": true,
+          "fullDestinationReferenceOptions": 23,
+          "actualNeighborPairVerified": true,
+          "undoRestoredFirst": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/discussion-notification-ui-repair/browser-final/result.json",
+      "sha256": "f11589b640f2e0e369b6fb9ee41b5dbf5a8fbf849e9a876d1470b455e76ef4a2",
+      "observations": [
+        {
+          "flow": "comment refusal before other reads",
+          "changed": false,
+          "editorCount": 0,
+          "editorValue": null,
+          "heldOtherReadResponses": 6
+        },
+        {
+          "flow": "unchanged baseline remount after access restoration",
+          "canonicalCopyDidNotReappear": true
+        },
+        {
+          "flow": "comment refusal before other reads",
+          "changed": true,
+          "editorCount": 1,
+          "editorValue": "My newly authored unsent edit",
+          "heldOtherReadResponses": 6
+        },
+        {
+          "flow": "unknown edit reply then revocation and recovery",
+          "canonicalEditorHidden": true,
+          "retryDisabledWhileDenied": true,
+          "retryOriginalAfterAuthorizedRead": true,
+          "sameOriginalPayloadAndKey": true,
+          "oneSavedEdit": true
+        },
+        {
+          "flow": "notification keyboard Open",
+          "renderedHref": "/board?id=brd_050f4b7d-6d8b-40e1-b6f4-d7378c00c0ca&card=crd_fe845f6a-a66d-497d-831f-b0759d78662a",
+          "cardDialogCount": 1,
+          "targetCardDetailVisible": true
+        },
+        {
+          "flow": "board ancestry",
+          "contradictoryAuthorizedBoardHidden": true,
+          "offpageDeepLinkVisible": true,
+          "aggregateSourceBoardVisible": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/final-expired-session-browser-1/result.json",
+      "sha256": "818cd4bd193602201c98e2e2a10907db9e878ed770b99f0ecf9b2a84fd21db95",
+      "observations": [
+        {
+          "name": "expired session detected by real polling; private baseline hidden and direct reads/writes401 with unchanged row",
+          "status": "pass"
+        },
+        {
+          "name": "same-actor UI recovery refetches authorized baseline and restores only own unsent title without mutation",
+          "status": "pass"
+        }
+      ]
+    }
+  ],
+  "uiPassedTestNames": [
+    {
+      "path": "apps/web/test/assignees.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "fresh board: the Owner is offered even though the snapshot has nobody",
+        "Viewers and people who left are never offered, owner first then managers then members",
+        "a server that forgets to flag a viewer is still filtered",
+        "picker states: loading, error, empty, ready",
+        "chip names keep people already on cards from the snapshot, and current project people win",
+        "can\u2019t-be-assigned: judged against the project list once loaded, against the snapshot before that",
+        "the 20-assignee cap",
+        "the assignee query carries the card board, and the project-wide query does not",
+        "people without a grant are not selectable: only the board list is offered, the rest are listed as blocked",
+        "a 422 names the people: by new code, by today\u2019s details, and not for other failures",
+        "error text names people with and, and falls back to the server sentence",
+        "the save bar never sits on ",
+        "BOARD_REQUIRED means reload, and a new-contract 422 names people by ineligibleUserIds"
+      ]
+    },
+    {
+      "path": "apps/web/test/card-drafts.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "field Save excludes status, and acknowledging fields preserves a separate pending status choice",
+        "actor/card draft survives remount/poll and requires deliberate conflict review",
+        "undo transport retains original move result version even when another read is newer",
+        "lost field save reply keeps original payload/key across remount and prohibits discard",
+        "quick-add text/priority and original operation survive cross-view remount and actor isolation",
+        "navigation blocks context changes, continues only on explicit choice and allows same-board filter/card changes",
+        "known create receipt survives failed detail read and cannot be mistaken for another create",
+        "unknown undo command and original versions survive view remount without crossing actors"
+      ]
+    },
+    {
+      "path": "apps/web/test/comment-api.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "comment and card activity reads forward opaque cursors and preserve the next page envelope",
+        "versioned comment edit and delete send exact IDs, mention spans and retained operation keys"
+      ]
+    },
+    {
+      "path": "apps/web/test/comment-state.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "committed lost reply retries the original comment payload/key through the real API client",
+        "quick-add retains expected board version and original explicit priority after an unknown 503",
+        "definitive validation refusal permits a new edited intent, in-flight submissions share one request",
+        "a synchronous validation failure does not leave the next operation stuck on a rejected request",
+        "a later authorization refusal cannot erase an earlier unknown committed operation",
+        "cursor pages keep order, replace edited/deleted duplicates and reject cursor loops",
+        "roles distinguish author editing from moderation and never grant Viewer write controls",
+        "comment create/edit drafts remain actor/card-scoped through remount and clearing one draft keeps the other",
+        "edit restores actual UTF-16 spans, leaves malformed spans literal, and IME Enter is ignored"
+      ]
+    },
+    {
+      "path": "apps/web/test/mention-ui.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "the mention query sends the card id, keyed by card, and the client method puts it in the URL",
+        "with a second member, candidates appear and are searchable",
+        "a Viewer with board access can be mentioned; someone without a grant or who left cannot",
+        "empty wording: loading, failed, only you, no match",
+        "listbox pattern: combobox textarea, listbox, options named ",
+        "saved mentions show the current full name on hover, not the stored text"
+      ]
+    },
+    {
+      "path": "apps/web/test/signin-states.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "every new sign-in state has plain copy that follows the style guide",
+        "unknown or crafted states show nothing, so a link cannot put words on the page",
+        "unsaved text is tracked and announced to subscribers",
+        "a session that ends keeps the page while text is unsaved, and offers Sign in",
+        "a failed save with an ended session offers Sign in and keeps the draft in place"
+      ]
+    }
+  ],
+  "uiCriterionTrace": {
+    "criterion": "Member/manager/owner creates title in an active authorized column; required field and retry failures retain draft and create once.",
+    "method": "Read current UI implementation and named current passing tests in sourceAndTests/uiPassedTestNames; match actual browser evidence where applicable. Backend scoring alone does not pass this phase.",
+    "scope": "Local behavior only; no real provider or hosted runtime."
+  }
+}

@@ -1,18 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/PRJ-02/e441365000ea492149dfcb1034b5eea4f34bd77d8c85d9c6faae70d43aed394b-round-1.json",
-  "summary": "PRJ-02 Project list and navigation: implemented GET /api/v1/workspaces/:workspaceId/projects scoping projects to workspace owner (all projects) and granted members (active grants only), with keyset cursor pagination (ORDER BY name ASC, id ASC) and sibling project privacy (outsiders receive 404 NOT_FOUND). Also implemented GET /api/v1/projects listing all accessible projects across workspaces for the session actor. All 15 integration tests in prj02-prj05.test.ts pass against local PostgreSQL.",
-  "api_contract": "docs/API.md (GET /workspaces/:wid/projects, GET /projects)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+  "summary": "PRJ-02 Project list and navigation: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/projects-access-invitations.json per-ID criterion PRJ-02",
   "limitations": [
-    "Text search across project names is handled client-side or via advanced search."
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
   ],
   "evidence": [
     {
-      "path": "docs/evidence/PRJ-02-local.md",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts",
-      "result": "Strict typecheck passed with 0 errors; 15 integration tests passed, 0 failed, 0 skipped.",
-      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+      "sha256": "51ec7200a147d90a58080b8063d362a551c50259ad8a9a08413acddfc7d005b9",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json --feature PRJ-02",
+      "result": "PASS: 8.975/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "next_dependency_ready_task": "UI PRJ-02 (Project list view and sidebar navigation), BRD-01 (Create board)."
+  ]
 }

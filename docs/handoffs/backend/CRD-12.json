@@ -1,19 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/CRD-12/f54914e8db0111b924dca509a813ea63edbb1c9c87f4fb1535754bd026a1ba2a-round-1.json",
-  "summary": "CRD-12 Move undo verified. Implemented move undo as a new authorized versioned move returning the card to its prior column and rank via activity_log tracing, strictly validating OCC expectedVersion to explain conflict without overwriting intervening work. Audited with unrounded score 9.610/10.0.",
-  "api_contract": "POST /api/v1/cards/:cardId/move-undo (docs/API.md v0.3)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/cards-comments-7d8875b267d87fadf245bcedb755f37a4ca7a182f560e27b3b1f6293ec511b15-round-2.json",
+  "summary": "CRD-12 Move undo: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/cards-comments.json per-ID criterion CRD-12",
+  "limitations": [
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
+  ],
   "evidence": [
     {
-      "path": "docs/reviews/CRD-12/test.log",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/lifecycle-undo.test.ts",
-      "result": "All 4 test suites passed. Independent audit score 9.62/10.",
-      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/cards-comments-7d8875b267d87fadf245bcedb755f37a4ca7a182f560e27b3b1f6293ec511b15-round-2.json",
+      "sha256": "b27fef3d5096f921e6fc5d27dfecb10f24f00946a36ab27b0e663c633523afe6",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/cards-comments-7d8875b267d87fadf245bcedb755f37a4ca7a182f560e27b3b1f6293ec511b15-round-2.json --feature CRD-12",
+      "result": "PASS: 9.085/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "limitations": [
-    "Archived projects and boards reject mutation requests with 409 READ_ONLY_CONTEXT.",
-    "Move undo is a forward mutation with OCC check; conflict is reported if card was modified.",
-    "Trash 24h expiration deadlines continue ticking even while project or board is archived."
   ]
 }

@@ -1,0 +1,375 @@
+{
+  "featureId": "PRJ-05",
+  "acceptance": "Only Owner/Project Manager can read the full project People directory including emails; Member/Viewer direct requests expose no directory data. Authorized board-scoped assignee/mention pickers remain available with eligible identities only and no unrelated-project enumeration.",
+  "functionalSourceDigest": "c1f1364e7072c1b8989ae227e5ef9721fa19226bb1d38494ff446abe008249bb",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "uiRequired": true,
+  "independentCoverage": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/coverage.json",
+    "detail": {
+      "id": "PRJ-05",
+      "backendTrace": "projects /members+people; getProjectMembers; rbac display actor+lock guard",
+      "testEvidence": "Own people-directory-policy9pass + direct-Pool3pass cover aliases, display administration, pickers, no-board Manager administration, direct adapter and both demotion lock orders",
+      "uiTrace": "people/page.tsx rejects Member/Viewer; member-controls; no directory cache rendering on refusal",
+      "limits": "Independent current local review;198own passing tests overlap required suites. All14gates executed by separate independent executor. Current browser product12 and discussion8 proofs consumed with current hashes; not own Chrome execution. Backend/UI/integration handoff bindings and real provider/hosted acceptance remain separate.",
+      "criterionOutcome": "pass within local review; hosted-dependent acceptance UAT pending"
+    }
+  },
+  "originalBackend": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/original/backend/PRJ-05.json",
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/app/add-card/page.tsx",
+      "sha256": "e3e1cd2418a33afd6fdfce57ffa99bb6b9e1f5a45e6291e85708cc59f7461938",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/people/page.tsx",
+      "sha256": "bfa80bb360988afc53110a84a8f5c277ce2537b70214e9cd7c9148511188afbc",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/card-detail-drawer.tsx",
+      "sha256": "6edb7009d2edf7e44876247ab7fdedf29d493b7ebbeff3f9665d15025b7c0fd6",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/assignee-people.ts",
+      "sha256": "64968973e3ab111fddb5462a458544afedbcfa94346b5dc12e7f3751b94f27f4",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/assignees.ts",
+      "sha256": "ae0c68e4849aa2e9f27959a6be9c81d381f58f20c4569758543e9d8c5f3f046d",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/people.ts",
+      "sha256": "8b6b63c426e897dedd7a2f82ababa19139a12d7526995042a8a986a7505d58c2",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/test/assignees.test.ts",
+      "sha256": "f21a48afce55cef3d9064bc88a1fcec65a19ed95b2deadc3fd65d9027cb679f3",
+      "testNames": [
+        "fresh board: the Owner is offered even though the snapshot has nobody",
+        "Viewers and people who left are never offered, owner first then managers then members",
+        "a server that forgets to flag a viewer is still filtered",
+        "picker states: loading, error, empty, ready",
+        "chip names keep people already on cards from the snapshot, and current project people win",
+        "can\u2019t-be-assigned: judged against the project list once loaded, against the snapshot before that",
+        "the 20-assignee cap",
+        "the assignee query carries the card board, and the project-wide query does not",
+        "people without a grant are not selectable: only the board list is offered, the rest are listed as blocked",
+        "a 422 names the people: by new code, by today\u2019s details, and not for other failures",
+        "error text names people with and, and falls back to the server sentence",
+        "the save bar never sits on ",
+        "BOARD_REQUIRED means reload, and a new-contract 422 names people by ineligibleUserIds"
+      ]
+    },
+    {
+      "path": "apps/web/test/person-name.test.ts",
+      "sha256": "d6d2d674c4d87d220f8491ac1a4b8cfad1723888f27f6b6593f399be223464e7",
+      "testNames": [
+        "a suffix of 2 or more is shown; absent, null and bad values show the plain name",
+        "screen readers hear ",
+        "every screen that names a person goes through the one helper"
+      ]
+    }
+  ],
+  "backendStatus": "verified",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+  "backendReviewSHA256": "51ec7200a147d90a58080b8063d362a551c50259ad8a9a08413acddfc7d005b9",
+  "backendValidator": {
+    "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json --feature PRJ-05",
+    "exitCode": 0,
+    "stdout": "PASS: 8.975/10\n",
+    "stderr": ""
+  },
+  "uiStatus": "verified",
+  "uiProofMethod": "Per-ID current UI source/test inspection plus current independently executed332web tests and actual matching Chrome flows; independent numerical Backend score alone is not UI evidence.",
+  "uiProofs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/web.log",
+      "sha256": "a27b936f1663eb3901f86f96b6a25cba0103c5eebb08c714374e58553d7c5ca4",
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "result": "332web checks pass; inspect per-ID source/test list for applicable assertions. Group total is not per-ID test count."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/browser-integration.log",
+      "sha256": "59ee76dbb2c31f12d98a4e4e1208408f7903a3d8ab842a379254177e68752681",
+      "command": "npm run test:browser",
+      "exitCode": 0,
+      "result": "14 actual passed flows plus2observations; role directory/access, pagination/search, Save, comment retry/edit, focus/narrow/Move/Undo and draft navigation. Exact results in log."
+    }
+  ],
+  "browserProofs": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/browser-product-final-round4/result.json",
+      "sha256": "e748275f8a1f064cc0c15dc5e9e638548742c7b2160d13b95475d9f01ee71ca6",
+      "observations": [
+        {
+          "name": "CMYK JPEG is converted by real browser before private upload",
+          "status": "pass",
+          "sourceColorModel": "cmyk",
+          "sourceBytes": 308,
+          "storedColorModel": "srgb",
+          "storedContentType": "image/webp",
+          "convertedBeforeUpload": true
+        },
+        {
+          "name": "Private image choose/upload/finalize/gallery/lightbox/remove retains unsaved fields",
+          "status": "pass",
+          "anonymousStatus": 401
+        },
+        {
+          "name": "Official Excel package filled with real ZIP CRC; unknown Status mapping; preview/commit/card link/safe report",
+          "status": "pass",
+          "zipCRC": "verified with Python zipfile testzip",
+          "createdCards": 1,
+          "externalId": "0001",
+          "batchId": "imp_6f8fad58-c4c6-41ad-814d-ecf01e080a41",
+          "importedCardId": "crd_49061c68-ed58-42fa-8160-cf88317b0985"
+        },
+        {
+          "name": "New project and board creation plus explicit unsent draft restoration",
+          "status": "pass",
+          "createdProjects": 1,
+          "createdBoards": 1,
+          "defaultColumns": 5
+        },
+        {
+          "name": "Column add rename reorder delete through actual UI",
+          "status": "pass"
+        },
+        {
+          "name": "Mention real Member then recipient notification",
+          "status": "pass",
+          "recipientRole": "member",
+          "notificationRows": 1
+        },
+        {
+          "name": "Full selected-project My Tasks and Owner workspace activity UI",
+          "status": "pass",
+          "loadedTasks": 61,
+          "continuationPages": 1,
+          "selectedProjectIsolation": true
+        },
+        {
+          "name": "Invitation honest delivery state lost reply stable retry and history revoke (no provider)",
+          "status": "pass",
+          "oneInvitation": true,
+          "stableRetryKey": true,
+          "providerConfigured": false
+        },
+        {
+          "name": "Current board access revoke removes already displayed private cached content",
+          "status": "pass",
+          "displayedPrivateDescriptionRemoved": true
+        },
+        {
+          "name": "Native Back/Forward restores full add-card draft and settings save/lifecycle work",
+          "status": "pass",
+          "projectSave": true,
+          "boardSave": true,
+          "archiveReopenBoard": true,
+          "archiveReopenProject": true,
+          "unsentCardDraftRestored": true
+        },
+        {
+          "name": "Import retained receipt survives temporary row-content cleanup with synthetic advanced clock",
+          "status": "pass",
+          "clock": "injected asOfDate +31 minutes, not a real scheduled timer",
+          "cleanedImports": 1,
+          "receiptState": "committed",
+          "domainCardRetained": true,
+          "actualGetContractValid": true,
+          "removedFieldsRemainNull": true,
+          "safeRowLinkOpenedCorrectCard": true
+        },
+        {
+          "name": "Live revocation hides a previously downloaded private image and its open lightbox",
+          "status": "pass",
+          "cachedImagePreviouslyVisible": true,
+          "lightboxPreviouslyOpen": true,
+          "privateImageAndLightboxRemoved": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/browser-layout/result.json",
+      "sha256": "d540f4558beff7ac35bfdb7a945c6f29a1fa14877aff95f7962f9f0235e19890",
+      "observations": [
+        {
+          "flow": "long detail lists and keyboard",
+          "titleLength": 200,
+          "descriptionLength": 12044,
+          "assignees": 20,
+          "commentsLoaded": 55,
+          "commentContinuation": true,
+          "finalizedImages": 3,
+          "tabStepsContained": 30,
+          "backgroundInert": true
+        },
+        {
+          "flow": "narrow360-long-detail",
+          "left": 0,
+          "right": 360,
+          "width": 360,
+          "viewport": 360,
+          "scrollWidth": 360,
+          "clientWidth": 360,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 302,
+          "assigneeClientWidth": 302,
+          "rootZoom": "1",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "css200percent-zoom-long-detail",
+          "left": 200,
+          "right": 1440,
+          "width": 1240,
+          "viewport": 1440,
+          "scrollWidth": 619,
+          "clientWidth": 619,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 261,
+          "assigneeClientWidth": 261,
+          "rootZoom": "2",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "equivalent200percent-reflow720",
+          "left": 0,
+          "right": 720,
+          "width": 720,
+          "viewport": 720,
+          "scrollWidth": 720,
+          "clientWidth": 720,
+          "bodyScrolls": true,
+          "assigneeScrollWidth": 662,
+          "assigneeClientWidth": 662,
+          "rootZoom": "1",
+          "footerAndCloseReachable": true
+        },
+        {
+          "flow": "zoom qualification",
+          "nativeShortcutApplied": false,
+          "nativeBefore": {
+            "width": 1440,
+            "dpr": 1
+          },
+          "nativeAfter": {
+            "width": 1440,
+            "dpr": 1
+          },
+          "checked": "actual CSS zoom2 and720CSSpx reflow equivalent to200percent on1440; not native Chrome menu zoom"
+        },
+        {
+          "flow": "Escape focus restoration",
+          "sourceCardFocused": true
+        },
+        {
+          "flow": "filtered keyboard before Move and Undo",
+          "ambiguousDragDisabled": true,
+          "fullDestinationReferenceOptions": 23,
+          "actualNeighborPairVerified": true,
+          "undoRestoredFirst": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/discussion-notification-ui-repair/browser-final/result.json",
+      "sha256": "f11589b640f2e0e369b6fb9ee41b5dbf5a8fbf849e9a876d1470b455e76ef4a2",
+      "observations": [
+        {
+          "flow": "comment refusal before other reads",
+          "changed": false,
+          "editorCount": 0,
+          "editorValue": null,
+          "heldOtherReadResponses": 6
+        },
+        {
+          "flow": "unchanged baseline remount after access restoration",
+          "canonicalCopyDidNotReappear": true
+        },
+        {
+          "flow": "comment refusal before other reads",
+          "changed": true,
+          "editorCount": 1,
+          "editorValue": "My newly authored unsent edit",
+          "heldOtherReadResponses": 6
+        },
+        {
+          "flow": "unknown edit reply then revocation and recovery",
+          "canonicalEditorHidden": true,
+          "retryDisabledWhileDenied": true,
+          "retryOriginalAfterAuthorizedRead": true,
+          "sameOriginalPayloadAndKey": true,
+          "oneSavedEdit": true
+        },
+        {
+          "flow": "notification keyboard Open",
+          "renderedHref": "/board?id=brd_050f4b7d-6d8b-40e1-b6f4-d7378c00c0ca&card=crd_fe845f6a-a66d-497d-831f-b0759d78662a",
+          "cardDialogCount": 1,
+          "targetCardDetailVisible": true
+        },
+        {
+          "flow": "board ancestry",
+          "contradictoryAuthorizedBoardHidden": true,
+          "offpageDeepLinkVisible": true,
+          "aggregateSourceBoardVisible": true
+        }
+      ]
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/final-expired-session-browser-1/result.json",
+      "sha256": "818cd4bd193602201c98e2e2a10907db9e878ed770b99f0ecf9b2a84fd21db95",
+      "observations": [
+        {
+          "name": "expired session detected by real polling; private baseline hidden and direct reads/writes401 with unchanged row",
+          "status": "pass"
+        },
+        {
+          "name": "same-actor UI recovery refetches authorized baseline and restores only own unsent title without mutation",
+          "status": "pass"
+        }
+      ]
+    }
+  ],
+  "uiPassedTestNames": [
+    {
+      "path": "apps/web/test/assignees.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "fresh board: the Owner is offered even though the snapshot has nobody",
+        "Viewers and people who left are never offered, owner first then managers then members",
+        "a server that forgets to flag a viewer is still filtered",
+        "picker states: loading, error, empty, ready",
+        "chip names keep people already on cards from the snapshot, and current project people win",
+        "can\u2019t-be-assigned: judged against the project list once loaded, against the snapshot before that",
+        "the 20-assignee cap",
+        "the assignee query carries the card board, and the project-wide query does not",
+        "people without a grant are not selectable: only the board list is offered, the rest are listed as blocked",
+        "a 422 names the people: by new code, by today\u2019s details, and not for other failures",
+        "error text names people with and, and falls back to the server sentence",
+        "the save bar never sits on ",
+        "BOARD_REQUIRED means reload, and a new-contract 422 names people by ineligibleUserIds"
+      ]
+    },
+    {
+      "path": "apps/web/test/person-name.test.ts",
+      "testNamesObservedInPassingWebLog": [
+        "a suffix of 2 or more is shown; absent, null and bad values show the plain name",
+        "screen readers hear ",
+        "every screen that names a person goes through the one helper"
+      ]
+    }
+  ],
+  "uiCriterionTrace": {
+    "criterion": "Only Owner/Project Manager can read the full project People directory including emails; Member/Viewer direct requests expose no directory data. Authorized board-scoped assignee/mention pickers remain available with eligible identities only and no unrelated-project enumeration.",
+    "method": "Read current UI implementation and named current passing tests in sourceAndTests/uiPassedTestNames; match actual browser evidence where applicable. Backend scoring alone does not pass this phase.",
+    "scope": "Local behavior only; no real provider or hosted runtime."
+  }
+}

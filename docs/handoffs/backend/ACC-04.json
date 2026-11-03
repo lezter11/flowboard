@@ -1,18 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/ACC-04/42e579865045839ef2753c46530d81dd529f3ac96b4da42b86b21b634566ef75-round-1.json",
-  "summary": "ACC-04 Create workspace and owner: implemented POST /api/v1/workspaces with single-owner assignment (owner_id = actor.id), validated payload using @flowboard/contracts, and transactional idempotency receipts with 7-day TTL and lost-response replay duplicate protection. All 11 integration tests passed; independently audited and passed with score 9.64/10.0.",
-  "api_contract": "docs/API.md v0.3 (POST /workspaces, GET /workspaces)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-account-round4.json",
+  "summary": "ACC-04 Personal workspace and owner: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/account.json per-ID criterion ACC-04",
   "limitations": [
-    "Idempotency receipts stored for 7 days; background worker cleanup for expired receipts scheduled in later background tasks."
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
   ],
   "evidence": [
     {
-      "path": "docs/evidence/ACC-04-local.md",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/acc04-workspaces.test.ts",
-      "result": "Strict typecheck passed with 0 errors; 7 integration tests passed, 0 failed, 0 skipped. Independent audit score: 10.0 / 10.0.",
-      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine official digest."
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-account-round4.json",
+      "sha256": "d75eefa5cf24696b221ada92eb267d35a4a328bad25c81af633a712968b3032a",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-account-round4.json --feature ACC-04",
+      "result": "PASS: 9.06/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "next_dependency_ready_task": "ACC-05 (Workspace preferences), ACC-06 (Owned and invited context switcher)."
+  ]
 }

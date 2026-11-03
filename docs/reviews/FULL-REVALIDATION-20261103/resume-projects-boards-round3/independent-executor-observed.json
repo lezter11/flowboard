@@ -1,0 +1,184 @@
+{
+  "kind": "local readiness evidence; no feature closure, provider or UAT approval",
+  "startedAt": "2026-11-03T15:10:11.938Z",
+  "baseline": "e13b15fc8ab4279d6a59977c94d6cb05d7dcd711",
+  "sourceDigest": "6f0df7007c67963b3625bd902ed2f13b212064fd73f73c6932a4051718add04c",
+  "sourceFileCount": 635,
+  "node": "v24.15.0",
+  "npm": "11.12.1",
+  "container": "flowboard-full-revalidation-20261103",
+  "containerImage": "postgres:17.11-alpine sha256:266d3c257594e195b309ae9d1805e54c788f1d7b375f56bf6c367aac6c917e7b",
+  "databaseEvidence": {
+    "DATABASE_URL": {
+      "host": "127.0.0.1",
+      "port": "55931",
+      "database": "flowboard_harness",
+      "user": "flowboard_harness"
+    },
+    "FLOWBOARD_ACCESS_TEST_DATABASE_URL": {
+      "host": "127.0.0.1",
+      "port": "55931",
+      "database": "flowboard_access_test",
+      "user": "flowboard_harness"
+    },
+    "FLOWBOARD_IMPORT_TEST_DATABASE_URL": {
+      "host": "127.0.0.1",
+      "port": "55931",
+      "database": "flowboard_import_test",
+      "user": "flowboard_harness"
+    },
+    "FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL": {
+      "host": "127.0.0.1",
+      "port": "55931",
+      "database": "flowboard_identity_extra_test",
+      "user": "flowboard_harness"
+    },
+    "FLOWBOARD_UI_TEST_DATABASE_URL": {
+      "host": "127.0.0.1",
+      "port": "55931",
+      "database": "flowboard_ui_test",
+      "user": "flowboard_harness"
+    },
+    "FLOWBOARD_MCP_TEST_DATABASE_URL": {
+      "host": "127.0.0.1",
+      "port": "55931",
+      "database": "flowboard_mcp_probe",
+      "user": "flowboard_harness"
+    }
+  },
+  "commands": [
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "startedAt": "2026-11-03T15:10:12.075Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-resume-gates-1/typecheck.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T15:10:12.870Z",
+      "nodeTestCounts": {}
+    },
+    {
+      "id": "typecheck-web",
+      "command": "npm run typecheck:web",
+      "startedAt": "2026-11-03T15:10:12.922Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-resume-gates-1/typecheck-web.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T15:10:13.761Z",
+      "nodeTestCounts": {}
+    },
+    {
+      "id": "contracts",
+      "command": "npm test --workspace @flowboard/contracts",
+      "startedAt": "2026-11-03T15:10:13.819Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-resume-gates-1/contracts.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T15:10:14.911Z",
+      "nodeTestCounts": {
+        "tests": 128,
+        "pass": 128,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "web",
+      "command": "npm test --workspace @flowboard/web",
+      "startedAt": "2026-11-03T15:10:14.978Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-resume-gates-1/web.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T15:10:17.975Z",
+      "nodeTestCounts": {
+        "tests": 332,
+        "pass": 332,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "mcp",
+      "command": "npm test --workspace @flowboard/mcp",
+      "startedAt": "2026-11-03T15:10:18.032Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-resume-gates-1/mcp.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T15:10:18.232Z",
+      "nodeTestCounts": {
+        "tests": 17,
+        "pass": 17,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "build-mcp",
+      "command": "npm run build --workspace @flowboard/mcp",
+      "startedAt": "2026-11-03T15:10:18.286Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-resume-gates-1/build-mcp.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T15:10:18.484Z",
+      "nodeTestCounts": {}
+    },
+    {
+      "id": "mcp-artifact",
+      "command": "npm run test:artifact --workspace @flowboard/mcp",
+      "startedAt": "2026-11-03T15:10:18.572Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-resume-gates-1/mcp-artifact.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T15:10:20.466Z",
+      "nodeTestCounts": {
+        "tests": 1,
+        "pass": 1,
+        "fail": 0,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    },
+    {
+      "id": "openapi-staleness",
+      "command": "npm run openapi:check",
+      "startedAt": "2026-11-03T15:10:20.526Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-resume-gates-1/openapi-staleness.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T15:10:20.695Z",
+      "nodeTestCounts": {}
+    },
+    {
+      "id": "embedded-migration-parity",
+      "command": "npm run migrations:embed:check",
+      "startedAt": "2026-11-03T15:10:20.747Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-resume-gates-1/embedded-migration-parity.log",
+      "exitCode": 0,
+      "signal": null,
+      "completedAt": "2026-11-03T15:10:20.854Z",
+      "nodeTestCounts": {}
+    },
+    {
+      "id": "api",
+      "command": "npm test --workspace @flowboard/api",
+      "startedAt": "2026-11-03T15:10:20.907Z",
+      "evidencePath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-resume-gates-1/api.log",
+      "exitCode": 1,
+      "signal": null,
+      "completedAt": "2026-11-03T15:16:17.741Z",
+      "nodeTestCounts": {
+        "tests": 1761,
+        "pass": 1750,
+        "fail": 11,
+        "cancelled": 0,
+        "skipped": 0
+      }
+    }
+  ],
+  "completedAt": "2026-11-03T15:16:17.857Z",
+  "sourceUnchanged": true,
+  "status": "fail"
+}

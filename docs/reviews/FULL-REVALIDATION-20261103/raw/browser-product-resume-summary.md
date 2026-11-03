@@ -1,0 +1,20 @@
+# Product browser resume evidence
+
+Final run: `browser-product-resume-03/result.json`, runner log `browser-product-resume-03-runner.log`, execution metadata `browser-product-resume-03-execution.json`. Exact process exit0;12/12 named product flows passed,0 failed;76.89seconds. Real installed Chrome156.0.8078.80 ran headlessly using Playwright's temporary profile. The20 listed source/probe hashes match before/after. This selected list is not a complete frozen repository manifest; root owns the global freeze and gates.
+
+Command: `node docs/reviews/FULL-REVALIDATION-20261103/probes/browser-product-main.mjs` with a sanitized environment, temporary synthetic HOME, NODE_ENV=test, PRODUCT_RUN=browser-product-resume-03, PRODUCT_TASK_DEPTH=true and PRODUCT_EXPAND_EMPTY=true. Explicit DATABASE_URL plus FLOWBOARD_ACCESS_TEST_DATABASE_URL, FLOWBOARD_IMPORT_TEST_DATABASE_URL, FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL, FLOWBOARD_UI_TEST_DATABASE_URL and FLOWBOARD_MCP_TEST_DATABASE_URL all selected loopback55931 synthetic databases. No default55432/55479 connection was used. Existing lockfile dependencies were present. No real account/token, cloud runtime or provider was exercised.
+
+The retained-import flow captures the actual browser-consumed GET response and validates the shared importStatusResponseSchema. It verifies row2 contentRedacted=true, null externalId/title/description/status/priority/dueDate, empty assignees/errors and the original cardId. The browser renders “Open card from row 2”, follows its exact board/card URL and opens the correct card. No fake External ID or original private source-field refill is used. Actual synthetic response evidence is `browser-product-resume-03/retained-import-response.json`; UI screenshot is `browser-product-resume-03/retained-import-receipt.png`.
+
+My Tasks verifies61selected-project assigned cards, one Load more continuation, the Owner's second board, exclusion of another project's sentinel and project-switch isolation. All61 rows load before title-specific assertions, respecting the API's stable due-date/card-ID ordering.
+
+Earlier runs are preserved:
+
+- resume01: exit1,12flows/11pass/1fail,68.30seconds; MyTasks failed an initial title-on-first-page assumption. The older terse failure record did not identify the exact locator; it is not treated as a diagnosed product failure.
+- resume02: exit1,12flows/11pass/1fail,69.12seconds; richer bounded diagnostic identified `Regression card 01` absent from the first50rows. Screenshot `browser-product-resume-02/failure-7-0-0.png` shows50loaded and Load more. API SQL orders by due_date then cardID, so a named fixture card may legitimately fall on page2. Only the probe was corrected to await the first tasks GET/rendered row and paginate before checking named cards. No product-source patch occurred.
+
+All12final flows include image conversion/private upload/gallery/lightbox/removal/draft preservation, XLSX mapping/commit/report/card link, project/board creation/draft, column operations, mention/notification, MyTasks/activity, invitation lost-response/revoke history, live board access revoke, native draft traversal/settings/lifecycle, retained import and cached-image/lightbox revocation. See the result JSON for exact names and assertions.
+
+The harness closed its contexts/Chrome, Next and API. Post-run `lsof -nP -iTCP:44931 -iTCP:44932 -sTCP:LISTEN` produced no output and exit1 (no listeners); runtime ownership was released to root. Probe and MCP guide are held. No commits, pushes, deployment, scores, closure or independent feature approval are claimed. Import cleanup uses an injected+31minute clock; image storage and sessions remain synthetic. Hosted Google/R2/mail/scheduled cleanup/Claude Desktop acceptance are still separate.
+
+Unchanged-source observation for coordinator review: UI copy at apps/web/src/app/my-tasks/page.tsx:44 says “Server order · due date, priority”; apps/api/src/adapters/cards.ts:1198 orders due_date then cardID. No ordering-policy conclusion or source change was made in this bounded verification.

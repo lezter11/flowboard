@@ -1,0 +1,829 @@
+{
+  "reviewer": "collaboration:/root/resume_cards_activity_review",
+  "status": "local_criteria_pass_hosted_UAT_pending",
+  "functionalSourceDigest": "c1f1364e7072c1b8989ae227e5ef9721fa19226bb1d38494ff446abe008249bb",
+  "ownedCount": 35,
+  "results": [
+    {
+      "id": "CRD-01",
+      "acceptance": "CRD-01: Member/manager/owner creates title in an active authorized column; required field and retry failures retain draft and create once.",
+      "sourceTrace": "cards.ts:createCard; routes/cards.ts POST; board-column/board-view quick-add",
+      "evidence": "crd01-crd11; comment-move-replay idempotency; web create-card-state",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own strict-input test rejects unknown create body422 and zero extra writes/receipts; exact create replay and demoted actor refusal pass.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "CRD-02",
+      "acceptance": "CRD-02: Show title, priority, due date, assignees and accurate comment/image counts without loading full descriptions/history.",
+      "sourceTrace": "boards.ts bounded card projection; cards.ts fetchCardCounts/toCardSummary; board-card.tsx",
+      "evidence": "card-key-counts-creator; crd01-crd11; browser integration attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own lifecycle/card-summary/detail/due-date source, mounted adjacent suites and current UI proofs reviewed; finalbrowser gate passes.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "CRD-03",
+      "acceptance": "CRD-03: Card link loads an authorized popup/drawer or direct-page view with focus restoration and recoverable missing/loading states.",
+      "sourceTrace": "routes/cards.ts GET; cards.ts:getCard; card-detail-drawer portal/focus/loading/error",
+      "evidence": "board-access-cards-images; crd01-crd11; existing builder browser focus/narrow flow attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own lifecycle/card-summary/detail/due-date source, mounted adjacent suites and current UI proofs reviewed; finalbrowser gate passes.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "CRD-04",
+      "acceptance": "CRD-04: Explicit Save validates plain text and expected card version; Cancel/discard never overwrites saved state.",
+      "sourceTrace": "routes/cards.ts PATCH; cards.ts:updateCard; card-drafts fields/save/discard",
+      "evidence": "crd01-crd11; web card-drafts/checkpoint regressions; builder browser Save attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own stale edit probe returns409 and preserves prior saved body/version; strict unknown fields rejected.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "CRD-05",
+      "acceptance": "CRD-05: Five priority values and optional date-only deadline save/reset consistently; invalid calendar dates fail and overdue excludes done cards.",
+      "sourceTrace": "contracts/cards+common date validation; cards.ts update; dueInfo/detail field reset",
+      "evidence": "crd01-crd11; qry01-qry03; my-tasks-repair; web dates",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own lifecycle/card-summary/detail/due-date source, mounted adjacent suites and current UI proofs reviewed; finalbrowser gate passes.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "CRD-06",
+      "acceptance": "CRD-06: Assign zero/multiple active eligible project users or owner; removed identities stay labeled historical and cannot be newly assigned.",
+      "sourceTrace": "routes/cards POST/PATCH \u2192 acquireWriteGrantLock \u2192 services/assignee-locks lockSelectedAssignees \u2192 current receipt \u2192 adapters/cards create/update validateLockedAssignees \u2192 domain/history/receipt transaction",
+      "evidence": "own assignee-race-probe actual separate SQL connections; card lifecycle matrices",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own execution of all8actual separate-connection trigger-fenced create/update \u00d7 demotion/grantrevocation \u00d7 firstorder races passes; causal pg_blocking_pids waits observed. Exact recipient-demotion replay recovers; demoted actor403. No new ineligible assignment after eligibility change wins.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "CRD-07",
+      "acceptance": "CRD-07: Server validates neighbors and versions, changes rank/history atomically and returns canonical position; failure restores server order.",
+      "sourceTrace": "cards.ts:moveCard bounded rank/adjacency/recompact; board-view move optimistic reconciliation",
+      "evidence": "crd01-crd11; move-undo-repair numeric/rank tests; lock-order-interleave",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own bounded rank/neighbor/same-column/undo suite and concurrency regression pass; strict move shape422.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "CRD-08",
+      "acceptance": "CRD-08: Visible Move chooses column plus first/last/before/after via bounded placement read; equivalent outcome without dragging.",
+      "sourceTrace": "boards.ts:getPlacement/listBoardCards; MoveDialog bounded paged reference choices",
+      "evidence": "move-undo-repair1000card bound; builder actual Move browser flow attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own lifecycle/card-summary/detail/due-date source, mounted adjacent suites and current UI proofs reviewed; finalbrowser gate passes.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "CRD-09",
+      "acceptance": "CRD-09: Explain disabled ambiguous drag while filters apply; Move uses full destination order rather than renumbering visible cards only.",
+      "sourceTrace": "board-view filtering/drag guards; MoveDialog unfiltered server placement",
+      "evidence": "web board-pages; builder browser server-filter+Move flows attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own lifecycle/card-summary/detail/due-date source, mounted adjacent suites and current UI proofs reviewed; finalbrowser gate passes.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "CRD-10",
+      "acceptance": "CRD-10: Stale field/order version returns 409 without partial side effects; preserve draft and allow deliberate refresh/reapply.",
+      "sourceTrace": "cards.ts expectedVersion/structure_version guards under board+card locks; card-drafts reconciliation",
+      "evidence": "crd01-crd11; move-undo-repair changed gap; lock-order-interleave",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own expected-version and changed-neighbor tests prove conflict with no partial domain effects; UI draft reconcile tests pass.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "CRD-11",
+      "acceptance": "CRD-11: Save affects fields only; comment/upload actions are independent; retries keep command identity and closing protects unsaved work.",
+      "sourceTrace": "card-detail-drawer separate fields/status/comment/upload; retained-command identity; beforeunload guard",
+      "evidence": "web card-drafts/comment-state; existing builder lost-response browser flow attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own66web checks include pending original edit retains unload warning after fetched editor redaction. Inspected actual Chrome unknown committed edit/lostreply/revoke/regrant retry proof; same original key/body and exactlyone edit.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "CRD-12",
+      "acceptance": "CRD-12: Undo is a new authorized versioned move; it succeeds once or explains conflict without overwriting intervening work.",
+      "sourceTrace": "routes/cards.ts move-undo latest safe move fact; moveCard metadata and version/neighbor guards",
+      "evidence": "move-undo-repair cross/same-column, replay, intervening edits, separate-connection competing undo",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own move/undo tests include exact original populated position, onceonly/competing undo, versions and changed-neighbor conflicts; strict undo shape422.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "COM-01",
+      "acceptance": "COM-01: Project readers see chronological comments with author displays; stable cursors do not expose other project content.",
+      "sourceTrace": "routes/comments.ts GET board grant transaction; comments.ts stable microsecond keyset and tombstones",
+      "evidence": "com-del; discussion-activity-repair; own query-contract controls",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own stable microsecond/tied cursor traversal, actor/card context mutation and malformed/unknownquery rejection pass. Mounted reader/revocation tests retain private404.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "COM-02",
+      "acceptance": "COM-02: Member/manager/owner posts plain text independently of card Save; atomic event/outbox/receipt and lost-response retry create one comment.",
+      "sourceTrace": "routes/comments.ts POST current grant+lifecycle before replay; postComment activity/outbox/notification/receipt transaction",
+      "evidence": "com-del; comment-move-replay; lock-order-interleave; own retention probe",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own comment original-key replay, counts and actual move/comment interleaving pass; atomic activity/outbox/notification/receipt and known refusal controls observed.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "COM-03",
+      "acceptance": "COM-03: Accessible picker resolves active project identities; validated UTF-16 spans produce mentions and literal at-name text does not notify.",
+      "sourceTrace": "discussion.ts trim/UTF16/surrogate/nonoverlap; comments.ts validate complete selected token; board-scoped picker",
+      "evidence": "discussion-activity-repair valid+invalidUTF16/names/suffixes; b9-mention-access",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own UTF16/trim/surrogate/overlap/name-suffix/literal-mention cases and strict nested mention fields pass; current board-scoped mention source traced.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "COM-04",
+      "acceptance": "COM-04: Author updates with expected version; edit activity persists and v1 edits do not resend mention notifications.",
+      "sourceTrace": "comments.ts editComment author guard/version/body/mentions/audit; no new notification",
+      "evidence": "com-del; b9-mention-access; own source-vs-inbox retention observation",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own independent mounted probe and5retention tests confirm exact old preview removed from recipient normal inbox, one event/version, no secondnotification/outbox, no editedrecipient additions. Actual consumer/editor bothorders and rollback pass.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "COM-05",
+      "acceptance": "COM-05: Author or owner/manager tombstones a comment, records action and hides body from normal reads; other members cannot moderate.",
+      "sourceTrace": "deleteComment moderator/author authority+tombstone+retention; routes recheck action-specific replay",
+      "evidence": "com-del; comment-move-replay; outbox-recovery",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own moderator/author/viewer/non-author/revoked replay, bodyqueryagreement/malformedJSON, tombstone/purge/outboxlockorders and rollback tests pass.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "COM-06",
+      "acceptance": "COM-06: Typing, mention selection and post error survive field saves/refetch; no comment posts accidentally through Enter in a picker.",
+      "sourceTrace": "CardComments separate external actor/card sessions; CommentComposer Enter selects/IME guard",
+      "evidence": "web comment-state/mention-ui; own actual browser denial observation",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own comment state tests and hash-current actual browser show unchanged fetched edit disappears after comments404; authored changed text survives readonly; pending original recovery stays private and keyboard retry reuses original.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "AUD-01",
+      "acceptance": "AUD-01: Owner sees create, field change, assignment, move, comment and actor/server timestamp chronologically with stable pagination.",
+      "sourceTrace": "activity.ts listCardActivity chronological microsecond cursor, all mutation recordActivity paths",
+      "evidence": "aud-ntf; activity-coverage-b5; discussion-activity-repair",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own mounted history lifecycle and tiedmicrosecond cursor cases pass, including actual assignment/change/move/comment facts; display proof inspected.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "AUD-02",
+      "acceptance": "AUD-02: Record safe before/after field values and from/to columns; historical name changes and removed people remain understandable.",
+      "sourceTrace": "cards.ts before/after fields and move columns/source neighbors; activity/rbac historical displays",
+      "evidence": "aud-ntf; card-key-counts-creator; activity-coverage-b5",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own independent mounted safeprojection probe and2activity tests pass. Exact sameproject changed identities only; arbitrary/outsider/unknown/purged/redacted references never hydrate. Removed/renamed people and suffixes readable; no email/picker authority. Measured querycounts10for1and12actors.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "AUD-03",
+      "acceptance": "AUD-03: Owner filters owned workspace activity by project/card/actor/action/date; invited users cannot access sibling-project audit data.",
+      "sourceTrace": "routes/activity.ts strict filter schema; activity.ts listWorkspaceActivity owner lock/filter SQL",
+      "evidence": "discussion-activity-repair date filters/cursor; aud-ntf owner/sibling; own strict unknown control",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own owner/project/card/actor/action/date/strictcursor scope tests pass; actual owner workspace browser detail proof current. No sibling disclosure.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "AUD-04",
+      "acceptance": "AUD-04: Manager sees project activity/access changes; member/viewer sees card activity only for granted project; workspace security log is owner-only.",
+      "sourceTrace": "activity.ts lockProjectActivityAccess current Manager+granted board set; project/board/unknown visibility",
+      "evidence": "board-access-activity-notifications; activity-coverage-b5 role matrix; aud-ntf",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own independent manager/member/viewer/outsider negative controls and grantvisibility suites pass; manager ownproject only and workspace owneronly enforced.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "AUD-05",
+      "acceptance": "AUD-05: Trash/restore/purge/import/image events are traceable; no secret token or raw file appears in audit payloads.",
+      "sourceTrace": "recordActivity shared writer and trash/purge/import/image/adapters reached event calls",
+      "evidence": "aud-ntf lifecycle/import/image synthetic flow; activity-coverage-b5 secrets checks",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own mounted AUD lifecycle/import/image trace suite passes. History safe payloads exclude raw files/tokens; shared source gates still required for global dependencies.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "AUD-06",
+      "acceptance": "AUD-06: No user edits audit facts; sensitive/deleted bodies are redacted under retention rules while actor/action/time facts persist.",
+      "sourceTrace": "no audit edit route; redactCardActivity purge; tombstone retention and minimal receipts",
+      "evidence": "aud-ntf append-only/redaction; com-del purge; outbox-recovery legacy sanitization",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own tombstone/purge retention + pure unknown/redacted projection test pass; actor/action/time retained without resurrecting private copies.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "NTF-01",
+      "acceptance": "NTF-01: One event/recipient notification appears after commit; no self-mention or duplicate logical delivery and no stale private preview leak.",
+      "sourceTrace": "postComment notification/outbox same tx; unique comment/user index0023; notification current visible SQL",
+      "evidence": "b9-mention-access; outbox-recovery; own edit stale preview repro",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own independent source-edit/inbox test + originalrecipient outbox recovery and no self/duplicate delivery pass. Deleted/edited copiedcontent absent; user read-state/event identity retained.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "NTF-02",
+      "acceptance": "NTF-02: Actor opens accessible project/card and marks read; removed-access notifications are redacted/hidden and never reveal content.",
+      "sourceTrace": "notification read markers lock grants; actor-scoped list/mark SQL; Inbox appHref",
+      "evidence": "board-access-activity-notifications true read/revoke races; own actual Chrome Open card",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own currentaccess markread/read-revoke suites pass. Inspected hash-current actual keyboard notification link displays exactly target drawer; strict link parser rejects outsideorigin/ambiguousancestry.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "NTF-03",
+      "acceptance": "NTF-03: Lease/fenced consumer retries bounded jobs and quarantines failures; restart/duplicate handling does not lose accepted notification intent.",
+      "sourceTrace": "processOutboxLease real SKIP LOCKED transaction fence/savepoints/backoff/quarantine; sanitizeCommentOutbox",
+      "evidence": "outbox-recovery SQL poison/restart/concurrent consumers; aud-ntf",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own realSQL poison/savepoint retryquarantine/restart/concurrentconsumer and consumer/edit/delete bothorders tests pass. Worker scheduledoutbox current source traced; actual hosted schedule pendingUAT.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "QRY-01",
+      "acceptance": "QRY-01: Title search returns authorized active cards only with pagination and safe historical people mapping.",
+      "sourceTrace": "routes/cards.ts project scope transaction; searchProjectCards authorized board set and active cards",
+      "evidence": "qry01-qry03; board-access-cards-images; own query schema controls",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own mounted search role/grant/sibling, strictqueries, pagedfilters/cursors and safepeople tests pass. Search intentionally matches title+description perexisting contract/tests.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "QRY-02",
+      "acceptance": "QRY-02: Filters combine predictably, distinguish total/matching counts and exclude trash; no global project discovery through query parameters.",
+      "sourceTrace": "searchProjectCards SQL combined facets/counts; board snapshot filters+pagination",
+      "evidence": "qry01-qry03; crd01-crd11; builder browser server title search reaches offpage card attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own combinations/counts/excludetrash/queryprivacy tests pass. Current UI server-filter/Move diagnostic pending freshglobal browser.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "QRY-03",
+      "acceptance": "QRY-03: Show actor assignments within one selected authorized project and currently granted boards with due-state filters/pagination; no cross-project aggregation or revoked-access content.",
+      "sourceTrace": "cards.ts:getMyTasks required one project/current board grants/calendar/cursor; my-tasks selectedTaskProject",
+      "evidence": "my-tasks-repair bounded pages, due filters, revision/date change, constant query count; builder61task browser attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own both mounted routes, tied/null date pagination, due/priorityfilters, selectedproject/revoke/archive/timezone context and SQL constant-count tests pass:7queriesfor1vs3returnedboards. Inspected current taskUI source;61tasks/continuation builder proof relevantUI hashescurrent.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "UX-01",
+      "acceptance": "UX-01: First project/empty board/no matches/loading/offline/validation/permission errors have accurate actions and preserve relevant drafts.",
+      "sourceTrace": "ErrorNote/error catalogue/feed controls/draft stores/empty/loading screens",
+      "evidence": "own318web tests; own actual comments404 browser; builder product flows attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own66web checks and inspected actual deniedread/failedrequest/retry/authoreddraft browserproofs current; no deniedread is disguised asempty success.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "UX-02",
+      "acceptance": "UX-02: Keyboard and click/tap complete all essential operations; focus, announcements, labels and color-independent cues are verified in browser.",
+      "sourceTrace": "DialogLayer/drawer portal/focus trap/inert/return; click Move/keyboard mention/labels/live regions",
+      "evidence": "own318web tests; builder diagnostic focus loop+360px+Move browser attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own66web controls and actual keyboard notification/historyproofs hashcurrent; freshglobal and own dialogfocus/narrow/Move gates pass.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "UX-03",
+      "acceptance": "UX-03: Board scroll and detail layout work at narrow width/zoom; long titles, many assignees and image/comment lists remain usable.",
+      "sourceTrace": "globals.css/drawer scroll/comments wrapping/board overflow/responsive controls",
+      "evidence": "own318web tests; builder360px screenshot+real browser bounds attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Drawer/layout source uses bounded scroll/wrap and reachable actions; longhistory proof visuallyinspected. Own current Chrome proves360px and200percent/reflow with20assignees,55comments and3images; focus/keyboard Move/Undo pass.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "UX-04",
+      "acceptance": "UX-04: Pause hidden-tab polling, refresh on focus and reconcile versions; no optimistic duplicate/older response overwrites newer data.",
+      "sourceTrace": "PollingProvider visible/focus pause; query cancellation; cursor-feed dedupe+version merge; card-drafts reconciliation",
+      "evidence": "own318web tests; own comments denial ordering; builder cached-description/image revoke flows attributed",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own poller/versionmerge/draft/refusal tests pass; actual outoforder denial and retained-request browserproof current. Hiddenpause/focus jitter/backoff traced.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    },
+    {
+      "id": "UX-05",
+      "acceptance": "UX-05: Representative Worker/Node warm/cold benchmarks, project isolation, exact restore boundary and repeated import pass documented gates.",
+      "sourceTrace": "actual Node/Worker runtime probes,1000card workload, warm/first request, exact restore/import duplicate gates",
+      "evidence": "runtime-validation-result raw evidence attributed; focused com-del restore/purge and MyTasks fixtures ownrun",
+      "outcome": "local_acceptance_pass",
+      "remaining": "Hosted checks explicitly UAT pending where applicable; downstream role-owned handoffs must bind this exact review before their phases count.",
+      "actualExecutedEvidence": {
+        "ownMountedFocused": 95,
+        "ownMountedAdjacent": 138,
+        "ownIndependentAdversarial": 2,
+        "ownWebFocused": 66,
+        "zeroFailuresSkips": true,
+        "note": "Own frozen-target mounted adjacent suite138/138; own focused boundary/race/cursor/retention suite95/95; actual counts overlap with global suite and are not unique new test cases.",
+        "currentRequiredApiCount": 1768,
+        "currentRequiredWebCount": 332
+      },
+      "counterevidenceAndRepairRecheck": "Own exactrestore/atomicimport/lifecycle/isolation regressions pass; Current independent executor actualNode/workerd warm/firstrequest1000card measurements and EXPLAIN artifacts inspected. HostedCPU/Hyperdrive/R2coldstart remainsUATpending.",
+      "browserEvidenceQualification": "Own actual Chrome layout/focus/filtered Move/Undo on current complete639-input freeze; independently inspected current global diagnostic and builder8groups. Existing product12 is used only for unaffected domain UI, never current import claims."
+    }
+  ],
+  "evidencePaths": [
+    "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/focused-summary.json",
+    "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/focused-commands.json",
+    "docs/reviews/FULL-REVALIDATION-20261103/resume-cards-activity-review/browser-proof-bindings.json"
+  ],
+  "ownCurrentBrowserObservations": [
+    {
+      "flow": "long detail lists and keyboard",
+      "titleLength": 200,
+      "descriptionLength": 12044,
+      "assignees": 20,
+      "commentsLoaded": 55,
+      "commentContinuation": true,
+      "finalizedImages": 3,
+      "tabStepsContained": 30,
+      "backgroundInert": true
+    },
+    {
+      "flow": "narrow360-long-detail",
+      "left": 0,
+      "right": 360,
+      "width": 360,
+      "viewport": 360,
+      "scrollWidth": 360,
+      "clientWidth": 360,
+      "bodyScrolls": true,
+      "assigneeScrollWidth": 302,
+      "assigneeClientWidth": 302,
+      "rootZoom": "1",
+      "footerAndCloseReachable": true
+    },
+    {
+      "flow": "css200percent-zoom-long-detail",
+      "left": 200,
+      "right": 1440,
+      "width": 1240,
+      "viewport": 1440,
+      "scrollWidth": 619,
+      "clientWidth": 619,
+      "bodyScrolls": true,
+      "assigneeScrollWidth": 261,
+      "assigneeClientWidth": 261,
+      "rootZoom": "2",
+      "footerAndCloseReachable": true
+    },
+    {
+      "flow": "equivalent200percent-reflow720",
+      "left": 0,
+      "right": 720,
+      "width": 720,
+      "viewport": 720,
+      "scrollWidth": 720,
+      "clientWidth": 720,
+      "bodyScrolls": true,
+      "assigneeScrollWidth": 662,
+      "assigneeClientWidth": 662,
+      "rootZoom": "1",
+      "footerAndCloseReachable": true
+    },
+    {
+      "flow": "zoom qualification",
+      "nativeShortcutApplied": false,
+      "nativeBefore": {
+        "width": 1440,
+        "dpr": 1
+      },
+      "nativeAfter": {
+        "width": 1440,
+        "dpr": 1
+      },
+      "checked": "actual CSS zoom2 and720CSSpx reflow equivalent to200percent on1440; not native Chrome menu zoom"
+    },
+    {
+      "flow": "Escape focus restoration",
+      "sourceCardFocused": true
+    },
+    {
+      "flow": "filtered keyboard before Move and Undo",
+      "ambiguousDragDisabled": true,
+      "fullDestinationReferenceOptions": 23,
+      "actualNeighborPairVerified": true,
+      "undoRestoredFirst": true
+    }
+  ],
+  "globalCurrentCounts": {
+    "contracts": {
+      "tests": 128,
+      "pass": 128,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "web": {
+      "tests": 332,
+      "pass": 332,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "mcp": {
+      "tests": 17,
+      "pass": 17,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "mcp-artifact": {
+      "tests": 1,
+      "pass": 1,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    },
+    "api": {
+      "tests": 1768,
+      "pass": 1768,
+      "fail": 0,
+      "cancelled": 0,
+      "skipped": 0
+    }
+  }
+}

@@ -1,21 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/BOARD-ACCESS-BETA-REREVIEW-20261029/189135f54103310ab443323d1dd17be25f741ef1bec27988453d4347da669081-round-1.json",
-  "summary": "BRD-01 Create board & atomic default columns verified. Implemented atomic board creation creating 4 default columns ('Not started', 'In progress', 'Testing', 'Completed'), role authorization restricting creation to Workspace Owners and Project Managers while rejecting members/viewers with 403 FORBIDDEN and outsiders with 404 NOT_FOUND, and transactional idempotency. Audited with unrounded score 9.425/10.0.",
-  "api_contract": "POST /api/v1/projects/:projectId/boards (docs/API.md v0.3)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-boards-round-4.json",
+  "summary": "BRD-01 Create board: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/boards.json per-ID criterion BRD-01",
+  "limitations": [
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
+  ],
   "evidence": [
     {
-      "path": "docs/reviews/BRD-01/test.log",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
-      "result": "All 16 tests passed. Independent audit score 9.605/10.",
-      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-boards-round-4.json",
+      "sha256": "4e1005a0b65b7f4f89b37eb33207df084d43d90aac9dd03198231c8f7fc15d95",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-boards-round-4.json --feature BRD-01",
+      "result": "PASS: 9.0/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "limitations": [
-    "Full operations require active project grant; archived project/board rejects all writes.",
-    "Independent review (record BOARD-ACCESS-BETA-REREVIEW-20261029, target 6e15bd0, weighted 8.985, verdict pass) was run by gemini-2.5-pro, below the gate's preferred depth for auth and concurrency work.",
-    "H12 files (.github/workflows/ci.yml, docs/MONITORING.md, the wrangler.jsonc edit) are not independently reviewed.",
-    "Accepted findings R3-07, R3-08, R3-09 and R3-12 stay open per docs/decisions/2026-10-28-beta-risk-acceptance.md.",
-    "The 450-test pass is reported by the reviewer on a disposable Postgres; the Architect did not re-run that suite."
   ]
 }

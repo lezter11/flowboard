@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-12/f54914e8db0111b924dca509a813ea63edbb1c9c87f4fb1535754bd026a1ba2a-round-1.json",
+  "summary": "CRD-12 Move undo verified. Implemented move undo as a new authorized versioned move returning the card to its prior column and rank via activity_log tracing, strictly validating OCC expectedVersion to explain conflict without overwriting intervening work. Audited with unrounded score 9.610/10.0.",
+  "api_contract": "POST /api/v1/cards/:cardId/move-undo (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-12/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/lifecycle-undo.test.ts",
+      "result": "All 4 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Archived projects and boards reject mutation requests with 409 READ_ONLY_CONTEXT.",
+    "Move undo is a forward mutation with OCC check; conflict is reported if card was modified.",
+    "Trash 24h expiration deadlines continue ticking even while project or board is archived."
+  ]
+}

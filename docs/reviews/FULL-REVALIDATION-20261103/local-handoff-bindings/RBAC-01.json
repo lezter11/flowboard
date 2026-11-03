@@ -1,0 +1,31 @@
+{
+  "featureId": "RBAC-01",
+  "acceptance": "Every endpoint derives active ownership/project grant from session; manager authority is project-scoped and member/viewer cannot administer.",
+  "functionalSourceDigest": "c1f1364e7072c1b8989ae227e5ef9721fa19226bb1d38494ff446abe008249bb",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "uiRequired": false,
+  "independentCoverage": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/coverage.json",
+    "detail": {
+      "id": "RBAC-01",
+      "backendTrace": "app mounted route registry; session/PAT auth; origin/body/deadline/rate middleware; rbac helpers",
+      "testEvidence": "route-auth-matrix; cookie-mutation-matrix; identity/runtime tests; own People controls; own current board-snapshot-privacy pass and new malformed-query auth-first/privacy no-effects counterprobe pass",
+      "uiTrace": "roles.ts/action-specific owner-only metadata/grants; role scoped from selected project",
+      "limits": "Independent current local review;198own passing tests overlap required suites. All14gates executed by separate independent executor. Current browser product12 and discussion8 proofs consumed with current hashes; not own Chrome execution. Backend/UI/integration handoff bindings and real provider/hosted acceptance remain separate.",
+      "criterionOutcome": "pass within local review; hosted-dependent acceptance UAT pending"
+    }
+  },
+  "originalBackend": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/original/backend/RBAC-01.json",
+  "sourceAndTests": [],
+  "backendStatus": "verified",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+  "backendReviewSHA256": "51ec7200a147d90a58080b8063d362a551c50259ad8a9a08413acddfc7d005b9",
+  "backendValidator": {
+    "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json --feature RBAC-01",
+    "exitCode": 0,
+    "stdout": "PASS: 8.975/10\n",
+    "stderr": ""
+  },
+  "uiStatus": "not_required"
+}

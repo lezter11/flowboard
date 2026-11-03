@@ -1,0 +1,27 @@
+{
+  "kind": "Unscored independent review checkpoint; required command attempt failed, not approval",
+  "reviewer": "collaboration:/root/resume_images_trash_review",
+  "executor": "collaboration:/root/round4_foundation_executor",
+  "sourceManifestPath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-2/source-before.json",
+  "sourceDigest": "84d10ab7ddfb5454cbe0af2d63b3e3f8f2028899375ddab428716f130d91200a",
+  "sourceFiles": 639,
+  "sourceUnchangedDuringAttempt": true,
+  "requiredCommandResultPath": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-2/commands.json",
+  "requiredCommandsPassed": 9,
+  "requiredCommandsFailed": 1,
+  "requiredCommandsUnrun": ["build-worker", "build-web", "browser-integration", "mcp-integration"],
+  "api": { "exitCode": 1, "tests": 1768, "pass": 1766, "fail": 2, "skip": 0 },
+  "failures": [
+    { "path": "apps/api/test/node.test.ts", "line": 23, "actual": 401, "expected": 404, "request": "Unauthenticated GET /api/v1/boards/not-implemented" },
+    { "path": "apps/api/test/worker.test.ts", "line": 49, "actual": 401, "expected": 404, "request": "Unauthenticated GET /api/v1/boards/not-implemented" }
+  ],
+  "classification": "Stale smoke expectations after auth-first board snapshot correction. This diagnosis does not waive the required failures or substitute historical logs.",
+  "focusedOwnResults": { "postgres": "48/48", "uiHelpers": "51/51", "selectedCodec": "53/53", "exitCodes": [0,0,0], "scope": "Only exact old source binding and unchanged application/image/trash inputs; no current global approval" },
+  "nextAuthorizedAction": "Coordinator completes only these2smoke contract expectations inside existing authorized repair cycle, refreezes changed tests, then obtains entirely fresh14command execution. Reviewer performs no repair/retry and waits before final scoring.",
+  "hardBlockersAtThisAttempt": ["Mandatory API command exit1", "Four mandatory commands unrun"],
+  "verdict": "incomplete",
+  "categories": null,
+  "weightedScore": null,
+  "closureApproved": false,
+  "uatApproved": false
+}

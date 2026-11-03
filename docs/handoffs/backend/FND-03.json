@@ -1,19 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/FND-03/dd074ee092fe1057d238e54fed99c97a838a52f539f7287aab798ff9b32ffdf9-round-1.json",
-  "summary": "FND-03 Shared contracts package validation: implemented complete Zod schemas and TypeScript types in @flowboard/contracts, Gregorian astronomical calendar and leap year validation, UTC ISO timestamps ending in Z, 16-128 char ASCII idempotency keys, canonical error codes and envelopes, and comprehensive OpenAPI 3.1 catalog covering 36 endpoints. All 41 unit tests passed; audited and certified by independent reviewer with score 9.825/10.0.",
-  "api_contract": "docs/API.md v0.3 and packages/contracts/src/openapi/index.ts",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-foundation-round4.json",
+  "summary": "FND-03 PostgreSQL schema and migrations: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/foundation.json per-ID criterion FND-03",
   "limitations": [
-    "Contracts define runtime schema validation and boundary types; database persistence and SQL constraints are verified in migrations.",
-    "UI and integrated acceptance remain separately owned and unverified."
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
   ],
   "evidence": [
     {
-      "path": "docs/evidence/FND-03-local.md",
-      "command": "npm run typecheck && npm run test --workspace @flowboard/contracts",
-      "result": "Strict typecheck passed with 0 errors; 41 unit tests passed across 19 suites, 0 failed, 0 skipped. Independent audit score: 9.825 / 10.0.",
-      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, TypeScript 7.0.2, Zod 3.24.2."
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-foundation-round4.json",
+      "sha256": "b241db34ba2a1474628eeedf64b644fe6e0ee79af6345e6fbbf9c49121ddaf50",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-foundation-round4.json --feature FND-03",
+      "result": "PASS: 9.015/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "next_dependency_ready_task": "Stage 1 domain features (ACC-01, PRJ-01, RBAC-01)."
+  ]
 }

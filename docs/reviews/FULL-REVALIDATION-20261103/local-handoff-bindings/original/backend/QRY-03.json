@@ -1,0 +1,18 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/QRY-03/f4cd5a98febfd736c5af5e32898d0ba4792d513af2e46c9422cf394e18526ac1-round-1.json",
+  "summary": "QRY-03 My assigned tasks personal view verified. Implemented personal assigned tasks query aggregating active cards assigned to current actor across all accessible projects where actor has an active membership or workspace ownership, sorting by due date ascending nulls last, enriching with project/board/column metadata, and instantly revoking tasks upon project access removal. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "GET /api/v1/me/tasks & GET /api/v1/workspaces/:workspaceId/my-tasks (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/QRY-03/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/qry01-qry03.test.ts",
+      "result": "All tests passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project rejects writes.",
+    "Query search bounded to active cards; trashed cards excluded."
+  ]
+}

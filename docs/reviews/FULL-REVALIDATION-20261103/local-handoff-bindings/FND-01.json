@@ -1,0 +1,45 @@
+{
+  "featureId": "FND-01",
+  "acceptance": "Pinned Node/Worker entry points and local PostgreSQL query/rollback run reproducibly; no cloud account required.",
+  "functionalSourceDigest": "c1f1364e7072c1b8989ae227e5ef9721fa19226bb1d38494ff446abe008249bb",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "uiRequired": false,
+  "independentCoverage": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/final-per-id-coverage.json",
+    "detail": {
+      "sourcePaths": [
+        "apps/api/src/runtime/node.ts",
+        "apps/api/src/runtime/worker.ts",
+        "apps/api/src/runtime/local-config.ts",
+        "apps/api/src/adapters/postgres.ts",
+        ".node-version",
+        "package.json"
+      ],
+      "testSourcePaths": [
+        "apps/api/test/worker.test.ts",
+        "apps/api/test/runtime-validation.test.ts"
+      ],
+      "localStatus": "pass: current local backend scope only",
+      "hostedStatus": "local-only feature; hosted operations not approved",
+      "verificationStatus": "Fresh read-only source review, own all14 exit0 and current-source browser expiry/privacy proof; original criteria unchanged.",
+      "localEvidence": [
+        "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+        "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/final-source-review.md",
+        "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/api.log"
+      ]
+    }
+  },
+  "originalBackend": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/original/backend/FND-01.json",
+  "sourceAndTests": [],
+  "backendStatus": "verified",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-foundation-round4.json",
+  "backendReviewSHA256": "b241db34ba2a1474628eeedf64b644fe6e0ee79af6345e6fbbf9c49121ddaf50",
+  "backendValidator": {
+    "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-foundation-account-review/review-foundation-round4.json --feature FND-01",
+    "exitCode": 0,
+    "stdout": "PASS: 9.015/10\n",
+    "stderr": ""
+  },
+  "uiStatus": "not_required"
+}

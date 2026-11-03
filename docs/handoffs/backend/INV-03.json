@@ -1,18 +1,28 @@
 {
-  "reviewPath": "docs/reviews/INV-03/221af067260b4d4117cdb5f543ab7eb4b7865a2110468b2bb851d72e1c008339-round-1.json",
   "status": "verified",
-  "summary": "INV-03 Accept matching invitation: implemented POST /api/v1/invitations/accept validating incoming single-use token against SHA-256 hash in project_invitations under row-level FOR UPDATE lock. Enforces strict email match between authenticated session and invitation recipient (mismatch returns 403 EMAIL_MISMATCH without membership creation), handles expired tokens (transitioning status to expired and returning 400 INVITATION_EXPIRED), and atomically updates invitation status to accepted while upserting active project_memberships. All automated integration tests pass against local PostgreSQL.",
-  "api_contract": "docs/API.md (POST /invitations/accept)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+  "summary": "INV-03 Accept matching invitation: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/projects-access-invitations.json per-ID criterion INV-03",
   "limitations": [
-    "Requires active authenticated session with verified email."
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
   ],
   "evidence": [
     {
-      "path": "docs/evidence/INV-03-local.md",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/inv01-inv03.test.ts",
-      "result": "Strict typecheck passed with 0 errors; all tests in inv01-inv03 test suite passed (8 passed, 0 failed, 0 skipped).",
-      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+      "sha256": "51ec7200a147d90a58080b8063d362a551c50259ad8a9a08413acddfc7d005b9",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json --feature INV-03",
+      "result": "PASS: 8.975/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "next_dependency_ready_task": "INV-06 (Change member roles), INV-07 (Remove project access), INV-08 (Leave a project)."
+  ]
 }

@@ -1,0 +1,7 @@
+# Fresh independent reviewer
+
+Reviewer actor and session: collaboration:/root/resume_cards_activity_review. Actual provider session/model identifier unavailable; inherited Codex reviewer model. This agent did not implement the evaluated source. It was spawned into a fresh review context with the requirements, known failed findings, repair handoffs and immutable-target instructions; builder score expectations were not supplied. Implementers include collaboration:/root and the separately recorded cards-discussion and discussion-notification UI builders.
+
+Read-only review of application source, tests, contracts, migrations and configuration. Writes are confined to this review evidence directory. No source edits, commits, cloud/production actions or real-user records. All accepted database runs must explicitly use NODE_ENV=test and the six owned loopback55931 harness databases; legacy global fixtures use an independently generated schema. Browser/build executions require the root runtime grant.
+
+This is evidence of the actual collaboration identity and reviewer declaration, not independently verifiable provider identity. Before a final freeze, source tracing and probe preparation grant no approval. Formal approval, if earned, must match the final root source manifest and all fourteen completed mandatory commands. Local acceptance leaves hosted OAuth/R2/mail/Claude/CPU checks explicitly UAT pending under the authorized sequence.

@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BRD-06/a56dc257f97ede8dce7ec2f97ecfaf41e12c8e3a4f9ab721a4cf92fc2fe812d5-round-1.json",
+  "summary": "BRD-06 Column deletion guards verified. Guarded column deletion to prevent data loss: rejects deleting the final column on a board (400), rejects deleting columns with active cards (409), and protects restorable trash within 24h restore window. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "DELETE /api/v1/boards/:boardId/columns/:columnId (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-06/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "result": "All 16 tests passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ]
+}

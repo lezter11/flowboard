@@ -1,0 +1,64 @@
+{
+  "kind": "independently executed local synthetic expired-session UI acceptance; real Google renewal remains UAT pending",
+  "startedAt": "2026-11-03T15:55:53.250Z",
+  "sourceDigest": "c1f1364e7072c1b8989ae227e5ef9721fa19226bb1d38494ff446abe008249bb",
+  "checks": [
+    {
+      "name": "expired session detected by real polling; private baseline hidden and direct reads/writes401 with unchanged row",
+      "status": "pass"
+    },
+    {
+      "name": "same-actor UI recovery refetches authorized baseline and restores only own unsent title without mutation",
+      "status": "pass"
+    }
+  ],
+  "blockedExternalOrigins": [],
+  "privateBoardMatrix": [
+    {
+      "actor": "anonymous",
+      "existing": {
+        "status": 401,
+        "code": "UNAUTHORIZED",
+        "message": "Invalid or missing authentication session."
+      },
+      "missing": {
+        "status": 401,
+        "code": "UNAUTHORIZED",
+        "message": "Invalid or missing authentication session."
+      },
+      "status": "pass"
+    },
+    {
+      "actor": "outsider",
+      "existing": {
+        "status": 404,
+        "code": "NOT_FOUND",
+        "message": "Board not found."
+      },
+      "missing": {
+        "status": 404,
+        "code": "NOT_FOUND",
+        "message": "Board not found."
+      },
+      "status": "pass"
+    },
+    {
+      "actor": "expired",
+      "status": "pass",
+      "existingStatus": 401,
+      "missingStatus": 401
+    }
+  ],
+  "browser": "156.0.8078.80",
+  "sharedBoardExistence": {
+    "existingStatus": 401,
+    "missingStatus": 401,
+    "privacyInvariant": "pass",
+    "source": "apps/api/src/http/routes/boards.ts:211-221",
+    "note": "Independent recheck: existing and missing private board must be indistinguishable before identity."
+  },
+  "expiryChecksStatus": "pass",
+  "status": "pass",
+  "changedSources": [],
+  "completedAt": "2026-11-03T15:56:02.838Z"
+}

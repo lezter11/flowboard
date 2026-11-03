@@ -69,7 +69,7 @@ export function CardDetailDrawer(props: Props) {
   const dirtyRef = useRef(false);
   const commentSession = useMemo(() => commentSessions.forCard(draftActorId, cardId), [draftActorId, cardId]);
   const commentDrafts = useSyncExternalStore(commentSession.subscribe, commentSession.get, commentSession.get);
-  const commentDirty = !!commentDrafts.create.body || !!commentDrafts.edit || !!commentDrafts.remove;
+  const commentDirty = !!commentDrafts.create.body || !!commentDrafts.edit || !!commentDrafts.remove || commentSession.post.unresolved() || commentSession.edit.unresolved() || commentSession.remove.unresolved();
   const [confirm, setConfirm] = useState<null | 'discard' | 'delete'>(null);
 
   useEffect(() => {

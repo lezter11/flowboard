@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/NTF-03/02ebd25634ad9022502c4df06dff6e15b183ac4ef00f30ffe000ca43116ed8de-round-1.json",
+  "summary": "NTF-03 Outbox retry and failed-work recovery verified. Implemented transactional outbox worker with FOR UPDATE SKIP LOCKED concurrency leasing, idempotent notification delivery, exponential backoff retries, and dead-letter quarantine upon reaching retry bounds. Audited with unrounded score 9.620/10.0.",
+  "api_contract": "processOutboxLease & POST /api/v1/notifications/outbox/process (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/NTF-03/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Activity logs are append-only; retention redaction scrubs sensitive content without deleting facts.",
+    "Outbox processor uses exponential backoff and dead-letter quarantine after maxRetries."
+  ]
+}

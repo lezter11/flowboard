@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/ATT-06/5b94e61fdc719659901031287e08aab4f0d49359fd65d174d5b43f27f79c7be6-round-1.json",
+  "summary": "ATT-06 Orphan cleanup and storage limits verified. Implemented hard quota of maximum 10 attachments per card enforced at staging and finalization, safe quota failure isolation without mutating card fields, and periodic orphan sweep sweeping expired (>1 hour) and cancelled uploads from storage driver and database. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "POST /api/v1/image-uploads/cleanup (docs/API.md v0.3) & quota limits",
+  "evidence": [
+    {
+      "path": "docs/reviews/ATT-06/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Supported formats restricted to PNG, JPEG, and WebP (max 10 MiB, <=8192px, <=20 MP).",
+    "Max 10 attachments per card; temporary storage cleaned after 1-hour TTL."
+  ]
+}

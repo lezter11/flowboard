@@ -1,0 +1,66 @@
+✔ Image promotion: commit failure preserves one known object and original command retry (275.706667ms)
+✔ Image promotion: abandoned failed finalization expires without an untracked object (184.769084ms)
+✔ Image cleanup: expired staging lifetime cannot expire a finalized receipt or delete its referenced object (214.586125ms)
+✔ Image cleanup: legacy distinct staging key is removed while permanent key and terminal state survive (194.319542ms)
+✔ Image cancellation: deferred commit failure preserves bytes and permits finalize (249.243333ms)
+✔ Image cancellation: committed failure to delete retains durable cleanup key (362.942042ms)
+✔ Image migration: legacy finalized references repair terminal state exactly once (259.752625ms)
+✔ Image cleanup: a finalize commit after the claim snapshot cannot delete its live object (2209.164542ms)
+✔ lifecycle retention: column with only expired card reference retires live column and preserves tombstone/history (228.530667ms)
+✔ lifecycle retention: column with only purged card reference retires live column and preserves tombstone/history (192.608708ms)
+✔ lifecycle retention: ready import default-column context survives live column retirement (237.913542ms)
+✔ lifecycle retention: terminal import default-column context survives live column retirement (247.336083ms)
+✔ lifecycle retention: tombstoning own and moderated comments removes copied inbox snippets while retaining facts (300.895583ms)
+✔ lifecycle retention: copied legacy comment outbox fields are scrubbed on deletion and recovery cannot recreate them (191.270708ms)
+✔ lifecycle retention: recovery distinguishes two comment events on the same card and repeats neither (201.623917ms)
+✔ lifecycle retention: unreferenced column deletes once while final/active/restorable guards remain (181.5235ms)
+✔ lifecycle retention: concurrent column delete/card create create wins without partial history (191.874708ms)
+✔ lifecycle retention: concurrent column delete/card create delete wins without partial history (228.501458ms)
+✔ lifecycle retention: delete winning comment lock does not deadlock with an in-flight outbox consumer or resurrect text (221.852375ms)
+✔ lifecycle retention: actual consumer holds source share lock and completes before waiting comment deletion (252.512542ms)
+✔ lifecycle retention: failed tombstone commit rolls back comment, inbox redaction, event and receipt (214.415208ms)
+✔ lifecycle retention: legacy migration redacts unknown sources honestly and preserves exact known source/recipient on rerun (199.205375ms)
+✔ restore retains nearest surviving gap after normal moves exhaust rank spacing (386.273208ms)
+✔ restore placement control: both (204.053709ms)
+✔ restore placement control: previous-only (211.791625ms)
+✔ restore placement control: next-only (208.602875ms)
+✔ restore placement control: neither (267.116125ms)
+✔ restore placement control: head (208.064958ms)
+✔ restore placement control: tail (203.173958ms)
+✔ restore placement control: empty (228.881167ms)
+✔ restore preserves head insertion when normal moves exhaust the first rank (349.150083ms)
+✔ restore replay is exactly once and stale/forbidden requests leave order and events unchanged (221.831083ms)
+✔ legacy missing destination requires explicit active same-board choice and retains the same card content (212.278833ms)
+✔ legacy destination cannot bypass project context (193.928417ms)
+✔ legacy destination cannot bypass board context (190.966375ms)
+✔ legacy destination cannot bypass revoked context (186.965833ms)
+✔ restore exact cutoff control at deadline -1ms (209.277958ms)
+✔ restore exact cutoff control at deadline 0ms (210.698625ms)
+✔ real mounted restore and purge overlap: restore wins the card lock (258.593541ms)
+purge-first wait graph [{"pid":17135,"wait_event":"ClientRead","blockers":[],"query":"SELECT pg_advisory_xact_lock($1)"},{"pid":17136,"wait_event":"advisory","blockers":[17135],"query":"UPDATE cards\n         SET state = 'purged',\n             title = '[Purged card]',\n             description = NULL,\n             version = version + 1,\n             updated_at = NOW()\n         WHERE id = $1 AND state = 'trashed'\n         RETURNING id"},{"pid":17138,"wait_event":"transactionid","blockers":[17136],"query":"SELECT c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.title, c.position, c.version, c.state,\n            c.restore_until,\n            b.structure_version AS board_structure_version,\n            b.snapshot_version AS board_snapshot_version,\n            b.archived AS board_archived,\n            p.archived AS project_archived\n     FROM cards c\n     JOIN boards b ON c.board_id = b.id\n     JOIN projects p ON c.project_id = p.id\n     WHERE c.id = $1\n     FOR UPDATE"}]
+purge-first actual cycle [{"pid":17135,"wait_event":"ClientRead","blockers":[],"query":"COMMIT"},{"pid":17136,"wait_event":"transactionid","blockers":[17138],"query":"INSERT INTO activity_log (\n           id, workspace_id, project_id, board_id, visibility_scope, card_id, actor_id, action, safe_changes, created_at\n         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, NOW())"},{"pid":17138,"wait_event":"transactionid","blockers":[17136],"query":"SELECT c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.title, c.position, c.version, c.state,\n            c.restore_until,\n            b.structure_version AS board_structure_version,\n            b.snapshot_version AS board_snapshot_version,\n            b.archived AS board_archived,\n            p.archived AS project_archived\n     FROM cards c\n     JOIN boards b ON c.board_id = b.id\n     JOIN projects p ON c.project_id = p.id\n     WHERE c.id = $1\n     FOR UPDATE"}]
+purge-first recovery {"firstStatus":503,"firstError":"SERVICE_UNAVAILABLE","firstMessage":"The request conflicted with another update. Retry shortly.","retryStatus":404,"identicalCommandAndKey":true,"losingRestoreReceipts":0}
+✔ real mounted restore and purge overlap: purge wins the card lock (1259.374ms)
+✔ failed restore commit rolls back compaction, lifecycle, board version, receipt and activity together (369.509125ms)
+✔ independent authority: private image fetch, uploader authority, sibling/revoked/session boundaries (285.235917ms)
+✔ independent quota: parallel stage count stops at10 and refusal preserves saved fields (272.282375ms)
+✔ independent trash/restore: preserved image/comment identity and cutoff, role gates, no in-trash writes (299.045083ms)
+ℹ {"index":0,"status":404,"response":{"error":{"code":"NOT_FOUND","message":"Card not found.","requestId":"68b4416b-d2bb-41ea-b1a8-469c6818a478"}}}
+ℹ {"index":1,"status":400,"response":{"error":{"code":"CARD_IS_TRASHED","message":"Cannot comment on a trashed card.","requestId":"4a091a9b-e7f3-45ac-8c21-cb73734ef7fe"}}}
+ℹ {"index":2,"status":404,"response":{"error":{"code":"NOT_FOUND","message":"Card not found.","requestId":"5e0a44f9-83ac-4725-8b3f-885d435bfefa"}}}
+ℹ {"index":3,"status":409,"response":{"error":{"code":"CARD_TRASHED","message":"Cannot attach images to a trashed or inactive card.","requestId":"405b6ac9-2ffd-459e-a731-484313242644"}}}
+ℹ {"index":4,"status":409,"response":{"error":{"code":"CARD_TRASHED","message":"Cannot attach images to an inactive card.","requestId":"3b7b0eb2-59d8-42b7-9499-b27eeec5191e"}}}
+✔ independent exact cutoff and purge: at cutoff410, retryable private cleanup, minimal receipts/events (227.439083ms)
+✔ independent strict cutoff: one millisecond before server deadline restores same card (189.160125ms)
+✔ independent finalized PNG restore/purge: restore first (275.584792ms)
+ℹ {"first":"restore","holderPid":17166,"restorePid":17168,"claim":{"claimedCount":0,"purgedCardIds":[]}}
+✔ independent finalized PNG restore/purge: purge first (1281.8645ms)
+ℹ {"first":"purge","holderPid":17170,"purgePid":17171,"restorePid":17173,"actualCycle":[{"pid":17170,"blockers":[],"query":"SELECT pg_advisory_unlock($1)"},{"pid":17171,"blockers":[17173],"query":"INSERT INTO activity_log (\n           id, workspace_id, project_id, board_id, visibility_scope, card_id, actor_id, action, safe_changes, created_at\n         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, NOW())"},{"pid":17173,"blockers":[17171],"query":"SELECT c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.title, c.position, c.version, c.state,\n            c.restore_until,\n            b.structure_version AS board_structure_version,\n            b.snapshot_version AS board_snapshot_version,\n            b.archived AS board_archived,\n            p.archived AS project_archived\n     FROM cards c\n     JOIN boards b ON c.board_id = b.id\n     JOIN projects p ON c.project_id = p.id\n     WHERE c.id = $1\n     FOR UPDATE"}]}
+ℹ tests 48
+ℹ suites 0
+ℹ pass 48
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 16476.772584

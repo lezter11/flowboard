@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/ACC-05/2b6597ab5c2f5587a1b6ec96060482fdeb955b52ca16b49b6f9d4960f0b32034-round-1.json",
+  "summary": "ACC-05 Workspace preferences verified. Implemented workspace name and timezone updates with strict owner-only authorization, OCC version validation, and date-only calendar deadline preservation. Audited with unrounded score 9.610/10.0.",
+  "api_contract": "PATCH /api/v1/workspaces/:workspaceId (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/ACC-05/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/acc-lifecycle.test.ts",
+      "result": "All 7 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Server session revocation deletes DB token; local client tabs retain drafts locally.",
+    "Ownership transfer is atomic and immediate; former owner loses administrative rights.",
+    "Outbox processor dispatches invitations via configured email adapter without storing secret links."
+  ]
+}

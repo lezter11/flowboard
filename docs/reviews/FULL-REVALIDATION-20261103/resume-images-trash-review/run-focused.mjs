@@ -1,0 +1,18 @@
+import fs from 'node:fs/promises';
+import crypto from 'node:crypto';
+import { spawn } from 'node:child_process';
+const out='docs/reviews/FULL-REVALIDATION-20261103/resume-images-trash-review';
+const tests=[out+'/mounted-adversarial.test.ts',out+'/restore-purge-independent.test.ts','apps/api/test/image-storage-atomicity.test.ts','apps/api/test/trash-restore-placement.test.ts','apps/api/test/lifecycle-retention-repair.test.ts'];
+const env={...process.env,NODE_ENV:'test',DATABASE_URL:'postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55931/flowboard_harness',FLOWBOARD_ACCESS_TEST_DATABASE_URL:'postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55931/flowboard_access_test',FLOWBOARD_IMPORT_TEST_DATABASE_URL:'postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55931/flowboard_import_test',FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL:'postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55931/flowboard_identity_extra_test',FLOWBOARD_UI_TEST_DATABASE_URL:'postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55931/flowboard_ui_test',FLOWBOARD_MCP_TEST_DATABASE_URL:'postgres://flowboard_harness:flowboard_local_only@127.0.0.1:55931/flowboard_mcp_probe'};
+const source=JSON.parse(await fs.readFile(out+'/selected-before-freeze.json','utf8'));
+const snapshot=async()=>Object.fromEntries(await Promise.all(Object.keys(source.files).concat(tests).map(async p=>[p,crypto.createHash('sha256').update(await fs.readFile(p)).digest('hex')])));
+const before=await snapshot();await fs.writeFile(out+'/focused-before.json',JSON.stringify(before,null,2)+'\n');
+const args=['--test','--test-concurrency=1',...tests],log=await fs.open(out+'/focused-pg-01.log','w');
+const startedAt=new Date().toISOString();
+const child=spawn(process.execPath,args,{env,stdio:['ignore',log.fd,log.fd]});
+const exitCode=await new Promise((resolve,reject)=>{child.on('error',reject);child.on('exit',resolve)});await log.close();
+const after=await snapshot();await fs.writeFile(out+'/focused-after.json',JSON.stringify(after,null,2)+'\n');
+const changed=Object.keys(before).filter(p=>before[p]!==after[p]);
+const result={startedAt,completedAt:new Date().toISOString(),command:'node '+args.join(' '),exitCode,environment:'Node '+process.version+'; NODE_ENV=test; six explicit owned synthetic PostgreSQL55931 URLs; per-test random schemas; memory storage/native sharp; no hosted account',changed,sourceFiles:Object.keys(before).length};
+await fs.writeFile(out+'/focused-result.json',JSON.stringify(result,null,2)+'\n');console.log(JSON.stringify(result));
+process.exitCode=exitCode||changed.length?1:0;

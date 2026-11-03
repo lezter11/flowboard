@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/AUD-01/92a6b0c4207e996cf074d4f76c3e65e345d5e8d07072b39580686a4b4adf2ba7-round-1.json",
+  "summary": "AUD-01 Card activity timeline verified. Implemented chronological card event timeline tracking creation, field edits, assignments, movements, comments, and attachments with stable cursor-based pagination and role-based reader disclosure. Audited with unrounded score 9.620/10.0.",
+  "api_contract": "GET /api/v1/cards/:cardId/activity (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/AUD-01/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/aud-ntf.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Activity logs are append-only; retention redaction scrubs sensitive content without deleting facts.",
+    "Outbox processor uses exponential backoff and dead-letter quarantine after maxRetries."
+  ]
+}

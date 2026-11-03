@@ -251,6 +251,10 @@ export async function createCardImport(client: pg.ClientBase, params: CreateCard
       message: 'External ID is repeated in this workbook.'
     });
     seen.add(r.externalId);
+    // A normalized hash is not proof that malformed source cells were valid.
+    // Numeric IDs, invalid dates/priorities and repeated workbook IDs can
+    // normalize to an earlier accepted row and must still block this batch.
+    const hasSourceErrors = errors.length > 0;
     const assignees = r.assigneeEmails.map(e => eligible.get(e)).filter((id): id is string => Boolean(id));
     if (assignees.length !== r.assigneeEmails.length) errors.push({
       field: 'assigneeEmails',
@@ -266,14 +270,16 @@ export async function createCardImport(client: pg.ClientBase, params: CreateCard
     const hash = computeRowHash(r);
     const marker = markers.get(r.externalId);
     let outcome: ImportRowOutcome = errors.length ? 'invalid' : 'new';
-    if (marker && marker.row_hash !== hash) {
+    if (!hasSourceErrors && marker && marker.row_hash !== hash) {
       outcome = 'conflict';
       errors.push({
         field: 'externalId',
         code: 'IMPORT_CONFLICT',
         message: 'External ID was imported with different original content.'
       });
-    } else if (marker) {
+    } else if (!hasSourceErrors && marker) {
+      // Source-valid identical rows are no-write skips, including an original
+      // status that needed a mapping or an assignee who later lost access.
       outcome = 'already_imported';
       errors.length = 0;
     }

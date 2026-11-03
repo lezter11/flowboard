@@ -35,7 +35,7 @@ import {
   listBoardCards,
 } from '../../adapters/boards.ts';
 import { HttpError } from '../errors.ts';
-import { authMiddleware, optionalAuthMiddleware, requireTokenScope } from '../middleware/auth.ts';
+import { authMiddleware, requireTokenScope } from '../middleware/auth.ts';
 
 export const boardsRoutes = new Hono();
 
@@ -208,17 +208,10 @@ boardsRoutes.get('/api/v1/boards/:boardId/metadata', authMiddleware, requireToke
 });
 
 // 3. GET /api/v1/boards/:boardId: Get consistent bounded board snapshot
-boardsRoutes.get('/api/v1/boards/:boardId', optionalAuthMiddleware, async (c) => {
+boardsRoutes.get('/api/v1/boards/:boardId', authMiddleware, async (c) => {
+  const actor = getActorOrThrow(c);
   const boardId = c.req.param('boardId');
   const pool = getPool();
-
-  // If the board does not exist at all, return 404 regardless of authentication
-  const boardCheck = await pool.query<{ id: string; project_id: string }>('SELECT id, project_id FROM boards WHERE id = $1', [boardId]);
-  if (boardCheck.rows.length === 0) {
-    throw HttpError.notFound('Board not found.', 'NOT_FOUND');
-  }
-
-  const actor = getActorOrThrow(c);
 
   const queryParams = c.req.query();
   const parsedQuery = parseOrThrow(boardSnapshotQuerySchema, queryParams);

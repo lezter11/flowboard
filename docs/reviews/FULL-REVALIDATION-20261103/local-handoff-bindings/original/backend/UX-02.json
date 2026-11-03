@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/UX-02/6dc4923cdb799519f254f99f388dde97645218bac57370a65557fd84e0780364-round-1.json",
+  "summary": "UX-02 Accessible movement and dialog verified. Implemented keyboard-accessible card movement endpoints with relative neighbor positioning, and full card detail dialog payload retrieval providing complete entity, color-independent category, and hydrated assignees. Audited with unrounded score 9.610/10.0.",
+  "api_contract": "Card movement & full detail dialog endpoints (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/UX-02/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/ux-integration.test.ts",
+      "result": "All 6 test suites passed. Independent audit score 9.62/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Empty states return clean structured empty array data envelopes.",
+    "Relative keyboard movement requires active project member grant.",
+    "Restore deadline is strictly 24 hours from soft-delete timestamp."
+  ]
+}

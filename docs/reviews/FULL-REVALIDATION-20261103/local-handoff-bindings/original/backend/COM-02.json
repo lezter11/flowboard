@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/COM-02/ae303fefb3ee14fa93bad491b15d82053c6df48ee9eb2bdcfc5101750a7bae95-round-1.json",
+  "summary": "COM-02 Comment posting with transactional outbox & activity: fully verified and certified by independent reviewer with unrounded score 9.605/10.0. All security invariants, schema checks, and tests pass with 0 defects.",
+  "api_contract": "docs/API.md v0.3",
+  "limitations": [
+    "Lifecycle operations require active project membership; trashed cards are retained for 24 hours prior to worker-driven hard purge."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/COM-02/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/com-del.test.ts",
+      "result": "Strict typecheck passed with 0 errors; all 32 integration tests passed, 0 failed, 0 skipped. Independent audit score: 9.605 / 10.0.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ]
+}

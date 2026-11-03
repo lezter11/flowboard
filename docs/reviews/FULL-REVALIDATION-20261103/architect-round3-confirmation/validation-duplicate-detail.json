@@ -1,0 +1,188 @@
+{
+  "invalidWithoutMarker": {
+    "status": 201,
+    "data": {
+      "id": "imp_2d529327-454b-41a6-a326-6c8dff583628",
+      "projectId": "prj",
+      "boardId": "brd",
+      "defaultColumnId": "col2",
+      "version": 1,
+      "state": "invalid",
+      "previewDigest": "9fd465901593bc68312b8637559b75bba25d6cdd98e5457e9de6db6ad71bdf3a",
+      "expiresAt": "2026-11-03T15:57:01.601Z",
+      "serverNow": "2026-11-03T15:27:01.616Z",
+      "createdAt": "2026-11-03T15:27:01.601Z",
+      "createdById": "usr_ff86442ba8441931",
+      "createdBy": {
+        "id": "usr_ff86442ba8441931",
+        "displayName": "Retention owner",
+        "avatarUrl": null,
+        "activeInProject": true,
+        "scopedRole": "owner",
+        "assignable": true,
+        "mentionable": true
+      },
+      "committedAt": null,
+      "committedById": null,
+      "committedBy": null,
+      "counts": {
+        "total": 1,
+        "new": 0,
+        "existing": 0,
+        "invalid": 1,
+        "conflict": 0,
+        "created": 0,
+        "skipped": 0
+      },
+      "canCommit": false,
+      "cancellationAllowed": true,
+      "nextCursor": null,
+      "error": null,
+      "rows": [
+        {
+          "rowNumber": 2,
+          "contentRedacted": false,
+          "externalId": "unseen",
+          "title": "Stable original title",
+          "description": "",
+          "status": null,
+          "priority": "none",
+          "dueDate": null,
+          "assigneeIds": [],
+          "errors": [
+            {
+              "code": "INVALID_DATE",
+              "field": "dueDate",
+              "message": "Due date must be a valid Gregorian date in YYYY-MM-DD format or genuine Excel date."
+            }
+          ],
+          "cardId": null,
+          "outcome": "invalid"
+        }
+      ]
+    }
+  },
+  "parser": [
+    {
+      "rowNumber": 2,
+      "externalId": "1",
+      "externalIdIsNumeric": false,
+      "title": "Stable original title",
+      "description": "",
+      "priority": "none",
+      "dueDate": null,
+      "assigneeEmails": [],
+      "status": null,
+      "rawErrors": [
+        {
+          "field": "dueDate",
+          "code": "INVALID_DATE",
+          "message": "Due date must be a valid Gregorian date in YYYY-MM-DD format or genuine Excel date."
+        }
+      ]
+    },
+    {
+      "rowNumber": 3,
+      "externalId": "new-row",
+      "externalIdIsNumeric": false,
+      "title": "Must not create alongside an invalid row",
+      "description": "",
+      "priority": "none",
+      "dueDate": null,
+      "assigneeEmails": [],
+      "status": null,
+      "rawErrors": []
+    }
+  ],
+  "mixed": {
+    "status": 201,
+    "data": {
+      "id": "imp_8f4fd438-d857-4be5-8d71-4747dc7fa723",
+      "projectId": "prj",
+      "boardId": "brd",
+      "defaultColumnId": "col2",
+      "version": 1,
+      "state": "invalid",
+      "previewDigest": "8b8effa74b34a0131a9c2e526875be47c06e072a569038341d663a82d37d5ac7",
+      "expiresAt": "2026-11-03T15:57:01.650Z",
+      "serverNow": "2026-11-03T15:27:01.660Z",
+      "createdAt": "2026-11-03T15:27:01.650Z",
+      "createdById": "usr_ff86442ba8441931",
+      "createdBy": {
+        "id": "usr_ff86442ba8441931",
+        "displayName": "Retention owner",
+        "avatarUrl": null,
+        "activeInProject": true,
+        "scopedRole": "owner",
+        "assignable": true,
+        "mentionable": true
+      },
+      "committedAt": null,
+      "committedById": null,
+      "committedBy": null,
+      "counts": {
+        "total": 2,
+        "new": 1,
+        "existing": 0,
+        "invalid": 1,
+        "conflict": 0,
+        "created": 0,
+        "skipped": 0
+      },
+      "canCommit": false,
+      "cancellationAllowed": true,
+      "nextCursor": null,
+      "error": null,
+      "rows": [
+        {
+          "rowNumber": 2,
+          "contentRedacted": false,
+          "externalId": "1",
+          "title": "Stable original title",
+          "description": "",
+          "status": null,
+          "priority": "none",
+          "dueDate": null,
+          "assigneeIds": [],
+          "errors": [
+            {
+              "code": "INVALID_DATE",
+              "field": "dueDate",
+              "message": "Due date must be a valid Gregorian date in YYYY-MM-DD format or genuine Excel date."
+            }
+          ],
+          "cardId": "crd_89d1cef3-1895-4956-b1fe-51d25c05e0ca",
+          "outcome": "invalid"
+        },
+        {
+          "rowNumber": 3,
+          "contentRedacted": false,
+          "externalId": "new-row",
+          "title": "Must not create alongside an invalid row",
+          "description": "",
+          "status": null,
+          "priority": "none",
+          "dueDate": null,
+          "assigneeIds": [],
+          "errors": [],
+          "cardId": null,
+          "outcome": "new"
+        }
+      ]
+    }
+  },
+  "completed": {
+    "status": 409,
+    "error": {
+      "code": "INVALID_STATE",
+      "message": "Import is not ready.",
+      "requestId": "408d0ccb-4d34-415c-bae1-603d5499c0cb"
+    }
+  },
+  "effects": [
+    {
+      "title": "Stable original title",
+      "due_date": null
+    }
+  ]
+}

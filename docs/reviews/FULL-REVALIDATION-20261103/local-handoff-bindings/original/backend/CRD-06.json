@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-06/355929f24234f4367aa0f282d56c6568638d424d79bdaddb45cd6f07b3a961d3-round-1.json",
+  "summary": "CRD-06 Teammate assignment bounds verified. Implemented relational assignee boundaries ensuring all assignees are active project members or the workspace owner, rejecting sibling project members, outsiders, removed members, and duplicate IDs with 422 VALIDATION_ERROR, and capping assignees at 20. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "PATCH /api/v1/cards/:cardId (docs/API.md v0.3)",
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-06/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 14 tests passed. Review score 9.425/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ]
+}

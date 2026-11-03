@@ -1,0 +1,102 @@
+✖ round3 board privacy: anonymous and expired sessions cannot distinguish an inaccessible existing board from a nonexistent board (209.39075ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 404.928083
+
+✖ failing tests:
+
+test at docs/reviews/FULL-REVALIDATION-20261103/resume-projects-boards-round3/board-existence-oracle-probe.test.ts:4:1
+✖ round3 board privacy: anonymous and expired sessions cannot distinguish an inaccessible existing board from a nonexistent board (209.39075ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + {
+  +   asOfDate: '2026-11-03',
+  +   board: {
+  +     createdAt: '2026-11-03T15:14:34.455Z',
+  +     description: null,
+  +     id: 'brd',
+  +     isArchived: false,
+  +     name: 'Retention',
+  +     projectId: 'prj',
+  +     snapshotVersion: 1,
+  +     structureVersion: 1,
+  +     updatedAt: '2026-11-03T15:14:34.455Z',
+  +     workspaceId: 'ws'
+  +   },
+  +   columns: [
+  +     {
+  +       activeCardCount: 0,
+  +       cards: [],
+  +       category: 'todo',
+  +       color: '#64748b',
+  +       id: 'col',
+  +       matchingCardCount: 0,
+  +       name: 'Old column',
+  +       nextCursor: null,
+  +       position: 0,
+  +       tone: null
+  +     },
+  +     {
+  +       activeCardCount: 1,
+  +       cards: [
+  +         {
+  +           assigneeIds: [],
+  +           boardId: 'brd',
+  +           columnId: 'col2',
+  +           commentCount: 0,
+  +           createdAt: '2026-11-03T15:14:34.462Z',
+  +           descriptionExcerpt: '',
+  +           dueDate: null,
+  +           id: 'card',
+  +           imageCount: 0,
+  +           key: 'PRJ-1',
+  +           position: 1000,
+  +           priority: 'medium',
+  +           title: 'Discussion',
+  +           updatedAt: '2026-11-03T15:14:34.462Z',
+  +           version: 1
+  +         }
+  +       ],
+  +       category: 'todo',
+  +       color: '#64748b',
+  +       id: 'col2',
+  +       matchingCardCount: 1,
+  +       name: 'Current column',
+  +       nextCursor: null,
+  +       position: 1,
+  +       tone: null
+  +     }
+  +   ],
+  +   filters: {
+  +     assigneeId: null,
+  +     due: null,
+  +     priority: null,
+  +     titleQuery: null
+  +   },
+  +   people: [],
+  +   totals: {
+  +     activeCardCount: 1,
+  +     dueSoonCount: 0,
+  +     matchingCardCount: 1,
+  +     overdueCount: 0
+  +   }
+  + }
+  - undefined
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/FULL-REVALIDATION-20261103/resume-projects-boards-round3/board-existence-oracle-probe.test.ts:12:11)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { board: { id: 'brd', workspaceId: 'ws', projectId: 'prj', name: 'Retention', description: null, isArchived: false, structureVersion: 1, snapshotVersion: 1, createdAt: '2026-11-03T15:14:34.455Z', updatedAt: '2026-11-03T15:14:34.455Z' }, filters: { titleQuery: null, priority: null, assigneeId: null, due: null }, asOfDate: '2026-11-03', totals: { activeCardCount: 1, matchingCardCount: 1, overdueCount: 0, dueSoonCount: 0 }, columns: [ [Object], [Object] ], people: [] },
+    expected: undefined,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

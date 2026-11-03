@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';import test from 'node:test';import fs from 'node:fs/promises';
+import { lifecycleFixture } from '../../../../apps/api/test/support/lifecycle-fixture.ts';
+import { importStatusResponseSchema } from '../../../../packages/contracts/src/imports.ts';
+import { cleanupExpiredImports } from '../../../../apps/api/src/services/import-retention.ts';
+const cases=['str-cell-inline-child','foreign-cell-value','mixed-value-inline','wrong-string-namespace','duplicate-expanded-attribute','zero-reference','literal-cdata-order','namespace-prefix-rebind','deep-nesting'];const observed:any[]=[];
+for(const name of cases)test(`Independent structural extension: ${name}`,async t=>{
+ const f=await lifecycleFixture(t);const bytes=await fs.readFile(new URL(`../formal-import-round2/${name}.xlsx`,import.meta.url));const response=await f.app.request('http://localhost/api/v1/boards/brd/imports?defaultColumnId=col2',{method:'POST',headers:{cookie:`flowboard_session=${f.actors.owner!.session.id}`,origin:'http://localhost','content-type':'application/octet-stream'},body:new Uint8Array(bytes).buffer});const body=await response.json()as any;
+ observed.push({name,status:response.status,body});t.after(async()=>{await fs.writeFile(new URL('./extension-results.json',import.meta.url),JSON.stringify(observed,null,2)+'\n');});
+ if(name==='literal-cdata-order'){assert.equal(response.status,201);assert.equal(body.data.rows[0].description,'Before&amp;#65;After🙂');}else assert.equal(response.status,422,JSON.stringify(body));
+});
+test('Independent retained receipt: cleanup keeps a contract-valid navigable created-card row',async t=>{
+ const f=await lifecycleFixture(t),bytes=await fs.readFile(new URL('../formal-import-round1/control.xlsx',import.meta.url));const upload=await f.app.request('http://localhost/api/v1/boards/brd/imports?defaultColumnId=col2',{method:'POST',headers:{cookie:`flowboard_session=${f.actors.owner!.session.id}`,origin:'http://localhost','content-type':'application/octet-stream'},body:new Uint8Array(bytes).buffer});const p=(await upload.json()as any).data;
+ const committed=await f.request('POST',`/imports/${p.id}/commit`,'owner',{expectedVersion:p.version,previewDigest:p.previewDigest,defaultColumnId:p.defaultColumnId});assert.equal(committed.status,200);const before=await committed.json()as any;assert.equal(importStatusResponseSchema.safeParse(before).success,true);
+ const cleanup=await cleanupExpiredImports(f.pool,{asOfDate:new Date(Date.now()+31*60*1000)});assert.equal(cleanup.cleanedCount,1);
+ const response=await f.request('GET',`/imports/${p.id}`);const body=await response.json()as any;const parsed=importStatusResponseSchema.safeParse(body);await fs.writeFile(new URL('./retained-receipt-result.json',import.meta.url),JSON.stringify({status:response.status,cleanup,before,after:body,contractValid:parsed.success,issues:parsed.success?[]:parsed.error.issues},null,2)+'\n');assert.equal(response.status,200);assert.equal(parsed.success,true,'Actual cleaned receipt must conform to shared ImportStatusResponse contract');assert.equal(body.data.rows[0].contentRedacted,true);assert.equal(body.data.rows[0].title,null);assert.equal(body.data.rows[0].externalId,null);assert.ok(body.data.rows[0].cardId);assert.equal(body.data.rows[0].rowNumber,2);
+});

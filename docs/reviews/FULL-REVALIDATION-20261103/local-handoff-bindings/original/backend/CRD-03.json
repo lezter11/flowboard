@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-03/e4ee4eb27ab985b6d292ef671d6d860903a130b2d6e7ac2e638694c763034250-round-1.json",
+  "summary": "CRD-03 Independent card detail query verified. Implemented independent authorization on direct card fetch, strict sibling project privacy returning 404 NOT_FOUND to unauthorized callers to prevent existence enumeration, and rich PersonDisplay enrichment for assignees. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "GET /api/v1/cards/:cardId (docs/API.md v0.3)",
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-03/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 14 tests passed. Review score 9.425/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ]
+}

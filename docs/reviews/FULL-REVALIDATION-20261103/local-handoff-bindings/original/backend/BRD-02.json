@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/BRD-02/0664c180b2a6bbc2404d28fdc12aa710536d9b5780a6ad2a3029ba6d24198184-round-1.json",
+  "summary": "BRD-02 List boards & OCC rename verified. Implemented project board listing for granted members, role-restricted board renaming with snapshot_version OCC verification (409 STALE_VERSION), and transactional idempotency. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "GET /api/v1/projects/:projectId/boards & PATCH /api/v1/boards/:boardId (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/BRD-02/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/brd01-brd07.test.ts",
+      "result": "All 16 tests passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ]
+}

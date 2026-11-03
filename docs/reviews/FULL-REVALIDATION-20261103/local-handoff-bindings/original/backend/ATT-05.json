@@ -1,0 +1,19 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/ATT-05/5fd0daf11f1163b71c204e6b236882edeeb1cf0c9e378dd17d76ec3a875dc85b-round-1.json",
+  "summary": "ATT-05 Remove attached image verified. Implemented image removal enforcing ownership matrix (uploader, project manager, or workspace owner permitted; peer members rejected with 403 FORBIDDEN), OCC image version verification, atomic database removal with card imageCount decrement and board snapshot_version increment, activity_log recording, and underlying storage object cleanup. Audited with unrounded score 9.605/10.0.",
+  "api_contract": "DELETE /api/v1/images/:imageId (docs/API.md v0.3)",
+  "evidence": [
+    {
+      "path": "docs/reviews/ATT-05/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/att01-att07.test.ts",
+      "result": "All 9 test suites passed. Independent audit score 9.605/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ],
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects writes.",
+    "Supported formats restricted to PNG, JPEG, and WebP (max 10 MiB, <=8192px, <=20 MP).",
+    "Max 10 attachments per card; temporary storage cleaned after 1-hour TTL."
+  ]
+}

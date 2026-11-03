@@ -1,0 +1,23 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import { lifecycleFixture } from '../../../../apps/api/test/support/lifecycle-fixture.ts';
+import { hashSessionToken } from '../../../../apps/api/src/adapters/session.ts';
+
+test('round4 new independent control: invalid query never bypasses auth-first denial, no domain writes, current authorized snapshot survives', async t => {
+ const f=await lifecycleFixture(t);
+ await f.pool.query("UPDATE sessions SET expires_at=NOW()-INTERVAL '1 minute' WHERE id=$1",[hashSessionToken(f.actors.viewer.session.id)]);
+ const read=async()=>(await f.pool.query("SELECT (SELECT count(*)::int FROM cards) cards,(SELECT count(*)::int FROM activity_log) activity,(SELECT count(*)::int FROM idempotency_receipts) receipts")).rows[0];
+ const before=await read();
+ for(const actor of ['anonymous','viewer']){
+  const results=[];
+  for(const id of ['brd','absent']){
+   const r=await f.app.request(`http://localhost/api/v1/boards/${id}?cardLimitPerColumn=garbage`,{headers:actor==='anonymous'?{}:{cookie:`flowboard_session=${f.actors[actor].session.id}`}});
+   const body=await r.json() as any; assert.equal(r.status,401); assert.equal(body.data,undefined);results.push({code:body.error.code,message:body.error.message});
+  }
+  assert.deepEqual(results[0],results[1]);
+ }
+ for(const id of ['brd','absent']){const r=await f.request('GET',`/boards/${id}`,'outsider');assert.equal(r.status,404);assert.equal((await r.json() as any).data,undefined);}
+ assert.equal((await f.request('GET','/boards/brd?cardLimitPerColumn=garbage','owner')).status,422);
+ const allowed=await f.request('GET','/boards/brd','member');assert.equal(allowed.status,200);assert.equal((await allowed.json() as any).data.board.id,'brd');
+ assert.deepEqual(await read(),before);
+});

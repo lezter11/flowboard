@@ -1,0 +1,17 @@
+{
+  "status": "verified",
+  "reviewPath": "docs/reviews/CRD-04/25a8b20890d2ef8d517c2469f3b5386306c540a51b64b2738ca4ca56c3cc0f72-round-1.json",
+  "summary": "CRD-04 Title & description updates with OCC verified. Implemented bounded text updates (title 1-200 chars, description up to 20,000 chars), strict Optimistic Concurrency Control rejecting stale versions with 409 STALE_VERSION, and atomic board snapshot incrementation. Audited with unrounded score 9.425/10.0.",
+  "api_contract": "PATCH /api/v1/cards/:cardId (docs/API.md v0.3)",
+  "limitations": [
+    "Full operations require active project grant; archived project/board rejects all writes."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/CRD-04/test.log",
+      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/crd01-crd11.test.ts",
+      "result": "All 14 tests passed. Review score 9.425/10.",
+      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+    }
+  ]
+}

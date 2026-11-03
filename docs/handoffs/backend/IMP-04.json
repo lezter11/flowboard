@@ -1,20 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/IMP-04/4d971a0f0951e3cf2f42a1fafecb91ccd3a9548e0bac21f7f361eb515e2b695f-round-1.json",
-  "summary": "IMP-04 Map and validate template fields verified. Enforces exact seven standard headers, preserves leading zeros on text External ID while rejecting numeric IDs with guidance, skips blank rows anywhere, validates Title/Description/Priority, converts 1900/1904 serial dates (rejecting fictitious 1900-02-29), resolves semicolon emails to active project members, and matches column statuses. Audited with unrounded score 9.605/10.0.",
-  "api_contract": "POST /api/v1/boards/:boardId/imports (docs/API.md v0.3)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-import-final/review.json",
+  "summary": "IMP-04 Map and validate template fields: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/import.json per-ID criterion IMP-04",
+  "limitations": [
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
+  ],
   "evidence": [
     {
-      "path": "docs/reviews/IMP-04/test.log",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/imp01-imp06.test.ts",
-      "result": "All 13 test suites passed. Independent audit score 9.605/10.",
-      "environment": "macOS isolated synthetic PostgreSQL 17 test database"
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-import-final/review.json",
+      "sha256": "431064e2358c0da83d7e496a027af84eadfe0beaae41e401aabeaff027918641",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-import-final/review.json --feature IMP-04",
+      "result": "PASS: 8.905/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "limitations": [
-    "Full operations require active project grant (Owner or Project Manager).",
-    "Accepts supported macro-free XLSX only (<= 5 MiB compressed, <= 20 MiB expanded XML, <= 200 non-empty rows).",
-    "Formulas, external package links, macros, and XXE declarations strictly disallowed.",
-    "Atomic all-or-nothing confirmation: any row validation failure rolls back the entire batch."
   ]
 }

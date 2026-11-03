@@ -1,8 +1,10 @@
 # Flowboard ordered tasks
 
+Current release state: local98Backend/74requiredUI/98integration handoffs validate against the approved immutable source; generated checklist is local acceptance only. All14 required checks pass. Next: push the approved candidate directly to UAT, create a fresh UAT-only backup, apply only missing reviewed migrations, remove only the unsafe UAT staging expiry rule, deploy Worker/Pages and record bounded hosted checks. Real provider/signed-in acceptance remains UAT pending; production is excluded. [Local gate evidence](docs/reviews/FULL-REVALIDATION-20261103/LOCAL-RELEASE-GATE.json).
+
 Current authorized release task (2026-11-03): revalidate all98 product features with real source-bound evidence, repair mandatory gaps, obtain fresh independent review and freeze the candidate, then publish directly to UAT and finish hosted tests. Follow [the execution plan](docs/reviews/FULL-REVALIDATION-20261103/PLAN.md). Do not manually close generated checklist entries. Hosted acceptance remains UAT pending until executed; older completion/score statements below are historical. Production is excluded.
 
-Latest instruction: user requested a checkpoint push and stop to switch GitHub accounts. Continue from [the checkpoint](docs/reviews/FULL-REVALIDATION-20261103/CHECKPOINT-20261103.md) after resumption; all final closure/deployment gates remain pending.
+Latest instruction (resumed 2026-11-03): continue from [the checkpoint](docs/reviews/FULL-REVALIDATION-20261103/CHECKPOINT-20261103.md), finish pending checks and independent reviews, deploy the approved candidate directly to UAT, then deliver MCP testing steps. Final closure/deployment gates remain pending until executed. [Destination and machine-identity requirements](docs/decisions/2026-11-03-integration-destination-and-machine-identity.md) capture the user's company client-credentials requirement and future MCP update capability; neither is claimed implemented.
 
 ## MCP repair — 2026-11-03
 

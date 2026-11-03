@@ -1,18 +1,28 @@
 {
   "status": "verified",
-  "reviewPath": "docs/reviews/PRJ-03/126a652c86c3ecd667e5728a95d1bbda44aba136e47c70e54e25e7fe327411dc-round-1.json",
-  "summary": "PRJ-03 Project settings: implemented PATCH /api/v1/projects/:projectId allowing Workspace Owner and Project Managers to update project name and description. Enforces role restrictions (members/viewers rejected with 403 FORBIDDEN, outsiders with 404 NOT_FOUND), prevents managers from altering workspace ownership, and enforces Optimistic Concurrency Control (OCC) rejecting stale expectedVersion with 409 STALE_VERSION. All 15 integration tests in prj02-prj05.test.ts pass against local PostgreSQL.",
-  "api_contract": "docs/API.md (PATCH /projects/:pid)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+  "summary": "PRJ-03 Project settings: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/projects-access-invitations.json per-ID criterion PRJ-03",
   "limitations": [
-    "Project archive and reopen actions are handled separately under PRJ-04 / PRJ-06."
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
   ],
   "evidence": [
     {
-      "path": "docs/evidence/PRJ-03-local.md",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/prj02-prj05.test.ts",
-      "result": "Strict typecheck passed with 0 errors; 15 integration tests passed, 0 failed, 0 skipped.",
-      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+      "sha256": "51ec7200a147d90a58080b8063d362a551c50259ad8a9a08413acddfc7d005b9",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json --feature PRJ-03",
+      "result": "PASS: 8.975/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "next_dependency_ready_task": "UI PRJ-03 (Project settings form), PRJ-04 (Archive project)."
+  ]
 }

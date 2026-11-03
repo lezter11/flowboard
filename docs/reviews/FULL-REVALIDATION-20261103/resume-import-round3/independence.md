@@ -1,0 +1,17 @@
+# Independent import reviewer identity
+
+Reviewer actor and session: `collaboration:/root/resume_import_review`. Implementer/coordinator: `collaboration:/root`. Provider session/model identifiers are unavailable to this child; these are actual collaboration identities, not invented provider UUIDs. This fresh reviewer agent did not implement or modify application, configuration, original fixtures, criteria or shared source. The task was independently evaluated in a separate agent turn. This agent writes only `resume-import-round3` evidence. No mutation testing against the held source was attempted because read-only review and the source hold prohibit it.
+
+The initial and final635-file functional manifest matches `6f0df7007c67963b3625bd902ed2f13b212064fd73f73c6932a4051718add04c`, HEAD `e13b15fc8ab4279d6a59977c94d6cb05d7dcd711` plus held uncommitted repairs. TASKS/PROGRESS/generated checklist/handoffs are mutable coordination records excluded from that functional manifest. Frozen criteria and immutable test/review evidence are included in the final evidence manifest.
+
+Own runs use NODE_ENV=test and all six explicit disposable PostgreSQL URLs supplied by the coordinator, on127.0.0.1:55931, userflowboard_harness. Lifecycle/XML/import-repair tests create/drop only owned random schemas. No55432/55479/default/remote/live database, real credentials, external provider, Next build/browser or deployment is used by this agent.
+
+The first independent loopback run hit sandbox EPERM and exit1 before any DB setup: preserved `probes.log`, never called product failure or passing evidence. The permitted retry passed27tests. Existing focused six files were independently rerun by this reviewer,148/148passed. New negative duplicate-validation tests then failed3/3 plus1/1 with exact exit1 and preserved actual outcomes. These failures override prior suite success.
+
+The full14command executor is `collaboration:/root/resume_foundation_account_review`. `executor-snapshot.json` is an immutable snapshot, not this reviewer's execution. At snapshot9commands completed exit0; API was running, with4commands still unrun. Any later completion belongs to that executor and cannot override the reproduced acceptance defect. Root/browser12product flows and20unchanged relevant hashes are attributed to `collaboration:/root`, not this reviewer.
+
+Round1 and round2 failed records remain unmodified. This is the third failed import review; automatic retries stop and the concrete defect escalates to Architect/root. No repair or round4 is authorized by this reviewer.
+
+## Final executor supplement before review delivery
+
+The independent executor subsequently finished all14required commands on the unchanged635-file source. **13exit0; APIexit1**, with1761tests/1750pass/11fail/0skip. Final logs and both command records are copied immutably into`executor-final.json`and`executor-final-*.log`. Runtime-validation failures includeNode/WorkerMyTaskstitleQuery422and session-expiry context; these are shared mandatory gate failures, not presented as a newly diagnosed import flaw. Architect/root independently reproduced5failed duplicate-validation assertions; `architect-confirmation.log`is attributed root evidence. This supersedes the earlier pending full-gate status, never the preserved snapshot bytes. The local gate is failed, with no missing commands and no UAT approval. The user has separately authorized one additional bounded cycle; this reviewer makes no repair or automatic retry and awaits a new freeze.

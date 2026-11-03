@@ -1,0 +1,197 @@
+{
+  "kind": "read-only per-ID evidence map; no feature approval",
+  "sourceDigest": "6f0df7007c67963b3625bd902ed2f13b212064fd73f73c6932a4051718add04c",
+  "features": {
+    "FND-01": {
+      "sourcePaths": [
+        "apps/api/src/runtime/node.ts",
+        "apps/api/src/runtime/worker.ts",
+        "apps/api/src/runtime/local-config.ts",
+        "apps/api/src/adapters/postgres.ts",
+        ".node-version",
+        "package.json"
+      ],
+      "testSourcePaths": [
+        "apps/api/test/worker.test.ts",
+        "apps/api/test/runtime-validation.test.ts"
+      ],
+      "localStatus": "review fail: shared identity/privacy defect and mandatory API gate exit1",
+      "hostedStatus": "local-only feature; hosted operations not approved",
+      "verificationStatus": "independent source trace and applicable existing checks executed; see command-results.json for actual pass/fail counts"
+    },
+    "FND-02": {
+      "sourcePaths": [
+        "packages/contracts/src",
+        "scripts/generate-openapi.ts",
+        "docs/openapi.json"
+      ],
+      "testSourcePaths": [
+        "packages/contracts/test",
+        "apps/api/test/route-auth-matrix.test.ts",
+        "apps/api/test/cookie-mutation-matrix.test.ts"
+      ],
+      "localStatus": "review fail: shared identity/privacy defect and mandatory API gate exit1",
+      "hostedStatus": "local-only feature; hosted operations not approved",
+      "verificationStatus": "independent source trace and applicable existing checks executed; see command-results.json for actual pass/fail counts"
+    },
+    "FND-03": {
+      "sourcePaths": [
+        "apps/api/src/adapters/migrations.ts",
+        "apps/api/src/adapters/embedded-migrations.ts",
+        "database/migrations"
+      ],
+      "testSourcePaths": [
+        "apps/api/test/migrations.test.ts",
+        "apps/api/test/b21-migration-0019.test.ts",
+        "apps/api/test/boards-lifecycle-repair.test.ts"
+      ],
+      "localStatus": "review fail: shared identity/privacy defect and mandatory API gate exit1",
+      "hostedStatus": "local-only feature; hosted operations not approved",
+      "verificationStatus": "independent source trace and applicable existing checks executed; see command-results.json for actual pass/fail counts"
+    },
+    "FND-04": {
+      "sourcePaths": [
+        "apps/api/src/http/app.ts",
+        "apps/api/src/http/middleware",
+        "apps/api/src/services/rate-limit.ts",
+        "apps/api/src/adapters/rate-limit-postgres.ts"
+      ],
+      "testSourcePaths": [
+        "apps/api/test/observability.test.ts",
+        "apps/api/test/runtime-validation.test.ts",
+        "apps/api/test/runtime-safety-repair.test.ts",
+        "apps/api/test/rate-limit.test.ts"
+      ],
+      "localStatus": "review fail: shared identity/privacy defect and mandatory API gate exit1",
+      "hostedStatus": "local-only feature; hosted operations not approved",
+      "verificationStatus": "independent source trace and applicable existing checks executed; see command-results.json for actual pass/fail counts"
+    },
+    "ACC-01": {
+      "sourcePaths": [
+        "apps/api/src/http/routes/google-auth.ts",
+        "apps/api/src/http/routes/session.ts",
+        "apps/api/src/adapters/session.ts",
+        "apps/api/src/http/safe-next.ts"
+      ],
+      "testSourcePaths": [
+        "apps/api/test/acc01-session.test.ts",
+        "apps/api/test/google-auth-system.test.ts",
+        "apps/api/test/err-s10-google-redirects.test.ts",
+        "apps/api/test/google-next.test.ts",
+        "apps/api/test/safe-next.test.ts"
+      ],
+      "localStatus": "review fail: shared identity/privacy defect and mandatory API gate exit1",
+      "hostedStatus": "UAT pending",
+      "verificationStatus": "independent source trace and applicable existing checks executed; see command-results.json for actual pass/fail counts"
+    },
+    "ACC-02": {
+      "sourcePaths": [
+        "apps/api/src/http/routes/session.ts",
+        "apps/api/src/adapters/session.ts",
+        "apps/web/src/lib/session.tsx",
+        "apps/web/src/lib/session-state.ts",
+        "apps/web/src/lib/protected-drafts.ts"
+      ],
+      "testSourcePaths": [
+        "apps/api/test/acc01-session.test.ts",
+        "apps/api/test/acc-lifecycle.test.ts",
+        "apps/web/test"
+      ],
+      "localStatus": "review fail: shared identity/privacy defect and mandatory API gate exit1",
+      "hostedStatus": "UAT pending",
+      "verificationStatus": "independent source trace and applicable existing checks executed; see command-results.json for actual pass/fail counts",
+      "additionalBrowserEvidence": {
+        "path": "docs/reviews/FULL-REVALIDATION-20261103/resume-foundation-account-review/expired-session-browser-1/result.json",
+        "checks": 2,
+        "expiryChecks": "pass",
+        "securityCounterprobe": "fail401existing/404missing",
+        "realGoogleRenewal": "not tested; synthetic same-actor session only"
+      }
+    },
+    "ACC-03": {
+      "sourcePaths": [
+        "apps/api/src/http/routes/session.ts",
+        "apps/api/src/http/routes/google-auth.ts",
+        "apps/api/src/services/activity-people.ts",
+        "apps/api/src/http/routes/projects.ts",
+        "apps/api/src/adapters/rbac.ts"
+      ],
+      "testSourcePaths": [
+        "apps/api/test/b9-profile-name.test.ts",
+        "apps/api/test/b16-names.test.ts",
+        "apps/api/test/activity-reference-people.test.ts",
+        "apps/api/test/people-directory-policy.test.ts"
+      ],
+      "localStatus": "review fail: shared identity/privacy defect and mandatory API gate exit1",
+      "hostedStatus": "UAT pending",
+      "verificationStatus": "independent source trace and applicable existing checks executed; see command-results.json for actual pass/fail counts"
+    },
+    "ACC-04": {
+      "sourcePaths": [
+        "apps/api/src/adapters/personal-workspace.ts",
+        "apps/api/src/adapters/quotas.ts",
+        "apps/api/src/http/routes/projects.ts",
+        "apps/api/src/http/routes/workspaces.ts",
+        "database/migrations/0019_personal_workspace_backfill.sql"
+      ],
+      "testSourcePaths": [
+        "apps/api/test/acc04-workspaces.test.ts",
+        "apps/api/test/b17-personal-workspace.test.ts",
+        "apps/api/test/b21-migration-0019.test.ts"
+      ],
+      "localStatus": "review fail: shared identity/privacy defect and mandatory API gate exit1",
+      "hostedStatus": "UAT pending",
+      "verificationStatus": "independent source trace and applicable existing checks executed; see command-results.json for actual pass/fail counts"
+    },
+    "ACC-05": {
+      "sourcePaths": [
+        "apps/api/src/http/routes/workspaces.ts",
+        "apps/web/src/lib/dates.ts",
+        "packages/contracts/src/workspaces.ts"
+      ],
+      "testSourcePaths": [
+        "apps/api/test/acc-lifecycle.test.ts",
+        "apps/web/test/preferences-state.test.ts",
+        "apps/api/test/runtime-validation.test.ts"
+      ],
+      "localStatus": "review fail: shared identity/privacy defect and mandatory API gate exit1",
+      "hostedStatus": "UAT pending",
+      "verificationStatus": "independent source trace and applicable existing checks executed; see command-results.json for actual pass/fail counts"
+    },
+    "ACC-06": {
+      "sourcePaths": [
+        "apps/api/src/adapters/rbac.ts",
+        "apps/api/src/adapters/last-location.ts",
+        "apps/api/src/adapters/default-board.ts",
+        "apps/web/src/lib/session.tsx"
+      ],
+      "testSourcePaths": [
+        "apps/api/test/acc-lifecycle.test.ts",
+        "apps/api/test/route-auth-matrix.test.ts",
+        "apps/api/test/board-grants-foundation.test.ts"
+      ],
+      "localStatus": "review fail: shared identity/privacy defect and mandatory API gate exit1",
+      "hostedStatus": "UAT pending",
+      "verificationStatus": "independent source trace and applicable existing checks executed; see command-results.json for actual pass/fail counts"
+    },
+    "ACC-07": {
+      "sourcePaths": [
+        "apps/api/src/http/routes/workspaces.ts",
+        "apps/api/src/http/middleware/token-policy.ts"
+      ],
+      "testSourcePaths": [
+        "apps/api/test/acc-lifecycle.test.ts",
+        "apps/api/test/cookie-mutation-matrix.test.ts",
+        "apps/api/test/route-auth-matrix.test.ts"
+      ],
+      "localStatus": "review fail: shared identity/privacy defect and mandatory API gate exit1",
+      "hostedStatus": "UAT pending",
+      "verificationStatus": "independent source trace and applicable existing checks executed; see command-results.json for actual pass/fail counts"
+    }
+  },
+  "notCovered": [
+    "Actual Google/provider renewal and deployed Cloudflare/Hyperdrive/R2/mail/cron/Claude-host acceptance remain UAT pending.",
+    "Five DELETE-comment matrix cells and two runtime-search subcases did not reach their assertions because test fixtures are stale.",
+    "All UI/integration handoff hash rebinding remains separate; this reviewer writes no handoff."
+  ]
+}

@@ -1,18 +1,28 @@
 {
-  "reviewPath": "docs/reviews/INV-06/027f1e0144c80053a9935cb925e6eaef69af7f6797de7e37df3aa738254948c9-round-1.json",
   "status": "verified",
-  "summary": "INV-06 Change member roles: implemented PATCH /api/v1/projects/:projectId/members/:userId enabling Workspace Owner to modify any member role and Project Managers to modify member/viewer roles only. Enforces peer protection (PMs cannot promote/demote peer managers or workspace owner), self-protection (PMs cannot modify own role), sibling privacy (404 NOT_FOUND for outsiders), and optimistic concurrency control (OCC) rejecting stale expectedVersion updates with 409 STALE_VERSION. All automated integration tests pass against local PostgreSQL.",
-  "api_contract": "docs/API.md (PATCH /projects/:pid/members/:uid)",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+  "summary": "INV-06 Change member roles: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/projects-access-invitations.json per-ID criterion INV-06",
   "limitations": [
-    "Assignee reassignment on role change to viewer is handled in CRD-03."
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
   ],
   "evidence": [
     {
-      "path": "docs/evidence/INV-06-local.md",
-      "command": "npm run typecheck && WRANGLER_SEND_METRICS=false node --test apps/api/test/inv06-inv07.test.ts",
-      "result": "Strict typecheck passed with 0 errors; all tests in inv06-inv07 test suite passed (13 passed, 0 failed, 0 skipped).",
-      "environment": "macOS 27.0.1 arm64, Node 24.15.0, npm 11.12.1, PostgreSQL 17.11 Alpine container."
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json",
+      "sha256": "51ec7200a147d90a58080b8063d362a551c50259ad8a9a08413acddfc7d005b9",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-projects-boards-final/42989385b7f86d1b5b8224055c5448492862de8ef04e9754a7baacc5da5f1045-projects-access-invitations-round-4.json --feature INV-06",
+      "result": "PASS: 8.975/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
     }
-  ],
-  "next_dependency_ready_task": "INV-07 (Remove project access), INV-08 (Leave a project), PRJ-05 (Project people directory)."
+  ]
 }
