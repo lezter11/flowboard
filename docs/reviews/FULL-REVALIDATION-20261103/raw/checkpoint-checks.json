@@ -2,14 +2,39 @@
   "kind": "User-requested WIP save point, not full release approval",
   "sourceOwnersHeld": true,
   "checks": [
-    {"command":"npm run typecheck","exitCode":0,"log":"checkpoint-typecheck.log"},
-    {"command":"npm run typecheck:web","exitCode":0,"log":"checkpoint-web-typecheck.log"},
-    {"command":"npm run openapi:check","exitCode":0,"log":"checkpoint-openapi.log"},
-    {"command":"git diff --check","exitCode":0,"log":"checkpoint-whitespace.log"}
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "checkpoint-typecheck.log"
+    },
+    {
+      "command": "npm run typecheck:web",
+      "exitCode": 0,
+      "log": "checkpoint-web-typecheck.log"
+    },
+    {
+      "command": "npm run openapi:check",
+      "exitCode": 0,
+      "log": "checkpoint-openapi.log"
+    },
+    {
+      "command": "git diff --check",
+      "exitCode": 0,
+      "log": "checkpoint-whitespace.log",
+      "scope": "Tracked patch before staging; this does not include formerly untracked raw evidence."
+    }
   ],
   "fullCurrentApiSuite": "not completed; earlier independent attempt interrupted and explicitly preserved",
   "fullCurrentIndependentApproval": false,
   "currentUatDeployment": false,
   "browserRemainder": "Audit-detail assertions stopped at a duplicate-text locator; pending flows and dirty-tracking follow-up recorded in builder checkpoint",
-  "secretScan": "checkpoint-sensitive-scan.json; bounded rules, no potential matches; not a universal secret-detection guarantee"
+  "secretScan": "checkpoint-sensitive-scan.json; bounded rules, no potential matches; not a universal secret-detection guarantee",
+  "committedWhitespaceCheck": {
+    "command": "git show --format= --check a2a52fc",
+    "exitCode": 2,
+    "log": "checkpoint-committed-whitespace.log",
+    "warningFileCount": 250,
+    "unexpectedSourcePaths": [],
+    "explanation": "Retained raw command output and verbatim third-party license contain whitespace warnings. Preserve evidence and license bytes; this is not a clean full-commit whitespace claim."
+  }
 }
