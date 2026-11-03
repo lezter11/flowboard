@@ -1,3 +1,5 @@
+import path from 'node:path';
+import os from 'node:os';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import type { TestContext } from 'node:test';
@@ -28,7 +30,7 @@ export async function lifecycleFixture(t: TestContext, legacy: boolean | number 
   });
   if (legacy) {
     const fs = await import('node:fs/promises');
-    const dir = await fs.mkdtemp('/private/tmp/flowboard-comment-migrations-');
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowboard-comment-migrations-'));
     t.after(() => fs.rm(dir, {
       recursive: true,
       force: true

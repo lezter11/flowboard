@@ -1,3 +1,4 @@
+import os from 'node:os';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
 import fs from 'node:fs/promises';
@@ -11,7 +12,7 @@ import {imageFixture} from './support/image-fixtures.ts';
 
 test('Image admission: actual workerd retains its isolate slot after a504 until the underlying verifier settles', {timeout:30000},async t=>{
   const f=await lifecycleFixture(t);
-  const dir=await fs.mkdtemp('/private/tmp/flowboard-image-admission-');
+  const dir=await fs.mkdtemp(path.join(os.tmpdir(), 'flowboard-image-admission-'));
   const uri=new URL(importTestDatabaseUrl());uri.searchParams.set('options',`-c search_path=${f.schema}`);
   const configPath=path.join(dir,'wrangler.json');
   await fs.writeFile(configPath,JSON.stringify({name:'image-admission-worker-test',main:fileURLToPath(new URL('./image-admission-worker-probe.ts',import.meta.url)),compatibility_date:'2026-10-19',compatibility_flags:['nodejs_compat'],vars:{DATABASE_URL:uri.toString()}}));

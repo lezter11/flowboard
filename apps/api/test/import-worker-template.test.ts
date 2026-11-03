@@ -1,3 +1,4 @@
+import os from 'node:os';
 import { importTestDatabaseUrl } from './support/import-database.ts';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -28,7 +29,7 @@ test('import repair: real workerd serves exact supplied blank XLSX without a hos
     max: 2,
     options: `-c search_path=${schema}`
   });
-  const dir = await fs.mkdtemp('/private/tmp/flowboard-import-worker-');
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowboard-import-worker-'));
   t.after(async () => {
     await pool.end();
     await admin.query(`DROP SCHEMA "${schema}" CASCADE`);

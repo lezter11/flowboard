@@ -1,3 +1,4 @@
+import os from 'node:os';
 import { jpegCorpus } from './support/jpeg-corpus.ts';
 import { imageGalleryResponseSchema } from '@flowboard/contracts';
 import { maximumImageFixtures, texturedMaximumJpegFixtures } from './support/image-maximum-fixtures.ts';
@@ -15,7 +16,7 @@ test('Image integrity: actual workerd validates complete containers and private 
   timeout: 120000
 }, async t => {
   const f = await lifecycleFixture(t);
-  const dir = await fs.mkdtemp('/private/tmp/flowboard-image-worker-');
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowboard-image-worker-'));
   const url = new URL(importTestDatabaseUrl());
   url.searchParams.set('options', `-c search_path=${f.schema}`);
   const configPath = path.join(dir, 'wrangler.json');

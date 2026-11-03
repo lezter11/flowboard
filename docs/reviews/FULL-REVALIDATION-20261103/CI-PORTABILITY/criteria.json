@@ -1,0 +1,14 @@
+{
+  "status": "criteria recorded before repair",
+  "authorization": "User explicitly chose 'Hold and fix Linux CI first' after the UAT branch CI failure. Deployment remains held until the CI issue is resolved and the changed target's evidence is rebound.",
+  "baselineCommit": "c1ccbf800e1ba5ebbdd8556eb935810a6fc4aef1",
+  "problem": "GitHub Linux CI fails eleven API checks because seven test fixtures create temporary directories under the Mac-only /private/tmp path. Application source has no such path. A separately reproduced optional cleanup test also has a sub-millisecond database/JavaScript clock race.",
+  "scope": "Seven API test/support files only: image-integrity-worker, png-stream-worker, import-worker-template, import-repair, image-admission-worker, support/lifecycle-fixture, runtime-validation. No application source, routes, contracts, SQL migrations, permissions, limits or acceptance threshold changes.",
+  "acceptance": [
+    "Temporary fixture directories use os.tmpdir() and path.join() while preserving unique mkdtemp prefixes and cleanup ownership.",
+    "The migration-retention assertion uses an explicit database-derived cutoff after the migration timestamp; exact cleanup count and redacted fields remain asserted. Do not introduce sleeps or relax the retention requirement.",
+    "Typecheck and an actual workerd test run under a dedicated temporary root without Docker; preserve exact command exits and before/after source hashes.",
+    "Push the small test-only repair to UAT source and obtain a complete passing GitHub Linux CI run. Failed original CI remains preserved and never relabeled green.",
+    "Changed source invalidates previous exact manifest approval until a fresh independent portability review and matching feature evidence rebindings are complete. No UAT deployment or production mutation while held."
+  ]
+}

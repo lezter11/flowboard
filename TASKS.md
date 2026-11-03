@@ -1,5 +1,7 @@
 # Flowboard ordered tasks
 
+Latest user decision: **Hold and fix Linux CI first.** Publish the seven-file test-only portability/cutoff repair, wait for complete GitHub Linux CI, then obtain matching independent source/evidence rebindings before UAT promotion. Earlier local98/74/98 approvals remain historical for their exact snapshot; changed tests reopen current procedural approval. Verified encrypted UAT backup exists outside Git. UAT and production remain unchanged.
+
 Current release state: local98Backend/74requiredUI/98integration handoffs validate against the approved immutable source; generated checklist is local acceptance only. All14 required checks pass. Next: push the approved candidate directly to UAT, create a fresh UAT-only backup, apply only missing reviewed migrations, remove only the unsafe UAT staging expiry rule, deploy Worker/Pages and record bounded hosted checks. Real provider/signed-in acceptance remains UAT pending; production is excluded. [Local gate evidence](docs/reviews/FULL-REVALIDATION-20261103/LOCAL-RELEASE-GATE.json).
 
 Current authorized release task (2026-11-03): revalidate all98 product features with real source-bound evidence, repair mandatory gaps, obtain fresh independent review and freeze the candidate, then publish directly to UAT and finish hosted tests. Follow [the execution plan](docs/reviews/FULL-REVALIDATION-20261103/PLAN.md). Do not manually close generated checklist entries. Hosted acceptance remains UAT pending until executed; older completion/score statements below are historical. Production is excluded.

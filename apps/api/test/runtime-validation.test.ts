@@ -27,7 +27,7 @@ async function setup(t:TestContext){
   const schema='runtime_validation_'+crypto.randomUUID().replaceAll('-','');
   const admin=new pg.Pool({connectionString:primaryUri,max:1});await admin.query(`CREATE SCHEMA "${schema}"`);
   const pool=new pg.Pool({connectionString:primaryUri,max:8,options:`-c search_path=${schema}`});
-  const dir=await fs.mkdtemp('/private/tmp/flowboard-runtime-validation-');
+  const dir=await fs.mkdtemp(path.join(os.tmpdir(), 'flowboard-runtime-validation-'));
   t.after(async()=>{await pool.end();await admin.query(`DROP SCHEMA "${schema}" CASCADE`);await admin.end();await fs.rm(dir,{recursive:true,force:true});if(output)await fs.writeFile(output,JSON.stringify(samples,null,2)+'\n');});
   await runMigrations(pool);await pool.query('CREATE TABLE runtime_probe_events(kind TEXT NOT NULL)');
   samples.environment.postgres=(await pool.query('SELECT version() AS version')).rows[0].version;

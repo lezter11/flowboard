@@ -1,3 +1,4 @@
+import os from 'node:os';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import fs from 'node:fs/promises';
@@ -8,7 +9,7 @@ import {createTestHarness} from 'wrangler';
 import {imageFixtures} from './support/image-fixtures.ts';
 import {malformedPngStreams, packedPng} from './support/png-stream-fixtures.ts';
 test('PNG native stream actual workerd rejects semantic corruption and accepts color/Adam7/20MP16bit full pipelines', {timeout:90000}, async t => {
-  const dir = await fs.mkdtemp('/private/tmp/flowboard-png-stream-test-');
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowboard-png-stream-test-'));
   const configPath = path.join(dir,'wrangler.json');
   await fs.writeFile(configPath,JSON.stringify({name:'flowboard-png-stream-test',main:fileURLToPath(new URL('./png-stream-worker-probe.ts',import.meta.url)),compatibility_date:'2026-10-19',compatibility_flags:['nodejs_compat'],images:{binding:'IMAGE_VERIFIER'}}));
   const harness = createTestHarness({workers:[{configPath}]});

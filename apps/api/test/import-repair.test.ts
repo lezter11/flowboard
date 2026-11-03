@@ -1,3 +1,5 @@
+import path from 'node:path';
+import os from 'node:os';
 import { importTestDatabaseUrl } from './support/import-database.ts';
 import assert from 'node:assert/strict';
 import crypto from 'node:crypto';
@@ -34,7 +36,7 @@ async function fixture(t: TestContext, legacy = false) {
   });
   if (legacy) {
     const fs = await import('node:fs/promises');
-    const dir = await fs.mkdtemp('/private/tmp/flowboard-import-migrations-');
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'flowboard-import-migrations-'));
     t.after(() => fs.rm(dir, {
       recursive: true,
       force: true
@@ -430,7 +432,10 @@ test('import repair: migration0021 upgrades old previews conservatively and reru
   const {
     cleanupExpiredImports
   } = await import('../src/services/import-retention.ts');
-  assert.equal((await cleanupExpiredImports(f.pool)).cleanedCount, 1);
+  // PostgreSQL timestamps retain microseconds; JavaScript Date rounds to milliseconds.
+  // Use a deliberate database-clock cutoff after migration, without a timing race.
+  const cleanupClock = (await f.pool.query("SELECT NOW()+INTERVAL '1 second' AS cutoff")).rows[0].cutoff;
+  assert.equal((await cleanupExpiredImports(f.pool, { asOfDate: new Date(cleanupClock) })).cleanedCount, 1);
   assert.equal((await f.pool.query("SELECT title FROM card_import_rows WHERE id='legacy_row'")).rows[0].title, '');
   const real = await f.preview([{
     externalId: 'current',
