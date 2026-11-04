@@ -1,0 +1,2444 @@
+{
+  "kind": "independent actual parseXmlPart correctness comparison; controlled checkpoints, not timing/production acceptance",
+  "sourceHashes": {
+    "original": "dd9b5c7f1abbc1a4e366dbe7cc17d5a8a32de6a5aeb6e7beae2c439154e11fdc",
+    "candidate": "185d0f47bd7bac63e97529e376d4eba687d31826c9d35cd9ea4439d25690b96d"
+  },
+  "cases": 138,
+  "status": "pass",
+  "results": [
+    {
+      "id": "empty",
+      "partBytes": [
+        0
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "23a482c7daad1f33f8a75783318bfc0fd651ca69cc67ffa45cc287e9ebc8e01c",
+          "markup": 0,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "simple",
+      "partBytes": [
+        4
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 1,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "leading-text",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "23a482c7daad1f33f8a75783318bfc0fd651ca69cc67ffa45cc287e9ebc8e01c",
+          "markup": 1,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "trailing-text",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 1,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "comment-literal-less",
+      "partBytes": [
+        25
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "11d8ad9f1fbdd30365bd60672996b239f6be9ad3b4753a5100f81840f3cafa91",
+          "markup": 8,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "cdata-literal-less",
+      "partBytes": [
+        29
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "c35ff6bf24c03304fd08881809483ccfebf9174b9c4240a495a3c88c1a5534ba",
+          "markup": 7,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "attribute-literal-less",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "d42bac20eeeea58d101792847acdb26b1fb0c3acbc8347992c1033e79e5778f9",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "attribute-encoded-less",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "13cbf204ce7fa6a0154d4baf81902cf06484558e0ecd3f10ccaf89a2991d7f97",
+          "markup": 1,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "entity-once",
+      "partBytes": [
+        26
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "2589dd4b5ba93713534de71210fa483f581c0e3288004a496ccc762fb4f4a095",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "namespace",
+      "partBytes": [
+        49
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "e317f02490e1e4ad2801c8887f68d5e5614ec7c7e823e3434d6275fd79404d33",
+          "markup": 3,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "bad-scalar-before-xxe",
+      "partBytes": [
+        20
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "xxe-before-structure",
+      "partBytes": [
+        655380
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XXE_DETECTED",
+          "status": 422,
+          "messageSHA256": "2e43204798b1baa0cbd15ef3fb69aa4f1fedc26dfa393c164decae15872f3985",
+          "markup": 0,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "scalar-0",
+      "partBytes": [
+        8
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16le-0",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16be-0",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "scalar-8",
+      "partBytes": [
+        8
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16le-8",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16be-8",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "scalar-9",
+      "partBytes": [
+        8
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "e99bc6121bc95ff1bc31d972064ebdc37ed080795a49caa626bf24207e619883",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16le-9",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "e99bc6121bc95ff1bc31d972064ebdc37ed080795a49caa626bf24207e619883",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16be-9",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "e99bc6121bc95ff1bc31d972064ebdc37ed080795a49caa626bf24207e619883",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "scalar-10",
+      "partBytes": [
+        8
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "ece6dffbfeae60fbb96448a6fab887dd082d527df7920a4dd2f834a377bb7748",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16le-10",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "ece6dffbfeae60fbb96448a6fab887dd082d527df7920a4dd2f834a377bb7748",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16be-10",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "ece6dffbfeae60fbb96448a6fab887dd082d527df7920a4dd2f834a377bb7748",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "scalar-11",
+      "partBytes": [
+        8
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16le-11",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16be-11",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "scalar-12",
+      "partBytes": [
+        8
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16le-12",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16be-12",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "scalar-13",
+      "partBytes": [
+        8
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "ece6dffbfeae60fbb96448a6fab887dd082d527df7920a4dd2f834a377bb7748",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16le-13",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "ece6dffbfeae60fbb96448a6fab887dd082d527df7920a4dd2f834a377bb7748",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16be-13",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "ece6dffbfeae60fbb96448a6fab887dd082d527df7920a4dd2f834a377bb7748",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "scalar-14",
+      "partBytes": [
+        8
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16le-14",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16be-14",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "scalar-31",
+      "partBytes": [
+        8
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16le-31",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16be-31",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "scalar-32",
+      "partBytes": [
+        8
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "f3fc8cfef1bcbccf60f9c5f11e3ceb811f73ae572c148fa969656b567d3dd108",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16le-32",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "f3fc8cfef1bcbccf60f9c5f11e3ceb811f73ae572c148fa969656b567d3dd108",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16be-32",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "f3fc8cfef1bcbccf60f9c5f11e3ceb811f73ae572c148fa969656b567d3dd108",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "scalar-55295",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "2fdf6ce897ba8a47ab7c89588bb1baf3b52171dbca129abbfbeb0d7717661e99",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16le-55295",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "2fdf6ce897ba8a47ab7c89588bb1baf3b52171dbca129abbfbeb0d7717661e99",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16be-55295",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "2fdf6ce897ba8a47ab7c89588bb1baf3b52171dbca129abbfbeb0d7717661e99",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "scalar-57344",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "bb8dc8e4267942e1a1c72c69a92bdc64bda0f26a389e5b371e7bbe1106d12209",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16le-57344",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "bb8dc8e4267942e1a1c72c69a92bdc64bda0f26a389e5b371e7bbe1106d12209",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16be-57344",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "bb8dc8e4267942e1a1c72c69a92bdc64bda0f26a389e5b371e7bbe1106d12209",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "scalar-65533",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "a4b3374677aa3001c08e9a220d9611217895b61781738ca0b3bcb7fa9a5a1c5f",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16le-65533",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "a4b3374677aa3001c08e9a220d9611217895b61781738ca0b3bcb7fa9a5a1c5f",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16be-65533",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "a4b3374677aa3001c08e9a220d9611217895b61781738ca0b3bcb7fa9a5a1c5f",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "scalar-65534",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16le-65534",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16be-65534",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "scalar-65535",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16le-65535",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf16be-65535",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "7b97e7f131177a393f4fa9cd715f29bbd104ae0443a45476b1b366bb498fd77b",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "scalar-65536",
+      "partBytes": [
+        11
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "72763b8155975991b48ca11ffdde371ecfcbabb736e460b69f35c842cee2897b",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16le-65536",
+      "partBytes": [
+        20
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "72763b8155975991b48ca11ffdde371ecfcbabb736e460b69f35c842cee2897b",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16be-65536",
+      "partBytes": [
+        20
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "72763b8155975991b48ca11ffdde371ecfcbabb736e460b69f35c842cee2897b",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "scalar-131070",
+      "partBytes": [
+        11
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "49233a6de76a57b505a6a2f31b1ae18748fd5a647a016f1afd1216f1a82b4afb",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16le-131070",
+      "partBytes": [
+        20
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "49233a6de76a57b505a6a2f31b1ae18748fd5a647a016f1afd1216f1a82b4afb",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16be-131070",
+      "partBytes": [
+        20
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "49233a6de76a57b505a6a2f31b1ae18748fd5a647a016f1afd1216f1a82b4afb",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "scalar-1114111",
+      "partBytes": [
+        11
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "43d0383522af17b5de20ff1f391c9fb7542106ae895a58ad941d21fcf869e147",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16le-1114111",
+      "partBytes": [
+        20
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "43d0383522af17b5de20ff1f391c9fb7542106ae895a58ad941d21fcf869e147",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf16be-1114111",
+      "partBytes": [
+        20
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "43d0383522af17b5de20ff1f391c9fb7542106ae895a58ad941d21fcf869e147",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "lone-high-le",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "1d31724d42ef224fb627efe4856d311b9d91148080d5b540940ea72cc4af9ac9",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "lone-high-be",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "1d31724d42ef224fb627efe4856d311b9d91148080d5b540940ea72cc4af9ac9",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "lone-low-le",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "1d31724d42ef224fb627efe4856d311b9d91148080d5b540940ea72cc4af9ac9",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "lone-low-be",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "1d31724d42ef224fb627efe4856d311b9d91148080d5b540940ea72cc4af9ac9",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "reverse-surrogates-le",
+      "partBytes": [
+        20
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "1d31724d42ef224fb627efe4856d311b9d91148080d5b540940ea72cc4af9ac9",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "reverse-surrogates-be",
+      "partBytes": [
+        20
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "1d31724d42ef224fb627efe4856d311b9d91148080d5b540940ea72cc4af9ac9",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "paired-surrogates-le",
+      "partBytes": [
+        20
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "72763b8155975991b48ca11ffdde371ecfcbabb736e460b69f35c842cee2897b",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "paired-surrogates-be",
+      "partBytes": [
+        20
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "72763b8155975991b48ca11ffdde371ecfcbabb736e460b69f35c842cee2897b",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "utf8-surrogate",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "1d31724d42ef224fb627efe4856d311b9d91148080d5b540940ea72cc4af9ac9",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf8-above-max",
+      "partBytes": [
+        11
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "1d31724d42ef224fb627efe4856d311b9d91148080d5b540940ea72cc4af9ac9",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf8-overlong",
+      "partBytes": [
+        9
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "1d31724d42ef224fb627efe4856d311b9d91148080d5b540940ea72cc4af9ac9",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "utf8-truncated",
+      "partBytes": [
+        9
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "1d31724d42ef224fb627efe4856d311b9d91148080d5b540940ea72cc4af9ac9",
+          "markup": 0,
+          "checks": 0
+        }
+      ]
+    },
+    {
+      "id": "plain-gap-655359",
+      "partBytes": [
+        655359
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "23a482c7daad1f33f8a75783318bfc0fd651ca69cc67ffa45cc287e9ebc8e01c",
+          "markup": 0,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "leading-gap-655359",
+      "partBytes": [
+        655363
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "inner-gap-655359",
+      "partBytes": [
+        655364
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 2,
+          "checks": 3
+        }
+      ]
+    },
+    {
+      "id": "plain-gap-655360",
+      "partBytes": [
+        655360
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "23a482c7daad1f33f8a75783318bfc0fd651ca69cc67ffa45cc287e9ebc8e01c",
+          "markup": 0,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "leading-gap-655360",
+      "partBytes": [
+        655364
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "inner-gap-655360",
+      "partBytes": [
+        655365
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 2,
+          "checks": 3
+        }
+      ]
+    },
+    {
+      "id": "plain-gap-655361",
+      "partBytes": [
+        655361
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 0,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "leading-gap-655361",
+      "partBytes": [
+        655365
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50000,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "inner-gap-655361",
+      "partBytes": [
+        655366
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 1,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "astral-gap-exact-codeunits",
+      "partBytes": [
+        1310732
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 2,
+          "checks": 3
+        }
+      ]
+    },
+    {
+      "id": "astral-gap-plus-one-codeunit",
+      "partBytes": [
+        1310734
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 1,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "simple-budget-0",
+      "partBytes": [
+        4
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 1,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "leading-text-budget-0",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "23a482c7daad1f33f8a75783318bfc0fd651ca69cc67ffa45cc287e9ebc8e01c",
+          "markup": 1,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "trailing-text-budget-0",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 1,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "comment-literal-less-budget-0",
+      "partBytes": [
+        25
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "11d8ad9f1fbdd30365bd60672996b239f6be9ad3b4753a5100f81840f3cafa91",
+          "markup": 8,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "cdata-literal-less-budget-0",
+      "partBytes": [
+        29
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "c35ff6bf24c03304fd08881809483ccfebf9174b9c4240a495a3c88c1a5534ba",
+          "markup": 7,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "attribute-literal-less-budget-0",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "d42bac20eeeea58d101792847acdb26b1fb0c3acbc8347992c1033e79e5778f9",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "attribute-encoded-less-budget-0",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "13cbf204ce7fa6a0154d4baf81902cf06484558e0ecd3f10ccaf89a2991d7f97",
+          "markup": 1,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "entity-once-budget-0",
+      "partBytes": [
+        26
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "2589dd4b5ba93713534de71210fa483f581c0e3288004a496ccc762fb4f4a095",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "shared-parts-0",
+      "partBytes": [
+        4,
+        4,
+        11
+      ],
+      "startingMarkup": 0,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 1,
+          "checks": 4
+        },
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 2,
+          "checks": 8
+        },
+        {
+          "ok": true,
+          "treeSHA256": "11d8ad9f1fbdd30365bd60672996b239f6be9ad3b4753a5100f81840f3cafa91",
+          "markup": 5,
+          "checks": 12
+        }
+      ]
+    },
+    {
+      "id": "simple-budget-1",
+      "partBytes": [
+        4
+      ],
+      "startingMarkup": 1,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "leading-text-budget-1",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 1,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "23a482c7daad1f33f8a75783318bfc0fd651ca69cc67ffa45cc287e9ebc8e01c",
+          "markup": 2,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "trailing-text-budget-1",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 1,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "comment-literal-less-budget-1",
+      "partBytes": [
+        25
+      ],
+      "startingMarkup": 1,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "11d8ad9f1fbdd30365bd60672996b239f6be9ad3b4753a5100f81840f3cafa91",
+          "markup": 9,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "cdata-literal-less-budget-1",
+      "partBytes": [
+        29
+      ],
+      "startingMarkup": 1,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "c35ff6bf24c03304fd08881809483ccfebf9174b9c4240a495a3c88c1a5534ba",
+          "markup": 8,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "attribute-literal-less-budget-1",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 1,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "d42bac20eeeea58d101792847acdb26b1fb0c3acbc8347992c1033e79e5778f9",
+          "markup": 3,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "attribute-encoded-less-budget-1",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 1,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "13cbf204ce7fa6a0154d4baf81902cf06484558e0ecd3f10ccaf89a2991d7f97",
+          "markup": 2,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "entity-once-budget-1",
+      "partBytes": [
+        26
+      ],
+      "startingMarkup": 1,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "2589dd4b5ba93713534de71210fa483f581c0e3288004a496ccc762fb4f4a095",
+          "markup": 3,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "shared-parts-1",
+      "partBytes": [
+        4,
+        4,
+        11
+      ],
+      "startingMarkup": 1,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 2,
+          "checks": 4
+        },
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 3,
+          "checks": 8
+        },
+        {
+          "ok": true,
+          "treeSHA256": "11d8ad9f1fbdd30365bd60672996b239f6be9ad3b4753a5100f81840f3cafa91",
+          "markup": 6,
+          "checks": 12
+        }
+      ]
+    },
+    {
+      "id": "simple-budget-49998",
+      "partBytes": [
+        4
+      ],
+      "startingMarkup": 49998,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 49999,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "leading-text-budget-49998",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 49998,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "23a482c7daad1f33f8a75783318bfc0fd651ca69cc67ffa45cc287e9ebc8e01c",
+          "markup": 49999,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "trailing-text-budget-49998",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 49998,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 49999,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "comment-literal-less-budget-49998",
+      "partBytes": [
+        25
+      ],
+      "startingMarkup": 49998,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "cdata-literal-less-budget-49998",
+      "partBytes": [
+        29
+      ],
+      "startingMarkup": 49998,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "attribute-literal-less-budget-49998",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 49998,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "d42bac20eeeea58d101792847acdb26b1fb0c3acbc8347992c1033e79e5778f9",
+          "markup": 50000,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "attribute-encoded-less-budget-49998",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 49998,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "13cbf204ce7fa6a0154d4baf81902cf06484558e0ecd3f10ccaf89a2991d7f97",
+          "markup": 49999,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "entity-once-budget-49998",
+      "partBytes": [
+        26
+      ],
+      "startingMarkup": 49998,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "2589dd4b5ba93713534de71210fa483f581c0e3288004a496ccc762fb4f4a095",
+          "markup": 50000,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "shared-parts-49998",
+      "partBytes": [
+        4,
+        4,
+        11
+      ],
+      "startingMarkup": 49998,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 49999,
+          "checks": 4
+        },
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 50000,
+          "checks": 8
+        },
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 9
+        }
+      ]
+    },
+    {
+      "id": "simple-budget-49999",
+      "partBytes": [
+        4
+      ],
+      "startingMarkup": 49999,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 50000,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "leading-text-budget-49999",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 49999,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "INVALID_WORKBOOK",
+          "status": 422,
+          "messageSHA256": "23a482c7daad1f33f8a75783318bfc0fd651ca69cc67ffa45cc287e9ebc8e01c",
+          "markup": 50000,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "trailing-text-budget-49999",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 49999,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 50000,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "comment-literal-less-budget-49999",
+      "partBytes": [
+        25
+      ],
+      "startingMarkup": 49999,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "cdata-literal-less-budget-49999",
+      "partBytes": [
+        29
+      ],
+      "startingMarkup": 49999,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "attribute-literal-less-budget-49999",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 49999,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "attribute-encoded-less-budget-49999",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 49999,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "13cbf204ce7fa6a0154d4baf81902cf06484558e0ecd3f10ccaf89a2991d7f97",
+          "markup": 50000,
+          "checks": 4
+        }
+      ]
+    },
+    {
+      "id": "entity-once-budget-49999",
+      "partBytes": [
+        26
+      ],
+      "startingMarkup": 49999,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "shared-parts-49999",
+      "partBytes": [
+        4,
+        4,
+        11
+      ],
+      "startingMarkup": 49999,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": true,
+          "treeSHA256": "3e98f0ec3229becf03f36c73d8043ac821e4152d667dc838484dd3bc4bf39b91",
+          "markup": 50000,
+          "checks": 4
+        },
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 5
+        },
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50002,
+          "checks": 6
+        }
+      ]
+    },
+    {
+      "id": "simple-budget-50000",
+      "partBytes": [
+        4
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "leading-text-budget-50000",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "trailing-text-budget-50000",
+      "partBytes": [
+        5
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "comment-literal-less-budget-50000",
+      "partBytes": [
+        25
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "cdata-literal-less-budget-50000",
+      "partBytes": [
+        29
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "attribute-literal-less-budget-50000",
+      "partBytes": [
+        10
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "attribute-encoded-less-budget-50000",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "entity-once-budget-50000",
+      "partBytes": [
+        26
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "shared-parts-50000",
+      "partBytes": [
+        4,
+        4,
+        11
+      ],
+      "startingMarkup": 50000,
+      "throwAt": -1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50001,
+          "checks": 1
+        },
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50002,
+          "checks": 2
+        },
+        {
+          "ok": false,
+          "code": "XML_LIMIT_EXCEEDED",
+          "status": 422,
+          "messageSHA256": "ad455cfa3944c267bfa4e31db585bb558681a511a095309a89efa1377811eb69",
+          "markup": 50003,
+          "checks": 3
+        }
+      ]
+    },
+    {
+      "id": "checkpoint-order-1",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": 1,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "REVIEW_CHECKPOINT",
+          "status": null,
+          "messageSHA256": "bad73db63cd7cd932743213c94fc9c1d5951d96758520655de3ad9ddb41e286a",
+          "markup": 0,
+          "checks": 1
+        }
+      ]
+    },
+    {
+      "id": "checkpoint-order-2",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": 2,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "REVIEW_CHECKPOINT",
+          "status": null,
+          "messageSHA256": "bad73db63cd7cd932743213c94fc9c1d5951d96758520655de3ad9ddb41e286a",
+          "markup": 4,
+          "checks": 2
+        }
+      ]
+    },
+    {
+      "id": "checkpoint-order-3",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": 3,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "REVIEW_CHECKPOINT",
+          "status": null,
+          "messageSHA256": "bad73db63cd7cd932743213c94fc9c1d5951d96758520655de3ad9ddb41e286a",
+          "markup": 4,
+          "checks": 3
+        }
+      ]
+    },
+    {
+      "id": "checkpoint-order-4",
+      "partBytes": [
+        18
+      ],
+      "startingMarkup": 0,
+      "throwAt": 4,
+      "outputs": [
+        {
+          "ok": false,
+          "code": "REVIEW_CHECKPOINT",
+          "status": null,
+          "messageSHA256": "bad73db63cd7cd932743213c94fc9c1d5951d96758520655de3ad9ddb41e286a",
+          "markup": 4,
+          "checks": 4
+        }
+      ]
+    }
+  ],
+  "sourceUnchanged": true
+}

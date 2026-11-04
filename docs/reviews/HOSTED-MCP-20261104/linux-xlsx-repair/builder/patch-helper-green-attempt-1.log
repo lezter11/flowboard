@@ -1,0 +1,66 @@
+✖ dependency patches: apply succeeds and a second apply leaves files untouched (8.851417ms)
+✖ dependency patches: recognized partial application is rejected by verify and completed by apply (5.23275ms)
+✔ dependency patches: an unknown later file prevents every write (4.675417ms)
+✔ dependency patches: version drift fails closed (3.916208ms)
+✔ dependency patches: integrity drift fails closed (4.146125ms)
+✔ dependency patches: entrypoint drift fails closed (3.497042ms)
+✔ dependency patches: license drift fails closed (4.38775ms)
+✔ dependency patches: manifest drift fails closed (3.605959ms)
+✔ dependency patches: patch drift fails closed (4.600417ms)
+✔ dependency patches: symlinked targets are refused without modifying the outside file (4.837125ms)
+✖ dependency patches: worker maps require both patched ESM contents and refuse CJS or ambiguous/missing sources (3.887208ms)
+✖ dependency patches: explicit CLI apply/verify works in an offline ignore-scripts fixture and fails on unpatched bytes (27.548584ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 8
+ℹ fail 4
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 129.262833
+
+✖ failing tests:
+
+test at apps/api/test/dependency-patches.test.ts:41:1
+✖ dependency patches: apply succeeds and a second apply leaves files untouched (8.851417ms)
+  Error: DEPENDENCY_PATCH_VERIFICATION_FAILED: Pinned lock version, registry provenance or integrity differs.
+      at fail (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/scripts/dependency-patches.mjs:10:33)
+      at load (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/scripts/dependency-patches.mjs:42:94)
+      at async Module.applyDependencyPatches (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/scripts/dependency-patches.mjs:79:18)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/dependency-patches.test.ts:44:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3)
+
+test at apps/api/test/dependency-patches.test.ts:53:1
+✖ dependency patches: recognized partial application is rejected by verify and completed by apply (5.23275ms)
+  Error: DEPENDENCY_PATCH_VERIFICATION_FAILED: Pinned lock version, registry provenance or integrity differs.
+      at fail (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/scripts/dependency-patches.mjs:10:33)
+      at load (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/scripts/dependency-patches.mjs:42:94)
+      at async Module.applyDependencyPatches (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/scripts/dependency-patches.mjs:79:18)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/dependency-patches.test.ts:58:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at apps/api/test/dependency-patches.test.ts:93:1
+✖ dependency patches: worker maps require both patched ESM contents and refuse CJS or ambiguous/missing sources (3.887208ms)
+  Error: DEPENDENCY_PATCH_VERIFICATION_FAILED: Pinned lock version, registry provenance or integrity differs.
+      at fail (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/scripts/dependency-patches.mjs:10:33)
+      at load (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/scripts/dependency-patches.mjs:42:94)
+      at async Module.applyDependencyPatches (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/scripts/dependency-patches.mjs:79:18)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/dependency-patches.test.ts:95:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at apps/api/test/dependency-patches.test.ts:114:1
+✖ dependency patches: explicit CLI apply/verify works in an offline ignore-scripts fixture and fails on unpatched bytes (27.548584ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: 0
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/dependency-patches.test.ts:120:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }

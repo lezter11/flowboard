@@ -5,11 +5,12 @@
   "scripts": {
     "dev:node": "node --watch src/runtime/node.ts",
     "dev:worker": "node scripts/dev-worker.mjs",
-    "build": "tsc -p tsconfig.build.json && WRANGLER_SEND_METRICS=false wrangler deploy --dry-run --outdir dist/worker",
+    "build": "tsc -p tsconfig.build.json && npm run build:worker",
+    "build:worker": "node scripts/dependency-patches.mjs --verify && WRANGLER_SEND_METRICS=false wrangler deploy --dry-run --outdir dist/worker && node scripts/dependency-patches.mjs --verify-worker dist/worker/worker.js.map",
     "test": "node scripts/check-test-databases.mjs && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/*.test.ts",
     "db:migrate": "node --experimental-strip-types src/runtime/migrate.ts",
-    "prebuild": "npm run build --workspace @flowboard/mcp",
-    "pretest": "npm run build --workspace @flowboard/mcp"
+    "prebuild": "node scripts/dependency-patches.mjs --verify && npm run build --workspace @flowboard/mcp",
+    "pretest": "node scripts/dependency-patches.mjs --verify && npm run build --workspace @flowboard/mcp"
   },
   "dependencies": {
     "@hono/node-server": "2.1.5",

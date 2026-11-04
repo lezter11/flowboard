@@ -1,0 +1,3 @@
+import fs from 'node:fs';import {spawn} from 'node:child_process';import {fileURLToPath} from 'node:url';
+const label=process.argv[2];if(!/^[a-z0-9-]+$/.test(label??''))throw Error('label required');
+for(const mode of ['baseline','candidate']){const log=new URL(`linux-mounted-${mode}-${label}.log`,import.meta.url),fd=fs.openSync(log,'w');const p=spawn(process.execPath,[fileURLToPath(new URL('mounted-control.mjs',import.meta.url)),mode],{stdio:['ignore',fd,fd],env:process.env});const code=await new Promise((r,j)=>{p.on('close',r);p.on('error',j)});fs.closeSync(fd);console.log(JSON.stringify({mode,label,exitCode:code,cpuQuota:process.env.XLSX_DIAGNOSTIC_CPU_QUOTA??'2'}));}

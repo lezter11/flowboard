@@ -1,0 +1,89 @@
+{
+  "kind": "cheap local static/syntax checks only",
+  "commands": [
+    {
+      "command": [
+        "node",
+        "--check",
+        "docs/reviews/HOSTED-MCP-20261104/release-preparation/prepare-artifacts.mjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "docs/reviews/HOSTED-MCP-20261104/release-preparation/backup-uat.mjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "docs/reviews/HOSTED-MCP-20261104/release-preparation/migrate-uat.mjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "docs/reviews/HOSTED-MCP-20261104/release-preparation/uat-release-guards.mjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "docs/reviews/HOSTED-MCP-20261104/release-execution/anonymous-hosted-smoke.mjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "apps/api/scripts/dependency-patches.mjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "node",
+        "--check",
+        "scripts/stage-pages-functions.mjs"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "command": [
+        "git",
+        "status",
+        "--porcelain",
+        "--untracked-files=all",
+        "--",
+        "database/migrations"
+      ],
+      "exitCode": 0,
+      "stdout": "",
+      "stderr": ""
+    }
+  ],
+  "allExitZero": true
+}

@@ -1,0 +1,23 @@
+npm error code EROFS
+npm error syscall chmod
+npm error path /workspace/node_modules/@flowboard/mcp/dist/index.js
+npm error errno -30
+npm error rofs EROFS: read-only file system, chmod '/workspace/node_modules/@flowboard/mcp/dist/index.js'
+npm error rofs Often virtualized file systems, or other file systems that don't support symlinks, give this error.
+npm notice
+npm notice New major version of npm available! 11.12.1 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+npm error A complete log of this run can be found in: /tmp/npm-cache/_logs/2026-11-04T14_44_39_065Z-debug-0.log
+file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/HOSTED-MCP-20261104/linux-xlsx-investigation/mounted-control.mjs:3
+const docker=async(args,{env={},capture=false,allowFailure=false}={})=>await new Promise((resolve,reject)=>{const p=spawn('docker',args,{env:{...process.env,...env},stdio:['ignore',capture?'pipe':'inherit',capture?'pipe':'inherit']});let out='';if(capture){p.stdout.on('data',b=>out+=b);p.stderr.on('data',b=>out+=b);}p.on('error',reject);p.on('close',code=>code&&!allowFailure?reject(Error('docker action failed, exit '+code)):resolve({code,out}));});
+                                                                                                                                                                                                                                                                                                                                                                                                 ^
+
+Error: docker action failed, exit 226
+    at ChildProcess.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/HOSTED-MCP-20261104/linux-xlsx-investigation/mounted-control.mjs:3:386)
+    at ChildProcess.emit (node:events:509:28)
+    at maybeClose (node:internal/child_process:1124:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:306:5)
+
+Node.js v24.15.0

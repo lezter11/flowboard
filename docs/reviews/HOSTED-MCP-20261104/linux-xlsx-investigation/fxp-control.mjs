@@ -1,0 +1,21 @@
+import fs from 'node:fs/promises';import path from 'node:path';import {spawn} from 'node:child_process';
+const evidence=new URL('./',import.meta.url),config=JSON.parse(await fs.readFile((await fs.readFile(new URL('private-config-location.txt',evidence),'utf8')).trim(),'utf8'));
+const mode=process.argv[2],candidate=mode==='candidate-a'||mode==='verify-a'||mode==='profile-a'||mode==='regressions-a'||mode==='candidate-b'||mode==='verify-b'||mode==='profile-b'||mode==='regressions-b',source=candidate?config.candidateSource:config.source;
+const docker=async(args,env={})=>await new Promise((resolve,reject)=>{const p=spawn('docker',args,{env:{...process.env,...env},stdio:'inherit'});p.on('error',reject);p.on('close',resolve);});
+const mounts=['--mount',`type=bind,src=${source},dst=/workspace,readonly`,'--mount',`type=volume,src=${config.volume},dst=/workspace/node_modules,readonly`,'--mount','type=bind,src=/etc/ssl/cert.pem,dst=/etc/ssl/certs/ca-certificates.crt,readonly'];
+for(const [label,p]of [['api','apps/api'],['web','apps/web'],['contracts','packages/contracts'],['mcp','packages/mcp'],['mcp-dist','packages/mcp/dist']])mounts.push('--mount',`type=volume,src=${config.volume}-${label},dst=/workspace/${p}${label==='mcp-dist'?'':'/node_modules'},readonly`);
+if(candidate)mounts.push('--mount',`type=bind,src=${mode.endsWith('-b')?config.fxpCandidateB:config.fxpCandidateA},dst=/workspace/node_modules/fast-xml-parser,readonly`);
+if(mode==='verify'||mode==='verify-a'||mode==='verify-b'){
+await fs.copyFile(new URL('verify-fxp-overlay.mjs',evidence),path.join(source,'docs/reviews/HOSTED-MCP-20261104/linux-xlsx-investigation/verify-fxp-overlay.mjs'));
+const expected=candidate?'bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8':'e818788b069429443a97756a4c458999d6751461c4ef41c7bfe1cc58bd70dde4';
+const code=await docker(['run','--rm','--name','flowboard-xlsx-fxp-'+mode+'-20261104','--network','none','--cpus','2',...mounts,'--env',`EXPECT_FXP_VALIDATOR_SHA=${expected}`,'--env',`EXPECT_FXP_PATCHED=${candidate}`,'--env',`EXPECT_FXP_TEXT_CHUNK=${mode==='verify-b'}`,'--workdir','/workspace','node:24.15.0-bookworm-slim','node','docs/reviews/HOSTED-MCP-20261104/linux-xlsx-investigation/verify-fxp-overlay.mjs']);process.exitCode=code;
+}else if(mode==='profile'||mode==='profile-a'||mode==='profile-b'){
+await fs.copyFile(new URL('run-fxp-stage.mjs',evidence),path.join(source,'docs/reviews/HOSTED-MCP-20261104/linux-xlsx-investigation/run-fxp-stage.mjs'));
+const code=await docker(['run','--rm','--name','flowboard-xlsx-fxp-'+mode+'-20261104','--network','none','--cpus','0.75','--memory','1g',...mounts,'--workdir','/workspace','--env',`FXP_STAGE_CANDIDATE=${candidate}`,'--env','WRANGLER_SEND_METRICS=false','node:24.15.0-bookworm-slim','node','docs/reviews/HOSTED-MCP-20261104/linux-xlsx-investigation/run-fxp-stage.mjs']);process.exitCode=code;
+}else if(mode==='regressions-a'||mode==='regressions-b'){
+const code=await docker(['run','--rm','--name','flowboard-xlsx-fxp-'+mode+'-20261104','--network','none','--cpus','2','--memory','1g',...mounts,'--workdir','/workspace','node:24.15.0-bookworm-slim','node','--test-concurrency=1','--test','apps/api/test/import-xml-parser.test.ts','apps/api/test/import-xml-cell-parser.test.ts','apps/api/test/import-xml-text.test.ts']);process.exitCode=code;
+}else if(mode==='baseline'||mode==='candidate-a'||mode==='candidate-b'){
+const url=`postgres://flowboard_harness:${config.password}@127.0.0.1:5432/flowboard_import_test`,quota=process.env.XLSX_DIAGNOSTIC_CPU_QUOTA??'0.75';
+const code=await docker(['run','--rm','--name','flowboard-xlsx-fxp-'+mode+'-20261104','--network',`container:${config.pgName}`,'--cpus',quota,'--memory','1g',...mounts,'--workdir','/workspace/apps/api','--env','DATABASE_URL','--env','FLOWBOARD_IMPORT_TEST_DATABASE_URL','--env','NODE_ENV=test','--env','WRANGLER_SEND_METRICS=false','node:24.15.0-bookworm-slim','node','../../docs/reviews/HOSTED-MCP-20261104/linux-xlsx-investigation/mounted-entry.mjs'],{DATABASE_URL:url,FLOWBOARD_IMPORT_TEST_DATABASE_URL:url});
+console.log(JSON.stringify({mode,exitCode:code,revision:config.revision,cpuQuota:quota,dependencyVolumesReadOnly:true,fxpOverlay:candidate}));process.exitCode=code;
+}else throw Error('mode must be verify, verify-a, baseline or candidate-a');

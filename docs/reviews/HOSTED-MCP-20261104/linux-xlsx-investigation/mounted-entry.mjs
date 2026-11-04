@@ -1,0 +1,3 @@
+import fs from 'node:fs/promises';import {spawn} from 'node:child_process';
+const read=async()=>({cpu:await fs.readFile('/sys/fs/cgroup/cpu.stat','utf8'),quota:await fs.readFile('/sys/fs/cgroup/cpu.max','utf8'),memory:await fs.readFile('/sys/fs/cgroup/memory.peak','utf8').catch(()=>null)});
+const before=await read();const p=spawn(process.execPath,['--test-concurrency=1','--test','test/import-worker-template.test.ts'],{stdio:'inherit',env:process.env});const exitCode=await new Promise((r,j)=>{p.on('close',r);p.on('error',j)});console.log(JSON.stringify({kind:'whole-fixture-cgroup',before,after:await read(),exitCode,note:'Cgroup CPU/peak cover entire Node test+workerd fixture, not isolated max-parse CPU. PostgreSQL runs in separate cgroup.'}));process.exitCode=exitCode;

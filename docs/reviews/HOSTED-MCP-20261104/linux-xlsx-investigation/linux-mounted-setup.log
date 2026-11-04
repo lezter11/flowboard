@@ -1,0 +1,14 @@
+532192a93100da765b661f317056660d04022364ce7f59cab56e70ea2e3f1705
+flowboard-xlsx-mounted-deps-20261104
+f216e961404f649a183b10d4dc0da8d0ef8555fa1cd9a6a1688b7a995fa4f53c
+file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/HOSTED-MCP-20261104/linux-xlsx-investigation/mounted-control.mjs:3
+const docker=async(args,{env={},capture=false,allowFailure=false}={})=>await new Promise((resolve,reject)=>{const p=spawn('docker',args,{env:{...process.env,...env},stdio:['ignore',capture?'pipe':'inherit',capture?'pipe':'inherit']});let out='';if(capture){p.stdout.on('data',b=>out+=b);p.stderr.on('data',b=>out+=b);}p.on('error',reject);p.on('close',code=>code&&!allowFailure?reject(Error('docker action failed, exit '+code)):resolve({code,out}));});
+                                                                                                                                                                                                                                                                                                                                                                                                 ^
+
+Error: docker action failed, exit 1
+    at ChildProcess.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/HOSTED-MCP-20261104/linux-xlsx-investigation/mounted-control.mjs:3:386)
+    at ChildProcess.emit (node:events:509:28)
+    at maybeClose (node:internal/child_process:1124:16)
+    at ChildProcess._handle.onexit (node:internal/child_process:306:5)
+
+Node.js v24.15.0

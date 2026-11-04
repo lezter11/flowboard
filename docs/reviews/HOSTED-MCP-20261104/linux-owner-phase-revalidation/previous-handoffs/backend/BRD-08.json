@@ -1,0 +1,21 @@
+{
+  "status": "verified",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json",
+  "summary": "BRD-08: independently reviewed current local implementation; hosted acceptance pending.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/features.tsv BRD-08",
+  "limitations": [
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Review records declare execution and scope; Architect inspection remains necessary."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/HOSTED-MCP-20261104/owner-phase-revalidation/BRD-08.json",
+      "sha256": "7e3219eba4c152a17c8caa04c33a5a5687fb12460e3cf13a28183b1411e789e1",
+      "command": "python3 docs/reviews/HOSTED-MCP-20261104/owner-phase-revalidation/revalidate.py --review docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local required checks passed.",
+      "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
+    }
+  ]
+}

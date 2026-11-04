@@ -1,0 +1,10 @@
+#!/usr/bin/env node
+import {spawn} from 'node:child_process';
+const args=process.argv.slice(2);
+const name=args.indexOf('--name');
+if(args[0]==='run'&&name>=0&&args[name+1]==='flowboard-xlsx-product-api-20261104'){
+ args.splice(1,0,'--tmpfs','/workspace/apps/api/test/.wrangler:rw,nosuid,nodev,size=128m');
+ console.error(JSON.stringify({environmentSupplement:'independent writable Wrangler scratch only',target:'/workspace/apps/api/test/.wrangler',sourceMount:'read-only unchanged',size:'128m'}));
+}
+const p=spawn('/usr/local/bin/docker',args,{env:process.env,stdio:'inherit'});
+p.on('error',()=>process.exitCode=1);p.on('close',code=>process.exitCode=code??1);

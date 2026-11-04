@@ -22,9 +22,12 @@ const pagesConfig=await fs.readFile(root+'/apps/web/wrangler.uat.jsonc','utf8');
 assert.ok(pagesConfig.includes('flowboard-api-uat')&&pagesConfig.includes('flowboard-app-uat'));
 await fs.mkdir(stagePath,{mode:0o700});
 const steps=[];const step=(label,cmd,args,cwd=root,env={})=>{const start=new Date().toISOString();run(cmd,args,cwd,env);steps.push({label,command:[cmd,...args],cwd,startedAt:start,exitCode:0});};
+step('Apply exact dependency backports after ignored install scripts','npm',['run','deps:apply']);
+step('Verify dependency backports','npm',['run','deps:verify']);
 step('MCP package build','npm',['run','build','--workspace','@flowboard/mcp']);
 step('API build','npm',['run','build','--workspace','@flowboard/api']);
 step('UAT Worker dry-run',process.execPath,[root+'/node_modules/wrangler/bin/wrangler.js','deploy','--env','uat','--dry-run','--outdir','dist/worker-uat'],root+'/apps/api');
+step('Verify UAT Worker ESM dependency source maps',process.execPath,[root+'/apps/api/scripts/dependency-patches.mjs','--verify-worker','dist/worker-uat/worker.js.map'],root+'/apps/api');
 // The whitelist excludes all inherited NEXT_PUBLIC_* overrides; the release is same-origin.
 step('Next static build','npm',['run','build:web'],root,{NEXT_EXPORT:'true'});
 await fs.cp(root+'/apps/web/out',stagePath+'/out',{recursive:true,errorOnExist:true});

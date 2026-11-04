@@ -1,5 +1,11 @@
 # Flowboard architecture v0.3
 
+## XLSX parser performance provenance — 2026-11-04
+
+The importer retains its 1,000 ms total parsing budget, input/resource limits, complete XML grammar validation and atomic commit. It uses two equivalent native string scans plus two small performance backports in pinned fast-xml-parser 5.11.2 ESM. The backports remove named-reference regex-result allocation and per-code-unit text accumulation; they do not replace validation or mask entities. [Decision and alternatives](docs/decisions/2026-11-04-bounded-xml-performance-backports.md) records measured diagnostics and maintenance cost.
+
+The API's tracked vendor-patch manifest binds exact upstream/package/lock/license and patched hashes. Root installation applies it; ignored-script/offline installs explicitly apply then verify. Applicable tests/builds verify; Worker source maps prove both exact ESM inputs and reject a CJS fallback. Request handling never modifies dependency files. Upgrades require independent rebase/removal review. Implementation, current local/Linux evidence and deployment remain separate in [PROGRESS](PROGRESS.md).
+
 ## Hosted connector extension — 2026-11-04
 
 The hosted connector extends the same Hono modular monolith; it adds no microservice or second card-writing backend. Claude calls the canonical Pages `/api/v1/mcp` URL. Pages passes that public Request through its private API service binding. A browser Google session approves one explicit project; PostgreSQL migration0027 stores hashed one-use codes, restricted connections and rotating refresh families. Each tool rechecks the person's current project/board access. A module-private Request capability dispatches only the existing five tools using the same request-local database pool and existing card/receipt/activity transaction. OAuth credentials are refused on the ordinary external REST API; PAT and stdio behavior remains separate.

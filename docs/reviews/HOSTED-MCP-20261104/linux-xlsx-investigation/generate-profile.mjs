@@ -1,0 +1,28 @@
+import fs from 'node:fs/promises';
+import crypto from 'node:crypto';
+const root=new URL('../../../../',import.meta.url), out=new URL('./',import.meta.url);
+const files=['apps/api/src/services/import-xml.ts','apps/api/src/services/excel-parser.ts','apps/api/test/import-worker-template.test.ts','apps/api/test/support/import-workbook.ts','apps/api/test/support/import-xml-fixture.ts','package-lock.json'];
+const source=[];for(const file of files){const data=await fs.readFile(new URL(file,root));source.push({file,sha256:crypto.createHash('sha256').update(data).digest('hex')});}
+const replace=(text,from,to)=>{if(!text.includes(from))throw Error('Missing instrumentation anchor: '+from.slice(0,80));return text.replace(from,to);};
+let xml=await fs.readFile(new URL(files[0],root),'utf8');
+xml=replace(xml,"'../http/errors.ts'","'../../../../apps/api/src/http/errors.ts'");
+xml="import { events, event, stage, stamp } from './profile-state.ts';\n"+xml;
+xml=replace(xml,'try { xml = new TextDecoder(encoding, { fatal: true }).decode(bytes); }','try { xml = new TextDecoder(encoding, { fatal: true }).decode(bytes); stamp("decodeUtf"); }');
+xml=replace(xml,'  return xml;','  stamp("declarationAndScalars");\n  return xml;');
+xml=replace(xml,'  const xml = decodeXmlBytes(bytes);','  event({kind:"part",partBytes:bytes.length}); stage("decodeUtf");\n  const xml = decodeXmlBytes(bytes);');
+xml=replace(xml,'  if (/<!\\s*(?:DOCTYPE|ENTITY)\\b/iu.test(xml))','  stage("resourcePreflight");\n  if (/<!\\s*(?:DOCTYPE|ENTITY)\\b/iu.test(xml))');
+xml=replace(xml,'  if (XMLValidator.validate(xml, { allowBooleanAttributes: false }) !== true)','  stamp("resourcePreflight"); stage("validate");\n  if (XMLValidator.validate(xml, { allowBooleanAttributes: false }) !== true)');
+xml=replace(xml,"throw invalidXml('Malformed workbook XML.');\n  checkBudget();","throw invalidXml('Malformed workbook XML.');\n  stamp(\"validate\");\n  checkBudget();");
+xml=replace(xml,'  let ordered: Array<Record<string, unknown>>;','  stage("orderedParse");\n  let ordered: Array<Record<string, unknown>>;');
+xml=replace(xml,"  } catch { throw invalidXml('Malformed or excessively nested workbook XML.'); }\n  checkBudget();","  } catch { throw invalidXml('Malformed or excessively nested workbook XML.'); }\n  stamp(\"orderedParse\");\n  checkBudget(); stage(\"convert\");");
+xml=replace(xml,'  checkBudget();\n  return root;','  stamp("convert");\n  checkBudget();\n  return root;');
+await fs.writeFile(new URL('profile-import-xml.ts',out),xml);
+let excel=await fs.readFile(new URL(files[1],root),'utf8');
+excel=replace(excel,"'../http/errors.ts'","'../../../../apps/api/src/http/errors.ts'");
+excel=replace(excel,"'./import-xml.ts'","'./profile-import-xml.ts'");
+excel="import { events, event, stage, stamp } from './profile-state.ts';\n"+excel;
+excel=replace(excel,"  const checkBudget = () => { if (performance.now() - started > MAX_PARSE_MS)","  const checkBudget = () => { const elapsedMs=performance.now()-started; event({kind:'checkpoint',elapsedMs}); if (elapsedMs > MAX_PARSE_MS)");
+excel=replace(excel,'  const files = unzipXlsx(fileBuffer);','  stage("unzip"); const files = unzipXlsx(fileBuffer); stamp("unzip");');
+excel=replace(excel,'  const dateStyles = dateStyleIndexes','  event({kind:"packageComplete",elapsedMs:performance.now()-started}); stage("rowConversion");\n  const dateStyles = dateStyleIndexes');
+await fs.writeFile(new URL('profile-excel-parser.ts',out),excel);
+await fs.writeFile(new URL('source-manifest-before.json',out),JSON.stringify({source,details:'Diagnostic clone only: production checkBudget and all caps unchanged. Copies change imports and add bounded phase events; no product source edits.'},null,2)+'\n');

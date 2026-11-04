@@ -1,0 +1,12 @@
+--- /var/folders/jr/scqd6q3j7nggl004yfg9_vsh0000gn/T/flowboard-linux-xlsx-OjWZdf/fxp-upstream-validator.js	2026-11-04 20:30:35
++++ /var/folders/jr/scqd6q3j7nggl004yfg9_vsh0000gn/T/flowboard-linux-xlsx-OjWZdf/fxp-candidate-a/src/validator.js	2026-11-04 20:30:35
+@@ -471,7 +471,8 @@
+   }
+   let count = 0;
+   for (; i < xmlData.length; i++, count++) {
+-    if (xmlData[i].match(/\w/) && count < 20)
++    const code = xmlData.charCodeAt(i);
++    if (((code >= 48 && code <= 57) || (code >= 65 && code <= 90) || code === 95 || (code >= 97 && code <= 122)) && count < 20)
+       continue;
+     if (xmlData[i] === ';')
+       break;

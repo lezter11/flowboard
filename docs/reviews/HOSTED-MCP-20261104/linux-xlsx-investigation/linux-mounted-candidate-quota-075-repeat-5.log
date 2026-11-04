@@ -1,0 +1,35 @@
+✖ import repair: real workerd preserves blank/200-row/max-text XLSX and bounds hostile XML with atomic commit (3830.752668ms)
+ℹ actual local workerd200-row preview+atomic commit elapsed_ms=323.97; local synthetic fixture, not a hosted CPU/load benchmark
+ℹ actual local workerd resource rejection 20MB-node-forest compressed_bytes=21287 elapsed_ms=147.25
+ℹ actual local workerd resource rejection 19MB-text compressed_bytes=21208 elapsed_ms=73.28
+ℹ actual local workerd resource rejection depth10000 compressed_bytes=1935 elapsed_ms=9.87
+ℹ tests 1
+ℹ suites 0
+ℹ pass 0
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 4644.134418
+
+✖ failing tests:
+
+test at test/import-worker-template.test.ts:18:1
+✖ import repair: real workerd preserves blank/200-row/max-text XLSX and bounds hostile XML with atomic commit (3830.752668ms)
+  AssertionError [ERR_ASSERTION]: {"error":{"code":"PARSE_BUDGET_EXCEEDED","message":"Workbook validation took too long. Reduce the workbook.","requestId":"e8e0b02c-20e9-4725-8a69-7a211d96af97"}}
+  
+  422 !== 201
+  
+      at TestContext.<anonymous> (file:///workspace/apps/api/test/import-worker-template.test.ts:162:12)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 422,
+    expected: 201,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+{"kind":"whole-fixture-cgroup","before":{"cpu":"usage_usec 23358\nuser_usec 14864\nsystem_usec 8493\nnice_usec 0\nnr_periods 1\nnr_throttled 0\nthrottled_usec 0\nnr_bursts 0\nburst_usec 0\n","quota":"75000 100000\n","memory":"14118912\n"},"after":{"cpu":"usage_usec 3422503\nuser_usec 3176251\nsystem_usec 246252\nnice_usec 0\nnr_periods 47\nnr_throttled 43\nthrottled_usec 9803803\nnr_bursts 0\nburst_usec 0\n","quota":"75000 100000\n","memory":"1035423744\n"},"exitCode":1,"note":"Cgroup CPU/peak cover entire Node test+workerd fixture, not isolated max-parse CPU. PostgreSQL runs in separate cgroup."}
+{"mode":"candidate","exitCode":1,"revision":"77a9fbbef35d5a0e3be72fc7c390b46972718f89","cpuQuota":"0.75"}

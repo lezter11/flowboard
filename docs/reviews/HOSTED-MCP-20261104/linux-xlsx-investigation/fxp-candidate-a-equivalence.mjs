@@ -1,0 +1,16 @@
+import assert from 'node:assert/strict';import fs from 'node:fs/promises';import path from 'node:path';import {pathToFileURL} from 'node:url';
+const config=JSON.parse(await fs.readFile((await fs.readFile(new URL('private-config-location.txt',import.meta.url),'utf8')).trim(),'utf8'));
+const {validate:upstream}=await import('../../../../node_modules/fast-xml-parser/src/validator.js'),{validate:patched}=await import(pathToFileURL(path.join(config.fxpCandidateA,'src/validator.js')).href);
+const asciiWord=code=>(code>=48&&code<=57)||(code>=65&&code<=90)||code===95||(code>=97&&code<=122);
+for(let code=0;code<65536;code++)assert.equal(asciiWord(code),Boolean(String.fromCharCode(code).match(/\w/)),`UTF16 code unit${code}`);
+const refs=['&amp;','&lt;','&gt;','&quot;','&apos;','&;','&','&amp','&amp;;','& amp;','&am p;','&am\tp;','&am\np;','&am<p;','&am>p;','&am&p;','&am-p;','&am.p;','&am:p;','&am!p;','&aé;','&aſ;','&aK;','&a🙂;','&0;','&_;','&A09_z;','&#65;','&#x41;','&#X41;','&#;','&#x;','&#0;','&#xD800;','&#x110000;','&#12q;','&#xq;'];
+for(const name of ['a','A','0','_'])for(const n of [0,1,19,20,21,22])refs.push('&'+name.repeat(n)+';');
+for(const n of [19,20,21])refs.push('&'+'a'.repeat(n),'&'+'a'.repeat(n)+';tail','&'+'a'.repeat(n)+';&amp;');
+const cases=[];for(const ref of refs)for(const build of [r=>`<t>${r}</t>`,r=>`<t a="${r}"/>`,r=>`<t a='${r}'/>`,r=>`<t>prefix\n${r}suffix</t>`])cases.push(build(ref));
+cases.push('<t>&amp;</u>','<t a="1" a="2">&amp;</t>','<t>&amp; trailing','<!DOCTYPE t><t>&amp;</t>','<t><![CDATA[&amp; &bad;]]></t>','<t><!-- &amp; &bad; --></t>');
+for(const xml of cases)assert.deepEqual(patched(xml,{allowBooleanAttributes:false}),upstream(xml,{allowBooleanAttributes:false}),xml);
+assert.equal(upstream('<t>&'+'a'.repeat(20)+';</t>'),true);assert.notEqual(upstream('<t>&'+'a'.repeat(21)+';</t>'),true);
+const [a,b]=await Promise.all([fs.readFile('node_modules/fast-xml-parser/src/validator.js','utf8'),fs.readFile(path.join(config.fxpCandidateA,'src/validator.js'),'utf8')]);
+const numberFn=s=>s.slice(s.indexOf('function validateNumberAmpersand'),s.indexOf('function validateAmpersand'));
+assert.equal(numberFn(a),numberFn(b));
+console.log(JSON.stringify({ok:true,utf16CodeUnits:65536,validatorCases:cases.length,twentyCharacterBoundary:true,numericFunctionByteIdentical:true,booleanMeaning:'Equivalent to non-unicode, case-sensitive /\\w/ only; no Unicode word widening.',scope:'Private validator module only; unchanged maintained validator flow, validation result/error object compared.'}));

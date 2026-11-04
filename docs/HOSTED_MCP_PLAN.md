@@ -165,3 +165,8 @@ This is an API-only handoff for UI implementation, not whole-connector release a
 ## Complete local acceptance — 2026-11-04
 
 [Fresh omnibus review](reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json) passes8.965, all category floors/no blockers,141criteria/all17commands. Architect validator and all98per-IDsource checks pass; role handoffs regenerate98Backend/74requiredUI/98localIntegration. HMCP06 UI is implemented and locally verified. HMCP07 remains open until current LinuxCI succeeds; HMCP08–09 deployment/provider checks remain open. Failed/incomplete rounds and the bounded Architect escalation decision are preserved.
+
+
+## Current Linux repair acceptance — 2026-11-04
+
+The [fresh independent review](reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01-round-1.json) passes **8.935**, with 149 criteria, 99 IDs and all 19 required command groups. Architect validation and current role evidence pass: 98 Backend, 74 required UI and 98 local Integration. Linux API passes 1,926/1,926; five cold pressure fixtures, fresh hosted Chrome 24/24, compiled Pages 6/6 and clean install/build proof pass. Historical failed runs and scores are preserved. HMCP07 still requires the exact candidate's native GitHub CI; HMCP08–09 remain pending. User reports a 2,000-minute monthly Actions allowance: local diagnosis first, one final push to `uat`, no hosted debugging loop. Docker is stopped. UAT remains d1c81f4.

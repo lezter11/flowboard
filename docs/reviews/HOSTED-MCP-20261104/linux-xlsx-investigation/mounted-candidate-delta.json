@@ -1,0 +1,16 @@
+{
+  "file": "apps/api/src/services/import-xml.ts",
+  "originalSha256": "dd9b5c7f1abbc1a4e366dbe7cc17d5a8a32de6a5aeb6e7beae2c439154e11fdc",
+  "candidateSha256": "185d0f47bd7bac63e97529e376d4eba687d31826c9d35cd9ea4439d25690b96d",
+  "diagnosticOnly": true,
+  "changes": [
+    {
+      "before": "  for (const ch of xml) if (!validScalar(ch.codePointAt(0)!)) throw invalidXml('Invalid XML character.');",
+      "after": "  if (/[^\\u0009\\u000a\\u000d\\u0020-\\ud7ff\\ue000-\\ufffd\\u{10000}-\\u{10ffff}]/u.test(xml)) throw invalidXml('Invalid XML character.');"
+    },
+    {
+      "before": "  let segment = 0;\n  for (let i = 0; i < xml.length; i++) {\n    if (xml.charCodeAt(i) === 60) { if (++budget.markup > MAX_XML_MARKUP) throw xmlLimit(); segment = 0; }\n    else if (++segment > MAX_XML_SEGMENT) throw xmlLimit();\n  }",
+      "after": "  let previous = -1;\n  for (let i = xml.indexOf('<'); i !== -1; i = xml.indexOf('<', previous + 1)) {\n    if (i - previous - 1 > MAX_XML_SEGMENT) throw xmlLimit();\n    if (++budget.markup > MAX_XML_MARKUP) throw xmlLimit();\n    previous = i;\n  }\n  if (xml.length - previous - 1 > MAX_XML_SEGMENT) throw xmlLimit();"
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "kind": "independent current public-product Linux and clean-offline proof",
+  "startedAt": "2026-11-04T16:09:18.655Z",
+  "sourceManifestSHA256": "85220e8bf5aad08399acd8ae78f5c594270eb672ccf9b3fafa27b99db3c87d98",
+  "actualProduct": true,
+  "privateOverlay": false,
+  "moduleLoaderHooks": false,
+  "environment": "Linux ARM64 Node24.15.0/workerd + handed-over dedicated PostgreSQL17.11/internal loopback; API2CPU/2g, pressure0.75CPU/1g. Not native CIx64.",
+  "checks": [
+    {
+      "name": "linux-dependency-verify",
+      "command": "/usr/local/bin/node docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/builder/product-linux-control.mjs verify",
+      "exitCode": 0,
+      "expectedExitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/linux-product/linux-dependency-verify.log",
+      "startedAt": "2026-11-04T16:09:18.870Z",
+      "completedAt": "2026-11-04T16:09:19.806Z",
+      "status": "pass"
+    },
+    {
+      "name": "linux-full-api",
+      "command": "/usr/local/bin/node docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/builder/product-linux-control.mjs api",
+      "exitCode": 125,
+      "expectedExitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/linux-product/linux-full-api.log",
+      "startedAt": "2026-11-04T16:09:19.905Z",
+      "completedAt": "2026-11-04T16:09:20.214Z",
+      "status": "fail"
+    }
+  ],
+  "coldPressure": [],
+  "status": "fail",
+  "exitCode": 1,
+  "sourceChanges": [],
+  "cleanup": true,
+  "errorType": "AssertionError",
+  "cleanupScope": "Own subprocesses and clean temporary project closed/removed; handed-over builder PG/volumes remain idle for Architect cleanup, not falsely claimed deleted.",
+  "completedAt": "2026-11-04T16:09:20.215Z"
+}

@@ -1,0 +1,12 @@
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import crypto from 'node:crypto';
+import {spawn} from 'node:child_process';
+import {once} from 'node:events';
+const dir=await fs.mkdtemp(path.join(os.tmpdir(),'flowboard-linux-xlsx-'));await fs.chmod(dir,0o700);
+const source=path.join(dir,'source');await fs.mkdir(source);const archive=spawn('git',['archive','--format=tar','77a9fbbef35d5a0e3be72fc7c390b46972718f89'],{stdio:['ignore','pipe','pipe']});const unpack=spawn('tar',['-xf','-','-C',source],{stdio:['pipe','ignore','pipe']});archive.stdout.pipe(unpack.stdin);const [[a],[u]]=await Promise.all([once(archive,'close'),once(unpack,'close')]);if(a||u)throw Error('streamed archive failed');
+await fs.mkdir(path.join(source,'node_modules'));await fs.cp(new URL('./',import.meta.url),path.join(source,'docs/reviews/HOSTED-MCP-20261104/linux-xlsx-investigation'),{recursive:true,filter:p=>!p.includes('.wrangler')&&!p.includes('.cpuprofile')});
+await fs.cp('packages/mcp/dist',path.join(source,'packages/mcp/dist'),{recursive:true});
+const value={dir,source,password:crypto.randomBytes(24).toString('hex'),pgName:'flowboard-xlsx-pg-20261104',network:'flowboard-xlsx-internal-20261104',volume:'flowboard-xlsx-mounted-deps-20261104',revision:'77a9fbbef35d5a0e3be72fc7c390b46972718f89'};
+const config=path.join(dir,'private-config.json');await fs.writeFile(config,JSON.stringify(value),{mode:0o600});await fs.writeFile(new URL('private-config-location.txt',import.meta.url),config+'\n');console.log(JSON.stringify({privateConfig:config,source,revision:value.revision}));

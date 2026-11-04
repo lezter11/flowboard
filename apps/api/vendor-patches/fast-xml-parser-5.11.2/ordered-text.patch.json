@@ -1,0 +1,5 @@
+{
+  "schemaVersion": 1,
+  "before": "    } else {\n      textData += xmlData[i];\n    }\n  }\n  return xmlObj.child;",
+  "after": "    } else {\n      const nextTag = xmlData.indexOf(\"<\", i);\n      const end = nextTag < 0 ? xmlLen : nextTag;\n      textData += xmlData.slice(i, end);\n      i = end - 1;\n    }\n  }\n  return xmlObj.child;"
+}

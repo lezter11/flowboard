@@ -1,0 +1,21 @@
+{
+  "status": "verified",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json",
+  "summary": "NTF-02: independently reviewed current local implementation; hosted acceptance pending.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/features.tsv NTF-02",
+  "limitations": [
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Review records declare execution and scope; Architect inspection remains necessary."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/HOSTED-MCP-20261104/owner-phase-revalidation/NTF-02.json",
+      "sha256": "66a00c64c5ff214f2c5cc44f77b76e3c8223700aeec67139518b530c95619121",
+      "command": "python3 docs/reviews/HOSTED-MCP-20261104/owner-phase-revalidation/revalidate.py --review docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local required checks passed.",
+      "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
+    }
+  ]
+}

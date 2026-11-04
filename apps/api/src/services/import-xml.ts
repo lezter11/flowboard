@@ -55,7 +55,7 @@ function decodeXmlBytes(bytes: Buffer): string {
     throw invalidXml('Unsupported or mismatched XML encoding declaration.');
   }
   if (declaration && !/^<\?xml\s+version\s*=\s*(['"])1\.0\1(?:\s|\?)/u.test(declaration)) throw invalidXml('Only XML 1.0 is supported.');
-  for (const ch of xml) if (!validScalar(ch.codePointAt(0)!)) throw invalidXml('Invalid XML character.');
+  if (/[^\u0009\u000a\u000d\u0020-\ud7ff\ue000-\ufffd\u{10000}-\u{10ffff}]/u.test(xml)) throw invalidXml('Invalid XML character.');
   return xml;
 }
 
@@ -85,11 +85,13 @@ export function parseXmlPart(bytes: Buffer, checkBudget: () => void, budget = { 
   const xml = decodeXmlBytes(bytes);
   checkBudget();
   if (/<!\s*(?:DOCTYPE|ENTITY)\b/iu.test(xml)) throw HttpError.unprocessable('XXE_DETECTED', 'DTD and entity declarations are disallowed in every workbook part.');
-  let segment = 0;
-  for (let i = 0; i < xml.length; i++) {
-    if (xml.charCodeAt(i) === 60) { if (++budget.markup > MAX_XML_MARKUP) throw xmlLimit(); segment = 0; }
-    else if (++segment > MAX_XML_SEGMENT) throw xmlLimit();
+  let previous = -1;
+  for (let i = xml.indexOf('<'); i !== -1; i = xml.indexOf('<', previous + 1)) {
+    if (i - previous - 1 > MAX_XML_SEGMENT) throw xmlLimit();
+    if (++budget.markup > MAX_XML_MARKUP) throw xmlLimit();
+    previous = i;
   }
+  if (xml.length - previous - 1 > MAX_XML_SEGMENT) throw xmlLimit();
   if (XMLValidator.validate(xml, { allowBooleanAttributes: false }) !== true) throw invalidXml('Malformed workbook XML.');
   checkBudget();
   // Max nesting is enforced by FXP while constructing its bounded ordered tree.

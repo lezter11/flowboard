@@ -1,0 +1,36 @@
+✔ dependency patches: apply succeeds and a second apply leaves files untouched (16.345375ms)
+✔ dependency patches: recognized partial application is rejected by verify and completed by apply (9.240208ms)
+✔ dependency patches: an unknown later file prevents every write (5.09675ms)
+✔ dependency patches: version drift fails closed (4.510792ms)
+✔ dependency patches: integrity drift fails closed (4.153667ms)
+✔ dependency patches: entrypoint drift fails closed (3.582708ms)
+✔ dependency patches: license drift fails closed (4.785917ms)
+✔ dependency patches: manifest drift fails closed (3.635917ms)
+✔ dependency patches: patch drift fails closed (4.144666ms)
+✔ dependency patches: symlinked targets are refused without modifying the outside file (4.230167ms)
+✔ dependency patches: worker maps require both patched ESM contents and refuse CJS or ambiguous/missing sources (23.294083ms)
+✖ dependency patches: explicit CLI apply/verify works in an offline ignore-scripts fixture and fails on unpatched bytes (27.634083ms)
+ℹ tests 12
+ℹ suites 0
+ℹ pass 11
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 158.347584
+
+✖ failing tests:
+
+test at apps/api/test/dependency-patches.test.ts:114:1
+✖ dependency patches: explicit CLI apply/verify works in an offline ignore-scripts fixture and fails on unpatched bytes (27.634083ms)
+  AssertionError [ERR_ASSERTION]: Expected "actual" to be strictly unequal to: 0
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/dependency-patches.test.ts:120:10)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 0,
+    expected: 0,
+    operator: 'notStrictEqual',
+    diff: 'simple'
+  }

@@ -1,0 +1,172 @@
+
+> @flowboard/mcp@0.2.0 build
+> tsc -p tsconfig.json && node scripts/finalize-build.mjs
+
+
+> prebuild
+> npm run build --workspace @flowboard/mcp
+
+
+> @flowboard/mcp@0.2.0 build
+> tsc -p tsconfig.json && node scripts/finalize-build.mjs
+
+
+> build
+> tsc -p tsconfig.build.json && WRANGLER_SEND_METRICS=false wrangler deploy --dry-run --outdir dist/worker
+
+
+ ⛅️ wrangler 4.156.2 (update available 4.157.0)
+───────────────────────────────────────────────
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mMultiple environments are defined in the Wrangler configuration file, but no target environment was specified for the deploy command.[0m
+
+  To avoid unintentional changes to the wrong environment, it is recommended to explicitly specify the target environment using the `-e|--env` flag or CLOUDFLARE_ENV env variable.
+  If your intention is to use the top-level environment of your configuration simply pass an empty string to the flag to target such environment. For example `--env=""`.
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mFailed to write to log file Error: EPERM: operation not permitted, open '/Users/shubham/Library/Preferences/.wrangler/logs/wrangler-2026-11-04_14-10-35_815.log'[0m
+
+      at async open (node:internal/fs/promises:640:25)
+      at async writeFile (node:internal/fs/promises:1257:14)
+      at async /private/tmp/flowboard-hosted-release-prepared-20261104/node_modules/wrangler/wrangler-dist/cli.js:70588:7
+      at async Mutex.runWith (/private/tmp/flowboard-hosted-release-prepared-20261104/node_modules/miniflare/dist/src/index.js:80902:16)
+      at async appendToDebugLogFile (/private/tmp/flowboard-hosted-release-prepared-20261104/node_modules/wrangler/wrangler-dist/cli.js:70585:3) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'open',
+    path: '/Users/shubham/Library/Preferences/.wrangler/logs/wrangler-2026-11-04_14-10-35_815.log'
+  }
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mWould have written: [0m
+
+  --- 2026-11-04T14:10:35.884Z debug
+  🪵  Writing logs to "/Users/shubham/Library/Preferences/.wrangler/logs/wrangler-2026-11-04_14-10-35_815.log"
+  ---
+  
+
+
+Total Upload: 2808.98 KiB / gzip: 539.15 KiB
+Your Worker has access to the following bindings:
+Binding                                                                   Resource                  
+env.HYPERDRIVE (18f56141ecef4b7cb07ecd42c90b155f)                         Hyperdrive Config         
+env.IMAGES (flowboard-images-prod)                                        R2 Bucket                 
+env.FB_RL_WRITES (60 requests/60s)                                        Rate Limit                
+env.FRONTEND_URL ("https://flowboard-app.pages.dev")                      Environment Variable      
+env.CORS_ORIGIN ("https://flowboard-app.pages.dev")                       Environment Variable      
+env.GOOGLE_REDIRECT_URI ("https://flowboard-app.pages.dev/api/v...")      Environment Variable      
+env.APP_ORIGIN ("https://flowboard-app.pages.dev")                        Environment Variable      
+env.MAIL_FROM_NAME ("Flowboard")                                          Environment Variable      
+env.MAIL_FROM_EMAIL ("shubhamsinghlez@gmail.com")                         Environment Variable      
+
+--dry-run: exiting now.
+🪵  Logs were written to "/Users/shubham/Library/Preferences/.wrangler/logs/wrangler-2026-11-04_14-10-35_815.log"
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mFailed to write to log file Error: EPERM: operation not permitted, open '/Users/shubham/Library/Preferences/.wrangler/logs/wrangler-2026-11-04_14-10-36_366.log'[0m
+
+      at async open (node:internal/fs/promises:640:25)
+      at async writeFile (node:internal/fs/promises:1257:14)
+      at async /private/tmp/flowboard-hosted-release-prepared-20261104/node_modules/wrangler/wrangler-dist/cli.js:70588:7
+      at async Mutex.runWith (/private/tmp/flowboard-hosted-release-prepared-20261104/node_modules/miniflare/dist/src/index.js:80902:16)
+      at async appendToDebugLogFile (/private/tmp/flowboard-hosted-release-prepared-20261104/node_modules/wrangler/wrangler-dist/cli.js:70585:3) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'open',
+    path: '/Users/shubham/Library/Preferences/.wrangler/logs/wrangler-2026-11-04_14-10-36_366.log'
+  }
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mWould have written: [0m
+
+  --- 2026-11-04T14:10:36.436Z debug
+  🪵  Writing logs to "/Users/shubham/Library/Preferences/.wrangler/logs/wrangler-2026-11-04_14-10-36_366.log"
+  ---
+  
+
+
+
+ ⛅️ wrangler 4.156.2 (update available 4.157.0)
+───────────────────────────────────────────────
+Total Upload: 2808.98 KiB / gzip: 539.15 KiB
+Your Worker has access to the following bindings:
+Binding                                                                   Resource                  
+env.HYPERDRIVE (7a1e3a69f51e41b1a8c46e0be263b814)                         Hyperdrive Config         
+env.IMAGES (flowboard-images-uat)                                         R2 Bucket                 
+env.IMAGE_VERIFIER                                                        Images                    
+env.FB_RL_WRITES (60 requests/60s)                                        Rate Limit                
+env.FRONTEND_URL ("https://flowboard-app-uat.pages.dev")                  Environment Variable      
+env.CORS_ORIGIN ("https://flowboard-app-uat.pages.dev")                   Environment Variable      
+env.GOOGLE_REDIRECT_URI ("https://flowboard-app-uat.pages.dev/a...")      Environment Variable      
+env.APP_ORIGIN ("https://flowboard-app-uat.pages.dev")                    Environment Variable      
+env.MAIL_FROM_NAME ("Flowboard")                                          Environment Variable      
+env.MAIL_FROM_EMAIL ("shubhamsinghlez@gmail.com")                         Environment Variable      
+
+--dry-run: exiting now.
+🪵  Logs were written to "/Users/shubham/Library/Preferences/.wrangler/logs/wrangler-2026-11-04_14-10-36_366.log"
+
+> build:web
+> npm run build --workspace @flowboard/web
+
+
+> @flowboard/web@0.1.0 build
+> next build
+
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+   ▲ Next.js 15.5.28
+
+   Creating an optimized production build ...
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ✓ Compiled successfully in 4.1s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/20) ...
+   Generating static pages (5/20) 
+   Generating static pages (10/20) 
+   Generating static pages (15/20) 
+ ✓ Generating static pages (20/20)
+   Finalizing page optimization ...
+   Collecting build traces ...
+ ⚠ rewrites, redirects, and headers are not applied when exporting your application, detected (rewrites). See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+   Exporting (0/2) ...
+ ✓ Exporting (2/2)
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    2.21 kB         129 kB
+├ ○ /_not-found                            995 B         104 kB
+├ ○ /activity                            7.98 kB         142 kB
+├ ○ /add-card                            8.91 kB         139 kB
+├ ○ /all-work                             1.6 kB         108 kB
+├ ○ /board                               40.2 kB         248 kB
+├ ○ /connect                             6.36 kB         173 kB
+├ ○ /import                              11.1 kB         150 kB
+├ ○ /inbox                               6.28 kB         142 kB
+├ ○ /invitation                            143 B         173 kB
+├ ○ /invitations/accept                    142 B         173 kB
+├ ○ /my-tasks                            5.11 kB         139 kB
+├ ○ /people                              4.25 kB         190 kB
+├ ○ /project                             10.9 kB         234 kB
+├ ○ /projects                              11 kB         185 kB
+├ ○ /settings                            14.5 kB         196 kB
+├ ○ /signin                              11.6 kB         130 kB
+└ ○ /trash                               7.62 kB         147 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/18-27a09157fd457161.js          47 kB
+  ├ chunks/87c73c54-09e1ba5c70e60a51.js  54.2 kB
+  └ other shared chunks (total)             2 kB
+
+
+○  (Static)  prerendered as static content
+
+stage-pages-functions: staged 11 file(s) into /private/tmp/flowboard-hosted-pages-77a9fbb
+  functions/.well-known/oauth-authorization-server.ts
+  functions/.well-known/oauth-protected-resource.ts
+  functions/.well-known/oauth-protected-resource/api/v1/mcp.ts
+  functions/_middleware.ts
+  functions/api/[[path]].ts
+  functions/boards/[id].ts
+  functions/projects/[id].ts
+  src/lib/hosted-mcp-state.ts
+  src/lib/landing-rule.ts
+  src/lib/pages-api-proxy.ts
+  src/lib/return-path.ts
+{"status":"prepared-not-deployed","sourceCommit":"77a9fbbef35d5a0e3be72fc7c390b46972718f89","pagesStage":"/private/tmp/flowboard-hosted-pages-77a9fbb","workerFiles":3,"pagesFiles":157,"workerDigest":"172c6439b0cafb2a08e42810c9b2c7b35e1cbf09e01f551d77ab875fb00cbe56","pagesDigest":"9adcdf712f6e5bac0e67a3c29018d6e39b394656ccfb62245273b3f971e9067e"}
