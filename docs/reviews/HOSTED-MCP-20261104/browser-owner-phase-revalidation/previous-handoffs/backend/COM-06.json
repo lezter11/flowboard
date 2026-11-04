@@ -1,0 +1,21 @@
+{
+  "status": "verified",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01-round-1.json",
+  "summary": "COM-06: independently reviewed current local implementation; hosted acceptance pending.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/features.tsv COM-06",
+  "limitations": [
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Review records declare execution and scope; Architect inspection remains necessary."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/HOSTED-MCP-20261104/linux-owner-phase-revalidation/COM-06.json",
+      "sha256": "57819b935584f7d5abfc6d3b323f69b6cfdb770cd1167664d06849603eea951d",
+      "command": "python3 docs/reviews/HOSTED-MCP-20261104/linux-owner-phase-revalidation/revalidate.py --review docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01-round-1.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local required checks passed.",
+      "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
+    }
+  ]
+}

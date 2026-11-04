@@ -1,6 +1,6 @@
 # Flowboard working checklist
 
-Updated 2026-11-04. **Current phase: local repair and review passed; exact-candidate CI and UAT deployment next.** This sequence complements [TASKS.md](TASKS.md), the 98 product definitions in [features.tsv](docs/features.tsv) and their [generated checklist](docs/FEATURE_CHECKLIST.md).
+Updated 2026-11-04. **Current phase: browser portability repair and fresh 8.955 review passed; new exact-candidate CI is next.** This sequence complements [TASKS.md](TASKS.md), the 98 product definitions in [features.tsv](docs/features.tsv) and their [generated checklist](docs/FEATURE_CHECKLIST.md).
 
 ## Current release checklist
 
@@ -8,16 +8,16 @@ Updated 2026-11-04. **Current phase: local repair and review passed; exact-candi
 - [x] Repair the original Linux XLSX failure while retaining the 1,000 ms budget, original workbook and security assertions.
 - [x] Pass the independent full Linux API suite: **1,926/1,926**, no failures or skips, on the held source. Earlier environment failures are preserved.
 - [x] Pass the other 16 local checks and compiled Pages checks: hosted browser **24/24**, compiled Pages **6/6**, source unchanged.
-- [x] Finish the complete 19-command gate. The final exact Linux composite exited 0 after explicit scratch setup corrections; failed attempts remain preserved.
-- [x] Receive and validate the fresh independent **8.935** review, then refresh all 98 local role handoffs and the generated checklist. The earlier 8.965 review is historical.
-- [ ] Commit the reviewed candidate and push **once to `uat`**; wait for required GitHub CI to pass. Do not push a second branch and create duplicate CI runs.
+- [x] Finish the XML repair's original 19-command gate at its frozen baseline. Its old global-envelope composite remains historical; current unchanged XML/API/install behavior is covered by the new review's explicit continuity attestation.
+- [x] Refresh independent approval and role handoffs after the browser repair: **8.955**, Mac24/Linux24/diagnostics4, current 98 Backend / 74 UI / 98 local Integration. Historical executions retain their original scope through explicit functional continuity.
+- [ ] Complete required native CI. Candidate `e5c5687` was pushed once; run `41869035713` passed all 1,926 API tests, MCP and the legacy browser, then failed hosted-browser setup before any cases. Local repair and fresh approval now pass. Push the new exact candidate once; never use hosted reruns for debugging.
 - [ ] Build clean production artifacts, verify dependency provenance, refresh the approved encrypted UAT backup and apply only reviewed migration 0027.
 - [ ] Upload exact UAT Worker and Pages artifacts; verify deployed identity, hashes and bounded anonymous probes.
 - [ ] Complete real Google/Claude and signed-in product acceptance with the owner. Local synthetic checks do not close hosted acceptance.
 
 Current source and logs: [active checkpoint](docs/reviews/HOSTED-MCP-20261104/RESUME-CURRENT.md), [frozen repair criteria](docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/CRITERIA.md), [strategic plan](docs/HOSTED_MCP_PLAN.md) and [connector contracts](docs/HOSTED_MCP_SPEC.md). The old 22-minute checkpoint is historical; the user resumed the full task.
 
-**Live UAT remains `d1c81f4`.** No new backup, migration 0027 or connector deployment has occurred. Docker is stopped after completed local verification. This Mac is still needed for the remaining release commands; announce safe laptop closure after release work is complete. Production is excluded.
+**Live UAT remains `d1c81f4`.** No new backup, migration 0027 or connector deployment has occurred. Docker is stopped after actual Linux browser proof and cleanup. This Mac remains needed until release commands finish. Production is excluded.
 
 ## Earlier release: live deployment position
 

@@ -1,0 +1,21 @@
+{
+  "status": "verified",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewSHA256": "b08b3cf8a9583f25d4833694ec2a68ec1cfbc5ed2443c34d297f62368c5be492",
+  "summary": "CRD-01: current local integrated acceptance under fresh review; hosted acceptance pending.",
+  "limitations": [
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Review records declare execution and scope; Architect inspection remains necessary."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/HOSTED-MCP-20261104/linux-owner-phase-revalidation/CRD-01.json",
+      "sha256": "2db37c50bbc68d1a066bd1b038896418c3cf539c23614cc4ee38991399f35f54",
+      "command": "python3 docs/reviews/HOSTED-MCP-20261104/linux-owner-phase-revalidation/revalidate.py --review docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01-round-1.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local required checks passed.",
+      "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
+    }
+  ],
+  "uiHandoffSHA256": "8cf63f2cddfc204e0db43f80fc066a8d07cd7d303922bbf4e3b3ed837c966843"
+}

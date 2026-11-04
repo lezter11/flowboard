@@ -1,0 +1,8 @@
+{
+  "observedAt": "2026-11-04T17:19:49.104246+00:00",
+  "command": "docker exec flowboard-browser-repair-pg-20261104 psql -U flowboard_harness -d flowboard_ui_test -tAc SELECT count(*) FROM pg_namespace WHERE nspname LIKE browser_%",
+  "actor": "/root/browser_portability_review",
+  "exitCode": 1,
+  "observation": "No such container: flowboard-browser-repair-pg-20261104",
+  "interpretation": "Reviewer attempted separate schema query after builder had removed container. This observes absence, not an independent schema-count measurement. Use builder actual pre-removal schema count receipt with attribution."
+}

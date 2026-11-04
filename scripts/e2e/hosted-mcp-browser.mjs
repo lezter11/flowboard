@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import assert from 'node:assert/strict';
 import { spawn, execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { safeBrowserError } from './hosted-mcp-browser-diagnostics.mjs';
 
 assert.equal(process.env.NODE_ENV, 'test', 'Hosted browser acceptance requires explicit test mode.');
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -24,7 +25,7 @@ const report = {
   command: 'NODE_ENV=test WRANGLER_SEND_METRICS=false node scripts/e2e/hosted-mcp-browser.mjs', sourceBefore: {}, sourceAfter: {},
 };
 const sourcePaths = [...new Set(execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '--',
-  'apps/web/src', 'apps/web/functions', 'apps/web/public', 'apps/web/test', 'apps/web/next.config.ts', 'apps/web/next-env.d.ts', 'apps/web/tsconfig.json', 'scripts/e2e/hosted-mcp-browser.mjs',
+  'apps/web/src', 'apps/web/functions', 'apps/web/public', 'apps/web/test', 'apps/web/next.config.ts', 'apps/web/next-env.d.ts', 'apps/web/tsconfig.json', 'scripts/e2e/hosted-mcp-browser.mjs', 'scripts/e2e/hosted-mcp-browser-diagnostics.mjs',
   'packages/contracts/src/hosted-mcp.ts', 'apps/api/src/http/routes/hosted-oauth.ts',
   'apps/api/src/adapters/hosted-oauth.ts', 'apps/api/src/http/safe-next.ts',
   'apps/api/src/http/routes/google-auth.ts', 'apps/api/src/http/app.ts', 'apps/api/test/safe-next.test.ts', 'apps/api/test/google-connect-resume.test.ts',
@@ -70,9 +71,7 @@ async function check(id, task) {
     assert.equal(report.console.length, consoleAt, 'Unexpected console/page error.');
     report.results.push({ id, status: 'pass' });
   } catch (error) {
-    // An assertion may contain callback URLs or secrets. Persist its type only.
-    const frame = String(error?.stack ?? '').split('\n').find(line => /hosted-mcp-browser\.mjs:\d+/.test(line));
-    report.results.push({ id, status: 'fail', errorType: error?.name ?? 'Error', sourceFrame: frame?.trim().replace(root, '') });
+    report.results.push({ id, status: 'fail', ...safeBrowserError(error) });
     if (currentTab) {
       const url = new URL(currentTab.page.url());
       report.results.at(-1).page = { origin: url.origin, path: safePath(url.href) };
@@ -214,7 +213,8 @@ try {
   web = spawn(process.execPath, [path.join(root, 'node_modules/next/dist/bin/next'), 'dev', '-p', '44942', '-H', '127.0.0.1'], { cwd: path.join(root, 'apps/web'), env: { ...process.env, API_URL: apiOrigin, NEXT_DIST_DIR: process.env.NEXT_DIST_DIR || '.next', NEXT_EXPORT: 'false', NEXT_TELEMETRY_DISABLED: '1' }, stdio: 'ignore' });
   const deadline = Date.now() + 90_000;
   for (;;) { try { if ((await fetch(webOrigin + '/signin')).ok) break; } catch {} if (Date.now() > deadline) throw new Error('Startup deadline'); await pause(300); }
-  browser = await chromium.launch({ headless: true, executablePath: process.env.FLOWBOARD_CHROME_EXECUTABLE ?? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' });
+  const executablePath = process.env.FLOWBOARD_CHROME_EXECUTABLE ?? (process.platform === 'darwin' ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' : undefined);
+  browser = await chromium.launch({ headless: true, ...(executablePath ? { executablePath } : {}) });
   report.browser = await browser.version();
   const fixture = await api.fixture();
   googlePerson = fixture.people.owner.user;
@@ -547,7 +547,7 @@ try {
   assert.equal(report.results.length >= 24, true, 'Missing required browser cases.');
   assert.deepEqual(report.coverage.passedGroups, ownedGroups, 'Missing a required passing browser group.');
 } catch (error) {
-  report.setupFailure = { errorType: error?.name ?? 'Error' };
+  report.setupFailure = safeBrowserError(error);
 } finally {
   for (const context of contexts) await context.close().catch(() => {});
   await browser?.close().catch(() => {});
@@ -561,6 +561,6 @@ try {
   report.completed = new Date().toISOString();
   report.cleanup = 'Own isolated browser/servers closed; inherited helper drops its own random synthetic schema. No hosted write or external callback request.';
   await save();
-  console.log(JSON.stringify({ output: path.relative(root, out), cases: report.results.length, failures: report.results.filter(r => r.status === 'fail').length, setupFailed: !!report.setupFailure, sourceChanges: report.sourceChanges.length }));
+  console.log(JSON.stringify({ output: path.relative(root, out), cases: report.results.length, failures: report.results.filter(r => r.status === 'fail').length, setupFailed: !!report.setupFailure, ...(report.setupFailure ? { setupFailure: report.setupFailure } : {}), sourceChanges: report.sourceChanges.length }));
   if (report.setupFailure || report.sourceChanges.length || report.blockedOrigins.length || report.results.some(r => r.status !== 'pass')) process.exitCode = 1;
 }

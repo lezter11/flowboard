@@ -1,0 +1,91 @@
+✖ diagnostics exclude arbitrary names, messages and stack text in case/setup reports (0.856792ms)
+✖ diagnostics have fixed types and bounded optional numeric locations (0.139083ms)
+✖ changing name/stack accessors are read once and cannot bypass projection (0.113333ms)
+✔ actual runner launch selection preserves overrides and Darwin while Linux uses managed Chromium (3.533333ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 1
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 33.527959
+
+✖ failing tests:
+
+test at ../../../../../../private/var/folders/jr/scqd6q3j7nggl004yfg9_vsh0000gn/T/flowboard-review-mutation-hgdjccbr/hosted-mcp-browser-diagnostics.test.mjs:7:1
+✖ diagnostics exclude arbitrary names, messages and stack text in case/setup reports (0.856792ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   errorType: 'synthetic-secret-code-token-cookie-provider-body',
+  -   errorType: 'Error',
+      sourceFrame: {
+        column: 9,
+        file: 'hosted-mcp-browser.mjs',
+        line: 217
+      }
+  
+      at TestContext.<anonymous> (file:///private/var/folders/jr/scqd6q3j7nggl004yfg9_vsh0000gn/T/flowboard-review-mutation-hgdjccbr/hosted-mcp-browser-diagnostics.test.mjs:11:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { errorType: 'synthetic-secret-code-token-cookie-provider-body', sourceFrame: { file: 'hosted-mcp-browser.mjs', line: 217, column: 9 } },
+    expected: { errorType: 'Error', sourceFrame: { file: 'hosted-mcp-browser.mjs', line: 217, column: 9 } },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ../../../../../../private/var/folders/jr/scqd6q3j7nggl004yfg9_vsh0000gn/T/flowboard-review-mutation-hgdjccbr/hosted-mcp-browser-diagnostics.test.mjs:16:1
+✖ diagnostics have fixed types and bounded optional numeric locations (0.139083ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   errorType: undefined
+  -   errorType: 'Error'
+    }
+  
+      at TestContext.<anonymous> (file:///private/var/folders/jr/scqd6q3j7nggl004yfg9_vsh0000gn/T/flowboard-review-mutation-hgdjccbr/hosted-mcp-browser-diagnostics.test.mjs:18:251)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { errorType: undefined },
+    expected: { errorType: 'Error' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at ../../../../../../private/var/folders/jr/scqd6q3j7nggl004yfg9_vsh0000gn/T/flowboard-review-mutation-hgdjccbr/hosted-mcp-browser-diagnostics.test.mjs:21:1
+✖ changing name/stack accessors are read once and cannot bypass projection (0.113333ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   errorType: undefined
+  -   errorType: 'Error'
+    }
+  
+      at TestContext.<anonymous> (file:///private/var/folders/jr/scqd6q3j7nggl004yfg9_vsh0000gn/T/flowboard-review-mutation-hgdjccbr/hosted-mcp-browser-diagnostics.test.mjs:27:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { errorType: undefined },
+    expected: { errorType: 'Error' },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }

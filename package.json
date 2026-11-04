@@ -31,7 +31,7 @@
     "test:mcp-integration": "npm run deps:verify && NODE_ENV=test WRANGLER_SEND_METRICS=false node scripts/e2e/mcp-acceptance.mjs",
     "migrations:embed": "node scripts/sync-embedded-migrations.ts",
     "migrations:embed:check": "node scripts/sync-embedded-migrations.ts --check",
-    "test:hosted-mcp-browser": "npm run deps:verify && NODE_ENV=test WRANGLER_SEND_METRICS=false node scripts/e2e/hosted-mcp-browser.mjs",
+    "test:hosted-mcp-browser": "npm run deps:verify && node --test scripts/e2e/hosted-mcp-browser-diagnostics.test.mjs && NODE_ENV=test WRANGLER_SEND_METRICS=false node scripts/e2e/hosted-mcp-browser.mjs",
     "postinstall": "node apps/api/scripts/dependency-patches.mjs --apply",
     "deps:apply": "node apps/api/scripts/dependency-patches.mjs --apply",
     "deps:verify": "node apps/api/scripts/dependency-patches.mjs --verify"

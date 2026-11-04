@@ -1,0 +1,11 @@
+# Reviewer identity and evidence boundary
+
+Independent actor `/root/browser_portability_review`, delegated session `delegated-review:/root/browser_portability_review`. Exact provider model identifier is not exposed. This reviewer did not implement runner/helper/test/package changes. Read-only target review; writes are confined to this review evidence directory, disposable diagnostic copies and authorized execution outputs. Builder is `/root/browser_portability_builder`; Architect `/root` owns root wiring.
+
+Reviewed RULES.md, BACKEND_REVIEW_GATE.md, docs/reviews/README.md, frozen root CRITERIA.md, original auditor REVIEW-PLAN.md, diagnosis/source evidence, historical XML-repair record/criteria/actual command evidence, native e5 CI receipt and API selected primary log receipt. Applied code-review-and-quality skill; mutation experiment used disposable copies only and detected removed diagnostic allowlist.
+
+Before acceptance, reviewer found two reads of arbitrary error.name allowed a changing getter to return an allowlisted value then a secret. Builder cached name and stack once, guarded throwing getters and added regression before holding final source. Reviewer independently executed4 focused tests, all pass; four affected file hashes stayed identical before/after. Preserve this finding as resolved pre-freeze, not an erased failure or scored-round retry.
+
+Layered evidence is predeclared: retain actual original command SHA/environment/times/logs only after conservative functional closure equality. Test targetDigest in the eventual schema record binds current applicability; `originalExecution` retains actual execution identity. In particular LNX-06 was executed freshly for the XML repair's original held envelope; the current new browser task does not claim those17 commands freshly reran. The old globally copying/hashing Linux composite is historical only. New continuity attestation, diagnostic regression and Mac/Linux hosted runner runs provide fresh current evidence. Native GitHub API1926/1926 and prior successful steps belong to exact e5c5687; the overall CI failed hosted-browser setup and never approved this repair.
+
+No push, hosted workflow, deployment, UAT/provider action or production change is authorized for this reviewer.

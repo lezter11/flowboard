@@ -1,0 +1,23 @@
+
+> test:hosted-mcp-browser
+> npm run deps:verify && node --test scripts/e2e/hosted-mcp-browser-diagnostics.test.mjs && NODE_ENV=test WRANGLER_SEND_METRICS=false node scripts/e2e/hosted-mcp-browser.mjs
+
+
+> deps:verify
+> node apps/api/scripts/dependency-patches.mjs --verify
+
+{"package":"fast-xml-parser","version":"5.11.2","files":[{"path":"src/validator.js","sha256":"bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8"},{"path":"src/xmlparser/OrderedObjParser.js","sha256":"72f43cb7527e0575d3ae5024efd64c184bc31f93a2c1cafc7f62b7cc3b77f9f0"}],"changedFiles":[]}
+✔ diagnostics exclude arbitrary names, messages and stack text in case/setup reports (0.509292ms)
+✔ diagnostics have fixed types and bounded optional numeric locations (0.107833ms)
+✔ changing name/stack accessors are read once and cannot bypass projection (0.075708ms)
+✔ actual runner launch selection preserves overrides and Darwin while Linux uses managed Chromium (2.752875ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 31.10025
+{"output":"docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/builder/mac-bad-executable/report","cases":0,"failures":0,"setupFailed":true,"sourceChanges":2}
+{"mode":"mac-bad-executable","exit":1}

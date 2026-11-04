@@ -170,3 +170,8 @@ This is an API-only handoff for UI implementation, not whole-connector release a
 ## Current Linux repair acceptance — 2026-11-04
 
 The [fresh independent review](reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01-round-1.json) passes **8.935**, with 149 criteria, 99 IDs and all 19 required command groups. Architect validation and current role evidence pass: 98 Backend, 74 required UI and 98 local Integration. Linux API passes 1,926/1,926; five cold pressure fixtures, fresh hosted Chrome 24/24, compiled Pages 6/6 and clean install/build proof pass. Historical failed runs and scores are preserved. HMCP07 still requires the exact candidate's native GitHub CI; HMCP08–09 remain pending. User reports a 2,000-minute monthly Actions allowance: local diagnosis first, one final push to `uat`, no hosted debugging loop. Docker is stopped. UAT remains d1c81f4.
+
+
+## Current browser portability acceptance — 2026-11-04
+
+[Fresh review](reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8-round-1.json) passes **8.955**, all category floors/no blockers. Linux24 and Mac24 run the unchanged complete browser cases; diagnostics4 and missing-executable failure/cleanup pass. Original command evidence retains its measured target, environment and logs through explicit functional continuity. The old global Linux composite is not represented as a fresh new-envelope run. Root validated all 98 local role handoffs. Next required native CI must pass before HMCP08–09. Docker is stopped; UAT remains d1c81f4.

@@ -2,7 +2,7 @@
 
 ## Active: hosted browser-sign-in connector — 2026-11-04
 
-Continue [HOSTED_MCP_PLAN.md](docs/HOSTED_MCP_PLAN.md), HMCP00–09. Current repair and hosted connector pass fresh independent **8.935** review: all 19 local command groups and Linux API **1,926/1,926**, with 98 Backend / 74 UI / 98 local Integration handoffs rebound to the current source. See [the current checklist](flowBoardTasks.md). HMCP07 remains open for the exact candidate's required GitHub CI; HMCP08–09 cover UAT deployment and hosted acceptance. Docker is stopped. UAT remains `d1c81f4`; production is excluded. Earlier entries below are historical.
+Continue [HOSTED_MCP_PLAN.md](docs/HOSTED_MCP_PLAN.md), HMCP00–09. Browser portability repair now passes fresh independent **8.955** review: Mac24 / Linux24 / diagnostics4, with explicit inherited-source evidence and **98 Backend / 74 UI / 98 local Integration** handoffs refreshed. See [the current checklist](flowBoardTasks.md). The e5 native run passed all 1,926 API tests then exposed a Mac-only hosted-test launcher. HMCP07 requires the repaired candidate's native CI; HMCP08–09 cover UAT upload and actual hosted acceptance. Docker is stopped. UAT remains d1c81f4; production is excluded. Earlier entries are historical.
 
 Current deployment update2026-11-04: UAT deployed exactd1c81f4; independent anonymous smoke15/15passed. Local98Backend/74requiredUI/98integration approvals current. UAT-01–05 complete; HOST-01–03 remain pending actual signed-in/provider/Claude tests. See [checkpoint](docs/reviews/FULL-REVALIDATION-20261104/CHECKPOINT.md) and [testing guide](docs/UAT_TESTING.md). Older rollout/pending statements below are historical.
 

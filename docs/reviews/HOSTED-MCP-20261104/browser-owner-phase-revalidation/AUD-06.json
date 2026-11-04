@@ -1,0 +1,176 @@
+{
+  "featureId": "AUD-06",
+  "acceptance": "No user edits audit facts; sensitive/deleted bodies are redacted under retention rules while actor/action/time facts persist.",
+  "uiRequired": false,
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewPath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8-round-1.json",
+  "backendReviewSHA256": "5ac7ecaa5ba0ad83d98e8b542afbdd32f2b9cf1d85517919b33c3165297f9f2c",
+  "sourceAndTests": [],
+  "currentRequiredTests": [
+    {
+      "id": "build-web",
+      "command": "npm run build:web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/build-web.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; explicit production build without DB/test/NEXT_PUBLIC overrides, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "dependency-negatives",
+      "command": "NODE_ENV=test node --test apps/api/test/dependency-patches.test.ts",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/dependency-negatives.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/typecheck.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "typecheck-web",
+      "command": "npm run typecheck:web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/typecheck-web.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "contracts",
+      "command": "npm test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/contracts.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "web",
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/web.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "mcp",
+      "command": "npm test --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/mcp.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "openapi-staleness",
+      "command": "npm run openapi:check",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/openapi-staleness.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "embedded-migration-parity",
+      "command": "npm run migrations:embed:check",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/embedded-migration-parity.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "build-worker",
+      "command": "npm run build --workspace @flowboard/api",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/build-worker.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; explicit production build without DB/test/NEXT_PUBLIC overrides, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "production-worker-artifact",
+      "command": "NODE_ENV=test WRANGLER_SEND_METRICS=false node docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/production-worker-probe.mjs --run",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/production-worker-artifact.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "build-mcp",
+      "command": "npm run build --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/build-mcp.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; explicit production build without DB/test/NEXT_PUBLIC overrides, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "mcp-artifact",
+      "command": "npm run test:artifact --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/mcp-artifact.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "mcp-integration",
+      "command": "npm run test:mcp-integration",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/mcp-integration.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "browser-integration",
+      "command": "npm run test:browser",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/browser-integration.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "compiled-pages-runtime",
+      "command": "NODE_ENV=test node docs/reviews/HOSTED-MCP-20261104/independent-ui-review/pages-runtime.mjs --run",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-ui-review/runs/2026-11-04T16-04-49.834Z/result.json",
+      "environment": "Independent compiled Pages/workerd + installed Wrangler ASSETS + actual isolated Chrome, no PostgreSQL; controlled readonly bridge explicitly distinguished from production API."
+    },
+    {
+      "id": "api",
+      "command": "npm test --workspace @flowboard/api",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/linux-product/linux-full-api.log",
+      "environment": "Linux ARM64 Node24.15.0/workerd + handed-over dedicated PostgreSQL17.11/internal loopback; API2CPU/2g, pressure0.75CPU/1g. Not native CIx64."
+    },
+    {
+      "id": "hosted-browser",
+      "command": "npm run test:hosted-mcp-browser",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/mac.log",
+      "environment": "Darwin arm64 Node24.15.0 npm11.12.1; default installed Chrome; no executable override; separate disposable local PostgreSQL17.11 synthetic schema; NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "hosted-browser-linux",
+      "command": "npm run test:hosted-mcp-browser",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/builder/linux.log",
+      "environment": "Actual LinuxARM64 official Playwright1.64.1 image2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f; mounted public pinned Node24.15 binary d0b9f94a..; image-default Node26.13 explicitly not used; npm11.20.0; managed Chromium156.0.8078.80, no executable override/NODE_OPTIONS; real disposable PG17.11, readonly source/dependencies, isolated .next. Builder executed, reviewer inspected actual reports/source/runtime before/after."
+    },
+    {
+      "id": "diagnostics",
+      "command": "node --test scripts/e2e/hosted-mcp-browser-diagnostics.test.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/diagnostics-final.log",
+      "environment": "Darwin arm64 Node24.15.0 npm11.12.1; no DB/network used"
+    },
+    {
+      "id": "continuity",
+      "command": "python3 docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/continuity.py",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/continuity.log",
+      "environment": "Darwin arm64 Node24.15.0/npm11.12.1; read-only source/artifact/dependency comparison, no DB/network"
+    },
+    {
+      "id": "current-worker-map",
+      "command": "node apps/api/scripts/dependency-patches.mjs --verify-worker apps/api/dist/worker/worker.js.map",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/current-worker-map.log",
+      "environment": "Darwin arm64 Node24.15.0; no DB/network"
+    }
+  ],
+  "historicalPhase": {
+    "path": "docs/reviews/HOSTED-MCP-20261104/linux-owner-phase-revalidation/AUD-06.json",
+    "sha256": "8d9125c036fe8713aba757a42870a36f9e5ee4f79c4353d033e11c2804a2372d"
+  },
+  "decision": "Architect consumed the fresh independent current-source omnibus review and current required test evidence. Per-ID source continuity is explicitly measured, including changed files; historical probes are not represented as newly executed.",
+  "limitations": [
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Review records declare execution and scope; Architect inspection remains necessary."
+  ],
+  "recordedAt": "2026-11-04T17:23:50.361269+00:00"
+}
