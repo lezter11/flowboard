@@ -56,7 +56,10 @@ export function generateOpenApiDocument() {
     for (const [status, response] of Object.entries(route.responses)) {
       const headers: Record<string, unknown> = { 'X-Request-Id': { schema: { type:'string' }, description: 'Assigned by shared middleware when app initialization succeeds.' } };
       if (status === '302') headers['Location'] = { schema: { type:'string' }, description:'Authorization provider or safe frontend landing/sign-in destination.' };
-      if (status === '204' || status === '302') { responses[status] = { description: response.description, headers }; continue; }
+      if (route.errorKind) headers['Cache-Control'] = { schema: { type:'string', const:'no-store' } };
+      if (route.auth === 'oauth-mcp' && status === '401') headers['WWW-Authenticate'] = { schema:{type:'string'}, description:'Bearer resource_metadata="APP_ORIGIN/.well-known/oauth-protected-resource/api/v1/mcp". No cookie or PAT fallback.' };
+      if (status === '405' || (route.method === 'OPTIONS' && status === '204')) headers['Allow'] = { schema:{type:'string',const:'POST, OPTIONS'} };
+      if (response.empty || status === '204' || status === '302') { responses[status] = { description: response.description, headers }; continue; }
       let content: Record<string, unknown>;
       if (response.contentType) {
         const types = response.contentType === 'image/*' ? ['image/png','image/jpeg','image/webp'] : [response.contentType];
@@ -69,21 +72,29 @@ export function generateOpenApiDocument() {
       } else throw new Error(`Missing JSON schema or binary MIME for ${route.method} ${operationPath} response ${status}`);
       responses[status] = { description: response.description, headers, content };
     }
-    responses['default'] = { description: 'Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.',
+    const protocolError = route.errorKind === 'oauth' ? 'HostedOAuthError' : route.errorKind === 'jsonrpc' ? 'HostedMcpError' : undefined;
+    responses['default'] = { description: `${protocolError ? 'Protocol failures use '+protocolError+'. ' : ''}Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.`,
       headers: { 'X-Request-Id': { schema: {type:'string'} }, 'Retry-After': { schema: {type:'string'},description:'429 and retryable conflicts when supplied.' } },
-      content: { 'application/json': { schema: { anyOf:[ref('ErrorEnvelope'), ref('WorkerBootstrapError')] } } } };
+      content: { 'application/json': { schema: { anyOf:[...(protocolError ? [ref(protocolError)] : []), ref('ErrorEnvelope'), ref('WorkerBootstrapError')] } } } };
     const security = route.auth === 'public' || route.auth === 'local-test' ? []
       : route.auth === 'optional-session' ? [{},{sessionCookie:[]}]
+      : route.auth === 'oauth-mcp' ? [{oauthMcpBearer:[]}]
       : route.auth === 'admin-secret' ? [{adminSecret:[]}]
       : route.auth === 'session-or-token' ? [{sessionCookie:[]},{personalAccessToken:[]}]
       : [{sessionCookie:[]}];
+    if (route.auth === 'oauth-mcp' && route.method === 'POST') {
+      parameters.push({name:'Accept',in:'header',required:true,schema:{type:'string'},description:'Must include both application/json and text/event-stream with positive quality.'});
+      parameters.push({name:'MCP-Protocol-Version',in:'header',required:false,schema:{type:'string'},description:'Installed SDK-supported protocol version; future protocol support is not implied.'});
+    }
     const requestBody = route.requestKind === 'image' ? { required:true, content:{'application/octet-stream':{schema:binary}} }
       : route.requestKind === 'xlsx' ? { required:true, content:{ 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':{schema:binary}, 'application/octet-stream':{schema:binary},
           'multipart/form-data':{schema:{type:'object',properties:{file:binary,defaultColumnId:{type:'string',minLength:1}},required:['file','defaultColumnId']}} } }
-      : route.requestSchema ? { required:!route.requestOptional,content:{'application/json':{schema:ref(route.requestSchema)}} } : undefined;
+      : route.requestSchema ? { required:!route.requestOptional,content:{[route.requestKind === 'form' ? 'application/x-www-form-urlencoded' : 'application/json']:{schema:ref(route.requestSchema)}} } : undefined;
     location[method] = { operationId:`${route.method.toLowerCase()}_${operationPath.replace(/[^A-Za-z0-9]+/g,'_').replace(/^_|_$/g,'')}`,
       summary:route.summary,description:route.description,security,parameters,responses,
       ...(requestBody ? {requestBody} : {}),
+      ...(route.maxRequestBytes ? {'x-max-request-bytes':route.maxRequestBytes} : {}),
+      ...(route.auth === 'oauth-mcp' ? {'x-oauth-resource':'APP_ORIGIN/api/v1/mcp','x-oauth-rest-authority':'Forbidden; OAuth credentials are valid only at the exact MCP transport path.'} : {}),
       ...(route.lifecycle==='retired' ? {deprecated:true} : {}),
       'x-minimum-project-role':route.minimumRole,'x-authority-note':'Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.',
       'x-runtime-source':route.source,'x-lifecycle':route.lifecycle ?? 'active',
@@ -92,9 +103,9 @@ export function generateOpenApiDocument() {
       ...(route.replay ? {'x-replay-schema':'MinimalReplayResponse','x-response-validation':'Documented wire projection; not a claim all handlers execute output-schema parsing.'} : {}) };
   }
   return { ...OPENAPI_SPEC_METADATA, jsonSchemaDialect:'https://json-schema.org/draft/2020-12/schema', paths,
-    components: { securitySchemes: { sessionCookie:{type:'apiKey',in:'cookie',name:'flowboard_session'}, personalAccessToken:{type:'http',scheme:'bearer',bearerFormat:'flw_pat_<64 hex characters>'}, adminSecret:{type:'apiKey',in:'header',name:'X-Dev-Secret'} },schemas },
+    components: { securitySchemes: { sessionCookie:{type:'apiKey',in:'cookie',name:'flowboard_session'}, oauthMcpBearer:{type:'http',scheme:'bearer',bearerFormat:'flw_mcp_access_<64 hex characters>',description:'OAuth resource credential accepted only by /api/v1/mcp, never ordinary REST operations.'}, personalAccessToken:{type:'http',scheme:'bearer',bearerFormat:'flw_pat_<64 hex characters>'}, adminSecret:{type:'apiKey',in:'header',name:'X-Dev-Secret'} },schemas },
     'x-error-catalog':ERROR_CATALOG,
-    'x-runtime-inventory':'Explicit mounted Node/Worker routes and aliases. Automatic HEAD behavior for GET and shared CORS OPTIONS are middleware behavior, not additional route capabilities.',
+    'x-runtime-inventory':'Explicit mounted Node/Worker routes and aliases. Automatic HEAD behavior for GET and shared CORS OPTIONS are middleware behavior, not additional route capabilities. The exact hosted MCP path has its own explicit OPTIONS protocol handler documented here.',
     'x-evidence-limit':'Generated contract and route parity do not approve implementation, real OAuth, provider delivery, UAT or production. Custom JavaScript refinements and authorization are not fully expressible in JSON Schema.' };
 }
 export async function writeOpenApi(checkOnly = false) {

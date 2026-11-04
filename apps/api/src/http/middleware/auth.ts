@@ -6,6 +6,7 @@ import { verifyPersonalAccessToken } from '../../adapters/tokens.ts';
 import { getPool } from '../../adapters/postgres.ts';
 import type { SessionActor, TokenScope } from '@flowboard/contracts';
 import { enforcePersonalAccessTokenPolicy } from './token-policy.ts';
+import { readHostedMcpContext } from '../hosted-mcp-context.ts';
 
 declare module 'hono' {
   interface ContextVariableMap {
@@ -15,6 +16,9 @@ declare module 'hono' {
     tokenId?: string;
     tokenProjectId?: string | null;
     authType?: 'session' | 'token';
+    machineCredentialKind?: 'personal_access_token' | 'mcp_oauth';
+    oauthAccessTokenId?: string;
+    oauthResource?: string;
   }
 }
 
@@ -22,6 +26,18 @@ export const SESSION_COOKIE_NAME = 'flowboard_session';
 
 /** Also mounted globally, so an explicit bearer cannot fall through to a public/UI route. */
 export const personalAccessTokenMiddleware: MiddlewareHandler = async (c, next) => {
+  const internal = readHostedMcpContext(c.req.raw);
+  if (internal) {
+    const { principal } = internal;
+    c.set('actor', principal.actor);
+    c.set('tokenScopes', principal.scopes);
+    c.set('tokenId', principal.connectionId);
+    c.set('tokenProjectId', principal.projectId);
+    c.set('authType', 'token');
+    c.set('machineCredentialKind', 'mcp_oauth');
+    c.set('oauthAccessTokenId', principal.accessTokenId);
+    c.set('oauthResource', principal.resource);
+  }
   const authHeader = c.req.header('Authorization');
   if (authHeader !== undefined) c.header('Cache-Control', 'no-store');
   if (authHeader !== undefined && c.get('authType') !== 'token') {
@@ -36,12 +52,18 @@ export const personalAccessTokenMiddleware: MiddlewareHandler = async (c, next) 
     c.set('tokenId', tokenData.token.id);
     c.set('tokenProjectId', tokenData.token.projectId);
     c.set('authType', 'token');
+    c.set('machineCredentialKind', 'personal_access_token');
   }
   if (c.get('authType') === 'token') await enforcePersonalAccessTokenPolicy(c);
   await next();
 };
 
 export const authMiddleware: MiddlewareHandler = async (c, next) => {
+  // The global middleware consumed the private Request identity before a body
+  // limiter could replace raw Request. These values are server context only.
+  if (readHostedMcpContext(c.req.raw) || c.get('machineCredentialKind') === 'mcp_oauth') {
+    return personalAccessTokenMiddleware(c, next);
+  }
   // Defense in depth when a route module is mounted without createApp (e.g. a focused harness).
   if (c.req.header('Authorization') !== undefined) {
     return personalAccessTokenMiddleware(c, next);

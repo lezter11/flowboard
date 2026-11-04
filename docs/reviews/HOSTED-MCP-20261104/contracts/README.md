@@ -1,0 +1,9 @@
+# Hosted MCP OpenAPI contract slice
+
+Actions: Added15 hosted operations to the existing103-operation catalogue. OAuth bearer is accepted only on exact MCP POST/GET/DELETE; explicit OPTIONS and three discovery metadata paths are documented. Token/revoke requests use form-urlencoded bodies; token/DCR and MCP JSON-RPC responses are unwrapped. Consent/connection routes retain strict shared browser schemas. Six existing PAT-capable REST operations retain their security metadata.
+
+Why and options: A Flowboard consent page uses the ordinary browser API envelope, while Claude exchanges standard OAuth forms and JSON-RPC messages. Keeping separate schemas lets generated consumers use the right shape. Method-specific MCP params/results intentionally remain SDK-validated unknown values with explicit documentation, rather than silently substituting unrestricted schemas for unsupported conversions. The generator still throws on unsupported schema conversion or missing references.
+
+Evidence and limits: Exact owned-source and evidence SHA256 values plus commands/exits are in manifest.json. New tests failed5/5 before implementation and passed5/5 after; full contracts passed137/137; generation/check passed with118 operations and245 schemas. Full source typecheck failed on two transport-test Response type mismatches outside this slice. The failed log is retained. This is structural contract evidence, not runtime OAuth/browser/workerd/Claude/UAT acceptance or an independent backend score. Integration sources remain in progress. Generated artifact also incorporates current shared schemas already present in the checkout before this slice.
+
+Next / your input: Architect reviews this owned diff and resolves the recorded integration typecheck failures before freezing the whole-feature manifest. No action needed from the user.

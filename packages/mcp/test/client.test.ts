@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { FlowboardApiError, FlowboardClient } from '../src/client.ts';
+import { FlowboardApiError, FlowboardClient, FlowboardOperationsClient } from '../src/client.ts';
 
 const token = `flw_pat_${'a'.repeat(64)}`;
 const config = { apiUrl: 'http://127.0.0.1:43210', apiToken: token };
@@ -271,4 +271,43 @@ test('HTTP timeout aborts the request and reports unknown create outcome without
     });
   });
   assert.equal(aborted, true);
+});
+
+test('injected operations client uses relative routes without credentials or global fetch', async () => {
+  const calls: string[] = [];
+  const client = new FlowboardOperationsClient(async (path, options) => {
+    calls.push(path);
+    assert.ok(path.startsWith('/api/v1/'));
+    const headers = new Headers(options?.headers);
+    assert.equal(headers.has('authorization'), false);
+    assert.equal(headers.has('cookie'), false);
+    assert.equal(headers.get('accept'), 'application/json');
+    if (path.endsWith('/metadata')) return json(metadata());
+    assert.equal(headers.get('idempotency-key'), input.operationId);
+    assert.equal(headers.get('content-type'), 'application/json');
+    return json({ data: { id: 'card_internal' }, replayed: true }, 201);
+  });
+  await withFetch(async () => { throw new Error('global fetch must never run'); }, async () => {
+    const result = await client.createCard(input);
+    assert.equal(result.id, 'card_internal');
+    assert.equal(result.replayed, true);
+    assert.equal(result.operationId, input.operationId);
+  });
+  assert.deepEqual(calls, ['/api/v1/boards/board_123/metadata', '/api/v1/boards/board_123/cards']);
+});
+
+test('injected request exceptions are sanitized without losing unknown-outcome guidance', async () => {
+  const client = new FlowboardOperationsClient(async () => { throw new Error('synthetic database secret'); });
+  await assert.rejects(client.listProjects(), (error) => {
+    assert.doesNotMatch(String(error), /synthetic|database|secret/);
+    assert.match(String(error), /same operationId and input/);
+    return true;
+  });
+});
+
+test('in-process redirect responses fail closed without invoking global fetch', async () => {
+  const client = new FlowboardOperationsClient(async () => json({}, 302));
+  await withFetch(async () => { throw new Error('redirect must never reach network'); }, async () => {
+    await assert.rejects(client.listProjects(), error => error instanceof FlowboardApiError && error.status === 302);
+  });
 });

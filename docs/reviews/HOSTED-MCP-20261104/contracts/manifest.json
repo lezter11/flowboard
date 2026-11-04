@@ -1,0 +1,100 @@
+{
+  "createdAt": "2026-11-04T09:23:08.123445+00:00",
+  "baselineCommit": "b19549c341d169340dfae707499057fae8c81442",
+  "scope": "Contract documentation slice only; not independent backend approval. Other integration source is changing.",
+  "sourceFiles": [
+    {
+      "path": "packages/contracts/src/openapi/index.ts",
+      "sha256": "283a4a1685dc7f786ae910a71b6101c069b2003bc5dc65b2f945c68edadc917a"
+    },
+    {
+      "path": "packages/contracts/src/openapi/schemas.ts",
+      "sha256": "6a4d443c0c1b17e8dca08e34d2097a4e630d12a1e857470049f410e2da9e943f"
+    },
+    {
+      "path": "packages/contracts/src/openapi/hosted-mcp-schemas.ts",
+      "sha256": "b80c9ca1b1f5c198986222f034a31bfce59377c017cb4facda1d4f41007237d8"
+    },
+    {
+      "path": "packages/contracts/test/hosted-mcp-openapi.test.ts",
+      "sha256": "45e47dfe2677ecf832f0ec547c1a01b8b1b207c358f5b187c34cf40474f058dc"
+    },
+    {
+      "path": "scripts/generate-openapi.ts",
+      "sha256": "c67a5dd7869798a6c9661ec091061253936f29af7314fc1aaa0fc9df6b554bd1"
+    },
+    {
+      "path": "docs/openapi.json",
+      "sha256": "697c4bf740b1c735e3b91af9d53ca22e47fc2dc5580264d95944d97be0d2203e"
+    }
+  ],
+  "evidenceFiles": [
+    {
+      "path": "docs/reviews/HOSTED-MCP-20261104/contracts/contracts-full.log",
+      "sha256": "8fc96ee49025e0cc4b32f1c0fd625c1e9dd85179b793c3e61dd92434b743aeb4"
+    },
+    {
+      "path": "docs/reviews/HOSTED-MCP-20261104/contracts/openapi-check.log",
+      "sha256": "a70823868416ca41eb8626ff874a3b89a4b167405685874f2affa74426bffd49"
+    },
+    {
+      "path": "docs/reviews/HOSTED-MCP-20261104/contracts/openapi-generate.log",
+      "sha256": "d3bf48c2fccf0e671c701ac324ad640f90d0889f1270f90962d9955c2bf0e6a9"
+    },
+    {
+      "path": "docs/reviews/HOSTED-MCP-20261104/contracts/openapi-green.log",
+      "sha256": "0a2953fc52f6de922b960a950d307a838ca2cd1f0991a2eed794ee6638c9e829"
+    },
+    {
+      "path": "docs/reviews/HOSTED-MCP-20261104/contracts/openapi-red.log",
+      "sha256": "b9b45e039b840b16d142e06daa841d305751db78d44bb9c52d040ce9f99db641"
+    },
+    {
+      "path": "docs/reviews/HOSTED-MCP-20261104/contracts/typecheck.log",
+      "sha256": "7d553cc947237457e6c148b576a42bde2c11d14738802c3c2fd5f6b62bb8b3fd"
+    }
+  ],
+  "operations": 118,
+  "schemas": 245,
+  "checks": [
+    {
+      "command": "node --test packages/contracts/test/hosted-mcp-openapi.test.ts",
+      "phase": "red",
+      "exit": 1,
+      "passed": 0,
+      "failed": 5,
+      "log": "openapi-red.log"
+    },
+    {
+      "command": "node --test packages/contracts/test/hosted-mcp-openapi.test.ts",
+      "phase": "green",
+      "exit": 0,
+      "passed": 5,
+      "failed": 0,
+      "log": "openapi-green.log"
+    },
+    {
+      "command": "npm test --workspace=@flowboard/contracts",
+      "exit": 0,
+      "passed": 137,
+      "failed": 0,
+      "log": "contracts-full.log"
+    },
+    {
+      "command": "npm run openapi:generate",
+      "exit": 0,
+      "log": "openapi-generate.log"
+    },
+    {
+      "command": "npm run openapi:check",
+      "exit": 0,
+      "log": "openapi-check.log"
+    },
+    {
+      "command": "npx tsc --noEmit",
+      "exit": 1,
+      "log": "typecheck.log",
+      "limitation": "Two Response_2/Response incompatibilities in apps/api/test/hosted-mcp-mounted.test.ts lines252/256, outside assigned slice."
+    }
+  ]
+}

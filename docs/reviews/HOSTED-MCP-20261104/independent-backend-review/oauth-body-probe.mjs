@@ -1,0 +1,18 @@
+import fs from 'node:fs';
+import pg from 'pg';
+import {createApp} from '../../../../apps/api/src/http/app.ts';
+import {getPool,setGlobalPool,closePool} from '../../../../apps/api/src/adapters/postgres.ts';
+if(!process.env.DATABASE_URL)Object.assign(process.env,JSON.parse(fs.readFileSync('/private/tmp/flowboard-hosted-mcp-test-env.json','utf8')));
+process.env.NODE_ENV='test';getPool();
+const pool=new pg.Pool({connectionString:process.env.DATABASE_URL,max:1});setGlobalPool(pool);
+const app=createApp(async()=>{},{pool,mcpPublicOrigin:'https://flowboard.example',deadlineMs:30,rateLimiter:()=>undefined,windowCounter:()=>({consume:async()=>({count:1,retryAfterSeconds:60})})});
+let streamController;
+const stream=new ReadableStream({start(c){streamController=c;c.enqueue(new TextEncoder().encode(' '.repeat(17000)));}});
+let completed=false;
+const work=app.request('https://flowboard.example/api/v1/mcp/oauth/register',{method:'POST',headers:{'content-type':'application/json'},body:stream,duplex:'half'}).then(r=>{completed=true;return r;});
+await new Promise(resolve=>setTimeout(resolve,200));
+console.log(JSON.stringify({declaredDeadlineMs:30,observedWaitMs:200,streamedBytes:17000,responseBeforeStreamClosed:completed}));
+streamController.close();
+const response=await work;
+console.log(JSON.stringify({responseAfterStreamClosed:response.status,body:await response.json()}));
+await closePool();

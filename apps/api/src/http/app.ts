@@ -39,10 +39,16 @@ import { systemRoutes } from './routes/system.ts';
 import { tokensRoutes } from './routes/tokens.ts';
 import { setGlobalPool, poolStorage, createPool } from '../adapters/postgres.ts';
 import { runWithStorageDriver, type StorageDriver } from '../adapters/storage.ts';
+import { readHostedMcpContext } from './hosted-mcp-context.ts';
+import { handleHostedMcpRequest } from './routes/hosted-mcp.ts';
+import { createHostedOAuthRoutes } from './routes/hosted-oauth.ts';
+import { getHostedMcpConfig, HOSTED_MCP_PATH } from '../services/hosted-mcp-config.ts';
+import { hostedOAuthBodyMiddleware, isHostedOAuthBodyRequest } from './middleware/hosted-oauth-body.ts';
 
 declare module 'hono' {
   interface ContextVariableMap {
     pool?: pg.Pool;
+    hostedMcpWork?: Promise<void>;
   }
 }
 
@@ -53,6 +59,8 @@ export interface CreateAppOptions {
   imageBodyReadDeadlineMs?: number;
   // Runtime cleanup follows real retained work, even after a caller timeout.
   onImageWorkLifetime?: (work: Promise<void>) => void;
+  onMcpWorkLifetime?: (work: Promise<void>) => void;
+  mcpPublicOrigin?: string;
   pool?: pg.Pool;
   // Defaults to the Cloudflare binding lookup; tests inject a fake limiter.
   rateLimiter?: RateLimiterResolver;
@@ -81,7 +89,7 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
   });
 
   // 0. CORS middleware for browser frontend integration & preflight handling
-  app.use('*', cors({
+  const browserCors = cors({
     origin: (origin, c) => (!origin ? origin : isTrustedOrigin(origin, c) ? origin : null),
     credentials: true,
     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -95,17 +103,24 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
     ],
     exposeHeaders: ['X-Request-Id', 'Server-Timing', 'Content-Disposition', 'ETag'],
     maxAge: 86400,
-  }));
+  });
+  app.use('*', (c, next) => c.req.path === HOSTED_MCP_PATH ? next() : browserCors(c, next));
 
   // 0b. Database pool injection middleware: binds injected pool or request-scoped worker pool to context and AsyncLocalStorage
   if (options?.pool) {
     const injectedPool = options.pool;
     app.use('*', async (c, next) => {
-      c.set('pool', injectedPool);
-      return poolStorage.run(injectedPool, () => next());
+      const selected = readHostedMcpContext(c.req.raw)?.pool ?? injectedPool;
+      c.set('pool', selected);
+      return poolStorage.run(selected, () => next());
     });
   } else {
     app.use('*', async (c, next) => {
+      const trustedPool = readHostedMcpContext(c.req.raw)?.pool;
+      if (trustedPool) {
+        c.set('pool', trustedPool);
+        return poolStorage.run(trustedPool, () => next());
+      }
       const env = c.env as { HYPERDRIVE?: { connectionString?: string }; DATABASE_URL?: string } | undefined;
       const connStr = env?.HYPERDRIVE?.connectionString ?? env?.DATABASE_URL;
       if (connStr) {
@@ -114,6 +129,7 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
         try {
           return await poolStorage.run(requestPool, () => next());
         } finally {
+          await c.get('hostedMcpWork');
           await requestPool.end();
         }
       }
@@ -130,6 +146,28 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
 
   // 1. Correlation middleware: assigns or validates x-request-id and sets requestId in context
   app.use('*', correlationMiddleware);
+  // OAuth/consent forms own a bounded cancellable16KiB reader and actual work
+  // lifetime before the general body buffer, cookie policy and rate middleware.
+  app.use('*', hostedOAuthBodyMiddleware({
+    deadlineMs: options?.deadlineMs ?? DEFAULT_DEADLINE_MS,
+    ...(options?.onMcpWorkLifetime === undefined ? {} : { onWorkLifetime: options.onMcpWorkLifetime }),
+  }));
+
+  // Protocol requests own their strict body/deadline/auth lifecycle before the
+  // ordinary 1MiB buffer or cookie/PAT stack. No descendants match this branch.
+  app.use('*', async (c, next) => {
+    if (c.req.path !== HOSTED_MCP_PATH) return next();
+    return handleHostedMcpRequest(c, {
+      ...(options?.mcpPublicOrigin === undefined ? {} : { publicOrigin: options.mcpPublicOrigin }),
+      deadlineMs: options?.deadlineMs ?? DEFAULT_DEADLINE_MS,
+      ...(options?.onMcpWorkLifetime === undefined ? {} : { onWorkLifetime: options.onMcpWorkLifetime }),
+      dispatch: async (request, parent) => {
+        let execution;
+        try { execution = parent.executionCtx; } catch { /* Node/focused harness has no execution context. */ }
+        return app.fetch(request, parent.env, execution);
+      },
+    });
+  });
 
   // Explicit bearer credentials never inherit cookie/public route authority.
   app.use('*', personalAccessTokenMiddleware);
@@ -139,7 +177,8 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
 
   // 1c. Per-client-IP rate limits on auth, writes, invitations, imports and uploads (health excluded)
   const rateLimitOptions = { bindingsRequired: options?.rateLimitBindingsRequired ?? false };
-  app.use('*', rateLimitMiddleware(options?.rateLimiter ?? cloudflareRateLimiter, rateLimitOptions));
+  const ordinaryRateLimit = rateLimitMiddleware(options?.rateLimiter ?? cloudflareRateLimiter, rateLimitOptions);
+  app.use('*', (c, next) => c.get('machineCredentialKind') === 'mcp_oauth' ? next() : ordinaryRateLimit(c, next));
   // Exact limits on sign-in, invitations, imports and uploads: counted in PostgreSQL, fail closed.
   app.use('*', windowRateLimitMiddleware(
     options?.windowCounter ?? ((c) => postgresWindowCounter(getPool(c))),
@@ -155,14 +194,16 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
 
   // 3. Body limit middleware: 1 MiB by default; 5 MiB XLSX imports and 10 MiB image content only for
   // a signed-in request on those routes (B-7). Refused with 413 PAYLOAD_TOO_LARGE.
-  app.use('*', routeBodyLimitMiddleware(options?.bodyLimitBytes ?? DEFAULT_BODY_LIMIT_BYTES));
+  const ordinaryBodyLimit = routeBodyLimitMiddleware(options?.bodyLimitBytes ?? DEFAULT_BODY_LIMIT_BYTES);
+  app.use('*', (c, next) => isHostedOAuthBodyRequest(c.req.method, c.req.path) ? next() : ordinaryBodyLimit(c, next));
 
   // 4. Full image verification has a bounded10s HTTP budget; ordinary Node
   // requests keep5s. Explicit deadlineMs remains a focused-test override unless
   // imageDeadlineMs is supplied (Worker ordinary25s/image10s are explicit).
   const ordinaryDeadline=deadlineMiddleware(options?.deadlineMs??DEFAULT_DEADLINE_MS);
   const imageDeadline=deadlineMiddleware(options?.imageDeadlineMs??options?.deadlineMs??10_000);
-  app.use('*',(c,next)=>isImageMemoryWrite(c.req.method,c.req.path)?imageDeadline(c,next):ordinaryDeadline(c,next));
+  app.use('*',(c,next)=>c.get('machineCredentialKind') === 'mcp_oauth' || isHostedOAuthBodyRequest(c.req.method,c.req.path) ? next()
+    : isImageMemoryWrite(c.req.method,c.req.path)?imageDeadline(c,next):ordinaryDeadline(c,next));
 
   // Default no-store cache policy for private application endpoints
   app.use('*', async (c, next) => {
@@ -210,6 +251,27 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
   app.route('/api/v1', notificationsRoutes);
   app.route('/api/v1/system', systemRoutes);
   app.route('', tokensRoutes);
+  app.route('', createHostedOAuthRoutes(options?.mcpPublicOrigin === undefined ? {} : { publicOrigin: options.mcpPublicOrigin }));
+
+  const resourceMetadata = (c: import('hono').Context) => {
+    const config = getHostedMcpConfig(c, options?.mcpPublicOrigin);
+    c.header('Cache-Control', 'no-store');
+    return c.json({ resource: config.resource, resource_name: 'Flowboard', authorization_servers: [config.issuer],
+      bearer_methods_supported: ['header'], scopes_supported: ['projects:read', 'boards:read', 'cards:read', 'cards:create'] });
+  };
+  app.get('/.well-known/oauth-protected-resource/api/v1/mcp', resourceMetadata);
+  app.get('/.well-known/oauth-protected-resource', resourceMetadata);
+  app.get('/.well-known/oauth-authorization-server', c => {
+    const config = getHostedMcpConfig(c, options?.mcpPublicOrigin);
+    c.header('Cache-Control', 'no-store');
+    return c.json({ issuer: config.issuer, authorization_endpoint: config.authorizationEndpoint,
+      token_endpoint: config.tokenEndpoint, registration_endpoint: config.registrationEndpoint,
+      revocation_endpoint: config.revocationEndpoint, response_types_supported: ['code'],
+      grant_types_supported: ['authorization_code', 'refresh_token'], token_endpoint_auth_methods_supported: ['none'],
+      code_challenge_methods_supported: ['S256'], authorization_response_iss_parameter_supported: true,
+      client_id_metadata_document_supported: true,
+      scopes_supported: ['projects:read', 'boards:read', 'cards:read', 'cards:create', 'offline_access'] });
+  });
 
   // Central not-found and error handling
   app.notFound(notFoundHandler);

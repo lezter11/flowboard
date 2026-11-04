@@ -52,6 +52,8 @@ test('packed executable completes a real SDK handshake and calls metadata/search
     const names = details.files.map((file) => file.path);
     assert.ok(names.includes('dist/index.js'));
     assert.ok(names.includes('dist/client.js'));
+    assert.ok(names.includes('dist/server.js'));
+    assert.ok(names.includes('dist/server.d.ts'));
     assert.ok(names.includes('dist/schemas.js'));
     assert.ok(names.includes('README.md'));
     assert.equal(names.some((name) => name.startsWith('src/')), false);

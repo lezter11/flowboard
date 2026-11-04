@@ -9,6 +9,7 @@ import { processOutboxLease } from '../adapters/notifications.ts';
 import { mailerFromEnv, type MailEnv } from '../services/mailer.ts';
 import { purgeEndedWindows } from '../adapters/rate-limit-postgres.ts';
 import { purgeSettledOutbox } from '../services/outbox-retention.ts';
+import { cleanupExpiredHostedOAuth } from '../services/hosted-oauth-cleanup.ts';
 import { limitsFromEnv } from '../services/limits.ts';
 import { R2StorageDriver, runWithStorageDriver, type R2BucketBinding } from '../adapters/storage.ts';
 
@@ -49,6 +50,22 @@ function imageStorage(env: WorkerBindings): R2StorageDriver | null {
   return env.IMAGES ? new R2StorageDriver(env.IMAGES) : null;
 }
 
+/** An HTTP deadline may finish before the handler releases its database work. */
+export async function closePoolAfterWork(
+  pool: { end: () => Promise<void> },
+  work: readonly Promise<void>[],
+  ctx?: Pick<ExecutionContext, 'waitUntil'>,
+): Promise<void> {
+  if (work.length === 0) {
+    await pool.end();
+    return;
+  }
+  // Rejected operations still settle and must not leak their request pool.
+  const close = Promise.allSettled(work).then(() => pool.end());
+  if (ctx) ctx.waitUntil(close);
+  else await close;
+}
+
 export default {
   // The ExecutionContext is passed to Hono so routes can call waitUntil (the immediate invitation send).
   async fetch(request: Request, env: WorkerBindings, ctx?: ExecutionContext): Promise<Response> {
@@ -69,6 +86,7 @@ export default {
 
     const pool = createPool(connectionString, 1);
     let imageWork: Promise<void> | undefined;
+    let mcpWork: Promise<void> | undefined;
     const app = createApp(() => queryDatabase(pool), {
       pool,
       deadlineMs: 25_000,
@@ -77,18 +95,14 @@ export default {
       storage: imageStorage(env),
       imageVerifier: env.IMAGE_VERIFIER ? new ImagesBindingVerifier(env.IMAGE_VERIFIER) : null,
       onImageWorkLifetime: work => { imageWork = work; },
+      onMcpWorkLifetime: work => { mcpWork = work; },
       limits: limitsFromEnv(env as unknown as Record<string, unknown>),
     });
     try {
       return await app.fetch(request, env, ctx);
     } finally {
-      if (imageWork) {
-        // A timed-out decoder/handler can still own this request's connection.
-        // Keep its lifetime alive and close the pool only after actual settlement.
-        const close = imageWork.then(() => pool.end());
-        if (ctx) ctx.waitUntil(close);
-        else await close;
-      } else await pool.end();
+      const pending = [imageWork, mcpWork].filter((work): work is Promise<void> => work !== undefined);
+      await closePoolAfterWork(pool, pending, ctx);
     }
   },
 
@@ -107,6 +121,7 @@ export default {
         { name: 'outbox', run: () => processOutboxLease(pool, { mailer: mailerFromEnv(env) }) },
         // Settled outbox rows past the 30-day retention window (B-14, FB-AUD-11).
         { name: 'outbox-retention', run: () => purgeSettledOutbox(pool) },
+        { name: 'hosted-oauth-retention', run: () => cleanupExpiredHostedOAuth(pool) },
         { name: 'rate-windows', run: () => purgeEndedWindows(pool) },
       ]);
     } finally {

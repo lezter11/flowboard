@@ -1,0 +1,215 @@
+import crypto from 'node:crypto';
+import type pg from 'pg';
+import type { SessionActor, TokenScope } from '@flowboard/contracts';
+import { TOKEN_SCOPES } from '@flowboard/contracts';
+import { lockProjectBoardReadScope } from './board-grants-foundation.ts';
+import { HttpError } from '../http/errors.ts';
+import { HOSTED_CLAUDE_CALLBACK } from '../services/hosted-mcp-config.ts';
+
+export class HostedOAuthError extends Error {
+  readonly error:string;
+  readonly status:400|401|403|404|409|413|429|503|504;
+  constructor(error: string, status: 400|401|403|404|409|413|429|503|504 = 400) {
+    super('OAuth request refused.');
+    this.error=error;this.status=status;
+  }
+}
+export interface HostedOAuthPrincipal {
+  actor: SessionActor;
+  connectionId: string;
+  accessTokenId: string;
+  projectId: string;
+  scopes: TokenScope[];
+  resource: string;
+}
+type Database = pg.Pool | pg.ClientBase;
+export const hashHostedSecret = (raw:string) => crypto.createHash('sha256').update(raw).digest('hex');
+export const newHostedSecret = () => crypto.randomBytes(32).toString('base64url');
+const id = (prefix:string) => `${prefix}_${crypto.randomUUID()}`;
+export const HOSTED_SCOPES: readonly string[] = [...TOKEN_SCOPES,'offline_access'];
+export const HOSTED_DEFAULT_SCOPES: TokenScope[] = ['projects:read','boards:read','cards:read','cards:create'];
+export function parseHostedScopes(raw:string|undefined):string[] {
+  const scopes=raw===undefined?[...HOSTED_DEFAULT_SCOPES,'offline_access']:raw.split(' ');
+  if (!scopes.length || scopes.length>5 || new Set(scopes).size!==scopes.length || scopes.some(x=>!HOSTED_SCOPES.includes(x)) || !scopes.some(x=>x!=='offline_access')) throw new HostedOAuthError('invalid_scope');
+  return scopes;
+}
+async function transaction<T>(pool:pg.Pool, work:(client:pg.PoolClient)=>Promise<T>):Promise<T> {
+  const client=await pool.connect();
+  try {await client.query('BEGIN');await client.query("SET LOCAL statement_timeout='5000ms'");const result=await work(client);await client.query('COMMIT');return result;}
+  catch(error){await client.query('ROLLBACK').catch(()=>{});throw error;}finally{client.release();}
+}
+
+export async function registerHostedClient(pool:pg.Pool, clientName:string, redirectUri:string):Promise<string> {
+  return transaction(pool,async client=>{
+    await client.query("SELECT pg_advisory_xact_lock(hashtext('hosted-oauth-registration'))");
+    await client.query(`DELETE FROM mcp_oauth_clients c WHERE c.client_id IN (
+      SELECT old.client_id FROM mcp_oauth_clients old WHERE old.expires_at<=clock_timestamp()
+      AND NOT EXISTS(SELECT 1 FROM mcp_oauth_connections g WHERE g.client_id=old.client_id AND g.revoked_at IS NULL AND g.expires_at>clock_timestamp())
+      AND NOT EXISTS(SELECT 1 FROM mcp_oauth_authorization_requests r WHERE r.client_id=old.client_id AND r.decided_at IS NULL AND r.expires_at>clock_timestamp())
+      ORDER BY old.expires_at LIMIT 100)`);
+    const count=await client.query<{count:string}>('SELECT count(*)::text AS count FROM mcp_oauth_clients');
+    if(Number(count.rows[0]!.count)>=1000)throw new HostedOAuthError('temporarily_unavailable',503);
+    const clientId=id('mcp_client');
+    await client.query('INSERT INTO mcp_oauth_clients(client_id,client_name,redirect_uri) VALUES($1,$2,$3)',[clientId,clientName,redirectUri]);
+    return clientId;
+  });
+}
+
+/** Untrusted metadata is fetched only from Anthropic's fixed HTTPS origin; redirects are never followed. */
+export async function resolveHostedClient(pool:Database,clientId:string,fetcher:typeof fetch=fetch):Promise<{name:string;redirectUri:string}> {
+  if(clientId.startsWith('mcp_client_')){
+    const r=await pool.query<{client_name:string;redirect_uri:string}>('SELECT client_name,redirect_uri FROM mcp_oauth_clients WHERE client_id=$1 AND expires_at>clock_timestamp()',[clientId]);
+    if(!r.rows[0])throw new HostedOAuthError('invalid_client');
+    return {name:r.rows[0].client_name,redirectUri:r.rows[0].redirect_uri};
+  }
+  let url:URL;try{url=new URL(clientId);}catch{throw new HostedOAuthError('invalid_client');}
+  if(url.protocol!=='https:' || url.hostname!=='claude.ai' || url.port || url.username || url.password || url.search || url.hash || url.pathname==='/' || url.href!==clientId)throw new HostedOAuthError('invalid_client');
+  let response:Response;
+  try{response=await fetcher(clientId,{redirect:'manual',signal:AbortSignal.timeout(3000),headers:{accept:'application/json'}});}catch{throw new HostedOAuthError('invalid_client');}
+  if(!response.ok || response.status>=300 || !/^application\/(?:[a-z.+-]*\+)?json(?:\s*;|$)/i.test(response.headers.get('content-type')??'')){
+    await response.body?.cancel();throw new HostedOAuthError('invalid_client');
+  }
+  let text='';let size=0;const reader=response.body?.getReader();
+  if(!reader)throw new HostedOAuthError('invalid_client');
+  try{const decoder=new TextDecoder('utf-8',{fatal:true});for(;;){const part=await reader.read();if(part.done)break;size+=part.value.byteLength;if(size>32768)throw new HostedOAuthError('invalid_client');text+=decoder.decode(part.value,{stream:true});}text+=decoder.decode();}
+  catch{await reader.cancel().catch(()=>{});throw new HostedOAuthError('invalid_client');}
+  let value:any;try{value=JSON.parse(text);}catch{throw new HostedOAuthError('invalid_client');}
+  if(!value || value.client_id!==clientId || typeof value.client_name!=='string' || value.client_name.length<1 || value.client_name.length>100 || value.token_endpoint_auth_method!=='none' || !Array.isArray(value.redirect_uris) || !value.redirect_uris.includes(HOSTED_CLAUDE_CALLBACK) || (value.response_types && (!Array.isArray(value.response_types)||!value.response_types.includes('code'))) || (value.grant_types && (!Array.isArray(value.grant_types)||!value.grant_types.includes('authorization_code'))))throw new HostedOAuthError('invalid_client');
+  return {name:value.client_name,redirectUri:HOSTED_CLAUDE_CALLBACK};
+}
+
+interface AuthorizationInput {clientId:string;clientName:string;redirectUri:string;resource:string;scopes:string[];state:string|null;codeChallenge:string;}
+export async function startHostedAuthorization(pool:Database,input:AuthorizationInput):Promise<{requestId:string;browserBinding:string}> {
+  const requestId=newHostedSecret(), browserBinding=newHostedSecret();
+  await pool.query(`INSERT INTO mcp_oauth_authorization_requests(id,request_hash,client_id,client_name,redirect_uri,resource,scopes,state,code_challenge,browser_binding_hash)
+    VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)`,[id('mcp_request'),hashHostedSecret(requestId),input.clientId,input.clientName,input.redirectUri,input.resource,input.scopes,input.state,input.codeChallenge,hashHostedSecret(browserBinding)]);
+  return {requestId,browserBinding};
+}
+interface PendingRow {id:string;client_id:string;client_name:string;redirect_uri:string;resource:string;scopes:string[];state:string|null;code_challenge:string;browser_binding_hash:string;csrf_hash:string|null;user_id:string|null;session_hash:string|null;expires_at:Date;decided_at:Date|null;valid:boolean;}
+async function pendingRequest(client:Database,requestId:string,binding:string):Promise<PendingRow> {
+  if(!/^[A-Za-z0-9_-]{43}$/.test(requestId)||!/^[A-Za-z0-9_-]{43}$/.test(binding))throw new HostedOAuthError('invalid_request',404);
+  const r=await client.query<PendingRow>('SELECT *,expires_at>clock_timestamp() AS valid FROM mcp_oauth_authorization_requests WHERE request_hash=$1 FOR UPDATE',[hashHostedSecret(requestId)]);
+  const row=r.rows[0];if(!row || !row.valid || row.decided_at || row.browser_binding_hash!==hashHostedSecret(binding))throw new HostedOAuthError('invalid_request',404);
+  return row;
+}
+async function lockSession(client:Database,userId:string,sessionHash:string):Promise<void>{
+  const r=await client.query('SELECT id FROM sessions WHERE id=$1 AND user_id=$2 AND expires_at>clock_timestamp() FOR SHARE',[sessionHash,userId]);
+  if(!r.rowCount)throw new HostedOAuthError('login_required',401);
+}
+export async function describeHostedAuthorization(pool:pg.Pool,input:{requestId:string;binding:string;userId:string;sessionHash:string;projectCursor?:string}) {
+  return transaction(pool,async client=>{
+    const row=await pendingRequest(client,input.requestId,input.binding);await lockSession(client,input.userId,input.sessionHash);
+    if((row.user_id && row.user_id!==input.userId)||(row.session_hash&&row.session_hash!==input.sessionHash))throw new HostedOAuthError('invalid_request',403);
+    const csrfToken=newHostedSecret();
+    await client.query('UPDATE mcp_oauth_authorization_requests SET user_id=$2,session_hash=$3,csrf_hash=$4 WHERE id=$1',[row.id,input.userId,input.sessionHash,hashHostedSecret(csrfToken)]);
+    let afterId:string|null=null;
+    if(input.projectCursor){
+      try{const decoded=JSON.parse(Buffer.from(input.projectCursor,'base64url').toString('utf8'));if(decoded.request!==input.requestId||decoded.user!==input.userId||typeof decoded.after!=='string'||decoded.after.length>200||Object.keys(decoded).length!==3)throw new Error();afterId=decoded.after;}catch{throw new HostedOAuthError('invalid_request');}
+    }
+    const projects=await client.query<{id:string;name:string;role:string}>(`SELECT p.id,p.name,CASE WHEN w.owner_id=$1 THEN 'owner' ELSE pm.role END AS role
+      FROM projects p JOIN workspaces w ON w.id=p.workspace_id LEFT JOIN project_memberships pm ON pm.project_id=p.id AND pm.user_id=$1 AND pm.status='active'
+      WHERE NOT p.archived AND (w.owner_id=$1 OR pm.user_id=$1) AND ($2::text IS NULL OR p.id>$2) ORDER BY p.id LIMIT 101`,[input.userId,afterId]);
+    const page=projects.rows.slice(0,100),last=page.at(-1);
+    const nextCursor=projects.rows.length>100&&last?Buffer.from(JSON.stringify({request:input.requestId,user:input.userId,after:last.id})).toString('base64url'):null;
+    const offlineAccess=row.scopes.includes('offline_access');
+    return {requestId:input.requestId,client:{name:row.client_name,origin:row.client_id.startsWith('https:')?new URL(row.client_id).origin:new URL(row.redirect_uri).origin,redirectOrigin:new URL(row.redirect_uri).origin,verified:false as const},scopes:row.scopes.filter((s):s is TokenScope=>TOKEN_SCOPES.includes(s as TokenScope)),offlineAccess,accessTokenLifetimeSeconds:900 as const,connectionLifetimeDays:30 as const,refreshTokenIdleDays:offlineAccess?7 as const:null,expiresAt:row.expires_at.toISOString(),csrfToken,projects:page,nextCursor};
+  });
+}
+async function lockActiveProject(client:pg.ClientBase,projectId:string,userId:string):Promise<void>{
+  await lockProjectBoardReadScope(client,projectId,userId);
+  const project=await client.query('SELECT id FROM projects WHERE id=$1 AND NOT archived FOR SHARE',[projectId]);
+  if(!project.rowCount)throw new HostedOAuthError('access_denied',403);
+}
+export async function decideHostedAuthorization(pool:pg.Pool,input:{requestId:string;binding:string;userId:string;sessionHash:string;csrfToken:string;decision:'allow'|'deny';projectId?:string;issuer:string}):Promise<string>{
+  return transaction(pool,async client=>{
+    const row=await pendingRequest(client,input.requestId,input.binding);await lockSession(client,input.userId,input.sessionHash);
+    if(row.user_id!==input.userId||row.session_hash!==input.sessionHash||!row.csrf_hash||row.csrf_hash!==hashHostedSecret(input.csrfToken))throw new HostedOAuthError('access_denied',403);
+    const redirect=new URL(row.redirect_uri);redirect.searchParams.set('iss',input.issuer);if(row.state!==null)redirect.searchParams.set('state',row.state);
+    if(input.decision==='deny'){await client.query("UPDATE mcp_oauth_authorization_requests SET decided_at=clock_timestamp(),state=NULL,session_hash=NULL,csrf_hash=NULL,browser_binding_hash=repeat('0',64) WHERE id=$1",[row.id]);redirect.searchParams.set('error','access_denied');return redirect.href;}
+    if(!input.projectId)throw new HostedOAuthError('invalid_request');
+    await client.query('SELECT pg_advisory_xact_lock(hashtext($1))',[`mcp-oauth-issuance:${input.userId}`]);
+    await lockActiveProject(client,input.projectId,input.userId);
+    const count=await client.query<{count:string}>('SELECT count(*)::text AS count FROM mcp_oauth_connections WHERE user_id=$1 AND revoked_at IS NULL AND expires_at>clock_timestamp()',[input.userId]);
+    if(Number(count.rows[0]!.count)>=20)throw new HostedOAuthError('connection_limit_reached',409);
+    const connectionId=id('mcp_connection'),rawCode=newHostedSecret();
+    await client.query('INSERT INTO mcp_oauth_connections(id,user_id,project_id,client_id,client_name,resource,scopes) VALUES($1,$2,$3,$4,$5,$6,$7)',[connectionId,input.userId,input.projectId,row.client_id,row.client_name,row.resource,row.scopes]);
+    await client.query('INSERT INTO mcp_oauth_authorization_codes(id,code_hash,request_id,connection_id,client_id,redirect_uri,resource,code_challenge) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',[id('mcp_code'),hashHostedSecret(rawCode),row.id,connectionId,row.client_id,row.redirect_uri,row.resource,row.code_challenge]);
+    await client.query("UPDATE mcp_oauth_authorization_requests SET decided_at=clock_timestamp(),state=NULL,session_hash=NULL,csrf_hash=NULL,browser_binding_hash=repeat('0',64) WHERE id=$1",[row.id]);
+    redirect.searchParams.set('code',rawCode);return redirect.href;
+  });
+}
+
+interface ConnectionRow {id:string;user_id:string;project_id:string;client_id:string;resource:string;scopes:string[];expires_at:Date;revoked_at:Date|null;valid:boolean;}
+async function lockConnection(client:Database,connectionId:string,mode:'UPDATE'|'SHARE'):Promise<ConnectionRow|null>{
+  const r=await client.query<ConnectionRow>(`SELECT *,revoked_at IS NULL AND expires_at>clock_timestamp() AS valid FROM mcp_oauth_connections WHERE id=$1 FOR ${mode}`,[connectionId]);return r.rows[0]??null;
+}
+async function revokeConnection(client:Database,connectionId:string,reason:string):Promise<void>{
+  await client.query('UPDATE mcp_oauth_connections SET revoked_at=COALESCE(revoked_at,clock_timestamp()),revocation_reason=COALESCE(revocation_reason,$2) WHERE id=$1',[connectionId,reason]);
+}
+interface TokenReply {access_token:string;token_type:'Bearer';expires_in:number;refresh_token?:string;scope:string;}
+export type HostedTokenResult = TokenReply | {error:'invalid_grant'};
+async function issueTokens(client:pg.ClientBase,connection:ConnectionRow,parentId?:string):Promise<TokenReply>{
+  const accessToken=`flw_mcp_access_${crypto.randomBytes(32).toString('hex')}`;
+  const scopes=connection.scopes.filter((s):s is TokenScope=>TOKEN_SCOPES.includes(s as TokenScope));
+  const issued=await client.query<{expires_in:number}>(`INSERT INTO mcp_oauth_access_tokens(id,token_hash,connection_id,resource,scopes,expires_at) VALUES($1,$2,$3,$4,$5,LEAST(clock_timestamp()+INTERVAL '15 minutes',$6)) RETURNING GREATEST(1,ceil(extract(epoch FROM expires_at-clock_timestamp())))::integer AS expires_in`,[id('mcp_access'),hashHostedSecret(accessToken),connection.id,connection.resource,scopes,connection.expires_at]);
+  const reply:TokenReply={access_token:accessToken,token_type:'Bearer',expires_in:issued.rows[0]!.expires_in,scope:connection.scopes.join(' ')};
+  if(connection.scopes.includes('offline_access')){
+    const refreshToken=`flw_mcp_refresh_${crypto.randomBytes(32).toString('hex')}`;
+    await client.query(`INSERT INTO mcp_oauth_refresh_tokens(id,token_hash,connection_id,parent_id,expires_at) VALUES($1,$2,$3,$4,LEAST(clock_timestamp()+INTERVAL '7 days',$5))`,[id('mcp_refresh'),hashHostedSecret(refreshToken),connection.id,parentId??null,connection.expires_at]);reply.refresh_token=refreshToken;
+  }
+  return reply;
+}
+export async function exchangeHostedCode(pool:pg.Pool,input:{code:string;clientId:string;redirectUri:string;resource:string;verifier:string}):Promise<HostedTokenResult>{
+  if(!/^[A-Za-z0-9_-]{43}$/.test(input.code)||! /^[A-Za-z0-9._~-]{43,128}$/.test(input.verifier))return {error:'invalid_grant'};
+  return transaction(pool,async client=>{
+    const lookup=await client.query<{connection_id:string}>('SELECT connection_id FROM mcp_oauth_authorization_codes WHERE code_hash=$1',[hashHostedSecret(input.code)]);if(!lookup.rows[0])return {error:'invalid_grant'};
+    const connection=await lockConnection(client,lookup.rows[0].connection_id,'UPDATE');
+    const result=await client.query<{id:string;client_id:string;redirect_uri:string;resource:string;code_challenge:string;consumed_at:Date|null;valid:boolean}>('SELECT *,expires_at>clock_timestamp() AS valid FROM mcp_oauth_authorization_codes WHERE code_hash=$1 FOR UPDATE',[hashHostedSecret(input.code)]);const code=result.rows[0];
+    if(!connection?.valid||!code||code.client_id!==input.clientId||code.redirect_uri!==input.redirectUri||code.resource!==input.resource||connection.resource!==input.resource||code.code_challenge!==crypto.createHash('sha256').update(input.verifier).digest('base64url'))return {error:'invalid_grant'};
+    if(code.consumed_at){await revokeConnection(client,connection.id,'authorization_code_reuse');return {error:'invalid_grant'};}
+    if(!code.valid)return {error:'invalid_grant'};
+    try{await lockActiveProject(client,connection.project_id,connection.user_id);}catch(e){if(e instanceof HttpError||e instanceof HostedOAuthError)return {error:'invalid_grant'};throw e;}
+    await client.query('UPDATE mcp_oauth_authorization_codes SET consumed_at=clock_timestamp() WHERE id=$1',[code.id]);return issueTokens(client,connection);
+  });
+}
+export async function refreshHostedTokens(pool:pg.Pool,input:{refreshToken:string;clientId:string;resource:string;scopes?:string[]}):Promise<HostedTokenResult>{
+  if(!/^flw_mcp_refresh_[a-f0-9]{64}$/.test(input.refreshToken))return {error:'invalid_grant'};
+  return transaction(pool,async client=>{
+    const lookup=await client.query<{connection_id:string}>('SELECT connection_id FROM mcp_oauth_refresh_tokens WHERE token_hash=$1',[hashHostedSecret(input.refreshToken)]);if(!lookup.rows[0])return {error:'invalid_grant'};
+    const connection=await lockConnection(client,lookup.rows[0].connection_id,'UPDATE');
+    const result=await client.query<{id:string;consumed_at:Date|null;revoked_at:Date|null;valid:boolean}>('SELECT *,expires_at>clock_timestamp() AS valid FROM mcp_oauth_refresh_tokens WHERE token_hash=$1 FOR UPDATE',[hashHostedSecret(input.refreshToken)]);const token=result.rows[0];
+    if(!connection?.valid||!token||connection.client_id!==input.clientId||connection.resource!==input.resource)return {error:'invalid_grant'};
+    if(token.consumed_at){await revokeConnection(client,connection.id,'refresh_token_reuse');return {error:'invalid_grant'};}
+    if(!token.valid||token.revoked_at)return {error:'invalid_grant'};
+    if(input.scopes && (input.scopes.length!==connection.scopes.length||input.scopes.some(s=>!connection.scopes.includes(s))))throw new HostedOAuthError('invalid_scope');
+    try{await lockActiveProject(client,connection.project_id,connection.user_id);}catch(e){if(e instanceof HttpError||e instanceof HostedOAuthError)return {error:'invalid_grant'};throw e;}
+    await client.query('UPDATE mcp_oauth_refresh_tokens SET consumed_at=clock_timestamp() WHERE id=$1',[token.id]);return issueTokens(client,connection,token.id);
+  });
+}
+export async function verifyHostedAccessToken(pool:Database,rawToken:string,resource:string):Promise<HostedOAuthPrincipal|null>{
+  if(!/^flw_mcp_access_[a-f0-9]{64}$/.test(rawToken))return null;
+  const result=await pool.query<{id:string;connection_id:string;user_id:string;project_id:string;scopes:TokenScope[];resource:string;email:string;display_name:string;avatar_url:string|null}>(`SELECT a.id,a.connection_id,g.user_id,g.project_id,a.scopes,a.resource,u.email,u.display_name,u.avatar_url
+    FROM mcp_oauth_access_tokens a JOIN mcp_oauth_connections g ON g.id=a.connection_id JOIN users u ON u.id=g.user_id
+    WHERE a.token_hash=$1 AND a.resource=$2 AND g.resource=$2 AND a.revoked_at IS NULL AND a.expires_at>clock_timestamp() AND g.revoked_at IS NULL AND g.expires_at>clock_timestamp()`,[hashHostedSecret(rawToken),resource]);
+  const r=result.rows[0];if(!r)return null;return {actor:{id:r.user_id,email:r.email,displayName:r.display_name,avatarUrl:r.avatar_url},connectionId:r.connection_id,accessTokenId:r.id,projectId:r.project_id,scopes:r.scopes,resource:r.resource};
+}
+export async function lockHostedOAuthCredential(client:pg.ClientBase,input:{connectionId:string;accessTokenId:string;userId:string;projectId:string;requiredScope:TokenScope;resource:string}):Promise<void>{
+  const connection=await lockConnection(client,input.connectionId,'SHARE');
+  if(!connection?.valid||connection.user_id!==input.userId)throw HttpError.unauthorized('Invalid, expired or revoked MCP credential.');
+  if(connection.project_id!==input.projectId||connection.resource!==input.resource)throw HttpError.forbidden('MCP connection is restricted to another project or resource.');
+  const result=await client.query<{scopes:TokenScope[];resource:string;valid:boolean}>(`SELECT scopes,resource,revoked_at IS NULL AND expires_at>clock_timestamp() AS valid FROM mcp_oauth_access_tokens WHERE id=$1 AND connection_id=$2 FOR SHARE`,[input.accessTokenId,input.connectionId]);
+  const row=result.rows[0];if(!row?.valid||row.resource!==input.resource)throw HttpError.unauthorized('Invalid, expired or revoked MCP credential.');
+  if(!row.scopes.includes(input.requiredScope)||!connection.scopes.includes(input.requiredScope))throw HttpError.forbidden('MCP credential lacks the required scope.');
+}
+export async function revokeHostedToken(pool:pg.Pool,token:string,clientId:string):Promise<void>{
+  if(!/^flw_mcp_(?:access|refresh)_[a-f0-9]{64}$/.test(token))return;
+  await transaction(pool,async client=>{
+    const found=await client.query<{connection_id:string}>(`SELECT connection_id FROM mcp_oauth_access_tokens WHERE token_hash=$1 UNION ALL SELECT connection_id FROM mcp_oauth_refresh_tokens WHERE token_hash=$1 LIMIT 1`,[hashHostedSecret(token)]);
+    if(!found.rows[0])return;const connection=await lockConnection(client,found.rows[0].connection_id,'UPDATE');if(connection?.client_id===clientId)await revokeConnection(client,connection.id,'client_revocation');
+  });
+}
+export async function listHostedConnections(pool:Database,userId:string){
+  const r=await pool.query<{id:string;project_id:string;project_name:string;client_name:string;client_id:string;scopes:string[];created_at:Date;expires_at:Date;last_used_at:Date|null;revoked_at:Date|null}>(`SELECT g.id,g.project_id,CASE WHEN w.owner_id=$1 OR pm.user_id IS NOT NULL THEN p.name ELSE 'Unavailable project' END AS project_name,g.client_id,g.client_name,g.scopes,g.created_at,g.expires_at,g.last_used_at,g.revoked_at FROM mcp_oauth_connections g JOIN projects p ON p.id=g.project_id JOIN workspaces w ON w.id=p.workspace_id LEFT JOIN project_memberships pm ON pm.project_id=p.id AND pm.user_id=$1 AND pm.status='active' WHERE g.user_id=$1 AND g.revoked_at IS NULL AND g.expires_at>clock_timestamp() ORDER BY g.created_at DESC,g.id LIMIT 100`,[userId]);
+  return r.rows.map(row=>({id:row.id,clientName:row.client_name,clientOrigin:row.client_id.startsWith('https:')?new URL(row.client_id).origin:new URL(HOSTED_CLAUDE_CALLBACK).origin,redirectOrigin:new URL(HOSTED_CLAUDE_CALLBACK).origin,projectId:row.project_id,projectName:row.project_name,scopes:row.scopes.filter((s):s is TokenScope=>TOKEN_SCOPES.includes(s as TokenScope)),offlineAccess:row.scopes.includes('offline_access'),createdAt:row.created_at.toISOString(),expiresAt:row.expires_at.toISOString(),lastUsedAt:row.last_used_at?.toISOString()??null,revokedAt:row.revoked_at?.toISOString()??null}));
+}
+export async function disconnectHostedConnection(pool:Database,userId:string,connectionId:string):Promise<void>{await pool.query("UPDATE mcp_oauth_connections SET revoked_at=COALESCE(revoked_at,clock_timestamp()),revocation_reason=COALESCE(revocation_reason,'user_disconnect') WHERE id=$1 AND user_id=$2",[connectionId,userId]);}

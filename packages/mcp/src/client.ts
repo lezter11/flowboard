@@ -13,6 +13,9 @@ export interface FlowboardConfig {
   requestTimeoutMs: number;
 }
 
+/** Relative application routes only; hosted callers supply a private local dispatcher. */
+export type FlowboardRequester = (path: string, init: RequestInit) => Promise<Response>;
+
 export interface BoardColumn {
   id: string;
   name: string;
@@ -85,10 +88,12 @@ export class FlowboardApiError extends Error {
   constructor(status: number, code?: string) {
     // Server messages/bodies are deliberately excluded: an upstream proxy must
     // not be able to echo a bearer value into a tool response or host log.
-    super(`Flowboard API request failed (HTTP ${status}${code ? `, ${code}` : ''}).`);
+    const safeStatus = Number.isInteger(status) && status >= 100 && status <= 599 ? status : 500;
+    const safeCode = code !== undefined && /^[A-Z][A-Z0-9_]{0,63}$/.test(code) ? code : undefined;
+    super(`Flowboard API request failed (HTTP ${safeStatus}${safeCode ? `, ${safeCode}` : ''}).`);
     this.name = 'FlowboardApiError';
-    this.status = status;
-    this.code = code;
+    this.status = safeStatus;
+    this.code = safeCode;
   }
 }
 
@@ -149,35 +154,22 @@ function pageQuery(input: PageInput): URLSearchParams {
   return query;
 }
 
-export class FlowboardClient {
-  private readonly baseUrl: string;
-  private readonly token: string;
-  private readonly timeoutMs: number;
+export class FlowboardOperationsClient {
+  private readonly requester: FlowboardRequester;
 
-  constructor(config?: Partial<FlowboardConfig>) {
-    this.baseUrl = parseBaseUrl(config?.apiUrl ?? process.env['FLOWBOARD_API_URL'] ?? 'https://flowboard-app-uat.pages.dev');
-    this.token = config?.apiToken ?? process.env['FLOWBOARD_API_TOKEN'] ?? '';
-    if (!/^flw_pat_[a-f0-9]{64}$/.test(this.token)) {
-      throw new Error('FLOWBOARD_API_TOKEN must contain a valid Flowboard personal access token.');
-    }
-    this.timeoutMs = config?.requestTimeoutMs ?? 10000;
-    if (!Number.isInteger(this.timeoutMs) || this.timeoutMs < 1 || this.timeoutMs > 30000) {
-      throw new Error('requestTimeoutMs must be an integer between 1 and 30000.');
-    }
+  constructor(requester: FlowboardRequester) {
+    this.requester = requester;
   }
 
   private async request(path: string, options: RequestInit = {}): Promise<unknown> {
     const headers = new Headers(options.headers);
-    headers.set('Authorization', `Bearer ${this.token}`);
     headers.set('Accept', 'application/json');
     if (options.body) headers.set('Content-Type', 'application/json');
-    const timeout = AbortSignal.timeout(this.timeoutMs);
-    const signal = options.signal ? AbortSignal.any([timeout, options.signal]) : timeout;
 
     let response: Response;
     let text: string;
     try {
-      response = await fetch(`${this.baseUrl}${path}`, { ...options, headers, signal, redirect: 'error' });
+      response = await this.requester(path, { ...options, headers, redirect: 'error' });
       text = await readBoundedBody(response);
     } catch {
       // A POST may already have committed. Do not retry or generate a new key.
@@ -287,5 +279,27 @@ export class FlowboardClient {
       `/api/v1/projects/${encodeURIComponent(input.projectId)}/cards/search?${params}`,
     ));
     return { data: response.data, nextCursor: response.nextCursor ?? null };
+  }
+}
+
+/** Local stdio configuration remains PAT-only, with no redirect or arbitrary URL support. */
+export class FlowboardClient extends FlowboardOperationsClient {
+  constructor(config?: Partial<FlowboardConfig>) {
+    const baseUrl = parseBaseUrl(config?.apiUrl ?? process.env['FLOWBOARD_API_URL'] ?? 'https://flowboard-app-uat.pages.dev');
+    const token = config?.apiToken ?? process.env['FLOWBOARD_API_TOKEN'] ?? '';
+    if (!/^flw_pat_[a-f0-9]{64}$/.test(token)) {
+      throw new Error('FLOWBOARD_API_TOKEN must contain a valid Flowboard personal access token.');
+    }
+    const timeoutMs = config?.requestTimeoutMs ?? 10000;
+    if (!Number.isInteger(timeoutMs) || timeoutMs < 1 || timeoutMs > 30000) {
+      throw new Error('requestTimeoutMs must be an integer between 1 and 30000.');
+    }
+    super(async (path, options) => {
+      const headers = new Headers(options.headers);
+      headers.set('Authorization', `Bearer ${token}`);
+      const timeout = AbortSignal.timeout(timeoutMs);
+      const signal = options.signal ? AbortSignal.any([timeout, options.signal]) : timeout;
+      return fetch(`${baseUrl}${path}`, { ...options, headers, signal, redirect: 'error' });
+    });
   }
 }

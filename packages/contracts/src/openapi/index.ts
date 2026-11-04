@@ -1,7 +1,7 @@
 /** Lightweight operation metadata. Schema generation is build-time in scripts/generate-openapi.ts. */
-export interface OpenApiResponseDefinition { schema?: string; contentType?: string; description: string; }
+export interface OpenApiResponseDefinition { schema?: string; contentType?: string; description: string; empty?: boolean; }
 export interface OpenApiRouteDefinition {
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS';
   path: string;
   basePath?: string;
   summary: string;
@@ -11,12 +11,14 @@ export interface OpenApiRouteDefinition {
 }
 /** Rich build-time operation bindings extend the original consumer metadata interface. */
 export interface OpenApiOperationDefinition extends OpenApiRouteDefinition {
-  auth: 'public' | 'optional-session' | 'session' | 'session-or-token' | 'admin-secret' | 'local-test';
+  auth: 'public' | 'optional-session' | 'session' | 'session-or-token' | 'admin-secret' | 'local-test' | 'oauth-mcp';
   patScope?: 'projects:read' | 'boards:read' | 'cards:read' | 'cards:create';
   requestSchema?: string;
   querySchema?: string;
-  requestKind?: 'json' | 'image' | 'xlsx';
+  requestKind?: 'json' | 'image' | 'xlsx' | 'form';
   requestOptional?: boolean;
+  errorKind?: 'oauth' | 'jsonrpc';
+  maxRequestBytes?: number;
   replay?: boolean;
   source: string;
   responses: Record<string, OpenApiResponseDefinition>;
@@ -26,7 +28,7 @@ export interface OpenApiOperationDefinition extends OpenApiRouteDefinition {
 export const OPENAPI_SPEC_METADATA = {
   openapi: '3.1.0',
   info: { title: 'Flowboard API', version: '0.3.0',
-    description: 'Current mounted Node/Worker HTTP operations. Project membership plus board grants protect board-derived data; six bearer capabilities are an explicit subset of session authority.' },
+    description: 'Current mounted Node/Worker HTTP operations. Project membership plus board grants protect board-derived data; six PAT bearer capabilities are an explicit subset of session authority. Hosted MCP uses separate OAuth-only authority on its exact transport path, with standard unwrapped OAuth and JSON-RPC wire formats.' },
   servers: [{ url: '/', description: 'Current origin; paths include /api/v1 or root health namespace.' }],
 } as const;
 
@@ -135,5 +137,25 @@ add('GET','/tokens','authenticated','List own token summaries, never raw bearer 
 add('DELETE','/tokens/{tokenId}','authenticated','Revoke own token; cannot administer credentials using a PAT','SuccessResponse',{source:source('tokens')});
 add('GET','/system/status','authenticated','Administrative migration/binding status; X-Dev-Secret required','SystemStatusResponse',{auth:'admin-secret',source:source('system'),responses:{200:{schema:'SystemStatusResponse',description:'Migration and binding status'},403:{schema:'AdminStatusError',description:'Route-specific administrative denial (no requestId)'}}});
 add('POST','/system/migrate','authenticated','Administrative migration runner; explicit admin secret, no user-session authority','SystemMigrateResponse',{auth:'admin-secret',source:source('system')});
+
+
+// Hosted OAuth/JSON-RPC is a separate credential surface; it grants no REST authority.
+for (const path of ['/.well-known/oauth-protected-resource', '/.well-known/oauth-protected-resource/api/v1/mcp'])
+  add('GET',path,'authenticated','Discover exact hosted MCP resource and issuer','HostedMcpResourceMetadata',{basePath:'',auth:'public',source:'apps/api/src/http/app.ts'});
+add('GET','/.well-known/oauth-authorization-server','authenticated','Discover hosted authorization server endpoints and supported public-client grants','HostedOAuthServerMetadata',{basePath:'',auth:'public',source:'apps/api/src/http/app.ts'});
+const protocolErrors = {401:{schema:'HostedMcpError',description:'Missing/invalid OAuth bearer; cookie, PAT and query-token fallback are refused'},403:{schema:'HostedMcpError',description:'Invalid public host or declared Origin'},429:{schema:'HostedMcpError',description:'Connection rate exceeded'},503:{schema:'HostedMcpError',description:'Temporary MCP verification or rate-limit failure'},504:{schema:'HostedMcpError',description:'Request deadline exceeded'}};
+add('POST','/mcp','authenticated','Send one stateless MCP JSON-RPC request or notification','HostedMcpResponse',{auth:'oauth-mcp',requestSchema:'HostedMcpMessageInput',maxRequestBytes:131072,errorKind:'jsonrpc',source:source('hosted-mcp'),description:'OAuth bearer only; Accept must include application/json and text/event-stream, Content-Type application/json. Fresh stateless SDK server per request, JSON responses, no batch/SSE session. Authentication precedes SDK parsing. Five existing discovery/search/create tools only; current grants and selected project still apply.',responses:{200:{schema:'HostedMcpResponse',description:'JSON-RPC result/error'},202:{description:'Notification accepted without a response body',empty:true},400:{schema:'HostedMcpError',description:'Invalid/batched/deep JSON-RPC'},406:{schema:'HostedMcpError',description:'Required Accept media types missing'},413:{schema:'HostedMcpError',description:'Body exceeds128KiB'},415:{schema:'HostedMcpError',description:'Content-Type must be application/json'},...protocolErrors}});
+for (const method of ['GET','DELETE'] as const) add(method,'/mcp','authenticated','Authenticate then reject unsupported persistent transport method','HostedMcpError',{auth:'oauth-mcp',errorKind:'jsonrpc',source:source('hosted-mcp'),responses:{405:{schema:'HostedMcpError',description:'Valid OAuth bearer, but method unsupported; Allow POST, OPTIONS'},...protocolErrors}});
+add('OPTIONS','/mcp','authenticated','Validate protocol CORS preflight without cookie authority',undefined,{auth:'public',errorKind:'jsonrpc',source:source('hosted-mcp'),responses:{204:{description:'Allowed preflight; POST, OPTIONS only',empty:true},403:{schema:'HostedMcpError',description:'Origin, host, method or requested headers refused'}}});
+const oauthOptions: Options = {auth:'public',errorKind:'oauth',source:source('hosted-oauth')};
+add('GET','/mcp/oauth/authorize','authenticated','Validate public client and PKCE, then redirect to browser-bound consent',undefined,{...oauthOptions,querySchema:'HostedOAuthAuthorizeQuery',status:302,description:'Requires exact configured resource, hosted Claude callback and S256. GET cannot approve. Creates a10-minute browser binding and redirects to /connect?request=opaque-id; authorization response after the session decision uses the stored callback with code/state/iss or error.'});
+add('POST','/mcp/oauth/register','authenticated','Register a bounded unverified hosted public client','HostedOAuthRegisterResponse',{...oauthOptions,requestSchema:'HostedOAuthRegisterInput',maxRequestBytes:16384,status:201});
+add('POST','/mcp/oauth/token','authenticated','Exchange code plus verifier or rotate refresh credential','HostedOAuthTokenResponse',{...oauthOptions,requestKind:'form',requestSchema:'HostedOAuthTokenInput',maxRequestBytes:16384});
+add('POST','/mcp/oauth/revoke','authenticated','Revoke own client-bound connection without disclosing token existence',undefined,{...oauthOptions,requestKind:'form',requestSchema:'HostedOAuthRevokeInput',maxRequestBytes:16384,responses:{200:{description:'Empty success, including unknown token',empty:true}}});
+const consentOptions: Options = {auth:'session',errorKind:'oauth',source:source('hosted-oauth')};
+add('GET','/mcp/authorization-requests/{requestId}','authenticated','Read safe browser-bound pending consent and paginated eligible projects','HostedMcpAuthorizationView',{...consentOptions,querySchema:'HostedMcpAuthorizationQuery'});
+add('POST','/mcp/authorization-requests/{requestId}/decision','authenticated','Approve one explicit project or deny the browser-bound request','HostedMcpDecisionResponse',{...consentOptions,requestSchema:'HostedMcpDecisionInput',maxRequestBytes:16384,description:'Session plus exact Origin, one-use CSRF, browser/request/session binding. Approval requires projectId; backend selects the stored callback. Returns an API data envelope with redirectUrl for top-level navigation; never access/code/verifier fields.'});
+add('GET','/mcp/connections','authenticated','List safe own continuing connections without credential values','HostedMcpConnectionsResponse',consentOptions);
+add('DELETE','/mcp/connections/{connectionId}','authenticated','Disconnect own connection idempotently; exact Origin and session required',undefined,{...consentOptions,status:204});
 
 export const OPENAPI_ROUTES: OpenApiOperationDefinition[] = rows;

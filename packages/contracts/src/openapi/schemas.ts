@@ -1,6 +1,7 @@
 // Build/test-time bindings only. Product runtimes do not import this module or generate JSON Schema.
 import { z } from 'zod';
 import * as shared from '../index.ts';
+import { HOSTED_MCP_OPENAPI_SCHEMAS } from './hosted-mcp-schemas.ts';
 
 export interface SchemaBinding {
   schema: z.ZodType;
@@ -73,3 +74,5 @@ wire('WorkspaceMyTasksQuery', (OPENAPI_SCHEMAS.MyTasksQuery!.schema as z.ZodObje
 OPENAPI_SCHEMAS.SaveNameInput!.notes = 'Both first/last parts normalize whitespace (including tabs) and must contain1..60 Unicode code points. Shared normalizeNamePart rejects disallowed control/format/line/paragraph separators; custom refinements/transforms are validated by Zod, not fully compiled into structural JSON Schema.';
 OPENAPI_SCHEMAS.MentionsList!.notes = 'At most20 UTF-16 spans. Shared refinements enforce start<end and nonoverlapping spans; handler checks verify actual body slices/current eligible recipient authority.';
 OPENAPI_SCHEMAS.DateOnly!.notes = 'Date-only YYYY-MM-DD; shared Gregorian-day refinement rejects impossible/leap-day dates beyond the structural regex.';
+
+Object.assign(OPENAPI_SCHEMAS, HOSTED_MCP_OPENAPI_SCHEMAS);

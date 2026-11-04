@@ -1,0 +1,96 @@
+✖ hosted operation inventory adds discovery, OAuth, consent, connections and explicit transport methods (1.148375ms)
+✖ OAuth bearer authorizes only MCP; six existing PAT capabilities remain unchanged (0.69625ms)
+✖ OAuth token and revoke use bounded forms and unwrapped standard responses (0.178875ms)
+✖ MCP documents JSON-RPC, notification acceptance, authentication challenge and authenticated 405 (0.218584ms)
+✖ hosted wire schemas preserve safe shared contracts and exact callback/resource validation notes (0.115792ms)
+ℹ tests 5
+ℹ suites 0
+ℹ pass 0
+ℹ fail 5
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 138.25325
+
+✖ failing tests:
+
+test at packages/contracts/test/hosted-mcp-openapi.test.ts:12:1
+✖ hosted operation inventory adds discovery, OAuth, consent, connections and explicit transport methods (1.148375ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  103 !== 118
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/contracts/test/hosted-mcp-openapi.test.ts:13:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.start (node:internal/test_runner/test:1096:17)
+      at startSubtestAfterBootstrap (node:internal/test_runner/harness:385:17) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 103,
+    expected: 118,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at packages/contracts/test/hosted-mcp-openapi.test.ts:24:1
+✖ OAuth bearer authorizes only MCP; six existing PAT capabilities remain unchanged (0.69625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+  + []
+  - [
+  -   'DELETE',
+  -   'GET',
+  -   'POST'
+  - ]
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/contracts/test/hosted-mcp-openapi.test.ts:26:10)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [],
+    expected: [ 'DELETE', 'GET', 'POST' ],
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at packages/contracts/test/hosted-mcp-openapi.test.ts:34:1
+✖ OAuth token and revoke use bounded forms and unwrapped standard responses (0.178875ms)
+  TypeError: Cannot read properties of undefined (reading 'requestBody')
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/contracts/test/hosted-mcp-openapi.test.ts:36:19)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at packages/contracts/test/hosted-mcp-openapi.test.ts:48:1
+✖ MCP documents JSON-RPC, notification acceptance, authentication challenge and authenticated 405 (0.218584ms)
+  TypeError: Cannot read properties of undefined (reading 'x-max-request-bytes')
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/contracts/test/hosted-mcp-openapi.test.ts:50:20)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)
+
+test at packages/contracts/test/hosted-mcp-openapi.test.ts:66:1
+✖ hosted wire schemas preserve safe shared contracts and exact callback/resource validation notes (0.115792ms)
+  Error: fromJSONSchema input is not valid JSON (possibly cyclic); use $defs/$ref for recursive schemas
+      at Module.fromJSONSchema (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/zod/v4/classic/from-json-schema.js:868:15)
+      at valid (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/contracts/test/hosted-mcp-openapi.test.ts:10:51)
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/packages/contracts/test/hosted-mcp-openapi.test.ts:67:16)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

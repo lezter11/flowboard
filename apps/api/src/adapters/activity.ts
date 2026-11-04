@@ -546,7 +546,7 @@ export async function redactCardActivity(
 /** Trusted server context only. Never a bearer value or caller-supplied actor. */
 export type ActivitySource =
   | { type: 'session' }
-  | { type: 'personal_access_token'; credentialId: string; operationIdHash: string };
+  | { type: 'personal_access_token' | 'mcp_oauth'; credentialId: string; operationIdHash: string };
 
 export interface RecordActivityOptions {
   id?: string | undefined;

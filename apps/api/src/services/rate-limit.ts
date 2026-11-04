@@ -26,6 +26,15 @@ export function softBindingsFor(method: string, path: string): RateLimitBinding[
 // Limits from docs/RATE_LIMITING.md. Each bucket counts per client key in a fixed window.
 export const WINDOW_BUCKETS = {
   auth: { limit: 10, windowSeconds: 60 },
+  'mcp-oauth-authorize': { limit: 10, windowSeconds: 60 },
+  'mcp-oauth-token': { limit: 30, windowSeconds: 60 },
+  'mcp-oauth-revoke': { limit: 30, windowSeconds: 60 },
+  'mcp-oauth-consent': { limit: 10, windowSeconds: 60 },
+  'mcp-oauth-consent-user': { limit: 10, windowSeconds: 60 },
+  'mcp-oauth-register': { limit: 5, windowSeconds: 60 },
+  'mcp-oauth-register-hour': { limit: 20, windowSeconds: 3600 },
+  'mcp-protocol': { limit: 120, windowSeconds: 60 },
+  'mcp-create': { limit: 30, windowSeconds: 60 },
   invite: { limit: 10, windowSeconds: 60 },
   import: { limit: 5, windowSeconds: 60 },
   upload: { limit: 10, windowSeconds: 60 },

@@ -1,0 +1,25 @@
+✔ mounted discovery and exact protocol CORS do not use cookie credentials or forged origins (152.01075ms)
+✔ full mounted OAuth flow and max-one-connection dispatcher enforce scopes, roles and selected project (105.501791ms)
+✔ create replay survives access refresh, preserves provenance and fails after disconnect (45.33875ms)
+✔ private request identity is absent on clones and external identity headers cannot bypass policy (15.731458ms)
+✔ mounted MCP owns streamed128KiB cap and a slow-body deadline before ordinary middleware buffering (45.596333ms)
+✔ mounted connection-based protocol/create limits fail closed without consuming another connection allowance (32.089958ms)
+✖ actual production Worker uses Node-issued OAuth and a single request connection for create/replay (442.8155ms)
+ℹ tests 7
+ℹ suites 0
+ℹ pass 6
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1529.965375
+
+✖ failing tests:
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:234:1
+✖ actual production Worker uses Node-issued OAuth and a single request connection for create/replay (442.8155ms)
+  TypeError: Cannot read properties of undefined (reading 'content')
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:253:45)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

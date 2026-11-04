@@ -15,6 +15,7 @@ import { getPool } from '../../adapters/postgres.ts';
 import { lockProjectBoardReadScope } from '../../adapters/board-grants-foundation.ts';
 import { checkOrReplayProjectWriteReceipt, saveReceipt, sha256 } from '../../adapters/idempotency.ts';
 import { lockPersonalAccessToken } from '../../adapters/tokens.ts';
+import { lockHostedOAuthCredential } from '../../adapters/hosted-oauth.ts';
 import {
   createCard,
   getCard,
@@ -73,7 +74,16 @@ cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, requireTokenSc
     await client.query('BEGIN');
 
     const tokenId = c.get('tokenId');
-    if (tokenId) {
+    const oauth = c.get('machineCredentialKind') === 'mcp_oauth';
+    if (oauth) {
+      const accessTokenId = c.get('oauthAccessTokenId');
+      const resource = c.get('oauthResource');
+      if (!tokenId || !accessTokenId || !resource) throw HttpError.unauthorized('Invalid MCP credential.');
+      await lockHostedOAuthCredential(client, {
+        connectionId: tokenId, accessTokenId, userId: actor.id, projectId,
+        requiredScope: 'cards:create', resource,
+      });
+    } else if (tokenId) {
       // Keep this credential's authorization stable until the card, activity and
       // receipt commit. Revocation must take the conflicting row lock.
       await lockPersonalAccessToken(client, {
@@ -85,7 +95,7 @@ cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, requireTokenSc
     // to the credential, and excludes only the transient optimistic revision.
     // The caller's raw key is never persisted for token-authenticated writes.
     const receiptKey = tokenId
-      ? `pat:${sha256(JSON.stringify([tokenId, idempotencyKey]))}`
+      ? `${oauth ? 'oauth' : 'pat'}:${sha256(JSON.stringify([tokenId, idempotencyKey]))}`
       : idempotencyKey;
     const { expectedBoardVersion: _revision, ...semanticInput } = input;
     const receiptBody = tokenId
@@ -115,7 +125,7 @@ cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, requireTokenSc
     }
 
     const card = await createCard(client, boardId, input, actor.id, tokenId ? {
-      type: 'personal_access_token',
+      type: oauth ? 'mcp_oauth' : 'personal_access_token',
       credentialId: tokenId,
       operationIdHash: sha256(idempotencyKey),
     } : { type: 'session' }, lockedAssignees);

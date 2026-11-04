@@ -1,0 +1,39 @@
+✔ same-human session replacement cannot reuse reviewed consent (147.034083ms)
+✔ revoked browser session cannot decide a pending request (7.071292ms)
+✔ consent re-read invalidates previous CSRF challenge (14.820208ms)
+✔ wrong client cannot revoke by replaying consumed code or refresh (21.641166ms)
+✔ refresh insertion failure rolls back consumption and partial token issuance (20.383167ms)
+✔ counter database failure refuses registration without leaking diagnostics (6.047666ms)
+✔ public cookie cannot replace code grant and authorization headers cannot replace browser session (1.760125ms)
+✖ 20-connection cap serializes two parallel consent grants (71.668166ms)
+✔ absolute family expiry refuses both access and refresh despite unexpired leaf tokens (14.604333ms)
+✔ chunked body bound holds without Content-Length (1.129541ms)
+ℹ tests 10
+ℹ suites 0
+ℹ pass 9
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 518.4265
+
+✖ failing tests:
+
+test at docs/reviews/HOSTED-MCP-20261104/independent-backend-review/adversarial.test.mjs:43:1
+✖ 20-connection cap serializes two parallel consent grants (71.668166ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  429 !== 200
+  
+      at consent (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/HOSTED-MCP-20261104/independent-backend-review/adversarial.test.mjs:28:95)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/HOSTED-MCP-20261104/independent-backend-review/adversarial.test.mjs:43:126)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 429,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

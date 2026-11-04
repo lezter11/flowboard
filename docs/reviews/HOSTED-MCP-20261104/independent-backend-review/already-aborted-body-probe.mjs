@@ -1,0 +1,11 @@
+import {handleHostedMcpTransport} from '../../../../apps/api/src/services/hosted-mcp-transport.ts';
+const controller=new AbortController();controller.abort();
+let streamController;
+const body=new ReadableStream({start(c){streamController=c;}});
+let completed=false;
+const request=new Request('https://flowboard.example/api/v1/mcp',{method:'POST',headers:{accept:'application/json, text/event-stream','content-type':'application/json'},signal:controller.signal,body,duplex:'half'});
+const operations={listProjects:async()=>[],listBoards:async()=>[],getBoard:async()=>({}),createCard:async()=>({}),searchCards:async()=>[]};
+const work=handleHostedMcpTransport(request,operations).then(r=>{completed=true;return r;});
+await new Promise(resolve=>setTimeout(resolve,100));
+console.log(JSON.stringify({signalAlreadyAborted:request.signal.aborted,observedWaitMs:100,settledWithoutStreamClose:completed}));
+streamController.close();console.log(JSON.stringify({responseAfterStreamClose:(await work).status}));

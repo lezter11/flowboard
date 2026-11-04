@@ -1,0 +1,101 @@
+-- Hosted MCP OAuth: additive, hash-only credentials and one project per connection.
+CREATE TABLE IF NOT EXISTS mcp_oauth_clients (
+  client_id TEXT PRIMARY KEY,
+  client_name TEXT NOT NULL CHECK (length(client_name) BETWEEN 1 AND 100),
+  redirect_uri TEXT NOT NULL CHECK (length(redirect_uri) <= 2048),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+  expires_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp() + INTERVAL '30 days'
+);
+CREATE INDEX IF NOT EXISTS mcp_oauth_clients_expiry ON mcp_oauth_clients(expires_at);
+
+CREATE TABLE IF NOT EXISTS mcp_oauth_authorization_requests (
+  id TEXT PRIMARY KEY,
+  request_hash TEXT UNIQUE NOT NULL CHECK (request_hash ~ '^[a-f0-9]{64}$'),
+  client_id TEXT NOT NULL CHECK (length(client_id) BETWEEN 1 AND 2048),
+  client_name TEXT NOT NULL CHECK (length(client_name) BETWEEN 1 AND 120),
+  redirect_uri TEXT NOT NULL CHECK (length(redirect_uri) BETWEEN 1 AND 2048),
+  resource TEXT NOT NULL CHECK (length(resource) BETWEEN 1 AND 2048),
+  scopes TEXT[] NOT NULL CHECK (cardinality(scopes) BETWEEN 1 AND 5 AND scopes <@ ARRAY['projects:read','boards:read','cards:read','cards:create','offline_access']::TEXT[]),
+  state TEXT CHECK (length(state) <= 1024),
+  code_challenge TEXT NOT NULL CHECK (code_challenge ~ '^[A-Za-z0-9_-]{43}$'),
+  browser_binding_hash TEXT NOT NULL CHECK (browser_binding_hash ~ '^[a-f0-9]{64}$'),
+  csrf_hash TEXT CHECK (csrf_hash ~ '^[a-f0-9]{64}$'),
+  user_id TEXT REFERENCES users(id) ON DELETE CASCADE,
+  session_hash TEXT,
+  expires_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp() + INTERVAL '10 minutes',
+  decided_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+  CHECK (expires_at > created_at)
+);
+CREATE INDEX IF NOT EXISTS mcp_oauth_requests_expiry ON mcp_oauth_authorization_requests(expires_at,id);
+CREATE INDEX IF NOT EXISTS mcp_oauth_requests_client_pending ON mcp_oauth_authorization_requests(client_id,expires_at) WHERE decided_at IS NULL;
+CREATE INDEX IF NOT EXISTS mcp_oauth_requests_redaction ON mcp_oauth_authorization_requests((COALESCE(decided_at,expires_at)),id)
+  WHERE state IS NOT NULL OR session_hash IS NOT NULL OR csrf_hash IS NOT NULL OR browser_binding_hash <> repeat('0',64);
+
+CREATE TABLE IF NOT EXISTS mcp_oauth_connections (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  client_id TEXT NOT NULL CHECK (length(client_id) BETWEEN 1 AND 2048),
+  client_name TEXT NOT NULL CHECK (length(client_name) BETWEEN 1 AND 120),
+  resource TEXT NOT NULL CHECK (length(resource) BETWEEN 1 AND 2048),
+  scopes TEXT[] NOT NULL CHECK (cardinality(scopes) BETWEEN 1 AND 5 AND scopes <@ ARRAY['projects:read','boards:read','cards:read','cards:create','offline_access']::TEXT[]),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+  expires_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp() + INTERVAL '30 days',
+  last_used_at TIMESTAMPTZ,
+  revoked_at TIMESTAMPTZ,
+  revocation_reason TEXT CHECK (length(revocation_reason) <= 40),
+  CHECK (expires_at > created_at)
+);
+CREATE INDEX IF NOT EXISTS mcp_oauth_connections_user ON mcp_oauth_connections(user_id,created_at DESC,id);
+CREATE INDEX IF NOT EXISTS mcp_oauth_connections_project ON mcp_oauth_connections(project_id,user_id);
+CREATE INDEX IF NOT EXISTS mcp_oauth_connections_expiry ON mcp_oauth_connections(expires_at,id);
+CREATE INDEX IF NOT EXISTS mcp_oauth_connections_client_live ON mcp_oauth_connections(client_id,expires_at) WHERE revoked_at IS NULL;
+CREATE INDEX IF NOT EXISTS mcp_oauth_connections_retention ON mcp_oauth_connections
+  ((GREATEST(LEAST(expires_at,COALESCE(revoked_at,expires_at)),COALESCE(last_used_at,created_at))),id);
+
+CREATE TABLE IF NOT EXISTS mcp_oauth_authorization_codes (
+  id TEXT PRIMARY KEY,
+  code_hash TEXT UNIQUE NOT NULL CHECK (code_hash ~ '^[a-f0-9]{64}$'),
+  request_id TEXT UNIQUE NOT NULL REFERENCES mcp_oauth_authorization_requests(id) ON DELETE CASCADE,
+  connection_id TEXT NOT NULL REFERENCES mcp_oauth_connections(id) ON DELETE CASCADE,
+  client_id TEXT NOT NULL,
+  redirect_uri TEXT NOT NULL,
+  resource TEXT NOT NULL,
+  code_challenge TEXT NOT NULL CHECK (code_challenge ~ '^[A-Za-z0-9_-]{43}$'),
+  expires_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp() + INTERVAL '5 minutes',
+  consumed_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+  CHECK (expires_at > created_at)
+);
+CREATE INDEX IF NOT EXISTS mcp_oauth_codes_connection ON mcp_oauth_authorization_codes(connection_id);
+CREATE INDEX IF NOT EXISTS mcp_oauth_codes_expiry ON mcp_oauth_authorization_codes(expires_at,id);
+
+CREATE TABLE IF NOT EXISTS mcp_oauth_access_tokens (
+  id TEXT PRIMARY KEY,
+  token_hash TEXT UNIQUE NOT NULL CHECK (token_hash ~ '^[a-f0-9]{64}$'),
+  connection_id TEXT NOT NULL REFERENCES mcp_oauth_connections(id) ON DELETE CASCADE,
+  resource TEXT NOT NULL,
+  scopes TEXT[] NOT NULL CHECK (cardinality(scopes) BETWEEN 1 AND 4 AND scopes <@ ARRAY['projects:read','boards:read','cards:read','cards:create']::TEXT[]),
+  expires_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp() + INTERVAL '15 minutes',
+  revoked_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+  CHECK (expires_at > created_at)
+);
+CREATE INDEX IF NOT EXISTS mcp_oauth_access_connection ON mcp_oauth_access_tokens(connection_id);
+CREATE INDEX IF NOT EXISTS mcp_oauth_access_expiry ON mcp_oauth_access_tokens(expires_at,id);
+
+CREATE TABLE IF NOT EXISTS mcp_oauth_refresh_tokens (
+  id TEXT PRIMARY KEY,
+  token_hash TEXT UNIQUE NOT NULL CHECK (token_hash ~ '^[a-f0-9]{64}$'),
+  connection_id TEXT NOT NULL REFERENCES mcp_oauth_connections(id) ON DELETE CASCADE,
+  parent_id TEXT UNIQUE REFERENCES mcp_oauth_refresh_tokens(id),
+  expires_at TIMESTAMPTZ NOT NULL,
+  consumed_at TIMESTAMPTZ,
+  revoked_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT clock_timestamp(),
+  CHECK (expires_at > created_at)
+);
+CREATE UNIQUE INDEX IF NOT EXISTS mcp_oauth_refresh_one_leaf ON mcp_oauth_refresh_tokens(connection_id) WHERE consumed_at IS NULL AND revoked_at IS NULL;
+CREATE INDEX IF NOT EXISTS mcp_oauth_refresh_connection ON mcp_oauth_refresh_tokens(connection_id);
+CREATE INDEX IF NOT EXISTS mcp_oauth_refresh_expiry ON mcp_oauth_refresh_tokens(expires_at,id);

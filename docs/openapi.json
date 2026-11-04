@@ -3,7 +3,7 @@
   "info": {
     "title": "Flowboard API",
     "version": "0.3.0",
-    "description": "Current mounted Node/Worker HTTP operations. Project membership plus board grants protect board-derived data; six bearer capabilities are an explicit subset of session authority."
+    "description": "Current mounted Node/Worker HTTP operations. Project membership plus board grants protect board-derived data; six PAT bearer capabilities are an explicit subset of session authority. Hosted MCP uses separate OAuth-only authority on its exact transport path, with standard unwrapped OAuth and JSON-RPC wire formats."
   },
   "servers": [
     {
@@ -13,6 +13,198 @@
   ],
   "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
   "paths": {
+    "/.well-known/oauth-authorization-server": {
+      "get": {
+        "operationId": "get_well_known_oauth_authorization_server",
+        "summary": "Discover hosted authorization server endpoints and supported public-client grants",
+        "description": "Discover hosted authorization server endpoints and supported public-client grants",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Discover hosted authorization server endpoints and supported public-client grants",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedOAuthServerMetadata"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/app.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
+    "/.well-known/oauth-protected-resource": {
+      "get": {
+        "operationId": "get_well_known_oauth_protected_resource",
+        "summary": "Discover exact hosted MCP resource and issuer",
+        "description": "Discover exact hosted MCP resource and issuer",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Discover exact hosted MCP resource and issuer",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpResourceMetadata"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/app.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
+    "/.well-known/oauth-protected-resource/api/v1/mcp": {
+      "get": {
+        "operationId": "get_well_known_oauth_protected_resource_api_v1_mcp",
+        "summary": "Discover exact hosted MCP resource and issuer",
+        "description": "Discover exact hosted MCP resource and issuer",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Discover exact hosted MCP resource and issuer",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpResourceMetadata"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/app.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
     "/api/v1/activity/health": {
       "get": {
         "operationId": "get_api_v1_activity_health",
@@ -5371,6 +5563,1615 @@
         "x-response-validation": "Documented wire projection; not a claim all handlers execute output-schema parsing."
       }
     },
+    "/api/v1/mcp": {
+      "delete": {
+        "operationId": "delete_api_v1_mcp",
+        "summary": "Authenticate then reject unsupported persistent transport method",
+        "description": "Authenticate then reject unsupported persistent transport method",
+        "security": [
+          {
+            "oauthMcpBearer": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Missing/invalid OAuth bearer; cookie, PAT and query-token fallback are refused",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer resource_metadata=\"APP_ORIGIN/.well-known/oauth-protected-resource/api/v1/mcp\". No cookie or PAT fallback."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid public host or declared Origin",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Valid OAuth bearer, but method unsupported; Allow POST, OPTIONS",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string",
+                  "const": "POST, OPTIONS"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Connection rate exceeded",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Temporary MCP verification or rate-limit failure",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request deadline exceeded",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedMcpError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedMcpError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-oauth-resource": "APP_ORIGIN/api/v1/mcp",
+        "x-oauth-rest-authority": "Forbidden; OAuth credentials are valid only at the exact MCP transport path.",
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-mcp.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      },
+      "get": {
+        "operationId": "get_api_v1_mcp",
+        "summary": "Authenticate then reject unsupported persistent transport method",
+        "description": "Authenticate then reject unsupported persistent transport method",
+        "security": [
+          {
+            "oauthMcpBearer": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "401": {
+            "description": "Missing/invalid OAuth bearer; cookie, PAT and query-token fallback are refused",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer resource_metadata=\"APP_ORIGIN/.well-known/oauth-protected-resource/api/v1/mcp\". No cookie or PAT fallback."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid public host or declared Origin",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Valid OAuth bearer, but method unsupported; Allow POST, OPTIONS",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string",
+                  "const": "POST, OPTIONS"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Connection rate exceeded",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Temporary MCP verification or rate-limit failure",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request deadline exceeded",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedMcpError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedMcpError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-oauth-resource": "APP_ORIGIN/api/v1/mcp",
+        "x-oauth-rest-authority": "Forbidden; OAuth credentials are valid only at the exact MCP transport path.",
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-mcp.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      },
+      "options": {
+        "operationId": "options_api_v1_mcp",
+        "summary": "Validate protocol CORS preflight without cookie authority",
+        "description": "Validate protocol CORS preflight without cookie authority",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "204": {
+            "description": "Allowed preflight; POST, OPTIONS only",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "Allow": {
+                "schema": {
+                  "type": "string",
+                  "const": "POST, OPTIONS"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Origin, host, method or requested headers refused",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedMcpError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedMcpError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-mcp.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      },
+      "post": {
+        "operationId": "post_api_v1_mcp",
+        "summary": "Send one stateless MCP JSON-RPC request or notification",
+        "description": "OAuth bearer only; Accept must include application/json and text/event-stream, Content-Type application/json. Fresh stateless SDK server per request, JSON responses, no batch/SSE session. Authentication precedes SDK parsing. Five existing discovery/search/create tools only; current grants and selected project still apply.",
+        "security": [
+          {
+            "oauthMcpBearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "Accept",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Must include both application/json and text/event-stream with positive quality."
+          },
+          {
+            "name": "MCP-Protocol-Version",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Installed SDK-supported protocol version; future protocol support is not implied."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "JSON-RPC result/error",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpResponse"
+                }
+              }
+            }
+          },
+          "202": {
+            "description": "Notification accepted without a response body",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid/batched/deep JSON-RPC",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing/invalid OAuth bearer; cookie, PAT and query-token fallback are refused",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              },
+              "WWW-Authenticate": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Bearer resource_metadata=\"APP_ORIGIN/.well-known/oauth-protected-resource/api/v1/mcp\". No cookie or PAT fallback."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Invalid public host or declared Origin",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "406": {
+            "description": "Required Accept media types missing",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Body exceeds128KiB",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "Content-Type must be application/json",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Connection rate exceeded",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Temporary MCP verification or rate-limit failure",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "504": {
+            "description": "Request deadline exceeded",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpError"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedMcpError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedMcpError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HostedMcpMessageInput"
+              }
+            }
+          }
+        },
+        "x-max-request-bytes": 131072,
+        "x-oauth-resource": "APP_ORIGIN/api/v1/mcp",
+        "x-oauth-rest-authority": "Forbidden; OAuth credentials are valid only at the exact MCP transport path.",
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-mcp.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
+    "/api/v1/mcp/authorization-requests/{requestId}": {
+      "get": {
+        "operationId": "get_api_v1_mcp_authorization_requests_requestId",
+        "summary": "Read safe browser-bound pending consent and paginated eligible projects",
+        "description": "Read safe browser-bound pending consent and paginated eligible projects",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "projectCursor",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 4096,
+              "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Read safe browser-bound pending consent and paginated eligible projects",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpAuthorizationView"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedOAuthError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedOAuthError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
+    "/api/v1/mcp/authorization-requests/{requestId}/decision": {
+      "post": {
+        "operationId": "post_api_v1_mcp_authorization_requests_requestId_decision",
+        "summary": "Approve one explicit project or deny the browser-bound request",
+        "description": "Session plus exact Origin, one-use CSRF, browser/request/session binding. Approval requires projectId; backend selects the stored callback. Returns an API data envelope with redirectUrl for top-level navigation; never access/code/verifier fields.",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Approve one explicit project or deny the browser-bound request",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpDecisionResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedOAuthError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedOAuthError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HostedMcpDecisionInput"
+              }
+            }
+          }
+        },
+        "x-max-request-bytes": 16384,
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
+    "/api/v1/mcp/connections": {
+      "get": {
+        "operationId": "get_api_v1_mcp_connections",
+        "summary": "List safe own continuing connections without credential values",
+        "description": "List safe own continuing connections without credential values",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "List safe own continuing connections without credential values",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedMcpConnectionsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedOAuthError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedOAuthError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
+    "/api/v1/mcp/connections/{connectionId}": {
+      "delete": {
+        "operationId": "delete_api_v1_mcp_connections_connectionId",
+        "summary": "Disconnect own connection idempotently; exact Origin and session required",
+        "description": "Disconnect own connection idempotently; exact Origin and session required",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "connectionId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Disconnect own connection idempotently; exact Origin and session required",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedOAuthError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedOAuthError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
+    "/api/v1/mcp/oauth/authorize": {
+      "get": {
+        "operationId": "get_api_v1_mcp_oauth_authorize",
+        "summary": "Validate public client and PKCE, then redirect to browser-bound consent",
+        "description": "Requires exact configured resource, hosted Claude callback and S256. GET cannot approve. Creates a10-minute browser binding and redirects to /connect?request=opaque-id; authorization response after the session decision uses the stored callback with code/state/iss or error.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "client_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2048,
+              "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+            }
+          },
+          {
+            "name": "redirect_uri",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "https://claude.ai/api/mcp/auth_callback"
+            }
+          },
+          {
+            "name": "resource",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          {
+            "name": "response_type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "code"
+            }
+          },
+          {
+            "name": "code_challenge_method",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "S256"
+            }
+          },
+          {
+            "name": "code_challenge",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{43}$"
+            }
+          },
+          {
+            "name": "scope",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 256,
+              "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+            }
+          },
+          {
+            "name": "state",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 1024,
+              "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+            }
+          }
+        ],
+        "responses": {
+          "302": {
+            "description": "Validate public client and PKCE, then redirect to browser-bound consent",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Location": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Authorization provider or safe frontend landing/sign-in destination."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedOAuthError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedOAuthError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
+    "/api/v1/mcp/oauth/register": {
+      "post": {
+        "operationId": "post_api_v1_mcp_oauth_register",
+        "summary": "Register a bounded unverified hosted public client",
+        "description": "Register a bounded unverified hosted public client",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "201": {
+            "description": "Register a bounded unverified hosted public client",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedOAuthRegisterResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedOAuthError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedOAuthError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HostedOAuthRegisterInput"
+              }
+            }
+          }
+        },
+        "x-max-request-bytes": 16384,
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
+    "/api/v1/mcp/oauth/revoke": {
+      "post": {
+        "operationId": "post_api_v1_mcp_oauth_revoke",
+        "summary": "Revoke own client-bound connection without disclosing token existence",
+        "description": "Revoke own client-bound connection without disclosing token existence",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Empty success, including unknown token",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedOAuthError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedOAuthError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/HostedOAuthRevokeInput"
+              }
+            }
+          }
+        },
+        "x-max-request-bytes": 16384,
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
+    "/api/v1/mcp/oauth/token": {
+      "post": {
+        "operationId": "post_api_v1_mcp_oauth_token",
+        "summary": "Exchange code plus verifier or rotate refresh credential",
+        "description": "Exchange code plus verifier or rotate refresh credential",
+        "security": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Exchange code plus verifier or rotate refresh credential",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "no-store"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HostedOAuthTokenResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Protocol failures use HostedOAuthError. Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/HostedOAuthError"
+                    },
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/HostedOAuthTokenInput"
+              }
+            }
+          }
+        },
+        "x-max-request-bytes": 16384,
+        "x-minimum-project-role": "authenticated",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "x-lifecycle": "active",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      }
+    },
     "/api/v1/me/tasks": {
       "get": {
         "operationId": "get_api_v1_me_tasks",
@@ -9910,6 +11711,12 @@
         "type": "apiKey",
         "in": "cookie",
         "name": "flowboard_session"
+      },
+      "oauthMcpBearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "flw_mcp_access_<64 hex characters>",
+        "description": "OAuth resource credential accepted only by /api/v1/mcp, never ordinary REST operations."
       },
       "personalAccessToken": {
         "type": "http",
@@ -16693,6 +18500,1080 @@
         ],
         "additionalProperties": false,
         "x-zod-source": "apps/api/src/http/app.ts; routes/activity.ts; routes/notifications.ts",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedMcpAuthorizationQuery": {
+        "type": "object",
+        "properties": {
+          "projectCursor": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 4096,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+          }
+        },
+        "x-zod-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedMcpAuthorizationView": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "requestId": {
+                "type": "string",
+                "minLength": 8,
+                "maxLength": 200
+              },
+              "client": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 120
+                  },
+                  "origin": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "redirectOrigin": {
+                    "type": "string",
+                    "format": "uri"
+                  },
+                  "verified": {
+                    "type": "boolean",
+                    "const": false
+                  }
+                },
+                "required": [
+                  "name",
+                  "origin",
+                  "redirectOrigin",
+                  "verified"
+                ],
+                "additionalProperties": false
+              },
+              "scopes": {
+                "minItems": 1,
+                "maxItems": 4,
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "cards:create",
+                    "cards:read",
+                    "boards:read",
+                    "projects:read"
+                  ]
+                }
+              },
+              "offlineAccess": {
+                "type": "boolean"
+              },
+              "accessTokenLifetimeSeconds": {
+                "type": "number",
+                "const": 900
+              },
+              "connectionLifetimeDays": {
+                "type": "number",
+                "const": 30
+              },
+              "refreshTokenIdleDays": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "const": 7
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "expiresAt": {
+                "type": "string"
+              },
+              "csrfToken": {
+                "type": "string",
+                "minLength": 20,
+                "maxLength": 200
+              },
+              "projects": {
+                "maxItems": 100,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "name": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200
+                    },
+                    "role": {
+                      "type": "string",
+                      "enum": [
+                        "owner",
+                        "manager",
+                        "member",
+                        "viewer"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "name",
+                    "role"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "nextCursor": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "maxLength": 4096
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "requestId",
+              "client",
+              "scopes",
+              "offlineAccess",
+              "accessTokenLifetimeSeconds",
+              "connectionLifetimeDays",
+              "refreshTokenIdleDays",
+              "expiresAt",
+              "csrfToken",
+              "projects",
+              "nextCursor"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:hostedMcpAuthorizationViewSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedMcpConnection": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 200
+          },
+          "clientName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "clientOrigin": {
+            "type": "string",
+            "format": "uri"
+          },
+          "redirectOrigin": {
+            "type": "string",
+            "format": "uri"
+          },
+          "projectId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "projectName": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "scopes": {
+            "minItems": 1,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "cards:create",
+                "cards:read",
+                "boards:read",
+                "projects:read"
+              ]
+            }
+          },
+          "offlineAccess": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "lastUsedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "revokedAt": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "clientName",
+          "clientOrigin",
+          "redirectOrigin",
+          "projectId",
+          "projectName",
+          "scopes",
+          "offlineAccess",
+          "createdAt",
+          "expiresAt",
+          "lastUsedAt",
+          "revokedAt"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:hostedMcpConnectionSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedMcpConnectionsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 8,
+                  "maxLength": 200
+                },
+                "clientName": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 120
+                },
+                "clientOrigin": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "redirectOrigin": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "projectId": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "projectName": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200
+                },
+                "scopes": {
+                  "minItems": 1,
+                  "maxItems": 4,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "enum": [
+                      "cards:create",
+                      "cards:read",
+                      "boards:read",
+                      "projects:read"
+                    ]
+                  }
+                },
+                "offlineAccess": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "string"
+                },
+                "expiresAt": {
+                  "type": "string"
+                },
+                "lastUsedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "revokedAt": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "clientName",
+                "clientOrigin",
+                "redirectOrigin",
+                "projectId",
+                "projectName",
+                "scopes",
+                "offlineAccess",
+                "createdAt",
+                "expiresAt",
+                "lastUsedAt",
+                "revokedAt"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:hostedMcpConnectionsResponseSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedMcpDecisionInput": {
+        "type": "object",
+        "properties": {
+          "decision": {
+            "type": "string",
+            "enum": [
+              "allow",
+              "deny"
+            ]
+          },
+          "projectId": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          },
+          "csrfToken": {
+            "type": "string",
+            "minLength": 20,
+            "maxLength": 200
+          }
+        },
+        "required": [
+          "decision",
+          "csrfToken"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:hostedMcpDecisionInputSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedMcpDecisionResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "redirectUrl": {
+                "type": "string",
+                "maxLength": 8192,
+                "format": "uri"
+              }
+            },
+            "required": [
+              "redirectUrl"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:hostedMcpDecisionResponseSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedMcpError": {
+        "type": "object",
+        "properties": {
+          "jsonrpc": {
+            "type": "string",
+            "const": "2.0"
+          },
+          "id": {
+            "type": [
+              "string",
+              "number",
+              "null"
+            ]
+          },
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "integer",
+                "minimum": -9007199254740991,
+                "maximum": 9007199254740991
+              },
+              "message": {
+                "type": "string"
+              },
+              "data": {}
+            },
+            "required": [
+              "code",
+              "message"
+            ],
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "jsonrpc",
+          "id",
+          "error"
+        ],
+        "additionalProperties": {},
+        "x-zod-source": "apps/api/src/services/hosted-mcp-transport.ts; apps/api/src/http/routes/hosted-mcp.ts",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedMcpMessageInput": {
+        "type": "object",
+        "properties": {
+          "jsonrpc": {
+            "type": "string",
+            "const": "2.0"
+          },
+          "id": {
+            "type": [
+              "string",
+              "number"
+            ]
+          },
+          "method": {
+            "type": "string"
+          },
+          "params": {}
+        },
+        "required": [
+          "jsonrpc",
+          "method"
+        ],
+        "additionalProperties": {},
+        "x-zod-source": "apps/api/src/services/hosted-mcp-transport.ts; apps/api/src/http/routes/hosted-mcp.ts",
+        "description": "One JSON-RPC request or notification; no batches, max128KiB and depth32. Method-specific params are intentionally unknown here and validated by the installed MCP SDK and tool contracts; this is not an unrestricted fallback for a missing schema. SDK accepts supported protocol versions including2025-11-25.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedMcpResourceMetadata": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "format": "uri"
+          },
+          "resource_name": {
+            "type": "string",
+            "const": "Flowboard"
+          },
+          "authorization_servers": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "format": "uri"
+              }
+            ],
+            "items": false,
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "bearer_methods_supported": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "header"
+              }
+            ],
+            "items": false,
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "scopes_supported": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "projects:read",
+                "boards:read",
+                "cards:read",
+                "cards:create"
+              ]
+            }
+          }
+        },
+        "required": [
+          "resource",
+          "resource_name",
+          "authorization_servers",
+          "bearer_methods_supported",
+          "scopes_supported"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "apps/api/src/http/app.ts",
+        "description": "Issuer and resource come only from validated APP_ORIGIN, never request Host or forwarded headers.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedMcpResponse": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "jsonrpc": {
+                "type": "string",
+                "const": "2.0"
+              },
+              "id": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "result": {}
+            },
+            "required": [
+              "jsonrpc",
+              "id",
+              "result"
+            ],
+            "additionalProperties": {}
+          },
+          {
+            "type": "object",
+            "properties": {
+              "jsonrpc": {
+                "type": "string",
+                "const": "2.0"
+              },
+              "id": {
+                "type": [
+                  "string",
+                  "number",
+                  "null"
+                ]
+              },
+              "error": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "integer",
+                    "minimum": -9007199254740991,
+                    "maximum": 9007199254740991
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "data": {}
+                },
+                "required": [
+                  "code",
+                  "message"
+                ],
+                "additionalProperties": {}
+              }
+            },
+            "required": [
+              "jsonrpc",
+              "id",
+              "error"
+            ],
+            "additionalProperties": {}
+          }
+        ],
+        "x-zod-source": "apps/api/src/services/hosted-mcp-transport.ts; apps/api/src/http/routes/hosted-mcp.ts",
+        "description": "Unwrapped JSON-RPC result/error. Method-specific result and error data are intentionally unknown and governed by installed SDK/tool schemas. Notifications receive empty202; persistent SSE and sessions are not supported.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedMcpScope": {
+        "type": "string",
+        "enum": [
+          "cards:create",
+          "cards:read",
+          "boards:read",
+          "projects:read"
+        ],
+        "x-zod-source": "packages/contracts/src/index.ts:hostedMcpScopeSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedOAuthAuthorizeQuery": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+          },
+          "redirect_uri": {
+            "type": "string",
+            "const": "https://claude.ai/api/mcp/auth_callback"
+          },
+          "resource": {
+            "type": "string",
+            "format": "uri"
+          },
+          "response_type": {
+            "type": "string",
+            "const": "code"
+          },
+          "code_challenge_method": {
+            "type": "string",
+            "const": "S256"
+          },
+          "code_challenge": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{43}$"
+          },
+          "scope": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+          },
+          "state": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1024,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+          }
+        },
+        "required": [
+          "client_id",
+          "redirect_uri",
+          "resource",
+          "response_type",
+          "code_challenge_method",
+          "code_challenge"
+        ],
+        "x-zod-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "description": "Resource must equal configured APP_ORIGIN plus /api/v1/mcp. Unknown scopes, response_mode and duplicate recognized fields are rejected by the mounted handler; total URL bound8192 bytes. GET creates a browser-bound pending request, never a grant.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedOAuthError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "description": "Unwrapped OAuth error, including consent/session errors raised as HostedOAuthError. Global failures can retain the separately documented API/Worker error shapes.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedOAuthRegisterInput": {
+        "type": "object",
+        "properties": {
+          "redirect_uris": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "https://claude.ai/api/mcp/auth_callback"
+              }
+            ],
+            "items": false,
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "client_name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+          },
+          "token_endpoint_auth_method": {
+            "type": "string",
+            "const": "none"
+          },
+          "response_types": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "code"
+              }
+            ],
+            "items": false,
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "grant_types": {
+            "minItems": 1,
+            "maxItems": 2,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "authorization_code",
+                "refresh_token"
+              ]
+            }
+          }
+        },
+        "required": [
+          "redirect_uris"
+        ],
+        "x-zod-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "description": "If grant_types is supplied it must include authorization_code. Public registration is unverified self-asserted metadata, not proof of Anthropic identity.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedOAuthRegisterResponse": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string"
+          },
+          "client_id_issued_at": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991
+          },
+          "client_name": {
+            "type": "string"
+          },
+          "redirect_uris": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "https://claude.ai/api/mcp/auth_callback"
+              }
+            ],
+            "items": false,
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "token_endpoint_auth_method": {
+            "type": "string",
+            "const": "none"
+          },
+          "grant_types": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "authorization_code"
+              },
+              {
+                "type": "string",
+                "const": "refresh_token"
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "response_types": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "code"
+              }
+            ],
+            "items": false,
+            "minItems": 1,
+            "maxItems": 1
+          }
+        },
+        "required": [
+          "client_id",
+          "client_id_issued_at",
+          "client_name",
+          "redirect_uris",
+          "token_endpoint_auth_method",
+          "grant_types",
+          "response_types"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedOAuthRevokeInput": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+          },
+          "client_id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2048,
+            "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+          }
+        },
+        "required": [
+          "token",
+          "client_id"
+        ],
+        "x-zod-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "description": "Unknown tokens and wrong-client tokens do not disclose existence. token_type_hint is ignored.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedOAuthServerMetadata": {
+        "type": "object",
+        "properties": {
+          "issuer": {
+            "type": "string",
+            "format": "uri"
+          },
+          "authorization_endpoint": {
+            "type": "string",
+            "format": "uri"
+          },
+          "token_endpoint": {
+            "type": "string",
+            "format": "uri"
+          },
+          "registration_endpoint": {
+            "type": "string",
+            "format": "uri"
+          },
+          "revocation_endpoint": {
+            "type": "string",
+            "format": "uri"
+          },
+          "response_types_supported": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "code"
+              }
+            ],
+            "items": false,
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "grant_types_supported": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "authorization_code"
+              },
+              {
+                "type": "string",
+                "const": "refresh_token"
+              }
+            ],
+            "items": false,
+            "minItems": 2,
+            "maxItems": 2
+          },
+          "token_endpoint_auth_methods_supported": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "none"
+              }
+            ],
+            "items": false,
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "code_challenge_methods_supported": {
+            "type": "array",
+            "prefixItems": [
+              {
+                "type": "string",
+                "const": "S256"
+              }
+            ],
+            "items": false,
+            "minItems": 1,
+            "maxItems": 1
+          },
+          "authorization_response_iss_parameter_supported": {
+            "type": "boolean",
+            "const": true
+          },
+          "client_id_metadata_document_supported": {
+            "type": "boolean",
+            "const": true
+          },
+          "scopes_supported": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "projects:read",
+                "boards:read",
+                "cards:read",
+                "cards:create",
+                "offline_access"
+              ]
+            }
+          }
+        },
+        "required": [
+          "issuer",
+          "authorization_endpoint",
+          "token_endpoint",
+          "registration_endpoint",
+          "revocation_endpoint",
+          "response_types_supported",
+          "grant_types_supported",
+          "token_endpoint_auth_methods_supported",
+          "code_challenge_methods_supported",
+          "authorization_response_iss_parameter_supported",
+          "client_id_metadata_document_supported",
+          "scopes_supported"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "apps/api/src/http/app.ts",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedOAuthTokenInput": {
+        "oneOf": [
+          {
+            "type": "object",
+            "properties": {
+              "client_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048,
+                "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+              },
+              "resource": {
+                "type": "string",
+                "format": "uri"
+              },
+              "grant_type": {
+                "type": "string",
+                "const": "authorization_code"
+              },
+              "code": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+              },
+              "redirect_uri": {
+                "type": "string",
+                "const": "https://claude.ai/api/mcp/auth_callback"
+              },
+              "code_verifier": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+              }
+            },
+            "required": [
+              "client_id",
+              "resource",
+              "grant_type",
+              "code",
+              "redirect_uri",
+              "code_verifier"
+            ]
+          },
+          {
+            "type": "object",
+            "properties": {
+              "client_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 2048,
+                "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+              },
+              "resource": {
+                "type": "string",
+                "format": "uri"
+              },
+              "grant_type": {
+                "type": "string",
+                "const": "refresh_token"
+              },
+              "refresh_token": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128,
+                "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+              },
+              "scope": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256,
+                "pattern": "^[^\\u0000-\\u001f\\u007f]+$"
+              }
+            },
+            "required": [
+              "client_id",
+              "resource",
+              "grant_type",
+              "refresh_token"
+            ]
+          }
+        ],
+        "x-zod-source": "apps/api/src/http/routes/hosted-oauth.ts",
+        "description": "Form-urlencoded public client exchange. No client_secret accepted. Handler rejects duplicate recognized fields and checks exact resource, callback, client, PKCE and live grant binding. Scope narrowing is validated at runtime.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "HostedOAuthTokenResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "pattern": "^flw_mcp_access_[a-f0-9]{64}$"
+          },
+          "token_type": {
+            "type": "string",
+            "const": "Bearer"
+          },
+          "expires_in": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 900
+          },
+          "refresh_token": {
+            "type": "string",
+            "pattern": "^flw_mcp_refresh_[a-f0-9]{64}$"
+          },
+          "scope": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in",
+          "scope"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "apps/api/src/adapters/hosted-oauth.ts:issueTokens",
+        "description": "Unwrapped OAuth response. Access lifetime may be shorter near the absolute connection expiry; refresh credential appears only with offline consent.",
         "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
       },
       "IdempotencyKey": {
@@ -26855,6 +29736,6 @@
       "hasDetails": false
     }
   },
-  "x-runtime-inventory": "Explicit mounted Node/Worker routes and aliases. Automatic HEAD behavior for GET and shared CORS OPTIONS are middleware behavior, not additional route capabilities.",
+  "x-runtime-inventory": "Explicit mounted Node/Worker routes and aliases. Automatic HEAD behavior for GET and shared CORS OPTIONS are middleware behavior, not additional route capabilities. The exact hosted MCP path has its own explicit OPTIONS protocol handler documented here.",
   "x-evidence-limit": "Generated contract and route parity do not approve implementation, real OAuth, provider delivery, UAT or production. Custom JavaScript refinements and authorization are not fully expressible in JSON Schema."
 }

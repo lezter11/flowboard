@@ -1,0 +1,262 @@
+import assert from 'node:assert/strict';
+import test, { after, before, beforeEach } from 'node:test';
+import crypto from 'node:crypto';
+import pg from 'pg';
+import { Hono } from 'hono';
+import { runMigrations } from '../src/adapters/migrations.ts';
+import { getPool, closePool, setGlobalPool } from '../src/adapters/postgres.ts';
+import { createSession } from '../src/adapters/session.ts';
+import { createHostedOAuthRoutes } from '../src/http/routes/hosted-oauth.ts';
+import { verifyHostedAccessToken, lockHostedOAuthCredential, resolveHostedClient, disconnectHostedConnection } from '../src/adapters/hosted-oauth.ts';
+import { getHostedMcpConfig } from '../src/services/hosted-mcp-config.ts';
+import { errorHandler } from '../src/http/middleware/error-handler.ts';
+
+const origin = 'https://flowboard.example';
+const root = '/api/v1/mcp';
+const callback = 'https://claude.ai/api/mcp/auth_callback';
+const verifier = 'a'.repeat(64);
+const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
+let cookie = '';
+// Validate the standard test URL guard before selecting a schema-isolated pool.
+getPool();
+const schema=`hosted_oauth_backend_${process.pid}`;
+const pool = new pg.Pool({connectionString:process.env['DATABASE_URL'],max:4,options:`-c search_path=${schema}`});
+setGlobalPool(pool);
+const app = new Hono<{Variables:{requestId:string}}>();
+app.onError(errorHandler);
+app.route('', createHostedOAuthRoutes({ publicOrigin: origin }));
+async function call(path: string, init?: RequestInit) { return app.request(`${origin}${path}`, init); }
+async function json(response: Response): Promise<any> { return response.json(); }
+async function register() {
+  const response = await call(`${root}/oauth/register`, {method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({client_name:'Synthetic client',redirect_uris:[callback],token_endpoint_auth_method:'none',grant_types:['authorization_code','refresh_token'],response_types:['code']})});
+  assert.equal(response.status,201);
+  return (await json(response)).client_id as string;
+}
+async function prepareConsent(clientId: string,scope='projects:read boards:read cards:read cards:create offline_access') {
+  const params = new URLSearchParams({client_id:clientId,redirect_uri:callback,response_type:'code',resource:`${origin}${root}`,code_challenge:challenge,code_challenge_method:'S256',state:'synthetic-state',scope});
+  const start = await call(`${root}/oauth/authorize?${params}`);
+  assert.equal(start.status,302);
+  const binding=(start.headers.get('set-cookie')??'').split(';')[0]!;
+  const requestId = new URL(start.headers.get('location')!).searchParams.get('request')!;
+  const headers = {'cookie':`${cookie}; ${binding}`,'origin':origin,'content-type':'application/json'};
+  const read=await call(`${root}/authorization-requests/${requestId}`,{headers});
+  assert.equal(read.status,200);
+  const description=await json(read);
+  return {requestId,headers,csrfToken:description.data.csrfToken,description:description.data};
+}
+async function consent(clientId: string) {
+  const {requestId,headers,csrfToken}=await prepareConsent(clientId);
+  const decision=await call(`${root}/authorization-requests/${requestId}/decision`,{method:'POST',headers,body:JSON.stringify({decision:'allow',projectId:'oauth_proj',csrfToken})});
+  assert.equal(decision.status,200);
+  const redirect=new URL((await json(decision)).data.redirectUrl);
+  assert.equal(redirect.origin,'https://claude.ai');
+  assert.equal(redirect.searchParams.get('state'),'synthetic-state');
+  assert.equal(redirect.searchParams.get('iss'),origin);
+  return {code:redirect.searchParams.get('code')!,requestId,headers,csrfToken};
+}
+async function exchange(clientId:string, code:string, more:Record<string,string>={}) {
+  return call(`${root}/oauth/token`,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',client_id:clientId,code,redirect_uri:callback,resource:`${origin}${root}`,code_verifier:verifier,...more})});
+}
+async function refresh(clientId:string, token:string) {
+  return call(`${root}/oauth/token`,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'refresh_token',client_id:clientId,refresh_token:token,resource:`${origin}${root}`})});
+}
+before(async()=>{
+  await pool.query(`CREATE SCHEMA "${schema}"`);
+  await runMigrations(pool);
+  await pool.query('TRUNCATE users,workspaces CASCADE');
+  await pool.query("INSERT INTO users(id,email,display_name,created_at,updated_at) VALUES('oauth_owner','oauth-owner@example.test','OAuth owner',now(),now()),('oauth_member','oauth-member@example.test','Member',now(),now())");
+  await pool.query("INSERT INTO workspaces(id,name,timezone,owner_id,created_at,updated_at) VALUES('oauth_ws','OAuth workspace','UTC','oauth_owner',now(),now())");
+  await pool.query("INSERT INTO projects(id,workspace_id,name,created_at,updated_at) VALUES('oauth_proj','oauth_ws','OAuth project',now(),now())");
+  const session=await createSession('oauth_owner',24,pool);
+  cookie=`flowboard_session=${session.id}`;
+});
+after(async()=>{await pool.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);await closePool();});
+beforeEach(async()=>{await pool.query('DELETE FROM rate_limit_windows');await pool.query("UPDATE mcp_oauth_connections SET revoked_at=clock_timestamp(),revocation_reason='test_isolation' WHERE revoked_at IS NULL");});
+
+test('registration denies arbitrary redirects and public clients cannot request secrets',async()=>{
+  for(const body of [{redirect_uris:['https://attacker.example/callback']},{redirect_uris:[callback],token_endpoint_auth_method:'client_secret_post'}]){
+    const r=await call(`${root}/oauth/register`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(body)});
+    assert.equal(r.status,400);assert.equal((await json(r)).error,'invalid_client_metadata');
+  }
+});
+test('authorization refuses redirect confusion, resource confusion and plain PKCE without redirecting',async()=>{
+  const clientId=await register();
+  for(const extra of [{redirect_uri:callback+'.attacker'},{resource:'https://attacker.example/mcp'},{code_challenge_method:'plain'}]){
+    const p=new URLSearchParams({client_id:clientId,redirect_uri:callback,response_type:'code',resource:`${origin}${root}`,code_challenge:challenge,code_challenge_method:'S256',...extra});
+    const r=await call(`${root}/oauth/authorize?${p}`);assert.equal(r.status,400);assert.equal(r.headers.get('location'),null);
+  }
+});
+test('code binds PKCE and exchanges once; tokens are hashes and project identity is fixed',async()=>{
+  const clientId=await register();const pending=await consent(clientId);
+  const wrong=await exchange(clientId,pending.code,{code_verifier:'b'.repeat(64)});assert.equal(wrong.status,400);assert.equal((await json(wrong)).error,'invalid_grant');
+  const good=await exchange(clientId,pending.code);assert.equal(good.status,200);const tokens=await json(good);
+  assert.equal(tokens.token_type,'Bearer');assert.equal(tokens.expires_in,900);assert.ok(tokens.refresh_token);
+  const principal=await verifyHostedAccessToken(pool,tokens.access_token,`${origin}${root}`);assert.equal(principal?.projectId,'oauth_proj');assert.equal(principal?.actor.id,'oauth_owner');
+  assert.equal(await verifyHostedAccessToken(pool,tokens.access_token,'https://elsewhere.example/mcp'),null);
+  const stored=await pool.query('SELECT token_hash FROM mcp_oauth_access_tokens WHERE id=$1',[principal!.accessTokenId]);assert.notEqual(stored.rows[0].token_hash,tokens.access_token);assert.match(stored.rows[0].token_hash,/^[a-f0-9]{64}$/);
+  const second=await exchange(clientId,pending.code);assert.equal(second.status,400);assert.equal((await json(second)).error,'invalid_grant');
+});
+test('spent refresh replay commits family revocation and denies the successor access token',async()=>{
+  const clientId=await register();const {code}=await consent(clientId);const first=await json(await exchange(clientId,code));
+  const rotatedResponse=await refresh(clientId,first.refresh_token);assert.equal(rotatedResponse.status,200);const rotated=await json(rotatedResponse);assert.notEqual(rotated.refresh_token,first.refresh_token);
+  const replay=await refresh(clientId,first.refresh_token);assert.equal(replay.status,400);assert.equal((await json(replay)).error,'invalid_grant');
+  assert.equal(await verifyHostedAccessToken(pool,rotated.access_token,`${origin}${root}`),null);
+  assert.equal((await refresh(clientId,rotated.refresh_token)).status,400);
+});
+test('wrong client does not consume a code or revoke a refresh family',async()=>{
+  const clientId=await register(),other=await register();const {code}=await consent(clientId);
+  assert.equal((await exchange(other,code)).status,400);
+  const first=await json(await exchange(clientId,code));
+  assert.equal((await refresh(other,first.refresh_token)).status,400);
+  assert.ok(await verifyHostedAccessToken(pool,first.access_token,`${origin}${root}`));
+});
+test('consent is cookie-only, browser-bound, same-origin and single decision',async()=>{
+  const clientId=await register();const pending=await consent(clientId);
+  const body=JSON.stringify({decision:'allow',projectId:'oauth_proj',csrfToken:pending.csrfToken});
+  for(const headers of [{cookie},{...pending.headers,origin:'https://attacker.example'}, {...pending.headers,authorization:'Bearer flw_pat_'+'a'.repeat(64)}]){
+    const r=await call(`${root}/authorization-requests/${pending.requestId}/decision`,{method:'POST',headers:{...headers,'content-type':'application/json'},body});assert.ok([400,401,403,404,409].includes(r.status));
+  }
+});
+test('connection revocation waits for credential lock then denies later writes',async()=>{
+  const clientId=await register();const {code}=await consent(clientId);const tokens=await json(await exchange(clientId,code));const principal=(await verifyHostedAccessToken(pool,tokens.access_token,`${origin}${root}`))!;
+  const held=await pool.connect();await held.query('BEGIN');
+  try{
+    await lockHostedOAuthCredential(held,{connectionId:principal.connectionId,accessTokenId:principal.accessTokenId,userId:principal.actor.id,projectId:principal.projectId,requiredScope:'cards:create',resource:principal.resource});
+    let finished=false;
+    const revoke=call(`${root}/connections/${principal.connectionId}`,{method:'DELETE',headers:{cookie,origin}}).then(r=>{finished=true;return r;});
+    await new Promise(resolve=>setTimeout(resolve,30));assert.equal(finished,false);
+    await held.query('COMMIT');assert.equal((await revoke).status,204);
+    assert.equal(await verifyHostedAccessToken(pool,tokens.access_token,`${origin}${root}`),null);
+  }finally{await held.query('ROLLBACK').catch(()=>{});held.release();}
+});
+test('concurrent refresh produces no live fork and replay revocation persists',async()=>{
+  const clientId=await register();const {code}=await consent(clientId);const first=await json(await exchange(clientId,code));
+  const result=await Promise.all([refresh(clientId,first.refresh_token),refresh(clientId,first.refresh_token)]);assert.deepEqual(result.map(r=>r.status).sort(),[200,400]);
+  const winner=await json(result.find(r=>r.status===200)!);assert.equal(await verifyHostedAccessToken(pool,winner.access_token,`${origin}${root}`),null);
+});
+test('CIMD rejects arbitrary hosts and redirects and validates the document identity',async()=>{
+  const clientId='https://claude.ai/oauth/synthetic-client-metadata';
+  const document={client_id:clientId,client_name:'Untrusted <b>name</b>',redirect_uris:[callback],token_endpoint_auth_method:'none',grant_types:['authorization_code','refresh_token'],response_types:['code']};
+  const fetcher=(value:unknown,init:any)=>{assert.equal(value,clientId);assert.equal(init.redirect,'manual');return Promise.resolve(new Response(JSON.stringify(document),{headers:{'content-type':'application/json'}}));};
+  const result=await resolveHostedClient(pool,clientId,fetcher as typeof fetch);assert.equal(result.redirectUri,callback);
+  for(const bad of ['http://claude.ai/oauth/x','https://attacker.example/x','https://claude.ai@attacker.example/x','https://claude.ai:444/x','https://claude.ai/','https://claude.ai/x?foo=bar','https://claude.ai/x#fragment']){
+    await assert.rejects(resolveHostedClient(pool,bad,(()=>{throw new Error('must not fetch');}) as typeof fetch),/OAuth request refused/);
+  }
+  for(const response of [new Response(null,{status:302,headers:{location:'https://attacker.example'}}),new Response(JSON.stringify({...document,client_id:'https://claude.ai/other'}),{headers:{'content-type':'application/json'}}),new Response(' '.repeat(32769),{headers:{'content-type':'application/json'}})]){
+    await assert.rejects(resolveHostedClient(pool,clientId,(()=>Promise.resolve(response)) as typeof fetch),/OAuth request refused/);
+  }
+});
+test('issuer configuration does not trust request Host or forwarded headers',async()=>{
+  const configApp=new Hono();configApp.get('/',c=>c.json(getHostedMcpConfig(c,origin)));
+  const response=await configApp.request('https://attacker.example/',{headers:{host:'attacker.example','x-forwarded-host':'attacker.example'}});const value=await json(response);
+  assert.equal(value.issuer,origin);assert.equal(value.resource,`${origin}${root}`);
+});
+test('registration rate is enforced before the sixth attempt and oversized bodies are refused',async()=>{
+  for(let index=0;index<6;index++){
+    const response=await call(`${root}/oauth/register`,{method:'POST',headers:{'content-type':'application/json','cf-connecting-ip':'203.0.113.27'},body:JSON.stringify({redirect_uris:[callback]})});assert.equal(response.status,index<5?201:429);
+    if(index===5)assert.ok(Number(response.headers.get('retry-after'))>0);
+  }
+  const large=await call(`${root}/oauth/register`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({client_name:'x'.repeat(17000),redirect_uris:[callback]})});assert.equal(large.status,413);
+});
+test('authorization parameters cannot repeat and an expired pending request cannot be consented',async()=>{
+  const clientId=await register();const base=new URLSearchParams({client_id:clientId,redirect_uri:callback,response_type:'code',resource:`${origin}${root}`,code_challenge:challenge,code_challenge_method:'S256'});base.append('resource',`${origin}${root}`);
+  assert.equal((await call(`${root}/oauth/authorize?${base}`)).status,400);
+  base.delete('resource');base.set('resource',`${origin}${root}`);const pending=await call(`${root}/oauth/authorize?${base}`);const binding=pending.headers.get('set-cookie')!.split(';')[0];const requestId=new URL(pending.headers.get('location')!).searchParams.get('request');
+  await pool.query("UPDATE mcp_oauth_authorization_requests SET expires_at=clock_timestamp()-INTERVAL '1 second',created_at=clock_timestamp()-INTERVAL '20 minutes' WHERE request_hash=$1",[crypto.createHash('sha256').update(requestId!).digest('hex')]);
+  assert.equal((await call(`${root}/authorization-requests/${requestId}`,{headers:{cookie:`${cookie}; ${binding}`}})).status,404);
+});
+test('invalid CSRF, missing origin and session switching cannot grant consent',async()=>{
+  const clientId=await register();const params=new URLSearchParams({client_id:clientId,redirect_uri:callback,response_type:'code',resource:`${origin}${root}`,code_challenge:challenge,code_challenge_method:'S256'});const start=await call(`${root}/oauth/authorize?${params}`);const binding=start.headers.get('set-cookie')!.split(';')[0];const requestId=new URL(start.headers.get('location')!).searchParams.get('request');
+  const headers={cookie:`${cookie}; ${binding}`,origin,'content-type':'application/json'};const description=await json(await call(`${root}/authorization-requests/${requestId}`,{headers}));
+  const bad=await call(`${root}/authorization-requests/${requestId}/decision`,{method:'POST',headers,body:JSON.stringify({decision:'allow',projectId:'oauth_proj',csrfToken:'w'.repeat(43)})});assert.equal(bad.status,403);
+  const missing=await call(`${root}/authorization-requests/${requestId}/decision`,{method:'POST',headers:{cookie:headers.cookie,'content-type':'application/json'},body:JSON.stringify({decision:'allow',projectId:'oauth_proj',csrfToken:description.data.csrfToken})});assert.equal(missing.status,403);
+  const other=await createSession('oauth_member',24,pool);const switched=await call(`${root}/authorization-requests/${requestId}`,{headers:{cookie:`flowboard_session=${other.id}; ${binding}`}});assert.equal(switched.status,403);
+});
+test('revocation is possession-bound, non-disclosing and rejects the entire family',async()=>{
+  const clientId=await register(),other=await register();const {code}=await consent(clientId);const tokens=await json(await exchange(clientId,code));
+  const revoke=async(token:string,client:string)=>call(`${root}/oauth/revoke`,{method:'POST',headers:{'content-type':'application/x-www-form-urlencoded'},body:new URLSearchParams({token,client_id:client})});
+  assert.equal((await revoke(tokens.access_token,other)).status,200);assert.ok(await verifyHostedAccessToken(pool,tokens.access_token,`${origin}${root}`));
+  assert.equal((await revoke('not-a-token',clientId)).status,200);assert.equal((await revoke(tokens.refresh_token,clientId)).status,200);assert.equal(await verifyHostedAccessToken(pool,tokens.access_token,`${origin}${root}`),null);
+});
+test('expired authorization code and access token are refused at database time',async()=>{
+  const clientId=await register();const first=await consent(clientId);await pool.query("UPDATE mcp_oauth_authorization_codes SET expires_at=clock_timestamp()-INTERVAL '1 second',created_at=clock_timestamp()-INTERVAL '10 minutes' WHERE code_hash=$1",[crypto.createHash('sha256').update(first.code).digest('hex')]);assert.equal((await exchange(clientId,first.code)).status,400);
+  const second=await consent(clientId);const tokens=await json(await exchange(clientId,second.code));await pool.query("UPDATE mcp_oauth_access_tokens SET expires_at=clock_timestamp()-INTERVAL '1 second',created_at=clock_timestamp()-INTERVAL '20 minutes' WHERE token_hash=$1",[crypto.createHash('sha256').update(tokens.access_token).digest('hex')]);assert.equal(await verifyHostedAccessToken(pool,tokens.access_token,`${origin}${root}`),null);
+});
+test('code exchange rollback does not consume a code or retain a partial access token',async()=>{
+  const clientId=await register();const {code}=await consent(clientId);
+  await pool.query("CREATE FUNCTION fail_oauth_access() RETURNS trigger LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'synthetic issuance failure'; END $$");await pool.query('CREATE TRIGGER fail_oauth_access BEFORE INSERT ON mcp_oauth_access_tokens FOR EACH ROW EXECUTE FUNCTION fail_oauth_access()');
+  try{assert.equal((await exchange(clientId,code)).status,503);const unchanged=await pool.query('SELECT consumed_at FROM mcp_oauth_authorization_codes WHERE code_hash=$1',[crypto.createHash('sha256').update(code).digest('hex')]);assert.equal(unchanged.rows[0].consumed_at,null);}
+  finally{await pool.query('DROP TRIGGER fail_oauth_access ON mcp_oauth_access_tokens');await pool.query('DROP FUNCTION fail_oauth_access()');}
+  assert.equal((await exchange(clientId,code)).status,200);
+});
+test('a non-owner needs current project membership and receives no automatic board grant',async()=>{
+  const ownerCookie=cookie;const member=await createSession('oauth_member',24,pool);
+  await pool.query("INSERT INTO project_memberships(id,project_id,workspace_id,user_id,role,status,created_at,updated_at) VALUES('oauth_membership','oauth_proj','oauth_ws','oauth_member','member','active',now(),now())");
+  cookie=`flowboard_session=${member.id}`;
+  try{
+    const clientId=await register();const {code}=await consent(clientId);const first=await json(await exchange(clientId,code));assert.ok(first.access_token);assert.equal(Number((await pool.query("SELECT count(*) FROM board_grants WHERE user_id='oauth_member'")).rows[0].count),0);
+    await pool.query("UPDATE project_memberships SET status='removed' WHERE project_id='oauth_proj' AND user_id='oauth_member'");
+    assert.equal((await refresh(clientId,first.refresh_token)).status,400);
+  }finally{cookie=ownerCookie;}
+});
+test('migration replay applies no changes and connection revocation rejects later credential locks',async()=>{
+  assert.equal((await runMigrations(pool)).applied.length,0);
+  const clientId=await register();const {code}=await consent(clientId);const token=await json(await exchange(clientId,code));const principal=(await verifyHostedAccessToken(pool,token.access_token,`${origin}${root}`))!;
+  await disconnectHostedConnection(pool,'oauth_owner',principal.connectionId);const client=await pool.connect();await client.query('BEGIN');
+  try{await assert.rejects(lockHostedOAuthCredential(client,{connectionId:principal.connectionId,accessTokenId:principal.accessTokenId,userId:'oauth_owner',projectId:'oauth_proj',resource:principal.resource,requiredScope:'cards:create'}),/revoked/);}finally{await client.query('ROLLBACK');client.release();}
+});
+test('loopback origin requires an explicit test override and produces an HTTP test cookie only there',async()=>{
+  const check=new Hono<{Variables:{requestId:string}}>();check.onError(errorHandler);
+  check.get('/normal',c=>c.json(getHostedMcpConfig(c)));check.get('/override',c=>c.json(getHostedMcpConfig(c,'http://127.0.0.1:48765')));
+  assert.equal((await check.request('https://untrusted/normal',{}, {APP_ORIGIN:'http://127.0.0.1:48765'})).status,503);
+  const response=await check.request('https://untrusted/override');assert.equal(response.status,200);assert.equal((await json(response)).origin,'http://127.0.0.1:48765');
+  const previous=process.env['NODE_ENV'];process.env['NODE_ENV']='production';
+  try{assert.equal((await check.request('https://untrusted/override')).status,503);}finally{process.env['NODE_ENV']=previous;}
+  const testApp=new Hono();testApp.route('',createHostedOAuthRoutes({publicOrigin:'http://127.0.0.1:48765'}));const clientId=await register();
+  const p=new URLSearchParams({client_id:clientId,redirect_uri:callback,response_type:'code',resource:'http://127.0.0.1:48765'+root,code_challenge:challenge,code_challenge_method:'S256'});
+  const start=await testApp.request('http://127.0.0.1:48765'+root+'/oauth/authorize?'+p);assert.equal(start.status,302);assert.match(start.headers.get('set-cookie')!,/HttpOnly/);assert.doesNotMatch(start.headers.get('set-cookie')!,/; Secure/);
+});
+test('simultaneous code redemption has one issuer and replay revokes its access',async()=>{
+  const clientId=await register();const {code}=await consent(clientId);const responses=await Promise.all([exchange(clientId,code),exchange(clientId,code)]);assert.deepEqual(responses.map(r=>r.status).sort(),[200,400]);const winner=await json(responses.find(r=>r.status===200)!);assert.equal(await verifyHostedAccessToken(pool,winner.access_token,`${origin}${root}`),null);
+});
+test('a denial consumes the request and cannot later become a grant',async()=>{
+  const clientId=await register();const pending=await prepareConsent(clientId);const input={decision:'deny',csrfToken:pending.csrfToken};
+  const response=await call(`${root}/authorization-requests/${pending.requestId}/decision`,{method:'POST',headers:pending.headers,body:JSON.stringify(input)});assert.equal(response.status,200);const redirect=new URL((await json(response)).data.redirectUrl);assert.equal(redirect.searchParams.get('error'),'access_denied');assert.equal(redirect.searchParams.has('code'),false);
+  const repeat=await call(`${root}/authorization-requests/${pending.requestId}/decision`,{method:'POST',headers:pending.headers,body:JSON.stringify({...input,decision:'allow',projectId:'oauth_proj'})});assert.equal(repeat.status,404);
+});
+test('current project choices paginate beyond one hundred and cursor reuse is actor/request bound',async()=>{
+  await pool.query("INSERT INTO users(id,email,display_name,created_at,updated_at) SELECT 'paging_owner_'||i,'paging-'||i||'@example.test','Paging owner',now(),now() FROM generate_series(0,5) i");
+  await pool.query("INSERT INTO workspaces(id,name,timezone,owner_id,created_at,updated_at) SELECT 'paging_ws_'||i,'Paging','UTC','paging_owner_'||i,now(),now() FROM generate_series(0,5) i");
+  await pool.query("INSERT INTO projects(id,workspace_id,name,created_at,updated_at) SELECT 'paging_proj_'||lpad(i::text,3,'0'),'paging_ws_'||((i-1)/20),'Paging '||i,now(),now() FROM generate_series(1,120) i");
+  await pool.query("INSERT INTO project_memberships(id,project_id,workspace_id,user_id,role,status,created_at,updated_at) SELECT 'paging_member_'||i,'paging_proj_'||lpad(i::text,3,'0'),'paging_ws_'||((i-1)/20),'oauth_owner','viewer','active',now(),now() FROM generate_series(1,120) i");
+  const clientId=await register();const pending=await prepareConsent(clientId);assert.equal(pending.description.projects.length,100);assert.ok(pending.description.nextCursor);
+  const next=await json(await call(`${root}/authorization-requests/${pending.requestId}?projectCursor=${encodeURIComponent(pending.description.nextCursor)}`,{headers:pending.headers}));assert.equal(next.data.projects.length,21);assert.equal(next.data.nextCursor,null);assert.equal(new Set([...pending.description.projects,...next.data.projects].map(p=>p.id)).size,121);
+  const other=await prepareConsent(clientId);assert.equal((await call(`${root}/authorization-requests/${other.requestId}?projectCursor=${encodeURIComponent(pending.description.nextCursor)}`,{headers:other.headers})).status,400);
+});
+test('connection listing is strict, actor-owned and never returns credential identifiers or hashes',async()=>{
+  const clientId=await register();const {code}=await consent(clientId);const tokens=await json(await exchange(clientId,code));const view=await call(`${root}/connections`,{headers:{cookie}});assert.equal(view.status,200);const listed=await json(view);assert.equal(listed.data.length,1);assert.equal(listed.data[0].projectId,'oauth_proj');assert.equal(listed.data[0].clientName,'Synthetic client');assert.equal(listed.data[0].scopes.includes('offline_access'),false);assert.doesNotMatch(JSON.stringify(listed),/token_hash|accessTokenId|refresh_token|clientId/);
+  const other=await createSession('oauth_member',24,pool);assert.equal((await json(await call(`${root}/connections`,{headers:{cookie:`flowboard_session=${other.id}`}}))).data.length,0);
+  assert.ok(await verifyHostedAccessToken(pool,tokens.access_token,`${origin}${root}`));
+});
+test('registration global cap is bounded and cleanup never deletes an active grant client',async()=>{
+  const clientId=await register();await consent(clientId);const count=Number((await pool.query('SELECT count(*) FROM mcp_oauth_clients')).rows[0].count);
+  await pool.query("INSERT INTO mcp_oauth_clients(client_id,client_name,redirect_uri) SELECT 'cap_client_'||i,'Cap fixture',$2 FROM generate_series(1,$1::int) i",[1000-count,callback]);
+  const refused=await call(`${root}/oauth/register`,{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({redirect_uris:[callback]})});assert.equal(refused.status,503);assert.equal(Number((await pool.query('SELECT count(*) FROM mcp_oauth_clients')).rows[0].count),1000);
+  await pool.query("DELETE FROM mcp_oauth_clients WHERE client_id LIKE 'cap_client_%'");await pool.query("UPDATE mcp_oauth_clients SET expires_at=clock_timestamp()-INTERVAL '1 day' WHERE client_id=$1",[clientId]);await register();assert.equal((await pool.query('SELECT client_id FROM mcp_oauth_clients WHERE client_id=$1',[clientId])).rowCount,1);
+});
+test('OAuth endpoints refuse a declared foreign browser origin without cookie fallback',async()=>{
+  const response=await call(`${root}/oauth/register`,{method:'POST',headers:{'content-type':'application/json',origin:'https://attacker.example'},body:JSON.stringify({redirect_uris:[callback]})});assert.equal(response.status,403);
+});
+test('token lifetime reports the remaining absolute family bound',async()=>{
+  const clientId=await register();const {code}=await consent(clientId);const first=await json(await exchange(clientId,code));const principal=(await verifyHostedAccessToken(pool,first.access_token,`${origin}${root}`))!;
+  await pool.query("UPDATE mcp_oauth_connections SET expires_at=clock_timestamp()+INTERVAL '30 seconds' WHERE id=$1",[principal.connectionId]);
+  const renewed=await json(await refresh(clientId,first.refresh_token));assert.ok(renewed.expires_in>0&&renewed.expires_in<=30);
+});
+test('connection settings conceal a newly changed project name after membership loss',async()=>{
+  await pool.query("INSERT INTO project_memberships(id,project_id,workspace_id,user_id,role,status,created_at,updated_at) VALUES('oauth_membership','oauth_proj','oauth_ws','oauth_member','member','active',now(),now()) ON CONFLICT(id) DO UPDATE SET status='active'");
+  const ownerCookie=cookie;const member=await createSession('oauth_member',24,pool);cookie=`flowboard_session=${member.id}`;
+  try{
+    const clientId=await register();await consent(clientId);await pool.query("UPDATE project_memberships SET status='removed' WHERE id='oauth_membership'");await pool.query("UPDATE projects SET name='Private new name after removal' WHERE id='oauth_proj'");
+    const view=await json(await call(`${root}/connections`,{headers:{cookie}}));assert.doesNotMatch(JSON.stringify(view),/Private new name/);assert.equal(view.data[0].projectName,'Unavailable project');
+  }finally{cookie=ownerCookie;await pool.query("UPDATE projects SET name='OAuth project' WHERE id='oauth_proj'");}
+});

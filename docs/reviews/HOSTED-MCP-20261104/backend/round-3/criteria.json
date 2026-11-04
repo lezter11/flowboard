@@ -1,0 +1,33 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "HOSTED-MCP-OAUTH"
+  ],
+  "risk": "high",
+  "scope": "OAuth component plus accepted bounded retention extension: adapter, configuration, route module, migration0027, PostgreSQL counters, cleanup service, Worker scheduled/lifetime wiring and focused tests. Parent-owned mounted transport/private-dispatch/auth/card and full regression/native/browser acceptance remain required.",
+  "preImplementationCriteria": "docs/reviews/HOSTED-MCP-20261104/backend/criteria.md",
+  "mandatoryCriteria": [
+    "OAUTH-01 Explicit canonical APP_ORIGIN determines issuer/resource; only an explicit NODE_ENV=test loopback override allows HTTP/ports.",
+    "OAUTH-02 Bounded CIMD fetch only from strict HTTPS claude.ai non-root URLs; no credentials/query/fragment/port/redirect; exact document identity and exact hosted callback.",
+    "OAUTH-03 DCR admits only the exact hosted callback and public none authentication, with shared fail-closed 5/minute and 20/hour limits, global 1000 cap and active-grant retention.",
+    "OAUTH-04 Code/S256/client/redirect/resource binding is exact; requests expire in ten minutes, codes in five, access in at most fifteen, family in thirty absolute days.",
+    "OAUTH-05 Consent requires live cookie session, exact Origin, browser/request/actor/session binding and single-use CSRF/decision; project selection is explicit, paginated and live-authorized.",
+    "OAUTH-06 No membership or board grant is created; current Owner inheritance and active non-Owner membership are preserved; ordinary tool authorization remains the parent-owned board boundary.",
+    "OAUTH-07 Code redemption and refresh issuance are atomic; separate-connection races cannot fork tokens; correctly bound reuse commits family revocation; wrong-client attempts cannot revoke victim grants.",
+    "OAUTH-08 Connection/access row locks precede existing project/board locks, conflict with revocation and deny subsequent operation/replay; stable connection ID survives refresh.",
+    "OAUTH-09 Raw codes/access/refresh/browser/CSRF credentials are never persisted in tables/logs/receipts/activity; strict response schemas prevent credential/internal-field leakage.",
+    "OAUTH-10 Own connection settings remain actor-owned and conceal new project metadata after membership loss; disconnect and OAuth revocation invalidate the family.",
+    "OAUTH-11 Bounded bodies, declared-Origin checks, standard OAuth errors, no-store responses, database-time expiry and failure rollback hold under the real mounted route module.",
+    "OAUTH-12 Additive PostgreSQL migration replays safely and matches embedded SQL; existing public PAT/session behavior is unchanged by this component. Integrated API/Worker/PAT regression remains mandatory before complete connector acceptance.",
+    "OAUTH-13 Consent and own connection summaries explicitly disclose offline persistence. Consent reports accessTokenLifetimeSeconds900, connectionLifetimeDays30 and refreshTokenIdleDays7 only when offlineAccess is true, otherwise null. Refresh issuance remains conditional on the approved offline_access scope.",
+    "OAUTH-14 Bounded scheduled retention preserves every code/refresh hash of retained families, keeps terminal connection identity for at least seven days after the conservative terminal/last-use anchor, deletes only orphan expired requests and protects live clients/pending authorization. SKIP LOCKED, hard100cap, real self-FK cascade, idempotence, scheduler rollback/continuation and immediate post-decision redaction pass isolated PostgreSQL tests.",
+    "OAUTH-15 Worker request pools remain alive until all reported image/MCP work truly settles, including rejected work. waitUntil retains asynchronous closure; without execution context closure is awaited. Mounted transport supplies the callback and its full integration remains part of final feature acceptance."
+  ],
+  "requiredTests": {
+    "oauth-postgres": "node docs/reviews/HOSTED-MCP-20261104/backend/run-focused.mjs",
+    "typecheck": "npm run typecheck",
+    "embedded-parity": "node scripts/sync-embedded-migrations.ts --check"
+  },
+  "reviewAmendment": "Independent primary review identified missing persistence disclosure; parent shared schema made these fields mandatory before the response repair. Prior criteria, manifest and evidence are retained under round-1/; previous snapshot is invalidated, not reused as approval.",
+  "retentionAmendment": "Independent operations finding accepted before implementation; policy and new ownership are recorded in docs/decisions/2026-11-04-hosted-mcp-retention.md. Prior targets remain under round-1 and round-2. No production or hosted cleanup claim."
+}

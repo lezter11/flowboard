@@ -1,0 +1,22 @@
+COMMAND npm run typecheck
+EXIT 0
+
+> typecheck
+> npm run build --workspace @flowboard/mcp && tsc --noEmit && npm run typecheck --workspace @flowboard/mcp
+
+
+> @flowboard/mcp@0.2.0 build
+> tsc -p tsconfig.json && node scripts/finalize-build.mjs
+
+
+> @flowboard/mcp@0.2.0 typecheck
+> tsc -p tsconfig.test.json --noEmit
+
+
+COMMAND node scripts/sync-embedded-migrations.ts --check
+EXIT 0
+27 embedded SQL migrations match (/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/adapters/embedded-migrations.ts)
+
+COMMAND git diff --check -- apps/api/src/adapters/hosted-oauth.ts apps/api/src/http/routes/hosted-oauth.ts apps/api/src/services/hosted-mcp-config.ts apps/api/src/services/hosted-oauth-cleanup.ts apps/api/src/runtime/worker.ts apps/api/src/services/rate-limit.ts apps/api/test/hosted-oauth.test.ts apps/api/test/hosted-oauth-cleanup.test.ts database/migrations/0027_hosted_mcp_oauth.sql
+EXIT 0
+

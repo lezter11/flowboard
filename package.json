@@ -13,7 +13,7 @@
   },
   "packageManager": "npm@11.12.1",
   "scripts": {
-    "typecheck": "tsc --noEmit && npm run typecheck --workspace @flowboard/mcp",
+    "typecheck": "npm run build --workspace @flowboard/mcp && tsc --noEmit && npm run typecheck --workspace @flowboard/mcp",
     "build": "npm run build --workspace @flowboard/api",
     "build:web": "npm run build --workspace @flowboard/web",
     "dev:web": "npm run dev --workspace @flowboard/web",

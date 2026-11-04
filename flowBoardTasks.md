@@ -2,6 +2,10 @@
 
 Updated 2026-11-04. **Current phase: UAT deployed and anonymous smoke passed; signed-in/MCP hosted acceptance pending.** This operational sequence complements [TASKS.md](TASKS.md); it does not replace the 98 product definitions in [features.tsv](docs/features.tsv) or their [generated checklist](docs/FEATURE_CHECKLIST.md).
 
+## Active new feature: hosted browser-sign-in connector
+
+User authorized build/test/UAT with parallel subagents, Architect-led assembly/review and a60-minute development target with no quality compromise. The strategic plan, schedule, ownership, risk controls, acceptance gates and rollout are in [HOSTED_MCP_PLAN.md](docs/HOSTED_MCP_PLAN.md); exact contracts are in [HOSTED_MCP_SPEC.md](docs/HOSTED_MCP_SPEC.md). Track HMCP-00–09 there. Latest state: [22-minute checkpoint](docs/reviews/HOSTED-MCP-20261104/CHECKPOINT-22MIN.md); backend/runtime implemented locally, UI and release approval pending, UAT unchanged. Existing successful UAT/Claude setup remains the regression baseline; new source is local on codex/hosted-mcp-browser-signin and is not yet deployed. Development time excludes full testing/review/deployment; focused developer checks still apply.
+
 ## Live deployment position
 
 - Completed: physical organization, all14Linux gates, current independent/owner98Backend/74UI/98localIntegration, encrypted backup, UAT migrations1–26 and exact image-retention rule correction.

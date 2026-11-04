@@ -1,0 +1,30 @@
+{
+  "recordedAt": "2026-11-04T09:17:26.769Z",
+  "round": 3,
+  "focused": {
+    "command": "node docs/reviews/HOSTED-MCP-20261104/backend/run-focused.mjs",
+    "exitCode": 0,
+    "passed": 42,
+    "failed": 0,
+    "oauthCases": 30,
+    "retentionAndLifetimeCases": 12,
+    "environment": "Disposable local PostgreSQL17; per-process isolated schemas; actual Node-invoked Worker scheduled function"
+  },
+  "static": [
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0
+    },
+    {
+      "command": "node scripts/sync-embedded-migrations.ts --check",
+      "exitCode": 0
+    },
+    {
+      "command": "git diff --check -- apps/api/src/adapters/hosted-oauth.ts apps/api/src/http/routes/hosted-oauth.ts apps/api/src/services/hosted-mcp-config.ts apps/api/src/services/hosted-oauth-cleanup.ts apps/api/src/runtime/worker.ts apps/api/src/services/rate-limit.ts apps/api/test/hosted-oauth.test.ts apps/api/test/hosted-oauth-cleanup.test.ts database/migrations/0027_hosted_mcp_oauth.sql",
+      "exitCode": 0
+    }
+  ],
+  "fullApplicationRegression": "parent-owned complete acceptance not assessed by this component",
+  "nativeWorkerdCron": "not claimed",
+  "independentReview": "pending current retention target"
+}

@@ -1,0 +1,38 @@
+✔ mounted discovery and exact protocol CORS do not use cookie credentials or forged origins (151.382417ms)
+✔ full mounted OAuth flow and max-one-connection dispatcher enforce scopes, roles and selected project (107.425291ms)
+✔ create replay survives access refresh, preserves provenance and fails after disconnect (45.908958ms)
+✔ private request identity is absent on clones and external identity headers cannot bypass policy (16.565625ms)
+✔ mounted MCP owns streamed128KiB cap and a slow-body deadline before ordinary middleware buffering (45.076416ms)
+✔ deadline during queued verification still cancels the already-aborted body and settles lifetime (45.534625ms)
+✔ mounted connection-based protocol/create limits fail closed without consuming another connection allowance (35.301084ms)
+✔ actual mounted create and disconnect serialize in both lock orders on separate PostgreSQL connections (93.45025ms)
+✖ actual production Worker uses Node-issued OAuth and a single request connection for create/replay (6.730125ms)
+ℹ tests 9
+ℹ suites 0
+ℹ pass 8
+ℹ fail 1
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 2050.523625
+
+✖ failing tests:
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:301:1
+✖ actual production Worker uses Node-issued OAuth and a single request connection for create/replay (6.730125ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  
+  429 !== 200
+  
+      at issue (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:48:10)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:302:17)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 429,
+    expected: 200,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
