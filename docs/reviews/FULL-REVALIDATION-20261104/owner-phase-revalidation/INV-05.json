@@ -1,0 +1,161 @@
+{
+  "featureId": "INV-05",
+  "acceptance": "Owner sees all own projects; manager sees own project invitations; expired/accepted/revoked states and next actions are clear.",
+  "candidateCommit": "d1c81f42fe306c352c9cb10f04883e251ead58bd",
+  "actor": "/root Architect coordinating Backend/UI/integration acceptance",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/projects-access-invitations-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json",
+  "backendReviewSHA256": "8b284cb332d7767504bf5be83d2fe994d21c989a776bddf858ec0fd60700e46c",
+  "uiRequired": true,
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/app/import/page.tsx",
+      "sha256": "7c4c90e419cef3d68605b376c01e10c347fd75bc18e02e15376bdfc392863041",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/ui/invite-dialog.tsx",
+      "sha256": "9e0ee2f9ade2ad479e6d768602b77cafb77b169bdb98dfebef51f2342ca7627b",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "7e1c95273648826d6e79ed6323c1c949e2bb48daec0439fabaf85a8def61393d",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/import-state.ts",
+      "sha256": "73e2ed3a653305b1c935d1cad188d2e9e65e101604ea306f1b98c01437105cc3",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/invite-email.ts",
+      "sha256": "9d3d014509ef3f6630303c9797cd25ac7b77a794d9faa59fabd423e0525d5923",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/test/import-state.test.ts",
+      "sha256": "85de15bef220ba3c6c38d43e9ef128d3155be7461b6482a4d035f04f6539cc04",
+      "testNames": [
+        "retained receipt links have a nonempty safe label without resurrecting original content",
+        "preview page retains row-number cursor and refuses a mixed generation",
+        "only committed state says committed; processing and failures are distinct",
+        "status cursor and mappings send exact current backend contracts",
+        "lost commit reply survives remount and retries original digest/default/version/key",
+        "CSV report downloads server bytes with same-origin credentials and refuses HTML success",
+        "workbook status labels cannot select inherited object keys as mappings",
+        "receipt attribution uses backend facts and never invents the current viewer",
+        "prototype-like source status is encoded as mappingEntries, not stripped record keys"
+      ]
+    },
+    {
+      "path": "apps/web/test/invite-email.test.ts",
+      "sha256": "1b3fcea0efd2eccc459a1f76f3dc149448dfe8717dbd5079d72a1af1815f9ca0",
+      "testNames": [
+        "the client verdict always equals the contract schema the server runs",
+        "aria attributes link the input to its message only while there is an error"
+      ]
+    }
+  ],
+  "sourceComparison": "Every per-ID source/test SHA matches the prior accepted UI inventory; global web/contracts/browser harness has zero Git diff from c1 to candidate.",
+  "originalPerIdEvidence": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/INV-05.json",
+    "sha256": "dbdc2f02109cf795a74bc3c4fd610f134f470cf3b2081504adf293e5790f30f4"
+  },
+  "currentCI": {
+    "metadata": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.json",
+    "metadataSHA256": "430254a66152bdf2726a92e44aafd377313f127b71f3dc3ebf1c7f7ee5343932",
+    "log": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.log",
+    "logSHA256": "b0b2cbf1be5e61597632e7b7056356e74a3bdcb0db8bc0dad8e0edec874b8f74",
+    "runId": 41777804549,
+    "all14RequiredCommandsPass": true
+  },
+  "currentBrowserAcceptance": {
+    "kind": "local synthetic diagnostic, not feature approval",
+    "results": [
+      {
+        "name": "Owner board with actual session and API",
+        "status": "observed",
+        "firstCardVisible": true,
+        "finalSeededCardVisible": 0,
+        "loadMoreControls": 1
+      },
+      {
+        "name": "Column continuation loads the previously off-page 24th card",
+        "status": "pass"
+      },
+      {
+        "name": "Server title search reaches a card beyond the initial page",
+        "status": "pass"
+      },
+      {
+        "name": "Unsent quick-add title and chosen priority survive column filter unmount without POST",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail dialog opens",
+        "status": "observed",
+        "dialogs": 1,
+        "assignControls": 1
+      },
+      {
+        "name": "Owner self-assignment/priority/date Save reaches real PostgreSQL",
+        "status": "pass"
+      },
+      {
+        "name": "Comment committed response loss then original-key retry has one effect",
+        "status": "pass"
+      },
+      {
+        "name": "Author edits own comment through real API",
+        "status": "pass"
+      },
+      {
+        "name": "Drawer portal makes background inert and keeps keyboard focus inside",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail fits a360px viewport without its own horizontal overflow",
+        "status": "pass"
+      },
+      {
+        "name": "Click Move and dedicated Undo restore the actual original populated column",
+        "status": "pass"
+      },
+      {
+        "name": "Native Back/Forward restores the unsent workspace draft with no database write; explicit Discard clears it",
+        "status": "pass"
+      },
+      {
+        "name": "owner: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "manager: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "member: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      },
+      {
+        "name": "viewer: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      }
+    ],
+    "blockedExternalOrigins": [],
+    "browser": "156.0.8078.4",
+    "runStatus": "passed"
+  },
+  "decision": "Current local acceptance: applicable current Linux tests/browser flows plus byte-identical per-ID UI implementation and new independently approved backend. Original extra product/expiry/layout probes retain their historical dates/environments and are not represented as newly executed.",
+  "limits": [
+    "No real provider, deployed storage/Hyperdrive, real timer, Claude client or production acceptance implied.",
+    "Current browser diagnostic is 14 pass + 2 observations, not exhaustive browser acceptance; retained extra historical probes apply only through verified byte continuity."
+  ],
+  "recordedAt": "2026-11-04T05:41:23.703072+00:00"
+}

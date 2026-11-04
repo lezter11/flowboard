@@ -1,0 +1,157 @@
+{
+  "featureId": "CRD-06",
+  "acceptance": "Assign zero/multiple active eligible project users or owner; removed identities stay labeled historical and cannot be newly assigned.",
+  "candidateCommit": "d1c81f42fe306c352c9cb10f04883e251ead58bd",
+  "actor": "/root Architect coordinating Backend/UI/integration acceptance",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/cards-comments-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json",
+  "backendReviewSHA256": "4305881471205bbe4e7d778749b98935e6df189d598ba4a59a7f94e58004aa6f",
+  "uiRequired": true,
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/components/board/card-detail-drawer.tsx",
+      "sha256": "6edb7009d2edf7e44876247ab7fdedf29d493b7ebbeff3f9665d15025b7c0fd6",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/assignee-people.ts",
+      "sha256": "64968973e3ab111fddb5462a458544afedbcfa94346b5dc12e7f3751b94f27f4",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/assignees.ts",
+      "sha256": "ae0c68e4849aa2e9f27959a6be9c81d381f58f20c4569758543e9d8c5f3f046d",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/dates.ts",
+      "sha256": "1e566235a1a33d77a7ed6a629b483e982ddb1564e438c0271f3edcbdfd934a69",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/draft-sync.ts",
+      "sha256": "021167d2c18a2136148b6453911dfb150966c0e26558f18c00afeb1fdf75bf5e",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/test/assignees.test.ts",
+      "sha256": "f21a48afce55cef3d9064bc88a1fcec65a19ed95b2deadc3fd65d9027cb679f3",
+      "testNames": [
+        "fresh board: the Owner is offered even though the snapshot has nobody",
+        "Viewers and people who left are never offered, owner first then managers then members",
+        "a server that forgets to flag a viewer is still filtered",
+        "picker states: loading, error, empty, ready",
+        "chip names keep people already on cards from the snapshot, and current project people win",
+        "can\u2019t-be-assigned: judged against the project list once loaded, against the snapshot before that",
+        "the 20-assignee cap",
+        "the assignee query carries the card board, and the project-wide query does not",
+        "people without a grant are not selectable: only the board list is offered, the rest are listed as blocked",
+        "a 422 names the people: by new code, by today\u2019s details, and not for other failures",
+        "error text names people with and, and falls back to the server sentence",
+        "the save bar never sits on ",
+        "BOARD_REQUIRED means reload, and a new-contract 422 names people by ineligibleUserIds"
+      ]
+    }
+  ],
+  "sourceComparison": "Every per-ID source/test SHA matches the prior accepted UI inventory; global web/contracts/browser harness has zero Git diff from c1 to candidate.",
+  "originalPerIdEvidence": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/CRD-06.json",
+    "sha256": "519cbd2e5fce5811c178b04f9c947ca7d68a9d361dd58ad06ce1df54fe1b6d78"
+  },
+  "currentCI": {
+    "metadata": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.json",
+    "metadataSHA256": "430254a66152bdf2726a92e44aafd377313f127b71f3dc3ebf1c7f7ee5343932",
+    "log": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.log",
+    "logSHA256": "b0b2cbf1be5e61597632e7b7056356e74a3bdcb0db8bc0dad8e0edec874b8f74",
+    "runId": 41777804549,
+    "all14RequiredCommandsPass": true
+  },
+  "currentBrowserAcceptance": {
+    "kind": "local synthetic diagnostic, not feature approval",
+    "results": [
+      {
+        "name": "Owner board with actual session and API",
+        "status": "observed",
+        "firstCardVisible": true,
+        "finalSeededCardVisible": 0,
+        "loadMoreControls": 1
+      },
+      {
+        "name": "Column continuation loads the previously off-page 24th card",
+        "status": "pass"
+      },
+      {
+        "name": "Server title search reaches a card beyond the initial page",
+        "status": "pass"
+      },
+      {
+        "name": "Unsent quick-add title and chosen priority survive column filter unmount without POST",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail dialog opens",
+        "status": "observed",
+        "dialogs": 1,
+        "assignControls": 1
+      },
+      {
+        "name": "Owner self-assignment/priority/date Save reaches real PostgreSQL",
+        "status": "pass"
+      },
+      {
+        "name": "Comment committed response loss then original-key retry has one effect",
+        "status": "pass"
+      },
+      {
+        "name": "Author edits own comment through real API",
+        "status": "pass"
+      },
+      {
+        "name": "Drawer portal makes background inert and keeps keyboard focus inside",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail fits a360px viewport without its own horizontal overflow",
+        "status": "pass"
+      },
+      {
+        "name": "Click Move and dedicated Undo restore the actual original populated column",
+        "status": "pass"
+      },
+      {
+        "name": "Native Back/Forward restores the unsent workspace draft with no database write; explicit Discard clears it",
+        "status": "pass"
+      },
+      {
+        "name": "owner: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "manager: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "member: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      },
+      {
+        "name": "viewer: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      }
+    ],
+    "blockedExternalOrigins": [],
+    "browser": "156.0.8078.4",
+    "runStatus": "passed"
+  },
+  "decision": "Current local acceptance: applicable current Linux tests/browser flows plus byte-identical per-ID UI implementation and new independently approved backend. Original extra product/expiry/layout probes retain their historical dates/environments and are not represented as newly executed.",
+  "limits": [
+    "No real provider, deployed storage/Hyperdrive, real timer, Claude client or production acceptance implied.",
+    "Current browser diagnostic is 14 pass + 2 observations, not exhaustive browser acceptance; retained extra historical probes apply only through verified byte continuity."
+  ],
+  "recordedAt": "2026-11-04T05:41:23.723336+00:00"
+}

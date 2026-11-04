@@ -1,0 +1,137 @@
+{
+  "featureId": "CRD-02",
+  "acceptance": "Show title, priority, due date, assignees and accurate comment/image counts without loading full descriptions/history.",
+  "candidateCommit": "d1c81f42fe306c352c9cb10f04883e251ead58bd",
+  "actor": "/root Architect coordinating Backend/UI/integration acceptance",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/cards-comments-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json",
+  "backendReviewSHA256": "4305881471205bbe4e7d778749b98935e6df189d598ba4a59a7f94e58004aa6f",
+  "uiRequired": true,
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/components/board/board-card.tsx",
+      "sha256": "f3c34287008acc018c6e6c6630007c34aa59547c989f8fff47fe458cdb4d2cd6",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/dates.ts",
+      "sha256": "1e566235a1a33d77a7ed6a629b483e982ddb1564e438c0271f3edcbdfd934a69",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/person-name.ts",
+      "sha256": "48de35e43af8072d75dd4da6a525c50b62685f16c5b0fe019966f75d1b9efa5a",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/test/person-name.test.ts",
+      "sha256": "d6d2d674c4d87d220f8491ac1a4b8cfad1723888f27f6b6593f399be223464e7",
+      "testNames": [
+        "a suffix of 2 or more is shown; absent, null and bad values show the plain name",
+        "screen readers hear ",
+        "every screen that names a person goes through the one helper"
+      ]
+    }
+  ],
+  "sourceComparison": "Every per-ID source/test SHA matches the prior accepted UI inventory; global web/contracts/browser harness has zero Git diff from c1 to candidate.",
+  "originalPerIdEvidence": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/CRD-02.json",
+    "sha256": "184f0e12e4f101d445b3142ec88802bfcc25d3e9dbda8a5f5c18f462ae6fad25"
+  },
+  "currentCI": {
+    "metadata": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.json",
+    "metadataSHA256": "430254a66152bdf2726a92e44aafd377313f127b71f3dc3ebf1c7f7ee5343932",
+    "log": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.log",
+    "logSHA256": "b0b2cbf1be5e61597632e7b7056356e74a3bdcb0db8bc0dad8e0edec874b8f74",
+    "runId": 41777804549,
+    "all14RequiredCommandsPass": true
+  },
+  "currentBrowserAcceptance": {
+    "kind": "local synthetic diagnostic, not feature approval",
+    "results": [
+      {
+        "name": "Owner board with actual session and API",
+        "status": "observed",
+        "firstCardVisible": true,
+        "finalSeededCardVisible": 0,
+        "loadMoreControls": 1
+      },
+      {
+        "name": "Column continuation loads the previously off-page 24th card",
+        "status": "pass"
+      },
+      {
+        "name": "Server title search reaches a card beyond the initial page",
+        "status": "pass"
+      },
+      {
+        "name": "Unsent quick-add title and chosen priority survive column filter unmount without POST",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail dialog opens",
+        "status": "observed",
+        "dialogs": 1,
+        "assignControls": 1
+      },
+      {
+        "name": "Owner self-assignment/priority/date Save reaches real PostgreSQL",
+        "status": "pass"
+      },
+      {
+        "name": "Comment committed response loss then original-key retry has one effect",
+        "status": "pass"
+      },
+      {
+        "name": "Author edits own comment through real API",
+        "status": "pass"
+      },
+      {
+        "name": "Drawer portal makes background inert and keeps keyboard focus inside",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail fits a360px viewport without its own horizontal overflow",
+        "status": "pass"
+      },
+      {
+        "name": "Click Move and dedicated Undo restore the actual original populated column",
+        "status": "pass"
+      },
+      {
+        "name": "Native Back/Forward restores the unsent workspace draft with no database write; explicit Discard clears it",
+        "status": "pass"
+      },
+      {
+        "name": "owner: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "manager: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "member: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      },
+      {
+        "name": "viewer: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      }
+    ],
+    "blockedExternalOrigins": [],
+    "browser": "156.0.8078.4",
+    "runStatus": "passed"
+  },
+  "decision": "Current local acceptance: applicable current Linux tests/browser flows plus byte-identical per-ID UI implementation and new independently approved backend. Original extra product/expiry/layout probes retain their historical dates/environments and are not represented as newly executed.",
+  "limits": [
+    "No real provider, deployed storage/Hyperdrive, real timer, Claude client or production acceptance implied.",
+    "Current browser diagnostic is 14 pass + 2 observations, not exhaustive browser acceptance; retained extra historical probes apply only through verified byte continuity."
+  ],
+  "recordedAt": "2026-11-04T05:41:23.720068+00:00"
+}

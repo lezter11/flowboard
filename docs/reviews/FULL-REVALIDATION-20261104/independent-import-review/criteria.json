@@ -1,0 +1,78 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "IMP-01",
+    "IMP-02",
+    "IMP-03",
+    "IMP-04",
+    "IMP-05",
+    "IMP-06",
+    "IMP-07",
+    "IMP-08",
+    "IMP-09",
+    "IMP-10",
+    "IMP-11"
+  ],
+  "risk": "high",
+  "baselineRevision": "d1c81f42fe306c352c9cb10f04883e251ead58bd",
+  "mandatoryCriteria": [
+    "IMP-01: Versioned seven-column Cards template plus Instructions downloads without example rows in the import sheet.",
+    "IMP-02: Owner/manager chooses one project/board and default column; upload cannot create projects/users/grants or override destination.",
+    "IMP-03: Accept supported XLSX only, enforce compressed/expanded/cell/row limits and reject formulas/macros/external package links without evaluating them.",
+    "IMP-04: Exact seven headers map shared card validators; status/date/email errors name row/field and no invalid value is silently guessed.",
+    "IMP-05: Preview counts new/already-imported/conflicting/invalid rows, displays mapping and writes no cards; user corrects errors before confirming.",
+    "IMP-06: Bind preview to actor/target/digest/expiry; revalidate grant/columns/assignees and create all new rows in one bounded transaction or none.",
+    "IMP-07: Board-scoped text External ID preserves zeros; duplicate upload/race creates once, changed ID payload conflicts and deleted imports never resurrect silently.",
+    "IMP-08: Real 1900/1904 Excel dates or strict ISO map to date-only values; semicolon emails resolve active eligible project users only.",
+    "IMP-09: Result links created cards and row outcomes; safe report cannot execute spreadsheet formulas or leak another project's data.",
+    "IMP-10: Cancel before commit/expiry cleans temporary content; once transaction begins show actual final result rather than promise cancellation.",
+    "IMP-11: Import receipt links actor/batch/rows/created cards, while each card behaves like a normal card with a creation activity event.",
+    "Mounted operations enforce current identity, role/target authority, project and board grants, resource ancestry, lifecycle and receipt replay boundaries; negative cases cannot expose data or write effects.",
+    "Applicable writes preserve state/version, minimal receipt, activity and outbox atomically; real separate-connection tests cover the feature races and retention limits.",
+    "Every listed backend feature requires a fresh independent review of its complete reachable frozen source, fixed weights/category minima, unrounded score strictly greater than8.5, no blocker and actual passing checks. Builders cannot approve their own work.",
+    "Required UI and integration phases need actual test/browser evidence with current backend/UI hash bindings; source or API tests alone cannot prove UI or real-provider/hosted acceptance. Do not relabel missing mandatory behavior deferred to close a feature."
+  ],
+  "requiredTests": {
+    "typecheck": "npm run typecheck",
+    "typecheck-web": "npm run typecheck:web",
+    "api": "npm test --workspace @flowboard/api",
+    "contracts": "npm test --workspace @flowboard/contracts",
+    "web": "npm test --workspace @flowboard/web",
+    "mcp": "npm test --workspace @flowboard/mcp",
+    "build-worker": "npm run build --workspace @flowboard/api",
+    "build-web": "npm run build:web",
+    "build-mcp": "npm run build --workspace @flowboard/mcp",
+    "mcp-artifact": "npm run test:artifact --workspace @flowboard/mcp",
+    "openapi-staleness": "npm run openapi:check",
+    "embedded-migration-parity": "npm run migrations:embed:check",
+    "browser-integration": "npm run test:browser",
+    "mcp-integration": "npm run test:mcp-integration"
+  },
+  "scopeAndExclusions": "Current listed product features and reachable shared dependencies; PostgreSQL Node/Worker and Next static UI. Review alone does not approve unexecuted UI/hosted/provider/deployment behavior. Real OAuth must not be replaced with an email-only session. Direct UAT after all local gates pass; hosted checks remain UAT pending until run. No dev/production. Reconciled retirements preserve stableIDs and precede scoring. No real credentials or live-user data in tests/logs.",
+  "releaseSequenceClarification": "User explicitly clarified2026-11-03: all local gates pass and source freezes, deploy UAT directly, then finish hosted checks. Host-dependent checks remain UAT pending and are not falsely closed. No dev or production.",
+  "requiredTestsExpansion": {
+    "date": "2026-11-03",
+    "previousFileSHA256": "037bfbeb622ec7638430ea53cd595bf2934c58279a0df2a7de1c3c8473c29db3",
+    "previousRequiredTests": {
+      "typecheck": "npm run typecheck",
+      "typecheck-web": "npm run typecheck:web",
+      "api": "npm test --workspace @flowboard/api",
+      "contracts": "npm test --workspace @flowboard/contracts",
+      "web": "npm test --workspace @flowboard/web",
+      "mcp": "npm test --workspace @flowboard/mcp",
+      "build-worker": "npm run build --workspace @flowboard/api",
+      "build-web": "npm run build:web",
+      "build-mcp": "npm run build --workspace @flowboard/mcp",
+      "mcp-artifact": "npm run test:artifact --workspace @flowboard/mcp"
+    },
+    "addedRequiredTests": {
+      "openapi-staleness": "npm run openapi:check",
+      "embedded-migration-parity": "npm run migrations:embed:check",
+      "browser-integration": "npm run test:browser",
+      "mcp-integration": "npm run test:mcp-integration"
+    },
+    "reason": "Before final review/source freeze, explicitly require existing generated-contract parity, embedded-SQL parity and actual local browser/MCP integration commands. This adds checks without changing or weakening any acceptance statement or score threshold.",
+    "runnerEnvironment": "Runner must supply explicit disposable loopback PostgreSQL test URLs, NODE_ENV=test and the documented local browser executable/runtime; commands do not use production or hosted user data."
+  },
+  "reviewNote": "Original15criteria and14required commands retained; ci-xlsx-repair/criteria.md adds targeted nonregression checks before this five-line parser optimization. No acceptance relaxation."
+}

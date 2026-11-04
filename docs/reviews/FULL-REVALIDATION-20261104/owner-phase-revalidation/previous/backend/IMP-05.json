@@ -1,0 +1,28 @@
+{
+  "status": "verified",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261103/round4-import-final/review.json",
+  "summary": "IMP-05 Preview new existing and conflict rows: independently approved current local acceptance; hosted acceptance pending. Historical ratings are not used.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/import.json per-ID criterion IMP-05",
+  "limitations": [
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/round4-import-final/review.json",
+      "sha256": "431064e2358c0da83d7e496a027af84eadfe0beaae41e401aabeaff027918641",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261103/round4-import-final/review.json --feature IMP-05",
+      "result": "PASS: 8.905/10",
+      "environment": "Read-only Python procedural validation against current exact local source/evidence bytes; independent actual execution attributed within review."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/raw/independent-round4-gates-3/commands.json",
+      "sha256": "259ff18edaa147f7cfbe55d9c11e76d3c5272d640e1bb4ae32f566ee3bcd2618",
+      "command": "14 exact commands recorded in commands.json",
+      "result": "All14exit0; API1768/contracts128/web332/MCP17/artifact1; actual Chrome/MCP local integration. Counts overlap focused runs.",
+      "environment": "Node24/PostgreSQL17 synthetic loopback; separate independent executor"
+    }
+  ]
+}

@@ -1,0 +1,165 @@
+{
+  "featureId": "ACC-01",
+  "acceptance": "Chosen OAuth login creates one identity/session; unsupported callbacks fail closed and private data needs a valid session.",
+  "candidateCommit": "d1c81f42fe306c352c9cb10f04883e251ead58bd",
+  "actor": "/root Architect coordinating Backend/UI/integration acceptance",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/account-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json",
+  "backendReviewSHA256": "19895098f7c20a3109172ea2cbcf740940190c4e2be597ffc634f49fe995393b",
+  "uiRequired": true,
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/app/signin/page.tsx",
+      "sha256": "833412c6aeb0c25e7941155549a1020019436c4a8a3b16345eb2d3ca15152eba",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/auth/name-step.tsx",
+      "sha256": "2b2592365c7be8f58f2b07c4b14d0996d63f6f0a2e6d0774884fa113bcff13f9",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/session.tsx",
+      "sha256": "1230e2de12ff353d422e6ae1557dc0c946b8cd129126ac54e713ae2032e6108e",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/signin-states.ts",
+      "sha256": "b79e13a63fc36a911b14b6d99e5caa850252fb1e956eceecc7b1295cf745677a",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/test/landing-rule.test.ts",
+      "sha256": "b697de9902ca9955dc7dff97283c3cddb280e065f8a16acbed377ffaad44ae9e",
+      "testNames": [
+        "the Pages middleware and the client both use the shared rule, not a copy"
+      ]
+    },
+    {
+      "path": "apps/web/test/name-form.test.ts",
+      "sha256": "ddf21990f576e8303f6244a9b726e4fb726fdb7da6779ce1098b35a32066043f",
+      "testNames": [
+        "a valid name is normalised the same way the API does",
+        "empty and whitespace-only parts give a plain ",
+        "over 60 characters is refused with the limit named",
+        "exactly 60 characters is accepted",
+        "zero-width, bidi and control characters are refused",
+        "suggestions prefill, and nothing else does",
+        "name step animation sits inside no-preference",
+        "name errors are announced: both inline error paragraphs are alerts and stay tied to their inputs"
+      ]
+    },
+    {
+      "path": "apps/web/test/signin-states.test.ts",
+      "sha256": "aae78368cb3417db50fd2e76456a83fdcfb829448037fe9decce67501254a0f1",
+      "testNames": [
+        "every new sign-in state has plain copy that follows the style guide",
+        "unknown or crafted states show nothing, so a link cannot put words on the page",
+        "unsaved text is tracked and announced to subscribers",
+        "a session that ends keeps the page while text is unsaved, and offers Sign in",
+        "a failed save with an ended session offers Sign in and keeps the draft in place"
+      ]
+    }
+  ],
+  "sourceComparison": "Every per-ID source/test SHA matches the prior accepted UI inventory; global web/contracts/browser harness has zero Git diff from c1 to candidate.",
+  "originalPerIdEvidence": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/ACC-01.json",
+    "sha256": "3a8a537c3865d4edaa8838603ef352be18af60a2787fce343be1b0b950ce876d"
+  },
+  "currentCI": {
+    "metadata": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.json",
+    "metadataSHA256": "430254a66152bdf2726a92e44aafd377313f127b71f3dc3ebf1c7f7ee5343932",
+    "log": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.log",
+    "logSHA256": "b0b2cbf1be5e61597632e7b7056356e74a3bdcb0db8bc0dad8e0edec874b8f74",
+    "runId": 41777804549,
+    "all14RequiredCommandsPass": true
+  },
+  "currentBrowserAcceptance": {
+    "kind": "local synthetic diagnostic, not feature approval",
+    "results": [
+      {
+        "name": "Owner board with actual session and API",
+        "status": "observed",
+        "firstCardVisible": true,
+        "finalSeededCardVisible": 0,
+        "loadMoreControls": 1
+      },
+      {
+        "name": "Column continuation loads the previously off-page 24th card",
+        "status": "pass"
+      },
+      {
+        "name": "Server title search reaches a card beyond the initial page",
+        "status": "pass"
+      },
+      {
+        "name": "Unsent quick-add title and chosen priority survive column filter unmount without POST",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail dialog opens",
+        "status": "observed",
+        "dialogs": 1,
+        "assignControls": 1
+      },
+      {
+        "name": "Owner self-assignment/priority/date Save reaches real PostgreSQL",
+        "status": "pass"
+      },
+      {
+        "name": "Comment committed response loss then original-key retry has one effect",
+        "status": "pass"
+      },
+      {
+        "name": "Author edits own comment through real API",
+        "status": "pass"
+      },
+      {
+        "name": "Drawer portal makes background inert and keeps keyboard focus inside",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail fits a360px viewport without its own horizontal overflow",
+        "status": "pass"
+      },
+      {
+        "name": "Click Move and dedicated Undo restore the actual original populated column",
+        "status": "pass"
+      },
+      {
+        "name": "Native Back/Forward restores the unsent workspace draft with no database write; explicit Discard clears it",
+        "status": "pass"
+      },
+      {
+        "name": "owner: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "manager: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "member: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      },
+      {
+        "name": "viewer: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      }
+    ],
+    "blockedExternalOrigins": [],
+    "browser": "156.0.8078.4",
+    "runStatus": "passed"
+  },
+  "decision": "Current local acceptance: applicable current Linux tests/browser flows plus byte-identical per-ID UI implementation and new independently approved backend. Original extra product/expiry/layout probes retain their historical dates/environments and are not represented as newly executed.",
+  "limits": [
+    "No real provider, deployed storage/Hyperdrive, real timer, Claude client or production acceptance implied.",
+    "Current browser diagnostic is 14 pass + 2 observations, not exhaustive browser acceptance; retained extra historical probes apply only through verified byte continuity."
+  ],
+  "recordedAt": "2026-11-04T05:41:23.688358+00:00"
+}

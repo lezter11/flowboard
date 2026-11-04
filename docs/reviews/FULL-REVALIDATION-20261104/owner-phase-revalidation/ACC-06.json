@@ -1,0 +1,154 @@
+{
+  "featureId": "ACC-06",
+  "acceptance": "Show only owned projects and explicitly granted projects; current context is reauthorized and being owner elsewhere grants no extra rights.",
+  "candidateCommit": "d1c81f42fe306c352c9cb10f04883e251ead58bd",
+  "actor": "/root Architect coordinating Backend/UI/integration acceptance",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/account-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json",
+  "backendReviewSHA256": "19895098f7c20a3109172ea2cbcf740940190c4e2be597ffc634f49fe995393b",
+  "uiRequired": true,
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/app/projects/page.tsx",
+      "sha256": "84a5806fb1cf23a362ad098306c5ebf23c04dc39b061afd4d5f7f80e17136121",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/shell/project-switcher.tsx",
+      "sha256": "139fb6a2de377d1252006acb4782c158c31a01687fd9057edd5786207c9c3cd9",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/active-project.ts",
+      "sha256": "a475cbcfd42170c05a6335818dd1a7ee9189925edb5e0f03420429a101961e81",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/project-groups.ts",
+      "sha256": "aae1955350b2aa8a27fe90e8f60386426b877d450b7698dc6d9fb90cedaed832",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/project-switcher.ts",
+      "sha256": "ffbacc5daf489fc0364fb604772741b45f3a87a0d93f7179e87bce7412f781f2",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/test/landing-rule.test.ts",
+      "sha256": "b697de9902ca9955dc7dff97283c3cddb280e065f8a16acbed377ffaad44ae9e",
+      "testNames": [
+        "the Pages middleware and the client both use the shared rule, not a copy"
+      ]
+    },
+    {
+      "path": "apps/web/test/project-switcher.test.ts",
+      "sha256": "68cb37cf4d73c6a68d6e0c91cb7b48c18984f93e0ce6f28e2669173b964e096c",
+      "testNames": [
+        "groups: Yours and Shared with you, open only, sorted by name",
+        "a viewer-only person has no manage role, even though they own a hidden container",
+        "label inside a shared project is the project and the role, never someone else workspace"
+      ]
+    }
+  ],
+  "sourceComparison": "Every per-ID source/test SHA matches the prior accepted UI inventory; global web/contracts/browser harness has zero Git diff from c1 to candidate.",
+  "originalPerIdEvidence": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/ACC-06.json",
+    "sha256": "049fbbeb4a7427cc6cf297671adb9aab465d386b9b0aa349203af0312e191d72"
+  },
+  "currentCI": {
+    "metadata": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.json",
+    "metadataSHA256": "430254a66152bdf2726a92e44aafd377313f127b71f3dc3ebf1c7f7ee5343932",
+    "log": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.log",
+    "logSHA256": "b0b2cbf1be5e61597632e7b7056356e74a3bdcb0db8bc0dad8e0edec874b8f74",
+    "runId": 41777804549,
+    "all14RequiredCommandsPass": true
+  },
+  "currentBrowserAcceptance": {
+    "kind": "local synthetic diagnostic, not feature approval",
+    "results": [
+      {
+        "name": "Owner board with actual session and API",
+        "status": "observed",
+        "firstCardVisible": true,
+        "finalSeededCardVisible": 0,
+        "loadMoreControls": 1
+      },
+      {
+        "name": "Column continuation loads the previously off-page 24th card",
+        "status": "pass"
+      },
+      {
+        "name": "Server title search reaches a card beyond the initial page",
+        "status": "pass"
+      },
+      {
+        "name": "Unsent quick-add title and chosen priority survive column filter unmount without POST",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail dialog opens",
+        "status": "observed",
+        "dialogs": 1,
+        "assignControls": 1
+      },
+      {
+        "name": "Owner self-assignment/priority/date Save reaches real PostgreSQL",
+        "status": "pass"
+      },
+      {
+        "name": "Comment committed response loss then original-key retry has one effect",
+        "status": "pass"
+      },
+      {
+        "name": "Author edits own comment through real API",
+        "status": "pass"
+      },
+      {
+        "name": "Drawer portal makes background inert and keeps keyboard focus inside",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail fits a360px viewport without its own horizontal overflow",
+        "status": "pass"
+      },
+      {
+        "name": "Click Move and dedicated Undo restore the actual original populated column",
+        "status": "pass"
+      },
+      {
+        "name": "Native Back/Forward restores the unsent workspace draft with no database write; explicit Discard clears it",
+        "status": "pass"
+      },
+      {
+        "name": "owner: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "manager: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "member: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      },
+      {
+        "name": "viewer: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      }
+    ],
+    "blockedExternalOrigins": [],
+    "browser": "156.0.8078.4",
+    "runStatus": "passed"
+  },
+  "decision": "Current local acceptance: applicable current Linux tests/browser flows plus byte-identical per-ID UI implementation and new independently approved backend. Original extra product/expiry/layout probes retain their historical dates/environments and are not represented as newly executed.",
+  "limits": [
+    "No real provider, deployed storage/Hyperdrive, real timer, Claude client or production acceptance implied.",
+    "Current browser diagnostic is 14 pass + 2 observations, not exhaustive browser acceptance; retained extra historical probes apply only through verified byte continuity."
+  ],
+  "recordedAt": "2026-11-04T05:41:23.693643+00:00"
+}

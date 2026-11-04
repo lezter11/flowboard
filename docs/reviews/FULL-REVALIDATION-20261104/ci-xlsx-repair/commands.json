@@ -1,0 +1,82 @@
+{
+  "status": "builder proof; independent review and final Linux CI pending",
+  "targetDigest": "89a1b9f830a3bb19390f7f931c2c210642ebdafc2db3b7cd25170e8d154440be",
+  "recordedAt": "2026-11-04T05:09:01.996827+00:00",
+  "commands": [
+    {
+      "id": "linux-failing-before",
+      "command": "gh run view 41685962254 --repo lezter11/flowboard --log-failed",
+      "retrievalExitCode": 0,
+      "testExitCode": 1,
+      "evidence": "github-failing-before.log",
+      "tests": 1768,
+      "pass": 1767,
+      "fail": 1,
+      "skipped": 0,
+      "environment": "GitHub Linux CI baseline bf047e085f50c2c74dfbd640dc01ca37f5ba4f8a; historical failing run preserved"
+    },
+    {
+      "id": "baseline-local-profile",
+      "command": "WRANGLER_LOG_PATH=/private/tmp/flowboard-ci-xlsx-wrangler.log WRANGLER_SEND_METRICS=false node docs/reviews/FULL-REVALIDATION-20261104/ci-xlsx-repair/run-profile.mjs",
+      "exitCode": 0,
+      "evidence": "baseline-profile-2.log",
+      "environment": "actual local macOS workerd; original source profile-import-xml-baseline.ts; NOT Linux/hosted CPU"
+    },
+    {
+      "id": "parser-regressions",
+      "command": "NODE_ENV=test node --test apps/api/test/import-xml-text.test.ts apps/api/test/import-xml-parser.test.ts apps/api/test/import-xml-cell-parser.test.ts",
+      "exitCode": 0,
+      "evidence": "parser-green.log",
+      "tests": 122,
+      "pass": 122,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "evidence": "typecheck.log"
+    },
+    {
+      "id": "api-build",
+      "command": "npm run build --workspace @flowboard/api",
+      "exitCode": 0,
+      "evidence": "build.log",
+      "note": "tsc plus Worker deploy dry-run only; no deployment"
+    },
+    {
+      "id": "patched-local-profile",
+      "command": "WRANGLER_LOG_PATH=/private/tmp/flowboard-ci-xlsx-wrangler.log WRANGLER_SEND_METRICS=false node docs/reviews/FULL-REVALIDATION-20261104/ci-xlsx-repair/run-profile.mjs",
+      "exitCode": 0,
+      "evidence": "repair-profile-final.log",
+      "note": "/original is production parseExcelWorkbook route on current patched source, /profile uses instrumented snapshot; native decoder benchmark variations are measurements, not source changes"
+    },
+    {
+      "id": "mounted-import-regressions",
+      "command": "node docs/reviews/FULL-REVALIDATION-20261104/ci-xlsx-repair/run-mounted.mjs",
+      "exitCode": 0,
+      "evidence": "mounted-green.log",
+      "tests": 156,
+      "pass": 156,
+      "fail": 0,
+      "skipped": 0,
+      "environment": "PostgreSQL17.11 disposable loopback55931 flowboard_harness random schemas; actual local workerd for Worker test"
+    },
+    {
+      "id": "mounted-setup-attempt",
+      "command": "node docs/reviews/FULL-REVALIDATION-20261104/ci-xlsx-repair/run-mounted.mjs",
+      "exitCode": 1,
+      "evidence": "mounted-setup-failure.log",
+      "tests": 0,
+      "reason": "flowboard_import_test absent; switched runner to existing allowed flowboard_harness database; no application edit"
+    },
+    {
+      "id": "initial-sandbox-attempt",
+      "command": "WRANGLER_SEND_METRICS=false node docs/reviews/FULL-REVALIDATION-20261104/ci-xlsx-repair/run-profile.mjs",
+      "exitCode": 1,
+      "tests": 0,
+      "reason": "EPERM default Wrangler log path and loopback listener; reran with temp log path and approved local listener escalation. Initial log was subsequently overwritten by successful baseline execution; exact tool output remains in chat record."
+    }
+  ]
+}

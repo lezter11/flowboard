@@ -1,34 +1,43 @@
 # Flowboard
 
-A customizable collaborative Kanban application inspired by Azure Boards, with its own UI. Source repository: [lezter11/flowboard](https://github.com/lezter11/flowboard). Current phase: feature specification complete; first local backend foundation handed off. No hosted application is verified.
+Flowboard is a customizable team Kanban application. Projects contain boards, boards contain columns and cards, and access is checked for each project and board. [GitHub repository](https://github.com/lezter11/flowboard).
 
-## Canonical project documents
+## Start here
 
-| File | Purpose |
+1. **[flowBoardTasks.md](flowBoardTasks.md)** — ordered checklist: organization, CI repair, review, UAT deployment and hosted testing.
+2. **[Project map](docs/PROJECT_MAP.md)** — which checkout to edit, where code lives and how documentation is organized.
+3. **[MCP provenance](docs/MCP_PROVENANCE.md)** — original implementation, subsequent repairs and future capabilities.
+
+**Checkpoint, 2026-11-04:** candidate `d1c81f42fe306c352c9cb10f04883e251ead58bd` on `codex/mcp-uat-hardening` is published to GitHub `uat` for Linux CI. It repairs escaped-text decoding cost without changing parser limits; focused builder and independent tests pass. Full Linux CI and all98 current-source independent/owner local acceptance now pass. Physical folder organization is complete; UAT deployment is complete, exact provider IDs are recorded, and independent anonymous smoke15/15passed. Signed-in product/Claude acceptance remains pending; see [UAT testing](docs/UAT_TESTING.md). Production is excluded.
+
+## Source layout
+
+| Folder | Purpose |
 |---|---|
-| [PRD.md](PRD.md) | What we are building, users, scope and acceptance |
-| [ARCHITECTURE.md](ARCHITECTURE.md) | Stack recommendation, folders, transactions, data flow and portability |
-| [DESIGN.md](DESIGN.md) | Reference-informed colors, typography, components and pending visual decisions |
-| [RULES.md](RULES.md) | Coding/agent constraints, evidence and teaching response format |
-| [TASKS.md](TASKS.md) | Small ordered tasks and ownership |
-| [PROGRESS.md](PROGRESS.md) | Observed results, issues and next inputs |
+| [apps/api](apps/api/) | Hono API, Node/Worker entry points, PostgreSQL adapters, authorization and jobs |
+| [apps/web](apps/web/) | Next.js/React application and Cloudflare Pages Functions |
+| [packages/contracts](packages/contracts/) | Shared validation, types and API schemas |
+| [packages/mcp](packages/mcp/README.md) | Local MCP server: discover projects/boards/columns, search and create cards |
+| [database/migrations](database/migrations/) | PostgreSQL schema changes; the D1 prototype is historical |
+| [design/flowboard-ui](design/flowboard-ui/) | Standalone design prototype, separate from the application |
+| [docs](docs/PROJECT_MAP.md#documentation-and-evidence-navigation) | Specifications, decisions, references, handoffs and preserved audit evidence |
+| [scripts](scripts/) | Build, verification, checklist and diagnostic tooling |
 
-Start with the [98-feature checklist](docs/FEATURE_CHECKLIST.md), [detailed feature flows](docs/FEATURE_SPEC.md), [Excel import specification](docs/IMPORT_SPEC.md) and [Backend-to-UI handoffs](docs/handoffs/README.md). Then read [the 50-item engineering checklist](docs/ENGINEERING_CHECKLIST.md), [API contract](docs/API.md), [reference catalogue](docs/references/README.md), [access setup](docs/ACCESS_SETUP.md) and [the stack explained in simple English](docs/LEARNING.md).
+The `archive/worktrees/Flowboard-mcp` and `archive/worktrees/Flowboard-gemini` folders in the main Documents checkout are older linked Git worktrees. Their commits already exist in the active branch. They are not additional runtime dependencies. Open [Flowboard.code-workspace](Flowboard.code-workspace) in a compatible editor for a named active workspace with generated dependency/build folders hidden. Original source and audit evidence stay in place.
 
-## Research and validation
+## Product and engineering documents
 
-[Stack comparison](docs/research/stack-comparison.md), [data reliability 01–25](docs/research/reliability-data.md), [runtime reliability 26–50](docs/research/reliability-runtime.md), [initial backend research](docs/research/backend-research.md) and [product research](docs/research/product-research.md). Research records alternatives; root architecture/product documents and API contract govern implementation.
+| Document | Purpose |
+|---|---|
+| [PRD.md](PRD.md) | Product intent and users |
+| [ARCHITECTURE.md](ARCHITECTURE.md) | Stack, boundaries, data flow and portability |
+| [DESIGN.md](DESIGN.md) | Visual and interaction guidance |
+| [RULES.md](RULES.md), [AGENTS.md](AGENTS.md) | Working constraints, ownership and teaching format |
+| [TASKS.md](TASKS.md), [PROGRESS.md](PROGRESS.md) | Product tasks and evidence; latest entries supersede older states |
+| [Feature specification](docs/FEATURE_SPEC.md), [98-feature checklist](docs/FEATURE_CHECKLIST.md) | Expected behavior and generated evidence status |
+| [Import specification](docs/IMPORT_SPEC.md), [API](docs/API.md) | Import rules and interface documentation |
+| [Backend gate](BACKEND_REVIEW_GATE.md), [handoffs](docs/handoffs/README.md) | Independent acceptance and role-owned evidence |
+| [Engineering checklist](docs/ENGINEERING_CHECKLIST.md), [references](docs/references/README.md) | Stable concerns and original UI references |
+| [Stack explained](docs/LEARNING.md), [research](docs/research/) | Plain-English explanations and alternatives |
 
-The v0.2 recommendation is PostgreSQL with Hono on an initial Cloudflare Worker, plus a real Node target. It has not been benchmarked or implemented. The original [D1 prototype](database/prototypes/d1/migrations/0001_initial.sql) is preserved; run `python3 scripts/check_schema.py` for 11 local SQLite checks. These do not validate PostgreSQL or hosted behavior; see [verification](docs/VERIFICATION.md).
-
-## Working chats
-
-Flowboard Architect owns architecture/shared contracts and integration review. Flowboard Backend owns the future API/database. Flowboard UI owns the future interface. All read the same six root documents and reference catalogue, following [AGENTS.md](AGENTS.md).
-
-## Excel template
-
-[Download the seven-column card-import template](outputs/01a1746d-a7e8-7e32-aac2-f9fe748b853d/Flowboard_Card_Import_Template.xlsx). Cards is blank; examples live separately in Instructions. The importer is specified, not implemented.
-
-## Latest feature research
-
-[Project access and card lifecycle](docs/research/features-access-lifecycle.md), [board/detail workflows](docs/research/features-board-workflows.md), [Excel import research](docs/research/features-excel-import.md). These Luna reports support the v0.3 baseline; where options differ, FEATURE_SPEC/API own implementation decisions.
+The [Excel template](outputs/01a1746d-a7e8-7e32-aac2-f9fe748b853d/Flowboard_Card_Import_Template.xlsx) and importer source exist. Template validity, current CI acceptance and deployed import behavior are separate claims. Early prototype documentation and historical scores are not current approval.

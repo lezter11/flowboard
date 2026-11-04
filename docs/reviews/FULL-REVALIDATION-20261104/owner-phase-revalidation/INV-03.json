@@ -1,0 +1,152 @@
+{
+  "featureId": "INV-03",
+  "acceptance": "Signed-in verified email must match unexpired, hashed, single-use project token; wrong email grants nothing.",
+  "candidateCommit": "d1c81f42fe306c352c9cb10f04883e251ead58bd",
+  "actor": "/root Architect coordinating Backend/UI/integration acceptance",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/projects-access-invitations-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json",
+  "backendReviewSHA256": "8b284cb332d7767504bf5be83d2fe994d21c989a776bddf858ec0fd60700e46c",
+  "uiRequired": true,
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/app/invitation/page.tsx",
+      "sha256": "92b52ec5b850fce696971cfa23e0d244c59f4ac29d1115c16cbae97e15d0f018",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/invitations/accept/page.tsx",
+      "sha256": "92b52ec5b850fce696971cfa23e0d244c59f4ac29d1115c16cbae97e15d0f018",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/invitation/accept-screen.tsx",
+      "sha256": "1c574ecba41f803c305e120857407b5590cd837e90ad4cd80e44b5ee7ce20ef2",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "7e1c95273648826d6e79ed6323c1c949e2bb48daec0439fabaf85a8def61393d",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/invitation-fx.ts",
+      "sha256": "1236082234f352846fe124c862bd7e6f07402387ae0f0a132eb93c66be9b967e",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/test/invitation-fx.test.ts",
+      "sha256": "a0041c9a27ca2d3486228817ac4a7efc6b8cca7925166724fa8cbba17f3056e1",
+      "testNames": [
+        "signed-in-as line shows the viewer own address, and nothing when unknown",
+        "easter eggs and motion are off under reduced motion",
+        "tap counter fires on the 5th quick tap, not on slow taps",
+        "greeting is always one of the list, even for bad input",
+        "sign-in returns to the same invitation link",
+        "all invitation animation sits inside no-preference, with a reduce fallback",
+        "the role reads with the right article",
+        "post-accept copy by role names no project and drops the pre-accept footer"
+      ]
+    }
+  ],
+  "sourceComparison": "Every per-ID source/test SHA matches the prior accepted UI inventory; global web/contracts/browser harness has zero Git diff from c1 to candidate.",
+  "originalPerIdEvidence": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/INV-03.json",
+    "sha256": "c49c8daba796b8dec40c23fd7dd405475143db71cf19ef6600bad93ae57c1a62"
+  },
+  "currentCI": {
+    "metadata": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.json",
+    "metadataSHA256": "430254a66152bdf2726a92e44aafd377313f127b71f3dc3ebf1c7f7ee5343932",
+    "log": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.log",
+    "logSHA256": "b0b2cbf1be5e61597632e7b7056356e74a3bdcb0db8bc0dad8e0edec874b8f74",
+    "runId": 41777804549,
+    "all14RequiredCommandsPass": true
+  },
+  "currentBrowserAcceptance": {
+    "kind": "local synthetic diagnostic, not feature approval",
+    "results": [
+      {
+        "name": "Owner board with actual session and API",
+        "status": "observed",
+        "firstCardVisible": true,
+        "finalSeededCardVisible": 0,
+        "loadMoreControls": 1
+      },
+      {
+        "name": "Column continuation loads the previously off-page 24th card",
+        "status": "pass"
+      },
+      {
+        "name": "Server title search reaches a card beyond the initial page",
+        "status": "pass"
+      },
+      {
+        "name": "Unsent quick-add title and chosen priority survive column filter unmount without POST",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail dialog opens",
+        "status": "observed",
+        "dialogs": 1,
+        "assignControls": 1
+      },
+      {
+        "name": "Owner self-assignment/priority/date Save reaches real PostgreSQL",
+        "status": "pass"
+      },
+      {
+        "name": "Comment committed response loss then original-key retry has one effect",
+        "status": "pass"
+      },
+      {
+        "name": "Author edits own comment through real API",
+        "status": "pass"
+      },
+      {
+        "name": "Drawer portal makes background inert and keeps keyboard focus inside",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail fits a360px viewport without its own horizontal overflow",
+        "status": "pass"
+      },
+      {
+        "name": "Click Move and dedicated Undo restore the actual original populated column",
+        "status": "pass"
+      },
+      {
+        "name": "Native Back/Forward restores the unsent workspace draft with no database write; explicit Discard clears it",
+        "status": "pass"
+      },
+      {
+        "name": "owner: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "manager: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "member: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      },
+      {
+        "name": "viewer: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      }
+    ],
+    "blockedExternalOrigins": [],
+    "browser": "156.0.8078.4",
+    "runStatus": "passed"
+  },
+  "decision": "Current local acceptance: applicable current Linux tests/browser flows plus byte-identical per-ID UI implementation and new independently approved backend. Original extra product/expiry/layout probes retain their historical dates/environments and are not represented as newly executed.",
+  "limits": [
+    "No real provider, deployed storage/Hyperdrive, real timer, Claude client or production acceptance implied.",
+    "Current browser diagnostic is 14 pass + 2 observations, not exhaustive browser acceptance; retained extra historical probes apply only through verified byte continuity."
+  ],
+  "recordedAt": "2026-11-04T05:41:23.701536+00:00"
+}

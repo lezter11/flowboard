@@ -1,0 +1,28 @@
+{
+  "status": "verified",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewSHA256": "bfd88de2ff0d0a635d2dbf022dc45dac7bd95bdb9391bce9350734ed14edc189",
+  "summary": "DEL-01 local UI verified with actual Chrome Owner/Manager Cancel/confirm/delete/Trash and Member/Viewer denial; SQL86400second cutoff and one activity/receipt checked. Hosted acceptance pending.",
+  "limitations": [
+    "Synthetic local checks only; actual OAuth/provider/deployed runtime remains UAT pending.",
+    "UI source assertions/helper tests complement actual browser flows; no claim of exhaustive browser/device coverage.",
+    "Zoom proof is CSS200percent and720CSSpx reflow; native Chrome menu zoom was not applied."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/DEL-01.json",
+      "sha256": "3ea63525431a1f66dea520e2c0390f099f305a15fb9352ad109b385db8d804a5",
+      "command": "Read current per-ID source/tests and independently executed npm test --workspace @flowboard/web plus attributed Chrome evidence",
+      "result": "verified within local scope; actual four-role Chrome and SQL proof in per-ID audit",
+      "environment": "Node24/PostgreSQL17/actual Chrome synthetic local; browser execution attributed to original executors."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/delete-probe/result.json",
+      "sha256": "e4d94424aaf625787d77f45d8efc4a2d82bf8418a257b3cc8309e7bca5758002",
+      "command": "node docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/delete-probe.mjs",
+      "result": "exit0; all4role flows pass;639source hashes unchanged before/after; no external page origins attempted",
+      "environment": "NODE_ENV=test; sanitized temporary HOME; six explicit synthetic loopback databases on55931; temporary Chrome profile; network allowlist localhost only"
+    }
+  ]
+}

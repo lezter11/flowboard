@@ -1,0 +1,58 @@
+{
+  "completedAt": "2026-11-04T07:28:01.499608+00:00",
+  "candidateCommit": "d1c81f42fe306c352c9cb10f04883e251ead58bd",
+  "workerVersionId": "21d3c2d8-2955-4aab-9765-5db6ad568d2e",
+  "pagesDeploymentId": "4dbcd83f-b562-4fc5-bbac-2e6f40bee529",
+  "requests": [
+    {
+      "name": "worker-live",
+      "url": "https://flowboard-api-uat.web-app-cloud.workers.dev/health/live",
+      "commandExit": 0,
+      "httpStatus": 200,
+      "expectedStatus": 200,
+      "pass": true,
+      "stderrBytes": 0,
+      "responseBytes": 24
+    },
+    {
+      "name": "worker-ready",
+      "url": "https://flowboard-api-uat.web-app-cloud.workers.dev/health/ready",
+      "commandExit": 0,
+      "httpStatus": 200,
+      "expectedStatus": 200,
+      "pass": true,
+      "stderrBytes": 0,
+      "responseBytes": 27
+    },
+    {
+      "name": "pages-index",
+      "url": "https://flowboard-app-uat.pages.dev/",
+      "commandExit": 0,
+      "httpStatus": 302,
+      "expectedStatus": 200,
+      "pass": false,
+      "stderrBytes": 0,
+      "responseBytes": 0,
+      "servedHtmlSha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "preparedHtmlSha256": "a089be288486a13d119759478e4012803c579601a1b942f55f0a26420755cd81",
+      "servedHtmlMatchesPrepared": false
+    },
+    {
+      "name": "pages-protected-projects",
+      "url": "https://flowboard-app-uat.pages.dev/api/v1/projects",
+      "commandExit": 0,
+      "httpStatus": 401,
+      "expectedStatus": 401,
+      "pass": true,
+      "stderrBytes": 0,
+      "responseBytes": 139
+    }
+  ],
+  "totalGetRequests": 4,
+  "cookiesOrTokensSent": false,
+  "redirectsFollowed": false,
+  "oauthEndpointsRequested": false,
+  "responseHeadersPersisted": false,
+  "signedInAcceptance": "not-run",
+  "allPass": false
+}

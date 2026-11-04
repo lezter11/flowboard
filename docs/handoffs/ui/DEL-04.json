@@ -2,8 +2,8 @@
   "status": "verified",
   "verificationScope": "local",
   "hostedAcceptance": "pending",
-  "backendReviewSHA256": "bfd88de2ff0d0a635d2dbf022dc45dac7bd95bdb9391bce9350734ed14edc189",
-  "summary": "DEL-04 Restore destination conflict: local UI evidence bound to current backend approval and per-ID source/tests. Hosted acceptance pending.",
+  "backendReviewSHA256": "2efa9b080ab305755b0087d4b2a3cab817050265ed6af68ad0637ab3f9745d87",
+  "summary": "DEL-04: current local UI acceptance via source continuity, fresh Linux UI/browser checks and current backend approval; UAT pending.",
   "limitations": [
     "Synthetic local checks only; actual OAuth/provider/deployed runtime remains UAT pending.",
     "UI source assertions/helper tests complement actual browser flows; no claim of exhaustive browser/device coverage.",
@@ -11,11 +11,11 @@
   ],
   "evidence": [
     {
-      "path": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/DEL-04.json",
-      "sha256": "3f9d3a1cab3ab7a3106e6b36b2f610b0e66803e8994bab1ea9c516e18c94f80b",
-      "command": "Read current per-ID source/tests and independently executed npm test --workspace @flowboard/web plus attributed Chrome evidence",
-      "result": "verified within local scope; see per-ID proof/limitations",
-      "environment": "Node24/PostgreSQL17/actual Chrome synthetic local; browser execution attributed to original executors."
+      "path": "docs/reviews/FULL-REVALIDATION-20261104/owner-phase-revalidation/DEL-04.json",
+      "sha256": "79d47b9166bfad5f313024163bb178752ac0e8b49923fec80e3993bac1aaa575",
+      "command": "python3 docs/reviews/FULL-REVALIDATION-20261104/owner-phase-revalidation/revalidate.py",
+      "result": "Per-ID source/tests, current backend, current Linux UI/browser evidence and historical extra-probe applicability checked.",
+      "environment": "Current Linux CI synthetic PostgreSQL/Node/workerd/Chromium; older extra probes explicitly attributed to their original executors and dates."
     }
   ]
 }

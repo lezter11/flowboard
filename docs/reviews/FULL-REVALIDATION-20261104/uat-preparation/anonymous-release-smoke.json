@@ -1,0 +1,64 @@
+{
+  "completedAt": "2026-11-04T07:28:01.499608+00:00",
+  "candidateCommit": "d1c81f42fe306c352c9cb10f04883e251ead58bd",
+  "workerVersionId": "21d3c2d8-2955-4aab-9765-5db6ad568d2e",
+  "pagesDeploymentId": "4dbcd83f-b562-4fc5-bbac-2e6f40bee529",
+  "requests": [
+    {
+      "name": "worker-live",
+      "url": "https://flowboard-api-uat.web-app-cloud.workers.dev/health/live",
+      "commandExit": 0,
+      "httpStatus": 200,
+      "expectedStatus": 200,
+      "pass": true,
+      "stderrBytes": 0,
+      "responseBytes": 24
+    },
+    {
+      "name": "worker-ready",
+      "url": "https://flowboard-api-uat.web-app-cloud.workers.dev/health/ready",
+      "commandExit": 0,
+      "httpStatus": 200,
+      "expectedStatus": 200,
+      "pass": true,
+      "stderrBytes": 0,
+      "responseBytes": 27
+    },
+    {
+      "name": "pages-signedout-root-redirect",
+      "url": "https://flowboard-app-uat.pages.dev/",
+      "commandExit": 0,
+      "httpStatus": 302,
+      "expectedStatus": 302,
+      "pass": true,
+      "stderrBytes": 0,
+      "responseBytes": 0,
+      "initialExpectedStatus": 200,
+      "initialExpectationWasIncorrect": true,
+      "interpretation": "Prepared Pages middleware redirects signed-out root requests with302 before serving HTML. This response does not establish index HTML byte delivery."
+    },
+    {
+      "name": "pages-protected-projects",
+      "url": "https://flowboard-app-uat.pages.dev/api/v1/projects",
+      "commandExit": 0,
+      "httpStatus": 401,
+      "expectedStatus": 401,
+      "pass": true,
+      "stderrBytes": 0,
+      "responseBytes": 139
+    }
+  ],
+  "totalGetRequests": 4,
+  "cookiesOrTokensSent": false,
+  "redirectsFollowed": false,
+  "oauthEndpointsRequested": false,
+  "responseHeadersPersisted": false,
+  "signedInAcceptance": "not-run",
+  "allPass": true,
+  "expectationCorrection": {
+    "initialRecord": "anonymous-release-smoke-initial-expectation.json",
+    "reason": "The root route is protected by the reviewed Pages middleware and deliberately redirects signed-out visitors. Corrected expected response to302 using source, without further hosted requests.",
+    "source": "/private/tmp/flowboard-pages-uat-d1c81f4/functions/_middleware.ts",
+    "sourceSha256": "0ddfcacd18f18d3aba4041662eee9eaf5d5abd9957f46219a783dad237887b56"
+  }
+}

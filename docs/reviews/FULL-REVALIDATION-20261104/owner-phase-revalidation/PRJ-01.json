@@ -1,0 +1,208 @@
+{
+  "featureId": "PRJ-01",
+  "acceptance": "Owner creates named projects inside their workspace; each has independent membership and boards.",
+  "candidateCommit": "d1c81f42fe306c352c9cb10f04883e251ead58bd",
+  "actor": "/root Architect coordinating Backend/UI/integration acceptance",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewPath": "docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/projects-access-invitations-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json",
+  "backendReviewSHA256": "8b284cb332d7767504bf5be83d2fe994d21c989a776bddf858ec0fd60700e46c",
+  "uiRequired": true,
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/app/import/page.tsx",
+      "sha256": "7c4c90e419cef3d68605b376c01e10c347fd75bc18e02e15376bdfc392863041",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/app/settings/page.tsx",
+      "sha256": "06c237acafc2cdf12c12f21f8f96737336844ff0cf631266fe083ba81486e2fe",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/board/columns-dialog.tsx",
+      "sha256": "bfe974337c381c61bb39c6ad629b796f57333495adf582de8472c5da32232a02",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/navigation-guard.tsx",
+      "sha256": "a320d4c4e694b0263f43bd6b8e62958a6c96be38766c4c54f86df7255491e680",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/project/brief-card.tsx",
+      "sha256": "df5704f6de6c3565a7ff90041aeedfee0653fe923d06f860fddfd744e67a05d0",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/project/new-project-dialog.tsx",
+      "sha256": "dac72506cf84974db917b0755c7d50b372c458b72f727e59d5c1a97e04dc2467",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/ui/edit-board-dialog.tsx",
+      "sha256": "e05f0b0bde484f6430f168725b550c45e9a81b668f5e00c5ed2f53d0a10822b6",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/components/ui/new-board-dialog.tsx",
+      "sha256": "98e637ae501a9fda2f118b248ba5da2a256efbeca1ee8f5d1bec8d4d565f527f",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "sha256": "7e1c95273648826d6e79ed6323c1c949e2bb48daec0439fabaf85a8def61393d",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/error-catalogue.ts",
+      "sha256": "13e567a5954206f4fe0e984538f37b05f31bf43806f5fcb2be31f321b89184de",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/memory-drafts.ts",
+      "sha256": "94fac036f5e06006b04c3b9b1395e983fcc4936868681115cd9f88f3df860d38",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/project-groups.ts",
+      "sha256": "aae1955350b2aa8a27fe90e8f60386426b877d450b7698dc6d9fb90cedaed832",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/quota-messages.ts",
+      "sha256": "9a181174032481728fb1f785d51b7b58da004388559196e471e1cc8d94a8868d",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/src/lib/use-memory-draft.ts",
+      "sha256": "b57ccf72a9a4e9640a8622cb5dff7989085daa544c61416d9fdab7b6ac6d964f",
+      "testNames": []
+    },
+    {
+      "path": "apps/web/test/memory-drafts.test.ts",
+      "sha256": "ea4e7e94ab7a19527bd74c17a6a57716e92e6ebce39f46919c0ad8eb8a4f47d6",
+      "testNames": [
+        "settings/board/column values and baseline refs survive query cache clearing and route recreation",
+        "actual selected File blob stays only in actor/target memory and retains exact workbook bytes",
+        "stored draft warning remains after subscribers unmount until explicit discard/save clears it"
+      ]
+    },
+    {
+      "path": "apps/web/test/quota-messages.test.ts",
+      "sha256": "6a2fc87a3cc9580aef2d0d98982d10a490278fd6be8ca5ed7df92be18e45fe9f",
+      "testNames": [
+        "owned-project cap: calm advice with the archive way out, the limit named, no workspace",
+        "a Manager at the board cap sees the limit but never the hidden count, and is told whom to ask",
+        "an Owner at the board cap gets the way out",
+        "member and invitation caps: Owner and Manager get a way out, others are told to ask",
+        "unknown future scopes and the remedy ",
+        "non-quota failures and malformed details are not quota advice",
+        "429 wait: seconds, minutes, and no number when the server gave none",
+        "Yours and Shared with you use isOwned, and fall back to the role",
+        "usage comes from session.limits only",
+        "friendly sentences for the new server refusals"
+      ]
+    }
+  ],
+  "sourceComparison": "Every per-ID source/test SHA matches the prior accepted UI inventory; global web/contracts/browser harness has zero Git diff from c1 to candidate.",
+  "originalPerIdEvidence": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/PRJ-01.json",
+    "sha256": "f9fb45a7dd35eb41f12c66bf8cf0b7585724dd5b2be5640167a5d301cf3dbe36"
+  },
+  "currentCI": {
+    "metadata": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.json",
+    "metadataSHA256": "430254a66152bdf2726a92e44aafd377313f127b71f3dc3ebf1c7f7ee5343932",
+    "log": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.log",
+    "logSHA256": "b0b2cbf1be5e61597632e7b7056356e74a3bdcb0db8bc0dad8e0edec874b8f74",
+    "runId": 41777804549,
+    "all14RequiredCommandsPass": true
+  },
+  "currentBrowserAcceptance": {
+    "kind": "local synthetic diagnostic, not feature approval",
+    "results": [
+      {
+        "name": "Owner board with actual session and API",
+        "status": "observed",
+        "firstCardVisible": true,
+        "finalSeededCardVisible": 0,
+        "loadMoreControls": 1
+      },
+      {
+        "name": "Column continuation loads the previously off-page 24th card",
+        "status": "pass"
+      },
+      {
+        "name": "Server title search reaches a card beyond the initial page",
+        "status": "pass"
+      },
+      {
+        "name": "Unsent quick-add title and chosen priority survive column filter unmount without POST",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail dialog opens",
+        "status": "observed",
+        "dialogs": 1,
+        "assignControls": 1
+      },
+      {
+        "name": "Owner self-assignment/priority/date Save reaches real PostgreSQL",
+        "status": "pass"
+      },
+      {
+        "name": "Comment committed response loss then original-key retry has one effect",
+        "status": "pass"
+      },
+      {
+        "name": "Author edits own comment through real API",
+        "status": "pass"
+      },
+      {
+        "name": "Drawer portal makes background inert and keeps keyboard focus inside",
+        "status": "pass"
+      },
+      {
+        "name": "Card detail fits a360px viewport without its own horizontal overflow",
+        "status": "pass"
+      },
+      {
+        "name": "Click Move and dedicated Undo restore the actual original populated column",
+        "status": "pass"
+      },
+      {
+        "name": "Native Back/Forward restores the unsent workspace draft with no database write; explicit Discard clears it",
+        "status": "pass"
+      },
+      {
+        "name": "owner: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "manager: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 1
+      },
+      {
+        "name": "member: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      },
+      {
+        "name": "viewer: People directory rule and permitted board access",
+        "status": "pass",
+        "directoryRequests": 0
+      }
+    ],
+    "blockedExternalOrigins": [],
+    "browser": "156.0.8078.4",
+    "runStatus": "passed"
+  },
+  "decision": "Current local acceptance: applicable current Linux tests/browser flows plus byte-identical per-ID UI implementation and new independently approved backend. Original extra product/expiry/layout probes retain their historical dates/environments and are not represented as newly executed.",
+  "limits": [
+    "No real provider, deployed storage/Hyperdrive, real timer, Claude client or production acceptance implied.",
+    "Current browser diagnostic is 14 pass + 2 observations, not exhaustive browser acceptance; retained extra historical probes apply only through verified byte continuity."
+  ],
+  "recordedAt": "2026-11-04T05:41:23.695387+00:00"
+}

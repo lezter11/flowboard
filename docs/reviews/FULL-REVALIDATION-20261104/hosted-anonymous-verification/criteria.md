@@ -1,0 +1,13 @@
+# Independent hosted anonymous UAT smoke criteria
+
+Actor: collaboration:/root/urgent_independent_import_review. Builder/deployer: collaboration:/root/urgent_release_artifacts. Scope is independent observation after the deployer confirms live deployment IDs for exact source d1c81f42fe306c352c9cb10f04883e251ead58bd. Preparation is not permission to probe old deployment bytes.
+
+- Send at most20total explicit HTTP GET requests, without redirects, retries, cookies, Authorization, credentials, tokens, writes, account creation or domain mutations.
+- Only canonical https://flowboard-app-uat.pages.dev and the exact UAT Worker default domain explicitly confirmed by the deployer are allowed. Never follow links to Google, production, other Pages preview hosts, storage, Neon or external sites.
+- Inspect source routing/proxy/header files first. Pages root should redirect302to/signin with no-store. Static/signin should serve200and declared static security headers. One static asset should serve200with immutable cache. Protected API/session/token administration/import routes should deny401with no-store and no data. Administrative status should deny403with no-store. Protected page navigation should preserve only a safe next route.
+- Actual health routes are /health/live and /health/ready on the Worker. They are not /api/v1/health and Pages has no /health proxy. If no Worker default domain is configured, omit direct health checks and declare that coverage gap.
+- Record exact attempt count, UTC times, URL/status, selected safe headers, public/error body hash and safe error codes; never persist unexpected protected-success bodies or Set-Cookie values. Cap response reads and wall time.
+- Bind deployer-confirmed Worker/Pages IDs, source/artifact manifests and any available existing Cloudflare deployment metadata. Anonymous HTTP cannot by itself prove deployed source SHA, authorization with a valid identity, real providers, private storage durability, scheduler execution, MCP client behavior or complete UAT acceptance.
+- Surface actionable mismatches without expanding into authenticated or mutation probes. Preserve failure exits; do not relabel incomplete/network-blocked as success. No source edits or release changes.
+
+Source trace: apps/web/functions/_middleware.ts routes anonymous pages; apps/web/functions/api/[[path]].ts forwards same-origin requests using API service binding, manual redirects and no-store; apps/web/public/_headers sets static security headers/immutable assets; apps/api/src/http/app.ts mounts /health/live and /health/ready plus /api/v1routes; tokens.ts/system.ts/auth.ts enforce credential/admin boundaries. Static _headers are not assumed to apply automatically to Function-generated redirects or JSON.

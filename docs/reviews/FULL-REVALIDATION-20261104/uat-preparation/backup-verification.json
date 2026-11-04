@@ -1,0 +1,47 @@
+{
+  "kind": "post-backup verification and bounded retry history",
+  "verifiedAt": "2026-11-04T05:30:58.258360+00:00",
+  "checks": {
+    "directory0700": true,
+    "archive0600": true,
+    "key0600": true,
+    "manifest0600": true,
+    "encryptedFileHashMatches": true,
+    "exactUATProject": true,
+    "exactUATBranch": true,
+    "readOnlyTransaction": true,
+    "nineteenMigrationRows": true
+  },
+  "attempts": [
+    {
+      "attempt": 1,
+      "report": "encrypted-backup-attempt1.json",
+      "result": "fail",
+      "safeErrorClass": "Error",
+      "childExit": 1
+    },
+    {
+      "attempt": 2,
+      "report": "encrypted-backup-attempt2.json",
+      "result": "fail",
+      "stage": "pg-dump",
+      "safeErrorClass": "Error",
+      "childExit": null,
+      "limit": "Timeout consistent with empty stderr and null child status; exact cause unconfirmed."
+    },
+    {
+      "attempt": 3,
+      "report": "encrypted-backup.json",
+      "result": "pass",
+      "processExit": 0,
+      "changes": "PGCONNECT_TIMEOUT=10; pg_dump --no-password --lock-wait-timeout=10000; backup format/encryption/verification unchanged."
+    }
+  ],
+  "scriptSha256": "aa9ae6626b5960ee87a434d15f8baf155d8005630542069b14691ace97030490",
+  "scriptPath": "/private/tmp/flowboard-uat-encrypted-backup-d1c81f4-bounded.mjs",
+  "ledgerRetryScriptSha256": "78e110cf8f2de9bf788af92b364a185c64202cc86aee2a1e42da235f19800c5a",
+  "actualDatabaseRestoreExecuted": false,
+  "schemaMigrationsPerformed": false,
+  "cloudDeploymentPerformed": false,
+  "productionTouched": false
+}

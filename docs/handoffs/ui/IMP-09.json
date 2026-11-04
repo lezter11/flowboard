@@ -2,8 +2,8 @@
   "status": "verified",
   "verificationScope": "local",
   "hostedAcceptance": "pending",
-  "backendReviewSHA256": "431064e2358c0da83d7e496a027af84eadfe0beaae41e401aabeaff027918641",
-  "summary": "IMP-09 Results and safe error download: local UI evidence bound to current backend approval and per-ID source/tests. Hosted acceptance pending.",
+  "backendReviewSHA256": "226ad78a4ebd68722c0157a4d246798fc78d3d1cedc708fa29585e8726eae361",
+  "summary": "IMP-09: current local UI acceptance via source continuity, fresh Linux UI/browser checks and current backend approval; UAT pending.",
   "limitations": [
     "Synthetic local checks only; actual OAuth/provider/deployed runtime remains UAT pending.",
     "UI source assertions/helper tests complement actual browser flows; no claim of exhaustive browser/device coverage.",
@@ -11,11 +11,11 @@
   ],
   "evidence": [
     {
-      "path": "docs/reviews/FULL-REVALIDATION-20261103/local-handoff-bindings/IMP-09.json",
-      "sha256": "b477a41e60fa318f0de401cf4310525544f19aa0c77de8f546f22297fb3d666c",
-      "command": "Read current per-ID source/tests and independently executed npm test --workspace @flowboard/web plus attributed Chrome evidence",
-      "result": "verified within local scope; see per-ID proof/limitations",
-      "environment": "Node24/PostgreSQL17/actual Chrome synthetic local; browser execution attributed to original executors."
+      "path": "docs/reviews/FULL-REVALIDATION-20261104/owner-phase-revalidation/IMP-09.json",
+      "sha256": "b69d22980ff8604d2a495e9f81163f662fb0315a098f726d522f71b31de5c4c5",
+      "command": "python3 docs/reviews/FULL-REVALIDATION-20261104/owner-phase-revalidation/revalidate.py",
+      "result": "Per-ID source/tests, current backend, current Linux UI/browser evidence and historical extra-probe applicability checked.",
+      "environment": "Current Linux CI synthetic PostgreSQL/Node/workerd/Chromium; older extra probes explicitly attributed to their original executors and dates."
     }
   ]
 }
