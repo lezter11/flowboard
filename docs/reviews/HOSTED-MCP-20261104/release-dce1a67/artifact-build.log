@@ -1,0 +1,149 @@
+
+> deps:apply
+> node apps/api/scripts/dependency-patches.mjs --apply
+
+{"package":"fast-xml-parser","version":"5.11.2","files":[{"path":"src/validator.js","sha256":"bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8"},{"path":"src/xmlparser/OrderedObjParser.js","sha256":"72f43cb7527e0575d3ae5024efd64c184bc31f93a2c1cafc7f62b7cc3b77f9f0"}],"changedFiles":["src/validator.js","src/xmlparser/OrderedObjParser.js"]}
+
+> deps:verify
+> node apps/api/scripts/dependency-patches.mjs --verify
+
+{"package":"fast-xml-parser","version":"5.11.2","files":[{"path":"src/validator.js","sha256":"bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8"},{"path":"src/xmlparser/OrderedObjParser.js","sha256":"72f43cb7527e0575d3ae5024efd64c184bc31f93a2c1cafc7f62b7cc3b77f9f0"}],"changedFiles":[]}
+
+> @flowboard/mcp@0.2.0 build
+> tsc -p tsconfig.json && node scripts/finalize-build.mjs
+
+
+> prebuild
+> node scripts/dependency-patches.mjs --verify && npm run build --workspace @flowboard/mcp
+
+{"package":"fast-xml-parser","version":"5.11.2","files":[{"path":"src/validator.js","sha256":"bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8"},{"path":"src/xmlparser/OrderedObjParser.js","sha256":"72f43cb7527e0575d3ae5024efd64c184bc31f93a2c1cafc7f62b7cc3b77f9f0"}],"changedFiles":[]}
+
+> @flowboard/mcp@0.2.0 build
+> tsc -p tsconfig.json && node scripts/finalize-build.mjs
+
+
+> build
+> tsc -p tsconfig.build.json && npm run build:worker
+
+
+> build:worker
+> node scripts/dependency-patches.mjs --verify && WRANGLER_SEND_METRICS=false wrangler deploy --dry-run --outdir dist/worker && node scripts/dependency-patches.mjs --verify-worker dist/worker/worker.js.map
+
+{"package":"fast-xml-parser","version":"5.11.2","files":[{"path":"src/validator.js","sha256":"bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8"},{"path":"src/xmlparser/OrderedObjParser.js","sha256":"72f43cb7527e0575d3ae5024efd64c184bc31f93a2c1cafc7f62b7cc3b77f9f0"}],"changedFiles":[]}
+
+ ⛅️ wrangler 4.156.2
+────────────────────
+[33m▲ [43;33m[[43;30mWARNING[43;33m][0m [1mMultiple environments are defined in the Wrangler configuration file, but no target environment was specified for the deploy command.[0m
+
+  To avoid unintentional changes to the wrong environment, it is recommended to explicitly specify the target environment using the `-e|--env` flag or CLOUDFLARE_ENV env variable.
+  If your intention is to use the top-level environment of your configuration simply pass an empty string to the flag to target such environment. For example `--env=""`.
+
+
+Total Upload: 2809.31 KiB / gzip: 539.29 KiB
+Your Worker has access to the following bindings:
+Binding                                                                   Resource
+env.HYPERDRIVE (18f56141ecef4b7cb07ecd42c90b155f)                         Hyperdrive Config
+env.IMAGES (flowboard-images-prod)                                        R2 Bucket
+env.FB_RL_WRITES (60 requests/60s)                                        Rate Limit
+env.FRONTEND_URL ("https://flowboard-app.pages.dev")                      Environment Variable
+env.CORS_ORIGIN ("https://flowboard-app.pages.dev")                       Environment Variable
+env.GOOGLE_REDIRECT_URI ("https://flowboard-app.pages.dev/api/v...")      Environment Variable
+env.APP_ORIGIN ("https://flowboard-app.pages.dev")                        Environment Variable
+env.MAIL_FROM_NAME ("Flowboard")                                          Environment Variable
+env.MAIL_FROM_EMAIL ("[redacted configured sender]")                         Environment Variable
+
+--dry-run: exiting now.
+{"package":"fast-xml-parser","version":"5.11.2","files":[{"path":"src/validator.js","sha256":"bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8"},{"path":"src/xmlparser/OrderedObjParser.js","sha256":"72f43cb7527e0575d3ae5024efd64c184bc31f93a2c1cafc7f62b7cc3b77f9f0"}],"changedFiles":[],"workerSourceMapVerified":true}
+
+ ⛅️ wrangler 4.156.2 (update available 4.157.0)
+───────────────────────────────────────────────
+Total Upload: 2809.31 KiB / gzip: 539.29 KiB
+Your Worker has access to the following bindings:
+Binding                                                                   Resource
+env.HYPERDRIVE (7a1e3a69f51e41b1a8c46e0be263b814)                         Hyperdrive Config
+env.IMAGES (flowboard-images-uat)                                         R2 Bucket
+env.IMAGE_VERIFIER                                                        Images
+env.FB_RL_WRITES (60 requests/60s)                                        Rate Limit
+env.FRONTEND_URL ("https://flowboard-app-uat.pages.dev")                  Environment Variable
+env.CORS_ORIGIN ("https://flowboard-app-uat.pages.dev")                   Environment Variable
+env.GOOGLE_REDIRECT_URI ("https://flowboard-app-uat.pages.dev/a...")      Environment Variable
+env.APP_ORIGIN ("https://flowboard-app-uat.pages.dev")                    Environment Variable
+env.MAIL_FROM_NAME ("Flowboard")                                          Environment Variable
+env.MAIL_FROM_EMAIL ("[redacted configured sender]")                         Environment Variable
+
+--dry-run: exiting now.
+{"package":"fast-xml-parser","version":"5.11.2","files":[{"path":"src/validator.js","sha256":"bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8"},{"path":"src/xmlparser/OrderedObjParser.js","sha256":"72f43cb7527e0575d3ae5024efd64c184bc31f93a2c1cafc7f62b7cc3b77f9f0"}],"changedFiles":[],"workerSourceMapVerified":true}
+
+> build:web
+> npm run deps:verify && npm run build --workspace @flowboard/web
+
+
+> deps:verify
+> node apps/api/scripts/dependency-patches.mjs --verify
+
+{"package":"fast-xml-parser","version":"5.11.2","files":[{"path":"src/validator.js","sha256":"bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8"},{"path":"src/xmlparser/OrderedObjParser.js","sha256":"72f43cb7527e0575d3ae5024efd64c184bc31f93a2c1cafc7f62b7cc3b77f9f0"}],"changedFiles":[]}
+
+> @flowboard/web@0.1.0 build
+> next build
+
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+   ▲ Next.js 15.5.28
+
+   Creating an optimized production build ...
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ⚠ Specified "rewrites" will not automatically work with "output: export". See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+ ✓ Compiled successfully in 4.1s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/20) ...
+   Generating static pages (5/20)
+   Generating static pages (10/20)
+   Generating static pages (15/20)
+ ✓ Generating static pages (20/20)
+   Finalizing page optimization ...
+   Collecting build traces ...
+ ⚠ rewrites, redirects, and headers are not applied when exporting your application, detected (rewrites). See more info here: https://nextjs.org/docs/messages/export-no-custom-routes
+   Exporting (0/2) ...
+ ✓ Exporting (2/2)
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    2.21 kB         129 kB
+├ ○ /_not-found                            994 B         104 kB
+├ ○ /activity                            7.98 kB         142 kB
+├ ○ /add-card                            8.91 kB         139 kB
+├ ○ /all-work                             1.6 kB         108 kB
+├ ○ /board                               40.2 kB         248 kB
+├ ○ /connect                             6.36 kB         173 kB
+├ ○ /import                              11.1 kB         150 kB
+├ ○ /inbox                               6.28 kB         142 kB
+├ ○ /invitation                            143 B         173 kB
+├ ○ /invitations/accept                    142 B         173 kB
+├ ○ /my-tasks                            5.11 kB         139 kB
+├ ○ /people                              4.25 kB         190 kB
+├ ○ /project                             10.9 kB         234 kB
+├ ○ /projects                              11 kB         185 kB
+├ ○ /settings                            14.5 kB         196 kB
+├ ○ /signin                              11.6 kB         130 kB
+└ ○ /trash                               7.62 kB         147 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/18-27a09157fd457161.js          47 kB
+  ├ chunks/87c73c54-09e1ba5c70e60a51.js  54.2 kB
+  └ other shared chunks (total)             2 kB
+
+
+○  (Static)  prerendered as static content
+
+stage-pages-functions: staged 11 file(s) into /private/tmp/flowboard-hosted-pages-dce1a67
+  functions/.well-known/oauth-authorization-server.ts
+  functions/.well-known/oauth-protected-resource.ts
+  functions/.well-known/oauth-protected-resource/api/v1/mcp.ts
+  functions/_middleware.ts
+  functions/api/[[path]].ts
+  functions/boards/[id].ts
+  functions/projects/[id].ts
+  src/lib/hosted-mcp-state.ts
+  src/lib/landing-rule.ts
+  src/lib/pages-api-proxy.ts
+  src/lib/return-path.ts
+{"status":"prepared-not-deployed","sourceCommit":"dce1a67dedb1de8f5f7aae9b99fcbcb2b875d105","pagesStage":"/private/tmp/flowboard-hosted-pages-dce1a67","workerFiles":3,"pagesFiles":157,"workerDigest":"7b197362165e3a561b7ad48c9e991f9f843a645f52c56a7aa7e526fb1e93fa5f","pagesDigest":"06ce642f9f4a1189de61d3fe4eb327dbfbb850ff7ed408b2372b6aa7827390c2"}

@@ -1,6 +1,8 @@
 # Flowboard UAT testing
 
-Current application candidate: `d1c81f42fe306c352c9cb10f04883e251ead58bd`. Linux CI run [41777804549](https://github.com/lezter11/flowboard/actions/runs/41777804549) passed all required commands. All98 Backend,74 required UI and98 local integration approvals apply to the current functional source. **Hosted acceptance must be recorded separately.** Deployment status and exact IDs: [release checkpoint](reviews/FULL-REVALIDATION-20261104/RELEASE-STATUS.json). Until that checkpoint confirms both uploads and smoke checks, this is a prepared test guide.
+Current deployed application: **dce1a67dedb1de8f5f7aae9b99fcbcb2b875d105**. [Required CI41877634812](https://github.com/lezter11/flowboard/actions/runs/41877634812) passes all 22 steps, including API1,926/1,926 and hosted browser24. Current independent review **8.955** and 98 Backend / 74 UI / 98 local Integration handoffs are source-bound; retained executions keep their original provenance. UAT migration0027, exact Worker bytes, Pages source/binding and final anonymous smoke15/15 plus health2/2 are verified. [Release evidence](reviews/HOSTED-MCP-20261104/release-dce1a67/SUMMARY.md). **Real signed-in/provider acceptance remains separate and pending.**
+
+For colleagues, use [the hosted Claude quickstart](HOSTED_MCP_QUICKSTART.md): browser Google sign-in and project approval, with no Terminal or copied token.
 
 ## Quick product test after deployment
 
@@ -15,7 +17,7 @@ Open [Flowboard UAT](https://flowboard-app-uat.pages.dev), refresh the page, and
 
 Use Owner/Project Manager for administration; Members/Viewers must not see the full People directory. A non-Owner needs project membership plus an explicit board grant. Owner inheritance is not a useful actor for testing grant removal.
 
-## MCP from Claude Desktop
+## Optional developer alternative: local stdio MCP
 
 For first-time setup on this Mac, use the shorter [four-step quickstart](MCP_QUICKSTART.md). The longer checklist below covers acceptance and failure cases after connection.
 
@@ -30,7 +32,7 @@ This is a **local stdio MCP server**, not a remote connector URL. Claude starts 
 7. Repeat identical input with the same credential/operationID: expect the same card ID, not another card. Change the title with the same ID: expect `IDEMPOTENCY_CONFLICT`. Resolve uncertain creates before credential rotation; receipts last seven days within one credential namespace.
 8. Verify wrong-project, missing-scope, removed board/project grant and revoked-token denial using disposable non-Owner actors. Use the complete guide for the full refusal/rotation matrix.
 
-Current tools discover projects, boards and columns, search cards and create cards. Existing-card MCP updates, remote HTTP MCP and company client-credentials installations are future scope. A fleet company’s permanent compliance-incident deduplication needs a durable external-issue API, not seven-day retry receipts.
+Current tools discover projects, boards and columns, search cards and create cards. Existing-card MCP updates and company client-credentials installations remain future scope. The new hosted HTTP connector is deployed; use the hosted quickstart above for it. A fleet company’s permanent compliance-incident deduplication needs a durable external-issue API, not seven-day retry receipts.
 
 ## Record actual acceptance
 

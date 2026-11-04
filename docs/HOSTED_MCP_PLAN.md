@@ -146,8 +146,8 @@ Update the checkbox list below after each actual milestone. Each status report s
 - [x] HMCP-04: Architect adds private request-capability dispatcher, app/auth/card/provenance integration and mounted identity/refusal/concurrency tests. Verify single-pool workerd behavior; no live DB for probes.
 - [x] HMCP-05: Freeze backend/transport slices and obtain fresh independent acceptance under BACKEND_REVIEW_GATE; preserve failures and record exact required checks, source/evidence and category scores. Only verified shared APIs can be handed to UI.
 - [x] HMCP-06: UI builder implements /connect and personal Connections, safe-next/Google resume, exact well-known proxy and all-role navigation; actual browser happy/deny/expired/revoke/role checks with synthetic actors.
-- [ ] HMCP-07: Full local/CI and fresh whole-feature independent review; revalidate changed/shared existing functionality, generate truthful checklist evidence and record any hosted-only pending cases. No self-ratings or blind old record cloning.
-- [ ] HMCP-08: Clean named candidate artifacts; reverify UAT identities, fresh approved encrypted backup and missing reviewed migration0027 only; deploy UAT Worker/Pages with rollback IDs and explicit user progress update. Never bare production deployment.
+- [x] HMCP-07: Full local/CI and fresh whole-feature independent review; revalidate changed/shared existing functionality, generate truthful checklist evidence and record any hosted-only pending cases. No self-ratings or blind old record cloning.
+- [x] HMCP-08: Clean named candidate artifacts; reverify UAT identities, fresh approved encrypted backup and missing reviewed migration0027 only; deploy UAT Worker/Pages with rollback IDs and explicit user progress update. Never bare production deployment.
 - [ ] HMCP-09: Hosted discovery/401/metadata/protocol smoke plus actual browser Google/consent/Claude connect/revoke where available. Distinguish external-client owner steps from executed tests. Save safe-to-close checkpoint and colleague-friendly connector instructions.
 
 Each completed item links its exact target, commands/exits/counts, independent record and limitations. Evidence: docs/reviews/HOSTED-MCP-20261104/.
@@ -175,3 +175,8 @@ The [fresh independent review](reviews/HOSTED-MCP-20261104/linux-xlsx-repair/ind
 ## Current browser portability acceptance — 2026-11-04
 
 [Fresh review](reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8-round-1.json) passes **8.955**, all category floors/no blockers. Linux24 and Mac24 run the unchanged complete browser cases; diagnostics4 and missing-executable failure/cleanup pass. Original command evidence retains its measured target, environment and logs through explicit functional continuity. The old global Linux composite is not represented as a fresh new-envelope run. Root validated all 98 local role handoffs. Next required native CI must pass before HMCP08–09. Docker is stopped; UAT remains d1c81f4.
+
+
+## UAT deployment complete — 2026-11-04
+
+[Release summary](reviews/HOSTED-MCP-20261104/release-dce1a67/SUMMARY.md): exact dce1a67 CI all22 steps passed, encrypted backup and migration0027 verified, Worker+Pages uploaded and independently read back. Worker bytes match the actual tested artifact; Pages source/binding matches. Final public smoke15/15 and health2/2 pass; effective no-referrer confirmed in isolated browser,37 anonymous requests total. HMCP07–08 are complete. HMCP09 remains open for real Google/Claude and signed-in owner cases; [short colleague guide](HOSTED_MCP_QUICKSTART.md). No Terminal/copied token for the hosted connector. Docker stopped, laptop safe to close, production excluded.

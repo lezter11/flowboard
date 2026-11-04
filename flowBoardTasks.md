@@ -1,23 +1,23 @@
 # Flowboard working checklist
 
-Updated 2026-11-04. **Current phase: browser portability repair and fresh 8.955 review passed; new exact-candidate CI is next.** This sequence complements [TASKS.md](TASKS.md), the 98 product definitions in [features.tsv](docs/features.tsv) and their [generated checklist](docs/FEATURE_CHECKLIST.md).
+Updated 2026-11-04. **Hosted connector is deployed to UAT at `dce1a67`; real owner acceptance is next.** This sequence complements [TASKS.md](TASKS.md), the 98 product definitions and their [generated local checklist](docs/FEATURE_CHECKLIST.md).
 
 ## Current release checklist
 
-- [x] Implement hosted browser sign-in, project consent and personal Connections UI. The existing five tools remain discovery, search and card creation.
-- [x] Repair the original Linux XLSX failure while retaining the 1,000 ms budget, original workbook and security assertions.
-- [x] Pass the independent full Linux API suite: **1,926/1,926**, no failures or skips, on the held source. Earlier environment failures are preserved.
-- [x] Pass the other 16 local checks and compiled Pages checks: hosted browser **24/24**, compiled Pages **6/6**, source unchanged.
-- [x] Finish the XML repair's original 19-command gate at its frozen baseline. Its old global-envelope composite remains historical; current unchanged XML/API/install behavior is covered by the new review's explicit continuity attestation.
-- [x] Refresh independent approval and role handoffs after the browser repair: **8.955**, Mac24/Linux24/diagnostics4, current 98 Backend / 74 UI / 98 local Integration. Historical executions retain their original scope through explicit functional continuity.
-- [ ] Complete required native CI. Candidate `e5c5687` was pushed once; run `41869035713` passed all 1,926 API tests, MCP and the legacy browser, then failed hosted-browser setup before any cases. Local repair and fresh approval now pass. Push the new exact candidate once; never use hosted reruns for debugging.
-- [ ] Build clean production artifacts, verify dependency provenance, refresh the approved encrypted UAT backup and apply only reviewed migration 0027.
-- [ ] Upload exact UAT Worker and Pages artifacts; verify deployed identity, hashes and bounded anonymous probes.
-- [ ] Complete real Google/Claude and signed-in product acceptance with the owner. Local synthetic checks do not close hosted acceptance.
+- [x] Implement hosted Google browser sign-in, one-project consent and personal Connections UI; preserve the five discover/search/create tools.
+- [x] Repair the original Linux XLSX boundary failure without changing its 1,000 ms budget, workbook or security assertions.
+- [x] Repair Mac-only browser selection; actual full Mac24/Linux24 and diagnostic4 tests pass, bad-executable failure remains safe.
+- [x] Obtain fresh independent **8.955** approval with all category floors/no blockers; validate current **98 Backend / 74 UI / 98 local Integration** handoffs. Retained original executions have explicit source-continuity provenance.
+- [x] Pass [required native CI41877634812](https://github.com/lezter11/flowboard/actions/runs/41877634812) for exact `dce1a67`: all22 steps, API1,926/1,926 and hosted browser24.
+- [x] Build clean production artifacts; match prepared and deployed Worker bytes to the independently tested artifact; preserve UAT resource/secret bindings.
+- [x] Verify the approved encrypted UAT backup outside Git; apply **only migration0027**, verify ledger26→27. Actual database restore was not executed.
+- [x] Upload Worker and Pages to their explicit UAT resources; verify full source SHA, clean flag, canonical deployment and service binding.
+- [x] Pass final anonymous hosted smoke15/15 and health2/2, plus actual browser referrer-policy proof. All37 anonymous requests are recorded below the60 cap; initial false-positive/adapter failures remain preserved.
+- [ ] Complete real Google/Claude and signed-in product acceptance. Anonymous/local tests do not close owner acceptance or true long-duration checks.
 
-Current source and logs: [active checkpoint](docs/reviews/HOSTED-MCP-20261104/RESUME-CURRENT.md), [frozen repair criteria](docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/CRITERIA.md), [strategic plan](docs/HOSTED_MCP_PLAN.md) and [connector contracts](docs/HOSTED_MCP_SPEC.md). The old 22-minute checkpoint is historical; the user resumed the full task.
+**Start here:** [five-step Claude quickstart](docs/HOSTED_MCP_QUICKSTART.md), [release summary](docs/reviews/HOSTED-MCP-20261104/release-dce1a67/SUMMARY.md), [product tests](docs/UAT_TESTING.md). No Terminal or copied token is needed for the hosted connector.
 
-**Live UAT remains `d1c81f4`.** No new backup, migration 0027 or connector deployment has occurred. Docker is stopped after actual Linux browser proof and cleanup. This Mac remains needed until release commands finish. Production is excluded.
+**Live UAT is `dce1a67`. Docker is stopped; the laptop can be closed safely.** The hosted connector continues running in Cloudflare. Production is excluded. Company client-credentials and MCP card updates are separate next work, not shipped features.
 
 ## Earlier release: live deployment position
 
@@ -92,7 +92,7 @@ Release order for this task is **local gates → direct UAT deployment → hoste
 
 ## Next task
 
-Complete the unchecked current-release items above. Earlier release tables below describe the already deployed `d1c81f4` baseline and are not approval of the new connector.
+Run the owner tests in the hosted quickstart and record actual results. Then design/implement company machine credentials and card-update tools against explicit project/board authority. Earlier deployment tables describe historical baselines, not today's application SHA.
 
 ## GitHub Actions budget — user instruction, 2026-11-04
 

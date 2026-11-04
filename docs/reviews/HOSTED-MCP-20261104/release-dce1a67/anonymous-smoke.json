@@ -1,0 +1,225 @@
+{
+  "kind": "bounded anonymous UAT hosted connector smoke",
+  "sourceCommit": "dce1a67dedb1de8f5f7aae9b99fcbcb2b875d105",
+  "origin": "https://flowboard-app-uat.pages.dev",
+  "workerVersion": "7aa27279-7df7-4a69-ac2a-a9963843dce7",
+  "pagesDeployment": "cf2a01be-73f5-4053-b2aa-acb5438f14ca",
+  "startedAt": "2026-11-04T18:02:21.296Z",
+  "maxRequests": 25,
+  "requestCount": 15,
+  "results": [
+    {
+      "id": "resource-specific",
+      "status": 200,
+      "checks": {
+        "status200": true,
+        "json": true,
+        "noStore": true,
+        "notRedirect": true,
+        "exactResource": true,
+        "exactIssuer": true,
+        "headerBearer": true
+      },
+      "pass": true
+    },
+    {
+      "id": "resource-root",
+      "status": 200,
+      "checks": {
+        "status200": true,
+        "json": true,
+        "noStore": true,
+        "notRedirect": true,
+        "exactResource": true,
+        "exactIssuer": true,
+        "headerBearer": true
+      },
+      "pass": true
+    },
+    {
+      "id": "authorization-server",
+      "status": 200,
+      "checks": {
+        "status200": true,
+        "json": true,
+        "noStore": true,
+        "notRedirect": true,
+        "exactIssuer": true,
+        "exactAuthorize": true,
+        "exactToken": true,
+        "exactRegister": true,
+        "exactRevoke": true,
+        "pkce": true,
+        "cimd": true
+      },
+      "pass": true
+    },
+    {
+      "id": "anonymous-mcp-post",
+      "status": 401,
+      "checks": {
+        "status401": true,
+        "noStore": true,
+        "exactChallenge": true,
+        "noCredentials": true,
+        "noCookie": true,
+        "errorOnly": true
+      },
+      "pass": true
+    },
+    {
+      "id": "anonymous-mcp-get",
+      "status": 401,
+      "checks": {
+        "status401": true,
+        "noStore": true,
+        "exactChallenge": true,
+        "noCredentials": true,
+        "noCookie": true,
+        "errorOnly": true
+      },
+      "pass": true
+    },
+    {
+      "id": "anonymous-mcp-delete",
+      "status": 401,
+      "checks": {
+        "status401": true,
+        "noStore": true,
+        "exactChallenge": true,
+        "noCredentials": true,
+        "noCookie": true,
+        "errorOnly": true
+      },
+      "pass": true
+    },
+    {
+      "id": "claude-preflight",
+      "status": 204,
+      "checks": {
+        "status204": true,
+        "noStore": true,
+        "exactOrigin": true,
+        "noCredentials": true,
+        "noCookie": true,
+        "empty": true,
+        "postAllowed": true
+      },
+      "pass": true
+    },
+    {
+      "id": "attacker-origin",
+      "status": 403,
+      "checks": {
+        "status403": true,
+        "noStore": true,
+        "noAllowOrigin": true,
+        "noCredentials": true,
+        "noCookie": true,
+        "noData": true
+      },
+      "pass": true
+    },
+    {
+      "id": "own-connections",
+      "status": 401,
+      "checks": {
+        "status401": true,
+        "noStore": true,
+        "noData": true,
+        "notRedirect": true
+      },
+      "pass": true
+    },
+    {
+      "id": "session",
+      "status": 401,
+      "checks": {
+        "status401": true,
+        "noStore": true,
+        "noData": true,
+        "notRedirect": true
+      },
+      "pass": true
+    },
+    {
+      "id": "tokens",
+      "status": 401,
+      "checks": {
+        "status401": true,
+        "noStore": true,
+        "noData": true,
+        "notRedirect": true
+      },
+      "pass": true
+    },
+    {
+      "id": "connect-invalid-handle-static",
+      "status": 200,
+      "bytes": 32850,
+      "sha256": "ab2fe3527a4228c722d8cd899d99f224383556db672b52346d2e8dff16a5b7da",
+      "checks": {
+        "status200": true,
+        "html": true,
+        "noStore": true,
+        "noReferrer": false,
+        "exactPreparedHtml": true,
+        "notRedirect": true
+      },
+      "pass": false
+    },
+    {
+      "id": "connections-safe-signin",
+      "status": 302,
+      "checks": {
+        "status302": true,
+        "noStore": true,
+        "safeNext": true
+      },
+      "pass": true
+    },
+    {
+      "id": "static-connect-js",
+      "status": 200,
+      "bytes": 17232,
+      "sha256": "4c10a7ca961f004e5d7e81e799513ca5339a86f86a114d33590092ee2857d7b3",
+      "checks": {
+        "status200": true,
+        "exactPreparedBytes": true,
+        "immutable": true,
+        "notRedirect": true
+      },
+      "pass": true
+    },
+    {
+      "id": "static-css",
+      "status": 200,
+      "bytes": 71446,
+      "sha256": "c76743ec47aca47a5cf4f43b51de79c3a11dea83223342a4c700001294e03eb0",
+      "checks": {
+        "status200": true,
+        "exactPreparedBytes": true,
+        "immutable": true,
+        "notRedirect": true
+      },
+      "pass": true
+    }
+  ],
+  "notCovered": [
+    {
+      "id": "health-live-ready",
+      "reason": "Pages has no /health/* Function and API only exposes /health/live and /health/ready. Current probe host scope excludes direct Worker; no fake Pages health pass."
+    },
+    {
+      "id": "signed-in-google-claude",
+      "reason": "Anonymous smoke cannot prove provider login, consent, token exchange, authenticated tools or refresh/disconnect."
+    }
+  ],
+  "credentialsUsed": false,
+  "applicationMutations": false,
+  "completedAt": "2026-11-04T18:02:25.931Z",
+  "passed": 14,
+  "failed": 1,
+  "exitCode": 1,
+  "status": "fail"
+}
