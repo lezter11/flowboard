@@ -1,0 +1,77 @@
+{
+  "kind": "Builder bounded native Node import repair; fresh independent full gate required",
+  "failedTarget": "Root frozen target 616 prefix retained by root; native MCP integration stopped before probes due extensionless helper import",
+  "changedFiles": [
+    {
+      "path": "apps/web/functions/.well-known/oauth-authorization-server.ts",
+      "sha256": "5a01cc77e03f10f6c64da8797e038eea08ae185d741c2ed0b3b069b703251fa8"
+    },
+    {
+      "path": "apps/web/functions/.well-known/oauth-protected-resource.ts",
+      "sha256": "5a01cc77e03f10f6c64da8797e038eea08ae185d741c2ed0b3b069b703251fa8"
+    },
+    {
+      "path": "apps/web/functions/.well-known/oauth-protected-resource/api/v1/mcp.ts",
+      "sha256": "12c508629908b7842739669f29ad713073ee99793a1b2cbc584ff9705b68e886"
+    },
+    {
+      "path": "apps/web/functions/api/[[path]].ts",
+      "sha256": "5d5b84f669999879e747278b94e144fce10764486313a8ae41c5670f81830cde"
+    },
+    {
+      "path": "apps/web/test/oauth-metadata-proxy.test.ts",
+      "sha256": "48277b6e2c064dcbe2ef7667b6266e64c1a11e5d89f34cf7e1cec46945d08764"
+    }
+  ],
+  "sourceHold": true,
+  "behaviorChanged": false,
+  "manifestSha256": "193766eeb849fe98e8b80e9b2ddfcbe8279cb0807e5eecc61114ea9127fa5da4",
+  "commands": [
+    {
+      "command": "node --test apps/web/test/oauth-metadata-proxy.test.ts (before fix)",
+      "exitCode": 1,
+      "log": "checks/native-import-red.log"
+    },
+    {
+      "command": "node --test apps/web/test/oauth-metadata-proxy.test.ts (after fix)",
+      "exitCode": 0,
+      "result": "3/3 including native Node entrypoint execution",
+      "log": "checks/native-import-green.log"
+    },
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "checks/root-typecheck-after-native-import.log"
+    },
+    {
+      "command": "npm run typecheck:web",
+      "exitCode": 0,
+      "log": "checks/web-typecheck-after-native-import.log"
+    },
+    {
+      "command": "npm run test --workspace @flowboard/web",
+      "exitCode": 0,
+      "result": "344/344",
+      "log": "checks/web-tests-after-native-import.log"
+    },
+    {
+      "command": "NODE_ENV=production npm run build",
+      "exitCode": 0,
+      "log": "checks/api-build-after-native-import.log"
+    },
+    {
+      "command": "NODE_ENV=production NEXT_EXPORT=true npm run build:web",
+      "exitCode": 0,
+      "result": "20 static pages",
+      "log": "checks/web-export-after-native-import.log"
+    },
+    {
+      "command": "npm run test:mcp-integration",
+      "exitCode": 0,
+      "result": "22/22 groups including real workerd",
+      "log": "checks/mcp-integration-native.log",
+      "report": "checks/mcp-integration-native-result.json",
+      "environment": "Own PostgreSQL17.11 loopback56759 flowboard_mcp_probe; cleanup confirmed"
+    }
+  ]
+}

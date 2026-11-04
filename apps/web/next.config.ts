@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
         source: '/api/:path*',
         destination: `${apiUrl}/api/:path*`,
       },
+      ...['/.well-known/oauth-authorization-server', '/.well-known/oauth-protected-resource', '/.well-known/oauth-protected-resource/api/v1/mcp'].map(source => ({ source, destination: `${apiUrl}${source}` })),
     ];
   },
 };

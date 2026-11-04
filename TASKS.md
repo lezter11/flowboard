@@ -1,5 +1,9 @@
 # Flowboard ordered tasks
 
+## Active: hosted browser-sign-in connector — 2026-11-04
+
+Continue [HOSTED_MCP_PLAN.md](docs/HOSTED_MCP_PLAN.md), HMCP00–09. HMCP01–05 backend API handoff passed independent9.1 review and Architect validator; HMCP06 consent/Connections/safe-next/Pages UI passed complete local acceptance; fresh omnibus8.965/all17checks and98Backend/74UI/98localIntegration are verified. HMCP07 complete regression/CI/current-source independent acceptance precedes HMCP08 UAT-only promotion and HMCP09 hosted checks. Existing UAT remains d1c81f4. The earlier22minute stop is superseded by the user's explicit resume. Production is excluded.
+
 Current deployment update2026-11-04: UAT deployed exactd1c81f4; independent anonymous smoke15/15passed. Local98Backend/74requiredUI/98integration approvals current. UAT-01–05 complete; HOST-01–03 remain pending actual signed-in/provider/Claude tests. See [checkpoint](docs/reviews/FULL-REVALIDATION-20261104/CHECKPOINT.md) and [testing guide](docs/UAT_TESTING.md). Older rollout/pending statements below are historical.
 
 Latest user decision (2026-11-04, demo preparation): **physically organize folders and repair CI in parallel, then deploy UAT only after the existing gates pass.** Follow [flowBoardTasks.md](flowBoardTasks.md). Historical worktrees now live under main `archive/worktrees`; numbered current-doc links live in `project-docs`. Exact candidate `d1c81f42fe306c352c9cb10f04883e251ead58bd` is published to GitHub `uat`; full Linux CI and all98 independent Backend/current local UI/integration revalidations now pass. Production is excluded.

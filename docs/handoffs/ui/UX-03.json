@@ -2,20 +2,19 @@
   "status": "verified",
   "verificationScope": "local",
   "hostedAcceptance": "pending",
-  "backendReviewSHA256": "990e1062476c2fb965f85178da991a6ea8ab241d6d7797a29fc461049ac20287",
-  "summary": "UX-03: current local UI acceptance via source continuity, fresh Linux UI/browser checks and current backend approval; UAT pending.",
+  "backendReviewSHA256": "002fbf70e968d64ac2915e1b2e040cf568685d6ff16ccff41ba69f20271b9390",
+  "summary": "UX-03: current local UI/source acceptance under fresh independent whole-feature review and browser checks.",
   "limitations": [
-    "Synthetic local checks only; actual OAuth/provider/deployed runtime remains UAT pending.",
-    "UI source assertions/helper tests complement actual browser flows; no claim of exhaustive browser/device coverage.",
-    "Zoom proof is CSS200percent and720CSSpx reflow; native Chrome menu zoom was not applied."
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Review records declare execution and scope; Architect inspection remains necessary."
   ],
   "evidence": [
     {
-      "path": "docs/reviews/FULL-REVALIDATION-20261104/owner-phase-revalidation/UX-03.json",
-      "sha256": "9eb7345f247fdc6a4fdbc1d3a8b602be4a82c28c1f9c03435288864fd1d0582a",
-      "command": "python3 docs/reviews/FULL-REVALIDATION-20261104/owner-phase-revalidation/revalidate.py",
-      "result": "Per-ID source/tests, current backend, current Linux UI/browser evidence and historical extra-probe applicability checked.",
-      "environment": "Current Linux CI synthetic PostgreSQL/Node/workerd/Chromium; older extra probes explicitly attributed to their original executors and dates."
+      "path": "docs/reviews/HOSTED-MCP-20261104/owner-phase-revalidation/UX-03.json",
+      "sha256": "a8496825b34c1ce45aa32bae1ed578f578e222763f2361af81523b7498b6c597",
+      "command": "python3 docs/reviews/HOSTED-MCP-20261104/owner-phase-revalidation/revalidate.py --review docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local required checks passed.",
+      "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
     }
   ]
 }

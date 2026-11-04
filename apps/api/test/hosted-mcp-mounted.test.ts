@@ -254,6 +254,36 @@ test('deadline during queued verification still cancels the already-aborted body
   } finally { if (!released) blocker.release(); }
 });
 
+test('oversize MCP refusal and actual work lifetime settle despite an uncooperative source cancellation', async () => {
+  const grant = await issue();
+  for (const mode of ['declared', 'streamed']) {
+    let lifetime: Promise<void> | undefined;
+    let cancelled = false;
+    const bounded = createApp(undefined, { pool, mcpPublicOrigin: origin, deadlineMs: 5000, onMcpWorkLifetime(work) { lifetime = work; } });
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) { controller.enqueue(new Uint8Array(131073)); },
+      cancel() { cancelled = true; return new Promise<void>(() => {}); },
+    });
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const response = await Promise.race([
+        bounded.request(`${origin}${root}`, { method: 'POST', headers: { authorization: `Bearer ${grant.access_token}`,
+          accept: 'application/json, text/event-stream', 'content-type': 'application/json',
+          ...(mode === 'declared' ? { 'content-length': '131073' } : {}),
+        }, body, duplex: 'half' } as RequestInit),
+        new Promise<null>(resolve => { timer = setTimeout(() => resolve(null), 1000); }),
+      ]);
+      assert.ok(response, `${mode}: HTTP refusal must not await cancellation`);
+      assert.equal(response.status, 413, mode);
+      assert.equal(cancelled, true);
+      assert.ok(lifetime);
+      let settled = false;
+      await Promise.race([lifetime.then(() => { settled = true; }), new Promise(resolve => setTimeout(resolve, 50))]);
+      assert.equal(settled, true, `${mode}: Worker pool lifetime must finish after refusal`);
+    } finally { if (timer !== undefined) clearTimeout(timer); }
+  }
+});
+
 test('mounted connection-based protocol/create limits fail closed without consuming another connection allowance', async () => {
   const grant = await issue();
   const principal = (await verifyHostedAccessToken(pool, grant.access_token, `${origin}${root}`))!;

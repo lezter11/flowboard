@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "HOSTED-MCP-BACKEND-API"
+  ],
+  "criteriaPath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/backend-criteria.json",
+  "startedAt": "2026-11-04T12:11:48.328Z",
+  "completedAt": "2026-11-04T12:25:19.794139+00:00",
+  "implementer": {
+    "actorId": "/root",
+    "sessionId": "delegated-team-implementation:/root",
+    "model": "Codex Architect and separate OAuth/transport builder sessions; exact provider model ID not exposed"
+  },
+  "reviewer": {
+    "actorId": "/root/hosted_mcp_security_review",
+    "sessionId": "delegated-review:/root/hosted_mcp_security_review",
+    "model": "Codex delegated security reviewer; exact provider model ID not exposed",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "BACKEND_REVIEW_GATE.md",
+      "RULES.md",
+      "apps/api/package.json",
+      "apps/api/scripts",
+      "apps/api/src",
+      "apps/api/test",
+      "apps/api/tsconfig.build.json",
+      "apps/api/wrangler.jsonc",
+      "database/migrations",
+      "docs/FEATURE_SPEC.md",
+      "docs/HOSTED_MCP_SPEC.md",
+      "docs/openapi.json",
+      "docs/reviews/HOSTED-MCP-20261104/backend/criteria.json",
+      "docs/reviews/HOSTED-MCP-20261104/backend/run-focused.mjs",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/adversarial.test.mjs",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/backend-criteria.json",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/backend-phase.md",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-artifact.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-build.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-cleanup.json",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-contracts.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-embedded-parity.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-full-api.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-harness.json",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-mcp.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-oauth-postgres.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-openapi.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-reviewer-adversarial.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-source-after.json",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-source-before.json",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-test-results.json",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-typecheck.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/node-entry-probe.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/node-entry-probe.mjs",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/refresh-create-race.log",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/refresh-create-race.test.mjs",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/reviewer-session.md",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/run-backend-gate.mjs",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/source-audit.md",
+      "docs/reviews/README.md",
+      "package-lock.json",
+      "package.json",
+      "packages/contracts/package.json",
+      "packages/contracts/src",
+      "packages/contracts/test",
+      "packages/mcp/package.json",
+      "packages/mcp/scripts",
+      "packages/mcp/src",
+      "packages/mcp/test",
+      "packages/mcp/tsconfig.json",
+      "packages/mcp/tsconfig.test.json",
+      "scripts/check_backend_review.py",
+      "scripts/generate-openapi.ts",
+      "scripts/generate_review_record.py",
+      "scripts/sync-embedded-migrations.ts",
+      "tsconfig.json"
+    ],
+    "files": {},
+    "digest": "pending",
+    "baselineCommit": "b78f21836d29daf814a2999a22acd34db5680875"
+  },
+  "criteriaResults": {
+    "OAUTH-01 Explicit canonical APP_ORIGIN determines issuer/resource; only an explicit NODE_ENV=test loopback override allows HTTP/ports.": "pass",
+    "OAUTH-02 Bounded CIMD fetch only from strict HTTPS claude.ai non-root URLs; no credentials/query/fragment/port/redirect; exact document identity and exact hosted callback.": "pass",
+    "OAUTH-03 DCR admits only the exact hosted callback and public none authentication, with shared fail-closed 5/minute and 20/hour limits, global 1000 cap and active-grant retention.": "pass",
+    "OAUTH-04 Code/S256/client/redirect/resource binding is exact; requests expire in ten minutes, codes in five, access in at most fifteen, family in thirty absolute days.": "pass",
+    "OAUTH-05 Consent requires live cookie session, exact Origin, browser/request/actor/session binding and single-use CSRF/decision; project selection is explicit, paginated and live-authorized.": "pass",
+    "OAUTH-06 No membership or board grant is created; current Owner inheritance and active non-Owner membership are preserved; ordinary tool authorization remains the parent-owned board boundary.": "pass",
+    "OAUTH-07 Code redemption and refresh issuance are atomic; separate-connection races cannot fork tokens; correctly bound reuse commits family revocation; wrong-client attempts cannot revoke victim grants.": "pass",
+    "OAUTH-08 Connection/access row locks precede existing project/board locks, conflict with revocation and deny subsequent operation/replay; stable connection ID survives refresh.": "pass",
+    "OAUTH-09 Raw codes/access/refresh/browser/CSRF credentials are never persisted in tables/logs/receipts/activity; strict response schemas prevent credential/internal-field leakage.": "pass",
+    "OAUTH-10 Own connection settings remain actor-owned and conceal new project metadata after membership loss; disconnect and OAuth revocation invalidate the family.": "pass",
+    "OAUTH-11 Bounded bodies, declared-Origin checks, standard OAuth errors, no-store responses, database-time expiry and failure rollback hold under the real mounted route module.": "pass",
+    "OAUTH-12 Additive PostgreSQL migration replays safely and matches embedded SQL; existing public PAT/session behavior is unchanged by this component. Integrated API/Worker/PAT regression remains mandatory before complete connector acceptance.": "pass",
+    "OAUTH-13 Consent and own connection summaries explicitly disclose offline persistence. Consent reports accessTokenLifetimeSeconds900, connectionLifetimeDays30 and refreshTokenIdleDays7 only when offlineAccess is true, otherwise null. Refresh issuance remains conditional on the approved offline_access scope.": "pass",
+    "OAUTH-14 Bounded scheduled retention preserves every code/refresh hash of retained families, keeps terminal connection identity for at least seven days after the conservative terminal/last-use anchor, deletes only orphan expired requests and protects live clients/pending authorization. SKIP LOCKED, hard100cap, real self-FK cascade, idempotence, scheduler rollback/continuation and immediate post-decision redaction pass isolated PostgreSQL tests.": "pass",
+    "OAUTH-15 Worker request pools remain alive until all reported image/MCP work truly settles, including rejected work. waitUntil retains asynchronous closure; without execution context closure is awaited. Mounted transport supplies the callback and its full integration remains part of final feature acceptance.": "pass",
+    "OAUTH-16 Exact OAuth/consent write paths enforce cancellable16KiB raw-byte reads and deadlines before generic buffering, including unfinished oversized/slow/already-aborted input. Cached JSON/form parsing preserves authority gates; actual downstream DB work is retained after HTTP timeout. Actual mounted regression evidence is mandatory.": "pass",
+    "TRANSPORT-01 Exact canonical OAuth-only MCP entry authenticates before SDK; cookies/PAT/query credentials and forged request identity cannot substitute; external OAuth remains invalid on REST/session/admin routes.": "pass",
+    "TRANSPORT-02 Exact discovery metadata, stateless JSON Streamable HTTP and five existing tools work; initialize, notification, list, call, errors, Accept/content-type/method/Origin/CORS and protocol bounds execute under Node and actual workerd.": "pass",
+    "TRANSPORT-03 Module-private Request identity retains principal and the same request pool; clones/headers cannot mint authority; no OAuth-to-PAT conversion or external arbitrary REST proxy exists.": "pass",
+    "TRANSPORT-04 Selected project and current Owner/Manager/Member/Viewer, membership and board grants remain authoritative for every operation and receipt retry; sibling/hidden board data is not exposed.": "pass",
+    "TRANSPORT-05 Create holds credential and live project/board/assignee authority through receipt/card/activity commit; stable connection ID binds semantic retries across refresh; changed input conflicts; concurrent revoke/create and grant removal cannot authorize later writes.": "pass",
+    "TRANSPORT-06 Protocol128KiB and JSON depth32 limits, no batches, connection120/minute/create30/minute fail-closed counters, deadlines and real-work cleanup are bounded. Declared/streamed oversize cancellation never blocks on uncooperative source cleanup; already-aborted and queued verification settle without later dispatch.": "pass",
+    "TRANSPORT-07 Unexpected errors and response projections never disclose raw credentials or SQL/provider diagnostics; receipts and safe mcp_oauth activity preserve privacy and one logical effect.": "pass",
+    "TRANSPORT-08 Existing full API/contracts/MCP/packed executable, typecheck/build, OpenAPI and embedded migration checks pass on the held target; no SQLite/mocked/native-helper claim substitutes for real PostgreSQL/Worker evidence.": "pass"
+  },
+  "tests": [
+    {
+      "id": "oauth-postgres",
+      "command": "node docs/reviews/HOSTED-MCP-20261104/backend/run-focused.mjs",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T12:11:48.329Z",
+      "completedAt": "2026-11-04T12:11:50.644Z",
+      "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-oauth-postgres.log"
+    },
+    {
+      "id": "full-api",
+      "command": "npm run test --workspace @flowboard/api",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T12:11:50.645Z",
+      "completedAt": "2026-11-04T12:17:53.962Z",
+      "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-full-api.log"
+    },
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T12:17:53.963Z",
+      "completedAt": "2026-11-04T12:17:54.953Z",
+      "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-typecheck.log"
+    },
+    {
+      "id": "contracts",
+      "command": "npm run test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T12:17:54.954Z",
+      "completedAt": "2026-11-04T12:17:56.265Z",
+      "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-contracts.log"
+    },
+    {
+      "id": "mcp",
+      "command": "npm run test --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T12:17:56.265Z",
+      "completedAt": "2026-11-04T12:17:56.582Z",
+      "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-mcp.log"
+    },
+    {
+      "id": "build",
+      "command": "npm run build",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T12:17:56.582Z",
+      "completedAt": "2026-11-04T12:17:57.831Z",
+      "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-build.log"
+    },
+    {
+      "id": "artifact",
+      "command": "npm run test:artifact --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T12:17:57.831Z",
+      "completedAt": "2026-11-04T12:17:59.013Z",
+      "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-artifact.log"
+    },
+    {
+      "id": "openapi",
+      "command": "npm run openapi:check",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T12:17:59.014Z",
+      "completedAt": "2026-11-04T12:17:59.187Z",
+      "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-openapi.log"
+    },
+    {
+      "id": "embedded-parity",
+      "command": "node scripts/sync-embedded-migrations.ts --check",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T12:17:59.187Z",
+      "completedAt": "2026-11-04T12:17:59.233Z",
+      "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-embedded-parity.log"
+    },
+    {
+      "id": "reviewer-adversarial",
+      "command": "node --test docs/reviews/HOSTED-MCP-20261104/independent-backend-review/adversarial.test.mjs",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T12:17:59.233Z",
+      "completedAt": "2026-11-04T12:18:00.940Z",
+      "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-reviewer-adversarial.log"
+    },
+    {
+      "id": "actual-node-entry",
+      "command": "node docs/reviews/HOSTED-MCP-20261104/independent-backend-review/node-entry-probe.mjs",
+      "exitCode": 0,
+      "environment": "Actual startNode HTTP socket with canonical absolute-form public request target; unique schema in disposable PostgreSQL17.11 on65469; no hosted TLS/provider claim.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/node-entry-probe.log"
+    },
+    {
+      "id": "refresh-create-interleave",
+      "command": "node --test docs/reviews/HOSTED-MCP-20261104/independent-backend-review/refresh-create-race.test.mjs",
+      "exitCode": 0,
+      "environment": "Separate PostgreSQL connections observing the real lock wait, unique schema in guarded disposable loopback55931; mounted OAuth refresh and MCP create/retry.",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/refresh-create-race.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.2",
+      "reason": "Exact client/resource/callback/S256, browser/session/CSRF and private Request authority traced; real mounted/native refusal, replay, secret-safe and revocation evidence passes. No confirmed open boundary defect. Deductions for finite adversarial cases and injected CIMD transport evidence; no live-provider/advisory-clean claim.",
+      "evidencePaths": [
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/source-audit.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-oauth-postgres.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-reviewer-adversarial.log",
+        "apps/api/src/adapters/hosted-oauth.ts",
+        "apps/api/src/http/hosted-mcp-context.ts",
+        "apps/api/src/http/routes/hosted-mcp.ts"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "9.2",
+      "reason": "All24 backend statements and10 mandatory commands pass, including exact118-route wire inventory, truthful conditional persistence, all five tools, actual Node/workerd protocol/create and packed stdio. UI/provider behavior is explicitly outside this backend phase and remains required later; no whole-feature claim.",
+      "evidencePaths": [
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/source-audit.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-full-api.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-contracts.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-openapi.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/node-entry-probe.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "9.2",
+      "reason": "Real PostgreSQL single-winner code/refresh races, committed reuse revocation, trigger rollback, both disconnect/create lock orders, membership/grant retry refusal and observed refresh/create blocking preserve one card/activity/receipt across rotation. Additive migration and retained-family cleanup pass. Finite interleavings and no production crash-recovery claim prevent10.",
+      "evidencePaths": [
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/source-audit.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-oauth-postgres.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-full-api.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-reviewer-adversarial.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/refresh-create-race.log",
+        "apps/api/src/http/routes/cards.ts",
+        "apps/api/src/services/hosted-oauth-cleanup.ts",
+        "database/migrations/0027_hosted_mcp_oauth.sql"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "9.3",
+      "reason": "Independent fullAPI1904, contracts137, MCP22, artifact1, OAuth55 and extra15 all pass without skips on held bytes. Additional actual Node and separate-connection race pass. Complete before/after map unchanged; failed round and prior probes retained. Finite coverage and provider/UI exclusion prevent an exhaustive guarantee.",
+      "evidencePaths": [
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/source-audit.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-test-results.json",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-source-before.json",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-source-after.json",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-full-api.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-artifact.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-reviewer-adversarial.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "8.5",
+      "reason": "Reuses existing modular API/SQL authority with a shared tool factory and explicit machine kind; SDK remains pinned and both runtimes/CLI build. Dense manual OAuth parsing/state transitions and shared middleware/fixture coupling increase maintenance cost, requiring more source review than a small change.",
+      "evidencePaths": [
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/source-audit.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-typecheck.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-build.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-mcp.log",
+        "apps/api/src/http/app.ts",
+        "packages/mcp/src/server.ts",
+        "apps/api/src/http/middleware/hosted-oauth-body.ts"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "8.3",
+      "reason": "Byte/depth/rate/deadline bounds, uncooperative cancellation, actual-work pool lifetime, failed-counter refusal and bounded skip-locked scheduled retention are executed. Top-level family cap does not cap all cascade child rows; cleanup throughput/backlog, hosted quotas/latency/Hyperdrive and alerts are unbenchmarked and not claimed.",
+      "evidencePaths": [
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/source-audit.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-oauth-postgres.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-full-api.log",
+        "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-cleanup.json",
+        "apps/api/src/services/hosted-oauth-cleanup.ts",
+        "apps/api/src/runtime/worker.ts"
+      ]
+    }
+  },
+  "weightedScore": "pending",
+  "findings": [
+    {
+      "id": "HMCP-R1-PERSISTENCE",
+      "severity": "required",
+      "description": "Original consent contract omitted persistence information.",
+      "disposition": "resolved",
+      "rationale": "Resolved by explicit offline/lifetime fields, conditional issuance and independently passing native Worker API assertions.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "HMCP-R1-BODY",
+      "severity": "required",
+      "description": "OAuth child request buffer ran before16KiB/deadline enforcement.",
+      "disposition": "resolved",
+      "rationale": "Resolved by early bounded cancellable reader; original failure retained; genuine mounted13-case suite and independent probes pass.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "HMCP-R1-ABORT",
+      "severity": "required",
+      "description": "Already-aborted MCP input missed cancellation after queued verification.",
+      "disposition": "resolved",
+      "rationale": "Resolved with initial/post-listener guards and no-later-dispatch checks; direct and queued mounted regressions pass.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "HMCP-R2-CANCEL",
+      "severity": "required",
+      "description": "Oversize protocol refusal awaited uncooperative source cancellation.",
+      "disposition": "resolved",
+      "rationale": "Resolved with nonblocking cancellation in both declared/streamed paths; builder red/green plus independent adversarial cases and mounted actual lifetime checks pass.",
+      "mandatory": true,
+      "blocking": true
+    },
+    {
+      "id": "HMCP-GATE-R1-INVENTORY",
+      "severity": "required",
+      "description": "First complete API gate failed53 inventory assertions at114 mounted versus118 documented operations.",
+      "disposition": "resolved",
+      "rationale": "Resolved by real early explicit protocol registration plus fallback and genuine protocol/OAuth workflow matrix controls; full new target passes1904/1904 with all previous REST invariants preserved.",
+      "mandatory": true,
+      "blocking": true
+    }
+  ],
+  "hardBlockers": [],
+  "coverageGaps": [],
+  "verdict": "pass",
+  "phase": "HMCP-05 backend/transport API contract only",
+  "wholeFeatureStatus": "incomplete: UI/Pages/safe-next/browser/provider/deployment phases remain mandatory",
+  "phaseExclusions": [
+    "Unimplemented consent/Connections UI and Pages safe-next/proxy browser integration",
+    "Real Google/Claude/client metadata/provider interoperability and signed-in hosted acceptance",
+    "Hosted Cloudflare/Neon/Hyperdrive/R2 privilege/health/capacity and production approval"
+  ],
+  "sourceReview": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/source-audit.md",
+  "summary": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md",
+  "failedPriorRound": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/failed-round-1/REVIEW.md"
+}

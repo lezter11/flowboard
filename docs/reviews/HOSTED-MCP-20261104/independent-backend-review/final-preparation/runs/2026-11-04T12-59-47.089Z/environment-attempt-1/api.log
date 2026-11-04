@@ -1,0 +1,23 @@
+
+> pretest
+> npm run build --workspace @flowboard/mcp
+
+
+> @flowboard/mcp@0.2.0 build
+> tsc -p tsconfig.json && node scripts/finalize-build.mjs
+
+
+> test
+> node scripts/check-test-databases.mjs && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/*.test.ts
+
+DATABASE_URL cannot connect to database "flowboard_harness" (code EPERM). Check that the server is running and the port matches.
+FLOWBOARD_ACCESS_TEST_DATABASE_URL cannot connect to database "flowboard_access_test" (code EPERM). Check that the server is running and the port matches.
+FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL cannot connect to database "flowboard_identity_extra_test" (code EPERM). Check that the server is running and the port matches.
+FLOWBOARD_IMPORT_TEST_DATABASE_URL cannot connect to database "flowboard_import_test" (code EPERM). Check that the server is running and the port matches.
+npm error Lifecycle script `test` failed with error:
+npm error code 1
+npm error path /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api
+npm error workspace @flowboard/api
+npm error location /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api
+npm error command failed
+npm error command sh -c node scripts/check-test-databases.mjs && NODE_ENV=test WRANGLER_SEND_METRICS=false node --test-concurrency=1 --test test/*.test.ts

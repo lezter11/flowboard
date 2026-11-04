@@ -1,0 +1,34 @@
+
+> @flowboard/mcp@0.2.0 test
+> node --test --test-concurrency=1 test/*.test.ts
+
+✔ create uses metadata, resolves a unique name and sends caller operationId (11.072459ms)
+✔ metadata projection strips accidental cards, counts and other fields at runtime (0.299084ms)
+✔ metadata must identify the requested board and an exact column ID wins over a colliding label (0.696709ms)
+✔ lost response: new client retry preserves key and accepts minimal replay with a newer metadata revision (0.542084ms)
+✔ only STALE_BOARD_VERSION retries, once, with unchanged key and semantic input (0.612583ms)
+✔ a second stale-version conflict is returned without a third POST (1.038916ms)
+✔ generic 409 and idempotency conflict never retry (0.493958ms)
+✔ missing or ambiguous target column causes no POST (0.19125ms)
+✔ stale recovery refuses a deleted column and never changes requested column (0.215833ms)
+✔ search uses query and explicit pagination, returning only the bounded safe projection (0.650666ms)
+✔ list projects exposes the cursor and never silently follows extra pages (0.32075ms)
+✔ configuration rejects missing tokens, credential URLs, insecure remote HTTP and non-origin URLs (0.2115ms)
+✔ input validation rejects impossible dates, oversized text, path-like IDs and absent operation IDs before fetch (1.246ms)
+✔ real leap-day date is accepted (0.2395ms)
+✔ non-JSON and JSON server errors are consumed once and do not echo bodies, tokens or messages (0.348833ms)
+✔ oversized responses fail safely and are not retried (0.162542ms)
+✔ HTTP timeout aborts the request and reports unknown create outcome without secrets (10.87475ms)
+✔ injected operations client uses relative routes without credentials or global fetch (0.321917ms)
+✔ injected request exceptions are sanitized without losing unknown-outcome guidance (0.121334ms)
+✔ in-process redirect responses fail closed without invoking global fetch (0.146417ms)
+✔ reusable factory exposes exactly the original five bounded tools and forwards validated input (9.475625ms)
+✔ factory never exposes arbitrary operation exceptions to tool responses (0.893125ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 196.570208

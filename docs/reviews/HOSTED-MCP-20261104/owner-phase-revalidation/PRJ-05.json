@@ -1,0 +1,197 @@
+{
+  "featureId": "PRJ-05",
+  "acceptance": "Only Owner/Project Manager can read the full project People directory including emails; Member/Viewer direct requests expose no directory data. Authorized board-scoped assignee/mention pickers remain available with eligible identities only and no unrelated-project enumeration.",
+  "uiRequired": true,
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewPath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json",
+  "backendReviewSHA256": "002fbf70e968d64ac2915e1b2e040cf568685d6ff16ccff41ba69f20271b9390",
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/app/add-card/page.tsx",
+      "previousSHA256": "e3e1cd2418a33afd6fdfce57ffa99bb6b9e1f5a45e6291e85708cc59f7461938",
+      "sha256": "e3e1cd2418a33afd6fdfce57ffa99bb6b9e1f5a45e6291e85708cc59f7461938",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/app/people/page.tsx",
+      "previousSHA256": "bfa80bb360988afc53110a84a8f5c277ce2537b70214e9cd7c9148511188afbc",
+      "sha256": "bfa80bb360988afc53110a84a8f5c277ce2537b70214e9cd7c9148511188afbc",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/components/board/card-detail-drawer.tsx",
+      "previousSHA256": "6edb7009d2edf7e44876247ab7fdedf29d493b7ebbeff3f9665d15025b7c0fd6",
+      "sha256": "6edb7009d2edf7e44876247ab7fdedf29d493b7ebbeff3f9665d15025b7c0fd6",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/assignee-people.ts",
+      "previousSHA256": "64968973e3ab111fddb5462a458544afedbcfa94346b5dc12e7f3751b94f27f4",
+      "sha256": "64968973e3ab111fddb5462a458544afedbcfa94346b5dc12e7f3751b94f27f4",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/assignees.ts",
+      "previousSHA256": "ae0c68e4849aa2e9f27959a6be9c81d381f58f20c4569758543e9d8c5f3f046d",
+      "sha256": "ae0c68e4849aa2e9f27959a6be9c81d381f58f20c4569758543e9d8c5f3f046d",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/people.ts",
+      "previousSHA256": "8b6b63c426e897dedd7a2f82ababa19139a12d7526995042a8a986a7505d58c2",
+      "sha256": "8b6b63c426e897dedd7a2f82ababa19139a12d7526995042a8a986a7505d58c2",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/test/assignees.test.ts",
+      "previousSHA256": "f21a48afce55cef3d9064bc88a1fcec65a19ed95b2deadc3fd65d9027cb679f3",
+      "sha256": "f21a48afce55cef3d9064bc88a1fcec65a19ed95b2deadc3fd65d9027cb679f3",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/test/person-name.test.ts",
+      "previousSHA256": "d6d2d674c4d87d220f8491ac1a4b8cfad1723888f27f6b6593f399be223464e7",
+      "sha256": "d6d2d674c4d87d220f8491ac1a4b8cfad1723888f27f6b6593f399be223464e7",
+      "changedSincePreviousPhase": false
+    }
+  ],
+  "currentRequiredTests": [
+    {
+      "id": "build-web",
+      "command": "npm run build:web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/build-web.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; explicit production build without DB/test/NEXT_PUBLIC overrides, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/typecheck.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "typecheck-web",
+      "command": "npm run typecheck:web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/typecheck-web.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "contracts",
+      "command": "npm test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/contracts.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "web",
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/web.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "mcp",
+      "command": "npm test --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/mcp.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "openapi-staleness",
+      "command": "npm run openapi:check",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/openapi-staleness.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "embedded-migration-parity",
+      "command": "npm run migrations:embed:check",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/embedded-migration-parity.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "build-worker",
+      "command": "npm run build --workspace @flowboard/api",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/build-worker.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; explicit production build without DB/test/NEXT_PUBLIC overrides, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "production-worker-artifact",
+      "command": "NODE_ENV=test WRANGLER_SEND_METRICS=false node docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/production-worker-probe.mjs --run",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/production-worker-artifact.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "build-mcp",
+      "command": "npm run build --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/build-mcp.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; explicit production build without DB/test/NEXT_PUBLIC overrides, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "mcp-artifact",
+      "command": "npm run test:artifact --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/mcp-artifact.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "mcp-integration",
+      "command": "npm run test:mcp-integration",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/mcp-integration.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "api",
+      "command": "npm test --workspace @flowboard/api",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/api.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "browser-integration",
+      "command": "npm run test:browser",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/browser-integration.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "hosted-browser",
+      "command": "npm run test:hosted-mcp-browser",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/hosted-browser.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:56844; synthetic local test mode, NEXT_DIST_DIR=.next"
+    },
+    {
+      "id": "compiled-pages-runtime",
+      "command": "NODE_ENV=test node docs/reviews/HOSTED-MCP-20261104/independent-ui-review/pages-runtime.mjs --run",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-ui-review/runs/2026-11-04T13-49-55.541Z/result.json",
+      "environment": "Independent compiled Pages/workerd + installed Wrangler ASSETS + actual isolated Chrome, no PostgreSQL; controlled readonly bridge explicitly distinguished from production API."
+    },
+    {
+      "id": "name-step-browser",
+      "command": "NODE_ENV=test node docs/reviews/HOSTED-MCP-20261104/independent-ui-review/name-step-runtime.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-ui-review/name-step-runs/2026-11-04T13-50-10.836Z/result.json",
+      "environment": "Independent actual Chrome + compiled matching Pages stage + real mounted Hono + fresh own pinned PostgreSQL17.11/random schema; {\"FLOWBOARD_UI_REVIEW_PAGES_STAGE\": \"docs/reviews/HOSTED-MCP-20261104/independent-ui-review/runs/2026-11-04T13-49-55.541Z/stage\", \"FLOWBOARD_UI_REVIEW_SOURCE_MANIFEST\": \"docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/source-before.json\"}"
+    }
+  ],
+  "historicalPhase": {
+    "path": "docs/reviews/FULL-REVALIDATION-20261104/owner-phase-revalidation/PRJ-05.json",
+    "sha256": "e70d147fab7c1859ae22299b004fc2260b5e51fc202db4e3db2b2b4f5f4309bc"
+  },
+  "decision": "Architect consumed the fresh independent current-source omnibus review and current required test evidence. Per-ID source continuity is explicitly measured, including changed files; historical probes are not represented as newly executed.",
+  "limitations": [
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Review records declare execution and scope; Architect inspection remains necessary."
+  ],
+  "recordedAt": "2026-11-04T14:03:33.324773+00:00"
+}

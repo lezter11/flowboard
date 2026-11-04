@@ -1,5 +1,13 @@
 # API contract v0.3
 
+## Hosted MCP OAuth contract — 2026-11-04
+
+Hosted MCP uses `POST /api/v1/mcp` with a project-restricted OAuth access credential. It is separate from PAT authentication and never admits that credential as an ordinary external REST/session credential. The five existing tools reuse current live authority. `GET`/`DELETE` authenticate then return405; `OPTIONS` has strict public preflight. Public discovery paths are `/.well-known/oauth-protected-resource/api/v1/mcp`, its root alias, and `/.well-known/oauth-authorization-server`. Exact public origin and service-binding request URL are mandatory.
+
+OAuth registration/authorize/token/revoke live under `/api/v1/mcp/oauth/`. Cookie-session browser APIs are GET `/api/v1/mcp/authorization-requests/:requestId`, POST the same plus `/decision`, GET `/api/v1/mcp/connections`, and DELETE `/api/v1/mcp/connections/:connectionId`. Consent GET rotates CSRF on each project page; submit the latest value. Explicit allow requires a project; deny does not. Connection summaries contain no raw credentials. Both ordinary API and standard OAuth wire errors are documented separately in generated OpenAPI. Discovery/consent/credential responses are no-store.
+
+Canonical payloads and bounds are in [HOSTED_MCP_SPEC](HOSTED_MCP_SPEC.md) and `packages/contracts/src/hosted-mcp.ts`; generated OpenAPI now inventories118operations. The six PAT capability routes remain unchanged. [Backend API review](reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md) is a local UI handoff, not proof of Google/Claude or deployment acceptance. UI sign-in continuation requires final affected-source review; current release status is tracked in [PROGRESS](../PROGRESS.md).
+
 ## MCP / personal access tokens — repair contract, 2026-11-03
 
 The local stdio MCP package uses the existing HTTPS API through a personal access token (PAT). A PAT is a separate credential acting for a human; it never inherits all of that person's session routes. Every request intersects the explicit route capability, its scope, any project restriction and the human's current role/board grant. Invalid Authorization headers fail with401 instead of falling back to a session cookie or public share. Full board snapshots, account/session operations, invitations, imports, images, comments and credential administration are unavailable to PATs. New routes are denied unless explicitly added to the capability policy and generated route tests.

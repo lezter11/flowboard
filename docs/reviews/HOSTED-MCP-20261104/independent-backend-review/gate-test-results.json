@@ -1,0 +1,102 @@
+[
+  {
+    "id": "oauth-postgres",
+    "command": "node docs/reviews/HOSTED-MCP-20261104/backend/run-focused.mjs",
+    "exitCode": 0,
+    "startedAt": "2026-11-04T12:11:48.329Z",
+    "completedAt": "2026-11-04T12:11:50.644Z",
+    "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+    "isolatedSynthetic": true,
+    "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-oauth-postgres.log"
+  },
+  {
+    "id": "full-api",
+    "command": "npm run test --workspace @flowboard/api",
+    "exitCode": 0,
+    "startedAt": "2026-11-04T12:11:50.645Z",
+    "completedAt": "2026-11-04T12:17:53.962Z",
+    "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+    "isolatedSynthetic": true,
+    "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-full-api.log"
+  },
+  {
+    "id": "typecheck",
+    "command": "npm run typecheck",
+    "exitCode": 0,
+    "startedAt": "2026-11-04T12:17:53.963Z",
+    "completedAt": "2026-11-04T12:17:54.953Z",
+    "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+    "isolatedSynthetic": true,
+    "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-typecheck.log"
+  },
+  {
+    "id": "contracts",
+    "command": "npm run test --workspace @flowboard/contracts",
+    "exitCode": 0,
+    "startedAt": "2026-11-04T12:17:54.954Z",
+    "completedAt": "2026-11-04T12:17:56.265Z",
+    "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+    "isolatedSynthetic": true,
+    "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-contracts.log"
+  },
+  {
+    "id": "mcp",
+    "command": "npm run test --workspace @flowboard/mcp",
+    "exitCode": 0,
+    "startedAt": "2026-11-04T12:17:56.265Z",
+    "completedAt": "2026-11-04T12:17:56.582Z",
+    "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+    "isolatedSynthetic": true,
+    "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-mcp.log"
+  },
+  {
+    "id": "build",
+    "command": "npm run build",
+    "exitCode": 0,
+    "startedAt": "2026-11-04T12:17:56.582Z",
+    "completedAt": "2026-11-04T12:17:57.831Z",
+    "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+    "isolatedSynthetic": true,
+    "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-build.log"
+  },
+  {
+    "id": "artifact",
+    "command": "npm run test:artifact --workspace @flowboard/mcp",
+    "exitCode": 0,
+    "startedAt": "2026-11-04T12:17:57.831Z",
+    "completedAt": "2026-11-04T12:17:59.013Z",
+    "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+    "isolatedSynthetic": true,
+    "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-artifact.log"
+  },
+  {
+    "id": "openapi",
+    "command": "npm run openapi:check",
+    "exitCode": 0,
+    "startedAt": "2026-11-04T12:17:59.014Z",
+    "completedAt": "2026-11-04T12:17:59.187Z",
+    "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+    "isolatedSynthetic": true,
+    "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-openapi.log"
+  },
+  {
+    "id": "embedded-parity",
+    "command": "node scripts/sync-embedded-migrations.ts --check",
+    "exitCode": 0,
+    "startedAt": "2026-11-04T12:17:59.187Z",
+    "completedAt": "2026-11-04T12:17:59.233Z",
+    "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+    "isolatedSynthetic": true,
+    "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-embedded-parity.log"
+  },
+  {
+    "id": "reviewer-adversarial",
+    "command": "node --test docs/reviews/HOSTED-MCP-20261104/independent-backend-review/adversarial.test.mjs",
+    "exitCode": 0,
+    "startedAt": "2026-11-04T12:17:59.233Z",
+    "completedAt": "2026-11-04T12:18:00.940Z",
+    "environment": "Disposable PostgreSQL17.11 container flowboard-hosted-independent-17556 on loopback:65469; actual Node/workerd where exercised.",
+    "isolatedSynthetic": true,
+    "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/gate-reviewer-adversarial.log"
+  }
+]

@@ -2,27 +2,20 @@
   "status": "verified",
   "verificationScope": "local",
   "hostedAcceptance": "pending",
-  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/images-trash-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json",
-  "summary": "DEL-08: current-candidate independent Backend acceptance; hosted acceptance pending.",
-  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/images-trash.json per-ID criterion DEL-08",
+  "reviewPath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json",
+  "summary": "DEL-08: independently reviewed current local implementation; hosted acceptance pending.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/features.tsv DEL-08",
   "limitations": [
-    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
-    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Review records declare execution and scope; Architect inspection remains necessary."
   ],
   "evidence": [
     {
-      "path": "docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/images-trash-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json",
-      "sha256": "2efa9b080ab305755b0087d4b2a3cab817050265ed6af68ad0637ab3f9745d87",
-      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/images-trash-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json --feature DEL-08",
-      "result": "Current feature-specific independent review validation passed.",
-      "environment": "Current Linux CI synthetic PostgreSQL/Node/workerd/Chromium; older extra probes explicitly attributed to their original executors and dates."
-    },
-    {
-      "path": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.json",
-      "sha256": "430254a66152bdf2726a92e44aafd377313f127b71f3dc3ebf1c7f7ee5343932",
-      "command": "Current GitHub Linux workflow all14 required commands",
-      "result": "Completed successful exact candidate d1c81f4; full logs referenced in owner evidence.",
-      "environment": "Current Linux CI synthetic PostgreSQL/Node/workerd/Chromium; older extra probes explicitly attributed to their original executors and dates."
+      "path": "docs/reviews/HOSTED-MCP-20261104/owner-phase-revalidation/DEL-08.json",
+      "sha256": "9379866890ee281eb59bb61ca4c112b9a1c20df9241bf00fc2da2224d99ffa56",
+      "command": "python3 docs/reviews/HOSTED-MCP-20261104/owner-phase-revalidation/revalidate.py --review docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local required checks passed.",
+      "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
     }
   ]
 }

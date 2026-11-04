@@ -1,0 +1,82 @@
+{
+  "observedAt": "2026-11-04T13:50:44.703Z",
+  "reviewer": "/root/hosted_mcp_ui_review",
+  "sourceManifest": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/source-before.json",
+  "sourceManifestSha256": "8fd99a4dde1a4d9c402ce8ca84e9b2579c8e01f9622eced4c82d0b357e608d26",
+  "canonicalFilesDigest": "6e20097813b5404bd19495afc6e24ba4bfd6c8b8360007d81a76f87f33a9c1d9",
+  "sourceFileCount": 617,
+  "sourceMismatch": [],
+  "deltaFrom616": [
+    "apps/web/functions/.well-known/oauth-authorization-server.ts",
+    "apps/web/functions/.well-known/oauth-protected-resource.ts",
+    "apps/web/functions/.well-known/oauth-protected-resource/api/v1/mcp.ts",
+    "apps/web/functions/api/[[path]].ts",
+    "apps/web/test/oauth-metadata-proxy.test.ts",
+    "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/production-worker-probe.mjs",
+    "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/run-final-gate.mjs",
+    "docs/reviews/HOSTED-MCP-20261104/ARCHITECT-MANUAL-REVIEW-CYCLE.md"
+  ],
+  "artifactManifest": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/static-out.json",
+  "artifactFileCount": 145,
+  "artifactDifferences": [],
+  "pages": {
+    "result": "docs/reviews/HOSTED-MCP-20261104/independent-ui-review/runs/2026-11-04T13-49-55.541Z/result.json",
+    "resultSha256": "86ebc1f2b82e853ecb0cb465f567b25383c955381f4e107d6bab35be4dc634bd",
+    "harness": "fcdbcd784e1b8065bba5da03868af6c6313908359cf4998739dec33aa6293122",
+    "passed": 6,
+    "total": 6,
+    "sourceChanges": [],
+    "databaseOperations": 0,
+    "referrer": {
+      "referrerAbsent": true
+    },
+    "cleanup": true,
+    "console": [],
+    "origins": []
+  },
+  "nameStep": {
+    "result": "docs/reviews/HOSTED-MCP-20261104/independent-ui-review/name-step-runs/2026-11-04T13-50-10.836Z/result.json",
+    "resultSha256": "919bf706cfdde5b6557417f5f2fdb435d1e0eb9a041eaa0c69e1703e7019d045",
+    "harness": "124b9ea8a43c00db332308de041c5fb0bfc86956fe683871611f2ce6075ffe11",
+    "passed": 3,
+    "total": 3,
+    "before": [],
+    "after": [],
+    "cleanup": {
+      "browser": true,
+      "workerd": true,
+      "schema": true,
+      "container": true
+    },
+    "console": [],
+    "origins": []
+  },
+  "focused": {
+    "command": "NODE_ENV=test node --test apps/web/test/hosted-mcp.test.ts apps/web/test/hosted-mcp-api.test.ts apps/web/test/oauth-metadata-proxy.test.ts",
+    "exit": 0,
+    "passed": 12,
+    "total": 12,
+    "log": "docs/reviews/HOSTED-MCP-20261104/independent-ui-review/focused-source-617.log"
+  },
+  "verdict": "Local focused UI review pass on617 target: source trace +12 focused tests +6 independent compiledPages +3 independent realPGNameStep +independently inspected fresh main24 browser cases. Whole-feature score/release gate is owned by main auditor.",
+  "mainHostedBrowser": {
+    "executor": "/root/hosted_mcp_security_review",
+    "independentlyInspectedBy": "/root/hosted_mcp_ui_review",
+    "result": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/hosted-browser/result.json",
+    "resultSha256": "559512bbd429a51e3e6dc6ea455518a22e65e82238c4f10ed9c1c6b5ff05c797",
+    "caseCount": 24,
+    "passed": 24,
+    "failed": 0,
+    "sourceChanges": [],
+    "runnerSha256": "c3c4246e5f2898f6426218cb0beb562789833f8cca07bf46efa1e8c042ad8c25",
+    "unexpectedConsole": 0,
+    "blockedOrigins": 0,
+    "unexpectedRefusals": 0,
+    "cleanup": "Own isolated browser/servers closed; inherited helper drops its own random synthetic schema. No hosted write or external callback request."
+  },
+  "finalSourceRecheck": {
+    "at": "2026-11-04T13:59:04.792Z",
+    "fileCount": 617,
+    "mismatches": []
+  }
+}

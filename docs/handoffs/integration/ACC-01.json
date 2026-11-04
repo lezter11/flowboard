@@ -2,19 +2,20 @@
   "status": "verified",
   "verificationScope": "local",
   "hostedAcceptance": "pending",
-  "backendReviewSHA256": "19895098f7c20a3109172ea2cbcf740940190c4e2be597ffc634f49fe995393b",
-  "summary": "ACC-01: current local integrated acceptance, fresh backend/source/UI/CI bindings; UAT pending.",
+  "backendReviewSHA256": "002fbf70e968d64ac2915e1b2e040cf568685d6ff16ccff41ba69f20271b9390",
+  "summary": "ACC-01: current local integrated acceptance under fresh review; hosted acceptance pending.",
   "limitations": [
-    "Local synthetic acceptance only; no production approval or claim that hosted provider tests are complete."
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Review records declare execution and scope; Architect inspection remains necessary."
   ],
   "evidence": [
     {
-      "path": "docs/reviews/FULL-REVALIDATION-20261104/owner-phase-revalidation/ACC-01.json",
-      "sha256": "cbfba0b48827d1b0428ad2a4dc1658be5083fbddf5b5d41653037fe3e984fa23",
-      "command": "python3 docs/reviews/FULL-REVALIDATION-20261104/owner-phase-revalidation/revalidate.py",
-      "result": "Current feature/source/backend/UI checks and successful complete Linux gates verified; hosted acceptance remains pending.",
-      "environment": "Current Linux CI synthetic PostgreSQL/Node/workerd/Chromium; older extra probes explicitly attributed to their original executors and dates."
+      "path": "docs/reviews/HOSTED-MCP-20261104/owner-phase-revalidation/ACC-01.json",
+      "sha256": "faa718f145ae281f6c539bc3b1f4aefceebcecee42f395c6c1bc3f43baa1bb6e",
+      "command": "python3 docs/reviews/HOSTED-MCP-20261104/owner-phase-revalidation/revalidate.py --review docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local required checks passed.",
+      "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
     }
   ],
-  "uiHandoffSHA256": "10744eee2f2699d1e72667aafbba60af8136dea6a243ee48fa16dfbb0a13884e"
+  "uiHandoffSHA256": "55fa3473ce063f705b877754ddb024e0e3fe03d857e52746b22d82f4874cc484"
 }

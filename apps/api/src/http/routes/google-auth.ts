@@ -278,6 +278,14 @@ function frontendOrigin(c: import('hono').Context): string {
 }
 
 googleAuthRoutes.get('/google/callback', async (c) => {
+  // Capture only a state-bound consent handle before completion may clear its cookie.
+  // Provider errors and query parameters never choose a return destination themselves.
+  const [savedState, encodedNext] = (getCookie(c, OAUTH_STATE_COOKIE) ?? '').split('.', 2);
+  let consentNext: string | null = null;
+  if (savedState && savedState === c.req.query('state') && encodedNext && /^[A-Za-z0-9_-]{1,400}$/.test(encodedNext)) {
+    const candidate = sanitizeNextPath(decodeNextCookie(encodedNext));
+    if (candidate && /^\/connect\?request=[A-Za-z0-9_-]{43}$/.test(candidate)) consentNext = candidate;
+  }
   try {
     return await completeGoogleSignIn(c);
   } catch (err) {
@@ -285,6 +293,7 @@ googleAuthRoutes.get('/google/callback', async (c) => {
     const codeText = typeof code === 'string' && /^[A-Z_]{1,40}$/.test(code) ? code : 'UNEXPECTED';
     console.error(JSON.stringify({ event: 'google_callback_failed', code: codeText }));
     const state = SIGNIN_STATE_BY_CODE[codeText] ?? 'failed';
-    return c.redirect(`${frontendOrigin(c)}/signin?state=${state}`, 302);
+    const resume = consentNext ? `&next=${encodeURIComponent(consentNext)}` : '';
+    return c.redirect(`${frontendOrigin(c)}/signin?state=${state}${resume}`, 302);
   }
 });

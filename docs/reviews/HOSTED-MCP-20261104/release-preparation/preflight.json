@@ -1,0 +1,43 @@
+{
+  "observedAt": "2026-11-04T12:25:11.810Z",
+  "scope": "read-only UAT release preparation; no approval, deployment, backup or migration",
+  "github": {"login":"lezter11","repository":"lezter11/flowboard","push":true,"admin":true,"commandsExitCodes":[0,0]},
+  "cloudflare": {
+    "accountId":"6592b59b0da4771dc346b96c6fdc65fd",
+    "wranglerWhoamiExit":0,
+    "wranglerAccountMatches":true,
+    "wranglerOAuthMentioned":true,
+    "worker": {
+      "name":"flowboard-api-uat",
+      "deploymentId":"aa414e3d-fb72-4ea4-a8b6-cdac5b95b6ec",
+      "versionId":"21d3c2d8-2955-4aab-9765-5db6ad568d2e",
+      "percentage":100,
+      "APP_ORIGIN":"https://flowboard-app-uat.pages.dev",
+      "FRONTEND_URL":"https://flowboard-app-uat.pages.dev",
+      "CORS_ORIGIN":"https://flowboard-app-uat.pages.dev",
+      "GOOGLE_REDIRECT_URI":"https://flowboard-app-uat.pages.dev/api/v1/auth/google/callback",
+      "hyperdriveId":"7a1e3a69f51e41b1a8c46e0be263b814",
+      "imageBucket":"flowboard-images-uat",
+      "imageVerifierBinding":"IMAGE_VERIFIER"
+    },
+    "pages": {
+      "project":"flowboard-app-uat",
+      "deploymentId":"4dbcd83f-b562-4fc5-bbac-2e6f40bee529",
+      "branch":"main",
+      "commit":"d1c81f42fe306c352c9cb10f04883e251ead58bd",
+      "commitDirty":false,
+      "deployStatus":"success",
+      "apiService":"flowboard-api-uat",
+      "environmentExplanation":"Cloudflare labels main as production inside this UAT-only Pages project; actual production project excluded."
+    },
+    "queries":"Cloudflare connector GET Worker deployments/settings and Pages project; returned only selected nonsecret metadata."
+  },
+  "neon": {"ledgerReport":"uat-ledger.json","ledgerCount":26,"pendingFiles":["0027_hosted_mcp_oauth.sql"],"exitCode":0},
+  "failedAttemptsPreserved": [
+    {"operation":"initial sandbox GitHub user/repo reads","result":"network unavailable; gh error output","separateCommandExits":"not captured individually because shell continued; not claimed passing"},
+    {"operation":"initial sandbox read-uat-ledger.mjs","exitCode":1,"safeErrorClass":"Error","followup":"same read-only command succeeded after network escalation"},
+    {"operation":"Cloudflare search discovery","result":"two schema/syntax mistakes corrected before read-only endpoint calls; no mutation"}
+  ],
+  "productionTouched":false,
+  "hostedConnectorDeployed":false
+}

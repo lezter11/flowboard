@@ -1,0 +1,11 @@
+# Independent reviewer identity and scope
+
+Reviewer actor/task: `/root/hosted_mcp_security_review`. Reviewer session: the dedicated delegated conversation `/root/hosted_mcp_security_review`, created independently of the builders and resumed for subsequent review rounds. Provider conversation UUID and exact underlying model ID are not exposed to this reviewer; no UUID/model value is invented. Model/runtime label: Codex delegated security reviewer.
+
+Implementers: Architect `/root`, OAuth builder `/root/hosted_mcp_auth_design` and transport builder `/root/hosted_mcp_transport_design`. Their implementation sessions differ from this delegated review session. This reviewer did not author or edit product source, migrations, API contracts or package configuration. Reviewer changes are confined to this directory: review notes, independent adversarial tests/probes, isolated test orchestration, logs and manifests.
+
+The initial independent review started with requirements and held-source handoff, rather than participation in the product implementation. It identified the persistence disclosure gap and two reproduced body/deadline failures, retained failures through the user's pause, then independently retested builder repairs. An additional cancellation robustness candidate was preserved and subsequently delegated to the transport builder for repair; the reviewer did not implement that repair.
+
+On final resume, Architect explicitly clarified HMCP-05 as backend/transport API-contract acceptance, with unimplemented UI/Pages/Google-safe-next/browser/provider acceptance retained as subsequent mandatory phases. Backend criteria were frozen before final commands in backend-criteria.json and backend-phase.md. Both builders and Architect declared source held before final command execution. Full API tests use a separate disposable PostgreSQL server because their migration suite resets its own synthetic public schema; no shared55931 public reset or hosted data access is permitted.
+
+The review is adversarial and read-only on delivery source. Any passing report requires actual command exits, source stability, category floors, score strictly above8.5 and no unresolved blockers. Local Node/workerd/database evidence never implies UAT/provider or whole-feature acceptance.

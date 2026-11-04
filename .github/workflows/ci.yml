@@ -78,7 +78,7 @@ jobs:
       - name: MCP tests and installed stdio artifact
         run: |
           npm test --workspace @flowboard/mcp
-          npm run build --workspace @flowboard/mcp
+          NODE_ENV=production npm run build --workspace @flowboard/mcp
           npm run test:artifact --workspace @flowboard/mcp
 
       # The board-access tests use their own fence: a localhost database named
@@ -118,6 +118,8 @@ jobs:
 
       - name: Next.js Web Build
         env:
+          NODE_ENV: production
+          NEXT_DIST_DIR: .next
           NEXT_EXPORT: 'true'
           NEXT_TELEMETRY_DISABLED: '1'
         run: npm run build:web
@@ -131,7 +133,16 @@ jobs:
           NEXT_TELEMETRY_DISABLED: '1'
         run: npm run test:browser
 
+      - name: Hosted MCP browser consent and Connections
+        env:
+          FLOWBOARD_UI_TEST_DATABASE_URL: postgres://flowboard_harness:flowboard_harness_ci_password@127.0.0.1:5432/flowboard_ui_test
+          NEXT_DIST_DIR: .next
+          NEXT_TELEMETRY_DISABLED: '1'
+        run: npm run test:hosted-mcp-browser
+
       # Builds the API Worker bundle with a dry-run deploy. Runs without Cloudflare
       # credentials (checked with an empty environment and HOME); it uploads nothing.
       - name: API Worker Build (dry run, no credentials)
+        env:
+          NODE_ENV: production
         run: npm run build --workspace @flowboard/api

@@ -1,3 +1,5 @@
+import { authorizationRequestId } from './hosted-mcp-state.ts';
+
 /**
  * Return path for sign-in (?next=). Pure and dependency-free so the Pages middleware and the client gate share it.
  * Only a known app route and, for routes that take one, a single id parameter survive; everything else is dropped.
@@ -5,7 +7,7 @@
  */
 export const APP_ROUTES = new Set([
   '/projects', '/project', '/board', '/activity', '/trash', '/people', '/inbox',
-  '/my-tasks', '/settings', '/import', '/add-card', '/all-work',
+  '/my-tasks', '/settings', '/import', '/add-card', '/all-work', '/connect',
 ]);
 
 const ID_PARAM: Record<string, string> = { '/board': 'id', '/project': 'id', '/add-card': 'board' };
@@ -14,6 +16,14 @@ const SAFE_ID = /^[A-Za-z0-9_-]{1,100}$/;
 /** `/signin?next=<route[?id=..]>` for an app route, plain `/signin` for anything else. */
 export function signinPathFor(pathname: string, search: string): string {
   if (!APP_ROUTES.has(pathname)) return '/signin';
+  if (pathname === '/connect') {
+    const request = authorizationRequestId(search);
+    return request ? `/signin?next=${encodeURIComponent(`/connect?request=${request}`)}` : '/signin';
+  }
+  const params = new URLSearchParams(search);
+  if (pathname === '/settings' && params.getAll('tab').length === 1 && params.get('tab') === 'connections') {
+    return '/signin?next=%2Fsettings%3Ftab%3Dconnections';
+  }
   const name = ID_PARAM[pathname];
   const id = name ? new URLSearchParams(search).get(name) : null;
   const next = id && SAFE_ID.test(id) ? `${pathname}?${name}=${id}` : pathname;

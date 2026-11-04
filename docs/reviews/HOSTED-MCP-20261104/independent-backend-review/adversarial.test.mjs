@@ -14,6 +14,7 @@ import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createTestHarness} from 'wrangler';
+import {handleHostedMcpTransport} from '../../../../apps/api/src/services/hosted-mcp-transport.ts';
 
 if (!process.env.DATABASE_URL) Object.assign(process.env,JSON.parse(fs.readFileSync('/private/tmp/flowboard-hosted-mcp-test-env.json','utf8')));
 process.env.NODE_ENV='test';
@@ -72,4 +73,11 @@ test('native production Worker browser APIs complete consent/token/list/disconne
     const disconnected=await send(root+'/connections/'+connections[0].id,{method:'DELETE',headers:{cookie,origin}});assert.equal(disconnected.status,204);
     const denied=await send(root+'/oauth/token',form({grant_type:'refresh_token',client_id:client,resource,refresh_token:issued.refresh_token}));assert.equal(denied.status,400);assert.deepEqual(await denied.json(),{error:'invalid_grant'});
   }finally{await harness.close();fs.rmSync(dir,{recursive:true,force:true});}
+});
+for(const declared of [true,false])test(`oversized MCP ${declared?'declared':'streamed'} body refuses without awaiting source cancellation`,async()=>{
+  let cancelled=false,calls=0;const body=new ReadableStream({start(c){c.enqueue(new Uint8Array(131073));},cancel(){cancelled=true;return new Promise(()=>{});}});
+  const request=new Request(resource,{method:'POST',headers:{accept:'application/json, text/event-stream','content-type':'application/json',...(declared?{'content-length':'131073'}:{})},body,duplex:'half'});
+  const operation=async()=>{calls++;return [];};
+  const result=await Promise.race([handleHostedMcpTransport(request,{listProjects:operation,listBoards:operation,getBoard:operation,createCard:operation,searchCards:operation}),new Promise(resolve=>setTimeout(()=>resolve(null),250))]);
+  assert.ok(result,'oversize refusal must not wait for untrusted cancellation completion');assert.equal(result.status,413);assert.equal(cancelled,true);assert.equal(calls,0);
 });

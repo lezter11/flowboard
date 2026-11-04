@@ -44,6 +44,9 @@ export function sanitizeNextPath(raw: unknown): string | null {
   const path = queryAt === -1 ? raw : raw.slice(0, queryAt);
   const query = queryAt === -1 ? '' : raw.slice(queryAt + 1);
 
+  // A consent continuation is one opaque handle, never arbitrary OAuth/callback parameters.
+  if (path === '/connect') return /^request=[A-Za-z0-9_-]{43}$/.test(query) ? raw : null;
+
   if (!SAFE_PATH.test(path)) return null;
   if (!SAFE_QUERY.test(query)) return null;
   const allowed = APP_ROUTES.some((route) => path === route || path.startsWith(`${route}/`));

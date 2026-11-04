@@ -11,6 +11,8 @@
 
 import { APP_ROUTES, signinPathFor } from '../src/lib/return-path';
 import { chooseLanding } from '../src/lib/landing-rule';
+import { connectReturnPath } from '../src/lib/hosted-mcp-state';
+import { OAUTH_METADATA_PATHS } from '../src/lib/pages-api-proxy';
 
 interface ApiFetcher {
   fetch(request: Request): Promise<Response>;
@@ -27,7 +29,7 @@ const SESSION_COOKIES = ['flowboard_session=', 'session='];
 /** Legacy path-style links; the functions in projects/[id].ts and boards/[id].ts redirect them. */
 const LEGACY = /^\/(projects|boards)\/[^/]+$/;
 /** Pages that handle a signed-out visitor themselves (an invitation link must keep its token). */
-const SELF_GUARDED = new Set(['/invitation', '/invitations/accept']);
+const SELF_GUARDED = new Set(['/invitation', '/invitations/accept', '/connect']);
 
 const redirect = (path: string): Response =>
   new Response(null, {
@@ -78,6 +80,7 @@ export const onRequest = async (context: { request: Request; env: Env; next: () 
   if (request.method !== 'GET' && request.method !== 'HEAD') return context.next();
   const path = url.pathname.length > 1 ? url.pathname.replace(/\/+$/, '') : url.pathname;
   const last = path.split('/').pop() ?? '';
+  if (OAUTH_METADATA_PATHS.has(path)) return context.next();
   if (path.startsWith('/_') || path.startsWith('/api/') || last.includes('.') || request.headers.has('rsc')) return context.next();
   if (SELF_GUARDED.has(path)) return context.next();
 
@@ -109,5 +112,9 @@ export const onRequest = async (context: { request: Request; env: Env; next: () 
   }
 
   if (isApp) return context.next();
+  if (isSignin) {
+    const consentNext = connectReturnPath(url.searchParams.get('next'));
+    if (consentNext) return redirect(consentNext);
+  }
   return redirect(await landingPath(env, request, cookie, projects, lastLoc));
 };

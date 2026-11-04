@@ -1,0 +1,40 @@
+{
+  "kind": "Builder checks; no self-score or release approval",
+  "sourceManifest": "docs/reviews/HOSTED-MCP-20261104/ui/builder-source-manifest.json",
+  "commands": [
+    {
+      "command": "npm run test --workspace @flowboard/web",
+      "exitCode": 0,
+      "result": "343/343",
+      "log": "checks/web-tests.log"
+    },
+    {
+      "command": "npm run typecheck:web",
+      "exitCode": 0,
+      "log": "checks/web-typecheck.log"
+    },
+    {
+      "command": "node --test apps/api/test/safe-next.test.ts apps/api/test/google-connect-resume.test.ts",
+      "exitCode": 0,
+      "result": "7/7",
+      "log": "checks/api-resume-focused.log"
+    },
+    {
+      "command": "NODE_ENV=production NEXT_EXPORT=true npm run build:web",
+      "exitCode": 0,
+      "result": "20 static pages",
+      "log": "checks/web-export.log"
+    },
+    {
+      "command": "NODE_ENV=test WRANGLER_SEND_METRICS=false node scripts/e2e/hosted-mcp-browser.mjs",
+      "exitCode": 0,
+      "result": "24/24, unchanged source, zero unexpected console/network refusals",
+      "log": "browser-pass/result.json"
+    }
+  ],
+  "remaining": [
+    "Independent compiled Pages HUI-14",
+    "Fresh final affected backend/UI/whole-feature acceptance and main gates",
+    "Hosted provider/Claude/UAT acceptance"
+  ]
+}

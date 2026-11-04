@@ -1,12 +1,12 @@
 # Flowboard working checklist
 
-Updated 2026-11-04. **Current phase: UAT deployed and anonymous smoke passed; signed-in/MCP hosted acceptance pending.** This operational sequence complements [TASKS.md](TASKS.md); it does not replace the 98 product definitions in [features.tsv](docs/features.tsv) or their [generated checklist](docs/FEATURE_CHECKLIST.md).
+Updated 2026-11-04. **Current phase: hosted connector local review passed; current Linux CI and UAT release gates next.** This operational sequence complements [TASKS.md](TASKS.md); it does not replace the 98 product definitions in [features.tsv](docs/features.tsv) or their [generated checklist](docs/FEATURE_CHECKLIST.md).
 
 ## Active new feature: hosted browser-sign-in connector
 
-User authorized build/test/UAT with parallel subagents, Architect-led assembly/review and a60-minute development target with no quality compromise. The strategic plan, schedule, ownership, risk controls, acceptance gates and rollout are in [HOSTED_MCP_PLAN.md](docs/HOSTED_MCP_PLAN.md); exact contracts are in [HOSTED_MCP_SPEC.md](docs/HOSTED_MCP_SPEC.md). Track HMCP-00–09 there. Latest state: [22-minute checkpoint](docs/reviews/HOSTED-MCP-20261104/CHECKPOINT-22MIN.md); backend/runtime implemented locally, UI and release approval pending, UAT unchanged. Existing successful UAT/Claude setup remains the regression baseline; new source is local on codex/hosted-mcp-browser-signin and is not yet deployed. Development time excludes full testing/review/deployment; focused developer checks still apply.
+User authorized build/test/UAT with parallel subagents, Architect-led assembly/review and a60-minute development target with no quality compromise. The strategic plan, schedule, ownership, risk controls, acceptance gates and rollout are in [HOSTED_MCP_PLAN.md](docs/HOSTED_MCP_PLAN.md); exact contracts are in [HOSTED_MCP_SPEC.md](docs/HOSTED_MCP_SPEC.md). Track HMCP-00–09 there. Latest state: [backend API pass](docs/reviews/HOSTED-MCP-20261104/independent-backend-review/803a0957353c6057c2003ed092122f92e6073f158538c37d18417732021bb675-round-2.json), independently validated9.1 as a historical API-phase handoff; complete local omnibus review now8.965 with all17checks passing and98Backend/74UI/98localIntegration rebound. LinuxCI/deployment pending; UAT unchanged. The [22-minute checkpoint](docs/reviews/HOSTED-MCP-20261104/CHECKPOINT-22MIN.md) is historical and the user resumed the full task. Existing successful UAT/Claude setup remains the regression baseline; new source is local on codex/hosted-mcp-browser-signin and is not yet deployed. Development time excludes full testing/review/deployment; focused developer checks still apply.
 
-## Live deployment position
+## Earlier release: live deployment position
 
 - Completed: physical organization, all14Linux gates, current independent/owner98Backend/74UI/98localIntegration, encrypted backup, UAT migrations1–26 and exact image-retention rule correction.
 - Current: Worker and Pages deployed exactd1c81f4; independent anonymous smoke15/15 passed. The upload network issue was resolved with IPv4-first Node DNS.
@@ -21,7 +21,7 @@ Backend closure follows [BACKEND_REVIEW_GATE.md](BACKEND_REVIEW_GATE.md): indepe
 
 Release order for this task is **local gates → direct UAT deployment → hosted acceptance**, per the user. There is no dev stage; production is excluded. Keep secrets/backup data/keys outside Git and output. Preserve unrelated work and frozen evidence. Do not restart Docker for this preparation or routine remote CI.
 
-## Current facts
+## Existing UAT baseline facts
 
 | Item | Observed / recorded state |
 |---|---|
@@ -79,4 +79,4 @@ Release order for this task is **local gates → direct UAT deployment → hoste
 
 ## Next task
 
-**Current work: HOST-01–03. UAT-01–05 are complete.** Complete current Linux gates and independent local approvals passed. Fresh backup verified. Docker will be stopped after verification. UAT migrations0020–0026 and exact R2 correction are verified complete. Worker/Pages deployment and anonymous smoke are complete; signed-in hosted acceptance remains pending. Production is excluded.
+**Current work: hosted connector HMCP06–09 in [the active plan](docs/HOSTED_MCP_PLAN.md). Existing-release HOST-01–03 remain hosted acceptance work; existing-release UAT-01–05 are complete.** Complete current Linux gates and independent local approvals passed. Fresh backup verified. Docker will be stopped after verification. UAT migrations0020–0026 and exact R2 correction are verified complete. Worker/Pages deployment and anonymous smoke are complete; signed-in hosted acceptance remains pending. Production is excluded.

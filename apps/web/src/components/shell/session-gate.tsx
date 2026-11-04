@@ -7,9 +7,10 @@ import { signinPathFor } from '@/lib/return-path';
 import { landingFor } from '@/lib/landing';
 import { hasUnsaved } from '@/lib/unsaved';
 import { useSession } from '@/lib/session';
+import { connectReturnPath } from '@/lib/hosted-mcp-state';
 
 /** Pages that handle a signed-out visitor themselves. Everything else needs a session. */
-const OPEN_ROUTES = ['/signin', '/invitation', '/invitations/accept'];
+const OPEN_ROUTES = ['/signin', '/invitation', '/invitations/accept', '/connect'];
 
 /**
  * Client half of entry routing. The Pages middleware (functions/_middleware.ts) handles page loads;
@@ -25,6 +26,8 @@ export function SessionGate() {
     if (state.status === 'signedOut' && !OPEN_ROUTES.includes(pathname) && !hasUnsaved()) {
       router.replace(signinPathFor(pathname, window.location.search));
     } else if (state.status === 'ready' && pathname === '/signin') {
+      const consentNext = connectReturnPath(new URLSearchParams(window.location.search).get('next'));
+      if (consentNext) { router.replace(consentNext); return; }
       let cancelled = false;
       void landingFor(state.session).then((path) => { if (!cancelled) router.replace(path); });
       return () => { cancelled = true; };

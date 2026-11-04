@@ -12,6 +12,7 @@ import {imageFixture} from './image-fixtures.ts';
 import {OPENAPI_SCHEMAS} from '../../../../packages/contracts/src/openapi/schemas.ts';
 import type {OpenApiOperationDefinition} from '@flowboard/contracts/openapi';
 import {deleteCommentInputSchema} from '@flowboard/contracts';
+import {hostedMcpMatrixFixture} from './hosted-mcp-matrix-fixture.ts';
 
 export async function routeAuthFixture(t:TestContext){
   const uri=process.env['FLOWBOARD_IDENTITY_EXTRA_TEST_DATABASE_URL']!;
@@ -46,7 +47,9 @@ export async function routeAuthFixture(t:TestContext){
   await pool.query(`INSERT INTO card_images(id,workspace_id,project_id,card_id,uploader_id,filename,byte_length,content_type,storage_key,sha256,width,height,created_at,updated_at)VALUES('image','ws','prj','card',$1,'PRIVATE_MATRIX_IMAGE.png',$2,'image/png','matrix/private-image',$3,$4,$5,NOW(),NOW())`,[actors.owner!.user.id,png.length,pngHash,pngFixture.width,pngFixture.height]);
   await pool.query(`INSERT INTO card_image_uploads(id,workspace_id,project_id,card_id,uploader_id,filename,byte_length,content_type,sha256,state,expires_at,created_at,updated_at)VALUES('upload','ws','prj','card',$1,'matrix.png',$2,'image/png',$3,'awaiting_content',NOW()+INTERVAL '1 hour',NOW(),NOW())`,[actors.owner!.user.id,png.length,pngHash]);
   await pool.query(`INSERT INTO card_imports(id,workspace_id,project_id,board_id,default_column_id,uploader_id,version,state,preview_digest,expires_at,created_at,updated_at)VALUES('imp','ws','prj','brd','col',$1,1,'ready','matrix_digest',NOW()+INTERVAL '1 day',NOW(),NOW())`,[actors.owner!.user.id]);
-  const app=createApp(async()=>{},{pool,storage,rateLimiter:()=>({limit:async()=>({success:true})}),windowCounter:()=>({consume:async()=>({count:1,retryAfterSeconds:60})})});
+  const app=createApp(async()=>{},{pool,storage,mcpPublicOrigin:'http://localhost',rateLimiter:()=>({limit:async()=>({success:true})}),windowCounter:()=>({consume:async()=>({count:1,retryAfterSeconds:60})})});
+  let hostedState:ReturnType<typeof hostedMcpMatrixFixture>|undefined;
+  const hosted=()=>hostedState??=hostedMcpMatrixFixture(app,pool,actors.owner!,'prj');
   const scopes=['projects:read','boards:read','cards:read','cards:create']as const;
   const pat=await createPersonalAccessToken(pool,{userId:actors.owner!.user.id,name:'Matrix full token',scopes:[...scopes],projectId:'prj'});
   const expiredPat=await createPersonalAccessToken(pool,{userId:actors.owner!.user.id,name:'Matrix expired token',scopes:[...scopes],projectId:'prj'});
@@ -58,6 +61,8 @@ export async function routeAuthFixture(t:TestContext){
   const fingerprint=async()=>{const state={...((await pool.query(fingerprintSql)).rows[0]),__storageMutations:String(storageMutations)};for(const sequence of sequences){const row=(await pool.query(`SELECT last_value::text,is_called FROM \"${schema}\".\"${sequence}\"`)).rows[0];state['__sequence_'+sequence]=JSON.stringify(row);}return state;};
   const ids:Record<string,string>={workspaceId:'ws',projectId:'prj',boardId:'brd',cardId:'card',columnId:'col',commentId:'comment',imageId:'image',uploadId:'upload',importId:'imp',invitationId:'inv',notificationId:'notif',id:'notif',userId:actors.target!.user.id,tokenId:pat.tokenDetails.id};
   async function requestFixture(op:OpenApiOperationDefinition){
+    const oauth=op.path.startsWith('/mcp')?await hosted():undefined;
+    if(oauth){ids.requestId=oauth.pending.requestId;ids.connectionId=oauth.connectionId;}
     let path=(op.basePath??'/api/v1')+op.path;
     path=path.replace(/\{(\w+)\}/g,(_all,param:string)=>{assert.ok(ids[param],`No real parameter fixture for ${param}`);return ids[param]!;});
     if(op.path.endsWith('/restore'))path=path.replace('/cards/card/','/cards/trash/');
@@ -70,12 +75,16 @@ export async function routeAuthFixture(t:TestContext){
       CreateCardInput:{title:'Matrix PAT created',columnId:'col',expectedBoardVersion:version},UpdateCardInput:{title:'Matrix renamed',expectedVersion:1},MoveCardInput:{toColumnId:'col2',previousCardId:null,nextCardId:null,expectedVersion:1,expectedBoardVersion:version},MoveUndoInput:{expectedVersion:1,expectedBoardVersion:version},
       PostCommentInput:{body:'Matrix comment',mentions:[]},EditCommentInput:{body:'Edited matrix',mentions:[],expectedVersion:1},DeleteCommentInput:{expectedVersion:1},DeleteCommentBodyInput:deleteCommentInputSchema.parse({expectedVersion:1}),CreateImageUploadInput:{filename:'matrix.png',byteLength:png.length,contentType:'image/png',sha256:pngHash},DeleteImageInput:{expectedVersion:1},
       SoftDeleteCardInput:{expectedVersion:1,expectedBoardVersion:version},RestoreCardInput:{expectedVersion:1,expectedBoardVersion:version,toColumnId:'col'},UpdateImportMappingsInput:{mappings:{},expectedVersion:1},CommitImportInput:{previewDigest:'matrix_digest',defaultColumnId:'col',expectedVersion:1},CreateTokenInput:{name:'Matrix nested',scopes:['projects:read'],projectId:'prj'},
+      ...(oauth?{HostedMcpMessageInput:{jsonrpc:'2.0',id:1,method:'tools/list'},HostedOAuthRegisterInput:{client_name:'Matrix public client',redirect_uris:[oauth.callback]},
+        HostedOAuthTokenInput:oauth.tokenInput('unknown-synthetic-code'),HostedOAuthRevokeInput:{token:oauth.accessToken,client_id:oauth.clientId},
+        HostedMcpDecisionInput:{decision:'allow',projectId:'prj',csrfToken:oauth.pending.csrfToken}}:{}),
     };
     let body=op.requestSchema?inputs[op.requestSchema]:undefined;
     if(op.requestSchema){assert.ok(body!==undefined,`No typed body factory for ${op.requestSchema}`);const validated=OPENAPI_SCHEMAS[op.requestSchema]!.schema.safeParse(body);assert.equal(validated.success,true,`Invalid body fixture for ${op.requestSchema}`);}
     if(/^\/api\/v1\/boards\//.test(path)&&/\/(archive|reopen)$/.test(path))body={expectedVersion:Number((await pool.query("SELECT snapshot_version FROM boards WHERE id='brd'")).rows[0].snapshot_version)};
     if(/^\/api\/v1\/projects\//.test(path)&&/\/(archive|reopen)$/.test(path))body={expectedVersion:Number((await pool.query("SELECT version FROM projects WHERE id='prj'")).rows[0].version)};
     const query=new URLSearchParams();
+    if(op.querySchema==='HostedOAuthAuthorizeQuery'&&oauth)for(const[name,value]of Object.entries(oauth.authorizeQuery))query.set(name,value);
     if(op.querySchema==='MyTasksQuery'||op.querySchema==='WorkspaceMyTasksQuery')query.set('projectId','prj');
     if(op.querySchema==='PlacementInput'){query.set('movingCardId','card');query.set('at','first');}
     if(op.path==='/boards/{boardId}/cards'&&op.method==='GET')query.set('columnId','col');
@@ -85,9 +94,11 @@ export async function routeAuthFixture(t:TestContext){
     let bytes:BodyInit|undefined;
     if(op.requestKind==='xlsx'){headers['Content-Type']='application/octet-stream';bytes=getImportTemplateBytes();}
     else if(op.requestKind==='image'){headers['Content-Type']='image/png';bytes=new Uint8Array(png).buffer;}
+    else if(op.requestKind==='form'&&body!==undefined){headers['Content-Type']='application/x-www-form-urlencoded';bytes=new URLSearchParams(body as Record<string,string>);}
     else if(body!==undefined){headers['Content-Type']='application/json';bytes=JSON.stringify(body);}
+    if(op.path==='/mcp'){headers.Accept='application/json, text/event-stream';headers['MCP-Protocol-Version']='2025-11-25';}
     if(op.querySchema){const input=Object.fromEntries(query);const parsed=OPENAPI_SCHEMAS[op.querySchema]!.schema.safeParse(input);assert.equal(parsed.success,true,`Invalid query fixture for ${op.querySchema}`);}
     return{url:'http://localhost'+path+(query.size?'?'+query:''),init:{method:op.method,headers,...(bytes===undefined?{}:{body:bytes})}as RequestInit,typedBody:op.requestSchema??op.requestKind??'no bound request body',query:op.querySchema??null};
   }
-  return{pool,app,actors,pat,expiredPat,ids,fingerprint,requestFixture};
+  return{pool,app,actors,pat,expiredPat,ids,fingerprint,requestFixture,hosted};
 }

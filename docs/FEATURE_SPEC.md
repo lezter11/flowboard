@@ -1,8 +1,12 @@
 # Flowboard feature specification v0.3
 
-Date: 2026-10-26. Status: implementation specification with explicit proposed defaults. No application feature is implemented yet. The user's latest requirements override earlier workspace-wide access, archive-only deletion and deferred image/import scope.
+Originally drafted2026-10-26. This document defines behavior; implementation, independent local acceptance and hosted acceptance are tracked separately in [FEATURE_CHECKLIST](FEATURE_CHECKLIST.md) and [PROGRESS](../PROGRESS.md). Later confirmed revisions supersede earlier proposed defaults, including explicit board grants for non-Owners. The user's latest requirements override earlier workspace-wide access, archive-only deletion and deferred image/import scope.
 
 The complete deliverable list is [FEATURE_CHECKLIST.md](FEATURE_CHECKLIST.md), generated from 98 stable definitions in [features.tsv](features.tsv). Each feature separately tracks Backend verification, UI verification and integrated acceptance. [API.md](API.md) defines service contracts; [handoffs](handoffs/README.md) defines evidence and sequencing.
+
+## Hosted connector extension — 2026-11-04
+
+The user selected a hosted Claude connector with browser Google sign-in, explicit one-project consent and personal disconnect. Its independent scoped specification is [HOSTED_MCP_SPEC](HOSTED_MCP_SPEC.md), delivery plan [HOSTED_MCP_PLAN](HOSTED_MCP_PLAN.md). It preserves current role/board boundaries and existing five discovery/search/create tools; it does not add existing-card MCP update or company client-credentials. The original98stable product definitions remain unchanged; the extension is tracked separately as HOSTED-MCP/HMCP00–09. Neither source documentation nor an API-only handoff establishes final hosted acceptance.
 
 ## 1. Confirmed requirements and proposed defaults
 
@@ -108,7 +112,7 @@ Create-only import uses stable board-scoped text External ID. Same original row 
 
 Proposed starting bound: 200 data rows, 5 MiB compressed upload, 20 MiB expanded XLSX XML and limited parse time/cell lengths. Validate entire batch and commit new rows atomically after rechecking project grant, destination columns, eligible users and preview expiry. Invalid/conflict rows mean zero new cards. No chunked partial-success semantics in v1. If these bounds miss runtime limits, amend them or run bounded parsing in a durable compatible worker; never silently weaken atomicity.
 
-Reject formulas/macros/external workbook links/embedded objects; never evaluate cached expressions. Real Excel dates honor 1900/1904 workbook metadata; strict ISO text is accepted; ambiguous date text is rejected. UTF-8 CSV, legacy XLS, comments/history/file import, automatic updates and import rollback are later scope. A successful importer does not yet exist; this is its specification and a usable template.
+Reject formulas/macros/external workbook links/embedded objects; never evaluate cached expressions. Real Excel dates honor 1900/1904 workbook metadata; strict ISO text is accepted; ambiguous date text is rejected. UTF-8 CSV, legacy XLS, comments/history/file import, automatic updates and import rollback are later scope. The importer and template are implemented; current local review and hosted acceptance are recorded in FEATURE_CHECKLIST.md and PROGRESS.md. This specification alone is not execution evidence.
 
 ## 10. Activity and owner overview
 

@@ -15,7 +15,7 @@ import { hasUnsaved, subscribeUnsaved } from '@/lib/unsaved';
 import { NameStep } from '@/components/auth/name-step';
 import { HoverTip } from '@/components/ui/hover-tip';
 
-const BARE_ROUTES = ['/signin', '/invitation', '/invitations/accept', '/all-work'];
+const BARE_ROUTES = ['/signin', '/invitation', '/invitations/accept', '/all-work', '/connect'];
 
 function Frame({ children }: { children: ReactNode }) {
   const pathname = usePathname();

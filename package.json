@@ -30,7 +30,8 @@
     "test:browser": "NODE_ENV=test FLOWBOARD_BROWSER_FLOWS=true FLOWBOARD_BROWSER_BOARD_FLOWS=true FLOWBOARD_BROWSER_ROLE_FLOWS=true FLOWBOARD_BROWSER_EXTENDED=true node scripts/e2e/diagnostic.mjs",
     "test:mcp-integration": "NODE_ENV=test WRANGLER_SEND_METRICS=false node scripts/e2e/mcp-acceptance.mjs",
     "migrations:embed": "node scripts/sync-embedded-migrations.ts",
-    "migrations:embed:check": "node scripts/sync-embedded-migrations.ts --check"
+    "migrations:embed:check": "node scripts/sync-embedded-migrations.ts --check",
+    "test:hosted-mcp-browser": "NODE_ENV=test WRANGLER_SEND_METRICS=false node scripts/e2e/hosted-mcp-browser.mjs"
   },
   "devDependencies": {
     "@playwright/test": "1.64.1",

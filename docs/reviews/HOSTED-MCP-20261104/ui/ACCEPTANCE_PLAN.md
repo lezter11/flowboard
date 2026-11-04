@@ -1,6 +1,6 @@
-# Hosted MCP UI acceptance — prepared, not executed
+# Hosted MCP UI acceptance plan
 
-2026-11-04. Owner: UI builder. Backend/UI-ready gate is pending. Only this plan and its draft local browser runner are authorized at this stage; no product source changes or hosted writes are made here.
+2026-11-04. Owner: UI builder. Implementation started only after the parent validated the independent HOSTED-MCP-BACKEND-API round2 pass9.1. Builder source is now held; [handoff](BUILDER_HANDOFF.md), [manifest](builder-source-manifest.json) and [checks](builder-checks.json) record current evidence. Final independent whole-feature/Pages/provider acceptance remains separate. No hosted writes were performed by UI.
 
 ## Frozen contract inputs
 
@@ -64,7 +64,7 @@ All local writes use an isolated random PostgreSQL schema, inherited synthetic a
 
 ## Runner, evidence and exclusions
 
-`browser-acceptance.draft.mjs` is prepared for HUI01–08/10/12 plus parts of05/09/13. It refuses to run unless explicitly enabled in NODE_ENV=test and given a reviewed backend gate path. At preparation time it is syntax-checkable only: UI selectors are not implemented and the backend app is not yet ready. Its local wrapper composes the actual OAuth route with the existing synthetic API to avoid editing shared harness source; replace this wrapper with the final mounted createApp loopback test hook before claiming integrated acceptance.
+The stable runner is `scripts/e2e/hosted-mcp-browser.mjs`, requiring NODE_ENV=test and the inherited fenced disposable database configuration. It exercises the actual mounted app through `CreateAppOptions.mcpPublicOrigin`, with no partial OAuth overlay. It requires every owned HUI group and minimum24passing cases; HUI14 is independently executed against the actual compiled Pages runtime. The old draft is retained as historical evidence, not a CI entrypoint. Complete native Worker, baseline regression and hosted provider acceptance remain separate checks.
 
 Evidence output is a new timestamped directory under `ui/runs/`; never overwrite earlier results. Save source hash manifest, safe test outcomes, HTTP method/redacted path/status, console severity counts, unexpected-origin list, screenshots of local UI and cleanup status. Never retain raw cookies, codes, state, request handles, CSRF values, access/refresh credentials, callback query strings, token endpoint bodies or raw third-party exceptions. No HAR/traces unless a separately reviewed redaction mechanism exists.
 

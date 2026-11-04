@@ -1,0 +1,75 @@
+{
+  "status": "prepared-not-executed",
+  "createdAt": "2026-11-04T12:32:19.721Z",
+  "migration27Sha256": "067ee87e4e41d837e74a15424ba0e0db254989c3f3f05713b3019c539a3a0afd",
+  "files": {
+    "COLLEAGUE-GUIDE.md": {
+      "bytes": 2993,
+      "sha256": "ead1dd3867c755073e8e75c3b11fca894aead1ef850f1ea2461b846864609131"
+    },
+    "RELEASE-PLAN.md": {
+      "bytes": 11158,
+      "sha256": "92bd4a1389fc136ff05de10a7c711d8bc4ab979ebcc16c04cb203b137f83e184"
+    },
+    "backup-uat.mjs": {
+      "bytes": 4095,
+      "sha256": "150fba7b86ae6403faaf5b06710845017b1646e7e79bcabd440d99ab154bbba5"
+    },
+    "migrate-uat.mjs": {
+      "bytes": 4095,
+      "sha256": "9ca0c326a5256874f94f91dbd7f4a7db91531ecda7df9adcb437bc5fcbfcae56"
+    },
+    "preflight.json": {
+      "bytes": 2358,
+      "sha256": "5e2be47c9a41d872551e4212762205509e87dde16531de9f6c9a0dd91f6f2c7c"
+    },
+    "prepare-artifacts.mjs": {
+      "bytes": 4329,
+      "sha256": "ac5fc3d35855b34fe2e87e3067a5acc491e9458f7a20ac7617c007561413ec7e"
+    },
+    "read-uat-ledger.mjs": {
+      "bytes": 3606,
+      "sha256": "6ce298a006712968f6853ffa4b8a44f6b93adbb5819d9f04911beb416a0e2703"
+    },
+    "uat-ledger.json": {
+      "bytes": 4163,
+      "sha256": "13b8e46a141f75994fdb26f50c7a8c39f07e9b27f56498742a081a6d173a548e"
+    },
+    "uat-release-guards.mjs": {
+      "bytes": 6758,
+      "sha256": "a1e732daadbb21c2a5e3b9febd898095ea665ba9c9b010fbe882af47e7a2ba1b"
+    }
+  },
+  "commands": [
+    {
+      "command": "node --check docs/reviews/HOSTED-MCP-20261104/release-preparation/read-uat-ledger.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check docs/reviews/HOSTED-MCP-20261104/release-preparation/prepare-artifacts.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check docs/reviews/HOSTED-MCP-20261104/release-preparation/uat-release-guards.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check docs/reviews/HOSTED-MCP-20261104/release-preparation/backup-uat.mjs",
+      "exitCode": 0
+    },
+    {
+      "command": "node --check docs/reviews/HOSTED-MCP-20261104/release-preparation/migrate-uat.mjs",
+      "exitCode": 0
+    }
+  ],
+  "cloudWrites": false,
+  "backupExecuted": false,
+  "migrationExecuted": false,
+  "artifactBuildExecuted": false,
+  "actualRestoreExecuted": false,
+  "limitations": [
+    "Root must review scripts before release execution.",
+    "Syntax checks are not behavioral proof of backup/migration helpers.",
+    "Only read-uat-ledger.mjs actually connected to known UAT and passed; report in uat-ledger.json."
+  ]
+}

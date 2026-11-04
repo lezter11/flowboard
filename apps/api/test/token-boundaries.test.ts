@@ -10,7 +10,7 @@ import type { TokenScope } from '@flowboard/contracts';
 
 test('PAT capability boundary through every mounted route', async (t) => {
   const pool = getPool();
-  const app = createApp();
+  const app = createApp(undefined, { mcpPublicOrigin: 'http://localhost' });
   await runMigrations(pool);
   await pool.query('TRUNCATE workspaces, users, sessions, personal_access_tokens CASCADE');
   const userIds = ['owner', 'member', 'viewer', 'removed', 'outsider'];
@@ -90,7 +90,7 @@ test('PAT capability boundary through every mounted route', async (t) => {
         if (PERSONAL_ACCESS_TOKEN_ROUTES.some((policy) => policy.method === route.method && policy.path === route.path)) continue;
         const path = route.path.replace(/:[A-Za-z]+/g, 'pat_target');
         const response = await request(path, full.token, route.method, ['POST', 'PATCH', 'PUT', 'DELETE'].includes(route.method) ? {} : undefined);
-        assert.equal(response.status, 403, `unexpected authorization for ${route.method} ${route.path}`);
+        assert.equal(response.status, route.path === '/api/v1/mcp' ? 401 : 403, `unexpected authorization for ${route.method} ${route.path}`);
         assert.equal((await response.json()).data, undefined, `data on denied ${route.method} ${route.path}`);
         checked++;
       }

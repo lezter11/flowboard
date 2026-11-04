@@ -1,0 +1,19 @@
+{
+  "reviewedAt": "2026-11-04T12:51:08.992967+00:00",
+  "reviewer": "Architect/root",
+  "supersedesForChangedHelper": "ARCHITECT-RELEASE-SCRIPT-REVIEW.json",
+  "kind": "production build environment repair; prepared only",
+  "files": {
+    "docs/reviews/HOSTED-MCP-20261104/release-preparation/prepare-artifacts.mjs": "c136c082dd3df38847aacc60a6550c44041c87072b9638e1c28ff4d7b4c4ca84",
+    "docs/reviews/HOSTED-MCP-20261104/release-preparation/uat-release-guards.mjs": "a1e732daadbb21c2a5e3b9febd898095ea665ba9c9b010fbe882af47e7a2ba1b",
+    "docs/reviews/HOSTED-MCP-20261104/release-preparation/backup-uat.mjs": "150fba7b86ae6403faaf5b06710845017b1646e7e79bcabd440d99ab154bbba5",
+    "docs/reviews/HOSTED-MCP-20261104/release-preparation/migrate-uat.mjs": "9ca0c326a5256874f94f91dbd7f4a7db91531ecda7df9adcb437bc5fcbfcae56"
+  },
+  "change": "Build helper uses whitelisted environment and explicit NODE_ENV=production/NEXT_DIST_DIR=.next. No test database or inherited NEXT_PUBLIC override reaches production builds. Prior API-phase test bundle must never be deployed.",
+  "syntaxExitCode": 0,
+  "limitations": [
+    "Actual production bundle build and dev-login denial probe remain required.",
+    "Earlier preparation manifests remain historical and their changed-helper hash is intentionally not current.",
+    "No deployment or cloud mutation performed."
+  ]
+}

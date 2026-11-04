@@ -1,0 +1,1897 @@
+▶ generated cookie resource mutation isolation with genuine authorized controls
+  ✖ PUT /api/v1/session/last-location (12.493709ms)
+  ✖ PATCH /api/v1/workspaces/{workspaceId} (6.182333ms)
+  ✖ POST /api/v1/workspaces/{workspaceId}/transfer-ownership (4.36525ms)
+  ✖ POST /api/v1/workspaces/{workspaceId}/projects (4.043583ms)
+  ✖ PATCH /api/v1/projects/{projectId} (3.325666ms)
+  ✖ PATCH /api/v1/projects/{projectId}/members/{userId} (4.210875ms)
+  ✖ DELETE /api/v1/projects/{projectId}/members/{userId} (3.729042ms)
+  ✖ POST /api/v1/projects/{projectId}/archive (3.025417ms)
+  ✖ POST /api/v1/projects/{projectId}/reopen (2.896958ms)
+  ✖ POST /api/v1/projects/{projectId}/leave (3.507792ms)
+  ✖ POST /api/v1/projects/{projectId}/invitations (2.606292ms)
+  ✖ POST /api/v1/projects/{projectId}/invitations/{invitationId}/resend (3.321667ms)
+  ✖ POST /api/v1/projects/{projectId}/invitations/{invitationId}/revoke (2.405292ms)
+  ✖ POST /api/v1/projects/{projectId}/boards (2.45525ms)
+  ✖ PATCH /api/v1/boards/{boardId} (2.466125ms)
+  ✖ POST /api/v1/boards/{boardId}/archive (2.558583ms)
+  ✖ POST /api/v1/boards/{boardId}/reopen (2.724416ms)
+  ✖ PUT /api/v1/boards/{boardId}/grants/{userId} (2.515375ms)
+  ✖ DELETE /api/v1/boards/{boardId}/grants/{userId} (2.49775ms)
+  ✖ POST /api/v1/boards/{boardId}/columns (2.581625ms)
+  ✖ PATCH /api/v1/boards/{boardId}/columns/{columnId} (2.463292ms)
+  ✖ POST /api/v1/boards/{boardId}/columns/reorder (2.537458ms)
+  ✖ DELETE /api/v1/boards/{boardId}/columns/{columnId} (2.47475ms)
+  ✖ POST /api/v1/boards/{boardId}/cards (2.577917ms)
+  ✖ PATCH /api/v1/cards/{cardId} (2.428917ms)
+  ✖ POST /api/v1/cards/{cardId}/move (2.497958ms)
+  ✖ POST /api/v1/cards/{cardId}/move-undo (3.079959ms)
+  ✖ POST /api/v1/cards/{cardId}/comments (2.54025ms)
+  ✖ PATCH /api/v1/comments/{commentId} (2.583041ms)
+  ✖ DELETE /api/v1/comments/{commentId} (2.280875ms)
+  ✖ PATCH /api/v1/notifications/{id}/read (2.422792ms)
+  ✖ POST /api/v1/cards/{cardId}/image-uploads (2.484291ms)
+  ✖ PUT /api/v1/image-uploads/{uploadId}/content (2.476541ms)
+  ✖ POST /api/v1/image-uploads/{uploadId}/finalize (2.393916ms)
+  ✖ DELETE /api/v1/image-uploads/{uploadId} (2.483959ms)
+  ✖ DELETE /api/v1/images/{imageId} (2.429291ms)
+  ✖ POST /api/v1/cards/{cardId}/delete (2.533625ms)
+  ✖ POST /api/v1/cards/{cardId}/restore (2.423333ms)
+  ✖ POST /api/v1/boards/{boardId}/imports (2.692417ms)
+  ✖ POST /api/v1/boards/{boardId}/card-imports (2.54475ms)
+  ✖ POST /api/v1/imports/{importId}/mappings (3.438041ms)
+  ✖ POST /api/v1/imports/{importId}/commit (2.523666ms)
+  ✖ DELETE /api/v1/imports/{importId} (2.6855ms)
+  ✖ POST /api/v1/card-imports/{importId}/mappings (2.59075ms)
+  ✖ POST /api/v1/card-imports/{importId}/commit (2.644625ms)
+  ✖ DELETE /api/v1/card-imports/{importId} (2.626334ms)
+  ✖ POST /api/v1/tokens (2.584666ms)
+  ✖ DELETE /api/v1/tokens/{tokenId} (2.532834ms)
+  ✖ POST /api/v1/mcp/authorization-requests/{requestId}/decision (2.570333ms)
+  ✖ DELETE /api/v1/mcp/connections/{connectionId} (2.400541ms)
+  ✖ public OAuth register/token/revoke use real client and PKCE state, not cookie authority (2.89325ms)
+  ✖ manager cannot demote peer manager (2.727541ms)
+  ✖ manager cannot remove peer manager (2.479709ms)
+  ✖ manager cannot promote viewer to manager (3.099917ms)
+  ✖ manager cannot change own role (2.817625ms)
+  ✖ member cannot administer project roles (2.474542ms)
+  ✖ viewer cannot administer project roles (2.568ms)
+✖ generated cookie resource mutation isolation with genuine authorized controls (173.758958ms)
+ℹ {"operations":0,"cells":0,"controls":0,"denials":0,"failures":0}
+✔ OpenAPI parity: every explicit mounted method/path and alias exists exactly once, with no phantom operation (1.130375ms)
+✔ OpenAPI parity: exactly the six mounted PAT capabilities advertise bearer authority (0.073208ms)
+✔ OpenAPI parity: production and synthetic app registrations retain the same documented inventory (0.443125ms)
+✖ OpenAPI wire projections validate actual mounted session, PAT, replay, lifecycle and MIME responses (13.27925ms)
+✖ generated route auth matrix: mounted inventory, every bearer boundary, sessions and real private targets (8.045167ms)
+ℹ tests 63
+ℹ suites 0
+ℹ pass 3
+ℹ fail 60
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1035.310167
+
+✖ failing tests:
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ PUT /api/v1/session/last-location (12.493709ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ PATCH /api/v1/workspaces/{workspaceId} (6.182333ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/workspaces/{workspaceId}/transfer-ownership (4.36525ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/workspaces/{workspaceId}/projects (4.043583ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ PATCH /api/v1/projects/{projectId} (3.325666ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ PATCH /api/v1/projects/{projectId}/members/{userId} (4.210875ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ DELETE /api/v1/projects/{projectId}/members/{userId} (3.729042ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/projects/{projectId}/archive (3.025417ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/projects/{projectId}/reopen (2.896958ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/projects/{projectId}/leave (3.507792ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/projects/{projectId}/invitations (2.606292ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/projects/{projectId}/invitations/{invitationId}/resend (3.321667ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/projects/{projectId}/invitations/{invitationId}/revoke (2.405292ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/projects/{projectId}/boards (2.45525ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ PATCH /api/v1/boards/{boardId} (2.466125ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/boards/{boardId}/archive (2.558583ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/boards/{boardId}/reopen (2.724416ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ PUT /api/v1/boards/{boardId}/grants/{userId} (2.515375ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ DELETE /api/v1/boards/{boardId}/grants/{userId} (2.49775ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/boards/{boardId}/columns (2.581625ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ PATCH /api/v1/boards/{boardId}/columns/{columnId} (2.463292ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/boards/{boardId}/columns/reorder (2.537458ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ DELETE /api/v1/boards/{boardId}/columns/{columnId} (2.47475ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/boards/{boardId}/cards (2.577917ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ PATCH /api/v1/cards/{cardId} (2.428917ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/cards/{cardId}/move (2.497958ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/cards/{cardId}/move-undo (3.079959ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/cards/{cardId}/comments (2.54025ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ PATCH /api/v1/comments/{commentId} (2.583041ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ DELETE /api/v1/comments/{commentId} (2.280875ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ PATCH /api/v1/notifications/{id}/read (2.422792ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/cards/{cardId}/image-uploads (2.484291ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ PUT /api/v1/image-uploads/{uploadId}/content (2.476541ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/image-uploads/{uploadId}/finalize (2.393916ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ DELETE /api/v1/image-uploads/{uploadId} (2.483959ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ DELETE /api/v1/images/{imageId} (2.429291ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/cards/{cardId}/delete (2.533625ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/cards/{cardId}/restore (2.423333ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/boards/{boardId}/imports (2.692417ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/boards/{boardId}/card-imports (2.54475ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/imports/{importId}/mappings (3.438041ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/imports/{importId}/commit (2.523666ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ DELETE /api/v1/imports/{importId} (2.6855ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/card-imports/{importId}/mappings (2.59075ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/card-imports/{importId}/commit (2.644625ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ DELETE /api/v1/card-imports/{importId} (2.626334ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/tokens (2.584666ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ DELETE /api/v1/tokens/{tokenId} (2.532834ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ POST /api/v1/mcp/authorization-requests/{requestId}/decision (2.570333ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:23:59
+✖ DELETE /api/v1/mcp/connections/{connectionId} (2.400541ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:24:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:23:51)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:59:11
+✖ public OAuth register/token/revoke use real client and PKCE state, not cookie authority (2.89325ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:60:72)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:59:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:107:13
+✖ manager cannot demote peer manager (2.727541ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:108:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:107:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:107:13
+✖ manager cannot remove peer manager (2.479709ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:108:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:107:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:107:13
+✖ manager cannot promote viewer to manager (3.099917ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:108:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:107:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:107:13
+✖ manager cannot change own role (2.817625ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:108:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:107:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:107:13
+✖ member cannot administer project roles (2.474542ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:108:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:107:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/cookie-mutation-matrix.test.ts:107:13
+✖ viewer cannot administer project roles (2.568ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async cookieMutationFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/cookie-mutation-fixture.ts:16:14)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:108:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/cookie-mutation-matrix.test.ts:107:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/openapi-parity.test.ts:42:1
+✖ OpenAPI wire projections validate actual mounted session, PAT, replay, lifecycle and MIME responses (13.27925ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/openapi-parity.test.ts:55:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }
+
+test at apps/api/test/route-auth-matrix.test.ts:14:1
+✖ generated route auth matrix: mounted inventory, every bearer boundary, sessions and real private targets (8.045167ms)
+  error: database "flowboard_identity_extra_test" does not exist
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/route-auth-matrix.test.ts:17:11)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    length: 115,
+    severity: 'FATAL',
+    code: '3D000',
+    detail: undefined,
+    hint: undefined,
+    position: undefined,
+    internalPosition: undefined,
+    internalQuery: undefined,
+    where: undefined,
+    schema: undefined,
+    table: undefined,
+    column: undefined,
+    dataType: undefined,
+    constraint: undefined,
+    file: 'postinit.c',
+    line: '1032',
+    routine: 'InitPostgres'
+  }

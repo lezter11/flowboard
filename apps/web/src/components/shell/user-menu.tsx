@@ -69,6 +69,7 @@ export function UserMenu({ placement, className, label, children }: { placement:
             <span><strong>{actor.displayName}</strong><small>{actor.email}</small></span>
           </div>
           <Link className="action-menu-item" role="menuitem" href="/settings?tab=account" onClick={() => setOpen(false)}><Icon name="settings" /><span>Settings</span></Link>
+          <Link className="action-menu-item" role="menuitem" href="/settings?tab=connections" onClick={() => setOpen(false)}><Icon name="lock" /><span>Connections</span></Link>
           <button className="action-menu-item" type="button" role="menuitem" disabled={busy} onClick={() => { setBusy(true); void signOut(); }}><Icon name="arrow-right" /><span>{busy ? 'Signing out…' : 'Sign out'}</span></button>
         </div>
       )}

@@ -1,0 +1,52 @@
+{
+  "kind": "frozen final target, checks not yet complete",
+  "preparedAt": "2026-11-04T13:19:13.460Z",
+  "frozen": true,
+  "results": [
+    {
+      "id": "build-web",
+      "command": "npm run build:web",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T13:19:40.961Z",
+      "completedAt": "2026-11-04T13:19:49.072Z",
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-19-13.421Z/build-web.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:55010; explicit production build without DB/test/NEXT_PUBLIC overrides, NEXT_DIST_DIR=.next",
+      "isolatedSynthetic": true,
+      "changedSourceFiles": []
+    },
+    {
+      "id": "api",
+      "command": "npm test --workspace @flowboard/api",
+      "exitCode": 0,
+      "startedAt": "2026-11-04T13:20:37.576Z",
+      "completedAt": "2026-11-04T13:26:37.642Z",
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-19-13.421Z/api.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:55010; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "isolatedSynthetic": true,
+      "changedSourceFiles": []
+    },
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 1,
+      "startedAt": "2026-11-04T13:26:37.654Z",
+      "completedAt": "2026-11-04T13:26:38.458Z",
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-19-13.421Z/typecheck.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:55010; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "isolatedSynthetic": true,
+      "changedSourceFiles": []
+    }
+  ],
+  "externalPending": [
+    "compiled-pages-runtime"
+  ],
+  "frozenAt": "2026-11-04T13:19:40.867Z",
+  "criteriaPath": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/final-criteria.json",
+  "criteriaSHA256": "26b48b196a185306cf858add91bb1e6a42cd8508cf27c727073c6ecd2ca2edc3",
+  "sourceChanges": [],
+  "verdict": "fail",
+  "acceptance": false,
+  "hardBlockers": [
+    "Required npm run typecheck failed TS2345 in apps/api/test/google-connect-resume.test.ts:24:159."
+  ]
+}

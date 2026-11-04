@@ -1,0 +1,116 @@
+{
+  "kind": "Disposable local UI test launcher",
+  "container": "flowboard-hosted-ui-23443",
+  "image": "postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "loopbackPort": 52343,
+  "exit": 1,
+  "cleanup": true,
+  "events": [
+    {
+      "id": "HUI-01-synthetic-Google-safe-next",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-02-03-explicit-project-unverified-allow",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-04-deny-without-project-no-grant",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-05-expired-and-malformed-request",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-05-missing-binding-and-consumed-request",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-06-owner-consent-personal-navigation",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-06-manager-consent-personal-navigation",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-06-member-consent-personal-navigation",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-06-viewer-consent-personal-navigation",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-07-duration-continuing",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-07-duration-session",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-08-project-pagination-newest-CSRF",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-09-same-user-replaced-session-clears-consent",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-09-different-actor-clears-private-state",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-09-revoked-project-cannot-approve",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-09-ended-session-clears-selection-and-CSRF",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-11-safe-fault-copy-and-retry-after",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-11-unknown-commit-does-not-blindly-repeat",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-13-keyboard-320px-and-200percent-layout",
+      "status": "fail",
+      "errorType": "Error",
+      "sourceFrame": "at scripts/e2e/hosted-mcp-browser.mjs:416:30",
+      "page": {
+        "origin": "http://127.0.0.1:44942",
+        "path": "/connect"
+      }
+    },
+    {
+      "id": "HUI-10-disconnect-removes-grant-and-access",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-06-no-project-account-personal-connections",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-15-consent-to-five-mounted-tools-refresh-retry-and-disconnect",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-12-console-network-and-private-response-clean",
+      "status": "pass"
+    },
+    {
+      "output": "artifacts/hosted-mcp-browser/2026-11-04T13-00-08.457Z",
+      "cases": 23,
+      "failures": 1,
+      "setupFailed": true,
+      "sourceChanges": 0
+    }
+  ],
+  "stage": "browser-runner"
+}

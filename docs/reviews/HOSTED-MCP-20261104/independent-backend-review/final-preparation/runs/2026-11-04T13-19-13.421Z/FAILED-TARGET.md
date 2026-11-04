@@ -1,0 +1,3 @@
+# Failed final target — required typecheck
+
+Frozen615 files,141 mandatory statements and17 required commands. Production webbuild passed; fullAPI1907/1907 passed0fail/0skip; source guard remained unchanged. Required `npm run typecheck` failed exit1 at apps/api/test/google-connect-resume.test.ts24:159: string|undefined was passed where string is required. Later commands were intentionally not executed. Actual independent Pages6/6 and NameStep3/3 evidence stays tied to this615-source target and must not be silently relabelled. No numerical passing score or handoff approval is issued. Builder repairs require a new target and actual affected/shared verification; retain this failed round.

@@ -1,5 +1,11 @@
 # Flowboard design direction
 
+## Hosted connector interaction — acceptance target, 2026-11-04
+
+Consent is a focused page outside the board shell. Explain the requesting app, both origins, its unverified identity, requested actions and continuing-access duration in plain language. Require an explicit project choice before Allow; Deny remains available without one. Render all client metadata as text. Never display a token or callback query. Unavailable/expired or uncertain outcomes offer safe restart/reload guidance without silently resubmitting consent.
+
+Connections is personal, accessible from every role's account menu. Show app/project, allowed actions, expiry and recorded usage without inventing missing history. Confirm Disconnect with keyboard focus and Escape support. Preserve narrow-screen usability and existing visual tokens. [Detailed browser criteria](docs/reviews/HOSTED-MCP-20261104/ui/ACCEPTANCE_PLAN.md) govern verification; this design paragraph is not implemented/browser acceptance evidence.
+
 Status: reference-informed exploration, not a fully accepted product-wide visual design. The sign-in page is locked for this design iteration with Palette 1 and IBM Plex Sans. Palette 1 is also applied to the board design artifact for this review; production rollout and final logo approval remain under review. Updated 2026-10-26.
 
 ## Source and ownership

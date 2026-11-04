@@ -1,0 +1,3 @@
+# Failed616-file target — native Node import
+
+Eleven required commands passed, including production web/API/MCP builds, both typechecks, contracts, web, MCP, packed executable, OpenAPI and migration parity. Source guard remained unchanged through these checks. Required test:mcp-integration then failed before any probe with ERR_MODULE_NOT_FOUND: apps/web/functions/api/[[path]].ts imports pages-api-proxy without an explicit TypeScript extension, which native Node24 does not resolve. The fullAPI and remaining browser/artifact checks were intentionally not executed. Actual independent Pages6/6 and NameStep3/3 evidence remains tied to this616 target, not a future repair. No passing score or approval.

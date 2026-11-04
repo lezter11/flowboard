@@ -1,0 +1,38 @@
+// Review-only probe. Never deploy the export-only helper shim.
+import fs from 'node:fs/promises';import path from 'node:path';import os from 'node:os';import crypto from 'node:crypto';import assert from 'node:assert/strict';import pg from 'pg';
+import {createTestHarness} from 'wrangler';import {runMigrations} from '../../../../../apps/api/src/adapters/migrations.ts';
+if(!process.argv.includes('--run')){console.log(JSON.stringify({status:'prepared-not-executed'}));process.exit(0);}
+const output=process.env.FLOWBOARD_PRODUCTION_WORKER_REPORT??'docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/production-worker-result.json';
+let selected=process.env.DATABASE_URL;
+if(!selected){const values=JSON.parse(await fs.readFile('/private/tmp/flowboard-hosted-final-independent-gate.json','utf8'));selected=values.values.DATABASE_URL;}
+const url=new URL(selected);assert.ok(['postgres:','postgresql:'].includes(url.protocol));assert.ok(['127.0.0.1','localhost','[::1]'].includes(url.hostname));assert.ok(url.port&&!['55432','55479'].includes(url.port));assert.equal(url.username,'flowboard_harness');assert.equal(url.pathname,'/flowboard_harness');assert.equal(url.search,'');
+const bundle=path.resolve(process.env.FLOWBOARD_PRODUCTION_WORKER_BUNDLE??'apps/api/dist/worker/worker.js'),bytes=await fs.readFile(bundle),sha=value=>crypto.createHash('sha256').update(value).digest('hex');
+if(process.env.FLOWBOARD_PRODUCTION_WORKER_EXPECTED_SHA256)assert.equal(sha(bytes),process.env.FLOWBOARD_PRODUCTION_WORKER_EXPECTED_SHA256);
+const dir=await fs.mkdtemp(path.join(os.tmpdir(),'flowboard-production-artifact-review-')),schema='production_artifact_'+process.pid;
+const admin=new pg.Pool({connectionString:selected,max:1});let pool,harness;
+const report={kind:'unaltered production Worker artifact wire probe plus separately labelled export-only compiled-helper probe',startedAt:new Date().toISOString(),originalBundle:path.relative(process.cwd(),bundle),originalBundleSHA256:sha(bytes),checks:[],status:'running',cleanup:false};
+const check=async(name,fn)=>{try{await fn();report.checks.push({name,status:'pass'});}catch(error){report.checks.push({name,status:'fail',errorType:error?.name??'Error'});throw error;}};
+try{
+ await admin.query(`CREATE SCHEMA "${schema}"`);pool=new pg.Pool({connectionString:selected,max:2,options:`-c search_path=${schema}`});await runMigrations(pool);
+ const connection=new URL(selected);connection.searchParams.set('options',`-c search_path=${schema}`);
+ const append='\nexport { getHostedMcpConfig as __reviewGetHostedMcpConfig };\n',shim=path.join(dir,'helper-export-only.js');await fs.writeFile(shim,Buffer.concat([bytes,Buffer.from(append)]));
+ report.helperShim={originalPrefixSHA256:sha((await fs.readFile(shim)).subarray(0,bytes.length)),appendedExport:append.trim(),shimSHA256:sha(await fs.readFile(shim)),productControlFlowChanged:false};assert.equal(report.helperShim.originalPrefixSHA256,report.originalBundleSHA256);
+ const wrapper=path.join(dir,'helper-probe.js');await fs.writeFile(wrapper,`import { __reviewGetHostedMcpConfig } from './helper-export-only.js';\nexport default {fetch(_request,env){try{__reviewGetHostedMcpConfig({env},'http://127.0.0.1:48765');return Response.json({loopbackOverrideRefused:false});}catch(error){return Response.json({loopbackOverrideRefused:error.status===503});}}};\n`);
+ const shared={compatibility_date:'2026-10-19',compatibility_flags:['nodejs_compat'],dev:{host:'flowboard.example',upstream_protocol:'https'},vars:{DATABASE_URL:connection.toString(),APP_ORIGIN:'https://flowboard.example',NODE_ENV:'test'},ratelimits:[{name:'FB_RL_WRITES',namespace_id:'922861',simple:{limit:60,period:60}}]};
+ const originalConfig=path.join(dir,'original.json'),helperConfig=path.join(dir,'helper.json');await fs.writeFile(originalConfig,JSON.stringify({...shared,name:'production-artifact-original',main:bundle,no_bundle:true}),{mode:0o600});await fs.writeFile(helperConfig,JSON.stringify({...shared,name:'production-artifact-helper',main:wrapper}),{mode:0o600});
+ harness=createTestHarness({workers:[{configPath:originalConfig},{configPath:helperConfig}]});await harness.listen();const original=harness.getWorker('production-artifact-original'),helper=harness.getWorker('production-artifact-helper');
+ await check('unaltered bundle rejects email-only dev login with no cookie or identity',async()=>{const response=await original.fetch('https://flowboard.example/api/v1/session/dev-login',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({email:'synthetic-artifact@example.test',displayName:'Artifact probe'})});assert.equal(response.status,404);assert.equal(response.headers.get('set-cookie'),null);assert.equal((await response.json()).error.code,'NOT_FOUND');assert.equal(Number((await pool.query('SELECT count(*) FROM users')).rows[0].count),0);});
+ await check('unaltered bundle enforces five anonymous registrations without test-mode bypass',async()=>{const seconds=Number((await pool.query('SELECT extract(epoch FROM clock_timestamp()) AS seconds')).rows[0].seconds);const remaining=60-seconds%60;report.rateWindowAlignmentWaitMs=remaining<20?Math.ceil((remaining+0.2)*1000):0;if(report.rateWindowAlignmentWaitMs)await new Promise(resolve=>setTimeout(resolve,report.rateWindowAlignmentWaitMs));const statuses=[];for(let i=0;i<6;i++){const response=await original.fetch('https://flowboard.example/api/v1/mcp/oauth/register',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({client_name:'Synthetic production artifact client',redirect_uris:['https://claude.ai/api/mcp/auth_callback']})});statuses.push(response.status);await response.arrayBuffer();}assert.deepEqual(statuses,[201,201,201,201,201,429]);const count=await pool.query("SELECT client_key,request_count FROM rate_limit_windows WHERE bucket='mcp-oauth-register'");assert.equal(count.rows.length,1);assert.equal(count.rows[0].client_key,'unknown-client');assert.equal(Number(count.rows[0].request_count),6);assert.equal(Number((await pool.query('SELECT count(*) FROM mcp_oauth_clients')).rows[0].count),5);});
+ await check('export-only helper shim rejects explicit loopback override despite NODE_ENV=test binding',async()=>{const response=await helper.fetch('https://flowboard.example/__review_compiled_helper');assert.equal(response.status,200);assert.deepEqual(await response.json(),{loopbackOverrideRefused:true});});
+ report.status='pass';
+}catch(error){report.status='fail';report.errorType=error?.name??'Error';process.exitCode=1;}
+finally{
+ report.cleanupSteps=[];
+ const clean=async(name,task)=>{try{await task();report.cleanupSteps.push({name,status:'pass'});}catch(error){report.cleanupSteps.push({name,status:'fail',errorType:error?.name??'Error'});report.status='fail';process.exitCode=1;}};
+ await clean('close local Worker harness',async()=>{await harness?.close();});
+ await clean('close schema pool',async()=>{await pool?.end();});
+ await clean('drop own synthetic schema',async()=>{await admin.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);});
+ await clean('close administrative connection',async()=>{await admin.end();});
+ await clean('delete own temporary Worker configs and export shim',async()=>{await fs.rm(dir,{recursive:true,force:true});});
+ report.cleanup=report.cleanupSteps.every(step=>step.status==='pass');report.completedAt=new Date().toISOString();await fs.mkdir(path.dirname(output),{recursive:true});await fs.writeFile(output,JSON.stringify(report,null,2)+'\n');console.log(JSON.stringify({status:report.status,checks:report.checks.length,originalBundleSHA256:report.originalBundleSHA256,helperProbe:'separate export-only shim',output,cleanup:report.cleanup}));
+}

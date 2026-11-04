@@ -1,0 +1,44 @@
+{
+  "kind": "Builder test-only compile repair; final independent review still required",
+  "failedTarget": "Root frozen target 615 prefix retained by root; full API1907 passed but root typecheck failed TS2345",
+  "changedFile": "apps/api/test/google-connect-resume.test.ts",
+  "sha256": "a71be1b7d634b6669852fcd2f5f226ceccaed24abc123b93a4e308289daaa210",
+  "sourceHold": true,
+  "productChanged": false,
+  "manifestSha256": "bfbaa68a76b97cef2208e73161e6570df399d0df754bcc55e22c74025f7ea004",
+  "commands": [
+    {
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "log": "checks/root-typecheck-after-tuple.log"
+    },
+    {
+      "command": "node --test apps/api/test/safe-next.test.ts apps/api/test/google-connect-resume.test.ts",
+      "exitCode": 0,
+      "result": "7/7",
+      "log": "checks/api-resume-after-tuple.log"
+    },
+    {
+      "command": "npm run test --workspace @flowboard/web",
+      "exitCode": 0,
+      "result": "343/343",
+      "log": "checks/web-tests-after-tuple.log"
+    },
+    {
+      "command": "npm run typecheck:web",
+      "exitCode": 0,
+      "log": "checks/web-typecheck-after-tuple.log"
+    },
+    {
+      "command": "NODE_ENV=production npm run build",
+      "exitCode": 0,
+      "log": "checks/api-build-after-tuple.log"
+    },
+    {
+      "command": "NODE_ENV=production NEXT_EXPORT=true npm run build:web",
+      "exitCode": 0,
+      "result": "20 static pages",
+      "log": "checks/web-export-after-tuple.log"
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+▶ PAT capability boundary through every mounted route
+  ✔ real Owner issuance without membership, finite default expiry, no secret persistence (1.824542ms)
+  ✔ generated route inventory: every route outside the six capabilities rejects PAT (47.556667ms)
+  ✔ metadata contains only allowlisted fields; full snapshot always denied (4.078125ms)
+  ✔ boards-only direct listing omits descriptions and snapshot data while session response retains details (3.696375ms)
+  ✔ project filtering happens before pagination and foreign cursors are refused (1.805042ms)
+  ✔ project restrictions apply to metadata, board listing, card reads/search/create (14.490792ms)
+  ✔ missing scope, malformed bearer and invalid token never inherit a cookie (4.574042ms)
+  ✔ current underlying membership and board grants remain authoritative (22.046417ms)
+  ✔ expired/revoked tokens fail without cookie fallback and cannot manage peers (4.85325ms)
+  ✔ parallel issuance cannot exceed the active credential cap; expired/revoked slots free capacity (35.83375ms)
+✔ PAT capability boundary through every mounted route (327.27025ms)
+ℹ Generated 111 negative method/path cases from 117 mounted routes; six explicit PAT capabilities.
+▶ Personal Access Tokens & Scoped Bearer Authentication Suite
+  ✔ 1. POST /api/v1/tokens: mint token with session cookie (73.173917ms)
+  ✔ 2. POST /api/v1/tokens: mint read-only token (2.562583ms)
+  ✔ 3. POST /api/v1/tokens: mint project-restricted token (2.577541ms)
+  ✔ 4. GET /api/v1/tokens: list user tokens (1.490292ms)
+  ✔ 5. GET /api/v1/projects: accessible with Bearer token (2.285625ms)
+  ✔ 6. GET /api/v1/projects: project-restricted token sees only its assigned project (1.391375ms)
+  ✔ 7. POST /api/v1/boards/:boardId/cards: successfully creates card with cards:create token (10.798083ms)
+  ✔ 8. POST /api/v1/boards/:boardId/cards: fails 403 when token lacks cards:create scope (0.904875ms)
+  ✔ 9. POST /api/v1/boards/:boardId/cards: fails 403 when token is restricted to a different project (0.935625ms)
+  ✔ 10. DELETE /api/v1/tokens/:tokenId: revokes token (1.067708ms)
+  ✔ 11. POST /api/v1/boards/:boardId/cards: fails 401 with revoked token (0.617ms)
+  ✔ 12. POST /api/v1/tokens: a token cannot mint another token (0.619708ms)
+✔ Personal Access Tokens & Scoped Bearer Authentication Suite (101.084041ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 841.505459

@@ -1,0 +1,56 @@
+▶ PAT capability boundary through every mounted route
+  ✔ real Owner issuance without membership, finite default expiry, no secret persistence (3.63525ms)
+  ✖ generated route inventory: every route outside the six capabilities rejects PAT (0.990125ms)
+  ✔ metadata contains only allowlisted fields; full snapshot always denied (12.239833ms)
+  ✔ boards-only direct listing omits descriptions and snapshot data while session response retains details (8.61475ms)
+  ✔ project filtering happens before pagination and foreign cursors are refused (2.353667ms)
+  ✔ project restrictions apply to metadata, board listing, card reads/search/create (16.148708ms)
+  ✔ missing scope, malformed bearer and invalid token never inherit a cookie (8.681333ms)
+  ✔ current underlying membership and board grants remain authoritative (25.297917ms)
+  ✔ expired/revoked tokens fail without cookie fallback and cannot manage peers (5.314666ms)
+  ✔ parallel issuance cannot exceed the active credential cap; expired/revoked slots free capacity (38.217375ms)
+✖ PAT capability boundary through every mounted route (303.826542ms)
+▶ Personal Access Tokens & Scoped Bearer Authentication Suite
+  ✔ 1. POST /api/v1/tokens: mint token with session cookie (55.059209ms)
+  ✔ 2. POST /api/v1/tokens: mint read-only token (2.726125ms)
+  ✔ 3. POST /api/v1/tokens: mint project-restricted token (2.724292ms)
+  ✔ 4. GET /api/v1/tokens: list user tokens (1.416625ms)
+  ✔ 5. GET /api/v1/projects: accessible with Bearer token (2.4865ms)
+  ✔ 6. GET /api/v1/projects: project-restricted token sees only its assigned project (1.696ms)
+  ✔ 7. POST /api/v1/boards/:boardId/cards: successfully creates card with cards:create token (12.972667ms)
+  ✔ 8. POST /api/v1/boards/:boardId/cards: fails 403 when token lacks cards:create scope (1.777584ms)
+  ✔ 9. POST /api/v1/boards/:boardId/cards: fails 403 when token is restricted to a different project (1.48475ms)
+  ✔ 10. DELETE /api/v1/tokens/:tokenId: revokes token (2.3645ms)
+  ✔ 11. POST /api/v1/boards/:boardId/cards: fails 401 with revoked token (1.21525ms)
+  ✔ 12. POST /api/v1/tokens: a token cannot mint another token (1.131792ms)
+✔ Personal Access Tokens & Scoped Bearer Authentication Suite (90.127375ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 22
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 814.701291
+
+✖ failing tests:
+
+test at apps/api/test/token-boundaries.test.ts:83:13
+✖ generated route inventory: every route outside the six capabilities rejects PAT (0.990125ms)
+  AssertionError [ERR_ASSERTION]: unexpected authorization for POST /api/v1/mcp
+  
+  503 !== 401
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/token-boundaries.test.ts:93:16)
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/token-boundaries.test.ts:83:5)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: 503,
+    expected: 401,
+    operator: 'strictEqual',
+    diff: 'simple'
+  }

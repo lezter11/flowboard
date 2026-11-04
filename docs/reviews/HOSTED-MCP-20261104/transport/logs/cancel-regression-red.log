@@ -1,0 +1,49 @@
+✔ hosted transport initializes without a session, accepts initialized notification and lists exactly five tools (27.406125ms)
+✔ tool calls validate input and unexpected operation errors cannot disclose secrets (2.534917ms)
+✔ independent concurrent requests can reuse a JSON-RPC ID without sharing actor operations (10.087333ms)
+✔ transport rejects unsupported methods; preflight belongs to the outer origin/auth boundary (0.246209ms)
+✔ POST negotiates real accepted media types and rejects lookalikes, wildcards and q=0 (0.803625ms)
+✔ malformed JSON, batches, excessive nesting and invalid content types cannot dispatch tools (1.1685ms)
+✔ both declared and streamed bodies are bounded; maximum escaped descriptions remain accepted (1.1515ms)
+✔ transport waits for underlying tool work before returning and preserves static errors (11.767958ms)
+✔ an already-aborted unfinished body cancels promptly and never dispatches a tool (0.162292ms)
+✖ oversize declared body returns413 even when source cancellation never settles (152.117083ms)
+✖ oversize streamed body returns413 even when source cancellation never settles (151.014666ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 9
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 509.290541
+
+✖ failing tests:
+
+test at apps/api/test/hosted-mcp-transport.test.ts:141:46
+✖ oversize declared body returns413 even when source cancellation never settles (152.117083ms)
+  AssertionError [ERR_ASSERTION]: HTTP refusal must not wait for the source cancellation promise
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-transport.test.ts:156:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }
+
+test at apps/api/test/hosted-mcp-transport.test.ts:141:46
+✖ oversize streamed body returns413 even when source cancellation never settles (151.014666ms)
+  AssertionError [ERR_ASSERTION]: HTTP refusal must not wait for the source cancellation promise
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-transport.test.ts:156:12)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: false,
+    code: 'ERR_ASSERTION',
+    actual: null,
+    expected: true,
+    operator: '==',
+    diff: 'simple'
+  }

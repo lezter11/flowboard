@@ -1,5 +1,11 @@
 # Flowboard PRD v0.3
 
+## Hosted colleague connection — current extension, 2026-11-04
+
+A colleague can connect Claude to Flowboard using a hosted URL, browser Google sign-in and explicit permission for one project. No Terminal, repository checkout or copied token is required. Existing project membership, role and board grants still apply; approving a connection adds no access. The first version supports discovering projects/boards/columns, searching cards and creating cards. Personal Connections allows the same person to disconnect access. Website logout and connector revocation are distinct actions.
+
+[Scope and acceptance](docs/HOSTED_MCP_SPEC.md) distinguish source implementation, local review, UAT deployment and real provider acceptance. Current implementation, review and release status is recorded in [PROGRESS](PROGRESS.md). Company client-credentials, permanent external-incident synchronization and updating cards through MCP remain separate future work.
+
 Date: 2026-10-26 (Asia/Kolkata). Status: requirements plus explicitly labeled proposed defaults.
 
 ## Confirmed by the user

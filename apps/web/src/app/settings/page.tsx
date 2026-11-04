@@ -23,9 +23,10 @@ import { useMemoryValue, useMemoryRef, useMemoryDirty } from '@/lib/use-memory-d
 import { ErrorNote } from '@/components/ui/error-note';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { ColumnsDialog } from '@/components/board/columns-dialog';
+import { ConnectionsPanel } from '@/components/integrations/connections-panel';
 
-type Tab = 'project' | 'board' | 'account' | 'workspace' | 'appearance';
-const TABS: Array<[Tab, string]> = [['project', 'Project'], ['board', 'Board and columns'], ['account', 'Account'], ['workspace', 'Workspace'], ['appearance', 'Appearance']];
+type Tab = 'project' | 'board' | 'account' | 'connections' | 'workspace' | 'appearance';
+const TABS: Array<[Tab, string]> = [['project', 'Project'], ['board', 'Board and columns'], ['account', 'Account'], ['connections', 'Connections'], ['workspace', 'Workspace'], ['appearance', 'Appearance']];
 
 function SettingsScreen() {
   const params = useSearchParams();
@@ -36,6 +37,7 @@ function SettingsScreen() {
   const router = useRouter();
   const initial = params.get('tab');
   const [tab, setTab] = useState<Tab>(TABS.some(([id]) => id === initial) ? (initial as Tab) : 'project');
+  useEffect(() => { if (TABS.some(([id]) => id === initial)) setTab(initial as Tab); }, [initial]);
   const projects = useMemo(() => (state.status === 'ready' ? state.session.accessibleProjects : []), [state]);
   const sessionActorId=state.status==='ready'?state.session.actor.id:'';
   const [rememberedProject,setRememberedProject]=useMemoryValue(['settings-context',sessionActorId,'project'],'');
@@ -195,7 +197,7 @@ function SettingsScreen() {
       <div className="page-head">
         <div className="page-head-copy">
           <h1>Settings</h1>
-          <p className="page-sub"><span>Project, board, account and appearance</span></p>
+          <p className="page-sub"><span>Project, board, account, connections and appearance</span></p>
         </div>
         <div className="page-actions">
           {project && <Link className="btn" href={`/project?id=${encodeURIComponent(project.id)}`}><Icon name="folder" />Project overview</Link>}
@@ -205,19 +207,20 @@ function SettingsScreen() {
 
       <div className="review-bar">
         <Icon name="lock" />
-        <span><strong>{editable ? 'Owners and managers can edit.' : 'Read-only for your role.'}</strong> Theme is saved in this browser.</span>
+        <span><strong>{tab === 'connections' ? 'These connections belong to your account.' : editable ? 'Owners and managers can edit.' : 'Read-only for your role.'}</strong> {tab === 'connections' ? 'Project roles and board access still apply.' : 'Theme is saved in this browser.'}</span>
         <span className="spacer" />
         {project && <span className="badge">{ROLE_META[role].label}</span>}
       </div>
 
       <div className="tabs settings-tabs" role="tablist" aria-label="Settings sections">
         {TABS.map(([id, label]) => (
-          <button key={id} className="tab" type="button" role="tab" id={`tab-${id}`} aria-controls={`panel-${id}`} aria-selected={tab === id} onClick={() => { setTab(id); setError(''); }}>{label}</button>
+          <button key={id} className="tab" type="button" role="tab" id={`tab-${id}`} aria-controls={`panel-${id}`} aria-selected={tab === id} onClick={() => { setTab(id); setError(''); const next = new URLSearchParams(params.toString()); next.set('tab', id); router.replace(`/settings?${next}`); }}>{label}</button>
         ))}
       </div>
 
       <div className="split-layout">
         <div className="settings-panel stack">
+          {tab === 'connections' && actor && <ConnectionsPanel key={actor.id} actorId={actor.id} />}
           {tab === 'project' && (
             <section className="panel" id="panel-project" role="tabpanel" aria-labelledby="tab-project">
               <div className="panel-head">

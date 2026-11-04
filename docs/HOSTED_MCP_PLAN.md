@@ -140,14 +140,28 @@ Update the checkbox list below after each actual milestone. Each status report s
 ## Tasks and exact ownership
 
 - [x] HMCP-00: Inspect existing source and current official Claude/MCP docs; freeze spec, ownership and shared contract before assembly. Research notes in docs/decisions/2026-11-04-hosted-mcp-*.md.
-- [ ] HMCP-01: Architect writes packages/contracts/src/hosted-mcp.ts plus meaningful strict schemas/tests and exports. OAuth builder consumes it; no shared payload drift.
-- [ ] HMCP-02: OAuth builder writes migration0027 and new backend adapter/config/routes, tests failing first then passing real PostgreSQL. Exports HostedOAuthPrincipal, verifyHostedAccessToken and lockHostedOAuthCredential as specified. No shared app/auth/card edits by builder.
-- [ ] HMCP-03: Transport builder extracts side-effect-free server factory and FlowboardOperationsClient; preserve CLI behavior and validate both stateless HTTP/stdio artifacts. Architect adds API workspace dependency/exports/declarations/build order with unchanged pinned SDK.
-- [ ] HMCP-04: Architect adds private request-capability dispatcher, app/auth/card/provenance integration and mounted identity/refusal/concurrency tests. Verify single-pool workerd behavior; no live DB for probes.
-- [ ] HMCP-05: Freeze backend/transport slices and obtain fresh independent acceptance under BACKEND_REVIEW_GATE; preserve failures and record exact required checks, source/evidence and category scores. Only verified shared APIs can be handed to UI.
-- [ ] HMCP-06: UI builder implements /connect and personal Connections, safe-next/Google resume, exact well-known proxy and all-role navigation; actual browser happy/deny/expired/revoke/role checks with synthetic actors.
+- [x] HMCP-01: Architect writes packages/contracts/src/hosted-mcp.ts plus meaningful strict schemas/tests and exports. OAuth builder consumes it; no shared payload drift.
+- [x] HMCP-02: OAuth builder writes migration0027 and new backend adapter/config/routes, tests failing first then passing real PostgreSQL. Exports HostedOAuthPrincipal, verifyHostedAccessToken and lockHostedOAuthCredential as specified. No shared app/auth/card edits by builder.
+- [x] HMCP-03: Transport builder extracts side-effect-free server factory and FlowboardOperationsClient; preserve CLI behavior and validate both stateless HTTP/stdio artifacts. Architect adds API workspace dependency/exports/declarations/build order with unchanged pinned SDK.
+- [x] HMCP-04: Architect adds private request-capability dispatcher, app/auth/card/provenance integration and mounted identity/refusal/concurrency tests. Verify single-pool workerd behavior; no live DB for probes.
+- [x] HMCP-05: Freeze backend/transport slices and obtain fresh independent acceptance under BACKEND_REVIEW_GATE; preserve failures and record exact required checks, source/evidence and category scores. Only verified shared APIs can be handed to UI.
+- [x] HMCP-06: UI builder implements /connect and personal Connections, safe-next/Google resume, exact well-known proxy and all-role navigation; actual browser happy/deny/expired/revoke/role checks with synthetic actors.
 - [ ] HMCP-07: Full local/CI and fresh whole-feature independent review; revalidate changed/shared existing functionality, generate truthful checklist evidence and record any hosted-only pending cases. No self-ratings or blind old record cloning.
 - [ ] HMCP-08: Clean named candidate artifacts; reverify UAT identities, fresh approved encrypted backup and missing reviewed migration0027 only; deploy UAT Worker/Pages with rollback IDs and explicit user progress update. Never bare production deployment.
 - [ ] HMCP-09: Hosted discovery/401/metadata/protocol smoke plus actual browser Google/consent/Claude connect/revoke where available. Distinguish external-client owner steps from executed tests. Save safe-to-close checkpoint and colleague-friendly connector instructions.
 
 Each completed item links its exact target, commands/exits/counts, independent record and limitations. Evidence: docs/reviews/HOSTED-MCP-20261104/.
+
+## Current resumption
+
+The user explicitly resumed the full build/review/UAT task after CHECKPOINT-22MIN.md. The previous timebox is no longer active. Remaining cancellation repair, fresh backend API-only acceptance, UI implementation and final whole-feature review are underway. Backend acceptance does not claim UI/browser or hosted acceptance; those remain mandatory later gates. Existing live UAT stays at d1c81f4 until an announced promotion.
+
+## Backend API handoff — independently verified 2026-11-04
+
+HMCP01–05 passed the [fresh backend review](reviews/HOSTED-MCP-20261104/independent-backend-review/803a0957353c6057c2003ed092122f92e6073f158538c37d18417732021bb675-round-2.json), score9.1 with category minimums/no blockers. Architect independently ran `python3 scripts/check_backend_review.py <record> --feature HOSTED-MCP-BACKEND-API` (exit0). All10required commands passed: fullAPI1904/1904, contracts137/137, MCP22/22, packaged executable1/1, OAuth55/55, reviewer adversarial15/15, typecheck/build/OpenAPI/migration parity. Counts overlap and are not a unique total. Actual Node entry and refresh/create lock probes passed separately. Failed rounds remain preserved.
+
+This is an API-only handoff for UI implementation, not whole-connector release approval. API safe-next/google-auth changes in HMCP06 require affected-source re-review. HMCP06 UI implementation is active; HMCP07–09 remain open. Existing UAT remains d1c81f4.
+
+## Complete local acceptance — 2026-11-04
+
+[Fresh omnibus review](reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json) passes8.965, all category floors/no blockers,141criteria/all17commands. Architect validator and all98per-IDsource checks pass; role handoffs regenerate98Backend/74requiredUI/98localIntegration. HMCP06 UI is implemented and locally verified. HMCP07 remains open until current LinuxCI succeeds; HMCP08–09 deployment/provider checks remain open. Failed/incomplete rounds and the bounded Architect escalation decision are preserved.

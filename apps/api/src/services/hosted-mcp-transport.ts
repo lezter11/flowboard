@@ -52,7 +52,8 @@ async function readMessage(request: Request): Promise<{ message: unknown } | { r
   }
   const declaredLength = request.headers.get('content-length');
   if (declaredLength !== null && Number(declaredLength) > MAX_REQUEST_BYTES) {
-    await request.body?.cancel();
+    // Refusal must not wait for an underlying source's cancellation promise.
+    void request.body?.cancel().catch(() => {});
     return { response: protocolError(413, -32000, 'MCP request exceeded the size limit.') };
   }
   const chunks: Uint8Array[] = [];
@@ -67,7 +68,7 @@ async function readMessage(request: Request): Promise<{ message: unknown } | { r
       if (chunk.done) break;
       total += chunk.value.byteLength;
       if (total > MAX_REQUEST_BYTES) {
-        await reader.cancel();
+        void reader.cancel().catch(() => {});
         return { response: protocolError(413, -32000, 'MCP request exceeded the size limit.') };
       }
       chunks.push(chunk.value);

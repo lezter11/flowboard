@@ -1,0 +1,554 @@
+{
+  "kind": "Actual Chrome against mounted local synthetic app; not hosted/provider or complete MCP transport approval",
+  "start": "2026-11-04T12:41:02.636Z",
+  "results": [
+    {
+      "id": "HUI-01-synthetic-Google-safe-next",
+      "status": "fail",
+      "errorType": "TimeoutError"
+    },
+    {
+      "id": "HUI-02-03-explicit-project-unverified-allow",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-04-deny-without-project-no-grant",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-05-expired-and-malformed-request",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-06-owner-consent-personal-navigation",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-06-manager-consent-personal-navigation",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-06-member-consent-personal-navigation",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-06-viewer-consent-personal-navigation",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-07-duration-continuing",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-07-duration-session",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-08-project-pagination-newest-CSRF",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-10-disconnect-removes-grant-and-access",
+      "status": "pass"
+    },
+    {
+      "id": "HUI-06-no-project-account-personal-connections",
+      "status": "pass"
+    }
+  ],
+  "network": [
+    {
+      "case": "HUI-01-synthetic-Google-safe-next",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 401
+    },
+    {
+      "case": "HUI-01-synthetic-Google-safe-next",
+      "method": "GET",
+      "path": "/api/v1/auth/google/start",
+      "status": 302
+    },
+    {
+      "case": "HUI-02-03-explicit-project-unverified-allow",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-02-03-explicit-project-unverified-allow",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 200
+    },
+    {
+      "case": "HUI-02-03-explicit-project-unverified-allow",
+      "method": "POST",
+      "path": "/api/v1/mcp/authorization-requests/:id/decision",
+      "status": 200
+    },
+    {
+      "case": "HUI-02-03-explicit-project-unverified-allow",
+      "method": "GET",
+      "path": "/api/mcp/auth_callback",
+      "status": 200
+    },
+    {
+      "case": "HUI-04-deny-without-project-no-grant",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-04-deny-without-project-no-grant",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 200
+    },
+    {
+      "case": "HUI-04-deny-without-project-no-grant",
+      "method": "POST",
+      "path": "/api/v1/mcp/authorization-requests/:id/decision",
+      "status": 200
+    },
+    {
+      "case": "HUI-04-deny-without-project-no-grant",
+      "method": "GET",
+      "path": "/api/mcp/auth_callback",
+      "status": 200
+    },
+    {
+      "case": "HUI-05-expired-and-malformed-request",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-05-expired-and-malformed-request",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 404
+    },
+    {
+      "case": "HUI-05-expired-and-malformed-request",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-owner-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-owner-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-owner-consent-personal-navigation",
+      "method": "POST",
+      "path": "/api/v1/mcp/authorization-requests/:id/decision",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-owner-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/mcp/auth_callback",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-owner-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-owner-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-owner-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/mcp/connections",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-owner-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/projects/prj_3ca65e4c-ddac-4496-80cd-1dba4f5864f8/boards",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-manager-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-manager-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-manager-consent-personal-navigation",
+      "method": "POST",
+      "path": "/api/v1/mcp/authorization-requests/:id/decision",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-manager-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/mcp/auth_callback",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-manager-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/mcp/connections",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-manager-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-manager-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/mcp/connections",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-manager-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-manager-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/projects/prj_3ca65e4c-ddac-4496-80cd-1dba4f5864f8/boards",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-member-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-member-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-member-consent-personal-navigation",
+      "method": "POST",
+      "path": "/api/v1/mcp/authorization-requests/:id/decision",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-member-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/mcp/auth_callback",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-member-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-member-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/mcp/connections",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-member-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/projects/prj_3ca65e4c-ddac-4496-80cd-1dba4f5864f8/boards",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-member-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-viewer-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-viewer-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-viewer-consent-personal-navigation",
+      "method": "POST",
+      "path": "/api/v1/mcp/authorization-requests/:id/decision",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-viewer-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/mcp/auth_callback",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-viewer-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-viewer-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/mcp/connections",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-viewer-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-viewer-consent-personal-navigation",
+      "method": "GET",
+      "path": "/api/v1/projects/prj_3ca65e4c-ddac-4496-80cd-1dba4f5864f8/boards",
+      "status": 200
+    },
+    {
+      "case": "HUI-07-duration-continuing",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-07-duration-continuing",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 200
+    },
+    {
+      "case": "HUI-07-duration-continuing",
+      "method": "POST",
+      "path": "/api/v1/mcp/authorization-requests/:id/decision",
+      "status": 200
+    },
+    {
+      "case": "HUI-07-duration-continuing",
+      "method": "GET",
+      "path": "/api/mcp/auth_callback",
+      "status": 200
+    },
+    {
+      "case": "HUI-07-duration-session",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-07-duration-session",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 200
+    },
+    {
+      "case": "HUI-07-duration-session",
+      "method": "POST",
+      "path": "/api/v1/mcp/authorization-requests/:id/decision",
+      "status": 200
+    },
+    {
+      "case": "HUI-07-duration-session",
+      "method": "GET",
+      "path": "/api/mcp/auth_callback",
+      "status": 200
+    },
+    {
+      "case": "HUI-08-project-pagination-newest-CSRF",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-08-project-pagination-newest-CSRF",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 200
+    },
+    {
+      "case": "HUI-08-project-pagination-newest-CSRF",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 200
+    },
+    {
+      "case": "HUI-08-project-pagination-newest-CSRF",
+      "method": "POST",
+      "path": "/api/v1/mcp/authorization-requests/:id/decision",
+      "status": 200
+    },
+    {
+      "case": "HUI-08-project-pagination-newest-CSRF",
+      "method": "GET",
+      "path": "/api/mcp/auth_callback",
+      "status": 200
+    },
+    {
+      "case": "HUI-10-disconnect-removes-grant-and-access",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-10-disconnect-removes-grant-and-access",
+      "method": "GET",
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "status": 200
+    },
+    {
+      "case": "HUI-10-disconnect-removes-grant-and-access",
+      "method": "POST",
+      "path": "/api/v1/mcp/authorization-requests/:id/decision",
+      "status": 200
+    },
+    {
+      "case": "HUI-10-disconnect-removes-grant-and-access",
+      "method": "GET",
+      "path": "/api/mcp/auth_callback",
+      "status": 200
+    },
+    {
+      "case": "HUI-10-disconnect-removes-grant-and-access",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-10-disconnect-removes-grant-and-access",
+      "method": "GET",
+      "path": "/api/v1/mcp/connections",
+      "status": 200
+    },
+    {
+      "case": "HUI-10-disconnect-removes-grant-and-access",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    },
+    {
+      "case": "HUI-10-disconnect-removes-grant-and-access",
+      "method": "GET",
+      "path": "/api/v1/projects/prj_3ca65e4c-ddac-4496-80cd-1dba4f5864f8/boards",
+      "status": 200
+    },
+    {
+      "case": "HUI-10-disconnect-removes-grant-and-access",
+      "method": "DELETE",
+      "path": "/api/v1/mcp/connections/:id",
+      "status": 204
+    },
+    {
+      "case": "HUI-10-disconnect-removes-grant-and-access",
+      "method": "GET",
+      "path": "/api/v1/mcp/connections",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-no-project-account-personal-connections",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-no-project-account-personal-connections",
+      "method": "GET",
+      "path": "/api/v1/session",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-no-project-account-personal-connections",
+      "method": "GET",
+      "path": "/api/v1/mcp/connections",
+      "status": 200
+    },
+    {
+      "case": "HUI-06-no-project-account-personal-connections",
+      "method": "GET",
+      "path": "/api/v1/notifications",
+      "status": 200
+    }
+  ],
+  "blockedOrigins": [
+    "https://ssl.gstatic.com"
+  ],
+  "console": [
+    {
+      "case": "HUI-01-synthetic-Google-safe-next",
+      "type": "error",
+      "diagnosticOrCredentialPattern": false
+    },
+    {
+      "case": "HUI-01-synthetic-Google-safe-next",
+      "type": "error",
+      "diagnosticOrCredentialPattern": false
+    }
+  ],
+  "expectedRefusalConsole": [
+    {
+      "case": "HUI-05-expired-and-malformed-request",
+      "type": "error",
+      "diagnosticOrCredentialPattern": false
+    }
+  ],
+  "backendGate": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/803a0957353c6057c2003ed092122f92e6073f158538c37d18417732021bb675-round-2.json",
+  "sourceBefore": {
+    "packages/contracts/src/hosted-mcp.ts": "ff61c8a4c9582b75d4038cf24df776643beeb5f799de4bcc31645f360976bc7c",
+    "apps/api/src/http/routes/hosted-oauth.ts": "5f95042981539f02d12ad28e52e4a26687fe8688b289b2e9a5623d92bc752d70",
+    "apps/api/src/adapters/hosted-oauth.ts": "ba3911fa6a3d702362c51a3629954deed57ed2bbfff4505a7cbc79fa0d6cb5b5",
+    "apps/api/src/http/safe-next.ts": "d32e051074eab125297ad0069a57e4b64a10d1c25114b311414dc1e6d9e892ec",
+    "apps/api/src/http/routes/google-auth.ts": "cef6fa9a1f0d1a708b8f6a4b2307308882cb4d20bbbd2ff599234ee6a8ea8b21",
+    "apps/web/src/app/connect/page.tsx": "df3ee491f5a1a91cd69ba70ca398ed26925d594a4cc1137b16d51cd965e63340",
+    "apps/web/src/app/settings/page.tsx": "63c895d304d89e46e40e9b8baf5a19e84fcf796d70056b00cba2e30f08c7271f",
+    "apps/web/src/lib/api.ts": "7e1c95273648826d6e79ed6323c1c949e2bb48daec0439fabaf85a8def61393d",
+    "apps/web/src/lib/return-path.ts": "45d85d456a0b87c21af90aa3e40a471bca5b7ac9a410ef4990550d03c2f6367c",
+    "apps/web/src/components/shell/app-shell.tsx": "1f5c347747afa803d001641cfaa86e6ce691978cdedd94f68db16757ecae46af",
+    "apps/web/src/components/shell/session-gate.tsx": "3487583e0bbf7bcec6feceef96b1d4ea7af8301ab061888a8066b0c819d4473a",
+    "apps/web/functions/_middleware.ts": "2f22cc5b5ec46b3fa3e754abffd888d6f0cbbe60bafef334524bdff1431ff0c6"
+  },
+  "sourceAfter": {
+    "packages/contracts/src/hosted-mcp.ts": "ff61c8a4c9582b75d4038cf24df776643beeb5f799de4bcc31645f360976bc7c",
+    "apps/api/src/http/routes/hosted-oauth.ts": "5f95042981539f02d12ad28e52e4a26687fe8688b289b2e9a5623d92bc752d70",
+    "apps/api/src/adapters/hosted-oauth.ts": "ba3911fa6a3d702362c51a3629954deed57ed2bbfff4505a7cbc79fa0d6cb5b5",
+    "apps/api/src/http/safe-next.ts": "d32e051074eab125297ad0069a57e4b64a10d1c25114b311414dc1e6d9e892ec",
+    "apps/api/src/http/routes/google-auth.ts": "cef6fa9a1f0d1a708b8f6a4b2307308882cb4d20bbbd2ff599234ee6a8ea8b21",
+    "apps/web/src/app/connect/page.tsx": "df3ee491f5a1a91cd69ba70ca398ed26925d594a4cc1137b16d51cd965e63340",
+    "apps/web/src/app/settings/page.tsx": "63c895d304d89e46e40e9b8baf5a19e84fcf796d70056b00cba2e30f08c7271f",
+    "apps/web/src/lib/api.ts": "7e1c95273648826d6e79ed6323c1c949e2bb48daec0439fabaf85a8def61393d",
+    "apps/web/src/lib/return-path.ts": "45d85d456a0b87c21af90aa3e40a471bca5b7ac9a410ef4990550d03c2f6367c",
+    "apps/web/src/components/shell/app-shell.tsx": "1f5c347747afa803d001641cfaa86e6ce691978cdedd94f68db16757ecae46af",
+    "apps/web/src/components/shell/session-gate.tsx": "3487583e0bbf7bcec6feceef96b1d4ea7af8301ab061888a8066b0c819d4473a",
+    "apps/web/functions/_middleware.ts": "2f22cc5b5ec46b3fa3e754abffd888d6f0cbbe60bafef334524bdff1431ff0c6"
+  },
+  "browser": "156.0.8078.80",
+  "sourceChanges": [],
+  "completed": "2026-11-04T12:41:51.621Z",
+  "cleanup": "Own isolated browser/servers closed; inherited helper drops its own random synthetic schema. No hosted write or external callback request."
+}

@@ -1,0 +1,50 @@
+{
+  "kind": "unaltered production Worker artifact wire probe plus separately labelled export-only compiled-helper probe",
+  "startedAt": "2026-11-04T13:45:20.415Z",
+  "originalBundle": "apps/api/dist/worker/worker.js",
+  "originalBundleSHA256": "58481d8f08ce4e67b0921551a33605c714928abc799e8a69aa156670b7beccad",
+  "checks": [
+    {
+      "name": "unaltered bundle rejects email-only dev login with no cookie or identity",
+      "status": "pass"
+    },
+    {
+      "name": "unaltered bundle enforces five anonymous registrations without test-mode bypass",
+      "status": "fail",
+      "errorType": "AssertionError"
+    }
+  ],
+  "status": "fail",
+  "cleanup": true,
+  "helperShim": {
+    "originalPrefixSHA256": "58481d8f08ce4e67b0921551a33605c714928abc799e8a69aa156670b7beccad",
+    "appendedExport": "export { getHostedMcpConfig as __reviewGetHostedMcpConfig };",
+    "shimSHA256": "b36c12b904a97eec7037d68c768f763f1df0bd601e711a500a3113cee7294b7f",
+    "productControlFlowChanged": false
+  },
+  "rateWindowAlignmentWaitMs": 0,
+  "errorType": "AssertionError",
+  "cleanupSteps": [
+    {
+      "name": "close local Worker harness",
+      "status": "pass"
+    },
+    {
+      "name": "close schema pool",
+      "status": "pass"
+    },
+    {
+      "name": "drop own synthetic schema",
+      "status": "pass"
+    },
+    {
+      "name": "close administrative connection",
+      "status": "pass"
+    },
+    {
+      "name": "delete own temporary Worker configs and export shim",
+      "status": "pass"
+    }
+  ],
+  "completedAt": "2026-11-04T13:45:21.288Z"
+}

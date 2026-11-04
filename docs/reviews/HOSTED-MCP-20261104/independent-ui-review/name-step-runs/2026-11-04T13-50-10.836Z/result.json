@@ -1,0 +1,70 @@
+{
+  "kind": "Supplemental actual Chrome + compiled Pages + real mounted Hono + fresh disposable PostgreSQL; synthetic session, no Google provider",
+  "command": "NODE_ENV=test node docs/reviews/HOSTED-MCP-20261104/independent-ui-review/name-step-runtime.mjs",
+  "explicitEnvironment": {
+    "FLOWBOARD_UI_REVIEW_SOURCE_MANIFEST": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/source-before.json",
+    "FLOWBOARD_UI_REVIEW_PAGES_STAGE": "docs/reviews/HOSTED-MCP-20261104/independent-ui-review/runs/2026-11-04T13-49-55.541Z/stage"
+  },
+  "start": "2026-11-04T13:50:10.837Z",
+  "harnessSha256": "124b9ea8a43c00db332308de041c5fb0bfc86956fe683871611f2ce6075ffe11",
+  "sourceManifest": "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/runs/2026-11-04T13-44-46.166Z/source-before.json",
+  "image": "postgres:17.11-alpine@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24",
+  "container": "flowboard-independent-name-32107",
+  "schema": "name_a48b87f6dc774f6899a14bddfd94abfd",
+  "loopbackPort": 57013,
+  "webOrigin": "http://127.0.0.1:44954",
+  "checks": [
+    {
+      "name": "needsName opens actual NameStep while keeping exact pending consent URL",
+      "status": "pass"
+    },
+    {
+      "name": "real name PATCH commits and session refresh resumes same consent without automatic approval",
+      "status": "pass"
+    },
+    {
+      "name": "explicit project approval after NameStep produces exactly one real connection and safe intercepted callback",
+      "status": "pass"
+    }
+  ],
+  "network": [
+    {
+      "path": "/api/v1/session",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/session/name",
+      "method": "PATCH",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/session",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/mcp/authorization-requests/:id",
+      "method": "GET",
+      "status": 200
+    },
+    {
+      "path": "/api/v1/mcp/authorization-requests/:id/decision",
+      "method": "POST",
+      "status": 200
+    }
+  ],
+  "unexpectedConsole": [],
+  "unexpectedOrigins": [],
+  "sourceBeforeMismatches": [],
+  "sourceAfterMismatches": [],
+  "cleanup": {
+    "browser": true,
+    "workerd": true,
+    "schema": true,
+    "container": true
+  },
+  "browser": "156.0.8078.80",
+  "status": "pass",
+  "end": "2026-11-04T13:50:13.773Z"
+}

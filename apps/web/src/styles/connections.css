@@ -1,0 +1,37 @@
+.connect-page { min-height: 100svh; background: var(--bg); color: var(--ink); }
+.connect-top { display: flex; align-items: center; max-width: 1040px; padding: 24px; margin: auto; }
+.connect-top a { text-decoration: none; }
+.connect-main { width: min(720px, calc(100% - 32px)); margin: 16px auto 48px; }
+.connect-panel { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; box-shadow: var(--shadow-sm); }
+.connect-section { padding: 24px; }
+.connect-section + .connect-section, .connect-panel > form { border-top: 1px solid var(--line); }
+.connect-section h1 { font-size: clamp(24px, 4vw, 30px); line-height: 1.2; margin: 4px 0 16px; overflow-wrap: anywhere; }
+.connect-section h2 { font-size: 18px; margin: 0 0 16px; }
+.connect-section p { line-height: 1.55; }
+.connect-section .signin-google { margin: 24px 0 16px; }
+.connect-account { color: var(--muted); overflow-wrap: anywhere; }
+.connection-origins, .connection-dates { display: grid; gap: 8px; margin: 16px 0; font-size: 12px; }
+.connection-origins > div, .connection-dates > div { display: grid; grid-template-columns: minmax(100px, 1fr) minmax(0, 3fr); gap: 12px; }
+.connection-origins dt, .connection-dates dt { color: var(--muted); }
+.connection-origins dd, .connection-dates dd { margin: 0; overflow-wrap: anywhere; }
+.connection-permissions { display: grid; gap: 8px; padding-left: 20px; margin: 24px 0; font-size: 13px; line-height: 1.5; }
+.connection-duration { border-left: 3px solid var(--accent); padding: 4px 0 4px 12px; font-size: 13px; }
+.connection-duration p { margin: 6px 0 0; color: var(--muted); line-height: 1.6; }
+.connect-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 12px; }
+.connect-actions .btn { min-height: 44px; }
+.connection-list { list-style: none; display: grid; gap: 20px; padding: 0; margin: 0; }
+.connection-entry { padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--surface); min-width: 0; }
+.connection-entry-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.connection-entry-head > div { min-width: 0; }
+.connection-entry h3 { font-size: 16px; margin: 0 0 6px; overflow-wrap: anywhere; }
+.connection-entry-head p { color: var(--muted); margin: 0; overflow-wrap: anywhere; }
+.connection-empty p { color: var(--muted); line-height: 1.6; }
+.connection-url { flex-wrap: wrap; }
+@media (max-width: 480px) {
+  .connect-top { padding: 20px 16px; }
+  .connect-main { margin-top: 8px; }
+  .connect-section, .connection-entry { padding: 16px; }
+  .connect-actions .btn { flex: 1; }
+  .connection-origins > div, .connection-dates > div { grid-template-columns: 1fr; gap: 4px; }
+  .connection-entry-head { flex-wrap: wrap; }
+}

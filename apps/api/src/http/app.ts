@@ -155,8 +155,7 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
 
   // Protocol requests own their strict body/deadline/auth lifecycle before the
   // ordinary 1MiB buffer or cookie/PAT stack. No descendants match this branch.
-  app.use('*', async (c, next) => {
-    if (c.req.path !== HOSTED_MCP_PATH) return next();
+  const protocolHandler = async (c: import('hono').Context) => {
     return handleHostedMcpRequest(c, {
       ...(options?.mcpPublicOrigin === undefined ? {} : { publicOrigin: options.mcpPublicOrigin }),
       deadlineMs: options?.deadlineMs ?? DEFAULT_DEADLINE_MS,
@@ -167,7 +166,10 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
         return app.fetch(request, parent.env, execution);
       },
     });
-  });
+  };
+  app.on(['POST', 'GET', 'DELETE', 'OPTIONS'], HOSTED_MCP_PATH, protocolHandler);
+  // Preserve the exact-path OAuth/method policy for HEAD and unsupported methods.
+  app.use('*', (c, next) => c.req.path === HOSTED_MCP_PATH ? protocolHandler(c) : next());
 
   // Explicit bearer credentials never inherit cookie/public route authority.
   app.use('*', personalAccessTokenMiddleware);

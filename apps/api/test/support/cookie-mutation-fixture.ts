@@ -28,10 +28,12 @@ export async function cookieMutationFixture(t:TestContext,op:OpenApiOperationDef
   const put=storage.put.bind(storage),remove=storage.delete.bind(storage);
   storage.put=async(...args)=>{mutations++;return put(...args);};storage.delete=async(...args)=>{mutations++;return remove(...args);};
   const png=imageFixture('png').bytes;await storage.put('matrix/private-image',png,'image/png');
-  const app=createApp(async()=>{},{pool:base.pool,storage,imageVerifier:new SharpImageVerifier(),rateLimiter:()=>({limit:async()=>({success:true})}),windowCounter:()=>({consume:async()=>({count:1,retryAfterSeconds:60})})});
-  const headers=(actor:string)=>({Cookie:`flowboard_session=${actors[actor]!.session.id}`,Origin:'http://localhost','Idempotency-Key':crypto.randomUUID()});
+  const app=createApp(async()=>{},{pool:base.pool,storage,mcpPublicOrigin:'http://localhost',imageVerifier:new SharpImageVerifier(),rateLimiter:()=>({limit:async()=>({success:true})}),windowCounter:()=>({consume:async()=>({count:1,retryAfterSeconds:60})})});
+  const oauth=op.path.startsWith('/mcp')?await base.hosted():undefined;
+  const headers=(actor:string)=>({Cookie:`flowboard_session=${actors[actor]!.session.id}${oauth&&op.path.includes('/authorization-requests/')?'; '+oauth.pending.bindingCookie:''}`,Origin:'http://localhost','Idempotency-Key':crypto.randomUUID()});
   const call=(actor:string,path:string,method='GET',body?:unknown)=>app.request('http://localhost/api/v1'+path,{method,headers:{...headers(actor),...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})});
   const setupProof:string[]=[];
+  if(oauth)setupProof.push('Real mounted client registration, browser-bound pending consent, latest CSRF, approved connection and PKCE token exchange.');
   for(const actor of ['ownerA','managerA','memberA','viewerA']){
     const r=await call(actor,'/boards/foreign_brd');assert.equal(r.status,200,`${actor} must have real current access to own tenant A`);await r.arrayBuffer();
   }
@@ -72,5 +74,5 @@ export async function cookieMutationFixture(t:TestContext,op:OpenApiOperationDef
     return{url,init,typedBody:f.typedBody,querySchema:f.query};
   }
   const fingerprint=async()=>({...await base.fingerprint(),__cookieStorageMutations:String(mutations)});
-  return{...base,app,actors,headers,call,command,fingerprint,setupProof};
+  return{...base,app,actors,headers,call,command,fingerprint,setupProof,oauth};
 }

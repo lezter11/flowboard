@@ -61,3 +61,11 @@ test('accepts allowlisted app paths, with a query in the allowed characters', ()
   assert.equal(sanitizeNextPath('/invitations/accept?token=AbC-_9'), '/invitations/accept?token=AbC-_9');
   assert.equal(sanitizeNextPath('/my-tasks'), '/my-tasks');
 });
+
+test('consent resume requires its exact route and one bounded opaque request', () => {
+  const handle = 'a'.repeat(43);
+  assert.equal(sanitizeNextPath(`/connect?request=${handle}`), `/connect?request=${handle}`);
+  for (const raw of ['/connect', '/connect/extra', '/connect?request=short', `/connect?request=${handle}&request=${handle}`, `/connect?request=${handle}&next=projects`, `/connect?request=${handle}%0a`, `/connect?%72equest=${handle}`]) {
+    assert.equal(sanitizeNextPath(raw), null, raw);
+  }
+});

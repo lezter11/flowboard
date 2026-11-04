@@ -1,0 +1,28 @@
+{
+  "status": "verified",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/cards-comments-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json",
+  "summary": "CRD-05: current-candidate independent Backend acceptance; hosted acceptance pending.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/reviews/FULL-REVALIDATION-20261103/criteria/cards-comments.json per-ID criterion CRD-05",
+  "limitations": [
+    "Local approval only. Real Google/provider delivery, deployed Worker/Pages/Neon/R2 and schedules require applicable UAT evidence.",
+    "Procedural validator does not independently prove reviewer identity or log truth; independent source review and execution remain attributed in review."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/cards-comments-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json",
+      "sha256": "4305881471205bbe4e7d778749b98935e6df189d598ba4a59a7f94e58004aa6f",
+      "command": "python3 scripts/check_backend_review.py docs/reviews/FULL-REVALIDATION-20261104/release-delta-review/cards-comments-b65180e19c281d893cf7a524745b4b973995ecce53dd4d33a6b88c27086807bf-round-1.json --feature CRD-05",
+      "result": "Current feature-specific independent review validation passed.",
+      "environment": "Current Linux CI synthetic PostgreSQL/Node/workerd/Chromium; older extra probes explicitly attributed to their original executors and dates."
+    },
+    {
+      "path": "docs/reviews/FULL-REVALIDATION-20261104/independent-import-review/ci-complete.json",
+      "sha256": "430254a66152bdf2726a92e44aafd377313f127b71f3dc3ebf1c7f7ee5343932",
+      "command": "Current GitHub Linux workflow all14 required commands",
+      "result": "Completed successful exact candidate d1c81f4; full logs referenced in owner evidence.",
+      "environment": "Current Linux CI synthetic PostgreSQL/Node/workerd/Chromium; older extra probes explicitly attributed to their original executors and dates."
+    }
+  ]
+}

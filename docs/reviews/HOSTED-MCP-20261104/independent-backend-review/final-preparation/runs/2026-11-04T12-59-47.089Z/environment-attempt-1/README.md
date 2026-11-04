@@ -1,0 +1,1 @@
+Environment failure before API tests: sandbox denied loopback PostgreSQL sockets with EPERM. Exact logs, state and source-after are retained. No product source changed. Same command will be retried with approved local socket access. This attempt is not passing evidence.

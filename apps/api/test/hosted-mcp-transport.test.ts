@@ -137,3 +137,24 @@ test('an already-aborted unfinished body cancels promptly and never dispatches a
   assert.equal(cancelled, true);
   assert.equal(calls, 0);
 });
+
+for (const mode of ['declared', 'streamed']) test(`oversize ${mode} body returns413 even when source cancellation never settles`, async () => {
+  let cancelled = false;
+  const body = new ReadableStream<Uint8Array>({
+    start(controller) { controller.enqueue(new Uint8Array(131073)); },
+    cancel() { cancelled = true; return new Promise<void>(() => {}); },
+  });
+  const oversized = new Request(endpoint, { method: 'POST', headers: {
+    ...headers, ...(mode === 'declared' ? { 'content-length': '131073' } : {}),
+  }, body, duplex: 'half' } as RequestInit);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    const response = await Promise.race([
+      handleHostedMcpTransport(oversized, operations),
+      new Promise<null>(resolve => { timer = setTimeout(() => resolve(null), 150); }),
+    ]);
+    assert.ok(response, 'HTTP refusal must not wait for the source cancellation promise');
+    assert.equal(response.status, 413);
+    assert.equal(cancelled, true);
+  } finally { if (timer !== undefined) clearTimeout(timer); }
+});
