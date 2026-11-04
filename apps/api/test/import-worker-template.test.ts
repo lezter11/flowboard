@@ -15,7 +15,7 @@ import { createDevUserAndSession } from '../src/adapters/session.ts';
 
 // Regression: host filesystem paths do not package the workbook into actual workerd.
 const connectionString = importTestDatabaseUrl();
-test('import repair: real workerd serves exact supplied blank XLSX without a host filesystem dependency', {
+test('import repair: real workerd preserves blank/200-row/max-text XLSX and bounds hostile XML with atomic commit', {
   timeout: 60000
 }, async t => {
   const schema = 'import_worker_' + crypto.randomUUID().replaceAll('-', '');
@@ -160,7 +160,8 @@ test('import repair: real workerd serves exact supplied blank XLSX without a hos
     const maxStarted=performance.now();
     const maxPreview=await worker.fetch('http://localhost/api/v1/boards/brd/imports?defaultColumnId=col',{method:'POST',headers:{...headers,'cf-connecting-ip':'127.0.0.26'},body:new Uint8Array(maxTextBytes).buffer});
     assert.equal(maxPreview.status,201,await maxPreview.clone().text());
-    const maxData=(await maxPreview.json() as any).data;assert.equal(maxData.counts.new,200);assert.equal(maxData.counts.invalid,0);assert.equal(maxData.rows[0].description.length,20_000);
+    const maxData=(await maxPreview.json() as any).data;assert.equal(maxData.counts.new,200);assert.equal(maxData.counts.invalid,0);assert.equal(maxData.rows.length,200);
+    for(const [i,row] of maxData.rows.entries()) {assert.equal(row.externalId,`max-text-${i}`);assert.equal(row.description,'&'.repeat(20_000));}
     t.diagnostic(`actual local workerd200x20k escaped-description preview compressed_bytes=${maxTextBytes.length} elapsed_ms=${(performance.now()-maxStarted).toFixed(2)}; no hosted memory/CPU measurement`);
     const page=await worker.fetch('http://localhost/api/v1/boards/brd/cards?columnId=col&limit=100',{headers:{cookie:headers.cookie}});
     assert.equal(page.status,200);const firstPage=(await page.json()as any);assert.equal(firstPage.data.length,100);assert.ok(firstPage.nextCursor);assert.equal(typeof firstPage.data[0].key,'string');assert.equal(typeof firstPage.data[0].descriptionExcerpt,'string');

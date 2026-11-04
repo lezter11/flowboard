@@ -21,6 +21,11 @@ const validScalar = (n: number) => n === 9 || n === 10 || n === 13 || (n >= 0x20
 
 /** Decode only original references. Replacement strings are never scanned a second time. */
 export function decodeXmlText(value: string): string {
+  if (!value.includes('&')) return value;
+  // Ampersands are the common escaped text case. Check the original input before
+  // using native replacement, so newly decoded entity-like text is never rescanned.
+  // This avoids one JavaScript callback/allocation per reference in large sheets.
+  if (!/&(?!(?:amp);)/.test(value)) return value.replaceAll('&amp;', '&');
   const builtins: Record<string, string> = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'" };
   return value.replace(/&([^;\s<&]*);|&/g, (original, entity: string | undefined) => {
     if (!entity) throw invalidXml('Malformed XML entity reference.');
