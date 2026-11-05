@@ -1,0 +1,54 @@
+
+> build:web
+> npm run deps:verify && npm run build --workspace @flowboard/web
+
+
+> deps:verify
+> node apps/api/scripts/dependency-patches.mjs --verify
+
+{"package":"fast-xml-parser","version":"5.11.2","files":[{"path":"src/validator.js","sha256":"bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8"},{"path":"src/xmlparser/OrderedObjParser.js","sha256":"72f43cb7527e0575d3ae5024efd64c184bc31f93a2c1cafc7f62b7cc3b77f9f0"}],"changedFiles":[]}
+
+> @flowboard/web@0.1.0 build
+> next build
+
+   ▲ Next.js 15.5.28
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 2.3s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/20) ...
+   Generating static pages (5/20) 
+   Generating static pages (10/20) 
+   Generating static pages (15/20) 
+ ✓ Generating static pages (20/20)
+   Finalizing page optimization ...
+   Collecting build traces ...
+
+Route (app)                                 Size  First Load JS
+┌ ○ /                                    2.21 kB         129 kB
+├ ○ /_not-found                            997 B         104 kB
+├ ○ /activity                            7.99 kB         142 kB
+├ ○ /add-card                            8.91 kB         139 kB
+├ ○ /all-work                             1.6 kB         108 kB
+├ ○ /board                               40.2 kB         248 kB
+├ ○ /connect                             6.36 kB         173 kB
+├ ○ /import                              11.1 kB         150 kB
+├ ○ /inbox                               6.28 kB         142 kB
+├ ○ /invitation                            142 B         173 kB
+├ ○ /invitations/accept                    141 B         173 kB
+├ ○ /my-tasks                            5.11 kB         139 kB
+├ ○ /people                              4.25 kB         190 kB
+├ ○ /project                             10.9 kB         234 kB
+├ ○ /projects                              11 kB         185 kB
+├ ○ /settings                            15.3 kB         197 kB
+├ ○ /signin                              11.6 kB         130 kB
+└ ○ /trash                               7.62 kB         147 kB
++ First Load JS shared by all             103 kB
+  ├ chunks/18-d2d731f129776809.js        46.9 kB
+  ├ chunks/87c73c54-09e1ba5c70e60a51.js  54.2 kB
+  └ other shared chunks (total)             2 kB
+
+
+○  (Static)  prerendered as static content
+

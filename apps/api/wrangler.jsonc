@@ -34,6 +34,8 @@
   },
   // Private image bucket for production (no public access, no r2.dev, no custom domain).
   "r2_buckets": [{ "binding": "IMAGES", "bucket_name": "flowboard-images-prod" }],
+  // Verify image bytes through the same provider boundary already exercised on UAT.
+  "images": { "binding": "IMAGE_VERIFIER" },
   // Top level == production (deployed as flowboard-api). uat redefines every
   // non-inherited key (vars, hyperdrive, triggers) so it never shares prod data.
   "env": {
@@ -55,7 +57,6 @@
       },
       "triggers": { "crons": ["*/15 * * * *"] },
       // Private image bucket for UAT only (no public access, no r2.dev, no custom domain).
-      // Production has no IMAGES binding yet, so image routes return 503 CONFIG_ERROR there.
       "r2_buckets": [{ "binding": "IMAGES", "bucket_name": "flowboard-images-uat" }],
       "images": { "binding": "IMAGE_VERIFIER" }
     }

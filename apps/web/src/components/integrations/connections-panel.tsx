@@ -9,6 +9,7 @@ import { useSession } from '@/lib/session';
 import { ErrorNote } from '@/components/ui/error-note';
 import { DialogLayer } from '@/components/ui/dialog-layer';
 import { ConnectionDuration } from './connection-duration';
+import { McpPromptHelp } from './mcp-prompt-help';
 
 const timestamp = (value: string) => new Date(value).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
 
@@ -56,6 +57,7 @@ export function ConnectionsPanel({ actorId }: { actorId: string }) {
       <div className="field"><label className="field-label" htmlFor="connectorUrl">Connector URL</label><input className="control" id="connectorUrl" type="url" readOnly value={connector.isError ? '' : connector.data ?? ''} aria-describedby="connectorUrlHelp" /></div>
       <div className="row connection-url"><button className="btn" type="button" disabled={!connector.data || connector.isError} onClick={() => void copyUrl()}>{copied ? 'URL copied' : 'Copy Flowboard URL'}</button><span className="field-help" id="connectorUrlHelp">{connector.isError ? 'The connector URL is unavailable. Ask the Flowboard administrator to check its setup.' : 'Copy the connector URL published by this Flowboard.'}</span></div>
       {copyFailed && <p role="status">Copy was blocked. Select the URL above and copy it.</p>}
+      <McpPromptHelp />
       {notice && <p role="status">{notice}</p>}
       {query.isPending && <p role="status">Loading your connections…</p>}
       {query.isError && <ErrorNote error={query.error} onRetry={() => void query.refetch()} />}

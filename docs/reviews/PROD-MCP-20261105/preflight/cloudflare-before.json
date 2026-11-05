@@ -1,0 +1,173 @@
+{
+  "readOnly": true,
+  "at": "2026-11-05T09:17:39.496Z",
+  "worker": {
+    "settings": {
+      "compatibility_date": "2026-10-19",
+      "compatibility_flags": [
+        "nodejs_compat"
+      ],
+      "bindings": [
+        {
+          "type": "plain_text",
+          "name": "APP_ORIGIN",
+          "text": "https://flowboard-app.pages.dev"
+        },
+        {
+          "type": "secret_text",
+          "name": "BREVO_API_KEY"
+        },
+        {
+          "type": "plain_text",
+          "name": "CORS_ORIGIN",
+          "text": "https://flowboard-app.pages.dev"
+        },
+        {
+          "type": "secret_text",
+          "name": "CURSOR_SECRET"
+        },
+        {
+          "type": "secret_text",
+          "name": "DEV_LOGIN_SECRET"
+        },
+        {
+          "type": "ratelimit",
+          "name": "FB_RL_WRITES"
+        },
+        {
+          "type": "plain_text",
+          "name": "FRONTEND_URL",
+          "text": "https://flowboard-app.pages.dev"
+        },
+        {
+          "type": "secret_text",
+          "name": "GOOGLE_CLIENT_ID"
+        },
+        {
+          "type": "secret_text",
+          "name": "GOOGLE_CLIENT_SECRET"
+        },
+        {
+          "type": "plain_text",
+          "name": "GOOGLE_REDIRECT_URI",
+          "text": "https://flowboard-app.pages.dev/api/v1/auth/google/callback"
+        },
+        {
+          "type": "hyperdrive",
+          "name": "HYPERDRIVE",
+          "id": "18f56141ecef4b7cb07ecd42c90b155f"
+        },
+        {
+          "type": "r2_bucket",
+          "name": "IMAGES",
+          "bucket_name": "flowboard-images-prod"
+        },
+        {
+          "type": "plain_text",
+          "name": "MAIL_FROM_EMAIL",
+          "text": "[configured sender redacted]"
+        },
+        {
+          "type": "plain_text",
+          "name": "MAIL_FROM_NAME",
+          "text": "Flowboard"
+        }
+      ]
+    },
+    "deployments": {
+      "deployments": [
+        {
+          "id": "aaaaf3c3-1b1a-4382-9da6-823c9a1adf3e",
+          "source": "wrangler",
+          "strategy": "percentage",
+          "versions": [
+            {
+              "version_id": "756fdc6e-34f9-4ea8-88cc-59f21cdc940b",
+              "percentage": 100
+            }
+          ],
+          "created_on": "2026-10-31T14:28:38.62044Z"
+        },
+        {
+          "id": "166e9a43-eefd-423c-983f-c00947966fa4",
+          "source": "wrangler",
+          "strategy": "percentage",
+          "versions": [
+            {
+              "version_id": "fffbe9a7-6730-4731-a429-abf5e40a1583",
+              "percentage": 100
+            }
+          ],
+          "created_on": "2026-10-31T09:27:31.480097Z"
+        }
+      ]
+    }
+  },
+  "pages": {
+    "name": "flowboard-app",
+    "subdomain": "flowboard-app.pages.dev",
+    "production_branch": "main",
+    "gitIntegration": false,
+    "canonical_deployment": {
+      "id": "876eacf4-2890-4b3a-a54b-d71cf1fa6ff1",
+      "url": "https://876eacf4.flowboard-app.pages.dev",
+      "deployment_trigger": {
+        "type": "ad_hoc",
+        "metadata": {
+          "branch": "main",
+          "commit_hash": "3a82b24",
+          "commit_message": "D-24 3a82b24",
+          "commit_dirty": false
+        }
+      },
+      "latest_stage": {
+        "name": "deploy",
+        "started_on": null,
+        "ended_on": "2026-10-31T14:29:23.696441Z",
+        "status": "success"
+      }
+    },
+    "serviceBindings": {
+      "API": {
+        "service": "flowboard-api",
+        "environment": ""
+      }
+    }
+  },
+  "hyperdrive": {
+    "id": "18f56141ecef4b7cb07ecd42c90b155f",
+    "name": "flowboard-hyperdrive",
+    "origin": {
+      "host": "ep-patient-frost-a1kvcqki-pooler.ap-southeast-1.aws.neon.tech",
+      "port": 5432,
+      "database": "neondb",
+      "user": "neondb_owner"
+    },
+    "caching": {
+      "disabled": true
+    }
+  },
+  "images": {
+    "managedDomain": {
+      "enabled": false
+    },
+    "customDomains": {
+      "domains": []
+    },
+    "lifecycle": {
+      "rules": [
+        {
+          "id": "Default Multipart Abort Rule",
+          "enabled": true,
+          "conditions": {},
+          "abortMultipartUploadsTransition": {
+            "condition": {
+              "type": "Age",
+              "maxAge": 604800
+            }
+          }
+        }
+      ]
+    }
+  }
+}

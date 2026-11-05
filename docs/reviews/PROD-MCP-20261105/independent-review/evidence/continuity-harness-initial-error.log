@@ -1,0 +1,25 @@
+file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/[eval1]:1
+import ts from 'typescript';import fs from 'node:fs';const r=ts.parseConfigFileTextToJson('config',fs.readFileSync('apps/api/wrangler.jsonc','utf8'));if(r.error)throw Error('bad JSONC');console.log(JSON.stringify(r.config));
+                                                                ^
+
+TypeError: ts.parseConfigFileTextToJson is not a function
+    at file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/[eval1]:1:65
+    at ModuleJob.run (node:internal/modules/esm/module_job:437:25)
+    at async node:internal/modules/esm/loader:246:26
+    at async ModuleLoader.executeModuleJob (node:internal/modules/esm/loader:243:20)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:101:5)
+
+Node.js v24.15.0
+Traceback (most recent call last):
+  File "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/independent-review/evidence/check-continuity.py", line 7, in <module>
+    config=json.loads(subprocess.check_output(['node','--input-type=module','-e',"import ts from 'typescript';import fs from 'node:fs';const r=ts.parseConfigFileTextToJson('config',fs.readFileSync('apps/api/wrangler.jsonc','utf8'));if(r.error)throw Error('bad JSONC');console.log(JSON.stringify(r.config));"],text=True))
+                      ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 473, in check_output
+    return run(*popenargs, stdout=PIPE, timeout=timeout, check=True,
+           ~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+               **kwargs).stdout
+               ^^^^^^^^^
+  File "/opt/homebrew/Cellar/python@3.14/3.14.6/Frameworks/Python.framework/Versions/3.14/lib/python3.14/subprocess.py", line 578, in run
+    raise CalledProcessError(retcode, process.args,
+                             output=stdout, stderr=stderr)
+subprocess.CalledProcessError: Command '['node', '--input-type=module', '-e', "import ts from 'typescript';import fs from 'node:fs';const r=ts.parseConfigFileTextToJson('config',fs.readFileSync('apps/api/wrangler.jsonc','utf8'));if(r.error)throw Error('bad JSONC');console.log(JSON.stringify(r.config));"]' returned non-zero exit status 1.

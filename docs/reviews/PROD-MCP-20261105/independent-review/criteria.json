@@ -1,0 +1,21 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "PROD-MCP-PROMPT-20261105"
+  ],
+  "mandatoryCriteria": [
+    "C1: Readonly selectable copyable sample in Settings Connections with required title and unambiguous accessible project/board/column, exact priority/date/default and manual assignment guidance.",
+    "C2: No automatic send, storage or backend schema/tool/authority change; timeout retries preserve operation ID and unchanged input; hosted supported-client limit explicitly Claude.",
+    "C3: Accessible keyboard disclosure, labelled textarea, polite clipboard success and selected manual fallback, 320px layout with no horizontal overflow.",
+    "C4: Production IMAGE_VERIFIER matches UAT; prod and UAT origins, Hyperdrive and private R2 remain distinct with no test flags or unsafe staging expiration.",
+    "C5: Independent affected web test/type/build/browser checks pass on frozen source; unchanged backend source/tool/schema/migration continuity preserved from historical exact review, not relabelled freshly tested."
+  ],
+  "requiredTests": {
+    "web-tests": "npm run test --workspace @flowboard/web",
+    "web-typecheck": "npm run typecheck:web",
+    "web-build": "python3 docs/reviews/PROD-MCP-20261105/independent-review/evidence/build-web-sanitized.py",
+    "browser": "node docs/reviews/PROD-MCP-20261105/independent-review/evidence/browser-probe.mjs",
+    "continuity": "python3 docs/reviews/PROD-MCP-20261105/independent-review/evidence/check-continuity.py"
+  },
+  "scopeAndExclusions": "Scoped source delta approval before candidate CI, migration and deployment operations. Acceptance inherited from preimplementation PLAN.md; JSON is an exact restatement, not new relaxed criteria. Local synthetic component browser/clipboard, existing web suite, build/type. Historical backend review provenance must remain byte-identical except declared changed UI/config. No fresh PostgreSQL/API/full98check, hosted provider, cloud writes, live sign-in or production proof claimed. Sanitized build command refinement requested by Architect before scoring: whitelist HOME/PATH/TMPDIR/LANG plus fixed production/export; root/apps/web dotenv and devvars filenames absent. Earlier inherited-environment successful build retained as historical auxiliary evidence."
+}
