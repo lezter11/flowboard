@@ -1,5 +1,7 @@
 # Flowboard ordered tasks
 
+Current2026-11-05: CPU repairf32eafa has fresh local approvals9.09/8.92, all22CIsteps pass, exact UAT Worker/Pages uploaded and anonymous17/17 pass. Completedanonymous/scheduled UATobservation14ok/0CPU/0exceptions/1baselinewarning; signed-in runtime and fresh production backup gates remain pending. Production stays rolledback; ledger27 retained. Docker is stopped. [Current checklist](docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/RELEASE-CHECKLIST.md). Earlier entries are historical.
+
 ## Active: repair CPU termination before production reattempt — 2026-11-05
 
 Production promotion40e51e1 was attempted after the owner-approved backup cleanup and successful fresh backup/migrations27. Initial17/17 public smoke passed, but redacted observation caught16CPU terminations and41exception entries. **Worker/Pages are rolled back to prior stable production; database27 is retained.** Git main remains unpromoted. Current task: measured request-local TrieRouter repair, full isolated API/security/native tests, fresh independent review and one exact CI candidate; then UAT actual-runtime observations before another production attempt. Do not claim the failed789second monitor was clean, suppress connection logs, increase paid limits or reuse old scores as production approval. [Incident](docs/reviews/PROD-MCP-20261105/CPU-INCIDENT.md), [preimplementation repair criteria](docs/reviews/PROD-MCP-20261105/CPU-REPAIR-PLAN.md). Docker temporarily serves only the disposable60488fixture and must stop after required tests.

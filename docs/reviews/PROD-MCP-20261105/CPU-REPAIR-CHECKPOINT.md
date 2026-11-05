@@ -1,5 +1,19 @@
 # Active CPU repair checkpoint
 
+## Superseding checkpoint — 2026-11-05,13:05UTC
+
+CompletedUATobserver:900.001sec/14ok/1scheduledok/0CPU/0exceptions/0HTTP5xx/1exactbaselineidlePGlabel; strictneeds-inspection retained; cleanuptrue, unifiedsession94375finished. Noauthtraffic; productionpromotionheld. NewexactOct29backupdeletionquestionpending; noapprovalattested/deletionexecuted. Current finalsummary/checklist `cpu-release-f32eafa/SUMMARY.md`. All earlier in-flight observer numbers below are historical. Laptop can close while inputgates pending; Docker off.
+
+Current tested source is **f32eafae0f59bf1601d4a84e2a0e3208ae9db4bc**, pushed to remoteuat. One exact-candidate CI42027312917 completed all22steps successfully: API1966/1966, mounted/nativeMCP22/22groups, hostedbrowser24/24, legacybrowser14assertions+2observations. Local8groups, independentrouter62tests and fresh local browser suites passed; scopedreview9.09/global-localreview8.92 accepted and role handoffs regenerated with provenance retained. OwnedPGcontainer/privatefixture removed; DockerDesktop OFF. No further localDBtests pending.
+
+Clean detached source `/private/tmp/flowboard-cpu-release-f32eafa`; stagedPages `/private/tmp/flowboard-cpu-uat-pages-f32eafa` and `/private/tmp/flowboard-cpu-prod-pages-f32eafa`. Exact reviewed WorkerbodySHA9bc6986e15691ad32aaf67b8490bf4dadcba01c769add4a0c42281beb4f1204d. UAT now deployed Worker **a3d243dd-7f80-447d-908b-1af466c1f46f**, Pages **549e766e-2c4f-4b3d-adbb-633384381347**, dirtyfalse/sourcef32/API→flowboard-api-uat; actual fetched Worker matches. Anonymoussmoke17/17,17requests. Receipts/checklist in `cpu-release-f32eafa/`.
+
+Approvedredactedobserver unifiedsession94375, targetuat/versiona3d243dd, labelf32eafa-uat, started12:49:55UTC/900seconds. Interim13ok/0CPU/0exception/1knownidlePGlabel, no authenticated traffic yet. Final/progress files `cpu-observer-uat-f32eafa-uat*.json`. Do not claim completedhealthy from interim or exit0; exact knownbaselinewarning staysneedsinspection with explicitArchitectdisposition separate. Owner was invited to exercise UATsignedin; productiontest deferred by Owner. No actualGoogle/Claude acceptance can be inferred.
+
+Production remains rolledback: Worker756fdc6e / Pages876eacf4/source3a82b24. Ledger27 retained: NEVER rerun migrations20–27. Retry requires UATrepresentativeCPUgate and freshbackupdisposition. Fresh12:52UTC readonlyNeoninventory10branches/21600sPITR. Currentproductionbackup br-fancy-dream-a15hpqam is10:57schema19/pre-later-writes; runbookrequiresfreshschema27snapshot beforeeverydeploy. PriorpermissionwasONLYalreadydeletedOct28UATbackup. Oldest remaining eligibleUATsnapshot inventory candidate br-damp-poetry-a1gfbcvn / uat-backup-2026-10-29-d6 has0children, itsownidlecompute ep-bold-hill-a1mlmaly; **NOTauthorizedfor deletion**. Independent operations disposition in `operations-review/release-check/code-only-retry-backup-disposition.md`. Do not copy productiondata locally or changepaidsettings.
+
+The remaining earlier body below is historical first-checkpoint detail, superseded by this block and current receipts.
+
 User authorized production promotion and specifically approved deleting only old UAT backup br-lingering-field-a1hfhs5o. That deletion and fresh production backup br-fancy-dream-a15hpqam succeeded. Migrations20–27 were applied successfully; ledger27 remains after code rollback. Do not rerun migrations or restore data.
 
 Application40e51e1 was briefly deployed, exact bytes/Pages metadata verified and public17/17smoke passed. Sustained observation then captured16exceededCpu/41exceptionentries. **Production is restored to Worker756fdc6e / rollbackdeployment85a8828e and Pages876eacf4/source3a82b24**; postrollbackhealth2/2 passes. Gitmain was not promoted. UAT remains40e51e1 with the prompt help. CurrentrootGitHEAD54585ab is the previous docs checkpoint; the new incident/repair records are not committed yet.

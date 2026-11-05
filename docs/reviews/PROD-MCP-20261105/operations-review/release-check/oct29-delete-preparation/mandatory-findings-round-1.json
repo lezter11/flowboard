@@ -1,0 +1,21 @@
+{
+  "verdict": "fail",
+  "sourceSha256": "949ba176e06d13dca2249220c81b1e76dec6bc6246010bacf70ad5a92f109739",
+  "findings": [
+    {
+      "id": "DELETE-1",
+      "mandatory": true,
+      "description": "Outer main catch replaces an existing post-mutation report on receipt write failure, losing mutationRequested and operation stage."
+    },
+    {
+      "id": "DELETE-2",
+      "mandatory": true,
+      "description": "safeFailure validates then re-reads name/code/status getters; changing/throwing getters can leak private values or escape error handling."
+    }
+  ],
+  "reviewer": "/root/cpu_global_revalidation",
+  "authorFixPending": true,
+  "ownerApprovalObtained": false,
+  "uatGateSet": false,
+  "at": "2026-11-05T13:09:00.910596+00:00"
+}

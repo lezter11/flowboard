@@ -1,0 +1,72 @@
+{
+  "reviewer": "/root/cpu_global_revalidation",
+  "scope": "Independent operator-only safety review. No backend/product review reopened. No main/CLI/cloud/Docker execution, owner approval or UAT acceptance. Only pure node tests and injected-dependency probe executed.",
+  "verdict": "fix_required",
+  "startedTestAt": "2026-11-05T13:07:36.513413+00:00",
+  "completedAt": "2026-11-05T13:07:36.662782+00:00",
+  "heldFiles": {
+    "docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.mjs": "949ba176e06d13dca2249220c81b1e76dec6bc6246010bacf70ad5a92f109739",
+    "docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.test.mjs": "38062376db29151213716e84249eadd4aca4bed855eb0b35ec63f9be885f5f81"
+  },
+  "sourceUnchangedDuringTest": true,
+  "reachableGuardDependency": {
+    "path": "docs/reviews/PROD-MCP-20261105/operations/prod-guards.mjs",
+    "sha256": "daea33a0df445d2a0a2757570732a49430c15400cafe79fc5ebfd048a05e96cd"
+  },
+  "tests": {
+    "command": "node --test docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.test.mjs",
+    "exitCode": 0,
+    "tests": 27,
+    "passed": 27,
+    "failed": 0,
+    "skipped": 0,
+    "log": "docs/reviews/PROD-MCP-20261105/cpu-global-review/operator-delete-oct29-round-1.test.log",
+    "boundary": "Existing tests exercise runApprovedDeletion with fake dependency methods; they do not exercise main receipt-write failure."
+  },
+  "soundBoundaries": [
+    "Imports evaluate definitions/constants only; main guarded by exact argv file identity; prod-guards import has no provider calls",
+    "All three exact execute/newOwner/UATcandidate gates precede receipt/provider reads; these are operator attestations, not proof actual approval occurred",
+    "Fixed branch/project/owncompute constants; exact name,parent,ready,explicit false primary/default/protected,leaf and single idle read_write compute enforced",
+    "Production/activeUAT/bothproductionbackups must exist; complete before-after identity sets and endpoint ancestry compare",
+    "Receipt path canonical and atomically reserved with wx/0600 before provider read; existing or empty crash receipt stops automatic rerun",
+    "One delete dependency call, no helper retry/fallback. Only bounded inventory polling repeats; captured CLI output remains piped, never printed"
+  ],
+  "findings": [
+    {
+      "id": "OP-DELETE-001",
+      "severity": "medium",
+      "mandatory": true,
+      "blockingOperatorApproval": true,
+      "path": "docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.mjs",
+      "lines": "130-133,141",
+      "description": "If receiptHandle.writeFile throws after runApprovedDeletion returned, main replaces the existing report with a new object lacking mutationRequested. The fixed summary defaults it to false although the irreversible delete could already have completed. Receipt close failures preserve the report, but write failures do not.",
+      "evidence": "Source control flow: report assigned at130; awaited write at131; replacement catch at133; default false at141. Main was deliberately not executed under task boundary.",
+      "fix": "Preserve prior report and actual/uncertain mutationRequested when recording receipt-write failure; set an explicit persistence-failure stage and retain STOP instructions/occupied reservation. Exercise the actual reused failure projection with a pure regression."
+    },
+    {
+      "id": "OP-DELETE-002",
+      "severity": "medium",
+      "mandatory": true,
+      "blockingOperatorApproval": true,
+      "path": "docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.mjs",
+      "lines": "70-73",
+      "description": "safeFailure reads name/code/status again after validating the first getter result. A changing getter returns an allowlisted primitive first and a private diagnostic second; all three output fields can contain it. Throwing accessors can also break failure projection.",
+      "evidence": {
+        "kind": "Pure runApprovedDeletion injected-dependency adversarial probe; no main/CLI/fs/cloud calls",
+        "deleteStubCalls": 1,
+        "nameReads": 2,
+        "codeReads": 2,
+        "statusReads": 2,
+        "syntheticPrivateDiagnosticLeaked": true,
+        "fieldsWithMarker": [
+          "errorClass",
+          "safeCode",
+          "childExit"
+        ]
+      },
+      "fix": "Read each field at most once inside defensive try/catch, validate cached primitive values and emit only cached accepted values. Add changing and throwing getter tests; never echo messages/stack/stdout/stderr."
+    }
+  ],
+  "authorizationBoundary": "Approval of helper code is withheld. New exact Owner deletion permission and exactf32 UAT acceptance remain independently pending; tests never grant either.",
+  "next": "Builder repair only operator helper/test, preserve this round, then submit new held hashes and pure test result for independent re-review."
+}

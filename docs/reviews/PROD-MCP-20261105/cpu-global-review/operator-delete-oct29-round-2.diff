@@ -1,0 +1,58 @@
+--- held949-initial
++++ held-e87-repaired
+@@ -70,7 +70,15 @@
+ function safeFailure(error) {
+   const names = new Set(['Error', 'AssertionError', 'TypeError', 'SyntaxError', 'RangeError']);
+   const codes = new Set(['ENOENT', 'EACCES', 'ETIMEDOUT', 'ENOBUFS', 'ECONNRESET']);
+-  return { errorClass: names.has(error?.name) ? error.name : 'Error', ...(codes.has(error?.code) ? { safeCode: error.code } : {}), ...(Number.isInteger(error?.status) ? { childExit: error.status } : {}) };
++  const read = key => { try { return error?.[key]; } catch { return undefined; } };
++  const name = read('name'), code = read('code'), status = read('status');
++  return { errorClass: typeof name === 'string' && names.has(name) ? name : 'Error', ...(typeof code === 'string' && codes.has(code) ? { safeCode: code } : {}), ...(typeof status === 'number' && Number.isInteger(status) ? { childExit: status } : {}) };
++}
++export function preserveFailureReport(report, error, failureStage) {
++  return { ...(report ?? { targetId: TARGET.id, mutationRequested: false }),
++    status: 'fail', exitCode: 1, stage: report?.stage ?? failureStage,
++    wrapperFailureStage: failureStage, wrapperFailure: safeFailure(error),
++    failureInstruction: 'STOP. The reserved receipt may be empty or incomplete. Preserve it and inspect actual provider state; mutation may already have occurred. Never blindly retry or select a fallback target.' };
+ }
+ export async function runApprovedDeletion(gates, dependencies) {
+   const report = { kind: 'one exact newly Owner-approved Oct29 UAT backup deletion', projectId: 'misty-unit-76664549', sourceCommit: CANDIDATE, targetId: TARGET.id, targetName: TARGET.name, backupComputeId: TARGET.endpointId, startedAt: now(), mutationRequested: false };
+@@ -112,11 +120,13 @@
+   return report;
+ }
+ export async function main(argv = process.argv.slice(2)) {
+-  let receiptHandle, report;
++  let receiptHandle, report, stage = 'arguments';
+   try {
+     const args = parseArgs(['execute', 'owner-approval'], argv);
+     const gates = { execute: args.execute, ownerApproval: args['owner-approval'], uatGate: process.env.FLOWBOARD_CPU_UAT_GATE };
++    stage = 'approval-gates';
+     assertGates(gates); // No provider reads, receipt creation or mutation without all three gates.
++    stage = 'receipt-reserve';
+     await requireNewReceipt(RECEIPT);
+     // Reserve the one-time receipt atomically before any provider read. A crash leaves
+     // an occupied receipt requiring inspection, never an automatically reusable gate.
+@@ -127,18 +137,20 @@
+       async deleteExact(command) { execFileSync(process.execPath, [CLI, ...command, '--output', 'json', '--no-analytics'], { env: safeEnv(), stdio: ['ignore', 'pipe', 'pipe'], timeout: 45000, maxBuffer: 1024 * 1024 }); },
+       async pause(ms) { await new Promise(resolve => setTimeout(resolve, ms)); },
+     };
++    stage = 'delete-operation';
+     report = await runApprovedDeletion(gates, dependencies);
++    stage = 'receipt-write';
+     await receiptHandle.writeFile(JSON.stringify(report, null, 2) + '\n', 'utf8');
+   } catch (error) {
+-    report = { status: 'fail', exitCode: 1, targetId: TARGET.id, ...safeFailure(error), failureInstruction: 'STOP. No fallback is authorized; inspect existing receipts and provider state before another attempt.' };
++    report = preserveFailureReport(report, error, stage);
+   } finally {
+     if (receiptHandle) {
+       try { await receiptHandle.close(); }
+-      catch (error) { report = { ...report, status: 'fail', exitCode: 1, stage: 'receipt-close', ...safeFailure(error) }; }
++      catch (error) { report = preserveFailureReport(report, error, 'receipt-close'); }
+     }
+   }
+   // Fixed summary only; never print captured child output, messages, stack or connection values.
+-  console.log(JSON.stringify({ status: report.status, exitCode: report.exitCode, targetId: TARGET.id, backupComputeId: TARGET.endpointId, mutationRequested: report.mutationRequested ?? false, stage: report.stage, errorClass: report.errorClass, safeCode: report.safeCode, childExit: report.childExit }));
++  console.log(JSON.stringify({ status: report.status, exitCode: report.exitCode, targetId: TARGET.id, backupComputeId: TARGET.endpointId, mutationRequested: report.mutationRequested ?? false, stage: report.stage, wrapperFailureStage: report.wrapperFailureStage, errorClass: report.errorClass ?? report.wrapperFailure?.errorClass, safeCode: report.safeCode ?? report.wrapperFailure?.safeCode, childExit: report.childExit ?? report.wrapperFailure?.childExit }));
+   return report.exitCode;
+ }
+ if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exitCode = await main();

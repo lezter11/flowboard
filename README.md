@@ -10,7 +10,7 @@ Flowboard is a customizable team Kanban application. Projects contain boards, bo
 2. **[Project map](docs/PROJECT_MAP.md)** — which checkout to edit, where code lives and how documentation is organized.
 3. **[MCP provenance](docs/MCP_PROVENANCE.md)** — original implementation, subsequent repairs and future capabilities.
 
-**Current release, 2026-11-05:** application `40e51e1` remains available on UAT. Its production promotion passed initial smoke but failed sustained observation with CPU-limit terminations, so **production Worker and Pages were rolled back to the previous release**. The approved old UAT backup was deleted, a new production backup was verified and migrations20–27 remain applied; no data restore occurred. A narrow router CPU repair is undergoing local regression tests and fresh independent review. Docker is temporarily running a disposable test database. [Incident and actual counts](docs/reviews/PROD-MCP-20261105/CPU-INCIDENT.md).
+**Current release, 2026-11-05:** repaired application `f32eafa` is deployed to UAT after independent local reviews and all22CIsteps passed. Exact deployed Worker bytes and anonymous17/17 checks match; the15-minute anonymous/scheduled observation has0CPUterminations/0exceptions plus one unresolvedbaselinepoolwarning. Signed-in runtime coverage remains pending. **Production remains on its restored previous release** after the earlier CPU-limit failures. Database ledger27 is retained; no migration is rerun. Fresh production backup disposition is pending. Docker is stopped. [Live release checklist](docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/RELEASE-CHECKLIST.md), [preserved incident](docs/reviews/PROD-MCP-20261105/CPU-INCIDENT.md).
 
 ## Source layout
 

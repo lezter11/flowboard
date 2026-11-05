@@ -1,0 +1,33 @@
+# Repaired UAT release — production held
+
+Updated2026-11-05,13:05UTC. Tested application source **f32eafae0f59bf1601d4a84e2a0e3208ae9db4bc** is pushed to `uat` and deployed to UAT. **Production remains on its restored previous release; GitHubmain has not been promoted.** Owner explicitly deferred the real production connector test.
+
+## Actions and evidence
+
+- Fresh local repair reviews9.09/scoped and8.92/global-local pass the unchanged gates. The global followup independently rehashed all1032 source files and exactcommit blobs, plus both157-filePages stages; no mismatches. Local proof is not real-provider acceptance.
+- One new GitHubActions run [42027312917](https://github.com/lezter11/flowboard/actions/runs/42027312917) completed all22steps successfully: API1966/1966; nativeMCP22/22groups; hosted consent/Connectionsbrowser24/24; legacybrowser14passing assertions+2observations. No extra Actions debugging loop.
+- UAT Worker **a3d243dd-7f80-447d-908b-1af466c1f46f**, deployment4b68846a-d7ae-4d45-84f0-49ba1f3280ea/100%; Pages **549e766e-2c4f-4b3d-adbb-633384381347**, exactf32/dirtyfalse/API→flowboard-api-uat. Actual fetched WorkerSHA256 **9bc6986e15691ad32aaf67b8490bf4dadcba01c769add4a0c42281beb4f1204d** equals the independently wire-probed production/UAT artifact.
+- Anonymous UAT smoke **17/17**,17bounded requests, no credentials or record mutations.
+- Completed900.001-second UAT observation12:49:55→13:05:00UTC, cleanuptrue/exit0. **14invocations, all outcomeok; 1scheduled invocation outcomeok; 0CPU terminations, 0exception entries, 0observedHTTP5xx, no scheduled_job_failed labels.** Only anonymous HTTP traffic was observed. NativeCPU units remain unverified; no plan-limit comparison is claimed. This small sample is not proof of representative authenticated performance or every background side effect.
+- One exact preexisting `handled_idle_postgres_connection_error` label remains. Strict report is **needs-inspection**, preserved unchanged. No raw provider requests, log messages, authorization codes or credentials were retained. No observer remains running; Docker Desktop and the owned database fixture are stopped.
+
+## Why and options
+
+The repair changes how the API finds the handler for a request. It uses Hono's supported TrieRouter to avoid rebuilding the expensive default route matcher every request. It keeps each request's user/database state separate. Faster local Node/workerd measurements plus extensive route equivalence justified the candidate; actual Cloudflare monitoring is still needed because local CPU is not the hosted resource meter. A global app/database cache was rejected because it could mix request lifetimes and mutable capabilities.
+
+## Architect disposition and remaining limits
+
+The completed window establishes the anonymous/scheduled CPU observation only. The exact idle-pool warning also occurs on the stable production code and old UAT, so it is not demonstrated to be a router regression. Its cause and active-query impact are unresolved; it is **not** declared harmless, fixed, or unchanged in frequency. Preserve the strictneeds-inspection result and keep the baseline issue open. New active-query failures, CPU/resource outcomes, exceptions, unclassified errors or scheduled failures block/roll back a later attempt. **Overall runtime/promotion gate is held because representative signed-in UAT traffic is missing.** The Owner was asked to open a UAT board, move a labelled test card and use the existing UAT Claude connector to list boards/create a labelled test card. No reply or acceptance is assumed.
+
+Fresh production backup is also unresolved. The adopted [runbook](../../../PROD_BACKUP_AND_ROLLBACK.md) requires a fresh snapshot before every deploy. Read-only12:52UTCNeoninventory confirms10branches and21600seconds configured history retention; retention does not prove restore capacity or a rehearsed recovery. Existing br-fancy-dream-a15hpqam is the valuable10:57pre-migration schema19 snapshot, not a new schema27 snapshot. The only previous deletion approval was for the already-deleted Oct28UATbackup. A new explicit Owner question requests conditional deletion of **only** `uat-backup-2026-10-29-d6` / `br-damp-poetry-a1gfbcvn` and its own idlecompute `ep-bold-hill-a1mlmaly`, preserving every other branch/endpoint, then a fresh schema27production backup. Prepared fixed-target helper is gated on that new approval AND exactcandidateUATacceptance; neither is attested or executed. Initial pure guard tests27/27 passed but independent operator review found two mandatory failure-reporting defects. Both are repaired; root and independent reruns30/30 pass on held helpere87aaad/testd6650b. Operator-only round2 approval is conditional on actual Owner permission and UATacceptance; original failedround1/source/tests remain preserved. No local production-data copy or billing change is authorized.
+
+Production remains Worker **756fdc6e-34f9-4ea8-88cc-59f21cdc940b** / rollbackdeployment85a8828e-0345-4219-9fa0-2856f2566deb; Pages **876eacf4-2890-4b3a-a54b-d71cf1fa6ff1**, source3a82b24 (provider rechecked13:08UTC in provider-state-after-observation.json). Database ledger27 and data were retained. **Never rerun migrations20–27, downmigrate or restore over production to retry this code-only release.** The failed initial rollout remains recorded in CPU-INCIDENT.md; its16CPU terminations were not erased by the new local reviews.
+
+## Next / owner input
+
+1. Obtain signed-in UAT representative activity while a new bounded redacted observer is running; require zero CPU/exception/new error/job failures. Previous owner-reported connector success on an earlier version remains historical.
+2. Obtain the exact conditional backup deletion approval (or Owner freeslot), fresh recheck identities/flags/ancestry/endpoints, then create and verify the current-production snapshot after UATacceptance. Do not reuse old approval or a stale backup receipt.
+3. Retry production from clean exactf32 artifacts, prove actual bytes/bindings/Pages source, run bounded smoke and15-minute real observation; code-first rollback on failure. Promote GitHubmain only after release gates, avoiding duplicateCI.
+4. Owner's production Google/Claude test may happen later, explicitly pending. Setup guide remains marked notready until an actual successful promotion.
+
+The user may close the laptop now while these input-dependent gates are pending. No local server, Docker job or monitor is needed to keep hosted UAT available. Checklist: [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md). Key receipts: `ci-result.json`, `ci-browser-counts.json`, `uat-provider-proof.json`, `uat-smoke.json`, `../cpu-observer-uat-f32eafa-uat.json`.

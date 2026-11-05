@@ -1,0 +1,62 @@
+{
+  "verdict": "fresh-schema27-backup-recommended; production retry backup gate unresolved",
+  "scope": "Read-only backup-policy judgment for exact code-only retry, not deployment approval",
+  "candidateSource": "f32eafae0f59bf1601d4a84e2a0e3208ae9db4bc",
+  "at": "2026-11-05T12:51:49.768200+00:00",
+  "reviewer": "/root/production_operations_review",
+  "facts": {
+    "existingBackupId": "br-fancy-dream-a15hpqam",
+    "existingBackupCreatedAt": "2026-11-05T10:57:04Z",
+    "existingBackupSource": "40e51e1336a783a6b450806260ed6c5aa8ace0ea",
+    "existingBackupPredatesSchema27Migration": true,
+    "candidateMigrationFilesAndRunnerIdentical": true,
+    "plannedMigrationWrites": false,
+    "recordedPitrSeconds": 21600,
+    "pitrAndCurrentQuotaIndependentlyRefreshed": false,
+    "currentQuotaFullReportedByRoot": true,
+    "onlyDeletionPermissionAlreadyUsed": "br-lingering-field-a1hfhs5o",
+    "ownerDeferredProductionSignedInTest": true,
+    "authenticatedRuntimeAcceptance": "pending; not waived or passing evidence"
+  },
+  "policy": "Fresh current-production branch immediately before each production deploy is explicitly required by adopted runbook, including code-only retries. No implicit Architect/operator waiver. Existing pre-migration snapshot cannot be relabeled current schema27 protection.",
+  "recommendation": "Create and provider-verify a fresh data-bearing no-compute production child for the exact f32 retry, preserving existing backup and current data. No migration rerun/downmigration/restore is needed or authorized.",
+  "permissionOptions": [
+    {
+      "option": "Preferred: authorize one additional exact obsolete UAT backup deletion, or have Owner free a slot manually, then take fresh schema27 backup",
+      "scope": "Root must first re-read and present exact branch ID/name/parent/primary/default/protected/children and its own compute; preserve production, active UAT and production backups. Permission must name only that branch and own backup compute. Existing Oct28 approval grants no additional deletion.",
+      "possibleInventoryCandidate": "br-damp-poetry-a1gfbcvn / uat-backup-2026-10-29-d6 was oldest remaining UAT backup in earlier inventory; not currently reverified and NOT authorized for deletion."
+    },
+    {
+      "option": "Explicit Owner exception for ONLY this exact f32 code-only retry",
+      "scope": "Owner must explicitly waive fresh-per-deploy branch requirement and accept reliance on br-fancy-dream-a15hpqam plus the actually verified current six-hour PITR window. Record exact new attempt time/recovery point, no new SQL migrations, code-only rollback IDs and limits. This is accepted risk, not equivalent fresh-backup or restore proof; no further deletion/data copy/restore/billing permission implied.",
+      "conditions": [
+        "Fresh read-only provider verification of branch existence/parent/state and actual retention/available PITR coverage for the desired schema27 recovery point",
+        "Document that snapshot schema19 omits all later writes and a whole-production restore remains prohibited as software rollback",
+        "Document how a recovery branch can be created despite quota before a needed PITR point expires; no automatic deletion/fallback",
+        "Retain prior failed rollout, strict observation status and Owner deferred authenticated acceptance as separate limitations"
+      ]
+    },
+    {
+      "option": "Owner changes branch capacity/plan",
+      "scope": "Only with explicit separate billing authorization; operator must not change paid settings. Existing user promotion approval does not grant this."
+    }
+  ],
+  "guardNotes": [
+    "Fresh branch creator may be used with same reviewed migration inventory and exact f32 candidate if unchanged source guard passes and quota is available",
+    "Do not call migration helper: it deliberately requires ledger19 while current production is27",
+    "Old backup receipt is stale and bound to40e; never edit timestamps/source SHA or bypass checks to make it look fresh"
+  ],
+  "evidenceHashes": {
+    "docs/PROD_BACKUP_AND_ROLLBACK.md": "76b6d9586cb175b2eb3f87da37b245b9d72f6edc00bf755d6c403f7afa52f71d",
+    "docs/reviews/PROD-MCP-20261105/production-backup-ready.json": "5e5a1090ffd7f89bccb15cbc58e7ccd32499a82b8460fd129797b308000d1187",
+    "docs/reviews/PROD-MCP-20261105/production-backup-prerun-reread.json": "0cf0855f30d7c713c85fd5196c7f53ab8b52e25a5ab2a6803a2ccf3f4d1290bd",
+    "docs/reviews/PROD-MCP-20261105/production-migration-receipt.json": "bb5fe188439aa63962b5818faf8efd1ca1185294832d50009c4c0760af14025c",
+    "docs/reviews/PROD-MCP-20261105/production-db-preflight.json": "879e1d9438c342515a4e4880756dbae457cfc98385bf21e822f456d399becdbe",
+    "docs/reviews/PROD-MCP-20261105/operations/README.md": "77eb73b4890266a0d4bee6f20d3a789742d7f41090b1080fc4d7fb41a7c1f237",
+    "docs/reviews/PROD-MCP-20261105/operations/prod-guards.mjs": "daea33a0df445d2a0a2757570732a49430c15400cafe79fc5ebfd048a05e96cd",
+    "docs/reviews/PROD-MCP-20261105/CPU-REPAIR-PLAN.md": "2fb5d1bafa0eede60949d095103212de5dadec763f3add6df652d4e8f0acb29f"
+  },
+  "reviewerLiveCalls": 0,
+  "dataCopies": 0,
+  "mutations": 0
+}

@@ -1,0 +1,68 @@
+{
+  "reviewer": "/root/cpu_global_revalidation",
+  "scope": "Independent operator-only code safety review of exact held helper/test. No backend/product review reopened. Only pure node tests executed; no main/CLI/cloud/DB/Docker/deletion, owner permission, UAT acceptance or production approval.",
+  "verdict": "operator_code_approved_conditional_execution_still_blocked",
+  "startedTestAt": "2026-11-05T13:11:56.826599+00:00",
+  "completedAt": "2026-11-05T13:11:56.981782+00:00",
+  "heldFiles": {
+    "docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.mjs": "e87aaad40c215054c5f0ca199d3059904d9e88d4039e6e2a00df1366daca7818",
+    "docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.test.mjs": "d6650b946b4034bd2951e4231f14225e8fc56cf04bc47d3802b0f719193cf720"
+  },
+  "sourceUnchangedDuringTest": true,
+  "reachableGuardDependency": {
+    "path": "docs/reviews/PROD-MCP-20261105/operations/prod-guards.mjs",
+    "sha256": "daea33a0df445d2a0a2757570732a49430c15400cafe79fc5ebfd048a05e96cd"
+  },
+  "previousFailedReview": "docs/reviews/PROD-MCP-20261105/cpu-global-review/operator-delete-oct29-round-1.json",
+  "previousFailedHelperPreserved": {
+    "path": "docs/reviews/PROD-MCP-20261105/operations-review/release-check/oct29-delete-preparation/helper-949-failed-round-1.mjs.txt",
+    "sha256": "949ba176e06d13dca2249220c81b1e76dec6bc6246010bacf70ad5a92f109739"
+  },
+  "narrowSourceDiff": "docs/reviews/PROD-MCP-20261105/cpu-global-review/operator-delete-oct29-round-2.diff",
+  "unchangedSafetyBlocks": {
+    "importsConstantsApprovalGatesIdentityBeforeAfterChecks": true,
+    "runApprovedDeletionSingleDeleteAndBoundedInventoryPoll": true
+  },
+  "tests": {
+    "command": "node --test docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.test.mjs",
+    "exitCode": 0,
+    "tests": 30,
+    "passed": 30,
+    "failed": 0,
+    "skipped": 0,
+    "log": "docs/reviews/PROD-MCP-20261105/cpu-global-review/operator-delete-oct29-round-2.test.log",
+    "newRegressionCoverage": [
+      "actual reused pure preserveFailureReport on postmutation receipt failure retains mutationRequested, operation facts and stage without mutating original",
+      "changing error getters read once each and only cached allowed primitives emitted",
+      "throwing name/code/status getters cannot escape safe failure handling or emit diagnostic text"
+    ]
+  },
+  "resolvedFindings": [
+    {
+      "id": "OP-DELETE-001",
+      "resolution": "Main catch and receipt-close path both call preserveFailureReport. Prior operation report and mutationRequested:true survive; wrapperFailureStage records receipt-write/close separately, safe wrapper diagnostic is separate, STOP explicitly preserves the occupied incomplete receipt. Main code demonstrably uses the same pure projector tested. No physical receipt-write fault or actual main execution is claimed."
+    },
+    {
+      "id": "OP-DELETE-002",
+      "resolution": "Each error name/code/status read exactly once under its own try/catch; cached primitive values are validated and emitted. Current changing/throwing getter regressions pass, so the demonstrated second-read leak is resolved."
+    }
+  ],
+  "openMandatoryCodeFindings": [],
+  "checkedBoundaries": [
+    "Imports evaluate definitions/constants only; main guarded by exact argv file identity; prod-guards import has no provider calls",
+    "All three exact execute/newOwner/UATcandidate gates precede receipt/provider reads; these are operator attestations, not proof actual approval occurred",
+    "Fixed branch/project/owncompute constants; exact name,parent,ready,explicit false primary/default/protected,leaf and single idle read_write compute enforced",
+    "Production/activeUAT/bothproductionbackups must exist; complete before-after identity sets and endpoint ancestry compare",
+    "Receipt path canonical and atomically reserved with wx/0600 before provider read; existing or empty crash receipt stops automatic rerun",
+    "One delete dependency call, no helper retry/fallback. Only bounded inventory polling repeats; captured CLI output remains piped, never printed"
+  ],
+  "atomicReceiptBoundary": "wx/0600 is an atomic one-shot reservation before provider reads; interrupted/empty/incomplete receipt remains a stop condition. This is not a claim of fsync/power-loss durability or provider/filesystem distributed atomicity.",
+  "authorizationBoundary": {
+    "ownerExactDeletionPermission": "pending; not established by this review",
+    "exactF32UatGate": "pending; public/cron observation is not authenticated UAT acceptance",
+    "mainRunOrProviderDeletionExecuted": false,
+    "mustRemainBlockedUntil": "Root independently establishes new exact Owner permission for only br-damp-poetry-a1gfbcvn and its own ep-bold-hill-a1mlmaly AND actual exactf32 UAT acceptance before supplying all3gates. Helper then re-reads exact target/preserved identities; any mismatch or existing receipt stops.",
+    "noOtherAuthorization": "No alternate branch, retry after uncertainty, production backup deletion, local data copy/restore, migration rerun, billing change or production promotion authorized."
+  },
+  "next": "Root may checkpoint this operator-code approval and preserved failed round. Do not execute helper while either approval/UAT gate is pending; any helper/test/dependency change requires re-review."
+}

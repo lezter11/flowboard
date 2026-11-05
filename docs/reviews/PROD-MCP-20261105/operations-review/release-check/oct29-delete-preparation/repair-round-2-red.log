@@ -1,0 +1,98 @@
+✔ entry requires exact execute, separate owner approval and exact-source UAT gate before any provider read (5.877917ms)
+✔ command is fixed to exactly one branch and project; no target argument (0.798333ms)
+✔ refuses wrong target ID without deletion (0.67325ms)
+✔ refuses wrong name without deletion (0.242ms)
+✔ refuses wrong parent without deletion (0.209166ms)
+✔ refuses has child without deletion (0.17625ms)
+✔ refuses primary without deletion (0.163625ms)
+✔ refuses default without deletion (0.1635ms)
+✔ refuses protected without deletion (0.24125ms)
+✔ refuses missing safety flag without deletion (0.258208ms)
+✔ refuses not ready without deletion (0.181833ms)
+✔ refuses preserved branch missing without deletion (0.151167ms)
+✔ refuses preserved backup renamed without deletion (0.210084ms)
+✔ refuses wrong endpoint without deletion (0.128833ms)
+✔ refuses endpoint wrong parent without deletion (0.103375ms)
+✔ refuses compute not idle without deletion (0.1115ms)
+✔ refuses wrong compute type without deletion (0.113792ms)
+✔ refuses compute missing without deletion (0.092708ms)
+✔ refuses target marked deleted without deletion (3.391167ms)
+✔ refuses extra compute without deletion (0.224708ms)
+✔ refuses duplicate branch IDs without deletion (0.132166ms)
+✔ refuses active endpoint missing without deletion (0.136833ms)
+✔ each active branch and both production backups must independently remain present (0.3145ms)
+✔ success preserves every other branch and endpoint, deletes once, records only safe IDs/counts (0.321375ms)
+✔ exact before/after sets reject any other removed or added branch or endpoint (1.26175ms)
+✔ unconfirmed/lost-response deletion failure stops without retry/fallback and never returns child diagnostics (0.333167ms)
+✔ verification timeout never repeats delete or changes target (1.090333ms)
+✖ post-mutation receipt failure preserves original operation facts, stage and uncertainty (0.298208ms)
+✖ changing error getters are read once and only validated cached primitives escape (0.43625ms)
+✖ throwing error getters cannot escape handling or expose diagnostic text (0.215708ms)
+ℹ tests 30
+ℹ suites 0
+ℹ pass 27
+ℹ fail 3
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 101.04725
+
+✖ failing tests:
+
+test at docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.test.mjs:18:1
+✖ post-mutation receipt failure preserves original operation facts, stage and uncertainty (0.298208ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly equal:
+  + actual - expected
+  
+  + 'undefined'
+  - 'function'
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.test.mjs:18:159)
+      at Test.runInAsyncScope (node:async_hooks:227:14)
+      at Test.run (node:internal/test_runner/test:1201:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:831:18)
+      at Test.postRun (node:internal/test_runner/test:1330:19)
+      at Test.run (node:internal/test_runner/test:1258:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: 'undefined',
+    expected: 'function',
+    operator: 'strictEqual',
+    diff: 'simple'
+  }
+
+test at docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.test.mjs:19:1
+✖ changing error getters are read once and only validated cached primitives escape (0.43625ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    {
+  +   code: 2,
+  +   name: 2,
+  +   status: 2
+  -   code: 1,
+  -   name: 1,
+  -   status: 1
+    }
+  
+      at TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.test.mjs:19:459)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: { name: 2, code: 2, status: 2 },
+    expected: { name: 1, code: 1, status: 1 },
+    operator: 'deepStrictEqual',
+    diff: 'simple'
+  }
+
+test at docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.test.mjs:20:1
+✖ throwing error getters cannot escape handling or expose diagnostic text (0.215708ms)
+  Error: SYNTHETIC_PRIVATE
+      at Object.get (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.test.mjs:20:248)
+      at safeFailure (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.mjs:73:39)
+      at runApprovedDeletion (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.mjs:108:27)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/operations-review/release-check/delete-oct29-uat-backup.test.mjs:20:339)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7)

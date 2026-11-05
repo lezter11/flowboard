@@ -1,0 +1,144 @@
+// PREPARED ONLY. No import-time provider calls. Root needs new Owner approval AND UAT acceptance.
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import { CLI, cliJson, safeEnv, parseArgs, requireNewReceipt } from '../../operations/prod-guards.mjs';
+
+export const CANDIDATE = 'f32eafae0f59bf1601d4a84e2a0e3208ae9db4bc';
+export const TARGET = Object.freeze({ id: 'br-damp-poetry-a1gfbcvn', name: 'uat-backup-2026-10-29-d6', parent_id: 'br-polished-term-a172b6x5', endpointId: 'ep-bold-hill-a1mlmaly' });
+export const PRESERVED = Object.freeze([
+  Object.freeze({ id: 'br-orange-union-a1kqetvn', name: 'production' }),
+  Object.freeze({ id: 'br-polished-term-a172b6x5', name: 'uat' }),
+  Object.freeze({ id: 'br-fancy-dream-a15hpqam', name: 'production-backup-2026-11-05-mcp-pre-db3be4a1a35d', parent_id: 'br-orange-union-a1kqetvn' }),
+  Object.freeze({ id: 'br-summer-firefly-a1sw1w66', name: 'production-backup-2026-10-31-d24-pre', parent_id: 'br-orange-union-a1kqetvn' }),
+]);
+export const DELETE_COMMAND = Object.freeze(['branches', 'delete', TARGET.id, '--project-id', 'misty-unit-76664549']);
+const APPROVAL = 'delete-only-br-damp-poetry-a1gfbcvn-and-ep-bold-hill-a1mlmaly';
+const RECEIPT = fileURLToPath(new URL('../../cpu-release-f32eafa/approved-oct29-uat-backup-deletion.json', import.meta.url));
+const now = () => new Date().toISOString();
+
+export function assertGates(gates) {
+  assert.equal(gates.execute, 'owner-approved-single-delete');
+  assert.equal(gates.ownerApproval, APPROVAL, 'new exact Owner approval attestation required');
+  assert.equal(gates.uatGate, 'accepted-' + CANDIDATE, 'exact candidate UAT acceptance attestation required');
+}
+function identities(items, kind) {
+  assert.ok(Array.isArray(items));
+  const pattern = kind === 'branch' ? /^br-[a-z0-9-]+$/ : /^ep-[a-z0-9-]+$/;
+  for (const item of items) assert.ok(item && typeof item.id === 'string' && pattern.test(item.id), 'invalid provider identity');
+  const ids = items.map(item => item.id).sort();
+  assert.equal(new Set(ids).size, ids.length, 'duplicate provider identity');
+  return ids;
+}
+export function validateBefore(branches, endpoints) {
+  const branchIds = identities(branches, 'branch');
+  const endpointIds = identities(endpoints, 'endpoint');
+  const target = branches.find(item => item.id === TARGET.id);
+  assert.ok(target, 'exact target missing');
+  assert.equal(target.name, TARGET.name);
+  assert.equal(target.parent_id, TARGET.parent_id);
+  assert.equal(target.current_state, 'ready');
+  assert.ok(!target.deleted_at);
+  for (const flag of ['primary', 'default', 'protected']) assert.equal(target[flag], false, 'target safety flag must be explicitly false');
+  assert.equal(branches.filter(item => item.parent_id === TARGET.id).length, 0, 'target must be a leaf');
+  for (const required of PRESERVED) {
+    const actual = branches.find(item => item.id === required.id);
+    assert.ok(actual, 'required preserved branch missing');
+    assert.equal(actual.name, required.name);
+    if (required.parent_id) assert.equal(actual.parent_id, required.parent_id);
+    assert.ok(!actual.deleted_at);
+  }
+  const own = endpoints.filter(item => item.branch_id === TARGET.id);
+  assert.equal(own.length, 1);
+  assert.equal(own[0].id, TARGET.endpointId);
+  assert.equal(own[0].current_state, 'idle');
+  assert.equal(own[0].type, 'read_write');
+  for (const [id, branchId] of [['ep-patient-frost-a1kvcqki', PRESERVED[0].id], ['ep-shy-fire-a1we7145', PRESERVED[1].id]]) {
+    assert.equal(endpoints.find(item => item.id === id)?.branch_id, branchId, 'active environment endpoint must remain distinct');
+  }
+  for (const endpoint of endpoints) assert.ok(branchIds.includes(endpoint.branch_id), 'endpoint branch absent from inventory');
+  return { branchIds, endpointIds, endpointBranches: Object.fromEntries(endpoints.map(item => [item.id, item.branch_id])) };
+}
+export function verifyAfter(branches, endpoints, before) {
+  assert.deepEqual(identities(branches, 'branch'), before.branchIds.filter(id => id !== TARGET.id), 'only exact target branch may disappear');
+  assert.deepEqual(identities(endpoints, 'endpoint'), before.endpointIds.filter(id => id !== TARGET.endpointId), 'only target backup compute may disappear');
+  for (const endpoint of endpoints) assert.equal(endpoint.branch_id, before.endpointBranches[endpoint.id], 'preserved compute ancestry changed');
+  assert.ok(!endpoints.some(item => item.branch_id === TARGET.id));
+}
+function safeFailure(error) {
+  const names = new Set(['Error', 'AssertionError', 'TypeError', 'SyntaxError', 'RangeError']);
+  const codes = new Set(['ENOENT', 'EACCES', 'ETIMEDOUT', 'ENOBUFS', 'ECONNRESET']);
+  return { errorClass: names.has(error?.name) ? error.name : 'Error', ...(codes.has(error?.code) ? { safeCode: error.code } : {}), ...(Number.isInteger(error?.status) ? { childExit: error.status } : {}) };
+}
+export async function runApprovedDeletion(gates, dependencies) {
+  const report = { kind: 'one exact newly Owner-approved Oct29 UAT backup deletion', projectId: 'misty-unit-76664549', sourceCommit: CANDIDATE, targetId: TARGET.id, targetName: TARGET.name, backupComputeId: TARGET.endpointId, startedAt: now(), mutationRequested: false };
+  let stage = 'approval-gates';
+  try {
+    assertGates(gates);
+    report.ownerApprovalAttested = true;
+    report.exactCandidateUatAcceptedAttested = true;
+    stage = 'preconditions';
+    const branches = await dependencies.listBranches(), endpoints = await dependencies.listEndpoints();
+    const before = validateBefore(branches, endpoints);
+    report.beforeBranchCount = branches.length;
+    report.preservedBranchIds = before.branchIds.filter(id => id !== TARGET.id);
+    report.preservedEndpointIds = before.endpointIds.filter(id => id !== TARGET.endpointId);
+    stage = 'delete-approved-target';
+    report.command = [...DELETE_COMMAND];
+    report.mutationRequested = true;
+    await dependencies.deleteExact([...DELETE_COMMAND]); // One invocation; no helper retry or fallback target.
+    stage = 'verify-deleted';
+    let after, afterEndpoints;
+    for (let attempt = 0; attempt < 10; attempt++) {
+      after = await dependencies.listBranches();
+      afterEndpoints = await dependencies.listEndpoints();
+      if (!after.some(item => item.id === TARGET.id) && !afterEndpoints.some(item => item.id === TARGET.endpointId)) break;
+      if (attempt < 9) await dependencies.pause(1000);
+    }
+    verifyAfter(after, afterEndpoints, before);
+    report.afterBranchCount = after.length;
+    report.targetAbsent = true;
+    report.allOtherBranchesPreserved = true;
+    report.allOtherEndpointsPreserved = true;
+    report.status = 'pass'; report.exitCode = 0;
+  } catch (error) {
+    report.status = 'fail'; report.exitCode = 1; report.stage = stage;
+    Object.assign(report, safeFailure(error));
+    report.failureInstruction = 'STOP. Inspect actual provider state and this receipt. Do not blindly retry, choose another branch, delete a production backup, copy data locally or restore production.';
+  }
+  report.completedAt = now();
+  return report;
+}
+export async function main(argv = process.argv.slice(2)) {
+  let receiptHandle, report;
+  try {
+    const args = parseArgs(['execute', 'owner-approval'], argv);
+    const gates = { execute: args.execute, ownerApproval: args['owner-approval'], uatGate: process.env.FLOWBOARD_CPU_UAT_GATE };
+    assertGates(gates); // No provider reads, receipt creation or mutation without all three gates.
+    await requireNewReceipt(RECEIPT);
+    // Reserve the one-time receipt atomically before any provider read. A crash leaves
+    // an occupied receipt requiring inspection, never an automatically reusable gate.
+    receiptHandle = await fs.open(RECEIPT, 'wx', 0o600);
+    const dependencies = {
+      async listBranches() { const value = cliJson(['api', '/projects/misty-unit-76664549/branches']); return value.branches ?? value; },
+      async listEndpoints() { const value = cliJson(['api', '/projects/misty-unit-76664549/endpoints']); return value.endpoints ?? value; },
+      async deleteExact(command) { execFileSync(process.execPath, [CLI, ...command, '--output', 'json', '--no-analytics'], { env: safeEnv(), stdio: ['ignore', 'pipe', 'pipe'], timeout: 45000, maxBuffer: 1024 * 1024 }); },
+      async pause(ms) { await new Promise(resolve => setTimeout(resolve, ms)); },
+    };
+    report = await runApprovedDeletion(gates, dependencies);
+    await receiptHandle.writeFile(JSON.stringify(report, null, 2) + '\n', 'utf8');
+  } catch (error) {
+    report = { status: 'fail', exitCode: 1, targetId: TARGET.id, ...safeFailure(error), failureInstruction: 'STOP. No fallback is authorized; inspect existing receipts and provider state before another attempt.' };
+  } finally {
+    if (receiptHandle) {
+      try { await receiptHandle.close(); }
+      catch (error) { report = { ...report, status: 'fail', exitCode: 1, stage: 'receipt-close', ...safeFailure(error) }; }
+    }
+  }
+  // Fixed summary only; never print captured child output, messages, stack or connection values.
+  console.log(JSON.stringify({ status: report.status, exitCode: report.exitCode, targetId: TARGET.id, backupComputeId: TARGET.endpointId, mutationRequested: report.mutationRequested ?? false, stage: report.stage, errorClass: report.errorClass, safeCode: report.safeCode, childExit: report.childExit }));
+  return report.exitCode;
+}
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exitCode = await main();

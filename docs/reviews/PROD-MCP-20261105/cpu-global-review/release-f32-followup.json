@@ -1,0 +1,151 @@
+{
+  "observedAt": "2026-11-05T12:58:19.973906+00:00",
+  "reviewer": "/root/cpu_global_revalidation",
+  "scope": "Read-only audit of supplied release receipts and local source/artifact bytes. No tests, Docker, cloud requests/mutations, credentials, source/handoff/criteria edits or frozen-record rewrite.",
+  "verdict": "CI/source/artifact/UAT-anonymous-smoke provenance consistent; runtime and production acceptance incomplete",
+  "sourceCommit": "f32eafae0f59bf1601d4a84e2a0e3208ae9db4bc",
+  "heldReview": {
+    "path": "docs/reviews/PROD-MCP-20261105/cpu-global-review/e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205-round-1.json",
+    "scoreRemains": "8.92",
+    "files": 1032,
+    "currentInventoryAndHashesExactlyMatch": true,
+    "all1032CommitBlobsMatch": true,
+    "detachedCandidateCommitMatches": true,
+    "detachedCandidateTrackedChanges": []
+  },
+  "ci": {
+    "url": "https://github.com/lezter11/flowboard/actions/runs/42027312917",
+    "headSha": "f32eafae0f59bf1601d4a84e2a0e3208ae9db4bc",
+    "conclusion": "success",
+    "completedSuccessfulSteps": 22,
+    "evidenceKind": "Saved provider result metadata plus bounded count extract, source-bound workflow read. No fresh provider query by reviewer.",
+    "counterExtract": "1966API pass;22/22nativeMCP groups; actual new LinuxCI hosted24unique case pass/footer0failure/0sourcechanges and legacy14pass+2observed/0fail. No web-unit total independently extracted here.",
+    "satisfiesPriorExactCandidateCIGate": true,
+    "doesNotEstablish": "UAT or production runtime, real providers or Owner acceptance; old executions are not relabelled.",
+    "browserCountReceipt": {
+      "path": "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/ci-browser-counts.json",
+      "sha256": "656bf3288d8a9072ede90cb3debc92329729bb77fff7b9dbdd980888ac8cc133",
+      "actualLinuxHostedCases": 24,
+      "failures": 0,
+      "sourceChanges": 0,
+      "distinctCaseRecords": 24,
+      "legacyPass": 14,
+      "legacyObserved": 2,
+      "legacyFail": 0,
+      "boundary": "Sanitized actual newf32CI records inspected; original historicalLinux/browser executions and8.92review remain unchanged."
+    }
+  },
+  "artifacts": {
+    "workerBodySHA256": "9bc6986e15691ad32aaf67b8490bf4dadcba01c769add4a0c42281beb4f1204d",
+    "preparedUatAndProductionAndExactUploadsAllMatchActualLocalWireProbedBody": true,
+    "freshRehash": "docs/reviews/PROD-MCP-20261105/cpu-global-review/release-f32-source-artifact-rehash.json",
+    "uatPagesFilesVerified": 157,
+    "prodPagesFilesVerified": 157,
+    "uatProdPagesDifferenceOnly": "wrangler.jsonc environment binding config",
+    "providerProof": "Recorded UAT deployedWorker100percent9BC and Pages exactcommit/dirtyfalse/APIflowboard-api-uat; not a new provider read by reviewer."
+  },
+  "uatSmoke": {
+    "passed": 17,
+    "failed": 0,
+    "requestCount": 17,
+    "credentialsUsed": false,
+    "applicationMutations": false,
+    "scope": "Anonymous/static/security/health only"
+  },
+  "observerProgressSnapshot": {
+    "kind": "bounded aggregate-only Worker observation, not owner acceptance",
+    "target": "uat",
+    "worker": "flowboard-api-uat",
+    "version": "a3d243dd-7f80-447d-908b-1af466c1f46f",
+    "requestedSeconds": 900,
+    "startedAt": "2026-11-05T12:49:55.446999+00:00",
+    "observedSeconds": 502.522,
+    "events": 13,
+    "scheduledEvents": 0,
+    "scheduledOk": 0,
+    "exceptionCount": 0,
+    "errorLogCount": 1,
+    "http5xx": 0,
+    "cpuTerminationCount": 0,
+    "sourceLogLabels": {
+      "handled_idle_postgres_connection_error": 1
+    },
+    "scheduledFailedJobs": {},
+    "nativeCpuTime": {
+      "available": true,
+      "fieldCounts": {
+        "cpuTime": 13
+      },
+      "count": 13,
+      "sum": 108,
+      "max": 27,
+      "invalidCount": 0,
+      "units": "provider-native-unverified"
+    },
+    "windowCompleted": false,
+    "interrupted": false,
+    "parserOverflows": 0,
+    "parserFailures": 0,
+    "parserIncomplete": 0,
+    "invalidEvents": 0
+  },
+  "observerProgressSHA256AtRead": "1eac91a638e7a7db869cb11209cf61a14bfefd9924bab6565317ca6438590c75",
+  "observerSnapshotBoundary": "Mutable in-flight receipt copied only as aggregate snapshot; not a completed900second window, clean strict verdict or signed-in/cron acceptance. Provider-native cpuTime units remain unverified; max27 is not called milliseconds or compared against a plan allowance.",
+  "remainingGates": [
+    {
+      "id": "UAT-OBSERVATION",
+      "status": "incomplete",
+      "requirement": "Finish the actual900second window with owned-tail cleanup, matching exact UAT version; preserve actual strict verdict. Current absence of CPU/exception outcomes is interim, not acceptance."
+    },
+    {
+      "id": "UAT-REPRESENTATIVE-AUTH",
+      "status": "incomplete",
+      "requirement": "Current observed traffic is anonymous public/security smoke, no authenticated tool activity. Establish representative signed-in browser/Google consent and five-tool read/create/refresh/retry/disconnect behavior on this deployed candidate, or record any explicit Owner deferral as a limitation, never a pass."
+    },
+    {
+      "id": "UAT-CRON",
+      "status": "incomplete",
+      "requirement": "Actual scheduled callback/job outcomes must be observed. Wrangler deployment log configures UAT */15; source/config alone is not scheduled execution. This12:49:55\u219213:04:55 planned window includes the13:00UTC boundary; current scheduledEvents0."
+    },
+    {
+      "id": "UAT-ERROR-DISPOSITION",
+      "status": "needs-inspection",
+      "requirement": "Disclose current exact handled_idle_postgres_connection_error count; baseline preexistence only rejects automatic router-regression attribution. It does not prove harmlessness, unchanged frequency or a clean strict window. Explicit Architect runtime disposition must preserve original observer status, require no new/unclassified labels/active query failures/DB5xx/CPU/uncaught/scheduled failures, and keep followup issue open."
+    },
+    {
+      "id": "PRODUCTION-BACKUP",
+      "status": "unresolved",
+      "requirement": "Fresh provider-verified schema27 data-bearing production backup immediately before retry under adopted runbook. Existing10:57pre-migration br-fancy-dream-a15hpqam remains historical, not a new f32/schema27 snapshot. Current inventory reports10branches and21600seconds retention; retention config does not prove available recovery points or ability to create recovery branch while capacity is full. Need separate exact obsolete-backup deletion permission/capacity, or explicit bounded Owner backup-policy exception with verified PITR/recovery-capacity plan. Prior one-branch deletion approval is exhausted; no deletion/data-copy/restore/billing authorization follows."
+    },
+    {
+      "id": "PRODUCTION-CODE-ONLY",
+      "status": "not-promoted",
+      "requirement": "Retain database27; migration files/runner unchanged, no rerun of19\u219227 helper, no downmigration or database restore. Reverify actual previous Worker/Pages rollback IDs, production bindings/Hyperdrive cache-off and exact immutable production9BC+Pages stage before any separately gated retry."
+    },
+    {
+      "id": "PRODUCTION-POSTDEPLOY-OWNER",
+      "status": "pending",
+      "requirement": "A later production attempt needs actual provider byte/binding proof, bounded public checks, completed representative15minute observation including scheduled/user outcomes, rollback-on-failure decision, and Owner signed-in acceptance. Owner production test was deferred; no authenticated production acceptance is claimed."
+    }
+  ],
+  "evidenceHashes": {
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/ci-result.json": "3410427455c80ec7cbd4b4764761e55b2a41a516283bc1570c14debdde0a620d",
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/ci-test-counts.txt": "f017ba6f456ae8801ae704aaaf04340548c664ceea62134326be144c9626734f",
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/artifact-manifest-uat.json": "8a48acb2fb517a23d4ba3ffd77e803b9745c92f6fe8b85b460b2027702e94da6",
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/artifact-manifest-prod.json": "14f04da1e2bdfb10f74ab500b02cd03e8d6b7331e7c70c88982a312a5c31068b",
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/worker-hashes.json": "17bb23d906510d579d82f7e376c227f3cd4a0f41c36fac23f4729b297e7760af",
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/exact-upload-proof.json": "bc4d95931c588b6620d60383161f6c037fd624f0993039423bd6e2565a628032",
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/uat-provider-proof.json": "debac1c9236299a4c92bcac30dbf8a4c5bea46bca76e0af4b9ac2fe499c0bea1",
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/uat-smoke.json": "34fb8cd6ffef3626303705c64d1540897ac09519aed147868316bfafe156c5db",
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/uat-worker-deploy.log": "c57412ad1871fcabed47c648e6ec38bcb540d97a0a5bbb021e40ed2a3a2b8070",
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/uat-pages-deploy.log": "0771b25323bf39777f4547970393bc7fb88382144f43e00e4fbea6c374ac5bbb",
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/neon-backup-inventory.json": "79ff81244b89c69696a5b827dedd06c363ca1f7e5862aa8958f4b1a1ed0f9493",
+    "docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/ci-browser-counts.json": "656bf3288d8a9072ede90cb3debc92329729bb77fff7b9dbdd980888ac8cc133"
+  },
+  "operationsDispositionReferences": [
+    "docs/reviews/PROD-MCP-20261105/operations-review/release-check/legacy-pool-warning-disposition.json",
+    "docs/reviews/PROD-MCP-20261105/operations-review/release-check/code-only-retry-backup-disposition.json"
+  ],
+  "historicalIntegrity": "Original failedB66CPU rollout/rollback, earlier local/Linux/Pages executions and unchanged8.92manifest remain intact. New f32CI/UAT facts are appended only here.",
+  "ciCountFollowupAt": "2026-11-05T12:59:14.506462+00:00"
+}

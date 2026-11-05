@@ -1,6 +1,6 @@
 # Flowboard working checklist
 
-Updated 2026-11-05. **Prompt help remains on UAT at `40e51e1`; the production attempt was rolled back after CPU-limit failures.** This sequence complements [TASKS.md](TASKS.md), the 98 product definitions and their [generated local checklist](docs/FEATURE_CHECKLIST.md).
+Updated 2026-11-05. **Repaired connector/prompt build `f32eafa` is on UAT; production remains rolled back after the earlier CPU-limit failures.** This sequence complements [TASKS.md](TASKS.md), the 98 product definitions and their [generated local checklist](docs/FEATURE_CHECKLIST.md).
 
 ## Current release checklist
 
@@ -9,11 +9,12 @@ Updated 2026-11-05. **Prompt help remains on UAT at `40e51e1`; the production at
 - [x] Upload40e51e1 to production; verify exact Worker bytes/private bindings/Pages source and initial17/17 smoke.
 - [x] Detect sustained CPU-limit failure and roll Worker/Pages back; verify previous version/source and health2/2. Data/migrations retained; no main promotion.
 - [x] Profile repeated router compilation; reject faster LinearRouter because it changes trailing-slash behavior; establish Trie route/parameter/mounted parity.
-- [ ] Complete narrow request-local TrieRouter repair, full isolated regression tests and fresh independent review. Docker temporary fixture60488 is active.
-- [ ] Pass one exact new candidate CI and UAT runtime CPU observations; do not treat local timing as hosted metering.
+- [x] Complete narrow request-local TrieRouter repair, full isolated regression tests and fresh independent reviews9.09/8.92. Docker fixture60488 removed; Desktop stopped.
+- [x] Pass one exact new candidate CI42027312917 (all22steps); deploy matchingf32eafa to UAT and pass anonymous17/17.
+- [ ] Complete representative UAT runtime CPU observations and signed-in coverage; do not treat local timing as hosted metering.
 - [ ] Recheck production backup/rollback state and deploy only after gates; complete sustained observation and owner production acceptance.
 
-**Current evidence:** [CPU incident](docs/reviews/PROD-MCP-20261105/CPU-INCIDENT.md), [repair criteria](docs/reviews/PROD-MCP-20261105/CPU-REPAIR-PLAN.md). The hosted connector/sample prompt are not currently promoted to restored production. Pause production connector tests until a new release is announced.
+**Current evidence:** [repaired release checklist/receipts](docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/RELEASE-CHECKLIST.md), [CPU incident](docs/reviews/PROD-MCP-20261105/CPU-INCIDENT.md), [repair criteria](docs/reviews/PROD-MCP-20261105/CPU-REPAIR-PLAN.md). The hosted connector/sample prompt are not currently promoted to restored production. Pause production connector tests until a new release is announced.
 
 ## Earlier prompt release / first production attempt
 

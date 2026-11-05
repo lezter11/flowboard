@@ -1,0 +1,43 @@
+{
+  "verdict": "baseline-preexistence-established",
+  "releaseVerdict": "incomplete; new candidate UAT/runtime/global release gates pending",
+  "scope": "Independent read-only disposition of existing pool error relative to router-only CPU repair",
+  "at": "2026-11-05T12:39:01.488141+00:00",
+  "reviewer": "/root/production_operations_review",
+  "candidateSource": "f32eafae0f59bf1601d4a84e2a0e3208ae9db4bc",
+  "sourceHashes": {
+    "docs/reviews/PROD-MCP-20261105/cpu-observer-production-legacy-http-control.json": "62050e31648eed7e8d3de29a8aab1f0c99f7ff1c0ad8c2860125172bf35e0895",
+    "docs/reviews/PROD-MCP-20261105/production-health-legacy-control.json": "ef28f156bd011fe4302fcb1126986bec078d83cd3266614e32b3479886908a4e",
+    "docs/reviews/PROD-MCP-20261105/uat-connection-control.json": "399ddbc645610fd6358e5b3fb5567f630b05d0489222684762fb25a4a3139f45",
+    "docs/reviews/PROD-MCP-20261105/uat-health-control.json": "43ad9296405ab046eeeb89c91915b05386dec82467f3d3481b0e9ff43c962abd",
+    "docs/reviews/PROD-MCP-20261105/CPU-REPAIR-PLAN.md": "2fb5d1bafa0eede60949d095103212de5dadec763f3add6df652d4e8f0acb29f",
+    "docs/reviews/PROD-MCP-20261105/cpu-router-review/criteria.json": "c6596fd8d26c491e1693f502b05348b1ada47edb568284cbec906c21ba18a2a9"
+  },
+  "sourcePoolBlocksIdentical": true,
+  "oldSource": "3a82b24",
+  "legacyVersion": "756fdc6e-34f9-4ea8-88cc-59f21cdc940b",
+  "established": [
+    "Two controlled legacy production health responses returned200; observer saw2ok events,1exact fixed pool-error label,0CPU terminations and0exception entries",
+    "Same fixed label also appears in prior UAT direct-endpoint control, so production pooler alone is not an established cause",
+    "createPool and createDatabase production error handlers are byte-identical old-to-candidate; only test database URL fence differs in getPool",
+    "The current router-only change does not alter those handlers or request-pool lifecycle",
+    "All supplied strict observer/control records remain needs-inspection; no result was rewritten or relaxed"
+  ],
+  "notEstablished": [
+    "That the pool error is harmless or caused specifically by pool.end/Hyperdrive retirement",
+    "That warning frequency or severity is statistically unchanged;2requests are insufficient",
+    "Absence of other active query, outbox, storage or user-visible failures under representative traffic",
+    "A passing900second observation, new UAT candidate acceptance or global production release readiness",
+    "CPU units/allowance from provider-native optional numerical fields"
+  ],
+  "scopeDecision": "The baseline error-level pool event alone is not evidence of a router regression and is not an automatic veto of the narrowly scoped CPU-repair test. It remains a tracked unresolved operational issue. Any runtime acceptance with this exact preexisting label must be a separate explicit Architect disposition and must not relabel the original strict observer status as clean.",
+  "nextRuntimeConditions": [
+    "Observe the exact new UAT candidate version and its representative public/anonymous/authenticated synthetic paths under existing platform settings",
+    "Require zero provider exceededCpu, zero uncaught exception entries, zero scheduled-job failure labels and no new/unclassified error labels",
+    "Preserve per-family/outcome counts, actual cron evidence, work-lifetime/cleanup and original strict status; disclose the exact baseline pool-error count",
+    "Escalate new classes, active query failures, DB-unavailable/5xx, altered recurrence under matched workload or resource failures; do not excuse these using the baseline event",
+    "Keep final CI/artifact/source proof, signed-in Owner acceptance, backup and rollback gates separate"
+  ],
+  "reviewerLiveCalls": 0,
+  "sourceEdits": false
+}
