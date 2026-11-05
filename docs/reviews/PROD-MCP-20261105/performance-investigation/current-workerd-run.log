@@ -1,0 +1,22 @@
+service core:user:flowboard-cpu-local: Uncaught Error: internal error; reference = p14jbaskf3fq3h9bo3bc2lmh
+/private/tmp/flowboard-prod-release-40e51e1/node_modules/miniflare/dist/src/index.js:119912
+      throw new MiniflareCoreError(
+            ^
+
+MiniflareCoreError [ERR_RUNTIME_FAILURE]: The Workers runtime failed to start. There was likely a problem with the workerd binary or your configuration.
+Runtime stderr:
+{"timestamp":"1793878064723","level":"error","source":"src/workerd/server/server/entry.rs:169","message":"service core:user:flowboard-cpu-local: Uncaught Error: internal error; reference = p14jbaskf3fq3h9bo3bc2lmh","context_depth":0}
+    at StartupLogBuffer.handleStartupFailure (/private/tmp/flowboard-prod-release-40e51e1/node_modules/miniflare/dist/src/index.js:119912:13)
+    at Runtime.updateConfig (/private/tmp/flowboard-prod-release-40e51e1/node_modules/miniflare/dist/src/index.js:119992:24)
+    at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at async #assembleAndUpdateConfigInternal (/private/tmp/flowboard-prod-release-40e51e1/node_modules/miniflare/dist/src/index.js:139594:30)
+    at async #assembleAndUpdateConfig (/private/tmp/flowboard-prod-release-40e51e1/node_modules/miniflare/dist/src/index.js:139516:7)
+    at async /private/tmp/flowboard-prod-release-40e51e1/node_modules/miniflare/dist/src/index.js:138416:7
+    at async Mutex.runWith (/private/tmp/flowboard-prod-release-40e51e1/node_modules/miniflare/dist/src/index.js:80902:16)
+    at async #waitForReady (/private/tmp/flowboard-prod-release-40e51e1/node_modules/miniflare/dist/src/index.js:139730:5)
+    at async file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/performance-investigation/workerd-profile.mjs:22:3 {
+  code: 'ERR_RUNTIME_FAILURE',
+  cause: undefined
+}
+
+Node.js v24.15.0

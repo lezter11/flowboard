@@ -1,0 +1,258 @@
+Independent serial mounted boundary/MCP/PAT regression; dedicated PostgreSQL17.11 loopback:60488; sanitized environment, synthetic data only.
+✖ mounted discovery and exact protocol CORS do not use cookie credentials or forged origins (2.26925ms)
+✖ full mounted OAuth flow and max-one-connection dispatcher enforce scopes, roles and selected project (0.048958ms)
+✖ create replay survives access refresh, preserves provenance and fails after disconnect (0.035958ms)
+✖ an issued OAuth grant cannot outlive current board access, project membership or writable lifecycle (0.031541ms)
+✖ private request identity is absent on clones and external identity headers cannot bypass policy (0.046834ms)
+✖ mounted MCP owns streamed128KiB cap and a slow-body deadline before ordinary middleware buffering (0.034167ms)
+✖ deadline during queued verification still cancels the already-aborted body and settles lifetime (0.040459ms)
+✖ oversize MCP refusal and actual work lifetime settle despite an uncooperative source cancellation (0.05125ms)
+✖ mounted connection-based protocol/create limits fail closed without consuming another connection allowance (0.046667ms)
+✖ actual mounted create and disconnect serialize in both lock orders on separate PostgreSQL connections (0.095167ms)
+✖ actual production Worker uses Node-issued OAuth and a single request connection for create/replay (0.152584ms)
+✖ /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts (1.709417ms)
+▶ mounted protocol, discovery and wildcard middleware preserve exact path boundaries without database work
+  ✔ decoded exact MCP GET /api/v1/mcp challenges OAuth (30.509916ms)
+  ✔ decoded exact MCP POST /api/v1/mcp challenges OAuth (1.088042ms)
+  ✔ decoded exact MCP DELETE /api/v1/mcp challenges OAuth (1.010209ms)
+  ✔ decoded exact MCP PATCH /api/v1/mcp challenges OAuth (0.87375ms)
+  ✔ decoded exact MCP PUT /api/v1/mcp challenges OAuth (1.087125ms)
+  ✔ decoded exact MCP GET /api/v1/%6dcp challenges OAuth (0.629916ms)
+  ✔ HEAD keeps the protocol challenge with an empty response body (0.787125ms)
+  ✔ exact MCP preflight retains its protocol policy (1.119625ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/ (2.568083ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp// (1.253667ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp%2F (0.689542ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/unknown (1.092834ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/% (0.651625ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/%ZZ (0.550333ms)
+  ✔ MCP child keeps browser authentication: /api/v1/mcp/connections (0.930791ms)
+  ✔ MCP child keeps browser authentication: /api/v1/mcp/authorization-requests/% (0.649333ms)
+  ✔ MCP child keeps browser authentication: /api/v1/mcp/authorization-requests/%ZZ (1.543541ms)
+  ✔ resource discovery: /.well-known/oauth-protected-resource (1.033459ms)
+  ✔ resource discovery: /.well-known/oauth-protected-resource/api/v1/mcp (0.370417ms)
+  ✔ resource discovery: /.well-known/%6fauth-protected-resource (0.271958ms)
+  ✔ discovery lookalike is absent: /.well-known/oauth-protected-resource/api/v1/mcp/ (0.331333ms)
+  ✔ discovery lookalike is absent: /.well-known/oauth-authorization-server/ (0.203667ms)
+  ✔ wildcard bearer denial: /health/live (0.729708ms)
+  ✔ wildcard bearer denial: /health/live/ (0.338584ms)
+  ✔ wildcard bearer denial: /api/v1/unknown (0.227375ms)
+  ✔ wildcard bearer denial: /api/v1/mcp/ (0.178292ms)
+  ✔ wildcard bearer denial: /api/v1/boards/%ZZ/columns/%2F/placement (0.267292ms)
+✔ mounted protocol, discovery and wildcard middleware preserve exact path boundaries without database work (58.674667ms)
+✖ mounted nested board/column parameters preserve decoded ancestry and real PostgreSQL authorization (5.046042ms)
+✖ PAT capability boundary through every mounted route (11.164375ms)
+ℹ tests 42
+ℹ suites 0
+ℹ pass 28
+ℹ fail 14
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3234.904208
+
+✖ failing tests:
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:97:1
+✖ mounted discovery and exact protocol CORS do not use cookie credentials or forged origins (2.26925ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:70:3)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:123:1
+✖ full mounted OAuth flow and max-one-connection dispatcher enforce scopes, roles and selected project (0.048958ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:70:3)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:149:1
+✖ create replay survives access refresh, preserves provenance and fails after disconnect (0.035958ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:70:3)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:174:1
+✖ an issued OAuth grant cannot outlive current board access, project membership or writable lifecycle (0.031541ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:70:3)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:195:1
+✖ private request identity is absent on clones and external identity headers cannot bypass policy (0.046834ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:70:3)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:214:1
+✖ mounted MCP owns streamed128KiB cap and a slow-body deadline before ordinary middleware buffering (0.034167ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:70:3)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:238:1
+✖ deadline during queued verification still cancels the already-aborted body and settles lifetime (0.040459ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:70:3)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:257:1
+✖ oversize MCP refusal and actual work lifetime settle despite an uncooperative source cancellation (0.05125ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:70:3)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:287:1
+✖ mounted connection-based protocol/create limits fail closed without consuming another connection allowance (0.046667ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:70:3)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:305:1
+✖ actual mounted create and disconnect serialize in both lock orders on separate PostgreSQL connections (0.095167ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:70:3)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:353:1
+✖ actual production Worker uses Node-issued OAuth and a single request connection for create/replay (0.152584ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:70:3)
+      at async TestHook.run (node:internal/test_runner/test:1208:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/hosted-mcp-mounted.test.ts:94:1
+✖ /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts (1.709417ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/hosted-mcp-mounted.test.ts:94:21)
+      at async TestHook.run (node:internal/test_runner/test:1208:7)
+      at async Test.runHook (node:internal/test_runner/test:1117:9)
+      at async after (node:internal/test_runner/test:1159:9)
+      at async Test.run (node:internal/test_runner/test:1227:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/router-boundaries.test.ts:112:1
+✖ mounted nested board/column parameters preserve decoded ancestry and real PostgreSQL authorization (5.046042ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async routeAuthFixture (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/support/route-auth-fixture.ts:24:57)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/router-boundaries.test.ts:116:13)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:831:7) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+
+test at apps/api/test/token-boundaries.test.ts:11:1
+✖ PAT capability boundary through every mounted route (11.164375ms)
+  Error: connect EPERM 127.0.0.1:60488 - Local (0.0.0.0:0)
+      at /Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/pg-pool/index.js:45:11
+      at process.processTicksAndRejections (node:internal/process/task_queues:104:5)
+      at async runMigrations (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/src/adapters/migrations.ts:140:20)
+      at async TestContext.<anonymous> (file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/apps/api/test/token-boundaries.test.ts:14:3)
+      at async Test.run (node:internal/test_runner/test:1208:7)
+      at async startSubtestAfterBootstrap (node:internal/test_runner/harness:385:3) {
+    errno: -1,
+    code: 'EPERM',
+    syscall: 'connect',
+    address: '127.0.0.1',
+    port: 60488
+  }
+{"exitCode":1}

@@ -1,0 +1,47 @@
+
+> test:hosted-mcp-browser
+> npm run deps:verify && node --test scripts/e2e/hosted-mcp-browser-diagnostics.test.mjs && NODE_ENV=test WRANGLER_SEND_METRICS=false node scripts/e2e/hosted-mcp-browser.mjs
+
+
+> deps:verify
+> node apps/api/scripts/dependency-patches.mjs --verify
+
+{"package":"fast-xml-parser","version":"5.11.2","files":[{"path":"src/validator.js","sha256":"bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8"},{"path":"src/xmlparser/OrderedObjParser.js","sha256":"72f43cb7527e0575d3ae5024efd64c184bc31f93a2c1cafc7f62b7cc3b77f9f0"}],"changedFiles":[]}
+✔ diagnostics exclude arbitrary names, messages and stack text in case/setup reports (1.578292ms)
+✔ diagnostics have fixed types and bounded optional numeric locations (0.408333ms)
+✔ changing name/stack accessors are read once and cannot bypass projection (0.244333ms)
+✔ actual runner launch selection preserves overrides and Darwin while Linux uses managed Chromium (8.7645ms)
+ℹ tests 4
+ℹ suites 0
+ℹ pass 4
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 89.3715
+{"id":"HUI-01-synthetic-Google-safe-next","status":"pass"}
+{"event":"google_callback_failed","code":"OAUTH_ERROR"}
+{"id":"HUI-01-Google-denial-retains-safe-retry","status":"pass"}
+{"id":"HUI-02-03-explicit-project-unverified-allow","status":"pass"}
+{"id":"HUI-04-deny-without-project-no-grant","status":"pass"}
+{"id":"HUI-05-expired-and-malformed-request","status":"pass"}
+{"id":"HUI-05-missing-binding-and-consumed-request","status":"pass"}
+{"id":"HUI-06-owner-consent-personal-navigation","status":"pass"}
+{"id":"HUI-06-manager-consent-personal-navigation","status":"pass"}
+{"id":"HUI-06-member-consent-personal-navigation","status":"pass"}
+{"id":"HUI-06-viewer-consent-personal-navigation","status":"pass"}
+{"id":"HUI-07-duration-continuing","status":"pass"}
+{"id":"HUI-07-duration-session","status":"pass"}
+{"id":"HUI-08-project-pagination-newest-CSRF","status":"pass"}
+{"id":"HUI-09-same-user-replaced-session-clears-consent","status":"pass"}
+{"id":"HUI-09-different-actor-clears-private-state","status":"pass"}
+{"id":"HUI-09-revoked-project-cannot-approve","status":"pass"}
+{"id":"HUI-09-ended-session-clears-selection-and-CSRF","status":"pass"}
+{"id":"HUI-11-safe-fault-copy-and-retry-after","status":"pass"}
+{"id":"HUI-11-unknown-commit-does-not-blindly-repeat","status":"pass"}
+{"id":"HUI-13-keyboard-320px-and-200percent-layout","status":"pass"}
+{"id":"HUI-10-disconnect-removes-grant-and-access","status":"pass"}
+{"id":"HUI-06-no-project-account-personal-connections","status":"pass"}
+{"id":"HUI-15-consent-to-five-mounted-tools-refresh-retry-and-disconnect","status":"pass"}
+{"id":"HUI-12-console-network-and-private-response-clean","status":"pass"}
+{"output":"docs/reviews/PROD-MCP-20261105/cpu-local-gates/hosted-browser","cases":24,"failures":0,"setupFailed":false,"sourceChanges":0}

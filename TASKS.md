@@ -1,6 +1,10 @@
 # Flowboard ordered tasks
 
-## Active: sample prompts and production promotion — 2026-11-05
+## Active: repair CPU termination before production reattempt — 2026-11-05
+
+Production promotion40e51e1 was attempted after the owner-approved backup cleanup and successful fresh backup/migrations27. Initial17/17 public smoke passed, but redacted observation caught16CPU terminations and41exception entries. **Worker/Pages are rolled back to prior stable production; database27 is retained.** Git main remains unpromoted. Current task: measured request-local TrieRouter repair, full isolated API/security/native tests, fresh independent review and one exact CI candidate; then UAT actual-runtime observations before another production attempt. Do not claim the failed789second monitor was clean, suppress connection logs, increase paid limits or reuse old scores as production approval. [Incident](docs/reviews/PROD-MCP-20261105/CPU-INCIDENT.md), [preimplementation repair criteria](docs/reviews/PROD-MCP-20261105/CPU-REPAIR-PLAN.md). Docker temporarily serves only the disposable60488fixture and must stop after required tests.
+
+## Earlier: sample prompts and production promotion — 2026-11-05
 
 The user reports hosted UAT connection success and authorizes production. Sample prompt help is now deployed to **UAT application40e51e1**: CI22steps/API1,926/hosted24, scoped review9.065, helper review8.79 and final anonymous UAT17/17 pass. Required title/board/column and optional priority/date/description are explained; MCP assignment remains a manual follow-up. **Next: resolve the fresh production backup quota**, with explicit permission pending to delete only `uat-backup-2026-10-28`. Then reviewed migrations20–27, immutable production Worker/Pages upload, verification, monitoring and owner acceptance. No production write/promotion has occurred. [Exact release checkpoint](docs/reviews/PROD-MCP-20261105/SUMMARY.md). Docker is off; user may close the laptop while permission is pending.
 

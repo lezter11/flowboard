@@ -1,0 +1,43 @@
+{
+  "verdict": "fail",
+  "scope": "First live monitor attempt, not production application health",
+  "finding": "MON-2",
+  "description": "Prepared CLI argument --sampling-rate1 is rejected by installed parseSamplingRate exclusive0<rate<1 validator. Original source review missed this boundary. No completed observation window exists.",
+  "receipt": {
+    "kind": "bounded redacted production Worker observation, not owner acceptance",
+    "worker": "flowboard-api",
+    "version": "58a363e0-2461-4994-8fae-d0ed3b8064eb",
+    "requestedSeconds": 900,
+    "startedAt": "2026-11-05T11:05:22.417880+00:00",
+    "events": 0,
+    "scheduledEvents": 0,
+    "scheduledOk": 0,
+    "exceptionCount": 0,
+    "errorLogCount": 0,
+    "http5xx": 0,
+    "outcomes": {},
+    "httpStatuses": {},
+    "rawEventDataPersisted": false,
+    "parserOverflows": 0,
+    "stderrBytes": 200,
+    "observedSeconds": 0.508,
+    "windowCompleted": false,
+    "tailExitCode": 1,
+    "completedAt": "2026-11-05T11:05:22.926350+00:00",
+    "cleanup": true,
+    "status": "needs-inspection"
+  },
+  "safeDiagnosisReportedByRoot": "stderr fixed known term match sampling; no rawstderr emitted",
+  "sourceProof": "Installed cli.js310790 rejects<=0/>=1;357550option has no default;310763onlyadds samplingfilter ifprovided",
+  "fix": "Remove optional sampling flag, request no additional sampling while retaining exactversionfilter; fresh full900s attempt and newreceipt names. No claim of providercomplete eventdelivery.",
+  "syntheticTest": {
+    "status": "pass",
+    "actualInstalledValidator": true,
+    "samplingOneRejected": true,
+    "omittedSamplingAddsNoFilter": true,
+    "versionFilterRetained": true,
+    "liveCalls": 0
+  },
+  "reviewer": "/root/production_operations_review",
+  "at": "2026-11-05T11:09:00.132580+00:00"
+}

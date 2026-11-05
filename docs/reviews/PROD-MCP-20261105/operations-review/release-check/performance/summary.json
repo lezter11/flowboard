@@ -1,0 +1,585 @@
+{
+  "scope": "Independent local read-only CPU investigation; not release or fix approval",
+  "at": "2026-11-05T11:31:58.564014+00:00",
+  "reviewer": "/root/production_operations_review",
+  "baselineSource": "3a82b24732166b1c570c5d2b52d0e73db6122497",
+  "failedSource": "40e51e1336a783a6b450806260ed6c5aa8ace0ea",
+  "environment": {
+    "node": "v24.15.0",
+    "platform": "darwin",
+    "arch": "arm64",
+    "cpu": "Apple M5,10logicalCPUs",
+    "installedHono": "4.13.14"
+  },
+  "benchmarks": {
+    "old": {
+      "routeEntries": 209,
+      "importCpuMs": 175.363,
+      "workloads": {
+        "construction": {
+          "medianCpuMs": 0.14622,
+          "p95WallMs": 0.10716600000000653,
+          "iterations": 1500
+        },
+        "fresh-health": {
+          "medianCpuMs": 1.4884866666666667,
+          "p95WallMs": 1.2452079999999341,
+          "iterations": 1500
+        },
+        "reused-health": {
+          "medianCpuMs": 0.07655333333333333,
+          "p95WallMs": 0.059874999999919964,
+          "iterations": 1500
+        },
+        "fresh-session": {
+          "medianCpuMs": 1.4866933333333332,
+          "p95WallMs": 1.1399169999999685,
+          "iterations": 1500
+        },
+        "reused-session": {
+          "medianCpuMs": 0.08134666666666666,
+          "p95WallMs": 0.06750000000010914,
+          "iterations": 1500
+        },
+        "fresh-metadata": {
+          "medianCpuMs": 1.49285,
+          "p95WallMs": 1.1959999999999127,
+          "iterations": 1500
+        },
+        "reused-metadata": {
+          "medianCpuMs": 0.03800333333333333,
+          "p95WallMs": 0.031208000000333413,
+          "iterations": 1500
+        }
+      }
+    },
+    "current": {
+      "routeEntries": 242,
+      "importCpuMs": 242.776,
+      "workloads": {
+        "construction": {
+          "medianCpuMs": 0.14677666666666667,
+          "p95WallMs": 0.09791699999999537,
+          "iterations": 1500
+        },
+        "fresh-health": {
+          "medianCpuMs": 2.1872666666666665,
+          "p95WallMs": 3.6763750000000073,
+          "iterations": 1500
+        },
+        "reused-health": {
+          "medianCpuMs": 0.07079666666666667,
+          "p95WallMs": 0.07045900000002803,
+          "iterations": 1500
+        },
+        "fresh-session": {
+          "medianCpuMs": 2.05349,
+          "p95WallMs": 3.446541000000252,
+          "iterations": 1500
+        },
+        "reused-session": {
+          "medianCpuMs": 0.07739,
+          "p95WallMs": 0.060208000000329776,
+          "iterations": 1500
+        },
+        "fresh-metadata": {
+          "medianCpuMs": 1.9645633333333334,
+          "p95WallMs": 2.9916250000001128,
+          "iterations": 1500
+        },
+        "reused-metadata": {
+          "medianCpuMs": 0.050409999999999996,
+          "p95WallMs": 0.05166700000063429,
+          "iterations": 1500
+        }
+      }
+    },
+    "current-linear": {
+      "routeEntries": 242,
+      "importCpuMs": 233.165,
+      "workloads": {
+        "construction": {
+          "medianCpuMs": 0.14307666666666669,
+          "p95WallMs": 0.09908300000000736,
+          "iterations": 1500
+        },
+        "fresh-health": {
+          "medianCpuMs": 0.3164933333333333,
+          "p95WallMs": 0.27962500000001,
+          "iterations": 1500
+        },
+        "reused-health": {
+          "medianCpuMs": 0.11874333333333333,
+          "p95WallMs": 0.1927090000000362,
+          "iterations": 1500
+        },
+        "fresh-session": {
+          "medianCpuMs": 0.23896666666666666,
+          "p95WallMs": 0.2145420000000513,
+          "iterations": 1500
+        },
+        "reused-session": {
+          "medianCpuMs": 0.08099666666666666,
+          "p95WallMs": 0.09004199999992579,
+          "iterations": 1500
+        },
+        "fresh-metadata": {
+          "medianCpuMs": 0.19231666666666666,
+          "p95WallMs": 0.18416700000011588,
+          "iterations": 1500
+        },
+        "reused-metadata": {
+          "medianCpuMs": 0.07825,
+          "p95WallMs": 0.10462500000016917,
+          "iterations": 1500
+        }
+      }
+    },
+    "current-trie": {
+      "routeEntries": 242,
+      "importCpuMs": 237.766,
+      "workloads": {
+        "construction": {
+          "medianCpuMs": 0.5212666666666667,
+          "p95WallMs": 0.4405409999999961,
+          "iterations": 1500
+        },
+        "fresh-health": {
+          "medianCpuMs": 0.6277333333333334,
+          "p95WallMs": 0.5773749999998472,
+          "iterations": 1500
+        },
+        "reused-health": {
+          "medianCpuMs": 0.08055,
+          "p95WallMs": 0.06337500000017826,
+          "iterations": 1500
+        },
+        "fresh-session": {
+          "medianCpuMs": 0.5967366666666666,
+          "p95WallMs": 0.5516250000000582,
+          "iterations": 1500
+        },
+        "reused-session": {
+          "medianCpuMs": 0.08401333333333333,
+          "p95WallMs": 0.08970900000031179,
+          "iterations": 1500
+        },
+        "fresh-metadata": {
+          "medianCpuMs": 0.5067533333333334,
+          "p95WallMs": 0.5082499999998618,
+          "iterations": 1500
+        },
+        "reused-metadata": {
+          "medianCpuMs": 0.049916666666666665,
+          "p95WallMs": 0.05329200000005585,
+          "iterations": 1500
+        }
+      }
+    }
+  },
+  "profiles": {
+    "old": {
+      "sampleDurationMs": 1288.333,
+      "topSelfSamples": [
+        {
+          "function": "(garbage collector)",
+          "url": "",
+          "percent": 20.86339479001159
+        },
+        {
+          "function": "buildRegExpStr",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/node.js",
+          "percent": 16.39079337407332
+        },
+        {
+          "function": "post",
+          "url": "node:inspector",
+          "percent": 9.799485071018129
+        },
+        {
+          "function": "insert",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/trie.js",
+          "percent": 8.99433609167816
+        },
+        {
+          "function": "insert",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/node.js",
+          "percent": 6.7467805295680545
+        },
+        {
+          "function": "add",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 6.152058512822384
+        },
+        {
+          "function": "#buildMatcher",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 4.980078908170481
+        },
+        {
+          "function": "buildRegExp",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/trie.js",
+          "percent": 3.767581828611081
+        },
+        {
+          "function": "",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/node.js",
+          "percent": 3.641605081915933
+        },
+        {
+          "function": "buildAllMatchers",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 2.8331184561755385
+        },
+        {
+          "function": "match",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/smart-router/router.js",
+          "percent": 2.1246059830804613
+        },
+        {
+          "function": "findMiddleware",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 1.5140495508537002
+        },
+        {
+          "function": "(program)",
+          "url": "",
+          "percent": 1.3907894930891314
+        },
+        {
+          "function": "",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 1.0090558885008767
+        },
+        {
+          "function": "",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 0.7858216780909903
+        },
+        {
+          "function": "createApp",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/operations-review/release-check/performance/old-app.mjs",
+          "percent": 0.6369471246952457
+        },
+        {
+          "function": "#addRoute",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 0.5628979464160275
+        },
+        {
+          "function": "#insertPath",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 0.391125586319686
+        }
+      ],
+      "routerSelfPercent": 58.962628450874114,
+      "gcSelfPercent": 20.86339479001159
+    },
+    "current": {
+      "sampleDurationMs": 1640.625,
+      "topSelfSamples": [
+        {
+          "function": "(garbage collector)",
+          "url": "",
+          "percent": 22.96399238095238
+        },
+        {
+          "function": "buildRegExpStr",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/node.js",
+          "percent": 16.91495619047619
+        },
+        {
+          "function": "add",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 7.712487619047619
+        },
+        {
+          "function": "insert",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/trie.js",
+          "percent": 7.474651428571429
+        },
+        {
+          "function": "#buildMatcher",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 6.463329523809523
+        },
+        {
+          "function": "insert",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/node.js",
+          "percent": 6.282788571428571
+        },
+        {
+          "function": "post",
+          "url": "node:inspector",
+          "percent": 5.267321904761904
+        },
+        {
+          "function": "buildAllMatchers",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 3.733820952380952
+        },
+        {
+          "function": "buildRegExp",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/trie.js",
+          "percent": 3.2182247619047617
+        },
+        {
+          "function": "",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/node.js",
+          "percent": 3.1188723809523813
+        },
+        {
+          "function": "match",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/smart-router/router.js",
+          "percent": 2.9175466666666665
+        },
+        {
+          "function": "findMiddleware",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 1.7498209523809525
+        },
+        {
+          "function": "(program)",
+          "url": "",
+          "percent": 1.5389866666666667
+        },
+        {
+          "function": "#addRoute",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 0.9041676190476191
+        },
+        {
+          "function": "",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 0.8965485714285715
+        },
+        {
+          "function": "",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 0.840472380952381
+        },
+        {
+          "function": "#insertPath",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/reg-exp-router/router.js",
+          "percent": 0.6373790476190476
+        },
+        {
+          "function": "createApp",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/operations-review/release-check/performance/current-app.mjs",
+          "percent": 0.403687619047619
+        }
+      ],
+      "routerSelfPercent": 61.770544761904766,
+      "gcSelfPercent": 22.96399238095238
+    },
+    "current-linear": {
+      "sampleDurationMs": 299.167,
+      "topSelfSamples": [
+        {
+          "function": "post",
+          "url": "node:inspector",
+          "percent": 33.189489482462974
+        },
+        {
+          "function": "match",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/linear-router/router.js",
+          "percent": 10.542606637764191
+        },
+        {
+          "function": "(garbage collector)",
+          "url": "",
+          "percent": 6.796872649724067
+        },
+        {
+          "function": "#addRoute",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 5.377264203605344
+        },
+        {
+          "function": "checkOptionalParameter",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/utils/url.js",
+          "percent": 5.055704673309556
+        },
+        {
+          "function": "",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 4.3871817413016805
+        },
+        {
+          "function": "createApp",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/operations-review/release-check/performance/current-linear-app.mjs",
+          "percent": 3.0772110560322496
+        },
+        {
+          "function": "(program)",
+          "url": "",
+          "percent": 2.3816129452780554
+        },
+        {
+          "function": "Hono",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 1.6432293668753575
+        },
+        {
+          "function": "set",
+          "url": "node:internal/deps/undici/undici",
+          "percent": 1.4343159506228962
+        },
+        {
+          "function": "mergePath",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/utils/url.js",
+          "percent": 1.4202769690507309
+        },
+        {
+          "function": "",
+          "url": "node:internal/deps/undici/undici",
+          "percent": 1.3788285472662425
+        },
+        {
+          "function": "#dispatch",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 1.2815584606590968
+        },
+        {
+          "function": "isValidHTTPToken",
+          "url": "node:internal/deps/undici/undici",
+          "percent": 1.086349764512797
+        },
+        {
+          "function": "_Response",
+          "url": "node:internal/deps/undici/undici",
+          "percent": 1.0305280996901396
+        },
+        {
+          "function": "fill",
+          "url": "node:internal/deps/undici/undici",
+          "percent": 1.0301938382241356
+        },
+        {
+          "function": "add",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/linear-router/router.js",
+          "percent": 0.974706434867482
+        },
+        {
+          "function": "append",
+          "url": "node:internal/deps/undici/undici",
+          "percent": 0.9192190315108284
+        }
+      ],
+      "routerSelfPercent": 11.517313072631675,
+      "gcSelfPercent": 6.796872649724067
+    },
+    "current-trie": {
+      "sampleDurationMs": 682.375,
+      "topSelfSamples": [
+        {
+          "function": "insert",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/trie-router/node.js",
+          "percent": 22.614691335409415
+        },
+        {
+          "function": "post",
+          "url": "node:inspector",
+          "percent": 21.353068327532515
+        },
+        {
+          "function": "splitPath",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/utils/url.js",
+          "percent": 12.573584905660375
+        },
+        {
+          "function": "getPattern",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/utils/url.js",
+          "percent": 8.018464920315076
+        },
+        {
+          "function": "(garbage collector)",
+          "url": "",
+          "percent": 7.47389631800696
+        },
+        {
+          "function": "extractGroupsFromPath",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/utils/url.js",
+          "percent": 4.683495145631068
+        },
+        {
+          "function": "#addRoute",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 3.5786774134456865
+        },
+        {
+          "function": "add",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/router/trie-router/router.js",
+          "percent": 3.0584356109177504
+        },
+        {
+          "function": "(program)",
+          "url": "",
+          "percent": 1.8001831837332845
+        },
+        {
+          "function": "checkOptionalParameter",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/utils/url.js",
+          "percent": 1.7582707455577946
+        },
+        {
+          "function": "",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 1.5752335592599378
+        },
+        {
+          "function": "route",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 0.9405385601758564
+        },
+        {
+          "function": "mergePath",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/utils/url.js",
+          "percent": 0.904048360505587
+        },
+        {
+          "function": "createApp",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/operations-review/release-check/performance/current-trie-app.mjs",
+          "percent": 0.7696647737680894
+        },
+        {
+          "function": "Hono",
+          "url": "file:///Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/node_modules/hono/dist/hono-base.js",
+          "percent": 0.6779263601392196
+        },
+        {
+          "function": "set",
+          "url": "node:internal/deps/undici/undici",
+          "percent": 0.4091591866642242
+        },
+        {
+          "function": "isValidHTTPToken",
+          "url": "node:internal/deps/undici/undici",
+          "percent": 0.3964095988276241
+        },
+        {
+          "function": "",
+          "url": "node:internal/deps/undici/undici",
+          "percent": 0.3663674665689687
+        }
+      ],
+      "routerSelfPercent": 25.90525737314526,
+      "gcSelfPercent": 7.47389631800696
+    }
+  },
+  "parity": {
+    "linearInitial135Includes15KeyOrderArtifacts": "router-parity-initial-includes-keyorder.json",
+    "linearNormalized": 120,
+    "trieNormalized": 0,
+    "routerCases": 2400,
+    "decodedParameterCases": 1183,
+    "mountedAnonymousStatusBodySecurityHeaderCases": 72,
+    "unexpectedDatabaseCalls": 0
+  },
+  "sourceEdits": false,
+  "liveApplicationCalls": 0,
+  "hostedActions": 0,
+  "causalConclusion": "Confirmed local repeated router-construction CPU hotspot and measured release amplification. Hosted exceededCpu correlation is plausible, not proof of sole cause; Workerd agent/runtime corroboration remains separate.",
+  "candidate": "Supported Hono TrieRouter on request-local main app only, pending full security/runtime verification. Plain LinearRouter rejected for trailing-slash behavior changes.",
+  "releaseState": "Failed rollout, code rolled back, database migrations and backup retained; not complete"
+}

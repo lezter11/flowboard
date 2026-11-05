@@ -1,0 +1,51 @@
+
+> @flowboard/mcp@0.2.0 test
+> node --test --test-concurrency=1 test/*.test.ts
+
+✔ create uses metadata, resolves a unique name and sends caller operationId (24.994ms)
+✔ metadata projection strips accidental cards, counts and other fields at runtime (0.889875ms)
+✔ metadata must identify the requested board and an exact column ID wins over a colliding label (1.743ms)
+✔ lost response: new client retry preserves key and accepts minimal replay with a newer metadata revision (1.36925ms)
+✔ only STALE_BOARD_VERSION retries, once, with unchanged key and semantic input (1.31225ms)
+✔ a second stale-version conflict is returned without a third POST (2.531084ms)
+✔ generic 409 and idempotency conflict never retry (1.042209ms)
+✔ missing or ambiguous target column causes no POST (0.424959ms)
+✔ stale recovery refuses a deleted column and never changes requested column (0.429709ms)
+✔ search uses query and explicit pagination, returning only the bounded safe projection (1.739042ms)
+✔ list projects exposes the cursor and never silently follows extra pages (0.766625ms)
+✔ configuration rejects missing tokens, credential URLs, insecure remote HTTP and non-origin URLs (0.399709ms)
+✔ input validation rejects impossible dates, oversized text, path-like IDs and absent operation IDs before fetch (2.263542ms)
+✔ real leap-day date is accepted (0.973917ms)
+✔ non-JSON and JSON server errors are consumed once and do not echo bodies, tokens or messages (1.536083ms)
+✔ oversized responses fail safely and are not retried (0.811542ms)
+✔ HTTP timeout aborts the request and reports unknown create outcome without secrets (11.075125ms)
+✔ injected operations client uses relative routes without credentials or global fetch (0.729459ms)
+✔ injected request exceptions are sanitized without losing unknown-outcome guidance (0.262708ms)
+✔ in-process redirect responses fail closed without invoking global fetch (0.315125ms)
+✔ reusable factory exposes exactly the original five bounded tools and forwards validated input (23.592875ms)
+✔ factory never exposes arbitrary operation exceptions to tool responses (1.863084ms)
+ℹ tests 22
+ℹ suites 0
+ℹ pass 22
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 435.652542
+
+> @flowboard/mcp@0.2.0 build
+> tsc -p tsconfig.json && node scripts/finalize-build.mjs
+
+
+> @flowboard/mcp@0.2.0 test:artifact
+> node --test --test-concurrency=1 test/artifact.test.mjs
+
+✔ packed executable completes a real SDK handshake and calls metadata/search/create tools (1554.97475ms)
+ℹ tests 1
+ℹ suites 0
+ℹ pass 1
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1757.381416

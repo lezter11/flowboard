@@ -1,0 +1,1 @@
+The installed Hono source snapshots in cpu-router-review/evidence/installed-hono are reference data for the pinned dependency review. Their original MIT license is preserved in THIRD-PARTY-HONO-LICENSE.txt. The snapshots are not an additional runtime dependency.

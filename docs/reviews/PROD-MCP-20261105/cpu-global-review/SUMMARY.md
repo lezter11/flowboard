@@ -1,0 +1,9 @@
+# Current local feature review
+
+Actions: [Independent record](e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205-round-1.json) passes the repository validator at8.92, all category floors, no open local blockers. It covers99IDs,157individually reassessed original criteria,1032frozen files and1570rehash-checked per-feature references. Product source, criteria and role-owned handoffs were not edited.
+
+Why and options: The route selector changed for every API operation, so old whole-source equality would be false. Fresh mounted API1966, independent route/security/context/realPG checks, Mac consent24, general browser14assertions+2observations, nativeMCP22groups and production3guards/sanitized identical build cover the introduced change. Unchanged source and actual old execution support the remaining layers, with explicit limits rather than invented reruns.
+
+Evidence and limits: [Every criterion](evidence/criteria-reassessment.json), [per-command provenance](evidence/command-provenance.json), [all99applicability](evidence/all99-current-applicability.json), [source reasoning](evidence/source-review.md) and [validation receipt](validation.json) are available. Historical Linux24/pressure/offline-install/bad-executable/compiledPages6 runs remain historical. No current fullLinux24 or wholePages6 execution, real provider, hosted CPU compliance or production readiness is claimed. Actual failed production CPU evidence remains preserved.
+
+Next / your input: Architect may consume this exact passing review into a new role-owned phase, preserving retained/fresh execution fields and exact hashes, then regenerate the checklist. No automatic UI/integration revival occurred. Final exactcandidateCI, clean deployment artifacts, UAT CPU/strict-error observation including idlePG disposition, owner sign-in/create/disconnect and current backup/rollback checks remain separate release gates. No owner action is needed for this local review.

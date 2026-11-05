@@ -2,6 +2,7 @@ import { imageVerifierStorage, type ImageVerifier } from '../services/image-veri
 import { imageAdmissionMiddleware, isImageMemoryWrite } from './middleware/image-admission.ts';
 import { DEFAULT_LIMITS, type Limits } from '../services/limits.ts';
 import { Hono } from 'hono';
+import { TrieRouter } from 'hono/router/trie-router';
 import { cors } from 'hono/cors';
 import type pg from 'pg';
 import {
@@ -81,7 +82,9 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
     setGlobalPool(options.pool);
   }
 
-  const app = new Hono<{ Variables: { requestId: string; pool?: pg.Pool; limits?: Limits } }>();
+  // Workers construct this app per request. Avoid SmartRouter's first-dispatch
+  // matcher compilation while retaining request-local middleware and pool state.
+  const app = new Hono<{ Variables: { requestId: string; pool?: pg.Pool; limits?: Limits } }>({ router: new TrieRouter() });
   const limits: Limits = options?.limits ?? { ...DEFAULT_LIMITS };
   app.use('*', async (c, next) => {
     c.set('limits', limits);

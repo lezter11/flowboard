@@ -1,0 +1,77 @@
+Independent serial mounted boundary/MCP/PAT regression; dedicated PostgreSQL17.11 loopback:60488; sanitized environment, synthetic data only.
+✔ mounted discovery and exact protocol CORS do not use cookie credentials or forged origins (489.71925ms)
+✔ full mounted OAuth flow and max-one-connection dispatcher enforce scopes, roles and selected project (447.477ms)
+✔ create replay survives access refresh, preserves provenance and fails after disconnect (168.681333ms)
+✔ an issued OAuth grant cannot outlive current board access, project membership or writable lifecycle (138.646458ms)
+✔ private request identity is absent on clones and external identity headers cannot bypass policy (61.764375ms)
+✔ mounted MCP owns streamed128KiB cap and a slow-body deadline before ordinary middleware buffering (89.053542ms)
+✔ deadline during queued verification still cancels the already-aborted body and settles lifetime (93.706167ms)
+✔ oversize MCP refusal and actual work lifetime settle despite an uncooperative source cancellation (63.189334ms)
+✔ mounted connection-based protocol/create limits fail closed without consuming another connection allowance (142.105709ms)
+✔ actual mounted create and disconnect serialize in both lock orders on separate PostgreSQL connections (306.305625ms)
+✔ actual production Worker uses Node-issued OAuth and a single request connection for create/replay (1323.919583ms)
+ℹ Actual production Worker + single request-scoped pg pool + isolated PostgreSQL schema; no hosted deployment claim.
+▶ mounted protocol, discovery and wildcard middleware preserve exact path boundaries without database work
+  ✔ decoded exact MCP GET /api/v1/mcp challenges OAuth (23.964833ms)
+  ✔ decoded exact MCP POST /api/v1/mcp challenges OAuth (1.676666ms)
+  ✔ decoded exact MCP DELETE /api/v1/mcp challenges OAuth (0.826791ms)
+  ✔ decoded exact MCP PATCH /api/v1/mcp challenges OAuth (0.734167ms)
+  ✔ decoded exact MCP PUT /api/v1/mcp challenges OAuth (0.664417ms)
+  ✔ decoded exact MCP GET /api/v1/%6dcp challenges OAuth (0.561583ms)
+  ✔ HEAD keeps the protocol challenge with an empty response body (0.596666ms)
+  ✔ exact MCP preflight retains its protocol policy (0.681ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/ (1.867667ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp// (0.59825ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp%2F (0.391334ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/unknown (0.425375ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/% (0.447084ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/%ZZ (0.914042ms)
+  ✔ MCP child keeps browser authentication: /api/v1/mcp/connections (1.038458ms)
+  ✔ MCP child keeps browser authentication: /api/v1/mcp/authorization-requests/% (1.028ms)
+  ✔ MCP child keeps browser authentication: /api/v1/mcp/authorization-requests/%ZZ (0.803083ms)
+  ✔ resource discovery: /.well-known/oauth-protected-resource (1.105666ms)
+  ✔ resource discovery: /.well-known/oauth-protected-resource/api/v1/mcp (0.317ms)
+  ✔ resource discovery: /.well-known/%6fauth-protected-resource (0.2555ms)
+  ✔ discovery lookalike is absent: /.well-known/oauth-protected-resource/api/v1/mcp/ (0.363125ms)
+  ✔ discovery lookalike is absent: /.well-known/oauth-authorization-server/ (0.186834ms)
+  ✔ wildcard bearer denial: /health/live (0.474917ms)
+  ✔ wildcard bearer denial: /health/live/ (0.225708ms)
+  ✔ wildcard bearer denial: /api/v1/unknown (0.165417ms)
+  ✔ wildcard bearer denial: /api/v1/mcp/ (0.175084ms)
+  ✔ wildcard bearer denial: /api/v1/boards/%ZZ/columns/%2F/placement (0.22575ms)
+✔ mounted protocol, discovery and wildcard middleware preserve exact path boundaries without database work (51.516959ms)
+▶ mounted nested board/column parameters preserve decoded ancestry and real PostgreSQL authorization
+  ✔ owner / brd / col (15.903709ms)
+  ✔ owner / %62rd / %63ol (15.917292ms)
+  ✔ owner / brd / foreign_col (10.415083ms)
+  ✔ owner / foreign_brd / col (10.254833ms)
+  ✔ foreign / %62rd / %63ol (7.990791ms)
+  ✔ grantless / %62rd / %63ol (10.193208ms)
+  ✔ owner / %2562rd / col (8.828625ms)
+  ✔ owner / brd%2Fforeign_brd / col (7.955791ms)
+  ✔ owner / brd / % (9.359667ms)
+  ✔ owner / brd / %ZZ (10.253541ms)
+  ✔ owner / brd / %E0%A4%A (9.964125ms)
+✔ mounted nested board/column parameters preserve decoded ancestry and real PostgreSQL authorization (690.842291ms)
+▶ PAT capability boundary through every mounted route
+  ✔ real Owner issuance without membership, finite default expiry, no secret persistence (6.539041ms)
+  ✔ generated route inventory: every route outside the six capabilities rejects PAT (139.859625ms)
+  ✔ metadata contains only allowlisted fields; full snapshot always denied (12.544875ms)
+  ✔ boards-only direct listing omits descriptions and snapshot data while session response retains details (13.8115ms)
+  ✔ project filtering happens before pagination and foreign cursors are refused (5.335958ms)
+  ✔ project restrictions apply to metadata, board listing, card reads/search/create (60.6095ms)
+  ✔ missing scope, malformed bearer and invalid token never inherit a cookie (17.777584ms)
+  ✔ current underlying membership and board grants remain authoritative (73.884584ms)
+  ✔ expired/revoked tokens fail without cookie fallback and cannot manage peers (15.529459ms)
+  ✔ parallel issuance cannot exceed the active credential cap; expired/revoked slots free capacity (117.704083ms)
+✔ PAT capability boundary through every mounted route (675.62325ms)
+ℹ Generated 111 negative method/path cases from 117 mounted routes; six explicit PAT capabilities.
+ℹ tests 62
+ℹ suites 0
+ℹ pass 62
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7595.916375
+{"exitCode":0}

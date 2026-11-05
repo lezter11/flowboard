@@ -1,0 +1,86 @@
+{
+  "kind": "actual-local-workerd-processCPU-no-DB",
+  "label": "trie-harness",
+  "artifact": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/performance-investigation/generated/worker-trie-probe.js",
+  "artifactSha256": "8f1fac06041d3e94ffb5eecff9bf368721e3687cc0249f311dfd9790e4215ad8",
+  "startedAt": "2026-11-05T11:31:28.768Z",
+  "count": 1000,
+  "nodeVersion": "v24.15.0",
+  "limits": [
+    "Local workerd processCPU includes runtime overhead, measured by ps with0.01s resolution; not exact hosted per-request CPU.",
+    "No actual DB/authenticated tools or production egress; synthetic anonymous paths only."
+  ],
+  "workerdPids": [
+    76333,
+    76334
+  ],
+  "batches": [
+    {
+      "endpoint": "/health/live",
+      "requests": 1000,
+      "statuses": {
+        "200": 1000
+      },
+      "totalWallMs": 2983.1087079999998,
+      "processCpuMs": {
+        "76333": 0,
+        "76334": 2100
+      },
+      "workerProcessCpuMs": 2100,
+      "workerProcessCpuMsPerRequest": 2.1,
+      "wallP50Ms": 2.4636249999998654,
+      "wallP95Ms": 5.118915999999899
+    },
+    {
+      "endpoint": "/api/v1/session",
+      "requests": 1000,
+      "statuses": {
+        "401": 1000
+      },
+      "totalWallMs": 1925.651667,
+      "processCpuMs": {
+        "76333": 0,
+        "76334": 1409.9999999999998
+      },
+      "workerProcessCpuMs": 1409.9999999999998,
+      "workerProcessCpuMsPerRequest": 1.4099999999999997,
+      "wallP50Ms": 1.6738329999998314,
+      "wallP95Ms": 3.023957999999766
+    },
+    {
+      "endpoint": "/.well-known/oauth-authorization-server",
+      "requests": 1000,
+      "statuses": {
+        "200": 1000
+      },
+      "totalWallMs": 1906.8280840000007,
+      "processCpuMs": {
+        "76333": 0,
+        "76334": 1370
+      },
+      "workerProcessCpuMs": 1370,
+      "workerProcessCpuMsPerRequest": 1.37,
+      "wallP50Ms": 1.6858750000010332,
+      "wallP95Ms": 3.1194590000013704
+    },
+    {
+      "endpoint": "/api/v1/mcp",
+      "requests": 1000,
+      "statuses": {
+        "401": 1000
+      },
+      "totalWallMs": 2124.759416000001,
+      "processCpuMs": {
+        "76333": 0,
+        "76334": 1480.0000000000005
+      },
+      "workerProcessCpuMs": 1480.0000000000005,
+      "workerProcessCpuMsPerRequest": 1.4800000000000004,
+      "wallP50Ms": 1.9177080000008573,
+      "wallP95Ms": 3.2528329999986454
+    }
+  ],
+  "status": "completed",
+  "cleanup": true,
+  "completedAt": "2026-11-05T11:31:38.841Z"
+}

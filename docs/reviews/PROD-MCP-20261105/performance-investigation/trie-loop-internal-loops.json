@@ -1,0 +1,83 @@
+{
+  "kind": "local-workerd-internal-loops-amortized",
+  "label": "trie-loop",
+  "artifact": "/Users/shubham/.codex/worktrees/mcp-uat-repair/Flowboard/docs/reviews/PROD-MCP-20261105/performance-investigation/generated/worker-trie-probe.js",
+  "artifactSha256": "8f1fac06041d3e94ffb5eecff9bf368721e3687cc0249f311dfd9790e4215ad8",
+  "iterations": 100,
+  "batches": 10,
+  "startedAt": "2026-11-05T11:34:15.600Z",
+  "limits": [
+    "Synthetic anonymous paths; no DB or hosted CPU-cap proof.",
+    "Internal loop is a profiler experiment, not deployable application behavior.",
+    "Wrapper imports original artifact; bundled by existing Wrangler harness for local execution."
+  ],
+  "workerdPids": [
+    77260,
+    77264
+  ],
+  "results": [
+    {
+      "mode": "worker",
+      "endpoint": "/health/live",
+      "internalRequests": 1000,
+      "statuses": {
+        "200": 1000
+      },
+      "totalWallMs": 970.4554170000001,
+      "perProcessCpuMs": {
+        "77260": 0,
+        "77264": 980
+      },
+      "totalCpuMs": 980,
+      "cpuMsPerInternalRequest": 0.98
+    },
+    {
+      "mode": "worker",
+      "endpoint": "/api/v1/session",
+      "internalRequests": 1000,
+      "statuses": {
+        "401": 1000
+      },
+      "totalWallMs": 794.5960839999998,
+      "perProcessCpuMs": {
+        "77260": 0,
+        "77264": 730
+      },
+      "totalCpuMs": 730,
+      "cpuMsPerInternalRequest": 0.73
+    },
+    {
+      "mode": "app",
+      "endpoint": "/health/live",
+      "internalRequests": 1000,
+      "statuses": {
+        "200": 1000
+      },
+      "totalWallMs": 610.877708,
+      "perProcessCpuMs": {
+        "77260": 0,
+        "77264": 550.0000000000002
+      },
+      "totalCpuMs": 550.0000000000002,
+      "cpuMsPerInternalRequest": 0.5500000000000003
+    },
+    {
+      "mode": "app",
+      "endpoint": "/api/v1/session",
+      "internalRequests": 1000,
+      "statuses": {
+        "401": 1000
+      },
+      "totalWallMs": 483.85725,
+      "perProcessCpuMs": {
+        "77260": 0,
+        "77264": 480
+      },
+      "totalCpuMs": 480,
+      "cpuMsPerInternalRequest": 0.48
+    }
+  ],
+  "status": "completed",
+  "cleanup": true,
+  "completedAt": "2026-11-05T11:34:19.428Z"
+}

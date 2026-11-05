@@ -1,0 +1,82 @@
+[
+  {
+    "id": "router-boundaries",
+    "command": "node --test --test-concurrency=1 apps/api/test/router-boundaries.test.ts",
+    "exitCode": 0,
+    "startedAt": "2026-11-05T11:37:34.976Z",
+    "completedAt": "2026-11-05T11:37:36.105Z",
+    "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/router-boundaries.log",
+    "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+    "isolatedSynthetic": true
+  },
+  {
+    "id": "typecheck",
+    "command": "npm run typecheck",
+    "exitCode": 0,
+    "startedAt": "2026-11-05T11:37:36.106Z",
+    "completedAt": "2026-11-05T11:37:38.740Z",
+    "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/typecheck.log",
+    "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+    "isolatedSynthetic": true
+  },
+  {
+    "id": "contracts",
+    "command": "npm test --workspace @flowboard/contracts",
+    "exitCode": 0,
+    "startedAt": "2026-11-05T11:37:38.740Z",
+    "completedAt": "2026-11-05T11:37:41.505Z",
+    "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/contracts.log",
+    "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+    "isolatedSynthetic": true
+  },
+  {
+    "id": "contract-parity",
+    "command": "npm run openapi:check && npm run migrations:embed:check",
+    "exitCode": 0,
+    "startedAt": "2026-11-05T11:37:41.505Z",
+    "completedAt": "2026-11-05T11:37:42.066Z",
+    "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/contract-parity.log",
+    "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+    "isolatedSynthetic": true
+  },
+  {
+    "id": "mcp",
+    "command": "npm test --workspace @flowboard/mcp && NODE_ENV=production npm run build --workspace @flowboard/mcp && npm run test:artifact --workspace @flowboard/mcp",
+    "exitCode": 0,
+    "startedAt": "2026-11-05T11:37:42.067Z",
+    "completedAt": "2026-11-05T11:37:45.084Z",
+    "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/mcp.log",
+    "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+    "isolatedSynthetic": true
+  },
+  {
+    "id": "api",
+    "command": "npm run test --workspace @flowboard/api",
+    "exitCode": 0,
+    "startedAt": "2026-11-05T11:37:45.085Z",
+    "completedAt": "2026-11-05T11:48:01.575Z",
+    "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/api.log",
+    "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+    "isolatedSynthetic": true
+  },
+  {
+    "id": "native-mcp",
+    "command": "npm run test:mcp-integration",
+    "exitCode": 0,
+    "startedAt": "2026-11-05T11:48:01.576Z",
+    "completedAt": "2026-11-05T11:48:06.152Z",
+    "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/native-mcp.log",
+    "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+    "isolatedSynthetic": true
+  },
+  {
+    "id": "build",
+    "command": "NODE_ENV=production npm run build",
+    "exitCode": 0,
+    "startedAt": "2026-11-05T11:48:06.153Z",
+    "completedAt": "2026-11-05T11:48:10.325Z",
+    "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/build.log",
+    "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+    "isolatedSynthetic": true
+  }
+]

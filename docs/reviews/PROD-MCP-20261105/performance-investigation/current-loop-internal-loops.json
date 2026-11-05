@@ -1,0 +1,83 @@
+{
+  "kind": "local-workerd-internal-loops-amortized",
+  "label": "current-loop",
+  "artifact": "/private/tmp/flowboard-prod-release-40e51e1/apps/api/dist/worker/worker.js",
+  "artifactSha256": "b66ea3c07de35f7921551d33236cdb3f9f88cb64e3596c8ac079a8bfa711da21",
+  "iterations": 100,
+  "batches": 10,
+  "startedAt": "2026-11-05T11:33:42.010Z",
+  "limits": [
+    "Synthetic anonymous paths; no DB or hosted CPU-cap proof.",
+    "Internal loop is a profiler experiment, not deployable application behavior.",
+    "Wrapper imports original artifact; bundled by existing Wrangler harness for local execution."
+  ],
+  "workerdPids": [
+    77034,
+    77035
+  ],
+  "results": [
+    {
+      "mode": "worker",
+      "endpoint": "/health/live",
+      "internalRequests": 1000,
+      "statuses": {
+        "200": 1000
+      },
+      "totalWallMs": 1957.4765830000001,
+      "perProcessCpuMs": {
+        "77034": 0,
+        "77035": 2019.9999999999995
+      },
+      "totalCpuMs": 2019.9999999999995,
+      "cpuMsPerInternalRequest": 2.0199999999999996
+    },
+    {
+      "mode": "worker",
+      "endpoint": "/api/v1/session",
+      "internalRequests": 1000,
+      "statuses": {
+        "401": 1000
+      },
+      "totalWallMs": 1113.232833,
+      "perProcessCpuMs": {
+        "77034": 0,
+        "77035": 1130.0000000000002
+      },
+      "totalCpuMs": 1130.0000000000002,
+      "cpuMsPerInternalRequest": 1.1300000000000003
+    },
+    {
+      "mode": "app",
+      "endpoint": "/health/live",
+      "internalRequests": 1000,
+      "statuses": {
+        "200": 1000
+      },
+      "totalWallMs": 869.9021670000002,
+      "perProcessCpuMs": {
+        "77034": 0,
+        "77035": 839.9999999999999
+      },
+      "totalCpuMs": 839.9999999999999,
+      "cpuMsPerInternalRequest": 0.8399999999999999
+    },
+    {
+      "mode": "app",
+      "endpoint": "/api/v1/session",
+      "internalRequests": 1000,
+      "statuses": {
+        "401": 1000
+      },
+      "totalWallMs": 908.526167,
+      "perProcessCpuMs": {
+        "77034": 0,
+        "77035": 860.0000000000003
+      },
+      "totalCpuMs": 860.0000000000003,
+      "cpuMsPerInternalRequest": 0.8600000000000003
+    }
+  ],
+  "status": "completed",
+  "cleanup": true,
+  "completedAt": "2026-11-05T11:33:48.360Z"
+}

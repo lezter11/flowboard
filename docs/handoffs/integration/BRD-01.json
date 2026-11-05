@@ -2,20 +2,20 @@
   "status": "verified",
   "verificationScope": "local",
   "hostedAcceptance": "pending",
-  "backendReviewSHA256": "5ac7ecaa5ba0ad83d98e8b542afbdd32f2b9cf1d85517919b33c3165297f9f2c",
+  "backendReviewSHA256": "83ad40e401457053cef176541f9dcc280336dbe7b9c498c3b04b649927a4483b",
   "summary": "BRD-01: current local integrated acceptance under fresh review; hosted acceptance pending.",
   "limitations": [
     "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
-    "Review records declare execution and scope; Architect inspection remains necessary."
+    "Current Linux CI and hosted CPU/exception/idle-PG disposition remain release conditions. No clean production/runtime acceptance is implied."
   ],
   "evidence": [
     {
-      "path": "docs/reviews/HOSTED-MCP-20261104/browser-owner-phase-revalidation/BRD-01.json",
-      "sha256": "193f4f1e96b856842dbe36cb70c87cd94fd0624a4a0f6408235600a4c9024c73",
-      "command": "python3 docs/reviews/HOSTED-MCP-20261104/browser-owner-phase-revalidation/revalidate.py --review docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8-round-1.json --apply",
-      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local required checks passed.",
+      "path": "docs/reviews/PROD-MCP-20261105/cpu-owner-phase/BRD-01.json",
+      "sha256": "40a1ca56b1633ab7461bebefbce7f740e7672a8b278d59203a762137dd3a4071",
+      "command": "python3 docs/reviews/PROD-MCP-20261105/cpu-owner-phase/revalidate.py --review docs/reviews/PROD-MCP-20261105/cpu-global-review/e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205-round-1.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local criteria reassessed; fresh and retained original executions are explicitly distinguished.",
       "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
     }
   ],
-  "uiHandoffSHA256": "1a0e46c57fffcaaae28c081ecdacafee0c59af5aa0e8fcb0e3c41fbe8a7aec81"
+  "uiHandoffSHA256": "a7ba2f90f135fd80d11e1739009280ec2c2951c9b251b25b97a8bdf96920251f"
 }

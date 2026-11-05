@@ -1,0 +1,13 @@
+import fs from 'node:fs/promises';
+import assert from 'node:assert/strict';
+const code=await fs.readFile('/private/tmp/flowboard-prod-release-40e51e1/node_modules/wrangler/wrangler-dist/cli.js','utf8');
+const body=code.slice(code.indexOf('function parseSamplingRate(sampling_rate) {'),code.indexOf('function parseOutcome(statuses) {'));
+const parse=new Function('UserError',body+'return parseSamplingRate;')(class UserError extends Error {});
+for(const value of [0,1,-0.1,1.1])assert.throws(()=>parse(value));
+assert.deepEqual(parse(0.25),{sampling_rate:0.25});
+const translateBody=code.slice(code.indexOf('function translateCLICommandToFilterMessage(cliFilters) {'),code.indexOf('function parseSamplingRate(sampling_rate) {'));
+const translate=new Function('parseSamplingRate','parseScriptVersion',translateBody+'return translateCLICommandToFilterMessage;')(parse,version=>({scriptVersion:version}));
+const version='58a363e0-2461-4994-8fae-d0ed3b8064eb';
+assert.throws(()=>translate({samplingRate:1,versionId:version}));
+assert.deepEqual(translate({versionId:version}),{filters:[{scriptVersion:version}]});
+console.log(JSON.stringify({status:'pass',actualInstalledValidator:true,samplingOneRejected:true,omittedSamplingAddsNoFilter:true,versionFilterRetained:true,liveCalls:0},null,2));

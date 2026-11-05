@@ -2,19 +2,19 @@
   "status": "verified",
   "verificationScope": "local",
   "hostedAcceptance": "pending",
-  "reviewPath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8-round-1.json",
+  "reviewPath": "docs/reviews/PROD-MCP-20261105/cpu-global-review/e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205-round-1.json",
   "summary": "DEL-08: independently reviewed current local implementation; hosted acceptance pending.",
   "api_contract": "docs/API.md; docs/openapi.json; docs/features.tsv DEL-08",
   "limitations": [
     "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
-    "Review records declare execution and scope; Architect inspection remains necessary."
+    "Current Linux CI and hosted CPU/exception/idle-PG disposition remain release conditions. No clean production/runtime acceptance is implied."
   ],
   "evidence": [
     {
-      "path": "docs/reviews/HOSTED-MCP-20261104/browser-owner-phase-revalidation/DEL-08.json",
-      "sha256": "3b973ac85af7d5962dcf06a261891bf953e488484c143fe513b592bc506585c5",
-      "command": "python3 docs/reviews/HOSTED-MCP-20261104/browser-owner-phase-revalidation/revalidate.py --review docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8-round-1.json --apply",
-      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local required checks passed.",
+      "path": "docs/reviews/PROD-MCP-20261105/cpu-owner-phase/DEL-08.json",
+      "sha256": "5a3827890a340d7b811b0021d4f4e3616888fd76001156c192e8218e95227d0f",
+      "command": "python3 docs/reviews/PROD-MCP-20261105/cpu-owner-phase/revalidate.py --review docs/reviews/PROD-MCP-20261105/cpu-global-review/e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205-round-1.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local criteria reassessed; fresh and retained original executions are explicitly distinguished.",
       "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
     }
   ]

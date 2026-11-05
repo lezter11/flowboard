@@ -1,0 +1,50 @@
+▶ mounted protocol, discovery and wildcard middleware preserve exact path boundaries without database work
+  ✔ decoded exact MCP GET /api/v1/mcp challenges OAuth (22.09075ms)
+  ✔ decoded exact MCP POST /api/v1/mcp challenges OAuth (0.773667ms)
+  ✔ decoded exact MCP DELETE /api/v1/mcp challenges OAuth (0.526167ms)
+  ✔ decoded exact MCP PATCH /api/v1/mcp challenges OAuth (0.484292ms)
+  ✔ decoded exact MCP PUT /api/v1/mcp challenges OAuth (0.452708ms)
+  ✔ decoded exact MCP GET /api/v1/%6dcp challenges OAuth (0.375791ms)
+  ✔ HEAD keeps the protocol challenge with an empty response body (0.550833ms)
+  ✔ exact MCP preflight retains its protocol policy (0.580375ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/ (2.226209ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp// (0.715167ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp%2F (0.357291ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/unknown (0.389875ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/% (0.361458ms)
+  ✔ MCP lookalike is not protocol: /api/v1/mcp/%ZZ (0.261417ms)
+  ✔ MCP child keeps browser authentication: /api/v1/mcp/connections (0.49325ms)
+  ✔ MCP child keeps browser authentication: /api/v1/mcp/authorization-requests/% (0.39025ms)
+  ✔ MCP child keeps browser authentication: /api/v1/mcp/authorization-requests/%ZZ (0.33675ms)
+  ✔ resource discovery: /.well-known/oauth-protected-resource (0.802167ms)
+  ✔ resource discovery: /.well-known/oauth-protected-resource/api/v1/mcp (0.219625ms)
+  ✔ resource discovery: /.well-known/%6fauth-protected-resource (0.20525ms)
+  ✔ discovery lookalike is absent: /.well-known/oauth-protected-resource/api/v1/mcp/ (0.258333ms)
+  ✔ discovery lookalike is absent: /.well-known/oauth-authorization-server/ (0.160209ms)
+  ✔ wildcard bearer denial: /health/live (0.39625ms)
+  ✔ wildcard bearer denial: /health/live/ (0.194542ms)
+  ✔ wildcard bearer denial: /api/v1/unknown (0.137292ms)
+  ✔ wildcard bearer denial: /api/v1/mcp/ (0.135209ms)
+  ✔ wildcard bearer denial: /api/v1/boards/%ZZ/columns/%2F/placement (0.194041ms)
+✔ mounted protocol, discovery and wildcard middleware preserve exact path boundaries without database work (38.498209ms)
+▶ mounted nested board/column parameters preserve decoded ancestry and real PostgreSQL authorization
+  ✔ owner / brd / col (13.511958ms)
+  ✔ owner / %62rd / %63ol (11.28225ms)
+  ✔ owner / brd / foreign_col (7.794ms)
+  ✔ owner / foreign_brd / col (6.740833ms)
+  ✔ foreign / %62rd / %63ol (7.751ms)
+  ✔ grantless / %62rd / %63ol (7.805875ms)
+  ✔ owner / %2562rd / col (5.963208ms)
+  ✔ owner / brd%2Fforeign_brd / col (7.821042ms)
+  ✔ owner / brd / % (6.982542ms)
+  ✔ owner / brd / %ZZ (7.387917ms)
+  ✔ owner / brd / %E0%A4%A (8.494666ms)
+✔ mounted nested board/column parameters preserve decoded ancestry and real PostgreSQL authorization (529.612667ms)
+ℹ tests 40
+ℹ suites 0
+ℹ pass 40
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1075.142375

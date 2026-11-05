@@ -1,0 +1,20 @@
+{
+  "status": "verified",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewSHA256": "5ac7ecaa5ba0ad83d98e8b542afbdd32f2b9cf1d85517919b33c3165297f9f2c",
+  "summary": "CRD-01: current local UI/source acceptance under fresh independent whole-feature review and browser checks.",
+  "limitations": [
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Review records declare execution and scope; Architect inspection remains necessary."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/HOSTED-MCP-20261104/browser-owner-phase-revalidation/CRD-01.json",
+      "sha256": "385677f8a2fd5e529e1aada2f15a0de713251510e372e95db71a2205a19fbcd3",
+      "command": "python3 docs/reviews/HOSTED-MCP-20261104/browser-owner-phase-revalidation/revalidate.py --review docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8-round-1.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local required checks passed.",
+      "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
+    }
+  ]
+}

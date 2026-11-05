@@ -1,0 +1,31 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "CPU-ROUTER-20261105"
+  ],
+  "mandatoryCriteria": [
+    "C01: Main createApp only selects supported pinned Hono TrieRouter; actual route order/matches/decoded parameters preserve prior SmartRouter behavior including methods, wildcard, trailing/encoded/double/malformed paths.",
+    "C02: Exact MCP protocol versus descendants/discovery preserves OAuth challenge, browser cookie and origin/PAT boundaries and security headers; five MCP tools unchanged.",
+    "C03: Request-local app, pool, identity/context, storage and actual-work cleanup remain unchanged; no global mutable application cache or relaxed limits.",
+    "C04: Mounted PostgreSQL authority/ancestry, concurrency, cookie/PAT/OAuth and data-integrity regressions pass serially against isolated synthetic PostgreSQL17.11; boundary-specific tests prove decoding and read-only unchanged fixture.",
+    "C05: All eight frozen local gate command groups complete successfully on held source; independent no-DB parity/boundary probes and source-continuity checks pass.",
+    "C06: Local before/after performance evidence identifies actual app-construction/first-match hotspot with measured reduction and preserves negative LinearRouter findings; measurements are not hosted CPU acceptance.",
+    "C07: Exact full reachable source/dependency/config/test manifest plus reviewer independence and execution provenance are preserved; 99-feature prior backend/UI/integration evidence remains historical with explicit applicability, not invented fresh runs."
+  ],
+  "requiredTests": {
+    "router-boundaries": "node --test --test-concurrency=1 apps/api/test/router-boundaries.test.ts",
+    "typecheck": "npm run typecheck",
+    "contracts": "npm test --workspace @flowboard/contracts",
+    "contract-parity": "npm run openapi:check && npm run migrations:embed:check",
+    "mcp": "npm test --workspace @flowboard/mcp && NODE_ENV=production npm run build --workspace @flowboard/mcp && npm run test:artifact --workspace @flowboard/mcp",
+    "api": "npm run test --workspace @flowboard/api",
+    "native-mcp": "npm run test:mcp-integration",
+    "build": "NODE_ENV=production npm run build",
+    "independent-parity": "node docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-parity.mjs",
+    "independent-boundaries": "node docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-boundaries.mjs",
+    "source-continuity": "python3 docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/continuity.py",
+    "independent-performance": "node docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-performance.mjs",
+    "independent-postgres": "node docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-postgres.mjs"
+  },
+  "scopeAndExclusions": "Sensitive routing security regression review of CPU repair only. Criteria derive unchanged from pre-product-edit CPU-REPAIR-PLAN.md plus mandatory gate details; this machine-readable expansion was made by independent reviewer after the two product files already existed, before tests/scoring. Local Node24/workerd and isolated PostgreSQL only. Hosted CPU/uncaught exceptions, idle-PG warnings, owner connector acceptance, provider limits and new CI/UAT/production promotion remain excluded and unresolved, requiring separate gates. Existing 99-feature UI/browser executions are source-bound historical evidence, not freshly executed or approved by this scoped record. No UI/contracts/SQL/schema/limits/auth/pool product changes authorized."
+}

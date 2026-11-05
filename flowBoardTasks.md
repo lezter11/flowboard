@@ -1,8 +1,21 @@
 # Flowboard working checklist
 
-Updated 2026-11-05. **Prompt help is deployed to UAT at `40e51e1`; production is held at the fresh-backup gate.** This sequence complements [TASKS.md](TASKS.md), the 98 product definitions and their [generated local checklist](docs/FEATURE_CHECKLIST.md).
+Updated 2026-11-05. **Prompt help remains on UAT at `40e51e1`; the production attempt was rolled back after CPU-limit failures.** This sequence complements [TASKS.md](TASKS.md), the 98 product definitions and their [generated local checklist](docs/FEATURE_CHECKLIST.md).
 
 ## Current release checklist
+
+- [x] Delete only the owner-approved old UAT restore point; preserve active branches/previous production backup.
+- [x] Create ready production backup br-fancy-dream-a15hpqam; apply reviewed migrations20–27, verify row counts and no-op second run.
+- [x] Upload40e51e1 to production; verify exact Worker bytes/private bindings/Pages source and initial17/17 smoke.
+- [x] Detect sustained CPU-limit failure and roll Worker/Pages back; verify previous version/source and health2/2. Data/migrations retained; no main promotion.
+- [x] Profile repeated router compilation; reject faster LinearRouter because it changes trailing-slash behavior; establish Trie route/parameter/mounted parity.
+- [ ] Complete narrow request-local TrieRouter repair, full isolated regression tests and fresh independent review. Docker temporary fixture60488 is active.
+- [ ] Pass one exact new candidate CI and UAT runtime CPU observations; do not treat local timing as hosted metering.
+- [ ] Recheck production backup/rollback state and deploy only after gates; complete sustained observation and owner production acceptance.
+
+**Current evidence:** [CPU incident](docs/reviews/PROD-MCP-20261105/CPU-INCIDENT.md), [repair criteria](docs/reviews/PROD-MCP-20261105/CPU-REPAIR-PLAN.md). The hosted connector/sample prompt are not currently promoted to restored production. Pause production connector tests until a new release is announced.
+
+## Earlier prompt release / first production attempt
 
 - [x] Record owner-reported hosted UAT connector success and explicit production request; do not infer unspecified test substeps.
 - [x] Add selectable/copyable card prompt in Settings → Connections; mark required/optional details, manual assignment and Claude browser-connector limit.

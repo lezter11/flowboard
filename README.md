@@ -10,7 +10,7 @@ Flowboard is a customizable team Kanban application. Projects contain boards, bo
 2. **[Project map](docs/PROJECT_MAP.md)** — which checkout to edit, where code lives and how documentation is organized.
 3. **[MCP provenance](docs/MCP_PROVENANCE.md)** — original implementation, subsequent repairs and future capabilities.
 
-**Current release, 2026-11-05:** application `40e51e1` is deployed to UAT Pages, retaining the identical reviewed Worker. CI passes all22 steps (API1,926; hosted browser24); scoped review9.065 and final UAT smoke17/17 pass. The owner reported the previous hosted connector worked. Production promotion is authorized but **held for a fresh backup**: Neon branch quota is full and explicit permission to delete one named old UAT restore point is pending. Production remains unchanged. Docker is off.
+**Current release, 2026-11-05:** application `40e51e1` remains available on UAT. Its production promotion passed initial smoke but failed sustained observation with CPU-limit terminations, so **production Worker and Pages were rolled back to the previous release**. The approved old UAT backup was deleted, a new production backup was verified and migrations20–27 remain applied; no data restore occurred. A narrow router CPU repair is undergoing local regression tests and fresh independent review. Docker is temporarily running a disposable test database. [Incident and actual counts](docs/reviews/PROD-MCP-20261105/CPU-INCIDENT.md).
 
 ## Source layout
 

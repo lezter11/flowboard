@@ -1,4 +1,6 @@
-# Sample prompts released to UAT; production held at backup gate
+# Earlier UAT/promotion checkpoint — superseded by CPU incident
+
+**Current state: the owner approved the backup cleanup; production was uploaded and then rolled back after CPU-limit failures.** Database27 and the fresh backup are retained. A request-local router repair is being tested. [Read the current incident and actual rollout counts](CPU-INCIDENT.md). The earlier pending-backup statements below are historical, not the current blocker.
 
 Application source: **40e51e1336a783a6b450806260ed6c5aa8ace0ea**, 2026-11-05. Production promotion was requested and authorized by the user after owner-reported UAT connector success. This report records what actually executed, not a production deployment claim.
 

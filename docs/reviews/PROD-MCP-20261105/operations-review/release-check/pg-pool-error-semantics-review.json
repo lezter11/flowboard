@@ -1,0 +1,99 @@
+{
+  "verdict": "incomplete",
+  "scope": "Release observation error investigation; not a cleanwindow or activejobfailure finding",
+  "reviewer": "/root/production_operations_review",
+  "at": "2026-11-05T11:16:01.564051+00:00",
+  "sourceHashes": {
+    "apps/api/src/adapters/postgres.ts": "b28ae73d66be3fe20e3f60301305e18d36e06372f7d92e0d2e9dcd079205703d",
+    "apps/api/src/runtime/worker.ts": "1de8bbd985c059badd86c68ebeff360e162d6c39b211293b61df3cfafe444aba",
+    "apps/api/src/adapters/notifications.ts": "c52a5d4542c180548c382c4371882444e82b2997b4cb7068ea84fe025c4ff148",
+    "apps/api/src/adapters/images.ts": "03644c0bbd6ab66e6fcdcb6978db3a0bbe76089783b629fa349e85f35660bf0e",
+    "apps/api/src/services/trash-purge.ts": "f3fe6b5cf973ab9f7d6df7897b5fda4493b7a2e41f5890664bb6abfb1ab45d6a",
+    "apps/api/src/services/import-retention.ts": "aa7d4c51f530b47d6007436178dc496d72658cd48c109ffa8fbe01e65b00d1fd",
+    "apps/api/src/services/hosted-oauth-cleanup.ts": "f0547db73ffdc75aadcadca9b9d299927b626af135397d668b8fb42064b3a3ff",
+    "apps/api/src/services/outbox-retention.ts": "496809cdb3835b50661699307fbbd3ffff8214a8c8b2bb68eb1ecfa2357d4f65",
+    "apps/api/src/adapters/rate-limit-postgres.ts": "e39e804219d9526a0874e7a12ab7b1981d01b0eed7488767da02c7e6b8626de1",
+    "/private/tmp/flowboard-prod-release-40e51e1/node_modules/pg-pool/index.js": "6f304776edaabde2954cbf8c4366fa6d9512bfba0e408e78cc56b3c46c69d058",
+    "/private/tmp/flowboard-prod-release-40e51e1/node_modules/pg-pool/package.json": "0a9924def9e06f791b09a44eaefb227f323a39199887f6ce17b44cb5a9193134",
+    "/private/tmp/flowboard-prod-release-40e51e1/node_modules/pg/lib/client.js": "ad6aa93c26b0bf26db1f2ebe74216212790a04c41af5585c63760f9fa8322a32",
+    "docs/reviews/PROD-MCP-20261105/diagnose-production-logs.py": "47b6edc3ebe17512fb249ba360a9e5265016da1745687757229ef654fbf24d5d"
+  },
+  "mainProgressSnapshot": {
+    "kind": "bounded redacted production Worker observation, not owner acceptance",
+    "worker": "flowboard-api",
+    "version": "58a363e0-2461-4994-8fae-d0ed3b8064eb",
+    "requestedSeconds": 900,
+    "startedAt": "2026-11-05T11:08:49.122782+00:00",
+    "events": 169,
+    "scheduledEvents": 2,
+    "scheduledOk": 2,
+    "exceptionCount": 0,
+    "errorLogCount": 139,
+    "http5xx": 0,
+    "outcomes": {
+      "ok": 168,
+      "canceled": 1
+    },
+    "httpStatuses": {
+      "200": 165,
+      "201": 1
+    },
+    "rawEventDataPersisted": false,
+    "parserOverflows": 0,
+    "stderrBytes": 0,
+    "observedSeconds": 428.659
+  },
+  "diagnosticProgressSnapshot": {
+    "kind": "bounded redacted production log classification; raw messages never saved",
+    "worker": "flowboard-api",
+    "version": "58a363e0-2461-4994-8fae-d0ed3b8064eb",
+    "requestedSeconds": 360,
+    "startedAt": "2026-11-05T11:13:09.480360+00:00",
+    "events": 105,
+    "scheduledEvents": 1,
+    "scheduledOk": 1,
+    "exceptionCount": 0,
+    "errorLogCount": 86,
+    "http5xx": 0,
+    "outcomes": {
+      "ok": 104,
+      "canceled": 1
+    },
+    "httpStatuses": {
+      "200": 102,
+      "201": 1
+    },
+    "logClasses": {
+      "handled_idle_postgres_connection_error": 86
+    },
+    "rawEventDataPersisted": false,
+    "parserOverflows": 0,
+    "stderrBytes": 0,
+    "observedSeconds": 171.865
+  },
+  "syntheticTest": {
+    "status": "pass",
+    "implementation": "installed pg-pool3.14.0 with fake EventEmitter clients, no real database",
+    "idleClientEvictedBeforePoolError": true,
+    "idleListenerRemovedWhileCheckedOut": true,
+    "poolQueryActiveErrorRejectsInsteadOfPoolEvent": true,
+    "liveCalls": 0
+  },
+  "established": [
+    "Exact source poolerrorlistener logs fixed sanitized message without recording original error details or throwing",
+    "Installedpg-pool3.14.0 attaches idlelistener afterconnect/beforerelease, removeswhilecheckedout, removesandends erroredclient BEFORE emitting poolerror",
+    "Normalpool.query uses own activeerrorhandler to releasebadclient/rejectquery; pgClient socketerror marksnotqueryable and errorsallpendingqueries",
+    "HTTP requests create scopedpool; finally awaitsclosePoolAfterWork. No backgroundwork=>pool.end awaited; deferred image/MCPwork=>Promise.allSettled thenpool.end viawaitUntil",
+    "Scheduled run createspoolmax1, runs8jobs sequentially, runIsolated logs fixedjobnamesandrethrowsfirstthrownfailure afterattemptingall; scheduledfinallyawaitspool.end",
+    "Some peritem outboxerrors persist retry/deadletter and storage/imageerrors persist deferredcleanup; successful top-levelcron is not a peritemdeliveryacceptanceclaim",
+    "Current diagnosticclassifies repeatedfixedpoolerror and no otherclass among observederrorlogs; rootcauseandharmlessness notproved"
+  ],
+  "notEstablished": [
+    "Originalcode/errorreason/socketphase remainsunknown because thefixedlog deliberatelydiscards details",
+    "No evidence yet proves idleerroroccurred only afterallwork/atretirement; poollistener also spans connectionsetup/removal",
+    "No no-errorcompleted15minwindow; mainstrictmonitorerrorcount already positive",
+    "No activequeryfailure/data lossconfirmed by thisspecificpoollog; no generalabsenceofperitemfailuresproof either",
+    "No actualprovider/livequeriesbyreviewer or edits to monitorpredicate/source"
+  ],
+  "releaseDecision": "Keep observation markedneeds-inspection. Do not tune awayerrorlogs or callclean. Architect must assess recurringpool lifecycleerror with bounded safe diagnostics/localreproduction and retain explicit unresolvedrisk; a separate diagnostic is corroboration, not replacement oforiginalstrictwindow."
+}

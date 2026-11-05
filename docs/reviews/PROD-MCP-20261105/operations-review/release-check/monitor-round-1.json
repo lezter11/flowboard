@@ -1,0 +1,16 @@
+{
+  "verdict": "fail",
+  "scope": "Auxiliary monitor source before execution",
+  "targetSha256": "310d3361a725f438225ada71a3f0e964972d565ff44498ef2dceb48571d41742",
+  "findings": [
+    {
+      "id": "MON-1",
+      "mandatory": true,
+      "description": "Wrangler bin wrapper spawns actual CLI; forced child.kill kills only wrapper while cleanup checks only wrapper. Tail grandchild can outlive900s observation.",
+      "fix": "Launch installed wrangler-dist/cli.js directly or use dedicated processgroup termination."
+    }
+  ],
+  "privacyCorrectionAlreadyApplied": "WRANGLER_WRITE_LOGS=false supported by actual installed CLI logger; source key confirmed, no execution by reviewer",
+  "reviewer": "/root/production_operations_review",
+  "at": "2026-11-05T11:03:41.222105+00:00"
+}
