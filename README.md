@@ -4,13 +4,13 @@ Flowboard is a customizable team Kanban application. Projects contain boards, bo
 
 ## Start here
 
-**Hosted Claude connector is deployed to UAT.** [Connect without Terminal or copied tokens](docs/HOSTED_MCP_QUICKSTART.md). [Release evidence](docs/reviews/HOSTED-MCP-20261104/release-dce1a67/SUMMARY.md).
+**Hosted Claude connector and copyable card prompts are deployed to UAT.** [Connect without Terminal or copied tokens](docs/HOSTED_MCP_QUICKSTART.md). [Current release evidence and production gate](docs/reviews/PROD-MCP-20261105/SUMMARY.md).
 
 1. **[flowBoardTasks.md](flowBoardTasks.md)** — ordered checklist: organization, CI repair, review, UAT deployment and hosted testing.
 2. **[Project map](docs/PROJECT_MAP.md)** — which checkout to edit, where code lives and how documentation is organized.
 3. **[MCP provenance](docs/MCP_PROVENANCE.md)** — original implementation, subsequent repairs and future capabilities.
 
-**Current release, 2026-11-04:** `dce1a67` is deployed to the UAT Worker and Pages. Required CI passes; independent review8.955 and current local task handoffs are verified. Final anonymous smoke15/15 plus health2/2 pass, with deployed Worker bytes matching the tested artifact. Real Google/Claude and signed-in product acceptance are owner steps in [UAT testing](docs/UAT_TESTING.md). Docker is off; production is excluded.
+**Current release, 2026-11-05:** application `40e51e1` is deployed to UAT Pages, retaining the identical reviewed Worker. CI passes all22 steps (API1,926; hosted browser24); scoped review9.065 and final UAT smoke17/17 pass. The owner reported the previous hosted connector worked. Production promotion is authorized but **held for a fresh backup**: Neon branch quota is full and explicit permission to delete one named old UAT restore point is pending. Production remains unchanged. Docker is off.
 
 ## Source layout
 

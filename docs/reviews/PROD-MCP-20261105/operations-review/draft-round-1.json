@@ -1,0 +1,194 @@
+{
+  "schemaVersion": 1,
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "PROD-MCP-OPERATIONS-20261105"
+  ],
+  "criteriaPath": "docs/reviews/PROD-MCP-20261105/operations-review/criteria.json",
+  "startedAt": "2026-11-05T09:39:00+00:00",
+  "completedAt": "2026-11-05T09:37:17.985213+00:00",
+  "implementer": {
+    "actorId": "/root/production_preflight + /root",
+    "sessionId": "delegated-build:/root/production_preflight; root Architect authored release wrappers",
+    "model": "Codex builder and Architect; exact provider identifier not exposed"
+  },
+  "reviewer": {
+    "actorId": "/root/production_operations_review",
+    "sessionId": "delegated-review:/root/production_operations_review",
+    "model": "Codex GPT-6-family; exact provider identifier not exposed",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/PROD-MCP-20261105/operations-review/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "AGENTS.md",
+      "RULES.md",
+      "BACKEND_REVIEW_GATE.md",
+      "package.json",
+      "package-lock.json",
+      "apps/api/src/adapters/migrations.ts",
+      "apps/api/src/adapters/embedded-migrations.ts",
+      "database/migrations",
+      "docs/reviews/PROD-MCP-20261105/operations",
+      "docs/reviews/PROD-MCP-20261105/production-db-preflight.json",
+      "docs/reviews/FULL-REVALIDATION-20261104/uat-preparation/migrations-d1c81f4.json",
+      "docs/reviews/HOSTED-MCP-20261104/release-dce1a67/migration-receipt.json",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json",
+      "docs/reviews/PROD-MCP-20261105/operations-review/criteria.json",
+      "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+      "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+      "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.test.mjs",
+      "docs/reviews/PROD-MCP-20261105/operations-review/reviewer-session.md",
+      "docs/reviews/PROD-MCP-20261105/operations-review/external-cli-source.json",
+      "docs/reviews/PROD-MCP-20261105/operations-review/initial-source-manifest.json",
+      "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+      "docs/reviews/PROD-MCP-20261105/operations-review/check-continuity.py",
+      "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log",
+      "docs/reviews/PROD-MCP-20261105/operations-review/syntax.log"
+    ],
+    "files": {},
+    "digest": ""
+  },
+  "criteriaResults": {
+    "C1: Helpers pin exact production project/branch/direct endpoint/database/role and require explicit root gate, exact clean detached candidate plus canonical 27 migration filenames/hashes in filesystem and committed bytes.": "pass",
+    "C2: Backup creation uses current-production child data mode, unique name, no compute/secrets, rereads parent/ready/new creation time and endpoints; quota/error stops without delete/local-data fallback. Migration requires fresh same-SHA successful backup receipt and provider branch rereads.": "pass",
+    "C3: Migration checks exact 19-entry ledger and normalized-column conflicts under outer normal-runner advisory lock, applies exactly20-27 with normal per-file transactions, verifies27 and second-run no-op, reports safe failure and no blind partial resume.": "pass",
+    "C4: Whitelist child environment, capture diagnostics privately, do not output credentials/application content, bounded timeouts and safe receipts. No restore/downmigration, production storage lifecycle changes, or automatic destructive fallback.": "pass",
+    "C5: Pure local synthetic guard/syntax tests pass; normalrunner/migration bytes match retained independent review and historical UAT19-26-27 proofs; limitations distinguish review/source evidence from new PostgreSQL, restore and production execution proof.": "pass"
+  },
+  "tests": [
+    {
+      "id": "unit",
+      "command": "node --test docs/reviews/PROD-MCP-20261105/operations/operations.test.mjs",
+      "exitCode": 0,
+      "environment": "Local Node; pure synthetic fake-client or temporary Git fixture, no network/DB/credentials",
+      "isolatedSynthetic": true,
+      "targetDigest": "",
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log"
+    },
+    {
+      "id": "candidate",
+      "command": "node --test docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.test.mjs",
+      "exitCode": 0,
+      "environment": "Local Node; pure synthetic fake-client or temporary Git fixture, no network/DB/credentials",
+      "isolatedSynthetic": true,
+      "targetDigest": "",
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log"
+    },
+    {
+      "id": "syntax",
+      "command": "node --check docs/reviews/PROD-MCP-20261105/operations/prod-guards.mjs && node --check docs/reviews/PROD-MCP-20261105/operations/backup-prod-branch.mjs && node --check docs/reviews/PROD-MCP-20261105/operations/migrate-prod.mjs",
+      "exitCode": 0,
+      "environment": "Local Node; pure synthetic fake-client or temporary Git fixture, no network/DB/credentials",
+      "isolatedSynthetic": true,
+      "targetDigest": "",
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/operations-review/syntax.log"
+    },
+    {
+      "id": "continuity",
+      "command": "python3 docs/reviews/PROD-MCP-20261105/operations-review/check-continuity.py",
+      "exitCode": 0,
+      "environment": "Local Node; pure synthetic fake-client or temporary Git fixture, no network/DB/credentials",
+      "isolatedSynthetic": true,
+      "targetDigest": "",
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.0",
+      "reason": "Fixed target and explicit gate; negative candidate/receipt/env/secret tests; no application endpoint/auth changes. Root operator and clean dependency install remain trusted.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "8.8",
+      "reason": "Actual wrappers wire exact candidate, backup and ledger checks through normal runner; local guard behavior verified. Actual provider execution is deliberately outside approval.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "8.8",
+      "reason": "Same-session nested advisory lock and normal per-file DDL/ledger transactions; failure stops at committed prefix.27migration and runner byte continuity confirmed; no new realDB claims.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "8.7",
+      "reason": "15unit plus2independent temporary-Git cases,3syntax and exact historical continuity all pass; tests explicitly do not execute PostgreSQL SQL or exercise liveprovider.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "8.5",
+      "reason": "Small release-specific helpers reuse canonical runner; denseJS and hardcoded externalCLI path reduce portability. External implementation hashes preserved.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "8.3",
+      "reason": "Bounded timeouts, safe exclusive receipts, quota refusal and no destructive fallback; counts/concurrent writes and lost-response ambiguity disclosed. Full restore and deploy observation outside scope.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    }
+  },
+  "weightedScore": "0",
+  "findings": [
+    {
+      "id": "OPS-N1",
+      "severity": "low",
+      "description": "Installed Neon CLI internally retries HTTP423 locks despite broad README wording no retry. It does not retry quota/transport errors; helper contains no automatic alternative.",
+      "disposition": "open",
+      "rationale": "Nonmandatory documentation precision accepted by Architect; source-review records exact semantics. Do not claim zero internal HTTP retries.",
+      "mandatory": false,
+      "blocking": false
+    }
+  ],
+  "hardBlockers": [
+    "Review metadata had future start timestamp; procedural validator rejected timestamps reversed. No source failure."
+  ],
+  "coverageGaps": [],
+  "verdict": "incomplete",
+  "scopeVerdict": "Prepared helper source/guard approval only; full production promotion remains incomplete until separate actual receipts.",
+  "remainingReleaseGates": [
+    "Exact approved final SHA CI and clean immutable artifacts with dependencies applied/verified",
+    "Fresh actual data-bearing production child backup and provider endpoint reread; refuse quota without unauthorized delete/local-copy fallback",
+    "Explicit treatment of0021/23/24/26 transformations under expand-contract policy and prior-production-code rollback compatibility",
+    "Actual guarded production migration and ledger/idempotence receipts",
+    "UAT-first then production deploy IDs/module/source/static byte proof, anonymous smoke and15-minute observation",
+    "Owner production sign-in/Claude card-create/disconnect acceptance; no restore/least-privilege/uptime-alert claim"
+  ]
+}

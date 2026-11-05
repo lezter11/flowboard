@@ -1,6 +1,10 @@
 # Flowboard ordered tasks
 
-## Active: hosted browser-sign-in connector — 2026-11-04
+## Active: sample prompts and production promotion — 2026-11-05
+
+The user reports hosted UAT connection success and authorizes production. Sample prompt help is now deployed to **UAT application40e51e1**: CI22steps/API1,926/hosted24, scoped review9.065, helper review8.79 and final anonymous UAT17/17 pass. Required title/board/column and optional priority/date/description are explained; MCP assignment remains a manual follow-up. **Next: resolve the fresh production backup quota**, with explicit permission pending to delete only `uat-backup-2026-10-28`. Then reviewed migrations20–27, immutable production Worker/Pages upload, verification, monitoring and owner acceptance. No production write/promotion has occurred. [Exact release checkpoint](docs/reviews/PROD-MCP-20261105/SUMMARY.md). Docker is off; user may close the laptop while permission is pending.
+
+## Earlier: hosted browser-sign-in connector — 2026-11-04
 
 Hosted connector HMCP00–08 is complete for **UAT application dce1a67**: fresh independent8.955/current local handoffs, exact native CI and guarded backup/migration27/Worker+Pages upload. Final anonymous17/17 and actual referrer-policy browser proof pass. HMCP09 retains real owner Google/Claude and signed-in acceptance: [five-step setup](docs/HOSTED_MCP_QUICKSTART.md), [live release evidence](docs/reviews/HOSTED-MCP-20261104/release-dce1a67/SUMMARY.md). Docker is stopped and laptop closure is safe. Company client credentials/card updates remain next scope. Production excluded; earlier states below are historical.
 

@@ -1,0 +1,26 @@
+// PREPARED ONLY. Exact production ledger19 ->27; no automatic partial resume or rollback.
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import { pathToFileURL } from 'node:url';
+import { PROD,parseArgs,requireNewReceipt,writeReceipt,candidateGuard,connection,identity,verifyLedger,verifyBackupReceipt,branch,verifyBackupBranch,normalizedColumnConflicts,counts,safeFailure } from './prod-guards.mjs';
+
+let receiptPath,client,locked=false,stage='arguments';const report={kind:'reviewed-production-migrations20-27',projectId:PROD.projectId,branchId:PROD.branchId,startedAt:new Date().toISOString(),productionTouched:false,actualRestoreExecuted:false};
+try {
+  const args=parseArgs(['candidate','sha','backup-receipt','receipt']);await requireNewReceipt(args.receipt);receiptPath=args.receipt;assert.equal(process.env.FLOWBOARD_PROD_RELEASE_GATE,'reviewed','root production gate required');
+  stage='frozen-candidate';const candidate=await candidateGuard(args.candidate,args.sha);report.sourceCommit=args.sha;report.migrations=candidate.expected.slice(19);
+  stage='fresh-production-backup';const backup=verifyBackupReceipt(JSON.parse(await fs.readFile(args['backup-receipt'],'utf8')),args.sha);const actualBackup=verifyBackupBranch(branch(backup.backupBranch.id),backup.requestedName);assert.equal(actualBackup.id,backup.backupBranch.id);assert.equal(actualBackup.parentId,PROD.branchId);assert.equal(actualBackup.createdAt,backup.backupBranch.createdAt);report.backupBranch=actualBackup;
+  stage='direct-production-endpoint';const {url,endpointId}=await connection();report.endpointId=endpointId;client=new candidate.pg.Client({connectionString:url.toString(),connectionTimeoutMillis:10000,statement_timeout:60000,lock_timeout:10000,application_name:'flowboard_reviewed_prod_migrations20_27'});await client.connect();
+  stage='migration-lock';await client.query('SELECT pg_advisory_lock(hashtext($1))',['flowboard_migrations']);locked=true;
+  stage='production-preconditions';report.databaseIdentity=await identity(client);report.before=verifyLedger((await client.query('SELECT version,name FROM schema_migrations ORDER BY version')).rows,candidate.expected,19);report.normalizedColumnConflictGroups=await normalizedColumnConflicts(client);report.beforeCounts=await counts(client);await candidate.recheck();
+  // Guard freshness again immediately before calling the normal transactional runner.
+  verifyBackupReceipt(backup,args.sha);verifyBackupBranch(branch(backup.backupBranch.id),backup.requestedName);
+  stage='apply-exact-reviewed20-27';const {runMigrations}=await import(pathToFileURL(candidate.root+'/apps/api/src/adapters/migrations.ts').href);report.productionTouched=true;
+  const result=await runMigrations(client,{migrationsDir:candidate.root+'/database/migrations'});report.applied=result.applied;assert.deepEqual(result.applied,candidate.expected.slice(19).map(({version,name})=>({version,name})));
+  stage='postconditions';report.after=verifyLedger((await client.query('SELECT version,name FROM schema_migrations ORDER BY version')).rows,candidate.expected,27);report.afterCounts=await counts(client);await candidate.recheck();
+  // A second normal invocation must be an idempotent no-op, not rerun transformations.
+  stage='runner-idempotence';const noOp=await runMigrations(client,{migrationsDir:candidate.root+'/database/migrations'});assert.deepEqual(noOp.applied,[]);verifyLedger((await client.query('SELECT version,name FROM schema_migrations ORDER BY version')).rows,candidate.expected,27);await candidate.recheck();report.idempotentSecondRun={applied:[],exitCode:0};
+  report.intentionalTransformations=['0021 expires uncommitted legacy previews without deleting cards','0023 backfills/redacts legacy mention notification/outbox fields','0024 replaces live-column uniqueness and installs guards; no table/column dropped','0026 repairs referenced finalized-upload state'];report.countsLimit='Before/after counts are operational evidence, not snapshot equality: normal users and cron can write concurrently.';report.status='pass';report.exitCode=0;
+} catch(error) {report.status='fail';report.exitCode=1;report.stage=stage;Object.assign(report,safeFailure(error));process.exitCode=1;if(client)try{report.afterFailure=(await client.query('SELECT version,name FROM schema_migrations ORDER BY version')).rows;}catch{}report.failureInstruction='STOP. Inspect actual ledger and receipt. Do not blindly retry, downmigrate, delete a backup, or restore production.';}
+finally {if(client){if(locked)await client.query('SELECT pg_advisory_unlock(hashtext($1))',['flowboard_migrations']).catch(()=>{});await client.end().catch(()=>{});}}
+report.completedAt=new Date().toISOString();if(receiptPath)try{await writeReceipt(receiptPath,report);}catch(error){process.exitCode=1;report.status='receipt-write-failed';Object.assign(report,safeFailure(error));}
+console.log(JSON.stringify({status:report.status,exitCode:process.exitCode??report.exitCode,stage:report.stage,sourceCommit:report.sourceCommit,beforeCount:report.before?.length,afterCount:report.after?.length,applied:report.applied,errorClass:report.errorClass,safeCode:report.safeCode,productionTouched:report.productionTouched}));

@@ -1,0 +1,251 @@
+{
+  "schemaVersion": 1,
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "PROD-MCP-OPERATIONS-20261105"
+  ],
+  "criteriaPath": "docs/reviews/PROD-MCP-20261105/operations-review/criteria.json",
+  "startedAt": "2026-11-05T09:39:00+00:00",
+  "completedAt": "2026-11-05T09:37:17.985213+00:00",
+  "implementer": {
+    "actorId": "/root/production_preflight + /root",
+    "sessionId": "delegated-build:/root/production_preflight; root Architect authored release wrappers",
+    "model": "Codex builder and Architect; exact provider identifier not exposed"
+  },
+  "reviewer": {
+    "actorId": "/root/production_operations_review",
+    "sessionId": "delegated-review:/root/production_operations_review",
+    "model": "Codex GPT-6-family; exact provider identifier not exposed",
+    "independent": true,
+    "freshContext": true,
+    "implementedTarget": false,
+    "independenceEvidence": "docs/reviews/PROD-MCP-20261105/operations-review/reviewer-session.md"
+  },
+  "target": {
+    "kind": "sha256-manifest",
+    "scopeRoots": [
+      "AGENTS.md",
+      "RULES.md",
+      "BACKEND_REVIEW_GATE.md",
+      "package.json",
+      "package-lock.json",
+      "apps/api/src/adapters/migrations.ts",
+      "apps/api/src/adapters/embedded-migrations.ts",
+      "database/migrations",
+      "docs/reviews/PROD-MCP-20261105/operations",
+      "docs/reviews/PROD-MCP-20261105/production-db-preflight.json",
+      "docs/reviews/FULL-REVALIDATION-20261104/uat-preparation/migrations-d1c81f4.json",
+      "docs/reviews/HOSTED-MCP-20261104/release-dce1a67/migration-receipt.json",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json",
+      "docs/reviews/PROD-MCP-20261105/operations-review/criteria.json",
+      "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+      "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+      "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.test.mjs",
+      "docs/reviews/PROD-MCP-20261105/operations-review/reviewer-session.md",
+      "docs/reviews/PROD-MCP-20261105/operations-review/external-cli-source.json",
+      "docs/reviews/PROD-MCP-20261105/operations-review/initial-source-manifest.json",
+      "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+      "docs/reviews/PROD-MCP-20261105/operations-review/check-continuity.py",
+      "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log",
+      "docs/reviews/PROD-MCP-20261105/operations-review/syntax.log"
+    ],
+    "files": {
+      "AGENTS.md": "bf7c181f0c141efa14e3c922099be8ad3e5273da3d55bddc06ae242fda37944b",
+      "RULES.md": "858d742feea5e201600595e117b1d53b05e189be8665757d922dc989ad0390b1",
+      "BACKEND_REVIEW_GATE.md": "21e021ab590c25f4b275aa2a7aac82b85f4b8e24bfd54d42286cb48e6c729718",
+      "package.json": "5851e47610b0d8cf8243284a3bf560921c2354be8dd749d154abd40bb27d5f67",
+      "package-lock.json": "0cc6d642c570f70362b91d0db7534dfb1405683b1cd33704997fabf361be795b",
+      "apps/api/src/adapters/migrations.ts": "712e4719767819f3306f835cc26c23bfa06b9cb702fc8e0a1ba01e51f1612bf4",
+      "apps/api/src/adapters/embedded-migrations.ts": "2b60c1e71a0deaf60025b9c9676de3929a29da60491c51c5328574c42d587638",
+      "database/migrations/0001_initial.sql": "31f1e2e889951dc35e1dd141b91c3a357ebee22043916d9c08b601b3c9d40293",
+      "database/migrations/0002_sessions.sql": "9fc47e82a74928ea9fa52cb2e9f7403f823874bc5b4d0ec5b7b1ccb338c63405",
+      "database/migrations/0003_constraints.sql": "84278975a601c45573f61cfbf70a2018bc18e89b9f10c63132f94b6a0fc5ef97",
+      "database/migrations/0004_minimal_idempotency_receipts.sql": "d13a2d85264d76cf49ad9b9351e6cbdfeb792afdce6c4a423f48f2c6149bfbf9",
+      "database/migrations/0005_card_images.sql": "983a46376d7fb68243629deff8b5230835a6f1b98268870badb81f6a26b80546",
+      "database/migrations/0006_retryable_storage_cleanup.sql": "f40d3369ef3748c1ec37310f601e4c4995b76b9ad1d83cb08311a2e2a4bff2e8",
+      "database/migrations/0007_board_grants.sql": "affe269525fd76557447d8b688515d4c992bb655930abd4c9c4e1b52d3bc95a9",
+      "database/migrations/0008_board_activity_scope.sql": "267937f35457a9a6a75bd7a1c5547d4a2a369fba7362c1d119a3863f8d869335",
+      "database/migrations/0009_card_keys_and_key_prefix.sql": "e4f47bbc9048740c0770618f27ea7861a7448d91bf8363bd34541e075ddda37e",
+      "database/migrations/0010_column_tone.sql": "cbbc147db850dfb1cd284f9a8c9eff5707241ec1b99909970cef709bdb7152a5",
+      "database/migrations/0011_rate_limit_windows.sql": "5bd04d028c0079ed91e051eece8b0b75eeba652e63f5db854514da2d07048292",
+      "database/migrations/0012_user_last_location.sql": "c529ba1c52c1c2d4df87aecf1b6d91caca9298ac0b15def306c451d28489a898",
+      "database/migrations/0013_board_description_default_board.sql": "ac03d154d2101d4334c903f9e4011ffeb169afa2b00619eabc606309953db963",
+      "database/migrations/0014_project_brief_links.sql": "134c772c1d13ed05647e22472f984fefabc8f19c18219c6de1ab1dffde8e0ce1",
+      "database/migrations/0015_project_links_workspace_fk.sql": "3e6d54ba08b17561f93fe37b03fdf395345c48e2b44c4fc2d97e3f4508660e19",
+      "database/migrations/0016_staged_upload_cleanup.sql": "f83d98233093803513480aa5fb2ae8da01857187103da3a4401f0b7fceb7b4b2",
+      "database/migrations/0017_audit_round_b14.sql": "ef2c1468e4c3a9c5d29eef5a575903ab1dc7050e2f75c65875075aa03fe6d663",
+      "database/migrations/0018_user_names.sql": "887f41636de9c879fbd989d8280969be237daef599dbb45cc9a569e82e1e06a1",
+      "database/migrations/0019_personal_workspace_backfill.sql": "05f450ad0f197a4c54a270d01da14e7dc1a96037652ae1968cee4b58d3ea8430",
+      "database/migrations/0020_personal_access_tokens.sql": "ea31e73a873ce56f38954c45f498c2e9d2dc888f4ca97a4efce4d7c1d1c4f488",
+      "database/migrations/0021_import_payload_retention.sql": "869edfe6ea5fc658d04b7e9c16a73286512e13f6c0d0765d702b37b3d8f41123",
+      "database/migrations/0022_invitation_history_indexes.sql": "cc8c0ea88e27514dbd2c6bce8faf1de0c381c1177ca692298eaa9994e84535a8",
+      "database/migrations/0023_comment_notification_sources.sql": "6c34b5f1103c1728d23f51d5b38485d47d667d83c5b166349ef88fd2f9cc1aa1",
+      "database/migrations/0024_soft_columns.sql": "980ec98edbfa3e071690454d1042bc56f2e28aad154e364d78c5ecb62a9474f8",
+      "database/migrations/0025_import_activity_receipt.sql": "1888665559aa7d2369f8a50021cab5c441ed2f356be2aa679e5838063e4bcf46",
+      "database/migrations/0026_finalized_upload_terminal_state.sql": "82869c5e98a27224af883b89c4959349edc141057c472950caef74a0a067ff47",
+      "database/migrations/0027_hosted_mcp_oauth.sql": "067ee87e4e41d837e74a15424ba0e0db254989c3f3f05713b3019c539a3a0afd",
+      "docs/reviews/PROD-MCP-20261105/operations/README.md": "77eb73b4890266a0d4bee6f20d3a789742d7f41090b1080fc4d7fb41a7c1f237",
+      "docs/reviews/PROD-MCP-20261105/operations/backup-prod-branch.mjs": "94716e1e0ab9309a7af878c95abcbf54961a45c9bb15c82d0eb7bc9550ea9934",
+      "docs/reviews/PROD-MCP-20261105/operations/migrate-prod.mjs": "0a3996cf68b706d8a08fc31ac6df5d105e4aaab5fdd69c304681e3f0ec5c2767",
+      "docs/reviews/PROD-MCP-20261105/operations/migration-manifest.json": "763241871a838902303ec2ae5fc1a34777d32120393cab1dbb989f5c47b3600f",
+      "docs/reviews/PROD-MCP-20261105/operations/operations.test.mjs": "e0a2c309ac4887196e8afaca29fb15b7e761bfe0d30a0f309769dac828201790",
+      "docs/reviews/PROD-MCP-20261105/operations/prod-guards.mjs": "daea33a0df445d2a0a2757570732a49430c15400cafe79fc5ebfd048a05e96cd",
+      "docs/reviews/PROD-MCP-20261105/operations/unit-tests.log": "e681fafa6ea5264d0bb632c6880cb471d2d88f363ced22432c74390aac609931",
+      "docs/reviews/PROD-MCP-20261105/production-db-preflight.json": "879e1d9438c342515a4e4880756dbae457cfc98385bf21e822f456d399becdbe",
+      "docs/reviews/FULL-REVALIDATION-20261104/uat-preparation/migrations-d1c81f4.json": "7aa436f031600a9243b5d8838e916ea972d0f7bedd4afb1fb38e77853a2e688a",
+      "docs/reviews/HOSTED-MCP-20261104/release-dce1a67/migration-receipt.json": "25d72540589b161fe62c109c4e639c86c8c5eb853224b1b07013e87153c77151",
+      "docs/reviews/HOSTED-MCP-20261104/independent-backend-review/f8dd31431a65dd6b28ca238f6060a55b2ccfacfe7372f15a9b0ca44116a42421-final-manual-round-4.json": "002fbf70e968d64ac2915e1b2e040cf568685d6ff16ccff41ba69f20271b9390",
+      "docs/reviews/PROD-MCP-20261105/operations-review/criteria.json": "1b454fd2a778d1362c45ff1299a37e13a72a71af62cfff2010b7dfcd14432889",
+      "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md": "ea7f06e9e4ed971a73dd1a676862ac826210bbb3555a3a909eda7a606737f127",
+      "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log": "91cccbde23b96635ca354d59d4a32dfadc56808b85c10afb426ae3da1c3b7929",
+      "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.test.mjs": "4e3072599ac1ba11a7023b5d986dd1d22526877bf2640a5f65778a0f5ef409ba",
+      "docs/reviews/PROD-MCP-20261105/operations-review/reviewer-session.md": "8a55022d62a3fb4200c57960f6d7ef7a20b8c546d405cc3e12445431d412b73d",
+      "docs/reviews/PROD-MCP-20261105/operations-review/external-cli-source.json": "5bbf0dfed951ecdd3283bb488f734ecfb63c7c046dc55d630e085ec7c1f27f65",
+      "docs/reviews/PROD-MCP-20261105/operations-review/initial-source-manifest.json": "45401b46549e385f87b2044661ffdef52e3bf4e77dcd6c3133a0fac501756cab",
+      "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log": "fdf131827fa616f60b58bff82b75db5235b01013cdc04f5dbf138e275065c9b1",
+      "docs/reviews/PROD-MCP-20261105/operations-review/check-continuity.py": "b8c1b42191d4a29ea28bb1e6dd7c9e461ab03ce3d1f799d7650c4807805fa5ac",
+      "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log": "849f2f0bd79b4326d53ceedff80c14efa7d5df7b03342a245046fd34c5202c70",
+      "docs/reviews/PROD-MCP-20261105/operations-review/syntax.log": "b87bfa571cc6523974b6e716165f447442ea38ebc35c95c2230d8593fa45dd3f"
+    },
+    "digest": "4b5ce36d8e7bb85e722e7626f1531ae930d9283cdbc48955bdb3dbbc115c27e9"
+  },
+  "criteriaResults": {
+    "C1: Helpers pin exact production project/branch/direct endpoint/database/role and require explicit root gate, exact clean detached candidate plus canonical 27 migration filenames/hashes in filesystem and committed bytes.": "pass",
+    "C2: Backup creation uses current-production child data mode, unique name, no compute/secrets, rereads parent/ready/new creation time and endpoints; quota/error stops without delete/local-data fallback. Migration requires fresh same-SHA successful backup receipt and provider branch rereads.": "pass",
+    "C3: Migration checks exact 19-entry ledger and normalized-column conflicts under outer normal-runner advisory lock, applies exactly20-27 with normal per-file transactions, verifies27 and second-run no-op, reports safe failure and no blind partial resume.": "pass",
+    "C4: Whitelist child environment, capture diagnostics privately, do not output credentials/application content, bounded timeouts and safe receipts. No restore/downmigration, production storage lifecycle changes, or automatic destructive fallback.": "pass",
+    "C5: Pure local synthetic guard/syntax tests pass; normalrunner/migration bytes match retained independent review and historical UAT19-26-27 proofs; limitations distinguish review/source evidence from new PostgreSQL, restore and production execution proof.": "pass"
+  },
+  "tests": [
+    {
+      "id": "unit",
+      "command": "node --test docs/reviews/PROD-MCP-20261105/operations/operations.test.mjs",
+      "exitCode": 0,
+      "environment": "Local Node; pure synthetic fake-client or temporary Git fixture, no network/DB/credentials",
+      "isolatedSynthetic": true,
+      "targetDigest": "4b5ce36d8e7bb85e722e7626f1531ae930d9283cdbc48955bdb3dbbc115c27e9",
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log"
+    },
+    {
+      "id": "candidate",
+      "command": "node --test docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.test.mjs",
+      "exitCode": 0,
+      "environment": "Local Node; pure synthetic fake-client or temporary Git fixture, no network/DB/credentials",
+      "isolatedSynthetic": true,
+      "targetDigest": "4b5ce36d8e7bb85e722e7626f1531ae930d9283cdbc48955bdb3dbbc115c27e9",
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log"
+    },
+    {
+      "id": "syntax",
+      "command": "node --check docs/reviews/PROD-MCP-20261105/operations/prod-guards.mjs && node --check docs/reviews/PROD-MCP-20261105/operations/backup-prod-branch.mjs && node --check docs/reviews/PROD-MCP-20261105/operations/migrate-prod.mjs",
+      "exitCode": 0,
+      "environment": "Local Node; pure synthetic fake-client or temporary Git fixture, no network/DB/credentials",
+      "isolatedSynthetic": true,
+      "targetDigest": "4b5ce36d8e7bb85e722e7626f1531ae930d9283cdbc48955bdb3dbbc115c27e9",
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/operations-review/syntax.log"
+    },
+    {
+      "id": "continuity",
+      "command": "python3 docs/reviews/PROD-MCP-20261105/operations-review/check-continuity.py",
+      "exitCode": 0,
+      "environment": "Local Node; pure synthetic fake-client or temporary Git fixture, no network/DB/credentials",
+      "isolatedSynthetic": true,
+      "targetDigest": "4b5ce36d8e7bb85e722e7626f1531ae930d9283cdbc48955bdb3dbbc115c27e9",
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+    }
+  ],
+  "categories": {
+    "security": {
+      "weight": 30,
+      "score": "9.0",
+      "reason": "Fixed target and explicit gate; negative candidate/receipt/env/secret tests; no application endpoint/auth changes. Root operator and clean dependency install remain trusted.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    },
+    "correctness": {
+      "weight": 25,
+      "score": "8.8",
+      "reason": "Actual wrappers wire exact candidate, backup and ledger checks through normal runner; local guard behavior verified. Actual provider execution is deliberately outside approval.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    },
+    "integrity": {
+      "weight": 15,
+      "score": "8.8",
+      "reason": "Same-session nested advisory lock and normal per-file DDL/ledger transactions; failure stops at committed prefix.27migration and runner byte continuity confirmed; no new realDB claims.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    },
+    "tests": {
+      "weight": 15,
+      "score": "8.7",
+      "reason": "15unit plus2independent temporary-Git cases,3syntax and exact historical continuity all pass; tests explicitly do not execute PostgreSQL SQL or exercise liveprovider.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    },
+    "maintainability": {
+      "weight": 10,
+      "score": "8.5",
+      "reason": "Small release-specific helpers reuse canonical runner; denseJS and hardcoded externalCLI path reduce portability. External implementation hashes preserved.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    },
+    "operations": {
+      "weight": 5,
+      "score": "8.3",
+      "reason": "Bounded timeouts, safe exclusive receipts, quota refusal and no destructive fallback; counts/concurrent writes and lost-response ambiguity disclosed. Full restore and deploy observation outside scope.",
+      "evidencePaths": [
+        "docs/reviews/PROD-MCP-20261105/operations-review/source-review.md",
+        "docs/reviews/PROD-MCP-20261105/operations-review/unit-tests.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.log",
+        "docs/reviews/PROD-MCP-20261105/operations-review/continuity.log"
+      ]
+    }
+  },
+  "weightedScore": "8.79",
+  "findings": [
+    {
+      "id": "OPS-N1",
+      "severity": "low",
+      "description": "Installed Neon CLI internally retries HTTP423 locks despite broad README wording no retry. It does not retry quota/transport errors; helper contains no automatic alternative.",
+      "disposition": "open",
+      "rationale": "Nonmandatory documentation precision accepted by Architect; source-review records exact semantics. Do not claim zero internal HTTP retries.",
+      "mandatory": false,
+      "blocking": false
+    }
+  ],
+  "hardBlockers": [
+    "Review metadata had future start timestamp; procedural validator rejected timestamps reversed. No source failure."
+  ],
+  "coverageGaps": [],
+  "verdict": "incomplete",
+  "scopeVerdict": "Prepared helper source/guard approval only; full production promotion remains incomplete until separate actual receipts.",
+  "remainingReleaseGates": [
+    "Exact approved final SHA CI and clean immutable artifacts with dependencies applied/verified",
+    "Fresh actual data-bearing production child backup and provider endpoint reread; refuse quota without unauthorized delete/local-copy fallback",
+    "Explicit treatment of0021/23/24/26 transformations under expand-contract policy and prior-production-code rollback compatibility",
+    "Actual guarded production migration and ledger/idempotence receipts",
+    "UAT-first then production deploy IDs/module/source/static byte proof, anonymous smoke and15-minute observation",
+    "Owner production sign-in/Claude card-create/disconnect acceptance; no restore/least-privilege/uptime-alert claim"
+  ]
+}

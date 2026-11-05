@@ -1,0 +1,20 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "PROD-MCP-OPERATIONS-20261105"
+  ],
+  "mandatoryCriteria": [
+    "C1: Helpers pin exact production project/branch/direct endpoint/database/role and require explicit root gate, exact clean detached candidate plus canonical 27 migration filenames/hashes in filesystem and committed bytes.",
+    "C2: Backup creation uses current-production child data mode, unique name, no compute/secrets, rereads parent/ready/new creation time and endpoints; quota/error stops without delete/local-data fallback. Migration requires fresh same-SHA successful backup receipt and provider branch rereads.",
+    "C3: Migration checks exact 19-entry ledger and normalized-column conflicts under outer normal-runner advisory lock, applies exactly20-27 with normal per-file transactions, verifies27 and second-run no-op, reports safe failure and no blind partial resume.",
+    "C4: Whitelist child environment, capture diagnostics privately, do not output credentials/application content, bounded timeouts and safe receipts. No restore/downmigration, production storage lifecycle changes, or automatic destructive fallback.",
+    "C5: Pure local synthetic guard/syntax tests pass; normalrunner/migration bytes match retained independent review and historical UAT19-26-27 proofs; limitations distinguish review/source evidence from new PostgreSQL, restore and production execution proof."
+  ],
+  "requiredTests": {
+    "unit": "node --test docs/reviews/PROD-MCP-20261105/operations/operations.test.mjs",
+    "candidate": "node --test docs/reviews/PROD-MCP-20261105/operations-review/candidate-guard.test.mjs",
+    "syntax": "node --check docs/reviews/PROD-MCP-20261105/operations/prod-guards.mjs && node --check docs/reviews/PROD-MCP-20261105/operations/backup-prod-branch.mjs && node --check docs/reviews/PROD-MCP-20261105/operations/migrate-prod.mjs",
+    "continuity": "python3 docs/reviews/PROD-MCP-20261105/operations-review/check-continuity.py"
+  },
+  "scopeAndExclusions": "Exact restatement of preimplementation PLAN/preflight and parent review assignment; no acceptance weakening. Bounded prepared-helper source approval only. Root retains release authority and separately requires final source CI, clean artifacts, fresh actual production backup/provider endpoint reread before apply, migration receipt, UAT-first promotion, deployments/smoke/observation and owner acceptance. No provider commands, credential access or production/local database operations by reviewer. Fake clients do not execute PostgreSQL SQL. Historical UAT and product reviews are corroborating exact-byte provenance, not rerun tests. No actual restore, new production compatibility test, final release approval, least-privilege claim or uptime-alert proof."
+}

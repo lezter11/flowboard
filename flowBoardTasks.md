@@ -1,8 +1,23 @@
 # Flowboard working checklist
 
-Updated 2026-11-04. **Hosted connector is deployed to UAT at `dce1a67`; real owner acceptance is next.** This sequence complements [TASKS.md](TASKS.md), the 98 product definitions and their [generated local checklist](docs/FEATURE_CHECKLIST.md).
+Updated 2026-11-05. **Prompt help is deployed to UAT at `40e51e1`; production is held at the fresh-backup gate.** This sequence complements [TASKS.md](TASKS.md), the 98 product definitions and their [generated local checklist](docs/FEATURE_CHECKLIST.md).
 
 ## Current release checklist
+
+- [x] Record owner-reported hosted UAT connector success and explicit production request; do not infer unspecified test substeps.
+- [x] Add selectable/copyable card prompt in Settings → Connections; mark required/optional details, manual assignment and Claude browser-connector limit.
+- [x] Pass fresh scoped source review9.065 and production-helper review8.79, validators and immutable manifests.
+- [x] Pass one final [CI42003364732](https://github.com/lezter11/flowboard/actions/runs/42003364732): all22steps, API1,926/1,926, hosted browser24. No duplicate branch run.
+- [x] Build clean immutable UAT/production stages; exact Worker body matches the previously wire-tested artifact; both upload dry runs pass.
+- [x] Upload new UAT Pages0df2875d; retain identical UAT Worker7aa27279; verify provider source/binding and anonymous smoke17/17.
+- [ ] Obtain fresh production backup. Neon rejected creation because branch quota is full; explicit permission pending to delete **only** old restore point `uat-backup-2026-10-28` (`br-lingering-field-a1hfhs5o`) and its separate backup compute. No deletion has occurred.
+- [ ] Execute reviewed production migrations20–27 after backup, exact ledger/data checks and immutable-source verification.
+- [ ] Deploy and verify production Worker/Pages, run bounded smoke and15-minute redacted monitoring, then promote Git main without duplicate CI for identical application source.
+- [ ] Record owner production Google/Claude/tool/disconnect acceptance; newly added prompt UI signed-in acceptance also remains an owner check.
+
+**Start here:** [current release evidence and resume steps](docs/reviews/PROD-MCP-20261105/SUMMARY.md), [short colleague setup and sample prompt](docs/HOSTED_MCP_QUICKSTART.md). Docker stayed off; the laptop may close while production awaits permission. Production remains on its prior release; company client-credentials and MCP card updates are separate work.
+
+## Earlier connector baseline — dce1a67, 2026-11-04
 
 - [x] Implement hosted Google browser sign-in, one-project consent and personal Connections UI; preserve the five discover/search/create tools.
 - [x] Repair the original Linux XLSX boundary failure without changing its 1,000 ms budget, workbook or security assertions.

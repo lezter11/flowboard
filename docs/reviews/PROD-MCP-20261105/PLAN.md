@@ -25,10 +25,10 @@ UI builder owns apps/web plus HOSTED_MCP_QUICKSTART. Preflight agent is read-onl
 
 - [x] UAT connector acceptance reported by user (unspecified substeps; no invented refresh/revocation coverage).
 - [x] Read-only Cloudflare preflight and production database ledger (19 existing migrations).
-- [x] Sample prompt implemented; builder reports web344 and local isolated clipboard/layout probe. Architect/fresh review still required.
-- [ ] Fresh independent delta review and Architect evidence checks.
-- [ ] Final candidate CI and clean artifacts.
-- [ ] Fresh production backup; exact pending migration rehearsal/preflight and application.
-- [ ] UAT upload and bounded smoke.
+- [x] Sample prompt implemented; web344 and real isolated clipboard/layout probes pass, including fresh reviewer checks.
+- [x] Fresh independent delta review9.065 and helper review8.79; Architect validators/hash/evidence checks pass.
+- [x] Final candidate40e51e1 CI42003364732 all22steps/API1,926/hosted24; clean artifacts and exact dry runs pass.
+- [ ] Fresh production backup; exact pending migration preflight and application. Backup creation failed with branch-quota-blocked; explicit permission pending to delete only the named old UAT restore point. No production mutation performed.
+- [x] UAT Pages0df2875d upload and bounded smoke17/17; identical UAT Worker retained.
 - [ ] Production upload, byte/source verification, smoke and monitoring.
 - [ ] Owner production acceptance and concise colleague instructions.
