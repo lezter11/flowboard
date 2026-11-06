@@ -21,6 +21,6 @@
 - [x] Complete900.001sec/15ok/2scheduled/0CPU/0exceptions/0HTTP5xx; oneexactknownidlePGlabel retainedasneeds-inspection withscopedArchitectdisposition and unresolvedfollowup.
 - [x] PublishfinalPagesd050inactive; realprodChromeactive→inactive/sameDocument/cleanup/0credentialheaders/errors; exactflagfalse/noStore andpayloadrehash; postreadonlyledger27pass. Ownerprodtestdeferred.
 - [x] Prepare final production guide, evidence, independent release audit and unchanged-runtime metadata promotion bundle.
-- [ ] Confirm final Gitmain/uat refs after publishing the documentation commit; no duplicate CI. The final push receipt is created after this commit.
+- [x] Confirm final Git main/uat refs: both verified at `6f303964fa95889221ada80b1f7451dc4c01de37` after atomic publication, exit 0. See `final-push.json`. Application source remains D6; metadata-only closure uses `[skip ci]` and needs no duplicate CI.
 
 **Risks/review focus:** HTML/reacthydration; viewportanchoredheaders/rail/drawers; racingpolls/unmount; malformed/oversized/stalledstatus; stalecacheonflagclear; oldopenclientswithoutcomponent; inactivefiledeploymentfailure; helperreceiptuncertainty; stalebackup/changedNeonancestry; APIresource regression. Statuswarningisnotanauthorizationormaintenancelock.
