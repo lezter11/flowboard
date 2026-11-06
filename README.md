@@ -10,7 +10,7 @@ Flowboard is a customizable team Kanban application. Projects contain boards, bo
 2. **[Project map](docs/PROJECT_MAP.md)** — which checkout to edit, where code lives and how documentation is organized.
 3. **[MCP provenance](docs/MCP_PROVENANCE.md)** — original implementation, subsequent repairs and future capabilities.
 
-**Current release, 2026-11-06:** Owner confirms the repaired UAT connector works and approved the exact old-backup deletion. The requested rollout banner now passes local scoped9.04 and composed8.945 reviews; the generated98Backend/74UI/98localIntegration checklist has fresh source bindings. One new exact-candidate CI and hosted rollout gates remain pending. Production remains on its restored previous version; ledger27 is retained, no migration rerun. Docker stays off. [Current checklist](docs/reviews/PROD-MCP-20261106/CHECKLIST.md).
+**Current release, 2026-11-06:** [Production](https://flowboard-app.pages.dev) now serves application `d6e3674`, including the hosted Claude connector, sample prompt and reusable rollout banner. The banner was shown during verification and is now off. Exact Worker/Pages source, all22CIsteps and the15-minute observation pass the scoped release gates; one preexisting idle-database warning stays unresolved and disclosed. Owner production sign-in/Claude testing remains deferred. [Short production setup](docs/HOSTED_MCP_PRODUCTION.md), [actual evidence and limits](docs/reviews/PROD-MCP-20261106/SUMMARY.md). Docker and local observation/browser jobs are stopped.
 
 ## Source layout
 

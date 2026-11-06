@@ -1,0 +1,48 @@
+{
+  "verdict": "operator-static-review-pass",
+  "scope": "Independent read-only review of dated snapshot helper adaptation, not actual database/runtime/release approval",
+  "reviewer": "/root/production_operations_review",
+  "implementedAdaptation": false,
+  "at": "2026-11-06T06:26:00.660547+00:00",
+  "files": {
+    "docs/reviews/PROD-MCP-20261106/snapshot-production-db.mjs": "653814ab2356f7655f1e52d7a2c5bb52cb68477b31800ed73b5ca24d7dd2cf29",
+    "docs/reviews/PROD-MCP-20261105/snapshot-production-db.mjs": "43a358f1a64fd8ab29ee4ffc0ebaf77d468808d40677600204268441418e9976",
+    "docs/reviews/PROD-MCP-20261105/operations/prod-guards.mjs": "daea33a0df445d2a0a2757570732a49430c15400cafe79fc5ebfd048a05e96cd",
+    "docs/reviews/PROD-MCP-20261105/operations/migration-manifest.json": "763241871a838902303ec2ae5fc1a34777d32120393cab1dbb989f5c47b3600f",
+    "node_modules/pg/package.json": "b1e53333a3d0c2c47c49a5cb919d221135dc03145df740925b899bc2baacc435"
+  },
+  "pgVersion": "8.23.1",
+  "exactStatedDeltaOnly": true,
+  "checked": [
+    "Import path resolves the same held production connection/error guard and adds the existing exact-ledger verifier",
+    "Phase accepts only predeploy/postdeploy and outputs a new exclusive dated-folder receipt",
+    "Ledger read compares27 ordered version/name pairs against recorded canonical manifest instead of only counting",
+    "Connection guard pins project, production branch/name, one direct read-write endpoint/host, database/role/port and verify-full TLS; no pooler endpoint substitution",
+    "Connection10s and per-statement10s timeouts retained",
+    "BEGIN READ ONLY and transaction_read_only=on check precede all ledger/aggregate reads; rollback/end retained",
+    "pg_stat_activity query selects only counts, excludes own PID; no query text, SQL bodies, customer IDs, cookies or credentials selected/persisted",
+    "Cards/images/projects/boards are aggregate counts only; failures serialize existing sanitized class/code/status fields, no raw error message/connection URI",
+    "New receipt is exclusive wx; existing receipt cannot be overwritten; no backup/migration/deployment calls added"
+  ],
+  "mandatoryFindings": [],
+  "tests": [
+    {
+      "command": "node --check docs/reviews/PROD-MCP-20261106/snapshot-production-db.mjs",
+      "exitCode": 0,
+      "kind": "syntax only; no module evaluation"
+    }
+  ],
+  "reviewerExecutedImportsOrMain": false,
+  "reviewerDatabaseOrCredentialCalls": 0,
+  "reviewerProviderOrCloudCalls": 0,
+  "limits": [
+    "At actual root execution connection() obtains connection material privately in memory; this reviewer did not call/import it",
+    "Read-only transaction uses default isolation; separate aggregate queries are not one immutable data snapshot and cannot prove row/content equality",
+    "Exact ledger names/versions do not themselves prove stored SQL checksums or full current schema correctness",
+    "Metrics observe other sessions; concurrent normal application/cron activity can change counts",
+    "Root must require completed report/exit and unused phase receipt before executing; wx protects overwrite but is checked on final write after reads",
+    "Actual pre/post values and provider identity at execution remain unverified until root receipts exist",
+    "No formal backend score or final release/backup/Owner acceptance is implied"
+  ],
+  "initialPreflight11FilesUnchanged": true
+}

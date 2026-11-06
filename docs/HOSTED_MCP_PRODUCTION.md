@@ -1,6 +1,6 @@
 # Flowboard in Claude: production connection setup
 
-**Promotion is currently rolled back after CPU-limit failures. These setup steps are for the next approved production release; do not retry production yet.** The existing hosted UAT connector remains separate. [Current incident](reviews/PROD-MCP-20261105/CPU-INCIDENT.md).
+**Production is deployed (2026-11-06), and the rollout banner is now off.** UAT remains a separate connection. The Owner has deferred the real production Google/Claude test, so the steps below are ready for that test rather than a claim that it has already passed. [Release evidence](reviews/PROD-MCP-20261106/SUMMARY.md).
 
 No Terminal, API token, client secret or local server is needed. Hosted browser sign-in currently supports **Claude**. Production uses its own connection, users, projects and data; a UAT approval does not connect you to production.
 

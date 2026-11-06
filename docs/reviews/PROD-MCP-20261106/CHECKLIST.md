@@ -13,13 +13,14 @@
 - [x] Rootsource/diff/screenshots inspection plus350webtests/type0/isolatedsanitizedstaticbuildround2pass withheldsourceunchanged; failedisolatedbuildfixture TSresolution preserved. IndependentactualstatusGET/HEAD/missingquery/cache/APIfastpath pass.
 - [x] Fresh scopedindependentreview9.04/1231files/11criteria, allfloors/no blockers/rootvalidatorPASS.
 - [x] Composedindependentglobal8.945/100IDs/168criteria/1242files; rootvalidatorpass; newownerphase98Backend/74UI/98localIntegration,1570refs/17changedCSSrefs/270newroles/270preservedsnapshots. Independentpostconsumeauditpass,46fulltestrows preserved; notblankethostedacceptance.
-- [ ] Commit reviewedcandidate; oneexactfinalGitHubCI run only; no speculativeActionsloop.
-- [ ] Preparecleanexactartifacts and explicitactive/inactive statusoverlays/manifests; onlystatusobjectdiffers betweenreadyPagesvariants; no ignoredsecrets.
-- [ ] DeployexactUAT candidateafterCI; boundedstaticsmoke/status/banner/runtimeverification; recordOwnerreportedpriorUATacceptance separately.
-- [ ] Freshpreproductiontarget/version/config/Neonledger27 check. Run onlyexactapproveddelete aftergates withreviewedhelper; preservebefore/afterbranch/endpointssets andreceipt. Freshdatabearingno-computeproductionbranchsnapshot; no migrations or restore.
-- [ ] UploadexactWorker andbanner-activePages, verifydeployedbytes/config/source/status. RecordpreviousrollbackIDs.
-- [ ] Complete15-minuteactualproductionobservation; CPU/uncaught/newerror/jobfailures triggercodefirstrollback. KnownidlePGbaselinewarning remainsopenwithcountandexplicitdisposition, neverrewritestrictreportgreen.
-- [ ] Publishsame-reviewedPagesvariantwithstatusinactive; verifycanonicalstatusoff and unchangedapplicationassetbytes; productionOwnerGoogle/Clauderemainsdeferred.
-- [ ] PromoteGitmainandpublish evidence/checkpointwithoutduplicateCI; updateguide/currentoperator docs andfinaluserresult/limits.
+- [x] Commit/pushD6 and passsingleCI42173052691 all22steps; no speculativeActionsloop.
+- [x] Prepare/rehashexactcleanartifacts and4statusvariants158files; onlystatusdiffersperenv, actual4sharedstagerlibfilespreserved. IndependentartifactauditPASS; operatorfix/failure preserved.
+- [x] DeployUATD6Pages,18smokePASS,actualsame-documentbannerretetPASSafterpreserveddeadlinefailure,exactoffflag/noStore;90secAPI12ok/0CPU/0exceptions plus prior900sec/Cron andOwnerreport explicitlyseparate.
+- [x] Freshprodanchors/cacheoff/readonlyledger27 checks; exactapprovedOct29delete10→9preservingothers, freshbr-misty-band-a141u8yh ready/full/no-compute; no migration/restore.
+- [x] UploadWorkercc432/Pages8d2active,exact9BCbody/D6source/correctprodprivatebindings; previousrollbackanchors756fd/876e preserved.
+- [x] Complete900.001sec/15ok/2scheduled/0CPU/0exceptions/0HTTP5xx; oneexactknownidlePGlabel retainedasneeds-inspection withscopedArchitectdisposition and unresolvedfollowup.
+- [x] PublishfinalPagesd050inactive; realprodChromeactive→inactive/sameDocument/cleanup/0credentialheaders/errors; exactflagfalse/noStore andpayloadrehash; postreadonlyledger27pass. Ownerprodtestdeferred.
+- [x] Prepare final production guide, evidence, independent release audit and unchanged-runtime metadata promotion bundle.
+- [ ] Confirm final Gitmain/uat refs after publishing the documentation commit; no duplicate CI. The final push receipt is created after this commit.
 
 **Risks/review focus:** HTML/reacthydration; viewportanchoredheaders/rail/drawers; racingpolls/unmount; malformed/oversized/stalledstatus; stalecacheonflagclear; oldopenclientswithoutcomponent; inactivefiledeploymentfailure; helperreceiptuncertainty; stalebackup/changedNeonancestry; APIresource regression. Statuswarningisnotanauthorizationormaintenancelock.

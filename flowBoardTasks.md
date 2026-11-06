@@ -1,5 +1,7 @@
 # Flowboard working checklist
 
+2026-11-06 **PRODUCTION LIVE / BANNER CLEARED**: exact applicationD6 (d6e36744da584579dbd99203eb4607dafe60e22b), CI42173052691 all22pass, finalWorkercc432/9BC andPagesd050/D6/APIprod verified. Requestedbanneractive duringverification andsame-pageoffclearPASS;15minuteobserved15ok/2scheduled/0CPU/0exceptions/oneknownidlePGlabel unresolved(strictneeds-inspectionkept). Exactapprovedoldbackupdeleted+freshbr-misty-band snapshotready, ledger27readonlypre/post/no migrations.98Backend/74UI/98localIntegration review8.945current; productionOwnerGoogle/Claudetestdeferred. GitHubmetadata-onlypromotion is finaloperatorstep. [Release summary](docs/reviews/PROD-MCP-20261106/SUMMARY.md). Earlierstateshistorical.
+
 Currentlocalgate2026-11-06: banner9.04/global8.945 independentreviews and generated98Backend/74UI/98localIntegration are current; historicalexecutionmetadata remains honest. NewexactCI and hostedrollout remain separate. Follow [dated live checklist](docs/reviews/PROD-MCP-20261106/CHECKLIST.md).
 
 Current2026-11-06: Owner confirms UAT working and approves ONLY Oct29-d6backup/itsowncompute deletion thenfreshproductionbackup. Newrequestedrolloutbanner is beingimplemented/reviewed in parallel withreadonlypreflight. No deletion/deploy today yet. [Current dated checklist](docs/reviews/PROD-MCP-20261106/CHECKLIST.md), [Owner decisions](docs/reviews/PROD-MCP-20261106/OWNER-DECISIONS.md). Earlier dated states below are historical.
