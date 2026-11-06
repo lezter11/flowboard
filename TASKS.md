@@ -1,5 +1,7 @@
 # Flowboard ordered tasks
 
+Current2026-11-06 authorized work: finish rolloutbanner, freshUIreview/relevantlocalchecks/onefinalCI, verifyUAT, executeONLYnewlyapprovedexactOct29backupdeletion+freshproductionbackup, deployproductionwithbanner, monitor/clearflag. OwnerUATreport recorded; actualproductionacceptance remainsdeferred. [Current checklist](docs/reviews/PROD-MCP-20261106/CHECKLIST.md). Earlier pending-permission states below are historical; do not ask exactapproval again.
+
 Current2026-11-05: CPU repairf32eafa has fresh local approvals9.09/8.92, all22CIsteps pass, exact UAT Worker/Pages uploaded and anonymous17/17 pass. Completedanonymous/scheduled UATobservation14ok/0CPU/0exceptions/1baselinewarning; signed-in runtime and fresh production backup gates remain pending. Production stays rolledback; ledger27 retained. Docker is stopped. [Current checklist](docs/reviews/PROD-MCP-20261105/cpu-release-f32eafa/RELEASE-CHECKLIST.md). Earlier entries are historical.
 
 ## Active: repair CPU termination before production reattempt — 2026-11-05

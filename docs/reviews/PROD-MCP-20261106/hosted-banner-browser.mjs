@@ -1,0 +1,129 @@
+// Bounded anonymous Chrome observation. No provider sign-in, credentials or app writes.
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { chromium, expect, request as requestAPI } from '@playwright/test';
+
+const BASE = fileURLToPath(new URL('.', import.meta.url));
+export function configuration(argv) {
+  assert.equal(argv.length, 4);
+  assert.equal(argv[0], '--target'); assert.equal(argv[2], '--label');
+  const target = argv[1], label = argv[3];
+  assert.ok(target === 'uat' || target === 'production');
+  assert.match(label, /^[a-z0-9_-]{1,36}$/);
+  return { target, label, origin: target === 'uat' ? 'https://flowboard-app-uat.pages.dev' : 'https://flowboard-app.pages.dev' };
+}
+export function permittedRequest(origin, url, method) {
+  const parsed = new URL(url);
+  return !parsed.username && !parsed.password && !parsed.search && !parsed.hash
+    && parsed.origin === origin && (method === 'GET' || method === 'HEAD') && (
+    ['/signin', '/release-status.json', '/api/v1/session', '/favicon.svg', '/apple-touch-icon.png'].includes(parsed.pathname)
+    || parsed.pathname.startsWith('/_next/static/'));
+}
+export async function deliverWithoutRedirect(route, createTransport = options => requestAPI.newContext(options)) {
+  let response, transport;
+  try {
+    // Browser routing alone misses redirect hops. Fetch exactly one admitted hop,
+    // with retries disabled, before allowing its response into the browser.
+    // A fresh transport has no cookie jar. route.fetch would silently add cookies
+    // from the browser context even when the app's fetch used credentials:omit.
+    transport = await createTransport({ storageState: { cookies: [], origins: [] } });
+    const request = route.request();
+    const headers = { ...request.headers() };
+    for (const key of Object.keys(headers)) if (['cookie', 'authorization', 'referer'].includes(key.toLowerCase())) delete headers[key];
+    response = await transport.fetch(request.url(), { method: request.method(), headers,
+      maxRedirects: 0, maxRetries: 0, timeout: 15_000 });
+    const status = response.status();
+    if (status >= 300 && status < 400) { await route.abort(); return { redirectBlocked: true }; }
+    await route.fulfill({ response });
+    return { httpError: status >= 500 };
+  } catch {
+    try { await route.abort(); } catch { /* Context may already be closing. */ }
+    return { transportFailure: true };
+  } finally {
+    try { await response?.dispose(); } catch { /* Never emit diagnostics containing URLs. */ }
+    try { await transport?.dispose(); } catch { /* No transport state survives a request. */ }
+  }
+}
+export async function main(argv = process.argv.slice(2)) {
+  const { target, label, origin } = configuration(argv);
+  const reportPath = path.join(BASE, `hosted-banner-${target}-${label}.json`);
+  const activePath = path.join(BASE, `hosted-banner-${target}-${label}-active.json`);
+  const lockPath = reportPath + '.lock';
+  for (const file of [reportPath, activePath, lockPath]) {
+    try { await fs.lstat(file); throw new Error('Existing probe label'); }
+    catch (error) { if (error.code !== 'ENOENT') throw error; }
+  }
+  const lock = await fs.open(lockPath, 'wx', 0o600);
+  const report = { kind: 'anonymous deployed banner presentation only, not Google/Claude acceptance', target,
+    startedAt: new Date().toISOString(), maxRequests: 35, requests: 0, blockedRequests: 0,
+    requestCapReached: false, statusRequests: 0, statusCookieRequests: 0, statusAuthorizationRequests: 0,
+    statusRefererRequests: 0, redirectBlocked: 0, transportFailures: 0, httpErrorResponses: 0,
+    blockedWebSockets: 0, pageErrors: 0, activeObserved: false, inactiveObserved: false, cleanup: false };
+  let browser;
+  const write = (file, value) => fs.writeFile(file, JSON.stringify(value, null, 2) + '\n', { flag: 'wx', mode: 0o600 });
+  try {
+    browser = await chromium.launch({ headless: true, ...(process.platform === 'darwin'
+      ? { executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' } : {}) });
+    const context = await browser.newContext({ viewport: { width: 320, height: 720 }, serviceWorkers: 'block' });
+    await context.routeWebSocket('**/*', socket => { report.blockedWebSockets++; socket.close(); });
+    await context.route('**/*', async route => {
+      const request = route.request();
+      if (!permittedRequest(origin, request.url(), request.method())) {
+        report.blockedRequests++; return route.abort();
+      }
+      if (report.requests >= report.maxRequests) { report.requestCapReached = true; return route.abort(); }
+      report.requests++;
+      if (new URL(request.url()).pathname === '/release-status.json') {
+        report.statusRequests++;
+        report.statusCookieRequests += Number(Boolean(await request.headerValue('cookie')));
+        report.statusAuthorizationRequests += Number(Boolean(await request.headerValue('authorization')));
+        report.statusRefererRequests += Number(Boolean(await request.headerValue('referer')));
+      }
+      const result = await deliverWithoutRedirect(route);
+      report.redirectBlocked += Number(Boolean(result.redirectBlocked));
+      report.transportFailures += Number(Boolean(result.transportFailure));
+      report.httpErrorResponses += Number(Boolean(result.httpError));
+    });
+    const page = await context.newPage();
+    page.on('pageerror', () => report.pageErrors++);
+    await page.goto(origin + '/signin', { waitUntil: 'domcontentloaded', timeout: 20_000 });
+    await expect(page.locator('.release-banner')).toContainText('Update in progress', { timeout: 15_000 });
+    const before = await page.evaluate(() => ({ timeOrigin: performance.timeOrigin,
+      noHorizontalOverflow: document.documentElement.scrollWidth <= innerWidth + 1 }));
+    assert.equal(before.noHorizontalOverflow, true);
+    report.activeObserved = true;
+    await page.screenshot({ path: path.join(BASE, `hosted-banner-${target}-${label}-active.png`) });
+    await write(activePath, { target, label, activeObserved: true, requestCount: report.requests,
+      at: new Date().toISOString(), signedInAcceptance: false });
+    // Root publishes the separately reviewed inactive static variant during this bounded wait.
+    await expect(page.locator('.release-banner')).toBeHidden({ timeout: 120_000 });
+    report.inactiveObserved = true;
+    report.sameDocument = before.timeOrigin === await page.evaluate(() => performance.timeOrigin);
+    assert.equal(report.sameDocument, true);
+    await page.screenshot({ path: path.join(BASE, `hosted-banner-${target}-${label}-inactive.png`) });
+    assert.equal(report.blockedRequests, 0); assert.equal(report.requestCapReached, false);
+    assert.equal(report.redirectBlocked + report.transportFailures + report.httpErrorResponses + report.blockedWebSockets, 0);
+    assert.equal(report.statusCookieRequests + report.statusAuthorizationRequests + report.statusRefererRequests, 0);
+    assert.equal(report.pageErrors, 0);
+    report.status = 'pass'; report.exitCode = 0;
+  } catch (error) {
+    report.status = 'fail'; report.exitCode = 1;
+    report.errorClass = ['Error', 'TimeoutError', 'AssertionError'].includes(error?.name) ? error.name : 'Error';
+  } finally {
+    if (browser) { try { await browser.close(); report.cleanup = true; } catch { report.status = 'fail'; report.exitCode = 1; } }
+    else report.cleanup = true;
+    report.completedAt = new Date().toISOString();
+    // Keep the one-shot reservation until the final report exists. If persistence
+    // fails, leave the occupied label for inspection rather than silently rerunning.
+    try { await write(reportPath, report); }
+    finally { await lock.close(); }
+    await fs.unlink(lockPath);
+  }
+  console.log(JSON.stringify(report)); return report.exitCode;
+}
+if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  try { process.exitCode = await main(); }
+  catch { console.log(JSON.stringify({ status: 'fail', exitCode: 2, reportOrSetupFailure: true })); process.exitCode = 2; }
+}

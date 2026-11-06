@@ -1,0 +1,36 @@
+{
+  "kind": "independent bounded anonymous operator-tool review; not UI or backend release approval",
+  "reviewer": "cpu_router_builder",
+  "verdict": "fail",
+  "target": {
+    "hosted-banner-browser.mjs": "20ea22c638cda6196dce77b449be34f20b590af55f2b2584eba31b3ddffd360c",
+    "hosted-banner-browser.test.mjs": "541b69a96dfa46ad689f99ee774661503f54b7f2443eb98a78048291505d6300"
+  },
+  "checks": [
+    {"command": "node --test docs/reviews/PROD-MCP-20261106/hosted-banner-browser.test.mjs docs/reviews/PROD-MCP-20261106/operator-browser-review/request-boundary.test.mjs", "exitCode": 0, "passed": 6, "failed": 0, "evidence": "round2-pure-tests.log"}
+  ],
+  "resolved": [
+    "OP-BROWSER-01: URL userinfo, query and fragment are now refused; independent pure probes pass.",
+    "OP-BROWSER-02: fresh context explicitly blocks Service Workers.",
+    "Root finalization repair: final report writes while reservation is held; failed publication closes the handle but leaves the occupied lock path.",
+    "Module invocation catches setup/publication failures and emits a fixed safe error object instead of general exception text."
+  ],
+  "findings": [
+    {
+      "id": "OP-BROWSER-03", "priority": 2,
+      "location": "hosted-banner-browser.mjs:57 route.continue()",
+      "problem": "Browser redirect hops bypass the route callback on which the origin/path policy and35-request count depend.",
+      "evidence": "Installed primary Playwright coreBundle.js:37599-37610 detects redirectedFrom and automatically sends Fetch.continueRequest rather than constructing RouteImpl; types.d.ts:4441 documents the first-URL-only routing behavior for redirects.",
+      "impact": "A redirect from an admitted URL can make an uncounted request to an unapproved URL before later page assertions fail. No such redirect or credential leak was observed live; the finding is the source-supported gap in the claimed unconditional transport boundary.",
+      "fix": "Prevent redirect following before browser continuation. One narrow approach is bounded route.fetch with maxRedirects0, abort any3xx, and fulfill only nonredirect responses; an equivalent transport guard is acceptable. Preserve the35 admitted-request cap and verify redirect classification with pure tests."
+    }
+  ],
+  "limits": [
+    "No main invocation, browser, live request, cloud or database action occurred.",
+    "Review is scoped to the anonymous operator tool; UI source remains independently held and unapproved by this builder.",
+    "Pure policy tests do not establish browser lifecycle or live hosted behavior.",
+    "No formal global backend numerical rating applies."
+  ],
+  "provenance": "Root supplied an explicitly labelled after-the-fact reconstruction of round1 original source. Its d12fbc hash matches the independently recorded original; round1.json was not changed.",
+  "next": "Resolve the transport boundary or explicitly narrow its acceptance contract before operator use; preserve this round and supply a new held target."
+}

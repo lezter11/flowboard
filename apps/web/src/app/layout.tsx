@@ -6,6 +6,7 @@ import { Providers } from '@/components/providers';
 import { SessionGate } from '@/components/shell/session-gate';
 import { AppShell } from '@/components/shell/app-shell';
 import { IconSprite } from '@/components/ui/icon';
+import { ReleaseBanner } from '@/components/release-banner';
 import '@fontsource/ibm-plex-sans/400.css';
 import '@fontsource/ibm-plex-sans/500.css';
 import '@fontsource/ibm-plex-sans/600.css';
@@ -35,6 +36,7 @@ export default function RootLayout({
       </head>
       <body>
         <IconSprite />
+        <ReleaseBanner />
         <Providers>
           <SessionGate />
           <Suspense fallback={<div role="status" className="state-note">Loading Flowboard…</div>}>

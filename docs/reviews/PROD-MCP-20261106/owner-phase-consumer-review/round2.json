@@ -1,0 +1,62 @@
+{
+  "kind": "independent static operator-consumer and pure synthetic guard review; not an executed owner phase",
+  "reviewer": "cpu_router_builder",
+  "verdict": "pass",
+  "handoffsApplied": false,
+  "consumerExecutedByReviewer": false,
+  "target": {
+    "revalidate.py": "9300dedc33458d007769c8a8f2c705eb548dfe0795b106f2cc129849b481426a",
+    "phase_guard.py": "00ab0a99a5fa80d09f404a77e52b48c11ffe281673130a02b5021f6b8eb52534",
+    "test_phase_guard.py": "e3f24083d4fd5a05beda75c73c1c9cc50b8c693ef8821af89a8638cde354c80a"
+  },
+  "resolvedFinding": {
+    "id": "OWNER-CONSUMER-01",
+    "evidence": "reserve_phase is called after complete validation/check-only exit and before the first phase execution-index, snapshot or canonical handoff write. It refuses any previous summary/index/feature/history output. Exclusive x creation reserves apply-reserved.json atomically, and the permanent receipt remains after success or failure. Repeated or concurrent calls therefore cannot replace original snapshots."
+  },
+  "checks": [
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 -m unittest discover -s docs/reviews/PROD-MCP-20261106/banner-owner-phase -p test_phase_guard.py -v",
+      "exitCode": 0, "passedMethods": 2, "partialOutputVariants": 4,
+      "evidence": "round2-pure-guard-tests.log",
+      "scope": "Temporary synthetic directories only; repeated reservation and each partial-output refusal preserve original bytes."
+    },
+    {
+      "command": "PYTHONDONTWRITEBYTECODE=1 python3 docs/reviews/PROD-MCP-20261106/owner-phase-consumer-review/concurrent-guard-probe.py",
+      "exitCode": 0, "contenders": 8, "winners": 1, "refusals": 7,
+      "evidence": "round2-concurrent-guard.log",
+      "scope": "Concurrent threads using real exclusive file creation in one temporary directory; original receipt retained, zero canonical writes."
+    },
+    {
+      "operation": "Independent read-only validate_review call against the actual composed record plus full previous per-ID source/hash coverage census",
+      "passed": true,
+      "reviewPath": "docs/reviews/PROD-MCP-20261106/composed-review/356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0-round-1.json",
+      "reviewSHA256": "cc6d03f2801b357e00ed5e5bc6fe0d6a11cd19871da81bcdd6ef8a870064c106",
+      "reviewValidatorScore": "8.945",
+      "targetFiles": 1242, "featureIds": 100, "criteria": 168, "fullTestRows": 46,
+      "allFullRowsHaveExecutionKind": true,
+      "priorSourceReferencesCovered": 1570, "changedPriorSourceReferencesCovered": 17
+    }
+  ],
+  "preservedStaticProperties": [
+    "Previous phase is the Nov5 CPU owner phase, with exact per-ID historical JSON hash binding.",
+    "Full test rows, including nested original execution metadata, are retained in the full execution index; per-ID rows bind that exact index hash and test ID.",
+    "All1570 previous source/test references must equal actual current composed-review manifest hashes;17 changed references across12 features are explicitly represented rather than waived.",
+    "98 backend links reference the actual reviewPath;74 UI links bind review SHA;98 integration links bind that same review and the actual newly written UI handoff SHA where UI is required.",
+    "Hosted acceptance remains pending and scope remains local; preserved test applicability is not declared a fresh execution.",
+    "Check-only exits before reservation and all writes. Root reported its own current check-only passed98/74/1570; reviewer did not execute that consumer."
+  ],
+  "findings": [],
+  "conditions": [
+    "Use these exact held consumer/guard bytes and the validated exact composed record.",
+    "Root owns application and must retain the permanent reservation and all resulting snapshots; any failure or retry requires a separately reviewed new phase directory.",
+    "After actual application, verify generated role links/counts and the source-bound review again. This static pass is not evidence that270 records were already mutated or accepted."
+  ],
+  "limits": [
+    "No revalidate.py execution, check-only/apply call, handoff mutation or checklist generation was performed by reviewer.",
+    "No API, UI edit, database, Docker or cloud operation occurred.",
+    "Application is not a transactional filesystem commit; a partial failure remains visible and blocked from silent same-phase retry, requiring explicit recovery in a new phase.",
+    "Normal nonoptimized Python execution is the reviewed invocation; this review does not authorize disabling Python assertions.",
+    "This is an operator code review, not a new numerical global backend rating or self-approval of the banner UI."
+  ],
+  "history": "Round1 remains unchanged. initial-consumer.py.txt hash17484ba489d5f674d4c4b0d7171c17b9b32eec92a3b17b78a577ccb68ae591db matches the originally reviewed consumer."
+}

@@ -1,0 +1,48 @@
+{
+  "kind": "independent bounded anonymous operator-tool review; not UI self-approval or backend release approval",
+  "reviewer": "cpu_router_builder",
+  "independence": "Reviewer did not author the root-owned hosted browser operator tool; the same reviewer authored the separate UI banner and does not approve that UI here.",
+  "verdict": "fail",
+  "target": {
+    "hosted-banner-browser.mjs": "d12fbc75653190c012cf53ab453ba4c2f00003f9770cf31200b6feed0a5b0370",
+    "hosted-banner-browser.test.mjs": "c97b9f14c8168c60dd24267cb149423838fe8955f135f1668ff703672c25d5b4"
+  },
+  "checks": [
+    {"command": "node --test docs/reviews/PROD-MCP-20261106/hosted-banner-browser.test.mjs", "exitCode": 0, "passed": 2, "failed": 0},
+    {"command": "node --test docs/reviews/PROD-MCP-20261106/operator-browser-review/request-boundary.test.mjs", "exitCode": 1, "passed": 1, "failed": 2, "evidence": "round1-boundary-tests.log"}
+  ],
+  "findings": [
+    {
+      "id": "OP-BROWSER-01", "priority": 2,
+      "location": "hosted-banner-browser.mjs:17-21",
+      "problem": "The request allowlist accepts URL userinfo and arbitrary query/fragment state because it checks only origin, method and pathname.",
+      "reproduction": "Pure permittedRequest probes returned true for synthetic user/password URL credentials and a synthetic extra status query. No browser or network was used.",
+      "impact": "The strict fixed anonymous URL boundary is broader than claimed. This is a predicate defect, not an observed credential leak or live exploit.",
+      "fix": "Reject parsed username, password, search and hash before allowing exact fixed paths or same-origin static assets. Keep normal fixed assets working."
+    },
+    {
+      "id": "OP-BROWSER-02", "priority": 2,
+      "location": "hosted-banner-browser.mjs:42-43",
+      "problem": "The new context leaves Service Workers enabled by default while the claimed 35-request boundary relies on context.route interception.",
+      "evidence": "Installed primary Playwright declarations types.d.ts:10402-10405 document that Service Worker-intercepted traffic bypasses context.route;11714-11720 document default allow and explicit block.",
+      "impact": "The unconditional interception/request-cap claim is not fully enforced by this context configuration. No Service Worker bypass was attempted live.",
+      "fix": "Create the isolated context with serviceWorkers:block."
+    }
+  ],
+  "otherChecks": {
+    "fixedSelectableTargetsAndLabels": "pass source and two supplied pure tests",
+    "requestCounter": "increments synchronously before awaited header checks; admitted routed requests stop at35",
+    "freshProfileAndContext": "launch plus newContext; no persistent profile, storage state or account import",
+    "aggregatePrivacy": "raw headers/messages/page errors are not recorded; only fixed counters and safe error class",
+    "activeInactiveBound": "source checks active within15s and inactive within120s, with matching performance.timeOrigin",
+    "cleanup": "browser close attempted in finally and reported; no live lifecycle was invoked by reviewer",
+    "labelReservation": "root independently identified lock release before report publication and agreed to repair this additional finalization race before round2"
+  },
+  "limits": [
+    "Only pure helper tests and read-only source/dependency documentation inspection were performed.",
+    "main was never called; no browser, live request, provider, database or cloud action occurred.",
+    "Product UI source remained untouched and independently held.",
+    "No numeric global backend rating applies to this anonymous operator harness."
+  ],
+  "next": "Retain this failed round. Root will repair and supply new held hashes before independent round2."
+}

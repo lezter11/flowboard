@@ -1,0 +1,21 @@
+{
+  "status": "verified",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewSHA256": "83ad40e401457053cef176541f9dcc280336dbe7b9c498c3b04b649927a4483b",
+  "summary": "QRY-01: current local integrated acceptance under fresh review; hosted acceptance pending.",
+  "limitations": [
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Current Linux CI and hosted CPU/exception/idle-PG disposition remain release conditions. No clean production/runtime acceptance is implied."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/PROD-MCP-20261105/cpu-owner-phase/QRY-01.json",
+      "sha256": "58c142ddaf8936526db2201c43b52ef7c4048a2d11d77c4e53b41ca35376d8b5",
+      "command": "python3 docs/reviews/PROD-MCP-20261105/cpu-owner-phase/revalidate.py --review docs/reviews/PROD-MCP-20261105/cpu-global-review/e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205-round-1.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local criteria reassessed; fresh and retained original executions are explicitly distinguished.",
+      "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
+    }
+  ],
+  "uiHandoffSHA256": "4009563cea8959b903ae0d49961d209257eae046536015d3926dd0c7614ae083"
+}

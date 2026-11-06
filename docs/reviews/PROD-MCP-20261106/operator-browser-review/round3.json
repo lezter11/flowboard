@@ -1,0 +1,60 @@
+{
+  "kind": "independent scoped anonymous operator-tool review; not UI self-approval, backend release approval or hosted acceptance",
+  "reviewer": "cpu_router_builder",
+  "independence": "Reviewer did not author the root-owned hosted operator tool. This verdict does not approve the separate banner UI authored by this reviewer.",
+  "verdict": "pass",
+  "target": {
+    "hosted-banner-browser.mjs": "7178dcc93312d61a73d54aa598b64db4684efcb082b74f38bee1eee0324d9381",
+    "hosted-banner-browser.test.mjs": "e2a1d54bca4b572b6b4ab37ae378b66e76b7a72c958f39d4e7fbda663b1f30ce",
+    "hosted-banner-transport.local.test.mjs": "8ce567931394fa4a611027f6f71841b83d5bc3ac296c28944415129e4404e982"
+  },
+  "checks": [
+    {
+      "command": "node --test docs/reviews/PROD-MCP-20261106/hosted-banner-browser.test.mjs docs/reviews/PROD-MCP-20261106/operator-browser-review/request-boundary.test.mjs",
+      "exitCode": 0, "passed": 8, "failed": 0,
+      "evidence": "round3-pure-tests.log"
+    },
+    {
+      "command": "node --test docs/reviews/PROD-MCP-20261106/hosted-banner-transport.local.test.mjs",
+      "exitCode": 0, "passed": 1, "failed": 0,
+      "environment": "Installed actual headless Chrome/Playwright, isolated context, two owned synthetic loopback-only HTTP servers; escalation authorized only this test.",
+      "evidence": "round3-loopback-tests.log"
+    },
+    { "command": "git diff --check", "exitCode": 0 }
+  ],
+  "resolvedFindings": [
+    {
+      "id": "OP-BROWSER-01",
+      "evidence": "Pure root and independent probes reject username/password URL credentials, arbitrary queries and fragments. Normal fixed assets remain allowed; origins and methods stay restricted."
+    },
+    {
+      "id": "OP-BROWSER-02",
+      "evidence": "The browser context explicitly blocks Service Workers, and attempted WebSockets are closed and counted as failure."
+    },
+    {
+      "id": "OP-BROWSER-03",
+      "evidence": "Every admitted routed request uses one fresh independent APIRequestContext with empty storage, stripped cookie/authorization/referer headers, maxRedirects0, maxRetries0 and15000ms timeout.3xx responses are aborted before browser fulfillment. The independently rerun actual loopback test observes sourceCalls2, redirectTargetCalls0 and sourceCredentialRequests0 despite a seeded synthetic browser cookie. Root pure tests verify transport options, nonredirect fulfillment, redirect refusal, safe exceptions and response/context disposal attempts."
+    }
+  ],
+  "sourceChecks": {
+    "requestCap": "35 admitted routed requests maximum; check/increment occurs synchronously before awaits; each transport has redirects and retries disabled",
+    "freshIdentityBoundary": "No persistent browser profile, stored account state, provider sign-in or supplied real credentials; separate empty transport per request avoids browser-jar reinjection",
+    "allowedSurface": "Fixed UAT/production selection; fixed read paths plus same-origin Next static assets; no query strings needed by the reviewed application assets",
+    "privacy": "Reports contain fixed counters, fixed targets, booleans, timestamps and allowlisted safe error classes; raw request/header/log/error text is not emitted",
+    "activeInactiveObservation": "Source waits15s for active,120s for hidden, and requires identical performance.timeOrigin; it never refreshes or writes application state",
+    "reservation": "Existing final/active report or reservation refuses a label; final report writes while lock is held; failed publication leaves the occupied reservation path",
+    "cleanup": "Browser close is attempted in finally and failure makes the run fail; each response and independent request context has disposal in finally",
+    "failureAccounting": "Blocked requests, cap exhaustion, redirects, transport failures,HTTP5xx, WebSockets, page errors or status credential/referrer counters prevent a successful observation"
+  },
+  "findings": [],
+  "limits": [
+    "The hosted main function was not invoked. No hosted URLs, cloud APIs, real users, provider credentials or database were contacted.",
+    "The full live active-to-inactive120s observation remains an operator action after this review; source inspection is not a claim that it already happened.",
+    "Fresh empty transport behavior deliberately makes this an anonymous observer and cannot establish signed-in Google/Claude acceptance.",
+    "The request cap is an admitted HTTP request bound, not a byte-volume, CPU or hosted performance guarantee.",
+    "Cleanup failure branches are checked through source and pure transport tests; the loopback test proves ordinary actual cleanup, not every operating-system failure.",
+    "This is an operator-tool pass only; no formal global backend rating or product feature closure is claimed."
+  ],
+  "history": "Failed rounds1 and2 and their evidence remain unchanged. The reconstructed round1 source retains explicit after-the-fact provenance and matches its independently recorded original hash.",
+  "next": "Root may consume this exact scoped operator review alongside the separate independent UI review and release gates. Any changed helper bytes require revalidation."
+}

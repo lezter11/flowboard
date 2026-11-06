@@ -1,5 +1,9 @@
 # Flowboard working checklist
 
+Currentlocalgate2026-11-06: banner9.04/global8.945 independentreviews and generated98Backend/74UI/98localIntegration are current; historicalexecutionmetadata remains honest. NewexactCI and hostedrollout remain separate. Follow [dated live checklist](docs/reviews/PROD-MCP-20261106/CHECKLIST.md).
+
+Current2026-11-06: Owner confirms UAT working and approves ONLY Oct29-d6backup/itsowncompute deletion thenfreshproductionbackup. Newrequestedrolloutbanner is beingimplemented/reviewed in parallel withreadonlypreflight. No deletion/deploy today yet. [Current dated checklist](docs/reviews/PROD-MCP-20261106/CHECKLIST.md), [Owner decisions](docs/reviews/PROD-MCP-20261106/OWNER-DECISIONS.md). Earlier dated states below are historical.
+
 Updated 2026-11-05. **Repaired connector/prompt build `f32eafa` is on UAT; production remains rolled back after the earlier CPU-limit failures.** This sequence complements [TASKS.md](TASKS.md), the 98 product definitions and their [generated local checklist](docs/FEATURE_CHECKLIST.md).
 
 ## Current release checklist

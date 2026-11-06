@@ -2,18 +2,18 @@
   "status": "verified",
   "verificationScope": "local",
   "hostedAcceptance": "pending",
-  "reviewPath": "docs/reviews/PROD-MCP-20261105/cpu-global-review/e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205-round-1.json",
+  "reviewPath": "docs/reviews/PROD-MCP-20261106/composed-review/356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0-round-1.json",
   "summary": "IMP-04: independently reviewed current local implementation; hosted acceptance pending.",
   "api_contract": "docs/API.md; docs/openapi.json; docs/features.tsv IMP-04",
   "limitations": [
     "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
-    "Current Linux CI and hosted CPU/exception/idle-PG disposition remain release conditions. No clean production/runtime acceptance is implied."
+    "New exact-candidate CI and hosted rollout remain release conditions; the known idle-PG baseline warning stays disclosed and unresolved. No clean production/runtime acceptance is implied."
   ],
   "evidence": [
     {
-      "path": "docs/reviews/PROD-MCP-20261105/cpu-owner-phase/IMP-04.json",
-      "sha256": "1271f71ec116443e62b7f168a0dde5ad39b530859be3c36e895ba5d723ebf3ec",
-      "command": "python3 docs/reviews/PROD-MCP-20261105/cpu-owner-phase/revalidate.py --review docs/reviews/PROD-MCP-20261105/cpu-global-review/e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205-round-1.json --apply",
+      "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/IMP-04.json",
+      "sha256": "7ae3b7adad1af640785f0515d21ba298879abe80de560339a64b6576e52bd5ea",
+      "command": "python3 docs/reviews/PROD-MCP-20261106/banner-owner-phase/revalidate.py --review docs/reviews/PROD-MCP-20261106/composed-review/356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0-round-1.json --apply",
       "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local criteria reassessed; fresh and retained original executions are explicitly distinguished.",
       "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
     }

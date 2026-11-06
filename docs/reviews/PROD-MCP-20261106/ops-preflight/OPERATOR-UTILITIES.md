@@ -1,0 +1,31 @@
+# Prepared operator utilities — builder evidence only
+
+Actions: Added local package-status-variants.mjs, shared status-ops-guards.mjs and a minimally adapted anonymous-release-smoke.mjs. These files are held for root and fresh independent operator review. No real candidate packaging, hosted smoke, upload, database, npm/dependency or provider mutation was performed. Author implemented these utilities and cannot independently approve them.
+
+Package input: one existing UAT prepare-artifacts baseline with artifact-manifest.json, out/, functions/ and wrangler.jsonc; a canonical clean detached candidate under /private/tmp/flowboard-*; full40hexSHA; and a new separate private/tmp output directory. The utility verifies exact candidate Git HEAD/clean/detached state, full baseline inventory/hashes/digest, strict default active:false JSON, exact committed UAT config bytes and committed environment config identities. It rejects symlinks, nonregular paths, unexpected root entries, wrong services, drift and existing outputs before copying.
+
+Package output: uat-active, uat-inactive, production-active and production-inactive. The only same-environment staged/published payload difference is out/release-status.json. Across equal status states, UAT/production staged inputs differ only in wrangler.jsonc, copied from the exact respective committed config. Baseline bytes are rechecked and remain unchanged. Worker manifest is carried through, never rebuilt or altered; root must separately prove actual Worker artifact continuity. Functions inputs remain identical; this does not claim the platform's separately generated server bundle bytes were compared.
+
+Metadata layout clarification: Each variant has artifact-manifest.json at its STAGE ROOT for compatibility with the prior smoke program, outside uploaded out/. That file binds full SHA, environment, status intent, baseline manifest/digest, complete payload hashes and explicit status/wrangler overlays. It is metadata, not an application byte or extra public payload difference. The overall variant-manifest.json lives above the variants. This explicitly refines the earlier PACKAGING-AND-REPLAY.md preference for external manifests; do not include either metadata file in uploaded out/. Never call active status bytes unchanged checked-in source; they are the approved one-boolean overlay.
+
+Future root local invocation, after reviews/final candidate are ready (not executed here):
+
+```text
+node docs/reviews/PROD-MCP-20261106/ops-preflight/package-status-variants.mjs --execute reviewed-local-packaging --baseline <canonical-prepared-UAT-stage> --candidate <canonical-clean-detached-candidate> --sha <full-approved-SHA> --output <new-private-tmp-flowboard-variant-root>
+```
+
+The baseline is the existing UAT preparation, not the old production-config-overlaid stage. Baseline must match its own manifest exactly and contain active:false. The utility never installs dependencies or runs a build. Partial output after an unexpected error is retained for inspection and cannot be overwritten automatically.
+
+Smoke: All17 prior anonymous auth/discovery/static/health checks remain, including exact canonical issuer/resource/challenge, attacker-origin refusal, no-store, safe sign-in next path, prepared HTML/JS/CSS bytes and semantic last-recognized no-referrer policy. The18th GET checks /release-status.json:200 JSON, no-store, exact prepared bytes/hash, exactly one boolean active field equal to explicit operator intent, no cookie/credential header and no redirect. Source/target/status intent and every staged file hash/config are validated before any fetch; required static assets are checked locally first. Report must be a new canonical absolute path beneath PROD-MCP-20261106. Response bodies and arbitrary error messages are never persisted. Requests remain capped25,15seconds each,4MiB declared/streamed bodies, exact allowlisted Pages/Worker origins, no cookies/Authorization and manual redirects. There is no registration, authorize flow, token exchange, authenticated MCP tool or card mutation.
+
+Future root hosted invocation, ONLY after independently verified exact deployment (not executed here):
+
+```text
+node docs/reviews/PROD-MCP-20261106/ops-preflight/anonymous-release-smoke.mjs --execute reviewed-deployment --report <new-absolute-report-under-PROD-MCP-20261106> --worker-version <actual-UUID> --pages-deployment <actual-UUID> --target <uat-or-production> --sha <full-approved-SHA> --stage <exact-packaged-variant-stage> --status-active <true-or-false>
+```
+
+The report status remains anonymous-checks-pass-hosted-acceptance-pending. Top-level stage/report/argument failure may leave no complete report; root must require actual exit0 plus a complete18-check receipt. New report files are written exclusively. A redirect is recorded as failure, never followed. Existing root/test fetch/report injection hooks are for synthetic tests; CLI always uses normal fetch and exclusive real report writes.
+
+Verification actually run:10/10 pure Node tests,0failures/0skips;3 Node syntax checks. Tests create tiny temporary Git repositories/stage files and fake all HTTP responses; they invoke no real operator main, Wrangler, network, cloud or database. Cases include all four variants, immutable baseline, exact one-file/cross-env config differences, wrongSHA/attached/dirty source, symlinks/hash drift, malformed status, wrong/mutated config, canonical report boundaries, credential/foreign-origin guards, all18 checks with unchanged first17IDs, false issuer, redirects, unsafe status caching/cookie, declared and streamed response caps/cancellation, and safe failure reports. The initial red import failure and one test-fixture refactor error are retained; current tests pass. Original preflight receipts/manifest remain unchanged.
+
+Evidence and limits: operator-utilities-builder-manifest.json records held hashes, original smoke reference and actual synthetic checks. These are builder results pending independent approval, not an application review score, actual artifact preparation or hosted acceptance. Root still owns final candidate CI, banner browser proof, exact deletion/backup gates, uploads,15-minute observation, baseline pool-error disposition and deferred Owner production sign-in acceptance. No global GitHub login was changed.

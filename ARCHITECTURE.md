@@ -1,5 +1,9 @@
 # Flowboard architecture v0.3
 
+## Rollout status notice — 2026-11-06
+
+A global client notice reads the public same-origin `/release-status.json` static asset (`active` boolean only). It polls while the tab is visible, with30-second spacing, a5-second timeout and1KiB response cap; it sends no cookies or referrer and does not call the API or database. The asset uses no-store caching. Release packaging produces reviewed active/inactive configuration variants of the same frontend so the notice can clear in open clients without rebuilding code or reloading their drafts.404/410 explicitly retires the feature for legacy rollback; other errors retain the last valid state. This is an informational notice, not a maintenance lock or access-control boundary. Old clients acquire it only on their next full page load. [Scope and acceptance](docs/reviews/PROD-MCP-20261106/PLAN.md); source/tests alone do not establish deployment.
+
 ## XLSX parser performance provenance — 2026-11-04
 
 The importer retains its 1,000 ms total parsing budget, input/resource limits, complete XML grammar validation and atomic commit. It uses two equivalent native string scans plus two small performance backports in pinned fast-xml-parser 5.11.2 ESM. The backports remove named-reference regex-result allocation and per-code-unit text accumulation; they do not replace validation or mask entities. [Decision and alternatives](docs/decisions/2026-11-04-bounded-xml-performance-backports.md) records measured diagnostics and maintenance cost.

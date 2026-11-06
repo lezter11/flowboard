@@ -1,0 +1,883 @@
+{
+  "featureId": "CRD-05",
+  "acceptance": "Five priority values and optional date-only deadline save/reset consistently; invalid calendar dates fail and overdue excludes done cards.",
+  "uiRequired": true,
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "backendReviewPath": "docs/reviews/PROD-MCP-20261106/composed-review/356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0-round-1.json",
+  "backendReviewSHA256": "cc6d03f2801b357e00ed5e5bc6fe0d6a11cd19871da81bcdd6ef8a870064c106",
+  "sourceAndTests": [
+    {
+      "path": "apps/web/src/app/activity/page.tsx",
+      "previousSHA256": "401576146fe9cca079f46dd9c122be5449d974f27704d5abff45aaa9c1c5a635",
+      "sha256": "401576146fe9cca079f46dd9c122be5449d974f27704d5abff45aaa9c1c5a635",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/app/projects/page.tsx",
+      "previousSHA256": "84a5806fb1cf23a362ad098306c5ebf23c04dc39b061afd4d5f7f80e17136121",
+      "sha256": "84a5806fb1cf23a362ad098306c5ebf23c04dc39b061afd4d5f7f80e17136121",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/components/board/board-card.tsx",
+      "previousSHA256": "f3c34287008acc018c6e6c6630007c34aa59547c989f8fff47fe458cdb4d2cd6",
+      "sha256": "f3c34287008acc018c6e6c6630007c34aa59547c989f8fff47fe458cdb4d2cd6",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/components/board/board-column.tsx",
+      "previousSHA256": "7be08c95cd717ee1049e37c9fd913c2b699189023278697d411759b9788b77ab",
+      "sha256": "7be08c95cd717ee1049e37c9fd913c2b699189023278697d411759b9788b77ab",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/components/board/board-view.tsx",
+      "previousSHA256": "bde0a6ac1406d2af43452940efdd14a48e669bcfc240a54d061c3457bd838ddf",
+      "sha256": "bde0a6ac1406d2af43452940efdd14a48e669bcfc240a54d061c3457bd838ddf",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/components/board/card-detail-drawer.tsx",
+      "previousSHA256": "6edb7009d2edf7e44876247ab7fdedf29d493b7ebbeff3f9665d15025b7c0fd6",
+      "sha256": "6edb7009d2edf7e44876247ab7fdedf29d493b7ebbeff3f9665d15025b7c0fd6",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/components/board/card-images.tsx",
+      "previousSHA256": "236949a4d2acaf8942ad67a0f158936aa1ea7b3eb2eefe5f9a971dbc9418a5ed",
+      "sha256": "236949a4d2acaf8942ad67a0f158936aa1ea7b3eb2eefe5f9a971dbc9418a5ed",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/components/ui/feed-controls.tsx",
+      "previousSHA256": "c4406526a7fe5447571a91edcdb25eb11e33e617075a581a5f954482f286c967",
+      "sha256": "c4406526a7fe5447571a91edcdb25eb11e33e617075a581a5f954482f286c967",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/api.ts",
+      "previousSHA256": "7e1c95273648826d6e79ed6323c1c949e2bb48daec0439fabaf85a8def61393d",
+      "sha256": "7e1c95273648826d6e79ed6323c1c949e2bb48daec0439fabaf85a8def61393d",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/assignee-people.ts",
+      "previousSHA256": "64968973e3ab111fddb5462a458544afedbcfa94346b5dc12e7f3751b94f27f4",
+      "sha256": "64968973e3ab111fddb5462a458544afedbcfa94346b5dc12e7f3751b94f27f4",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/assignees.ts",
+      "previousSHA256": "ae0c68e4849aa2e9f27959a6be9c81d381f58f20c4569758543e9d8c5f3f046d",
+      "sha256": "ae0c68e4849aa2e9f27959a6be9c81d381f58f20c4569758543e9d8c5f3f046d",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/audit-filters.ts",
+      "previousSHA256": "ab8f585049f2792b9faedf1abfc17d5d1348c69c5e21b9cea61fa852016b363c",
+      "sha256": "ab8f585049f2792b9faedf1abfc17d5d1348c69c5e21b9cea61fa852016b363c",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/dates.ts",
+      "previousSHA256": "1e566235a1a33d77a7ed6a629b483e982ddb1564e438c0271f3edcbdfd934a69",
+      "sha256": "1e566235a1a33d77a7ed6a629b483e982ddb1564e438c0271f3edcbdfd934a69",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/draft-sync.ts",
+      "previousSHA256": "021167d2c18a2136148b6453911dfb150966c0e26558f18c00afeb1fdf75bf5e",
+      "sha256": "021167d2c18a2136148b6453911dfb150966c0e26558f18c00afeb1fdf75bf5e",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/image-uploads.ts",
+      "previousSHA256": "6f0f49a08e85693333c562bfd6d91411399e860bcc06cce252fdd8a5f9e7bafa",
+      "sha256": "6f0f49a08e85693333c562bfd6d91411399e860bcc06cce252fdd8a5f9e7bafa",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/portfolio.ts",
+      "previousSHA256": "4892933b23cfe81a12ed22eccf4d52f8e9a53571462a61938102c768600c75ad",
+      "sha256": "4892933b23cfe81a12ed22eccf4d52f8e9a53571462a61938102c768600c75ad",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/session-identity.ts",
+      "previousSHA256": "0ab888703ac5b6d79d616fd9e3f573b3a16f573e210a9b4589bd624ebb89ca9c",
+      "sha256": "0ab888703ac5b6d79d616fd9e3f573b3a16f573e210a9b4589bd624ebb89ca9c",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/src/lib/session.tsx",
+      "previousSHA256": "1230e2de12ff353d422e6ae1557dc0c946b8cd129126ac54e713ae2032e6108e",
+      "sha256": "1230e2de12ff353d422e6ae1557dc0c946b8cd129126ac54e713ae2032e6108e",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/test/assignees.test.ts",
+      "previousSHA256": "f21a48afce55cef3d9064bc88a1fcec65a19ed95b2deadc3fd65d9027cb679f3",
+      "sha256": "f21a48afce55cef3d9064bc88a1fcec65a19ed95b2deadc3fd65d9027cb679f3",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/test/final-scope.test.ts",
+      "previousSHA256": "c4a06d8f6c5771efdb2293f25c0aab3dd658da33ae1e9e5d3fcd62700061f602",
+      "sha256": "c4a06d8f6c5771efdb2293f25c0aab3dd658da33ae1e9e5d3fcd62700061f602",
+      "changedSincePreviousPhase": false
+    },
+    {
+      "path": "apps/web/test/image-uploads.test.ts",
+      "previousSHA256": "b70bc0105d9dc34fcdd735e36654af1ff60223472e04d86eccf47e3c291c4f4b",
+      "sha256": "b70bc0105d9dc34fcdd735e36654af1ff60223472e04d86eccf47e3c291c4f4b",
+      "changedSincePreviousPhase": false
+    }
+  ],
+  "currentRequiredTests": [
+    {
+      "id": "build-web",
+      "command": "npm run build:web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/build-web.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; explicit production build without DB/test/NEXT_PUBLIC overrides, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "build-web"
+      }
+    },
+    {
+      "id": "dependency-negatives",
+      "command": "NODE_ENV=test node --test apps/api/test/dependency-patches.test.ts",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/dependency-negatives.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "dependency-negatives"
+      }
+    },
+    {
+      "id": "typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/typecheck.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "typecheck"
+      }
+    },
+    {
+      "id": "typecheck-web",
+      "command": "npm run typecheck:web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/typecheck-web.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "typecheck-web"
+      }
+    },
+    {
+      "id": "contracts",
+      "command": "npm test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/contracts.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "contracts"
+      }
+    },
+    {
+      "id": "web",
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/web.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "web"
+      }
+    },
+    {
+      "id": "mcp",
+      "command": "npm test --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/mcp.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "mcp"
+      }
+    },
+    {
+      "id": "openapi-staleness",
+      "command": "npm run openapi:check",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/openapi-staleness.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "openapi-staleness"
+      }
+    },
+    {
+      "id": "embedded-migration-parity",
+      "command": "npm run migrations:embed:check",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/embedded-migration-parity.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "embedded-migration-parity"
+      }
+    },
+    {
+      "id": "build-worker",
+      "command": "npm run build --workspace @flowboard/api",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/build-worker.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; explicit production build without DB/test/NEXT_PUBLIC overrides, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "build-worker"
+      }
+    },
+    {
+      "id": "production-worker-artifact",
+      "command": "NODE_ENV=test WRANGLER_SEND_METRICS=false node docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/production-worker-probe.mjs --run",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/production-worker-artifact.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "production-worker-artifact"
+      }
+    },
+    {
+      "id": "build-mcp",
+      "command": "npm run build --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/build-mcp.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; explicit production build without DB/test/NEXT_PUBLIC overrides, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "build-mcp"
+      }
+    },
+    {
+      "id": "mcp-artifact",
+      "command": "npm run test:artifact --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/mcp-artifact.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "mcp-artifact"
+      }
+    },
+    {
+      "id": "mcp-integration",
+      "command": "npm run test:mcp-integration",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/mcp-integration.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "mcp-integration"
+      }
+    },
+    {
+      "id": "browser-integration",
+      "command": "npm run test:browser",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/browser-integration.log",
+      "environment": "Dedicated PostgreSQL17.11 loopback:60460; synthetic local test mode, NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "browser-integration"
+      }
+    },
+    {
+      "id": "compiled-pages-runtime",
+      "command": "NODE_ENV=test node docs/reviews/HOSTED-MCP-20261104/independent-ui-review/pages-runtime.mjs --run",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/independent-ui-review/runs/2026-11-04T16-04-49.834Z/result.json",
+      "environment": "Independent compiled Pages/workerd + installed Wrangler ASSETS + actual isolated Chrome, no PostgreSQL; controlled readonly bridge explicitly distinguished from production API.",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "compiled-pages-runtime"
+      }
+    },
+    {
+      "id": "api",
+      "command": "npm test --workspace @flowboard/api",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/linux-xlsx-repair/independent-review/runs/2026-11-04T15-59-37.444Z/linux-product/linux-full-api.log",
+      "environment": "Linux ARM64 Node24.15.0/workerd + handed-over dedicated PostgreSQL17.11/internal loopback; API2CPU/2g, pressure0.75CPU/1g. Not native CIx64.",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "6b9865a09c1deb21b79942fb2014cb21fedde9972a0351b285c83fe3014fda01",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "api"
+      }
+    },
+    {
+      "id": "hosted-browser",
+      "command": "npm run test:hosted-mcp-browser",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/mac.log",
+      "environment": "Darwin arm64 Node24.15.0 npm11.12.1; default installed Chrome; no executable override; separate disposable local PostgreSQL17.11 synthetic schema; NEXT_DIST_DIR=.next",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "hosted-browser"
+      }
+    },
+    {
+      "id": "hosted-browser-linux",
+      "command": "npm run test:hosted-mcp-browser",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/builder/linux.log",
+      "environment": "Actual LinuxARM64 official Playwright1.64.1 image2f05f8a734509a7b3f26a912639488ee08f58a7b292d14d62271bcff9038768f; mounted public pinned Node24.15 binary d0b9f94a..; image-default Node26.13 explicitly not used; npm11.20.0; managed Chromium156.0.8078.80, no executable override/NODE_OPTIONS; real disposable PG17.11, readonly source/dependencies, isolated .next. Builder executed, reviewer inspected actual reports/source/runtime before/after.",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "hosted-browser-linux"
+      }
+    },
+    {
+      "id": "diagnostics",
+      "command": "node --test scripts/e2e/hosted-mcp-browser-diagnostics.test.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/diagnostics-final.log",
+      "environment": "Darwin arm64 Node24.15.0 npm11.12.1; no DB/network used",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "diagnostics"
+      }
+    },
+    {
+      "id": "continuity",
+      "command": "python3 docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/continuity.py",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/continuity.log",
+      "environment": "Darwin arm64 Node24.15.0/npm11.12.1; read-only source/artifact/dependency comparison, no DB/network",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "continuity"
+      }
+    },
+    {
+      "id": "current-worker-map",
+      "command": "node apps/api/scripts/dependency-patches.mjs --verify-worker apps/api/dist/worker/worker.js.map",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/HOSTED-MCP-20261104/hosted-browser-linux-repair/independent-review/new-reviewer/current-worker-map.log",
+      "environment": "Darwin arm64 Node24.15.0; no DB/network",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "0cd36f07dc66739a759272722d1da017f56588fb6f3a062805f3d62de6a95ea8",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "current-worker-map"
+      }
+    },
+    {
+      "id": "fresh-router-boundaries",
+      "command": "node --test --test-concurrency=1 apps/api/test/router-boundaries.test.ts",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/router-boundaries.log",
+      "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-router-boundaries"
+      }
+    },
+    {
+      "id": "fresh-typecheck",
+      "command": "npm run typecheck",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/typecheck.log",
+      "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-typecheck"
+      }
+    },
+    {
+      "id": "fresh-contracts",
+      "command": "npm test --workspace @flowboard/contracts",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/contracts.log",
+      "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-contracts"
+      }
+    },
+    {
+      "id": "fresh-contract-parity",
+      "command": "npm run openapi:check && npm run migrations:embed:check",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/contract-parity.log",
+      "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-contract-parity"
+      }
+    },
+    {
+      "id": "fresh-mcp",
+      "command": "npm test --workspace @flowboard/mcp && NODE_ENV=production npm run build --workspace @flowboard/mcp && npm run test:artifact --workspace @flowboard/mcp",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/mcp.log",
+      "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-mcp"
+      }
+    },
+    {
+      "id": "fresh-api",
+      "command": "npm run test --workspace @flowboard/api",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/api.log",
+      "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-api"
+      }
+    },
+    {
+      "id": "fresh-native-mcp",
+      "command": "npm run test:mcp-integration",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/native-mcp.log",
+      "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-native-mcp"
+      }
+    },
+    {
+      "id": "fresh-build",
+      "command": "NODE_ENV=production npm run build",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/build.log",
+      "environment": "Disposable PostgreSQL17.11 loopback:60488, source-held Node/workerd; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-build"
+      }
+    },
+    {
+      "id": "fresh-hosted-browser",
+      "command": "npm run test:hosted-mcp-browser",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/hosted-browser.log",
+      "environment": "Dedicated PG17.11loopback60488, MacChrome isolated syntheticGoogle browser; no real provider credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-hosted-browser"
+      }
+    },
+    {
+      "id": "fresh-legacy-browser",
+      "command": "npm run test:browser",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/legacy-browser.log",
+      "environment": "DisposablePG17.11loopback60488, syntheticlocal-only runtime, no cloudcredentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-legacy-browser"
+      }
+    },
+    {
+      "id": "fresh-production-artifact",
+      "command": "NODE_ENV=test node docs/reviews/HOSTED-MCP-20261104/independent-backend-review/final-preparation/production-worker-probe.mjs --run",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/production-artifact.log",
+      "environment": "DisposablePG17.11loopback60488, syntheticlocal-only runtime, no cloudcredentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-production-artifact"
+      }
+    },
+    {
+      "id": "fresh-production-build-sanitized",
+      "command": "npm run build",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-local-gates/build-production-sanitized.log",
+      "environment": "Sanitized production build, no DB/test/NEXT_PUBLIC environment; unchanged artifact compared with actual synthetic wire probe",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "fresh-production-build-sanitized"
+      }
+    },
+    {
+      "id": "scoped-independent-parity",
+      "command": "node docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-parity.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-parity.log",
+      "environment": "Independent reviewer; Node24.15.0; local synthetic no-DB probes or serial dedicated PostgreSQL17.11 loopback60488; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "b97e85990f8084ebc080e9d30421770373f5454bb68e9a710fede3b88159a46e",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "scoped-independent-parity"
+      }
+    },
+    {
+      "id": "scoped-independent-boundaries",
+      "command": "node docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-boundaries.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-boundaries.log",
+      "environment": "Independent reviewer; Node24.15.0; local synthetic no-DB probes or serial dedicated PostgreSQL17.11 loopback60488; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "b97e85990f8084ebc080e9d30421770373f5454bb68e9a710fede3b88159a46e",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "scoped-independent-boundaries"
+      }
+    },
+    {
+      "id": "scoped-independent-performance",
+      "command": "node docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-performance.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-performance.log",
+      "environment": "Independent reviewer; Node24.15.0; local synthetic no-DB probes or serial dedicated PostgreSQL17.11 loopback60488; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "b97e85990f8084ebc080e9d30421770373f5454bb68e9a710fede3b88159a46e",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "scoped-independent-performance"
+      }
+    },
+    {
+      "id": "scoped-independent-postgres",
+      "command": "node docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-postgres.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-router-review/evidence/independent-postgres.log",
+      "environment": "Independent reviewer; Node24.15.0; local synthetic no-DB probes or serial dedicated PostgreSQL17.11 loopback60488; no cloud credentials",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "b97e85990f8084ebc080e9d30421770373f5454bb68e9a710fede3b88159a46e",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "scoped-independent-postgres"
+      }
+    },
+    {
+      "id": "global-source-reassessment",
+      "command": "python3 docs/reviews/PROD-MCP-20261105/cpu-global-review/reassess.py",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261105/cpu-global-review/evidence/source-continuity.json",
+      "environment": "Read-only macOS source/evidence rehash; no DB/network/cloud actions",
+      "executionKind": "retained exact actual f32baseline execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "global-source-reassessment"
+      }
+    },
+    {
+      "id": "banner-web-tests",
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/independent-review/evidence/web-tests.log",
+      "environment": "Node24 native isolated unit/source fixtures, no database/cloud services",
+      "executionKind": "retained exact actual Nov6banner execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "banner-web-tests"
+      }
+    },
+    {
+      "id": "banner-web-typecheck",
+      "command": "npm run typecheck:web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/root-web-typecheck.log",
+      "environment": "Operator/root held264source nativewebTypeScript5.9.3; noDB/cloud; actualrootreceipt independently inspected",
+      "executionKind": "retained exact actual Nov6banner execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "banner-web-typecheck"
+      }
+    },
+    {
+      "id": "banner-web-build",
+      "command": "npm run build:web",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/root-sanitized-web-build-round-2.log",
+      "environment": "Operator/root isolatedcopiedheldsource, production/export, whitelist/noDB/noNEXT_PUBLIC/noDotenv, faithfulsharedroot+workspace installeddeps; notcleaninstall",
+      "executionKind": "retained exact actual Nov6banner execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "banner-web-build"
+      }
+    },
+    {
+      "id": "banner-browser",
+      "command": "node docs/reviews/PROD-MCP-20261106/independent-review/evidence/browser-review.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/independent-review/evidence/pages-runs/2026-11-06T05-37-28.716Z/result.json",
+      "environment": "Independent realChrome156.0.8078.81 + actualcompiledPages/workerd/installedASSETS; isolatedownedloopback, controllednoDBbridge; browserclockadvanced30sec",
+      "executionKind": "retained exact actual Nov6banner execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "banner-browser"
+      }
+    },
+    {
+      "id": "banner-source-continuity",
+      "command": "python3 docs/reviews/PROD-MCP-20261106/independent-review/evidence/check-continuity.py",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/independent-review/evidence/source-continuity.json",
+      "environment": "Freshreadonlysource/inventory/evidencecomparison; noDB/network/cloud; originalexecutionsNOT rerun",
+      "executionKind": "retained exact actual Nov6banner execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "banner-source-continuity"
+      }
+    },
+    {
+      "id": "banner-frontend-browser",
+      "command": "node docs/reviews/PROD-MCP-20261106/independent-review/frontend-browser-proof.mjs",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/independent-review/browser-round-2026-11-06T05-38-49.388Z/browser-proof.json",
+      "environment": "Independent execution of inspectedsameassertionfixture, actualheldstaticexport andactualCardDetailDrawer/shell/barepages withsyntheticAPI; isolatedChrome/loopback, noDB/provider/save;640x400dpr2reflow and syntheticvisibilityadapter",
+      "executionKind": "retained exact actual Nov6banner execution; currentcomposed applicability only; originalkind/metadata retained verbatim in priorReviewExecutionRow",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "originalExecutionTarget": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f",
+      "currentApplicabilityPath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/command-applicability.json",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "banner-frontend-browser"
+      }
+    },
+    {
+      "id": "composed-source-proof",
+      "command": "python3 docs/reviews/PROD-MCP-20261106/composed-review/compose.py",
+      "exitCode": 0,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/composed-review/evidence/source-binding.json",
+      "environment": "Actualindependentreadonlycurrenttarget/source/evidence comparison;noDB/network/Docker/producttest/rolehandoff/sourceedit",
+      "executionKind": "actualcurrentreadonlyattestation only",
+      "targetDigest": "356884b3ebf0e7a94d862fcbfd78271c03fcaf3bdda200ea01f7e0c29bb86ff0",
+      "fullExecutionRecord": {
+        "path": "docs/reviews/PROD-MCP-20261106/banner-owner-phase/review-test-executions.json",
+        "sha256": "4f1c1c398381fb08c7fd5588a08e164f11b46d66dc812b6830a36dab255a8636",
+        "id": "composed-source-proof"
+      }
+    }
+  ],
+  "historicalPhase": {
+    "path": "docs/reviews/PROD-MCP-20261105/cpu-owner-phase/CRD-05.json",
+    "sha256": "22fff304e30a92d3ab763568e6a0d32e5efabd1e61f10fa367e23c61b63a5f4b"
+  },
+  "decision": "Architect consumed the fresh independent preserved-baseline plus rollout-banner reassessment. Every test preserves executionKind and a hash-bound full original execution record; source applicability is distinct from a fresh run.",
+  "limitations": [
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "New exact-candidate CI and hosted rollout remain release conditions; the known idle-PG baseline warning stays disclosed and unresolved. No clean production/runtime acceptance is implied."
+  ],
+  "recordedAt": "2026-11-06T06:05:45.944185+00:00"
+}

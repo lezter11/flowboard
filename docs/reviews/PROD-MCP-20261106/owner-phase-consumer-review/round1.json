@@ -1,0 +1,124 @@
+{
+  "kind": "independent static operator consumer review; no check-only/apply execution or role approval",
+  "reviewer": "cpu_router_builder",
+  "at": "2026-11-06T06:01:32.316195+00:00",
+  "status": "incomplete pending fresh composed review and partial-retry preservation disposition",
+  "target": {
+    "newConsumerSHA256": "17484ba489d5f674d4c4b0d7171c17b9b32eec92a3b17b78a577ccb68ae591db",
+    "oldConsumerSHA256": "2fd44cde55531b1b382635478a86d28c9c44d2acd90bce6e8a721a97133d2950",
+    "previousPhase": "docs/reviews/PROD-MCP-20261105/cpu-owner-phase",
+    "previousSummarySHA256": "b5abe4f2606fd950599ee0e3a283409efe070dd7c0f4215ba91736aeb2ec62ba",
+    "previousFullExecutionIndexSHA256": "db01c80b03e1da19262c551cad4ad4c9c6868032c9c6e271dc7555c53520b30c"
+  },
+  "census": {
+    "features": 98,
+    "requiredUI": 74,
+    "currentRoleRecords": 270,
+    "roleRecordCounts": {
+      "backend": 98,
+      "ui": 74,
+      "integration": 98
+    },
+    "sourceReferences": 1570,
+    "changedSourceReferences": 17,
+    "changedDistinctFeatures": 12,
+    "changedUniquePaths": [
+      "apps/web/public/_headers",
+      "apps/web/src/app/globals.css"
+    ]
+  },
+  "roleBeforeManifestDigest": "5140656eae48eab5c558511eb2d1908f08936479dc35012df1a20d23777d9b32",
+  "staticChecks": {
+    "rootResolution": "parents[4] resolves repository root for this nesting",
+    "validationBeforeMutation": "Full validate_review and feature/test/source coverage gates run before apply writes; check-only branch exits before every write",
+    "executionProvenance": "All review tests and nested original execution/provenance data retained in one full JSON index; each per-ID row binds its index bytes and ID, while retaining executionKind/originalExecutionTarget/currentApplicabilityPath",
+    "sourceCoverage": "Every previous per-ID source/test path requires equality between actual current bytes and composed review target manifest;17 changed references are not waived",
+    "historicalBinding": "Each new per-ID record binds exact previous CPU-phase JSON bytes; current role records are snapshotted before replacing that feature",
+    "roleLinks": "98 backend reviewPath links;74 UI backendReviewSHA256 links;98 integration backendReviewSHA256 links plus74 actual-new-UI SHA256 links; generated checklist run then expected totals asserted",
+    "scopeLimits": "All resulting role records remain verificationScope local and hostedAcceptance pending; original executions are not relabelled fresh"
+  },
+  "findings": [
+    {
+      "id": "OWNER-CONSUMER-01",
+      "priority": 2,
+      "location": "banner-owner-phase/revalidate.py apply guard and previous-handoffs write loop",
+      "problem": "Only summary.json existence prevents reuse. If apply fails after writing some role records but before summary, retry overwrites previous-handoffs snapshots with the already-mutated role records.",
+      "fix": "Reject any pre-existing owned phase/index/previous-handoff outputs before mutation, or use a new phase for every partial attempt and explicitly prohibit rerun. Preserve recovery evidence."
+    }
+  ],
+  "unverified": [
+    "New independent composed full record is pending; cannot yet establish its actual validator pass,157 criteria composition, complete new-banner scope or exact tests/provenance.",
+    "No consumer script execution, role handoff mutation, checklist regeneration, API, UI edit, Docker or cloud operation was performed.",
+    "No numeric global backend rating or feature closure is supplied."
+  ],
+  "changedReferences": [
+    {
+      "featureId": "ACC-02",
+      "path": "apps/web/src/app/globals.css"
+    },
+    {
+      "featureId": "ACC-03",
+      "path": "apps/web/public/_headers"
+    },
+    {
+      "featureId": "ACC-03",
+      "path": "apps/web/src/app/globals.css"
+    },
+    {
+      "featureId": "ACC-05",
+      "path": "apps/web/public/_headers"
+    },
+    {
+      "featureId": "ACC-05",
+      "path": "apps/web/src/app/globals.css"
+    },
+    {
+      "featureId": "CRD-01",
+      "path": "apps/web/src/app/globals.css"
+    },
+    {
+      "featureId": "CRD-10",
+      "path": "apps/web/src/app/globals.css"
+    },
+    {
+      "featureId": "CRD-11",
+      "path": "apps/web/src/app/globals.css"
+    },
+    {
+      "featureId": "CRD-12",
+      "path": "apps/web/src/app/globals.css"
+    },
+    {
+      "featureId": "DEL-08",
+      "path": "apps/web/src/app/globals.css"
+    },
+    {
+      "featureId": "UX-01",
+      "path": "apps/web/public/_headers"
+    },
+    {
+      "featureId": "UX-01",
+      "path": "apps/web/src/app/globals.css"
+    },
+    {
+      "featureId": "UX-02",
+      "path": "apps/web/public/_headers"
+    },
+    {
+      "featureId": "UX-02",
+      "path": "apps/web/src/app/globals.css"
+    },
+    {
+      "featureId": "UX-03",
+      "path": "apps/web/src/app/globals.css"
+    },
+    {
+      "featureId": "UX-04",
+      "path": "apps/web/public/_headers"
+    },
+    {
+      "featureId": "UX-04",
+      "path": "apps/web/src/app/globals.css"
+    }
+  ]
+}

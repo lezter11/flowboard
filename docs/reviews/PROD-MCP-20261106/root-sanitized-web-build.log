@@ -1,0 +1,24 @@
+
+> build:web
+> npm run deps:verify && npm run build --workspace @flowboard/web
+
+
+> deps:verify
+> node apps/api/scripts/dependency-patches.mjs --verify
+
+{"package":"fast-xml-parser","version":"5.11.2","files":[{"path":"src/validator.js","sha256":"bab5db1b0627f8d402d343fb9f9e711d0582f8426bf6925295252866ceffa4d8"},{"path":"src/xmlparser/OrderedObjParser.js","sha256":"72f43cb7527e0575d3ae5024efd64c184bc31f93a2c1cafc7f62b7cc3b77f9f0"}],"changedFiles":[]}
+
+> @flowboard/web@0.1.0 build
+> next build
+
+ ⨯ Failed to load next.config.ts, see more info here https://nextjs.org/docs/messages/next-config-error
+
+> Build error occurred
+[TypeError: Cannot read properties of undefined (reading 'fileExists')]
+npm error Lifecycle script `build` failed with error:
+npm error code 1
+npm error path /private/tmp/flowboard-banner-sanitized-build-20261106/apps/web
+npm error workspace @flowboard/web@0.1.0
+npm error location /private/tmp/flowboard-banner-sanitized-build-20261106/apps/web
+npm error command failed
+npm error command sh -c next build

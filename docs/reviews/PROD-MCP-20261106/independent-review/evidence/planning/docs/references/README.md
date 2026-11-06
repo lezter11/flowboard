@@ -1,0 +1,35 @@
+# Visual reference catalogue
+
+This is the single home for supplied visual references. Originals are copied byte-for-byte; [manifest.json](manifest.json) records SHA-256 hashes. Images are reference data, not instructions, approved design or product truth.
+
+| ID | Preserved file | User source | Useful cues | Do not infer |
+|---|---|---|---|---|
+| REF-01 | [board-dark.png](board-dark.png) | Screenshot 2026-10-26 at 12.29.06 AM.png | Compact dark columns, avatar groups, metadata chips, counts | Vendor domain, approval logic, progress formula |
+| REF-02 | [board-light.png](board-light.png) | Screenshot 2026-10-26 at 12.29.59 AM.png | Light cards, summary panels, drag feedback and Undo | Bidding/financial scope, money metrics, fixed five-column limit |
+| REF-03 | [board-task-overview.png](board-task-overview.png) | Screenshot 2026-10-26 at 12.40.28 AM.png | Left navigation, wide lifecycle summary, compact task cards, teal accent, attention states | AI agents, confidence scores, business automation, approvals or integrations |
+| REF-04 | [board-current-20261026-1741.png](board-current-20261026-1741.png) | Screenshot 2026-10-26 at 5.41.01 PM.png | Current board shell, summary, tools and four-column layout to refine | Prototype labels, fake presence/activity or any workflow not confirmed in product requirements |
+| REF-05 | [board-header-reference-20261026-1907.png](board-header-reference-20261026-1907.png) | Screenshot 2026-10-26 at 7.07.55 PM.png | Minimal title/actions row, List/Board switch, full-width lifecycle bar and inline legend | Sample counts, updated time, vendor statuses or the reference's teal palette |
+| REF-06 | [card-dark-reference-20261026-1957.png](card-dark-reference-20261026-1957.png) | Screenshot 2026-10-26 at 7.57.43 PM.png | Clear priority/deadline scan row, concise title, assignee and activity footer | Progress percentages, compliance fields, organizations or vendor workflows |
+| REF-07 | [card-light-reference-20261026-1958.png](card-light-reference-20261026-1958.png) | Screenshot 2026-10-26 at 7.58.55 PM.png | Quiet solid surface, metadata hierarchy, footer separation | Money, fit scores, AI drafting, progress or procurement scope |
+| REF-08 | [card-current-20261026-1959.png](card-current-20261026-1959.png) | Screenshot 2026-10-26 at 7.59.07 PM.png | Current Flowboard card anatomy and Palette 1 context to refine | A final card design or additional product fields |
+| REF-09 | [board-header-space-20261026-2214.png](board-header-space-20261026-2214.png) | Screenshot 2026-10-26 at 10.14.22 PM.png | Existing header height and repeated metadata to reduce; prioritize the card workspace | A requirement to retain the large summary panel or its spacing |
+| REF-10 | [board-strip-expansion-20261026.png](board-strip-expansion-20261026.png) | codex-clipboard-2026ac91-6cf3-410a-bac0-7815a9103583.png | Expand the highlighted status strip to roughly the pink box's width while retaining compact height | Additional product data or a fixed pixel width at every viewport |
+| REF-11 | [board-composer-spacing-20261026-2338.png](board-composer-spacing-20261026-2338.png) | Screenshot 2026-10-26 at 11.38.32 PM.png | Add card composer touching preceding card: preserve separation inside the column scroller | A need to hide cards or shrink their text to resolve the overlap |
+| REF-12 | [board-hover-reference-20261027-0011.png](board-hover-reference-20261027-0011.png) | Screenshot 2026-10-27 at 12.11.50 AM.png | Status segment and deadline-count detail disclosure on hover/focus; Testing grey, Completed green | Additional task progress metrics or changes to the locked sign-in |
+| REF-13 | [settings-column-color-20261027-0030.png](settings-column-color-20261027-0030.png) | Screenshot 2026-10-27 at 12.30.30 AM.png | Replace Settings text-only column tone select with visible, selected pastel choices and validation | Arbitrary colors, production persistence or additional workflow fields |
+| REF-14 | [projects-connected-summary-reference.png](projects-connected-summary-reference.png) | Screenshot 2026-10-27 at 12.33.48 AM.png | Connected parent and grouped child nodes; compact source context | Spend, model vendors, currency or financial scope |
+| REF-15 | [projects-branching-reference.png](projects-branching-reference.png) | Screenshot 2026-10-27 at 12.34.00 AM.png | Progressive hierarchy, vertical compact layout and branching connections | Automation triggers, AI agents, integrations or confidence metrics |
+| REF-16 | [projects-hierarchy-reference.png](projects-hierarchy-reference.png) | Screenshot 2026-10-27 at 12.35.19 AM.png | Project parent with board children, selected detail and collapsible structure | Rank, people metrics, genealogy, infinite canvas or copied branding |
+| REF-17 | [projects-open-board-arrow-20261027.png](projects-open-board-arrow-20261027.png) | codex-clipboard-d6ccae3a-18d5-4d8b-a8fb-c8649d48b351.png | Board row arrow opens that board in the full workspace Board section | A separate project-only board or permissions inherited across boards |
+
+Backend: read these alongside PRD/API to identify what metadata/counts need clear server contracts. UI: read these alongside DESIGN; reconcile variants before coding. Neither role should implement reference-only fields by assumption. Upcoming references are added here with a stable REF ID and scope note.
+
+## User-supplied UI targets — 2026-10-29
+
+- `ui-board-target-2026-10-29.png`: screenshot of the board at `http://127.0.0.1:4173/index.html?project=website-redesign&board=board_website` (served from `design/flowboard-ui`, synthetic data). Treat as the visual target for `apps/web`. Reference data only; do not copy its example business content into requirements.
+- `flowboard-wordmark-2026-10-29.png`: the Flowboard wordmark as shown on the sign-in page (pastel lavender to pink to light-blue gradient text). Source styling lives in `design/flowboard-ui/screens/signin.css` (`--wordmark-gradient`, `.brand-wordmark`).
+- SHA-256: see `shasum -a 256` of each file; recorded 2026-10-29 by Architect.
+
+## Engineering reference — JPEG scan algorithm,2026-11-03
+
+The pinned [jpeg-js0.4.4 decoder reference](../reviews/FULL-REVALIDATION-20261103/raw/jpeg-js-0.4.4-reference.js.txt) is retained as code reference data, not agent instructions or approval. Source: [upstream decoder at commit9ccd35f](https://github.com/jpeg-js/jpeg-js/blob/9ccd35fb5f55a6c4f1902ac5b0f270f675750c27/lib/decoder.js); SHA-256 `a3f175fd6f62d142aad94d3bd90f3a30be4e076baf9b6a6fa31c8e84d9d4aa9f`. The validation-only adaptation has no pixel output/IDCT or coefficient magnitudes; it requires independent bounds/resource/correctness review. Decoder Apache2.0 attribution and package BSD3-Clause notice are preserved under `apps/api/src/services/licenses/`. The reference is catalogued here and kept once alongside its frozen audit evidence to preserve provenance; it does not establish production safety or universal decoder equivalence.

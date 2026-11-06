@@ -1,5 +1,9 @@
 # Flowboard design direction
 
+## Deployment notice — 2026-11-06
+
+Use fixed copy **Update in progress** / **We’re updating Flowboard. You can keep this page open.** A global in-flow sticky notice uses existing surface, ink and line tokens, wraps at narrow widths and exposes a polite status region without stealing focus. Its measured height offsets the sticky header, navigation rail and card drawer so Close and Save remain reachable; dialogs keep their existing foreground order. It covers sign-in, consent and name entry as well as the main shell. Never force refresh, erase a draft, disable controls or present this notice as an authorization/maintenance barrier. Default is inactive; current release-stage status controls visibility. [Acceptance and evidence](docs/reviews/PROD-MCP-20261106/CHECKLIST.md) distinguish synthetic presentation from live provider behavior.
+
 ## Hosted connector interaction — acceptance target, 2026-11-04
 
 Consent is a focused page outside the board shell. Explain the requesting app, both origins, its unverified identity, requested actions and continuing-access duration in plain language. Require an explicit project choice before Allow; Deny remains available without one. Render all client metadata as text. Never display a token or callback query. Unavailable/expired or uncertain outcomes offer safe restart/reload guidance without silently resubmitting consent.

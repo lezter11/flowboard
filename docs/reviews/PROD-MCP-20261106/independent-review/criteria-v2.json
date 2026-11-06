@@ -1,0 +1,38 @@
+{
+  "criteriaVersion": "backend-review-v1",
+  "featureIds": [
+    "RELEASE-BANNER-20261106"
+  ],
+  "risk": "routine UI status display with untrusted public JSON and polling/resource boundary",
+  "sourcePlan": "docs/reviews/PROD-MCP-20261106/PLAN.md",
+  "sourcePlanSHA256": "ea68079752923995be1975d959da46b7fdee4b0ffe9626c7650e40fd792b89b7",
+  "frozenAt": "2026-11-06T05:26:08.999418+00:00",
+  "criteriaTiming": "Architect PLAN established acceptance before implementation. This machine-readable exact expansion was prepared during builder work before heldtarget/evidence/scoring; first new release-status.test.ts already existed. No claim JSON preceded all code.",
+  "mandatoryCriteria": [
+    "B01: Global reusable accessible banner has exact fixed title Update in progress and fixed copy We\u2019re updating Flowboard. You can keep this page open.; defaultinactive, no arbitrary identity/version/HTML/messages/URLs/credentials.",
+    "B02: Fixed same-origin public /release-status.json supplies exactly one active boolean. Validinactive and exact404/410 absent-or-retired status clear already-open new-version tabs. Allotherfailed/malformed/wrong-shaped/redirected/200HTML responses retain lastvalidstate, never inject content or silently impose a TTL. Rollback absence is explicitly informational, not authentication.",
+    "B03: Status fetch omits credentials and authentication/API clients, uses no-store, finite response-byte and elapsed-time bounds, and cancellation without blocking on uncooperative cleanup. It cannot become a protected data request or remote URL fetch.",
+    "B04: Poll about30seconds only while visible, check on return to visibility, prevent uncontrolled/overlapping polling and stale late completion overwrites; stop timers/listeners and abort real pending work on unmount. Errors retain last validstate.",
+    "B05: Banner never forces reload/navigation, steals focus, requests notifications, disables actions or changes drafts. Normal signed-out/bare-route and signed-in shell rendering remain possible; it is not an authentication or maintenance barrier.",
+    "B06: Actual rendered banner/layout support320px and200percentzoom inlight/dark without horizontal overflow, covered/unreachable controls or broken keyboard/focus/dialog behavior. Use actual browser screenshots and measured layout, not source-only styling assertions.",
+    "B07: Public inactive asset has active:false; actual built static asset uses no-store response headers. Actual Pages middleware filefastpath serves status without API/auth/DB work and standard security headers persist. Next dev/fake response headers alone do not prove Pages asset behavior.",
+    "B08: Relevant fresh webunit/typecheck/sanitized production staticbuild and real-browser active\u2192inactive withoutreload/invalid-retention/initialinactive/visibility/unmount/security/responsive checks pass on heldsource. Commands/logs/source-beforeafter/cleanup/environment explicit; failures preserved. Include real browser active\u2192404 and410 clears, active\u2192500/network/200HTML malformed retains; actualPagesASSETS missinglegacy status404 must not redirect or callAPI.",
+    "B09: Changed source confined to approved UIbanner/controller/staticasset/header/layout/styles/tests. Backend/API/contracts/migrations/runtime/limits/auth/dependencies remain byte-preserved against f32; original99IDs/157criteria individually reassessed for applicability with changed UI/sharedlayout effects and exact historical execution timestamps/targets retained.",
+    "B10: New independent scoped source/evidence manifest and honest category judgment do not automatically revive old whole-global/UI/integration approval. Parent reviews and composes acceptance; old f32CI1966/24 and900s/14ok baseline-warning window remain original historical evidence. One new exact-candidateCI and new UAT/banner/CPU/provider/operator gates remain required before release.",
+    "B11: Release-stage active/inactive status variants, when prepared by Architect, may differ only in this exact static status object under explicit overlay; clean candidate appbytes remain unchanged, both manifests/checksums recorded. Existing old-version tabs cannot gain the component withoutrefresh; limitation disclosed, never forced."
+  ],
+  "requiredTests": {
+    "web-tests": "npm test --workspace @flowboard/web",
+    "web-typecheck": "npm run typecheck:web",
+    "web-build": "python3 docs/reviews/PROD-MCP-20261106/independent-review/evidence/build-web-sanitized.py",
+    "browser": "node docs/reviews/PROD-MCP-20261106/independent-review/evidence/browser-review.mjs",
+    "source-continuity": "python3 docs/reviews/PROD-MCP-20261106/independent-review/evidence/check-continuity.py"
+  },
+  "scopeAndExclusions": "Scoped UIbanner/source-applicability acceptance only. No fullAPI/DB/Docker required unless backend/contract/runtime bytes drift. No cloud writes,push,CItrigger,backend/source/handoff edits by reviewer. All98+HOSTED/157oldcriteria retain original exact statements and actual execution provenance; source equality is not a rerun. CriterionB11 may cite separately owned explicit stage-overlay evidence when available; no deployment or Owner approval invented.",
+  "precedingCriteria": {
+    "path": "docs/reviews/PROD-MCP-20261106/independent-review/criteria.json",
+    "sha256": "adbbe0b523ef660cf491725d8d005e4f95c7a66edaa6adba906866492e27268f",
+    "boundary": "Original pre-hold criteria retained; no score or heldtarget had been approved."
+  },
+  "amendment": "Explicit Architect pre-hold05:25UTC rollback contract, backed by1actuallegacyPages404/no-store/no-redirect request: only exact404/410 clears absent/retired feature; otherinvalid/200HTML/network/non2xx retain. No TTL/auth barrier."
+}

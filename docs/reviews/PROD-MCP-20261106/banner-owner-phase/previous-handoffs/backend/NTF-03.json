@@ -1,0 +1,21 @@
+{
+  "status": "verified",
+  "verificationScope": "local",
+  "hostedAcceptance": "pending",
+  "reviewPath": "docs/reviews/PROD-MCP-20261105/cpu-global-review/e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205-round-1.json",
+  "summary": "NTF-03: independently reviewed current local implementation; hosted acceptance pending.",
+  "api_contract": "docs/API.md; docs/openapi.json; docs/features.tsv NTF-03",
+  "limitations": [
+    "Local synthetic verification; actual Google/Claude, deployed storage, long-duration timers and production acceptance are separate.",
+    "Current Linux CI and hosted CPU/exception/idle-PG disposition remain release conditions. No clean production/runtime acceptance is implied."
+  ],
+  "evidence": [
+    {
+      "path": "docs/reviews/PROD-MCP-20261105/cpu-owner-phase/NTF-03.json",
+      "sha256": "c4957e67f8459896210e1c3fafe650e34f8d657be2a7e46febf002edaf4305a2",
+      "command": "python3 docs/reviews/PROD-MCP-20261105/cpu-owner-phase/revalidate.py --review docs/reviews/PROD-MCP-20261105/cpu-global-review/e70a8f175e75d32db6b158baee5687c64303ed13d41a051c41ca244804161205-round-1.json --apply",
+      "result": "Fresh review validated for this ID; current per-ID source/test hashes checked against the review manifest; current local criteria reassessed; fresh and retained original executions are explicitly distinguished.",
+      "environment": "See the independent review for exact local PostgreSQL/Node/workerd/Chrome environment and command outcomes. No hosted/provider acceptance implied."
+    }
+  ]
+}

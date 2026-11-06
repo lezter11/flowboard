@@ -1,0 +1,31 @@
+:root { --release-banner-height: 0px; }
+.release-banner {
+  position: sticky; top: 0; z-index: 95;
+  display: flex; align-items: baseline; justify-content: center; flex-wrap: wrap;
+  gap: 2px 12px; padding: 8px 16px;
+  background: var(--surface-2); color: var(--ink);
+  border-bottom: 1px solid var(--line-strong);
+  font-size: 13px; line-height: 1.5; text-align: center;
+  overflow-wrap: anywhere;
+}
+.release-banner:empty { display: none; }
+.release-banner strong { font-weight: 600; }
+
+/* Keep the existing sticky header and viewport rail below the in-flow notice.
+   The measured height also follows wrapping, font loading and browser zoom. */
+.app { min-height: calc(100dvh - var(--release-banner-height)); }
+.rail { top: var(--release-banner-height); height: calc(100dvh - var(--release-banner-height)); }
+.topbar { top: var(--release-banner-height); }
+.page { min-height: calc(100dvh - 60px - var(--release-banner-height)); }
+.board-app .workspace { height: calc(100dvh - var(--release-banner-height)); }
+.board-app .page { height: calc(100dvh - var(--context-height) - var(--release-banner-height)); min-height: 0; }
+.board-app.board-fullscreen .page { height: calc(100dvh - var(--release-banner-height)); }
+.board-app.board-fullscreen .rail { top: var(--release-banner-height); height: calc(100dvh - var(--release-banner-height)); }
+.rail-scrim, .board-app .rail-scrim { top: var(--release-banner-height); }
+.drawer { top: var(--release-banner-height); height: calc(100dvh - var(--release-banner-height)); }
+#drawerScrim { top: var(--release-banner-height); }
+@media (max-height: 480px) {
+  .board-app .workspace { height: auto; min-height: calc(100dvh - var(--release-banner-height)); }
+  .board-app .page { height: auto; min-height: calc(100dvh - var(--context-height) - var(--release-banner-height)); }
+  .board-app.board-fullscreen .page { height: auto; }
+}

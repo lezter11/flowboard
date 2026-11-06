@@ -1,0 +1,71 @@
+{
+  "reviewPath": "docs/reviews/PROD-MCP-20261106/independent-review/cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f-round-1.json",
+  "reviewSHA256": "beaa0f2e2a75f17d393e1b042381abf0ddd9d760d21e8ddcfc795cebced423c0",
+  "tests": [
+    {
+      "command": "npm test --workspace @flowboard/web",
+      "exitCode": 0,
+      "startedAt": "2026-11-06T05:38:44.911734+00:00",
+      "completedAt": "2026-11-06T05:38:48.151446+00:00",
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/independent-review/evidence/web-tests.log",
+      "environment": "Node24 native isolated unit/source fixtures, no database/cloud services",
+      "isolatedSynthetic": true,
+      "id": "web-tests",
+      "executionActor": "/root/cpu_global_revalidation",
+      "targetDigest": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f"
+    },
+    {
+      "id": "web-typecheck",
+      "command": "npm run typecheck:web",
+      "exitCode": 0,
+      "environment": "Operator/root held264source nativewebTypeScript5.9.3; noDB/cloud; actualrootreceipt independently inspected",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/root-web-typecheck.log",
+      "executionActor": "/root",
+      "executionReceipt": "docs/reviews/PROD-MCP-20261106/root-local-verification.json",
+      "targetDigest": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f"
+    },
+    {
+      "id": "web-build",
+      "command": "npm run build:web",
+      "exitCode": 0,
+      "environment": "Operator/root isolatedcopiedheldsource, production/export, whitelist/noDB/noNEXT_PUBLIC/noDotenv, faithfulsharedroot+workspace installeddeps; notcleaninstall",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/root-sanitized-web-build-round-2.log",
+      "executionActor": "/root",
+      "executionReceipt": "docs/reviews/PROD-MCP-20261106/root-sanitized-web-build-round-2.json",
+      "targetDigest": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f"
+    },
+    {
+      "id": "browser",
+      "command": "node docs/reviews/PROD-MCP-20261106/independent-review/evidence/browser-review.mjs",
+      "exitCode": 0,
+      "environment": "Independent realChrome156.0.8078.81 + actualcompiledPages/workerd/installedASSETS; isolatedownedloopback, controllednoDBbridge; browserclockadvanced30sec",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/independent-review/evidence/pages-runs/2026-11-06T05-37-28.716Z/result.json",
+      "executionActor": "/root/cpu_global_revalidation",
+      "targetDigest": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f"
+    },
+    {
+      "id": "source-continuity",
+      "command": "python3 docs/reviews/PROD-MCP-20261106/independent-review/evidence/check-continuity.py",
+      "exitCode": 0,
+      "environment": "Freshreadonlysource/inventory/evidencecomparison; noDB/network/cloud; originalexecutionsNOT rerun",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/independent-review/evidence/source-continuity.json",
+      "executionActor": "/root/cpu_global_revalidation",
+      "targetDigest": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f"
+    },
+    {
+      "id": "frontend-browser",
+      "command": "node docs/reviews/PROD-MCP-20261106/independent-review/frontend-browser-proof.mjs",
+      "exitCode": 0,
+      "environment": "Independent execution of inspectedsameassertionfixture, actualheldstaticexport andactualCardDetailDrawer/shell/barepages withsyntheticAPI; isolatedChrome/loopback, noDB/provider/save;640x400dpr2reflow and syntheticvisibilityadapter",
+      "isolatedSynthetic": true,
+      "evidencePath": "docs/reviews/PROD-MCP-20261106/independent-review/browser-round-2026-11-06T05-38-49.388Z/browser-proof.json",
+      "executionActor": "/root/cpu_global_revalidation",
+      "targetDigest": "cea3490774a5431b88b5ab75f189587a77b788b47226ca0c17bf96b1693e3b0f"
+    }
+  ],
+  "policy": "Exact6fullcurrentbannerreviewrows, unchanged. No repeated execution by composition."
+}
