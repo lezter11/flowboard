@@ -92,8 +92,10 @@ function SettingsScreen() {
   const boardIdForDraft=board?.id;
   const boardScope=[...scope,'board',boardIdForDraft];
   const boardProtection=memoryDrafts.protectFields(boardScope,{actorId:sessionActorId,projectId:projectIdForDraft,boardId:boardIdForDraft},{name:{scope:[...boardScope,'name'],base:()=>seenBoard.current.name,empty:''},description:{scope:[...boardScope,'description'],base:()=>seenBoard.current.description,empty:''}},()=>{seenBoard.current={id:boardIdForDraft,name:'',description:''};setBoardVersion(0);setBoardConflict(true);});
-  useEffect(()=>{if(board){const restored=boardProtection.restore({name:board.name,description:board.description??''});if(restored){seenBoard.current={id:board.id,name:board.name,description:board.description??'',version:board.snapshotVersion};setBoardVersion(board.snapshotVersion);setBoardConflict(restored.retained);return;}}const prev=seenBoard.current;setBoardName((value)=>prev.id!==board?.id||value===prev.name?board?.name??'':value);setBoardDescription((value)=>prev.id!==board?.id||value===prev.description?board?.description??'':value);if(board){if(prev.id!==board.id||boardName.trim()===board.name&&boardDescription.trim()===(board.description??'')||boardName===prev.name&&boardDescription===prev.description){setBoardVersion(board.snapshotVersion);setBoardConflict(false);}else if(prev.version!==board.snapshotVersion)setBoardConflict(true);}seenBoard.current={id:board?.id,name:board?.name??'',description:board?.description??'',version:board?.snapshotVersion};},[board?.id,board?.name,board?.description,board?.snapshotVersion]);
-  const boardDirty = !!board && (boardName.trim() !== board.name || boardDescription.trim() !== (board.description ?? ''));
+  useEffect(()=>{if(board){const restored=boardProtection.restore({name:board.name,description:board.description??''});if(restored){seenBoard.current={id:board.id,name:board.name,description:board.description??'',version:board.snapshotVersion};setBoardVersion(board.snapshotVersion);setBoardConflict(restored.retained);return;}}const prev=seenBoard.current;setBoardName((value)=>prev.id!==board?.id||value===prev.name?board?.name??'':value);setBoardDescription((value)=>prev.id!==board?.id||value===prev.description?board?.description??'':value);if(board){if(prev.id!==board.id||boardName.trim()===board.name.trim()&&boardDescription.trim()===(board.description??'').trim()||boardName===prev.name&&boardDescription===prev.description){setBoardVersion(board.snapshotVersion);setBoardConflict(false);}else if(prev.version!==board.snapshotVersion)setBoardConflict(true);}seenBoard.current={id:board?.id,name:board?.name??'',description:board?.description??'',version:board?.snapshotVersion};},[board?.id,board?.name,board?.description,board?.snapshotVersion]);
+  const boardNameChanged = !!board && boardName.trim() !== board.name.trim();
+  const boardDescriptionChanged = !!board && boardDescription.trim() !== (board.description ?? '').trim();
+  const boardDirty = boardNameChanged || boardDescriptionChanged;
   const boardEditable = canEditBoardDetails(role, !!board?.isArchived, !!project?.isArchived);
 
   const [displayName, setDisplayName] = useMemoryValue(['profile',actor?.id??'','display-name'],'');
@@ -183,8 +185,8 @@ function SettingsScreen() {
     setBusy(true); setError('');
     try {
       await api.updateBoard(board.id, {
-        ...(boardName.trim() !== board.name ? { name: boardName.trim() } : {}),
-        ...(boardDescription.trim() !== (board.description ?? '') ? { description: boardDescription.trim() || null } : {}),
+        ...(boardNameChanged ? { name: boardName.trim() } : {}),
+        ...(boardDescriptionChanged ? { description: boardDescription.trim() || null } : {}),
         expectedVersion: boardVersion,
       });
       toast('Board saved', { icon: 'check' });

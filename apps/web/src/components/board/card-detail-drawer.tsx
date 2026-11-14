@@ -35,7 +35,6 @@ interface Props {
   cardId: string;
   expectedBoardId: string;
   asOfDate?:string|null;
-  summary: CardSummary | null;
   columns: ColumnSummary[];
   people: Map<string, PersonDisplay>;
   role: Role;
@@ -69,8 +68,7 @@ export function CardDetailDrawer(props: Props) {
   const [open, setOpen] = useState(false);
   const dirtyRef = useRef(false);
   const commentSession = useMemo(() => commentSessions.forCard(draftActorId, cardId), [draftActorId, cardId]);
-  const commentDrafts = useSyncExternalStore(commentSession.subscribe, commentSession.get, commentSession.get);
-  const commentDirty = !!commentDrafts.create.body || !!commentDrafts.edit || !!commentDrafts.remove || commentSession.post.unresolved() || commentSession.edit.unresolved() || commentSession.remove.unresolved();
+  const commentDirty = useSyncExternalStore(commentSession.subscribe, commentSession.hasUnsaved, commentSession.hasUnsaved);
   const [confirm, setConfirm] = useState<null | 'discard' | 'delete'>(null);
 
   useEffect(() => {
@@ -84,10 +82,11 @@ export function CardDetailDrawer(props: Props) {
   useEffect(()=>{if(!open)return;const frame=requestAnimationFrame(()=>panelRef.current?.focus({preventScroll:true}));return()=>cancelAnimationFrame(frame);},[open]);
 
   const finishClose = useCallback(() => {
+    commentSession.close();
     setOpen(false);
     window.setTimeout(onClose, 200);
-  }, [onClose]);
-  const requestClose = useCallback(() => { if (dirtyRef.current || commentDirty) setConfirm('discard'); else finishClose(); }, [finishClose, commentDirty]);
+  }, [commentSession, onClose]);
+  const requestClose = useCallback(() => { if (dirtyRef.current || commentSession.hasUnsaved()) setConfirm('discard'); else finishClose(); }, [finishClose, commentSession]);
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Escape' && !confirm && !event.defaultPrevented) { event.preventDefault(); requestClose(); return; }
@@ -143,11 +142,10 @@ export function CardDetailDrawer(props: Props) {
             people={people}
             role={role}
             boardName={boardName}
-            structureVersion={structureVersion}
             dirtyRef={dirtyRef}
             requestClose={requestClose}
             requestDelete={() => setConfirm('delete')}
-            onRequestMove={() => props.onRequestMove(props.summary ?? card)}
+            onRequestMove={props.onRequestMove}
             onSaved={() => { void cardQuery.refetch(); onChanged(); }}
           />
         ) : (
@@ -171,7 +169,13 @@ export function CardDetailDrawer(props: Props) {
         onCancel={() => setConfirm(null)}
         card={card ?? null}
         structureVersion={structureVersion}
-        onDiscard={() => { dirtyRef.current = false; setConfirm(null); finishClose(); }}
+        onDiscard={() => {
+          cardDraftSessions.acknowledge(draftActorId, cardId);
+          commentSession.acknowledge();
+          dirtyRef.current = false;
+          setConfirm(null);
+          finishClose();
+        }}
         onDeleted={() => { setConfirm(null); dirtyRef.current = false; onChanged(); finishClose(); }}
       />
     </>, document.body
@@ -213,18 +217,17 @@ function DiscardDeleteDialog({ kind, onCancel, card, structureVersion, onDiscard
   );
 }
 
-function DrawerBody({ card, asOfDate, columns, people, role, boardName, structureVersion, dirtyRef, requestClose, requestDelete, onRequestMove, onSaved }: {
-  card: Card; asOfDate:string|null; columns: ColumnSummary[]; people: Map<string, PersonDisplay>; role: Role; boardName: string; structureVersion: number;
-  dirtyRef: React.MutableRefObject<boolean>; requestClose: () => void; requestDelete: () => void; onRequestMove: () => void; onSaved: () => void;
+function DrawerBody({ card, asOfDate, columns, people, role, boardName, dirtyRef, requestClose, requestDelete, onRequestMove, onSaved }: {
+  card: Card; asOfDate:string|null; columns: ColumnSummary[]; people: Map<string, PersonDisplay>; role: Role; boardName: string;
+  dirtyRef: React.MutableRefObject<boolean>; requestClose: () => void; requestDelete: () => void; onRequestMove: (card: CardSummary) => void; onSaved: () => void;
 }) {
   const toast = useToast();
-  const queryClient = useQueryClient();
   const {state}=useSession();const actorId=state.status==='ready'?state.session.actor.id:'';
   const session=useMemo(()=>cardDraftSessions.forCard(actorId,card),[actorId,card.id]);
   const snapshot=useSyncExternalStore(session.subscribe,session.get,session.get);
   useEffect(()=>session.observe(card),[card,session]);
   const {base,draft,conflict}=snapshot;
-  const setDraft=(next:Draft|((current:Draft)=>Draft))=>session.edit(typeof next==='function'?next(session.get().draft):next);
+  const setDraft=(patch:Partial<Omit<Draft, 'columnId'>>)=>session.edit(patch);
   const unresolved=session.fields.unresolved()||session.move.unresolved();
   const [error, setError] = useState('');
   const [tab, setTab] = useState<'comments' | 'activity'>('comments');
@@ -248,14 +251,14 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
   }, [assignOpen, editable, closeAssignees]);
   useEffect(() => { if (!editable) closeAssignees(); }, [editable, closeAssignees]);
   const fieldsDirty=cardFieldsDirty(draft,base);
-  const statusDirty=draft.columnId!==base.columnId;
-  const dirty=fieldsDirty||statusDirty||unresolved;
+  const dirty=fieldsDirty||session.fields.unresolved()||session.move.unresolved()&&!snapshot.movingTo;
   useEffect(() => { dirtyRef.current = dirty; }, [dirty, dirtyRef]);
-  const set = <K extends keyof Draft>(key: K, value: Draft[K]) => setDraft((d) => ({ ...d, [key]: value }));
+  const set = <K extends keyof Omit<Draft, 'columnId'>>(key: K, value: Draft[K]) => setDraft({ [key]: value });
 
-  const currentColumn = columns.find((c) => c.id === card.columnId);
-  const draftColumn = columns.find((c) => c.id === draft.columnId);
-  const done = draftColumn?.category === 'done';
+  const status = snapshot.movingTo ?? snapshot.moveInput?.toColumnId ?? base.columnId;
+  const currentColumn = columns.find((c) => c.id === base.columnId);
+  const moving = snapshot.movingTo !== null;
+  const done = currentColumn?.category === 'done';
   const due = dueInfo(draft.dueDate || null, done,asOfDate);
   // Candidates come from the card's own project, not from the board snapshot (which only knows people already on cards).
   const projectPeople = useAssignablePeople(card.projectId, card.boardId, editable);
@@ -297,15 +300,32 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
       setSaveFailure(err); onSaved(); },
   });
 
-  const statusMove=useMutation({mutationFn:async()=>{
-    let input=session.get().moveInput;
-    if(!input){const placement=(await api.getCardPlacement(card.boardId,session.get().draft.columnId,{movingCardId:card.id,at:'last'})).data;input={toColumnId:placement.toColumnId,previousCardId:placement.previousCardId,nextCardId:placement.nextCardId,expectedVersion:session.get().version,expectedBoardVersion:placement.structureVersion};session.intent({moveInput:input});}
-    return session.move.run(input,(original,key)=>api.moveCard(card.id,original,key));
-  },onSuccess:(res)=>{session.moved(res.data.version);toast('Card status moved',{icon:'move'});onSaved();},onError:()=>{if(!session.move.unresolved())session.intent({moveInput:null});onSaved();}});
+  const statusMove = useMutation({
+    mutationFn: async (columnId: string) => {
+      const { moveInput, version } = session.get();
+      session.beginMove(columnId);
+      if (moveInput) return session.move.retry((original, key) => api.moveCard(card.id, original, key));
+      const { data: placement } = await api.getCardPlacement(card.boardId, columnId, { movingCardId: card.id, at: 'last' });
+      const input = { toColumnId: placement.toColumnId, previousCardId: placement.previousCardId, nextCardId: placement.nextCardId,
+        expectedVersion: version, expectedBoardVersion: placement.structureVersion };
+      session.intent({ moveInput: input });
+      return session.move.run(input, (original, key) => api.moveCard(card.id, original, key));
+    },
+    onSuccess: (res) => { session.moved(res.data.version); toast('Card status moved', { icon: 'move' }); onSaved(); },
+    onError: (error) => {
+      session.moveFailed();
+      toast(session.move.unresolved() ? 'Check the card to retry the status move.' : describeError(error), { icon: 'alert' });
+      onSaved();
+    },
+  });
+  const selectStatus = (columnId: string) => {
+    if (!actorId || !can(role, 'move') || columnId === base.columnId || session.get().movingTo || save.isPending || unresolved) return;
+    statusMove.mutate(columnId);
+  };
 
   const submit = (event?: FormEvent) => {
     event?.preventDefault();
-    if(!actorId||!can(role,'edit')||save.isPending||statusMove.isPending||session.move.unresolved())return;
+    if(!actorId||!can(role,'edit')||save.isPending||moving||session.move.unresolved())return;
     if(session.fields.unresolved()){save.mutate(undefined);return;}
     if(conflict){setError('Review the current card version before saving. Your edits are kept.');return;}
     if (!draft.title.trim() || draft.title.trim().length > 200) { setError('Enter a title with 1 to 200 characters.'); return; }
@@ -315,7 +335,7 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
     save.mutate(undefined);
   };
   const failedNames = (assigneeFailure?.ids ?? []).map((id) => formatPersonName(names.get(id), 'A person'));
-  const removeAndSave = () => { const keep = draft.assigneeIds.filter((id) => !(assigneeFailure?.ids ?? []).includes(id)); setDraft((d) => ({ ...d, assigneeIds: keep })); setAssigneeFailure(null); setError(''); setSaveFailure(null); save.mutate(keep); };
+  const removeAndSave = () => { const keep = draft.assigneeIds.filter((id) => !(assigneeFailure?.ids ?? []).includes(id)); setDraft({ assigneeIds: keep }); setAssigneeFailure(null); setError(''); setSaveFailure(null); save.mutate(keep); };
   const ownerName = [...names.values()].find((p) => p.scopedRole === 'owner')?.displayName ?? null;
   const noteCtx = { role, ownerName, names: failedNames, boardName, item: card.title, resource: 'card' } as const;
 
@@ -325,10 +345,13 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
         <div className="drawer-crumb">{card.key && <><strong>{card.key}</strong><span className="sep">/</span></>}<span>{boardName}</span></div>
         <div className="drawer-head-actions">
           {can(role, 'move') && (
-            <button className="btn ghost sm" type="button" aria-label="Move card" disabled={unresolved||save.isPending||statusMove.isPending} onClick={onRequestMove}><Icon name="move" /><span aria-hidden="true">Move</span></button>
+            <button className="btn ghost sm" type="button" aria-label="Move card" disabled={unresolved||save.isPending||moving} onClick={() => {
+              const current = session.get();
+              onRequestMove({ ...card, columnId: current.base.columnId, version: current.version });
+            }}><Icon name="move" /><span aria-hidden="true">Move</span></button>
           )}
           {can(role, 'manageBoard') && (
-            <button className="btn ghost sm danger-ghost" type="button" aria-label="Delete card" disabled={unresolved||save.isPending||statusMove.isPending} onClick={requestDelete}><Icon name="trash" /><span aria-hidden="true">Delete</span></button>
+            <button className="btn ghost sm danger-ghost" type="button" aria-label="Delete card" disabled={unresolved||save.isPending||moving} onClick={requestDelete}><Icon name="trash" /><span aria-hidden="true">Delete</span></button>
           )}
           <button className="drawer-close" type="button" onClick={requestClose} aria-label="Close card details"><Icon name="x" className="icon-lg" /></button>
         </div>
@@ -350,10 +373,11 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
         <div className="detail-meta">
           <div className="field">
             <label className="field-label" htmlFor="detailStatus">Status</label>
-            <select className="control" id="detailStatus" value={draft.columnId} disabled={!actorId||!can(role, 'move')||unresolved||save.isPending||statusMove.isPending} onChange={(event) => set('columnId', event.target.value)}>
-              {!columns.some((c)=>c.id===draft.columnId)&&<option value={draft.columnId} disabled>Unavailable column</option>}{columns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+            <select className="control" id="detailStatus" value={status} disabled={!actorId||!can(role, 'move')||unresolved||save.isPending||moving} onChange={(event) => selectStatus(event.target.value)}>
+              {!columns.some((c)=>c.id===status)&&<option value={status} disabled>Unavailable column</option>}{columns.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
-            {(statusDirty||session.move.unresolved())&&<><p className="field-help">Status is a separate move. {fieldsDirty?'Save or discard card fields before moving.':'Card fields will stay as saved.'}</p><button className="btn sm" type="button" disabled={!actorId||!can(role,'move')||fieldsDirty||save.isPending||statusMove.isPending||session.fields.unresolved()||(conflict&&!session.move.unresolved())} onClick={()=>statusMove.mutate()}>{statusMove.isPending?'Moving…':session.move.unresolved()?'Retry original status move':'Move to selected status'}</button></>}
+            {moving && <p className="field-help" role="status">Moving card…</p>}
+            {session.move.unresolved() && !moving && can(role, 'move') && <button className="btn sm" type="button" onClick={() => statusMove.mutate(status)}>Retry status move</button>}
             {statusMove.error&&<ErrorNote error={statusMove.error} focusOnMount />}
           </div>
           <div className="field">
@@ -451,12 +475,12 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
           <textarea className="detail-desc" id="detailDescription" maxLength={20000} placeholder="Add context, links or acceptance notes…" value={draft.description} readOnly={!editable} onChange={(event) => set('description', event.target.value)} />
         </section>
 
-        <CardImages cardId={card.id} role={role} count={card.imageCount} />
+        <CardImages cardId={card.id} boardId={card.boardId} role={role} count={card.imageCount} />
 
         {card.documentLinks !== undefined && <CardDocumentLinks
           links={can(role, 'edit') ? draft.documentLinks : base.documentLinks}
           editable={!!actorId && can(role, 'edit')}
-          disabled={!editable || save.isPending || statusMove.isPending}
+          disabled={!editable || save.isPending || moving}
           onChange={(links) => set('documentLinks', links)}
         />}
 
@@ -471,7 +495,7 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
             <button className="tab" id="activityTab" type="button" role="tab" aria-selected={tab === 'activity'} tabIndex={tab === 'activity' ? 0 : -1} aria-controls="activityPanel" onClick={() => setTab('activity')}>Activity</button>
           </div>
           <div hidden={tab !== 'comments'} className="tab-panel" id="commentsPanel" role="tabpanel" aria-labelledby="commentsTab">
-              <CardComments cardId={card.id} projectId={card.projectId} boardId={card.boardId} people={people} role={role} onChanged={() => { void queryClient.invalidateQueries({ queryKey: ['comments', card.id] }); onSaved(); }} />
+              <CardComments cardId={card.id} projectId={card.projectId} boardId={card.boardId} people={people} role={role} onChanged={onSaved} />
             </div>
             <div hidden={tab !== 'activity'} className="tab-panel" id="activityPanel" role="tabpanel" aria-labelledby="activityTab">
               <CardActivity cardId={card.id} people={people} />
@@ -485,10 +509,10 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
       <footer className="drawer-foot">
         {editable || can(role, 'move') ? (
           <>
-            <span className={`save-state${save.isError && dirty ? ' is-error' : dirty ? ' is-dirty' : ''}`} role="status" aria-live="polite"><span className="dot" /> {session.fields.unresolved()?'Original field save needs retry':statusMove.isPending?'Moving status…':session.move.unresolved()?'Original status move needs retry':statusDirty&&!fieldsDirty?'Status change not applied':saveBarText({ saving: save.isPending, failed: save.isError && fieldsDirty, dirty:fieldsDirty, reason: save.isError ? describeFailure(save.error, noteCtx).title : undefined })}</span>
+            <span className={`save-state${save.isError && dirty ? ' is-error' : dirty ? ' is-dirty' : ''}`} role="status" aria-live="polite"><span className="dot" /> {session.fields.unresolved() && !save.isPending ? 'Original field save needs retry' : saveBarText({ saving: save.isPending, failed: save.isError && fieldsDirty, dirty:fieldsDirty, reason: save.isError ? describeFailure(save.error, noteCtx).title : undefined })}</span>
             <div className="foot-actions">
-              <button className="btn ghost" type="button" disabled={!dirty||unresolved||save.isPending||statusMove.isPending} onClick={() => {session.discard();setError('');setSaveFailure(null);}}>Discard</button>
-              <button className="btn primary" type="button" disabled={!actorId||!can(role,'edit')||(!fieldsDirty&&!session.fields.unresolved())||save.isPending||statusMove.isPending||session.move.unresolved()||(conflict&&!session.fields.unresolved())} onClick={() => submit()}>{session.fields.unresolved()?'Retry original field save':save.isError&&fieldsDirty?'Try again':'Save changes'}</button>
+              <button className="btn ghost" type="button" disabled={!dirty||unresolved||save.isPending||moving} onClick={() => {session.discard();setError('');setSaveFailure(null);}}>Discard</button>
+              <button className="btn primary" type="button" disabled={!actorId||!can(role,'edit')||(!fieldsDirty&&!session.fields.unresolved())||save.isPending||moving||session.move.unresolved()||(conflict&&!session.fields.unresolved())} onClick={() => submit()}>{save.isPending ? 'Saving…' : session.fields.unresolved() ? 'Retry original field save' : save.isError && fieldsDirty ? 'Try again' : 'Save changes'}</button>
             </div>
           </>
         ) : (
@@ -522,7 +546,6 @@ function CardActivity({ cardId, people }: { cardId: string; people: Map<string, 
           <div className="activity-main"><div className="activity-text"><strong>{name}</strong> {view.text}</div><ActivityDetails item={event} /><time className="activity-time" dateTime={event.createdAt}>{relativeTime(event.createdAt)}</time></div>
         </article>;
       })}
-      {!unavailable && items.length > 0 && <p className="hint" role="status">{items.length} history entries loaded{feed.hasNextPage ? ' · More history available' : ' · All entries loaded'}.</p>}
       {!unavailable && !stale && feed.hasNextPage && <button className="btn sm" type="button" disabled={feed.isFetching} onClick={() => void feed.fetchNextPage()}>{feed.isFetchingNextPage ? 'Loading history…' : 'Load more history'}</button>}
     </div>
   );

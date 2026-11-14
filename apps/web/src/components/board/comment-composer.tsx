@@ -84,7 +84,7 @@ export function CommentComposer({ cardId, projectId, actorId, draft, onChange, o
         <textarea id={inputId} ref={input} placeholder="Write a comment… type @ to mention someone" maxLength={10000} value={body} readOnly={locked}
           role="combobox" aria-autocomplete="list" aria-expanded={!!picker} aria-controls={picker ? listId : undefined}
           aria-activedescendant={picker && matches.length ? `${listId}-${Math.min(active, matches.length - 1)}` : undefined}
-          aria-describedby={`${id}-note`} onChange={(event) => changeText(event.target.value, event.target.selectionStart)} onKeyDown={onKeyDown}
+          aria-describedby={editing || count ? `${id}-note` : undefined} onChange={(event) => changeText(event.target.value, event.target.selectionStart)} onKeyDown={onKeyDown}
           onKeyUp={(event) => { if (['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) refreshPicker(body, event.currentTarget.selectionStart); }}
           onClick={(event) => refreshPicker(body, event.currentTarget.selectionStart)} onBlur={() => setPicker(null)} />
         {picker && (
@@ -100,14 +100,14 @@ export function CommentComposer({ cardId, projectId, actorId, draft, onChange, o
         )}
         <span className="sr-only" role="status" aria-live="polite">{picker && matches.length ? `${matches.length} people found` : ''}</span>
       </div>
-      <p className="hint" id={`${id}-note`}>{editing ? 'Editing does not send new mention notifications.' : count ? `${count} ${count === 1 ? 'person will' : 'people will'} be notified.` : 'Post is separate from card Save. Drafts stay in this tab when you switch cards or projects.'}</p>
+      {(editing || count > 0) && <p className="hint" id={`${id}-note`}>{editing ? 'Editing does not send new mention notifications.' : `${count} ${count === 1 ? 'person will' : 'people will'} be notified.`}</p>}
       {mentionPeople.isError && <p className="hint">Could not load mention candidates. <button className="btn sm" type="button" onClick={() => void mentionPeople.refetch()}>Retry people</button></p>}
       {unresolved && <p className="hint" role="status">The server may have saved this. Retry the original request before editing; it will not post twice.</p>}
       {error != null && <ErrorNote error={error} focusOnMount />}
       <div className="composer-actions">
         <button className="composer-tool" type="button" disabled={locked} onClick={startMention}><Icon name="at" />Mention</button><span className="spacer" />
         {onCancel && <button className="btn ghost sm" type="button" disabled={busy || unresolved} onClick={onCancel}>Discard comment edit</button>}
-        <button className="btn primary sm" type="button" disabled={!body.trim() || busy || !writable} onClick={onSubmit}>{busy ? 'Saving…' : unresolved ? 'Retry original request' : editing ? 'Save comment' : 'Post comment'}</button>
+        <button className="btn primary sm" type="button" disabled={!body.trim() || busy || !writable} onClick={onSubmit}>{busy ? (editing ? 'Saving…' : 'Posting…') : unresolved ? 'Retry original request' : editing ? 'Save comment' : 'Post comment'}</button>
       </div>
     </div>
   );

@@ -13,7 +13,6 @@ import { api, ApiError } from '@/lib/api';
 import { undoSessions, type UndoRequest } from '@/lib/move-undo-state';
 import { quickAddSessions } from '@/lib/quick-add-state';
 import { originalUndoInput } from '@/lib/card-drafts';
-import { hasUnsaved } from '@/lib/unsaved';
 import { discardRefusedRows } from '@/lib/feed-state';
 import { createRetainedCommand } from '@/lib/retained-command';
 import { toastFailure } from '@/lib/toast-failure';
@@ -801,7 +800,6 @@ function BoardWorkspace({ boardIds, toolbarLead }: WorkspaceProps) {
           key={cardId}
           cardId={cardId}
           expectedBoardId={drawerInfo.id}
-          summary={cardIndex.get(cardId)?.card ?? null}
           columns={[...drawerInfo.snap.columns].sort((a, b) => a.position - b.position)}
           people={people}
           role={drawerInfo.isArchived ? 'viewer' : role}

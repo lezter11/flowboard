@@ -30,9 +30,11 @@ export function EditBoardDialog({ board, open, onClose, readOnly = false }: { re
   const [busy, setBusy] = useState(false);
 
   const protection=memoryDrafts.protectFields(scope,{actorId,projectId:board.projectId,boardId:board.id},{name:{scope:[...scope,'name'],base:()=>baseline.current.name,empty:''},description:{scope:[...scope,'description'],base:()=>baseline.current.description,empty:''}},()=>{baseline.current={name:'',description:'',version:0};setVersion(0);setConflict(true);});
-  useEffect(()=>{const restored=protection.restore({name:board.name,description:board.description??''});if(restored){baseline.current={name:board.name,description:board.description??'',version:board.snapshotVersion};setVersion(board.snapshotVersion);setConflict(restored.retained);return;}const prev=baseline.current;const dirty=name.trim()!==prev.name||description.trim()!==prev.description;if(!dirty||(name.trim()===board.name&&description.trim()===(board.description??''))){setName(board.name);setDescription(board.description??'');setVersion(board.snapshotVersion);setConflict(false);baseline.current={name:board.name,description:board.description??'',version:board.snapshotVersion};}else if(board.snapshotVersion!==version)setConflict(true);},[board.id,board.name,board.description,board.snapshotVersion]);
+  useEffect(()=>{const restored=protection.restore({name:board.name,description:board.description??''});if(restored){baseline.current={name:board.name,description:board.description??'',version:board.snapshotVersion};setVersion(board.snapshotVersion);setConflict(restored.retained);return;}const prev=baseline.current;const dirty=name.trim()!==prev.name.trim()||description.trim()!==prev.description.trim();if(!dirty||(name.trim()===board.name.trim()&&description.trim()===(board.description??'').trim())){setName(board.name);setDescription(board.description??'');setVersion(board.snapshotVersion);setConflict(false);baseline.current={name:board.name,description:board.description??'',version:board.snapshotVersion};}else if(board.snapshotVersion!==version)setConflict(true);},[board.id,board.name,board.description,board.snapshotVersion]);
 
-  const dirty = name.trim() !== board.name || description.trim() !== (board.description ?? '');
+  const nameChanged = name.trim() !== board.name.trim();
+  const descriptionChanged = description.trim() !== (board.description ?? '').trim();
+  const dirty = nameChanged || descriptionChanged;
   const clearDirty=useMemoryDirty([...scope,'dirty'],dirty);
   const refresh = () => Promise.all([
     queryClient.invalidateQueries({ queryKey: ['board', board.id] }),
@@ -47,8 +49,8 @@ export function EditBoardDialog({ board, open, onClose, readOnly = false }: { re
     setError('');
     try {
       await api.updateBoard(board.id, {
-        ...(name.trim() !== board.name ? { name: name.trim() } : {}),
-        ...(description.trim() !== (board.description ?? '') ? { description: description.trim() || null } : {}),
+        ...(nameChanged ? { name: name.trim() } : {}),
+        ...(descriptionChanged ? { description: description.trim() || null } : {}),
         expectedVersion: version,
       });
       await refresh();

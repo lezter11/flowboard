@@ -4,7 +4,7 @@ import { createRetainedCommand } from '../src/lib/retained-command.ts';
 import { commentPermissions, createCommentSessions, editDraftFromComment, isComposingInput, mergeCursorPages, validateCursorPage } from '../src/lib/comment-state.ts';
 import { api } from '../src/lib/api.ts';
 import { finalizeMentions } from '../src/lib/mentions.ts';
-import { hasUnsaved, resetUnsavedForTests } from '../src/lib/unsaved.ts';
+import { hasUnacknowledgedUnsaved, hasUnsaved, resetUnsavedForTests } from '../src/lib/unsaved.ts';
 
 test('committed lost reply retries the original comment payload/key through the real API client', async () => {
   const original = globalThis.fetch;
@@ -130,4 +130,65 @@ test('edit restores actual UTF-16 spans, leaves malformed spans literal, and IME
   assert.equal(isComposingInput({ isComposing: true }), true);
   assert.equal(isComposingInput({ keyCode: 229 }), true);
   assert.equal(isComposingInput({ isComposing: false, keyCode: 13 }), false);
+});
+
+test('unchanged comment editors, whitespace and unconfirmed deletion leave no unsaved work', () => {
+  resetUnsavedForTests();
+  const session = createCommentSessions().forCard('actor', 'card');
+  session.update({ create: { body: ' \n\t', mentions: [] } });
+  assert.equal(hasUnsaved(), false);
+  session.beginEdit({ commentId: 'comment', expectedVersion: 1, body: 'Existing', mentions: [] });
+  session.update({ remove: { id: 'second-comment', version: 1 } });
+  assert.equal(session.hasUnsaved(), false);
+  assert.equal(hasUnsaved(), false);
+  session.update({ edit: { ...session.get().edit!, expectedVersion: 2 } });
+  assert.equal(hasUnsaved(), false);
+  session.update({ edit: { ...session.get().edit!, body: 'My edited text' } });
+  assert.equal(session.hasUnsaved(), true);
+  assert.equal(hasUnsaved(), true);
+  session.update({ edit: { ...session.get().edit!, body: 'Existing' } });
+  assert.equal(hasUnsaved(), false);
+});
+
+test('a submitted deletion guards navigation until its original outcome is known', async () => {
+  resetUnsavedForTests();
+  const session = createCommentSessions().forCard('actor', 'card');
+  session.update({ remove: { id: 'comment', version: 1 } });
+  await assert.rejects(session.runRemoval(async () => { throw new TypeError('Response lost'); }));
+  assert.equal(hasUnsaved(), true);
+  assert.equal(session.hasUnsaved(), true);
+  await session.runRemoval(async () => 'saved');
+  assert.equal(hasUnsaved(), false);
+  assert.equal(session.hasUnsaved(), false);
+});
+
+test('submitted comment stops being a draft while posting and a failed post restores it for retry', async () => {
+  resetUnsavedForTests();
+  const sessions = createCommentSessions();
+  const session = sessions.forCard('actor', 'posting-card');
+  session.update({ create: { body: 'Send this comment', mentions: [] } });
+  const replies: string[] = [];
+  let finish!: () => void;
+  const result = session.runPost(async (_input, key) => {
+    replies.push(key);
+    await new Promise<void>((resolve) => { finish = resolve; });
+    throw new TypeError('Reply lost');
+  });
+  assert.equal(session.get().posting, true);
+  assert.equal(session.hasUnsaved(), false);
+  assert.equal(hasUnacknowledgedUnsaved(), false);
+  assert.equal(hasUnsaved(), true);
+  await Promise.resolve();
+  finish();
+  await assert.rejects(result, /Reply lost/);
+  assert.equal(session.hasUnsaved(), true);
+  assert.equal(session.get().create.body, 'Send this comment');
+  assert.match(String(session.get().postError), /Reply lost/);
+  await session.runPost(async (input, key) => {
+    assert.equal(input.body, 'Send this comment');
+    assert.equal(key, replies[0]);
+  });
+  assert.equal(session.hasUnsaved(), false);
+  assert.equal(session.get().create.body, '');
+  assert.equal(session.get().postError, null);
 });

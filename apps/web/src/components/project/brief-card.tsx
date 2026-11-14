@@ -28,8 +28,7 @@ export function BriefCard({ project, canEdit }: { project: Project; canEdit: boo
   const [version,setVersion]=useMemoryValue([...scope,'version'],project.version);
   const [conflict,setConflict]=useMemoryValue([...scope,'conflict'],false);
   const baseline=useMemoryRef([...scope,'baseline'],()=>({brief:project.brief??'',links:JSON.stringify(links.map(({title,url})=>({title,url}))),version:project.version}));
-  const normalized=JSON.stringify(drafts.map(({title,url})=>({title:title.trim(),url:url.trim()})));
-  const dirty=brief.trim()!==baseline.current.brief||normalized!==baseline.current.links;
+  const dirty=brief!==baseline.current.brief||JSON.stringify(drafts.map(({title,url})=>({title,url})))!==baseline.current.links;
   const clearDirty=useMemoryDirty([...scope,'dirty'],dirty);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -37,7 +36,7 @@ export function BriefCard({ project, canEdit }: { project: Project; canEdit: boo
   const protection=memoryDrafts.protectFields(scope,{actorId,projectId:project.id},{brief:{scope:[...scope,'text'],base:()=>baseline.current.brief,empty:''},links:{scope:[...scope,'links'],base:()=>JSON.parse(baseline.current.links).map((link:ProjectLink,key:number)=>({key,title:link.title,url:link.url})),empty:[]}},()=>{baseline.current={brief:'',links:'[]',version:0};setVersion(0);setConflict(true);});
   useEffect(()=>{const next={brief:project.brief??'',links:JSON.stringify(links.map(({title,url})=>({title,url}))),version:project.version};
     const restored=protection.restore({brief:next.brief,links:links.map((link,key)=>({key,title:link.title,url:link.url}))});if(restored){baseline.current=next;setVersion(project.version);setConflict(restored.retained);return;}
-    if(!dirty||(brief.trim()===next.brief&&normalized===next.links)){setBrief(next.brief);setDrafts(links.map((link,index)=>({key:index,title:link.title,url:link.url})));setVersion(project.version);setConflict(false);baseline.current=next;clearDirty();}
+    if(!dirty||(brief.trim()===next.brief&&JSON.stringify(drafts.map(({title,url})=>({title:title.trim(),url:url.trim()})))===next.links)){setBrief(next.brief);setDrafts(links.map((link,index)=>({key:index,title:link.title,url:link.url})));setVersion(project.version);setConflict(false);baseline.current=next;clearDirty();}
     else if(project.version!==version)setConflict(true);
   },[project.version,project.brief,project.links]);
   const setDraft = (key: number, patch: Partial<Draft>) => { setError(''); setDrafts((all) => all.map((d) => (d.key === key ? { ...d, ...patch } : d))); };

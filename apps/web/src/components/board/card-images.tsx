@@ -32,11 +32,16 @@ function uploadsFor(actorId:string){let store=stores.get(actorId);if(!store){sto
   finalize: (id, key) => api.finalizeImageUpload(id, key),
   cancel: (id) => api.cancelImageUpload(id),
   describe: describeUploadError,
-  onFinalized: (cardId) => {
-    void queryClientRef?.invalidateQueries({ queryKey: imagesKey(cardId,actorId) });
-    void queryClientRef?.invalidateQueries({ queryKey: ['card', cardId] });
-  },
+  onFinalized: (cardId, boardId) => refreshImages(queryClientRef, actorId, cardId, boardId),
 });stores.set(actorId,store);}return store;}
+
+// Uploads finish even when the card drawer has already closed.
+function refreshImages(client: typeof queryClientRef, actorId: string, cardId: string, boardId: string) {
+  if (!client || currentSessionActor() !== actorId) return;
+  for (const queryKey of [imagesKey(cardId, actorId), ['card', cardId, actorId], ['card-activity', cardId, actorId], ['board', boardId]]) {
+    void client.invalidateQueries({ queryKey });
+  }
+}
 
 const labelOf = (filename: string) => filename.replace(/\.[A-Za-z0-9]{1,5}$/, '').replace(/[_-]+/g, ' ').trim() || 'Image';
 const sizeOf = (n: number) => (n >= 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
@@ -111,7 +116,7 @@ function Lightbox({ images, index, onIndex, onClose }: { images: FinalizedImage[
 }
 
 /** Images section of the card drawer: gallery, upload queue, viewer and removal. */
-export function CardImages({ cardId, role, count }: { cardId: string; role: Role; count: number }) {
+export function CardImages({ cardId, boardId, role, count }: { cardId: string; boardId: string; role: Role; count: number }) {
   const queryClient = useQueryClient();
   queryClientRef = queryClient;
   const toast = useToast();
@@ -148,13 +153,16 @@ export function CardImages({ cardId, role, count }: { cardId: string; role: Role
     if (free === 0) { setNotice('This card already has 10 images. Remove one to add another.'); return; }
     const take = list.slice(0, free);
     setNotice(take.length < list.length ? `Only ${take.length} of ${list.length} images were added: a card holds at most 10.` : list.length < files.length ? 'Some files were skipped: only PNG, JPEG and WebP images can be added.' : '');
-    store.add(cardId, take);
-  }, [cardId, images.length,store]);
+    store.add(cardId, take, boardId);
+  }, [cardId, boardId, images.length, store]);
 
-  // Paste an image from the clipboard while the drawer is open (not while typing text).
+  // Rich clipboard payloads may carry both editable text and an image.
   useEffect(() => {
     if (!canUpload) return;
     const onPaste = (event: ClipboardEvent) => {
+      const target = event.target;
+      if (event.defaultPrevented || (target instanceof Element && target.closest('input, textarea, [contenteditable="true"]')
+        && event.clipboardData?.getData('text/plain'))) return;
       const files = Array.from(event.clipboardData?.files ?? []).filter((f) => f.type.startsWith('image/'));
       if (files.length === 0) return;
       event.preventDefault(); addFiles(files);
@@ -171,8 +179,7 @@ export function CardImages({ cardId, role, count }: { cardId: string; role: Role
       await api.deleteImage(removing.id, removing.version);
       toast('Image removed', { icon: 'check' });
       setRemoving(null);
-      await queryClient.invalidateQueries({ queryKey: imagesKey(cardId,actorId) });
-      void queryClient.invalidateQueries({ queryKey: ['card', cardId] });
+      refreshImages(queryClient, actorId, cardId, boardId);
     } catch (error) {
       setRemoveError(describeError(error));
       void queryClient.invalidateQueries({ queryKey: imagesKey(cardId,actorId) });

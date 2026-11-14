@@ -1,5 +1,6 @@
 # Engineering checklist: 50 concerns
 
+Card drawer, November 14. Local PostgreSQL and Chrome checks covered stale card versions (06), client refresh after photo finalization (21), and retrying an unconfirmed comment with its original request key (25, 26). Hosted verification is pending. [Drawer results](reviews/CARD-DRAWER-SAVE-20261114/SUMMARY.md).
 Card document links, November 14. Verify existing grant and card locking (01, 06, 07), additive migration and old Worker compatibility (15, 16), retry receipts (25), and input limits and safe logging (30, 47). Google owns access to documents. Flowboard persists labels and links through the normal card save and excludes them from activity and retry receipts. [Acceptance criteria](reviews/CARD-DRIVE-LINKS-20261114/CRITERIA.md).
 
 Rollout notice scope2026-11-06: concerns21(cache invalidation),47(bounded work) and49(operational visibility) apply to the static no-store status asset and bounded visible-tab client polling. It introduces no Redis, API/database route or maintenance lock. Failure retention, explicitlegacy404/410 retirement and no-cookie/no-referrer requests require scoped frontend/runtime evidence; none of the50 delivery boxes closes merely because this notice exists. [Plan](reviews/PROD-MCP-20261106/PLAN.md).

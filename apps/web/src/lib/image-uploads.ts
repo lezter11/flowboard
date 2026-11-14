@@ -2,8 +2,7 @@ import type { Prepared } from './image-prepare';
 import { createRetainedCommand } from './retained-command.ts';
 
 /**
- * Upload queue for card images (S-15). It lives outside React on purpose: the card drawer re-mounts whenever the card's version
- * changes (finalizing an image bumps it), and an upload must not vanish with the component. One file is prepared and sent at a
+ * Upload queue for card images (S-15). It lives outside React so an upload can finish after the drawer closes. One file is prepared and sent at a
  * time, so only one decoded bitmap exists at once.
  *
  * Honest states: a file is only "saved" once the server finalized it. Until then it is optimising, staging, uploading or validating.
@@ -32,10 +31,10 @@ export interface UploadDeps {
   /** Friendly sentence for a failure, and whether trying again could help. */
   describe(error: unknown): { message: string; retryable: boolean };
   /** Called after the server finalized an image, so lists and counts can refresh. */
-  onFinalized(cardId: string): void;
+  onFinalized(cardId: string, boardId: string): void;
 }
 
-interface Entry { item: UploadItem; file: File; cardId: string; controller: AbortController; uploadId: string | null; removed: boolean; prepared:Prepared|null; stage:'prepare'|'create'|'put'|'finalize';create:ReturnType<typeof createRetainedCommand<{filename:string;byteLength:number;contentType:string;sha256:string}>>;finalize:ReturnType<typeof createRetainedCommand<{uploadId:string}>> }
+interface Entry { item: UploadItem; file: File; cardId: string; boardId: string; controller: AbortController; uploadId: string | null; removed: boolean; prepared:Prepared|null; stage:'prepare'|'create'|'put'|'finalize';create:ReturnType<typeof createRetainedCommand<{filename:string;byteLength:number;contentType:string;sha256:string}>>;finalize:ReturnType<typeof createRetainedCommand<{uploadId:string}>> }
 
 const key = () => `idemp_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
 const isAbort = (e: unknown) => e instanceof DOMException && e.name === 'AbortError';
@@ -76,7 +75,7 @@ export function createUploadStore(deps: UploadDeps) {
       }
       ensureCurrentActor();patch(entry,{status:'validating',progress:1,canCancel:false,needsConfirmation:false});
       await entry.finalize.run({uploadId:entry.uploadId!},(original,key)=>deps.finalize(original.uploadId,key));
-      entry.uploadId=null;drop(entry);deps.onFinalized(cardId);
+      entry.uploadId=null;drop(entry);deps.onFinalized(cardId, entry.boardId);
     }catch(error){
       if(entry.removed||isAbort(error)){if(entry.uploadId)void deps.cancel(entry.uploadId).catch(()=>undefined);if(!entry.removed)drop(entry);return;}
       const described=deps.describe(error);const needsConfirmation=entry.stage==='finalize'&&entry.finalize.unresolved();
@@ -104,9 +103,9 @@ export function createUploadStore(deps: UploadDeps) {
       set.add(fn); return () => { set!.delete(fn); };
     },
     get(cardId: string): UploadItem[] { return snapshots.get(cardId) ?? EMPTY; },
-    add(cardId: string, files: File[]) {
+    add(cardId: string, files: File[], boardId: string) {
       for (const file of files) {
-        const entry: Entry = { item: { id: key(), name: file.name, status: 'optimising', progress: 0, note: 'Waiting…', error: '', retryable: false,canCancel:true,needsConfirmation:false }, file, cardId, controller: new AbortController(), uploadId: null, removed: false,prepared:null,stage:'prepare',create:createRetainedCommand(),finalize:createRetainedCommand() };
+        const entry: Entry = { item: { id: key(), name: file.name, status: 'optimising', progress: 0, note: 'Waiting…', error: '', retryable: false,canCancel:true,needsConfirmation:false }, file, cardId, boardId, controller: new AbortController(), uploadId: null, removed: false,prepared:null,stage:'prepare',create:createRetainedCommand(),finalize:createRetainedCommand() };
         entries.push(entry); pending.add(entry);
       }
       publish(cardId); void pump();

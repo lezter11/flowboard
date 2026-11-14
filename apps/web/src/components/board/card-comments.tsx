@@ -41,8 +41,9 @@ export function CardComments({ cardId, projectId, boardId, people, role, onChang
   const createInput = useRef<HTMLDivElement>(null);
   const refresh = () => { void queryClient.invalidateQueries({ queryKey: ['comments', cardId] }); void queryClient.invalidateQueries({ queryKey: ['card-activity', cardId] }); onChanged(); };
   const post = useMutation({
-    mutationFn: () => session.post.run(finalizeMentions(drafts.create.body, drafts.create.mentions), (input, key) => api.postCardComment(cardId, input, key)),
-    onSuccess: () => { session.update({ create: { body: '', mentions: [] } }); toast('Comment posted', { icon: 'check' }); refresh(); requestAnimationFrame(() => createInput.current?.querySelector('textarea')?.focus()); },
+    mutationFn: () => session.runPost((input, key) => api.postCardComment(cardId, input, key)),
+    onSuccess: () => { toast('Comment posted', { icon: 'check' }); refresh(); requestAnimationFrame(() => createInput.current?.querySelector('textarea')?.focus()); },
+    onError: () => toast('Comment couldn’t be confirmed. Open the card to check or retry.', { icon: 'alert' }),
   });
   const edit = useMutation({
     mutationFn: () => {
@@ -54,11 +55,7 @@ export function CardComments({ cardId, projectId, boardId, people, role, onChang
     onError: () => { void feed.refetch(); },
   });
   const remove = useMutation({
-    mutationFn: () => {
-      const target = session.get().remove;
-      if (!target) return Promise.reject(new Error('Choose a comment to delete.'));
-      return session.remove.run({ id: target.id, input: { expectedVersion: target.version } }, (original, key) => api.deleteComment(original.id, original.input, key));
-    },
+    mutationFn: () => session.runRemoval((original, key) => api.deleteComment(original.id, original.input, key)),
     onSuccess: (response) => {
       const id = session.get().remove?.id;
       queryClient.setQueryData<InfiniteData<CommentListResponse>>(queryKey, (old) => old ? { ...old, pages: old.pages.map((page) => ({ ...page, data: page.data.map((comment) => comment.id === id ? { ...comment, body: '', mentions: [], deletedAt: new Date().toISOString(), version: response.data.version } : comment) })) } : old);
@@ -66,6 +63,11 @@ export function CardComments({ cardId, projectId, boardId, people, role, onChang
     },
     onError: () => { void feed.refetch(); },
   });
+  const closeDeletion = () => {
+    if (remove.isPending) return;
+    if (!session.remove.unresolved()) session.update({ remove: null });
+    setDeleteVisible(false);
+  };
   const unavailable = feed.error && typeof feed.error === 'object' && 'status' in feed.error && [401, 403, 404].includes(Number(feed.error.status));
   const comments = unavailable ? [] : feed.items;
   const targetEdit = drafts.edit && comments.find((comment) => comment.id === drafts.edit?.commentId);
@@ -96,7 +98,6 @@ export function CardComments({ cardId, projectId, boardId, people, role, onChang
             </div>
           </article>;
         })}
-        {!unavailable && comments.length > 0 && <p className="hint" role="status">{comments.length} comment {comments.length === 1 ? 'entry' : 'entries'} loaded{feed.hasNextPage ? ' · More comments available' : ' · All entries loaded'}.</p>}
         {!unavailable && !staleCursor && feed.hasNextPage && <button className="btn sm" type="button" disabled={feed.isFetching} onClick={() => void feed.fetchNextPage()}>{feed.isFetchingNextPage ? 'Loading comments…' : 'Load more comments'}</button>}
       </div>
 
@@ -118,11 +119,11 @@ export function CardComments({ cardId, projectId, boardId, people, role, onChang
       </section>}
 
       {(writable || drafts.create.body) ? <div ref={createInput}><CommentComposer cardId={cardId} projectId={projectId} actorId={actorId} draft={drafts.create}
-        onChange={(draft) => { session.update({ create: draft }); post.reset(); }} onSubmit={() => post.mutate()} busy={post.isPending} unresolved={session.post.unresolved()} writable={writable && !unavailable} error={post.error} /></div>
+        onChange={(draft) => { session.update({ create: draft }); post.reset(); }} onSubmit={() => post.mutate()} busy={drafts.posting} unresolved={session.post.unresolved() && !drafts.posting} writable={writable && !unavailable} error={drafts.postError} /></div>
         : <p className="viewer-notice"><Icon name="lock" />Read-only access. Viewers can read comments and history.</p>}
 
       {drafts.remove && !deleteVisible && <p className="hint" role="status">A comment deletion still needs your attention. <button className="btn sm" type="button" onClick={() => setDeleteVisible(true)}>Review deletion</button></p>}
-      <DialogLayer open={!!drafts.remove && deleteVisible} onClose={() => { if (!remove.isPending) setDeleteVisible(false); }} labelledBy="deleteCommentTitle" describedBy="deleteCommentCopy" role="alertdialog">
+      <DialogLayer open={!!drafts.remove && deleteVisible} onClose={closeDeletion} labelledBy="deleteCommentTitle" describedBy="deleteCommentCopy" role="alertdialog">
         <header className="dialog-head"><h2 id="deleteCommentTitle">Delete this comment?</h2></header>
         <div className="dialog-body">
           <p id="deleteCommentCopy">The comment body will be hidden. Its author and deletion history remain. This cannot be undone.</p>
@@ -130,7 +131,7 @@ export function CardComments({ cardId, projectId, boardId, people, role, onChang
           {remove.error != null && <ErrorNote error={remove.error} focusOnMount />}
           {!removeAllowed && !session.remove.unresolved() && <p role="status">The comment changed or is no longer available. Cancel and reload comments before trying again.</p>}
         </div>
-        <footer className="dialog-foot"><button className="btn" type="button" data-autofocus disabled={remove.isPending} onClick={() => { if (!session.remove.unresolved()) session.update({ remove: null }); setDeleteVisible(false); }}>{session.remove.unresolved() ? 'Close and keep pending request' : 'Keep comment'}</button>
+        <footer className="dialog-foot"><button className="btn" type="button" data-autofocus disabled={remove.isPending} onClick={closeDeletion}>{session.remove.unresolved() ? 'Close and keep pending request' : 'Keep comment'}</button>
           <button className="btn danger" type="button" disabled={remove.isPending || (!removeAllowed && !session.remove.unresolved()) || !writable || !!unavailable} onClick={() => remove.mutate()}>{remove.isPending ? 'Deleting…' : session.remove.unresolved() ? 'Retry original deletion' : 'Delete comment'}</button></footer>
       </DialogLayer>
     </>

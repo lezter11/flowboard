@@ -1,0 +1,16 @@
+{
+  "browser": "Chrome",
+  "assertions": [
+    "Untouched board with persisted trailing whitespace navigates without a draft warning",
+    "Untouched project brief and board settings with saved whitespace allow navigation",
+    "A delayed comment survives immediate close and reopen, commits once and clears the draft without Save changes",
+    "Failed background comment restores its text on reopen and can retry the original operation",
+    "Opening an untouched comment edit and cancelling deletion with Escape create no draft warning",
+    "Selecting status independently commits a real move even when the drawer closes during the request",
+    "Photo finalizes after close, refreshes the board image badge and activity, and does not intercept mixed text paste",
+    "Real field edits survive independent moves and reopening, with no repeat navigation warning after keeping them"
+  ],
+  "runtime": "Static export with local Hono API, synthetic sessions and disposable PostgreSQL",
+  "external": [],
+  "errors": []
+}
