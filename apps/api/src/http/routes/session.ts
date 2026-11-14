@@ -72,6 +72,7 @@ sessionRoutes.get('/', authMiddleware, async (c) => {
       needsName: names.needsName,
       suggestedFirstName: names.suggestedFirstName,
       suggestedLastName: names.suggestedLastName,
+      googleAccountStatus: names.googleAccountStatus,
     },
   });
 

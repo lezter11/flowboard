@@ -40,3 +40,52 @@ test('native Node imports every proxy entrypoint and executes its public-URL bin
     assert.equal((await response.json()).forwardedUrl, url);
   }
 });
+
+
+test('canonical Pages health is anonymous, read-only and uses its Worker binding', async () => {
+  const { onRequest } = await import('../functions/_middleware.ts');
+  const seen: Request[] = [];
+  const env = { API: { fetch: async (request: Request) => {
+    seen.push(request);
+    return new Response(request.method === 'HEAD' ? null : '{"data":{"status":"ready"}}', { status: 200 });
+  } } };
+  const next = async () => { throw new Error('Health must never fall through to a page'); };
+  const origin = 'https://flowboard-app.pages.dev';
+  const request = new Request(`${origin}/health/ready?ignored=1`, { headers: { Cookie: 'session=synthetic', Authorization: 'Bearer synthetic' } });
+  const response = await onRequest({ request, env, next });
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  assert.equal(seen[0]?.url, `${origin}/health/ready`);
+  assert.equal(seen[0]?.headers.has('cookie'), false);
+  assert.equal(seen[0]?.headers.has('authorization'), false);
+  assert.equal((await onRequest({ request: new Request(`${origin}/health/live`, { method: 'HEAD' }), env, next })).status, 200);
+  const post = await onRequest({ request: new Request(`${origin}/health/live`, { method: 'POST' }), env, next });
+  assert.equal(post.status, 405);
+  assert.equal(post.headers.get('allow'), 'GET, HEAD');
+  assert.equal((await onRequest({ request, env: {}, next })).status, 503);
+  assert.equal(seen.length, 2);
+});
+
+test('Pages Functions apply HSTS to HTTPS redirects and API responses while preserving cookies', async () => {
+  const { onRequest } = await import('../functions/_middleware.ts');
+  const origin = 'https://flowboard.example';
+  const hsts = 'max-age=31536000';
+  const next = async () => {
+    const response = Response.redirect(`${origin}/projects`, 302);
+    const headers = new Headers(response.headers);
+    headers.append('Set-Cookie', 'test-one=expired; Max-Age=0; Path=/');
+    headers.append('Set-Cookie', 'test-two=synthetic; Path=/; HttpOnly');
+    return new Response(null, { status: response.status, headers });
+  };
+  const landing = await onRequest({ request: new Request(origin), env: {}, next });
+  assert.equal(landing.headers.get('location'), '/signin');
+  assert.equal(landing.headers.get('strict-transport-security'), hsts);
+  const request = new Request(`${origin}/api/v1/auth/google/callback`);
+  const callback = await onRequest({ request, env: {}, next });
+  assert.equal(callback.status, 302);
+  assert.equal(callback.headers.get('location'), `${origin}/projects`);
+  assert.equal(callback.headers.get('strict-transport-security'), hsts);
+  assert.equal(callback.headers.getSetCookie().length, 2);
+  const http = await onRequest({ request: new Request(request.url.replace('https:', 'http:')), env: {}, next });
+  assert.equal(http.headers.has('strict-transport-security'), false);
+});

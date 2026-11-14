@@ -5,7 +5,7 @@ import { SIGNIN_STATES, signinNote } from '../src/lib/signin-states.ts';
 import { hasUnsaved, resetUnsavedForTests, setUnsaved, subscribeUnsaved } from '../src/lib/unsaved.ts';
 
 test('every new sign-in state has plain copy that follows the style guide', () => {
-  for (const s of ['denied', 'expired', 'failed', 'email_unverified', 'email_missing']) {
+  for (const s of ['denied', 'expired', 'failed', 'email_unverified', 'email_missing', 'google_recovery']) {
     const n = signinNote(s)!;
     assert.ok(n && n.title && n.body, s);
     assert.doesNotMatch(n.title + n.body, /please|successfully|!|JSON|error code/i, s);

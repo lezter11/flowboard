@@ -8,7 +8,7 @@ app.route('/api/v1/auth', googleAuthRoutes);
 const handle = 'a'.repeat(43);
 const state = 'b'.repeat(48);
 const next = `/connect?request=${handle}`;
-const cookieFor = (target: string) => `flowboard_oauth_state=${state}.${Buffer.from(target).toString('base64url')}`;
+const cookieFor = (target: string) => `flowboard_oauth_state=${state}.${'a'.repeat(43)}.${Math.floor(Date.now() / 1000) + 600}.${Buffer.from(target).toString('base64url')}`;
 
 test('Google denial retains a validated consent continuation only with matching OAuth state', async () => {
   const response = await app.request(`http://localhost/api/v1/auth/google/callback?error=access_denied&state=${state}`, { headers: { cookie: cookieFor(next) } });

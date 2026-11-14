@@ -102,6 +102,7 @@ test('buckets: each sensitive route family maps to its bucket and nothing else',
   const cases: Array<[string, string, WindowBucket[]]> = [
     ['GET', '/api/v1/auth/google', ['auth']],
     ['GET', '/api/v1/auth/google/callback', ['auth']],
+    ['POST', '/api/v1/auth/google/link', ['auth']],
     ['POST', '/api/v1/projects/p1/invitations', ['invite']],
     ['POST', '/api/v1/boards/b1/imports', ['import']],
     ['POST', '/api/v1/boards/b1/card-imports', ['import']],

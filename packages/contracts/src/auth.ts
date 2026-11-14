@@ -126,6 +126,8 @@ export const sessionDataSchema = z.object({
   // True until the user saves a first and last name (name_confirmed_at is null). Google's given and
   // family name are suggestions only: they arrive as suggestedFirstName and suggestedLastName.
   needsName: z.boolean(),
+  // Newer servers expose the binding status without exposing Google's subject identifier.
+  googleAccountStatus: z.enum(['linked', 'unlinked', 'email_conflict']).optional(),
   suggestedFirstName: z.string().min(1).max(NAME_PART_MAX).nullable(),
   suggestedLastName: z.string().min(1).max(NAME_PART_MAX).nullable(),
 });
@@ -159,3 +161,8 @@ export const updateProfileInputSchema = z
   .strict();
 export type UpdateProfileInput = z.infer<typeof updateProfileInputSchema>;
 
+
+export const googleLinkStartResponseSchema = z.object({
+  data: z.object({ authorizationUrl: z.string().url() }),
+});
+export type GoogleLinkStartResponse = z.infer<typeof googleLinkStartResponseSchema>;

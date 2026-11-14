@@ -69,6 +69,15 @@ export async function closePoolAfterWork(
 export default {
   // The ExecutionContext is passed to Hono so routes can call waitUntil (the immediate invitation send).
   async fetch(request: Request, env: WorkerBindings, ctx?: ExecutionContext): Promise<Response> {
+    // Pages passes the public URL unchanged through its service binding.
+    // Require HTTPS before touching bindings or passing credentials to the app.
+    if (new URL(request.url).protocol !== 'https:') {
+      return Response.json(
+        { error: { code: 'HTTPS_REQUIRED', message: 'Use HTTPS to access Flowboard.' } },
+        { status: 400, headers: { 'Cache-Control': 'no-store' } },
+      );
+    }
+
     // A request-scoped pool owns at most one pg connection; never shared across
     // Worker requests. Real Hyperdrive pooling is a later hosted verification.
     const connectionString = env.HYPERDRIVE?.connectionString ?? env.DATABASE_URL;

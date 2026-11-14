@@ -21,6 +21,7 @@ import {
 import { HttpError, validationError } from '../http/errors.ts';
 import { resolveProjectRole, acquireWriteGrantLock, acquireWritableProjectContextLock, getHistoricalPersonDisplay } from './rbac.ts';
 import { getPool } from './postgres.ts';
+import { lockBoardAccess } from './board-grants-foundation.ts';
 import { getWorkspaceToday } from './boards.ts';
 import { recordActivity, type ActivitySource } from './activity.ts';
 
@@ -377,65 +378,64 @@ export async function createCard(
 }
 
 /**
- * CRD-03: Retrieve full card entity and referenced PersonDisplay identities.
+ * CRD-03: Read the current card and referenced identities while holding its
+ * authorization locks. Call inside a READ COMMITTED transaction.
  */
 export async function getCard(
-  poolOrClient: pg.Pool | pg.ClientBase,
+  client: pg.ClientBase,
   cardId: string,
   actorId: string,
   includeDocumentLinks = true,
 ): Promise<{ card: Card; people: PersonDisplay[] }> {
-  // 1. Fetch active card
-  const cardRes = await poolOrClient.query<CardRow>(
-    `SELECT 
+  // First locate the board without reading any protected card fields.
+  const lookup = await client.query<{ board_id: string }>(
+    `SELECT board_id FROM cards WHERE id = $1 AND state = 'active'`,
+    [cardId],
+  );
+  const boardId = lookup.rows[0]?.board_id;
+  if (!boardId) throw HttpError.notFound('Card not found.', 'NOT_FOUND');
+
+  // Acquire the workspace, membership and grant locks before the card lock,
+  // in the same order as writers. Revocation conflicts with those read locks.
+  const access = await lockBoardAccess(client, boardId, actorId).catch((error: unknown) => {
+    if (error instanceof HttpError && error.status === 404) {
+      throw HttpError.notFound('Card not found.', 'NOT_FOUND');
+    }
+    throw error;
+  });
+
+  // A fresh statement after the authorization locks sees any edit that
+  // committed before access was granted. Recheck ancestry and active state.
+  const cardRes = await client.query<CardRow>(
+    `SELECT
        id, workspace_id, project_id, board_id, column_id,
        title, description, priority, to_char(due_date, 'YYYY-MM-DD') AS due_date, position,
        version, state, deleted_at, deleted_by, restore_until,
        created_at, updated_at,
        ${CARD_KEY_SQL}${includeDocumentLinks ? ', document_links' : ''}
      FROM cards
-     WHERE id = $1`,
-    [cardId],
+     WHERE id = $1 AND board_id = $2 AND project_id = $3 AND workspace_id = $4 AND state = 'active'
+     FOR SHARE`,
+    [cardId, boardId, access.projectId, access.workspaceId],
   );
+  const cardRow = cardRes.rows[0];
+  if (!cardRow) throw HttpError.notFound('Card not found.', 'NOT_FOUND');
 
-  if (cardRes.rows.length === 0) {
-    throw HttpError.notFound('Card not found.', 'NOT_FOUND');
-  }
-
-  const cardRow = cardRes.rows[0]!;
-
-  // Trashed or purged cards return 404 to normal readers
-  if (cardRow.state !== 'active') {
-    throw HttpError.notFound('Card not found.', 'NOT_FOUND');
-  }
-
-  // 2. Independent authorization: project membership verification
-  const role = await resolveProjectRole(cardRow.project_id, actorId, poolOrClient);
-  if (!role) {
-    throw HttpError.notFound('Card not found.', 'NOT_FOUND');
-  }
-
-  await requireCardBoardAccess(poolOrClient, cardRow.board_id, cardRow.project_id, actorId);
-
-  // 3. Fetch counts and assignees
-  const { commentCounts, imageCounts, assigneesMap } = await fetchCardCounts(poolOrClient, [cardId]);
+  const { commentCounts, imageCounts, assigneesMap } = await fetchCardCounts(client, [cardId]);
   const assigneeIds = assigneesMap.get(cardId) ?? [];
   const commentCount = commentCounts.get(cardId) ?? 0;
   const imageCount = imageCounts.get(cardId) ?? 0;
 
-  // 4. Fetch PersonDisplay for referenced assignees
   const people: PersonDisplay[] = [];
   for (const uid of assigneeIds) {
-    const p = await getHistoricalPersonDisplay(poolOrClient, cardRow.project_id, uid);
+    const p = await getHistoricalPersonDisplay(client, cardRow.project_id, uid);
     if (p) {
       people.push(p);
     }
   }
 
-  await requireCardBoardAccess(poolOrClient, cardRow.board_id, cardRow.project_id, actorId);
-
   const card = toCard(cardRow, assigneeIds, commentCount, imageCount);
-  const createdBy = await getCardCreator(poolOrClient, cardRow.id, cardRow.workspace_id, cardRow.project_id);
+  const createdBy = await getCardCreator(client, cardRow.id, cardRow.workspace_id, cardRow.project_id);
 
   return {
     card: createdBy === undefined ? card : { ...card, createdBy },

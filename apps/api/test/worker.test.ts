@@ -12,6 +12,28 @@ import { createDevUserAndSession } from '../src/adapters/session.ts';
 
 const configPath = fileURLToPath(new URL('wrangler.jsonc', import.meta.url));
 
+test('Worker rejects plaintext before reading bindings, regardless of forwarded headers', async () => {
+  const inaccessibleBindings = new Proxy({} as Parameters<typeof worker.fetch>[1], {
+    get() { assert.fail('Insecure request read a Worker binding'); },
+  });
+  const request = new Request('http://localhost/api/v1/session', {
+    headers: {
+      authorization: 'Bearer synthetic-transport-test',
+      cookie: 'flowboard_session=synthetic-transport-test',
+      forwarded: 'proto=https',
+      'x-forwarded-proto': 'https',
+      'cf-visitor': '{"scheme":"https"}',
+    },
+  });
+  const response = await worker.fetch(request, inaccessibleBindings);
+  assert.equal(response.status, 400);
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  assert.equal(response.headers.get('location'), null);
+  assert.deepEqual(await response.json(), {
+    error: { code: 'HTTPS_REQUIRED', message: 'Use HTTPS to access Flowboard.' },
+  });
+});
+
 test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollback, and authenticated product routes',
   { timeout: 60_000 }, async () => {
     // Ensure migrations are applied to the local test database
@@ -31,38 +53,44 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
       await harness.listen();
       const worker = harness.getWorker('flowboard-api-test');
 
-      // 1. Health and readiness probes
+      const insecure = await worker.fetch('http://flowboard-app-uat.pages.dev/api/v1/session', {
+        headers: { authorization: 'Bearer synthetic-transport-test', 'x-forwarded-proto': 'https' },
+      });
+      assert.equal(insecure.status, 400);
+      assert.equal(((await insecure.json()) as { error: { code: string } }).error.code, 'HTTPS_REQUIRED');
+
+      // 1. Health and readiness probes through the scheme and URL supplied by Pages.
       for (const [path, status] of [['/health/live', 'ok'], ['/health/ready', 'ready']]) {
-        const response = await worker.fetch(`http://localhost${path}`);
+        const response = await worker.fetch(`https://flowboard-app-uat.pages.dev${path}`);
         assert.equal(response.status, 200);
         assert.equal(response.headers.get('cache-control'), 'no-store');
         assert.deepEqual(await response.json(), { data: { status } });
       }
 
       // 2. Transaction rollback probe
-      const rollbackResponse = await worker.fetch('http://localhost/__test/rollback');
+      const rollbackResponse = await worker.fetch('https://localhost/__test/rollback');
       assert.equal(rollbackResponse.status, 200);
       assert.deepEqual(await rollbackResponse.json(), { seenInside: 1, afterRollback: 0, afterCommit: 1 });
 
       // 3. 404 handling
-      const missing = await worker.fetch('http://localhost/api/v1/not-implemented');
+      const missing = await worker.fetch('https://localhost/api/v1/not-implemented');
       assert.equal(missing.status, 404);
       assert.equal(((await missing.json()) as { error: { code: string } }).error.code, 'NOT_FOUND');
-      const privateBoard = await worker.fetch('http://localhost/api/v1/boards/not-implemented');
+      const privateBoard = await worker.fetch('https://localhost/api/v1/boards/not-implemented');
       assert.equal(privateBoard.status, 401);
       assert.equal(((await privateBoard.json()) as { error: { code: string } }).error.code, 'UNAUTHORIZED');
 
       // 4. Unauthenticated product routes reject with 401 UNAUTHORIZED
-      const unauthSession = await worker.fetch('http://localhost/api/v1/session');
+      const unauthSession = await worker.fetch('https://localhost/api/v1/session');
       assert.equal(unauthSession.status, 401);
       const unauthSessionBody = (await unauthSession.json()) as { error: { code: string } };
       assert.equal(unauthSessionBody.error.code, 'UNAUTHORIZED');
 
-      const unauthWorkspaces = await worker.fetch('http://localhost/api/v1/workspaces');
+      const unauthWorkspaces = await worker.fetch('https://localhost/api/v1/workspaces');
       assert.equal(unauthWorkspaces.status, 401);
 
       // 5. The deployed Worker entry point cannot issue email-only sessions.
-      const loginRes = await worker.fetch('http://localhost/api/v1/session/dev-login', {
+      const loginRes = await worker.fetch('https://localhost/api/v1/session/dev-login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -82,7 +110,7 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
       const userId = seeded.user.id;
 
       // 6. Authenticated GET /api/v1/session via Worker
-      const sessionRes = await worker.fetch('http://localhost/api/v1/session', {
+      const sessionRes = await worker.fetch('https://localhost/api/v1/session', {
         headers: { Cookie: sessionCookie },
       });
       assert.equal(sessionRes.status, 200);
@@ -98,7 +126,7 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
       assert.ok(Array.isArray(sessionData.data.ownedWorkspaces));
 
       // 7. B-20: POST /api/v1/workspaces is retired. Authenticated callers get 410 through the Worker.
-      const retiredWsRes = await worker.fetch('http://localhost/api/v1/workspaces', {
+      const retiredWsRes = await worker.fetch('https://localhost/api/v1/workspaces', {
         method: 'POST',
         headers: { Cookie: sessionCookie, 'Content-Type': 'application/json', 'Idempotency-Key': wsKey },
         body: JSON.stringify({ name: 'Worker R4 Cloud Workspace', timezone: 'America/New_York' }),
@@ -111,7 +139,7 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
       const workspaceId = fixtureWs.id;
 
       // 9. Authenticated GET /api/v1/workspaces via Worker lists the workspace
-      const listWsRes = await worker.fetch('http://localhost/api/v1/workspaces', {
+      const listWsRes = await worker.fetch('https://localhost/api/v1/workspaces', {
         headers: { Cookie: sessionCookie },
       });
       assert.equal(listWsRes.status, 200);
@@ -124,7 +152,7 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
       assert.equal(foundWs.ownerId, userId);
 
       // 10. Authenticated project creation & listing via Worker
-      const createPrjRes = await worker.fetch(`http://localhost/api/v1/workspaces/${workspaceId}/projects`, {
+      const createPrjRes = await worker.fetch(`https://localhost/api/v1/workspaces/${workspaceId}/projects`, {
         method: 'POST',
         headers: {
           Cookie: sessionCookie,
@@ -143,7 +171,7 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
       assert.equal(prjBody.data.name, 'Worker Database Pipeline');
       assert.equal(prjBody.data.workspaceId, workspaceId);
 
-      const listPrjRes = await worker.fetch('http://localhost/api/v1/projects', {
+      const listPrjRes = await worker.fetch('https://localhost/api/v1/projects', {
         headers: { Cookie: sessionCookie },
       });
       assert.equal(listPrjRes.status, 200);
@@ -154,14 +182,14 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
       assert.ok(foundPrj, 'Expected created project in accessible projects');
 
       // 11. Authenticated POST /api/v1/session/logout via Worker revokes session in DB
-      const logoutRes = await worker.fetch('http://localhost/api/v1/session/logout', {
+      const logoutRes = await worker.fetch('https://localhost/api/v1/session/logout', {
         method: 'POST',
         headers: { Cookie: sessionCookie },
       });
       assert.equal(logoutRes.status, 204);
 
       // 12. Subsequent request with revoked cookie returns 401 UNAUTHORIZED
-      const postRevokeRes = await worker.fetch('http://localhost/api/v1/session', {
+      const postRevokeRes = await worker.fetch('https://localhost/api/v1/session', {
         headers: { Cookie: sessionCookie },
       });
       assert.equal(postRevokeRes.status, 401);

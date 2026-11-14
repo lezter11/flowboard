@@ -2,6 +2,8 @@
 
 Status: **runbook only. Nothing here has been executed.** Written by the Deployment chat on 2026-10-30 from the repo as it is at `4bb656b` plus the D-16 docs commit. Production stays untouched until the Architect and the user sign the go/no-go checklist in section 12.
 
+For the November 15 security release, use the [release-specific sequence](reviews/QUICK-SECURITY-AUDIT-20261115/FIXES.md) and the [Google account migration and recovery guide](GOOGLE_ACCOUNT_RECOVERY.md). Migration 0030 must be applied before deploying that API. The original 2026-10-30 infrastructure details below are historical.
+
 Owner key: **needs user** means only the user can do it (their credentials, the Google console, the Neon or Cloudflare dashboard, or their own terminal). **Deployment** and **Backend** name the chat that runs the command or changes the code.
 
 ## 0. Facts this runbook is built on (read from the repo)
@@ -14,7 +16,7 @@ Owner key: **needs user** means only the user can do it (their credentials, the 
 | Production Pages project is `flowboard-app`; its Worker service binding is `flowboard-api`. | `apps/web/wrangler.prod.jsonc`, `docs/DEPLOY_SECRETS.md` |
 | Production Hyperdrive is `flowboard-hyperdrive` -> Neon `production`. Its current role is `neondb_owner` on the `-pooler` host. | `docs/DEPLOY_SECRETS.md`, `docs/RELEASE_BETA.md` (line ~121) |
 | Worker secrets, names only: `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `CURSOR_SECRET`, `DEV_LOGIN_SECRET` (the admin secret for `/api/v1/system/*`), `BREVO_API_KEY`. Never set `DEV_LOGIN_ENABLED` or `NODE_ENV`. | `docs/DEPLOY_SECRETS.md` |
-| Health routes are on the Worker host, not the Pages host: `GET /health/live`, `GET /health/ready`. | `apps/api/src/http/app.ts` (lines 146-147), `docs/MONITORING.md` |
+| Pages forwards these health routes through the API service binding: `GET /health/live`, `GET /health/ready`. | `apps/web/functions/_middleware.ts`, `docs/MONITORING.md` |
 | Uptime probe and availability alerts are **Planned**, not configured. | `docs/MONITORING.md` section 2c |
 | **No least-privilege role SQL exists in the repo.** `grep` for `GRANT` and `CREATE ROLE` under `database/` and `apps/api/src` finds nothing. | repo search, 2026-10-30 |
 | The rate-limit burst check (`docs/RATE_LIMITING.md` section 7) says **do not run it against production**. | `docs/RATE_LIMITING.md` section 7 |
@@ -118,7 +120,7 @@ Verification (names only): `cd apps/api && npx wrangler secret list` (no `--env`
 
 Run against the production hosts only after sections 8 and 9. Do not run the rate-limit burst check here (see section 11).
 
-- `https://flowboard-api.web-app-cloud.workers.dev/health/live` and `/health/ready` return 200.
+- `https://flowboard-app.pages.dev/health/live` and `/health/ready` return 200.
 - `GET https://flowboard-app.pages.dev/api/v1/session` returns 401, with `cache-control: no-store`.
 - `https://flowboard-app.pages.dev/email/flowboard-lockup-dark.png` and `/email/invite-board-hero.png` return 200 with `image/png`.
 - `https://flowboard-app.pages.dev/signin` returns 200 with a `content-security-policy` header.
@@ -135,7 +137,7 @@ Run against the production hosts only after sections 8 and 9. Do not run the rat
 ## 12. Uptime alert — **needs user** picks the service and the destination
 
 - `docs/MONITORING.md` lists an external uptime probe as **Planned**. Nothing is configured today.
-- **Needs user**: choose an uptime service (for example one that is already in the user's accounts) and point it at `https://flowboard-api.web-app-cloud.workers.dev/health/ready` every 5 minutes, which matches the production cron cadence in `docs/MONITORING.md` section 2a.
+- **Needs user**: choose an uptime service (for example one that is already in the user's accounts) and point it at `https://flowboard-app.pages.dev/health/ready` every 5 minutes, which matches the production cron cadence in `docs/MONITORING.md` section 2a.
 - The alert destination must reach a human: an email address or phone number that the user checks. A probe that posts to a channel nobody reads is not an alert.
 - Do not point the uptime tool at `/api/v1/system/status`: it needs the admin secret and the tool stores request headers (`docs/MONITORING.md` section 1).
 - Cron health: check the Cron Trigger metrics for `flowboard-api` after the first production tick (manual today, see `docs/MONITORING.md` 2a).

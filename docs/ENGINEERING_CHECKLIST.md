@@ -1,5 +1,7 @@
 # Engineering checklist: 50 concerns
 
+November 15 security repair covers coherent card reads (01, 03, 05, 07) and private Worker ingress through the Pages service binding (34). Release evidence tracks local verification and hosted rollout separately. See [security repair status](reviews/QUICK-SECURITY-AUDIT-20261115/FIXES.md).
+
 Card drawer, November 14. Local PostgreSQL and Chrome checks covered stale card versions (06), client refresh after photo finalization (21), and retrying an unconfirmed comment with its original request key (25, 26). Hosted verification is pending. [Drawer results](reviews/CARD-DRAWER-SAVE-20261114/SUMMARY.md).
 Card document links, November 14. Verify existing grant and card locking (01, 06, 07), additive migration and old Worker compatibility (15, 16), retry receipts (25), and input limits and safe logging (30, 47). Google owns access to documents. Flowboard persists labels and links through the normal card save and excludes them from activity and retry receipts. [Acceptance criteria](reviews/CARD-DRIVE-LINKS-20261114/CRITERIA.md).
 

@@ -50,9 +50,9 @@ async function fixture(pool: pg.Pool) {
 }
 
 function inviteRequest(fx: Awaited<ReturnType<typeof fixture>>, email = fx.invitee) {
-  return new Request(`http://localhost/api/v1/projects/${fx.project}/invitations`, {
+  return new Request(`https://localhost/api/v1/projects/${fx.project}/invitations`, {
     method: 'POST',
-    headers: { cookie: fx.cookie, origin: 'http://localhost', 'idempotency-key': `uat-${crypto.randomUUID()}`, 'content-type': 'application/json' },
+    headers: { cookie: fx.cookie, origin: 'https://localhost', 'idempotency-key': `uat-${crypto.randomUUID()}`, 'content-type': 'application/json' },
     body: JSON.stringify({ email, role: 'member' }),
   });
 }

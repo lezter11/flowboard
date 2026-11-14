@@ -146,6 +146,31 @@ test('full mounted OAuth flow and max-one-connection dispatcher enforce scopes, 
   assert.equal((await tool(narrow.access_token, 'flowboard_get_board_columns', { boardId: 'mcp_board_a' })).isError, true);
 });
 
+test('trusted MCP card detail dispatch preserves its machine projection on a one-connection pool', { timeout: 10000 }, async () => {
+  const grant = await issue('member');
+  const principal = (await verifyHostedAccessToken(pool, grant.access_token, `${origin}${root}`))!;
+  const created = await tool(grant.access_token, 'flowboard_create_card', {
+    operationId: crypto.randomUUID(), boardId: 'mcp_board_a', column: 'mcp_column_a', title: 'Machine detail card',
+  });
+  assert.notEqual(created.isError, true);
+  const cardId = JSON.parse(created.content[0].text).id as string;
+  const links = [{ title: 'Synthetic', url: 'https://drive.google.com/file/d/FakeFile/view?resourcekey=0-fake' }];
+  await pool.query('UPDATE cards SET document_links=$1::jsonb WHERE id=$2', [JSON.stringify(links), cardId]);
+  const path = `/api/v1/cards/${cardId}`;
+  const sessionResponse = await api(path, { headers: { cookie: cookies['member']! } });
+  assert.equal(sessionResponse.status, 200);
+  assert.deepEqual((await json(sessionResponse)).data.documentLinks, links);
+
+  const machineResponse = await dispatchHostedMcpRequest(
+    async request => app.fetch(request), new Request(`${origin}${path}`), principal, pool,
+  );
+  assert.equal(machineResponse.status, 200);
+  const detail = (await json(machineResponse)).data;
+  assert.equal(detail.id, cardId);
+  assert.equal(detail.createdBy.id, 'mcp_member');
+  assert.equal(Object.hasOwn(detail, 'documentLinks'), false);
+});
+
 test('create replay survives access refresh, preserves provenance and fails after disconnect', async () => {
   const grant = await issue();
   const args = { operationId: crypto.randomUUID(), boardId: 'mcp_board_a', column: 'mcp_column_a', title: 'One logical card' };

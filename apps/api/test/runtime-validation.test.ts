@@ -135,7 +135,7 @@ test('FND04/UX05 actual Node and workerd protocol, caps,1000-card samples and SQ
     if(mode==='node')run=await startNodeIsolated(f.dbUrl);
     else{
       const configPath=path.join(f.dir,'wrangler.json');await fs.writeFile(configPath,JSON.stringify({name:'flowboard-runtime-validation',main:fileURLToPath(new URL('./runtime-protocol-probe.ts',import.meta.url)),compatibility_date:'2026-10-19',compatibility_flags:['nodejs_compat'],ratelimits:[{name:'FB_RL_WRITES',namespace_id:'9921',simple:{limit:1000,period:60}}],vars:{DATABASE_URL:f.dbUrl,CURSOR_SECRET:'synthetic-runtime-cursor-secret-20261103'}}));
-      const harness=createTestHarness({workers:[{configPath}]});await harness.listen();const worker=harness.getWorker('flowboard-runtime-validation');run={queries:async()=>await(await worker.fetch('http://localhost/__runtime_probe/sql')).json()as CapturedQuery[],fetch:(url,init)=>worker.fetch(url,init as Parameters<typeof worker.fetch>[1]) as unknown as Promise<Response>,close:()=>harness.close()};
+      const harness=createTestHarness({workers:[{configPath}]});await harness.listen();const worker=harness.getWorker('flowboard-runtime-validation');run={queries:async()=>await(await worker.fetch('http://localhost/__runtime_probe/sql')).json()as CapturedQuery[],fetch:(url,init)=>worker.fetch(url.replace(/^http:/, 'https:'),init as Parameters<typeof worker.fetch>[1]) as unknown as Promise<Response>,close:()=>harness.close()};
     }
     samples.measurements.push({runtime:mode,phase:'startup',elapsedMs:performance.now()-started});
     try{
@@ -280,7 +280,7 @@ test('FND04 actual unavailable-DB and Worker missing-binding health/privacy cont
   const configs=[];
   for(const [name,vars]of [['missing',{}],['refused',{DATABASE_URL:refused.toString()}]]as const){const configPath=path.join(f.dir,'worker-'+name+'.json');await fs.writeFile(configPath,JSON.stringify({name:'runtime-'+name,main:fileURLToPath(new URL('../src/runtime/worker.ts',import.meta.url)),compatibility_date:'2026-10-19',compatibility_flags:['nodejs_compat'],vars}));configs.push({configPath});}
   const harness=createTestHarness({workers:configs});
-  try{await harness.listen();const missing=await harness.getWorker('runtime-missing').fetch('http://localhost/health/live');assert.equal(missing.status,500);const b=await missing.json()as any;assert.equal(b.error.code,'CONFIG_ERROR');assert.equal(b.error.requestId,undefined);samples.checks.push({runtime:'workerd',kind:'bootstrap_missing_binding',status:500,hasRequestId:false,note:'Current pre-middleware shape; not a general request-ID guarantee'});
-    const down=harness.getWorker('runtime-refused');assert.equal((await down.fetch('http://localhost/health/live')).status,200);const ready=await down.fetch('http://localhost/health/ready');assert.equal(ready.status,503);safe(await ready.text());
+  try{await harness.listen();const missing=await harness.getWorker('runtime-missing').fetch('https://localhost/health/live');assert.equal(missing.status,500);const b=await missing.json()as any;assert.equal(b.error.code,'CONFIG_ERROR');assert.equal(b.error.requestId,undefined);samples.checks.push({runtime:'workerd',kind:'bootstrap_missing_binding',status:500,hasRequestId:false,note:'Current pre-middleware shape; not a general request-ID guarantee'});
+    const down=harness.getWorker('runtime-refused');assert.equal((await down.fetch('https://localhost/health/live')).status,200);const ready=await down.fetch('https://localhost/health/ready');assert.equal(ready.status,503);safe(await ready.text());
   }finally{await harness.close();}
 });

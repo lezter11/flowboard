@@ -28,6 +28,7 @@ const sourcePaths = [...new Set(execFileSync('git', ['ls-files', '--cached', '--
   'apps/web/src', 'apps/web/functions', 'apps/web/public', 'apps/web/test', 'apps/web/next.config.ts', 'apps/web/next-env.d.ts', 'apps/web/tsconfig.json', 'scripts/e2e/hosted-mcp-browser.mjs', 'scripts/e2e/hosted-mcp-browser-diagnostics.mjs',
   'packages/contracts/src/hosted-mcp.ts', 'apps/api/src/http/routes/hosted-oauth.ts',
   'apps/api/src/adapters/hosted-oauth.ts', 'apps/api/src/http/safe-next.ts',
+  'apps/api/src/adapters/google-identity.ts', 'database/migrations/0030_google_account_subject.sql',
   'apps/api/src/http/routes/google-auth.ts', 'apps/api/src/http/app.ts', 'apps/api/test/safe-next.test.ts', 'apps/api/test/google-connect-resume.test.ts',
 ], { cwd: root, encoding: 'utf8' }).trim().split('\n').filter(Boolean))].sort();
 const hashes = async () => Object.fromEntries(await Promise.all(sourcePaths.map(async p => [p, crypto.createHash('sha256').update(await fs.readFile(path.join(root, p))).digest('hex')])));
@@ -53,7 +54,7 @@ globalThis.fetch = async (input, init) => {
   if (url === 'https://oauth2.googleapis.com/token') return Response.json({ access_token: 'synthetic-provider-access', token_type: 'Bearer', expires_in: 900 });
   if (url === 'https://www.googleapis.com/oauth2/v3/userinfo') {
     assert.ok(googlePerson);
-    return Response.json({ sub: 'synthetic-local-sub', email: googlePerson.email, email_verified: true, name: googlePerson.displayName, given_name: 'Synthetic', family_name: 'Owner' });
+    return Response.json({ sub: `synthetic-${googlePerson.id}`, email: googlePerson.email, email_verified: true, name: googlePerson.displayName, given_name: 'Synthetic', family_name: 'Teammate' });
   }
   const parsed = new URL(url);
   assert.ok(['127.0.0.1', 'localhost'].includes(parsed.hostname), 'Unexpected server-side external request refused.');
@@ -218,6 +219,21 @@ try {
   report.browser = await browser.version();
   const fixture = await api.fixture();
   googlePerson = fixture.people.owner.user;
+  // Bind this existing synthetic owner through the real linking flow before the signed-out
+  // hosted-connector cases. Production uses neither these fixture sessions nor the test provider.
+  const existingCookie = `flowboard_session=${fixture.people.owner.session.id}`;
+  const link = await mountedApp.request(webOrigin + '/api/v1/auth/google/link', {
+    method: 'POST', headers: { Origin: webOrigin, Cookie: existingCookie },
+  });
+  assert.equal(link.status, 200);
+  const { data: { authorizationUrl } } = await link.json();
+  const state = new URL(authorizationUrl).searchParams.get('state');
+  const flowCookie = link.headers.getSetCookie()[0].split(';')[0];
+  const linked = await mountedApp.request(webOrigin + '/api/v1/auth/google/callback?' +
+    new URLSearchParams({ code: 'synthetic-local-code', state }), {
+    headers: { Cookie: `${existingCookie}; ${flowCookie}` },
+  });
+  assert.equal(linked.headers.get('location'), webOrigin + '/settings?tab=account&google=linked');
   await check('HUI-01-synthetic-Google-safe-next', async () => {
     const t = await begin(fixture, 'owner', { signedIn: false });
     t.state.expectedStatuses.add(401);
@@ -251,6 +267,26 @@ try {
     await t.page.getByRole('link', { name: 'Continue as synthetic teammate', exact: true }).click();
     await expect(t.page.getByLabel('Choose one project', { exact: true })).toBeVisible();
     assert.equal(new URL(t.page.url()).searchParams.get('request'), t.requestId);
+  });
+  await check('HUI-01-legacy-user-links-from-Account-settings', async () => {
+    const returningPerson = googlePerson;
+    googlePerson = fixture.people.manager.user;
+    try {
+      const t = await tab(fixture, 'manager');
+      await t.page.goto(webOrigin + '/settings?tab=account', { waitUntil: 'networkidle' });
+      await t.page.getByRole('button', { name: 'Link Google account', exact: true }).click();
+      await expect(t.page.getByRole('heading', { name: 'Synthetic Google sign-in', exact: true })).toBeVisible();
+      await t.page.getByRole('link', { name: 'Continue as synthetic teammate', exact: true }).click();
+      await expect(t.page.getByText('Your Google account is linked.', { exact: true })).toBeVisible();
+      const account = await t.context.request.get(webOrigin + '/api/v1/session');
+      assert.equal(account.status(), 200);
+      const { data } = await account.json();
+      assert.equal(data.actor.id, googlePerson.id);
+      assert.equal(data.googleAccountStatus, 'linked');
+      assert.ok(data.accessibleProjects.some(item => item.id === fixture.project.id));
+    } finally {
+      googlePerson = returningPerson;
+    }
   });
   await check('HUI-02-03-explicit-project-unverified-allow', async () => {
     const t = await open(await begin(fixture, 'owner', { name: '<img src=x onerror=alert(1)> Claude' }));

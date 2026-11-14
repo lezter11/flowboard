@@ -19,7 +19,7 @@ if (!databaseUrl) {
   process.exit(1);
 }
 
-const child = spawn(process.execPath, [wranglerBin, 'dev', '--local', '--ip', '127.0.0.1'], {
+const child = spawn(process.execPath, [wranglerBin, 'dev', '--local', '--ip', '127.0.0.1', '--local-protocol', 'https'], {
   stdio: 'inherit',
   env: {
     ...process.env,

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { setTimeout as delay } from 'node:timers/promises';
 import { MemoryStorageDriver, runWithStorageDriver } from '../src/adapters/storage.ts';
 import { runMigrations } from '../src/adapters/migrations.ts';
 import { createPersonalAccessToken } from '../src/adapters/tokens.ts';
@@ -19,7 +20,7 @@ const data = async (response: Response, status = 200) => {
 test('Drive links migrate independently, follow card access, save atomically and keep receipts private', async t => {
   const f = await lifecycleFixture(t, 27);
   const migrated = await runMigrations(f.pool);
-  assert.deepEqual(migrated.applied, [{ version: '0029', name: '0029_card_document_links.sql' }]);
+  assert.deepEqual(migrated.applied[0], { version: '0029', name: '0029_card_document_links.sql' });
   assert.deepEqual((await runMigrations(f.pool)).applied, []);
   assert.deepEqual((await data(await f.request('GET', path, 'viewer'))).documentLinks, []);
   const initialVersion = Number((await data(await f.request('GET', path))).version);
@@ -116,4 +117,112 @@ test('Drive links remain across moves and restore and are wiped on final purge',
   assert.deepEqual(result.purgedCardIds, ['card']);
   assert.deepEqual((await f.pool.query("SELECT state, document_links FROM cards WHERE id='card'")).rows, [{ state: 'purged', document_links: [] }]);
   await assert.rejects(f.pool.query("UPDATE cards SET document_links=$1::JSONB WHERE id='card'", [JSON.stringify(links)]), { code: '23514' });
+});
+
+
+async function waitForBlockedQuery(
+  fixture: Awaited<ReturnType<typeof lifecycleFixture>>,
+  blockerPid: number,
+): Promise<number> {
+  const deadline = Date.now() + 2000;
+  while (Date.now() < deadline) {
+    const result = await fixture.pool.query<{ pid: number }>(
+      `SELECT pid FROM pg_stat_activity
+       WHERE application_name = $1 AND $2::int = ANY(pg_blocking_pids(pid))`,
+      [fixture.schema, blockerPid],
+    );
+    if (result.rows[0]) return result.rows[0].pid;
+    await delay(10);
+  }
+  assert.fail(`Expected a PostgreSQL query blocked by backend ${blockerPid}`);
+}
+
+test('mounted card detail holds the board grant through response assembly', async t => {
+  const f = await lifecycleFixture(t);
+  await data(await f.request('PATCH', path, 'owner', { expectedVersion: 1, documentLinks: links }));
+  const blocker = await f.pool.connect();
+  let read: Promise<Response> | undefined;
+  let revoke: Promise<Response> | undefined;
+  try {
+    await blocker.query('BEGIN');
+    const blockerPid = (await blocker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0]!.pid;
+    // Card creator is read after the other detail fields have been assembled.
+    await blocker.query('LOCK TABLE activity_log IN ACCESS EXCLUSIVE MODE');
+    read = Promise.resolve(f.request('GET', path, 'member'));
+    const readerPid = await waitForBlockedQuery(f, blockerPid);
+
+    const member = f.actors.member!.user.id;
+    revoke = Promise.resolve(f.request('DELETE', `/boards/brd/grants/${member}`, 'owner', { expectedAccessRevision: '1' }));
+    await waitForBlockedQuery(f, readerPid);
+
+    await blocker.query('COMMIT');
+    assert.deepEqual((await data(await read)).documentLinks, links);
+    assert.equal((await data(await revoke)).changed, true);
+    assert.equal((await f.request('GET', path, 'member')).status, 404);
+  } finally {
+    await blocker.query('ROLLBACK').catch(() => {});
+    blocker.release();
+    await Promise.allSettled([read, revoke]);
+  }
+});
+
+test('mounted card detail reads current links when new access follows link removal', async t => {
+  const f = await lifecycleFixture(t);
+  const member = f.actors.member!.user.id;
+  await data(await f.request('PATCH', path, 'owner', { expectedVersion: 1, documentLinks: links }));
+  assert.equal((await data(await f.request('DELETE', `/boards/brd/grants/${member}`, 'owner', { expectedAccessRevision: '1' }))).changed, true);
+  const blocker = await f.pool.connect();
+  let read: Promise<Response> | undefined;
+  try {
+    await blocker.query('BEGIN');
+    const blockerPid = (await blocker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0]!.pid;
+    await blocker.query('LOCK TABLE board_grants IN ACCESS EXCLUSIVE MODE');
+    read = Promise.resolve(f.request('GET', path, 'member'));
+    // The original handler fetched the old link by the time it encountered this lock.
+    await waitForBlockedQuery(f, blockerPid);
+
+    await blocker.query("UPDATE cards SET document_links = '[]'::jsonb WHERE id = 'card'");
+    await blocker.query(
+      `INSERT INTO board_grants (board_id, project_id, workspace_id, user_id, granted_by)
+       VALUES ('brd', 'prj', 'ws', $1, $2)`,
+      [member, f.actors.owner!.user.id],
+    );
+    await blocker.query('COMMIT');
+    assert.deepEqual((await data(await read)).documentLinks, []);
+    assert.deepEqual((await data(await f.request('GET', path, 'member'))).documentLinks, []);
+  } finally {
+    await blocker.query('ROLLBACK').catch(() => {});
+    blocker.release();
+    await Promise.allSettled([read]);
+  }
+});
+
+test('mounted card detail waits for a preceding revocation and returns the concealed 404', async t => {
+  const f = await lifecycleFixture(t);
+  await data(await f.request('PATCH', path, 'owner', { expectedVersion: 1, documentLinks: links }));
+  const revoker = await f.pool.connect();
+  let read: Promise<Response> | undefined;
+  try {
+    await revoker.query('BEGIN');
+    const revokerPid = (await revoker.query<{ pid: number }>('SELECT pg_backend_pid() AS pid')).rows[0]!.pid;
+    await revoker.query('DELETE FROM board_grants WHERE board_id = $1 AND user_id = $2', ['brd', f.actors.member!.user.id]);
+    read = Promise.resolve(f.request('GET', path, 'member'));
+    await waitForBlockedQuery(f, revokerPid);
+
+    await revoker.query('COMMIT');
+    const result = await read;
+    const missing = await f.request('GET', '/cards/missing', 'member');
+    assert.equal(result.status, 404);
+    assert.equal(missing.status, 404);
+    const parseError = async (response: Response) => {
+      const { error } = await response.json() as { error: { code: string; message: string; requestId: string } };
+      assert.ok(error.requestId);
+      return { code: error.code, message: error.message };
+    };
+    assert.deepEqual(await parseError(result), await parseError(missing));
+  } finally {
+    await revoker.query('ROLLBACK').catch(() => {});
+    revoker.release();
+    await Promise.allSettled([read]);
+  }
 });

@@ -10,6 +10,7 @@ const STATES: Record<string, SigninNote> = {
   failed: { title: 'Google sign-in did not finish', body: 'Try again.' },
   email_unverified: { title: 'Verify your Google email first', body: 'Google says your email is not verified. Verify it in your Google account, then sign in again.' },
   email_missing: { title: 'Your Google account has no email', body: 'Flowboard needs an email address to sign you in. Use a Google account that has one.' },
+  google_recovery: { title: 'This sign-in needs account recovery', body: 'If Flowboard is still open in a signed-in browser, go to Settings, then Account, and link your Google account there. Otherwise contact the Flowboard support team.' },
   // Older links and the session gate still use these two.
   'callback-error': { title: 'Google sign-in did not finish', body: 'Try again.' },
   session_ended: { title: 'Your session ended', body: 'Sign in again to keep working.' },

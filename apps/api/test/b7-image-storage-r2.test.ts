@@ -135,7 +135,7 @@ test('B-7 images: the Worker without an IMAGES binding answers 503 CONFIG_ERROR 
   const fx = await setup(pool);
   const env = { DATABASE_URL: localDatabaseUrl(process.env['DATABASE_URL']) };
   const response = await worker.fetch(
-    new Request(`http://localhost/api/v1/cards/${fx.card}/images`, { headers: { cookie: fx.cookie } }),
+    new Request(`https://localhost/api/v1/cards/${fx.card}/images`, { headers: { cookie: fx.cookie } }),
     env as never,
   );
   assert.equal(response.status, 503);
@@ -147,7 +147,7 @@ test('B-7 images: upload, finalize, read and delete through the Worker, across s
   const bucket = fakeR2();
   // Each call gets a fresh env object over the same bucket store: the durable state two isolates share.
   const call = (request: Request) => worker.fetch(request, { DATABASE_URL: localDatabaseUrl(process.env['DATABASE_URL']), IMAGES: fakeR2(bucket.objects).binding, IMAGE_VERIFIER:nativeImageBindingForTests() } as never);
-  const base = 'http://localhost/api/v1';
+  const base = 'https://localhost/api/v1';
 
   // Isolate 1: stage and upload the bytes.
   const stage = await call(new Request(`${base}/cards/${fx.card}/image-uploads`, {
@@ -243,7 +243,7 @@ test('B-14 images: storage keys carry no user filename, and filenames with separ
   const fx = await setup(pool);
   const bucket = fakeR2();
   const call = (request: Request) => worker.fetch(request, { DATABASE_URL: localDatabaseUrl(process.env['DATABASE_URL']), IMAGES: fakeR2(bucket.objects).binding, IMAGE_VERIFIER:nativeImageBindingForTests() } as never);
-  const base = 'http://localhost/api/v1';
+  const base = 'https://localhost/api/v1';
   const name = 'holiday photo 2026.png';
   // A fresh client address per run: the stage route is rate limited per client, and other suites share the table.
   const ip = `10.${crypto.randomInt(1, 255)}.${crypto.randomInt(1, 255)}.${crypto.randomInt(1, 255)}`;

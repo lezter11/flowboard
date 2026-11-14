@@ -260,8 +260,8 @@ export async function updateUserProfile(
   clientOrPool?: pg.Pool | pg.ClientBase,
 ): Promise<SessionActor> {
   const pool = clientOrPool ?? getPool();
-  // Only the display name is user-editable. Google sign-in keeps a non-empty name (see the
-  // ON CONFLICT rule in routes/google-auth.ts) and owns the email and avatar.
+  // Users can edit the display name. Google sign-in preserves a saved name and updates
+  // the provider-managed email and avatar.
   const fields = ['display_name = $1', 'updated_at = NOW()'];
   const values: unknown[] = [input.displayName.trim()];
   const idx = 2;
@@ -297,16 +297,24 @@ export interface NameState {
   needsName: boolean;
   suggestedFirstName: string | null;
   suggestedLastName: string | null;
+  googleAccountStatus: 'linked' | 'unlinked' | 'email_conflict';
 }
 
 /**
- * Whether the user still has to save a name (B-16), and Google's suggestions while they do. The
- * suggestions are the stored first and last name while name_confirmed_at is null, and null after.
+ * Name confirmation, optional Google suggestions, and the account's Google binding status.
+ * Suggestions are returned only while name_confirmed_at is null.
  */
 export async function readNameState(userId: string, clientOrPool?: pg.Pool | pg.ClientBase): Promise<NameState> {
   const pool = clientOrPool ?? getPool();
-  const res = await pool.query<{ first_name: string | null; last_name: string | null; name_confirmed_at: Date | null }>(
-    'SELECT first_name, last_name, name_confirmed_at FROM users WHERE id = $1',
+  const res = await pool.query<{
+    first_name: string | null;
+    last_name: string | null;
+    name_confirmed_at: Date | null;
+    google_linked: boolean;
+    google_email_conflict: boolean;
+  }>(
+    `SELECT first_name, last_name, name_confirmed_at, google_subject IS NOT NULL AS google_linked, google_email_conflict
+     FROM users WHERE id = $1`,
     [userId],
   );
   const row = res.rows[0];
@@ -315,6 +323,7 @@ export async function readNameState(userId: string, clientOrPool?: pg.Pool | pg.
     needsName: !confirmed,
     suggestedFirstName: confirmed ? null : (row?.first_name ?? null),
     suggestedLastName: confirmed ? null : (row?.last_name ?? null),
+    googleAccountStatus: row?.google_email_conflict ? 'email_conflict' : (row?.google_linked ? 'linked' : 'unlinked'),
   };
 }
 

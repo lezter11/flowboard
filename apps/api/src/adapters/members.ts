@@ -359,7 +359,10 @@ export async function removeProjectMember(
 async function revokeMemberInvitations(
   client: pg.ClientBase, projectId: string, targetUserId: string, workspaceId: string, actorId: string,
 ): Promise<void> {
-  const user = await client.query<{ email: string }>('SELECT email FROM users WHERE id = $1', [targetUserId]);
+  const user = await client.query<{ email: string }>(
+    'SELECT BTRIM(email) AS email FROM users WHERE id = $1 AND NOT google_email_conflict FOR SHARE',
+    [targetUserId],
+  );
   const email = user.rows[0]?.email;
   if (!email) return;
   const revoked = await client.query<{ id: string; role: ProjectRole }>(

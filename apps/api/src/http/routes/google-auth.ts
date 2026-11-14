@@ -1,50 +1,25 @@
 import crypto from 'node:crypto';
-import { Hono } from 'hono';
+import { Hono, type Context } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
+import { normalizeNamePart, sessionActorSchema } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
-import {
-  createSession,
-  getSessionCookieOptions,
-  isLocalhost,
-} from '../../adapters/session.ts';
-import { normalizeNamePart } from '@flowboard/contracts';
-import { ensurePersonalWorkspace } from '../../adapters/personal-workspace.ts';
-import { SESSION_COOKIE_NAME } from '../middleware/auth.ts';
+import { getSessionCookieOptions, hashSessionToken, isLocalhost } from '../../adapters/session.ts';
+import { GOOGLE_ISSUER, signInWithGoogle, type VerifiedGoogleProfile } from '../../adapters/google-identity.ts';
+import { authMiddleware, SESSION_COOKIE_NAME } from '../middleware/auth.ts';
 import { HttpError } from '../errors.ts';
 import { sanitizeNextPath } from '../safe-next.ts';
 
-const OAUTH_STATE_COOKIE = 'flowboard_oauth_state';
+const OAUTH_TTL_SECONDS = 600;
+const ACCOUNT_SETTINGS = '/settings?tab=account';
+const STATE = /^[0-9a-f]{48}$/;
+const BASE64URL_256 = /^[A-Za-z0-9_-]{43}$/;
 
 export const googleAuthRoutes = new Hono();
 
-interface GoogleTokens {
-  access_token: string;
-  id_token?: string;
-  token_type: string;
-  expires_in: number;
-}
-
-interface GoogleUserInfo {
-  sub: string;
-  email: string;
-  email_verified: boolean;
-  name?: string;
-  given_name?: string;
-  family_name?: string;
-  picture?: string;
-}
-
-function decodeNextCookie(encoded: string): string {
-  return Buffer.from(encoded, 'base64url').toString('utf8');
-}
-
-function resolveRedirectUri(c: import('hono').Context): string {
-  const envUri = (c.env as any)?.GOOGLE_REDIRECT_URI || process.env.GOOGLE_REDIRECT_URI;
-  if (envUri) return envUri;
-
-  const url = new URL(c.req.url);
-  // Default to relative callback route on same host
-  return `${url.protocol}//${url.host}/api/v1/auth/google/callback`;
+function resolveRedirectUri(c: Context): string {
+  const envUri = (c.env as { GOOGLE_REDIRECT_URI?: string } | undefined)?.GOOGLE_REDIRECT_URI ||
+    process.env['GOOGLE_REDIRECT_URI'];
+  return envUri || new URL('/api/v1/auth/google/callback', c.req.url).href;
 }
 
 function cleanCredential(val?: string): string {
@@ -57,199 +32,171 @@ function cleanCredential(val?: string): string {
   if (str.includes('(')) {
     str = str.split('(')[0]!.trim();
   }
-  // Strip surrounding quotes
-  str = str.replace(/^["']|["']$/g, '').trim();
-  return str;
+  return str.replace(/^["']|["']$/g, '').trim();
 }
 
-function getGoogleConfig(c: import('hono').Context) {
-  const rawId = (c.env as any)?.GOOGLE_CLIENT_ID || (typeof process !== 'undefined' ? process.env?.['GOOGLE_CLIENT_ID'] : undefined);
-  const rawSecret = (c.env as any)?.GOOGLE_CLIENT_SECRET || (typeof process !== 'undefined' ? process.env?.['GOOGLE_CLIENT_SECRET'] : undefined);
+function getGoogleConfig(c: Context) {
+  const env = c.env as { GOOGLE_CLIENT_ID?: string; GOOGLE_CLIENT_SECRET?: string } | undefined;
   return {
-    clientId: cleanCredential(rawId),
-    clientSecret: cleanCredential(rawSecret),
+    clientId: cleanCredential(env?.GOOGLE_CLIENT_ID || process.env['GOOGLE_CLIENT_ID']),
+    clientSecret: cleanCredential(env?.GOOGLE_CLIENT_SECRET || process.env['GOOGLE_CLIENT_SECRET']),
   };
 }
 
-// 1. GET /api/v1/auth/google (alias /google/start): Redirect user to Google OAuth consent.
-// An optional ?next= (a same-app path, see safe-next.ts) is carried in the state cookie, so it
-// survives the round trip and is validated again at the callback. Invalid values are dropped.
-const startGoogleSignIn = (c: import('hono').Context) => {
+function browserSession(c: Context): string | undefined {
+  return getCookie(c, SESSION_COOKIE_NAME) || getCookie(c, 'session');
+}
+
+function secureCookie(c: Context): boolean {
+  return !isLocalhost(new URL(c.req.url).hostname);
+}
+
+function flowCookie(c: Context, link: boolean): string {
+  const name = link ? 'flowboard_oauth_link' : 'flowboard_oauth_state';
+  // The browser rejects __Host- cookies planted by a sibling subdomain.
+  return secureCookie(c) ? `__Host-${name}` : name;
+}
+
+interface OAuthAttempt {
+  state: string;
+  verifier: string;
+  expiresAt: number;
+}
+
+function linkProof(session: string, attempt: OAuthAttempt): string {
+  return crypto.createHmac('sha256', session)
+    .update(`google-link:${attempt.state}.${attempt.verifier}.${attempt.expiresAt}`)
+    .digest('base64url');
+}
+
+function beginGoogleOAuth(c: Context, sessionToLink?: string): URL {
   const { clientId } = getGoogleConfig(c);
-  if (!clientId) {
-    throw HttpError.internal('Google OAuth is not configured on this server. Missing GOOGLE_CLIENT_ID.');
-  }
+  if (!clientId) throw HttpError.internal('Google OAuth is not configured on this server. Missing GOOGLE_CLIENT_ID.');
 
-  const redirectUri = resolveRedirectUri(c);
-  const state = crypto.randomBytes(24).toString('hex');
-  const host = c.req.header('host') || new URL(c.req.url).hostname;
-  const local = isLocalhost(host);
-
-  // Cookie value: "<state>" or "<state>.<base64url(next)>". Same HttpOnly cookie as the state.
+  const attempt = {
+    state: crypto.randomBytes(24).toString('hex'),
+    verifier: crypto.randomBytes(32).toString('base64url'),
+    expiresAt: Math.floor(Date.now() / 1000) + OAUTH_TTL_SECONDS,
+  };
   const next = sanitizeNextPath(c.req.query('next'));
-  const stateCookieValue = next ? `${state}.${Buffer.from(next, 'utf8').toString('base64url')}` : state;
+  const context = sessionToLink ? linkProof(sessionToLink, attempt) : Buffer.from(next ?? '').toString('base64url');
+  setCookie(c, flowCookie(c, sessionToLink !== undefined),
+    `${attempt.state}.${attempt.verifier}.${attempt.expiresAt}.${context}`, {
+      path: '/', httpOnly: true, sameSite: 'Lax', secure: secureCookie(c), maxAge: OAUTH_TTL_SECONDS,
+    });
 
-  setCookie(c, OAUTH_STATE_COOKIE, stateCookieValue, {
-    path: '/',
-    httpOnly: true,
-    sameSite: 'Lax',
-    secure: !local,
-    maxAge: 600, // 10 minutes
-  });
+  const url = new URL('/o/oauth2/v2/auth', GOOGLE_ISSUER);
+  url.searchParams.set('response_type', 'code');
+  url.searchParams.set('client_id', clientId);
+  url.searchParams.set('redirect_uri', resolveRedirectUri(c));
+  url.searchParams.set('scope', 'openid email profile');
+  url.searchParams.set('state', attempt.state);
+  url.searchParams.set('access_type', 'online');
+  url.searchParams.set('prompt', sessionToLink ? 'select_account consent' : 'select_account');
+  url.searchParams.set('code_challenge_method', 'S256');
+  url.searchParams.set('code_challenge', crypto.createHash('sha256').update(attempt.verifier).digest('base64url'));
+  return url;
+}
 
-  const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
-  authUrl.searchParams.set('response_type', 'code');
-  authUrl.searchParams.set('client_id', clientId);
-  authUrl.searchParams.set('redirect_uri', redirectUri);
-  authUrl.searchParams.set('scope', 'openid email profile');
-  authUrl.searchParams.set('state', state);
-  authUrl.searchParams.set('access_type', 'online');
-  authUrl.searchParams.set('prompt', 'select_account');
-
-  return c.redirect(authUrl.toString(), 302);
-};
+const startGoogleSignIn = (c: Context) => c.redirect(beginGoogleOAuth(c).href, 302);
 googleAuthRoutes.get('/google', startGoogleSignIn);
 googleAuthRoutes.get('/google/start', startGoogleSignIn);
 
-// 2. GET /api/v1/auth/google/callback: Handle Google OAuth code callback
-async function completeGoogleSignIn(c: import('hono').Context): Promise<Response> {
-  const query = c.req.query();
-  if (query.error) {
-    throw HttpError.badRequest(`Google sign-in was denied: ${query.error}`, 'OAUTH_ERROR');
+googleAuthRoutes.post('/google/link', authMiddleware, (c) => {
+  // Required even for clients without Fetch Metadata. The configured callback origin is
+  // what the browser sees, including when a local reverse proxy rewrites Request.url.
+  if (c.req.header('origin') !== new URL(resolveRedirectUri(c)).origin) {
+    throw HttpError.forbidden('Start Google linking from your Flowboard account settings.');
   }
+  const session = browserSession(c);
+  if (!session || c.get('authType') !== 'session') throw HttpError.unauthorized();
+  // The UI navigates after reading the URL, so the existing form-action CSP can stay same-origin.
+  return c.json({ data: { authorizationUrl: beginGoogleOAuth(c, session).href } });
+});
 
-  const code = query.code;
-  const state = query.state;
-  if (!code || !state) {
-    throw HttpError.badRequest('Missing authorization code or state parameter.', 'INVALID_CALLBACK');
-  }
+function readAttempt(c: Context, link: boolean) {
+  const [state, verifier, rawExpiry, context, extra] = (getCookie(c, flowCookie(c, link)) ?? '').split('.');
+  if (!state || !STATE.test(state) || state !== c.req.query('state') || !verifier || !BASE64URL_256.test(verifier) ||
+      !rawExpiry || !/^\d{1,12}$/.test(rawExpiry) || context === undefined || extra !== undefined) return null;
+  const expiresAt = Number(rawExpiry);
+  const now = Math.floor(Date.now() / 1000);
+  if (expiresAt <= now || expiresAt > now + OAUTH_TTL_SECONDS) return null;
+  return { state, verifier, expiresAt, context };
+}
 
-  const [savedState, encodedNext] = (getCookie(c, OAUTH_STATE_COOKIE) ?? '').split('.', 2);
-  if (!savedState || savedState !== state) {
-    throw HttpError.forbidden('Invalid or expired OAuth state session.', 'CSRF_MISMATCH');
-  }
-
-  const host = c.req.header('host') || new URL(c.req.url).hostname;
-  const local = isLocalhost(host);
-
-  deleteCookie(c, OAUTH_STATE_COOKIE, {
-    path: '/',
-    secure: !local,
-  });
-
+async function verifiedGoogleProfile(c: Context, code: string, verifier: string): Promise<VerifiedGoogleProfile> {
   const { clientId, clientSecret } = getGoogleConfig(c);
-  if (!clientId || !clientSecret) {
-    throw HttpError.internal('Google OAuth client configuration incomplete.');
-  }
+  if (!clientId || !clientSecret) throw HttpError.internal('Google OAuth client configuration incomplete.');
 
-  const redirectUri = resolveRedirectUri(c);
-
-  // Exchange code for access token
   const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
+    redirect: 'error',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       code,
       client_id: clientId,
       client_secret: clientSecret,
-      redirect_uri: redirectUri,
+      redirect_uri: resolveRedirectUri(c),
       grant_type: 'authorization_code',
+      code_verifier: verifier,
     }),
   });
-
   if (!tokenResponse.ok) {
-    // Log the status only. The provider body is never read or logged (B-7, FB-AUD-08).
+    // Never read or log a provider error body.
     await tokenResponse.body?.cancel();
     console.error(JSON.stringify({ event: 'google_token_exchange_failed', status: tokenResponse.status }));
     throw HttpError.badRequest('Failed to authenticate with Google identity provider.', 'TOKEN_EXCHANGE_FAILED');
   }
 
-  const tokens = (await tokenResponse.json()) as GoogleTokens;
-
-  // Retrieve user info
+  const tokens = await tokenResponse.json() as { access_token?: unknown };
+  if (typeof tokens?.access_token !== 'string' || !/^[!-~]{1,8192}$/.test(tokens.access_token)) {
+    throw HttpError.badRequest('Invalid Google token response.', 'TOKEN_EXCHANGE_FAILED');
+  }
+  // Only this fixed Google TLS endpoint, authorized by the code exchange above, supplies the subject.
   const userinfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { Authorization: `Bearer ${tokens.access_token}` },
+    redirect: 'error',
   });
-
   if (!userinfoResponse.ok) {
+    await userinfoResponse.body?.cancel();
     throw HttpError.badRequest('Failed to fetch user profile from Google.', 'USERINFO_FAILED');
   }
 
-  const profile = (await userinfoResponse.json()) as GoogleUserInfo;
-  if (!profile.email) {
+  const profile = await userinfoResponse.json() as Record<string, unknown> | null;
+  const email = typeof profile?.['email'] === 'string' ? profile['email'].trim().toLowerCase() : '';
+  if (email.length > 254 || !sessionActorSchema.shape.email.safeParse(email).success) {
     throw HttpError.badRequest('Google account must have an associated email address.', 'EMAIL_REQUIRED');
   }
-
-  if (profile.email_verified !== true) {
+  if (profile?.['email_verified'] !== true) {
     throw HttpError.forbidden('Google account email is not verified.', 'EMAIL_NOT_VERIFIED');
   }
+  const subject = profile['sub'];
+  if (typeof subject !== 'string' || !/^[!-~]{1,255}$/.test(subject)) {
+    throw HttpError.forbidden('Google account identity is missing or invalid.', 'GOOGLE_SUBJECT_INVALID');
+  }
+  const name = typeof profile['name'] === 'string' ? profile['name'].trim().slice(0, 121) : '';
+  const picture = sessionActorSchema.shape.avatarUrl.safeParse(profile['picture']);
+  return {
+    subject, email,
+    displayName: name || email.split('@')[0]!.slice(0, 121),
+    avatarUrl: picture.success ? picture.data : null,
+    firstName: normalizeNamePart(typeof profile['given_name'] === 'string' ? profile['given_name'] : ''),
+    lastName: normalizeNamePart(typeof profile['family_name'] === 'string' ? profile['family_name'] : ''),
+  };
+}
 
-  const normalizedEmail = profile.email.trim().toLowerCase();
-  const displayName = profile.name?.trim() || normalizedEmail.split('@')[0] || 'User';
-  const avatarUrl = profile.picture || null;
-  // Google's given and family name, as suggestions only (B-16). Never marks the name confirmed.
-  const suggestedFirstName = normalizeNamePart(profile.given_name ?? '');
-  const suggestedLastName = normalizeNamePart(profile.family_name ?? '');
-
+async function completeGoogleSignIn(c: Context, code: string, verifier: string, linkingSessionHash: string | null, landing: string) {
+  const profile = await verifiedGoogleProfile(c, code, verifier);
   const pool = getPool(c);
   const client = await pool.connect();
 
   try {
     await client.query('BEGIN');
-
-    const userId = 'usr_' + crypto.randomUUID();
-
-    // Upsert user
-    const userRes = await client.query<{
-      id: string;
-      email: string;
-      display_name: string;
-      avatar_url: string | null;
-    }>(
-      `INSERT INTO users (id, email, display_name, avatar_url, first_name, last_name, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-       ON CONFLICT (email)
-       DO UPDATE SET
-         display_name = COALESCE(NULLIF(TRIM(users.display_name), ''), EXCLUDED.display_name),
-         avatar_url = COALESCE(NULLIF(EXCLUDED.avatar_url, ''), users.avatar_url),
-         -- Google's names are suggestions: they replace the stored ones only until the user confirms.
-         first_name = CASE WHEN users.name_confirmed_at IS NULL THEN EXCLUDED.first_name ELSE users.first_name END,
-         last_name = CASE WHEN users.name_confirmed_at IS NULL THEN EXCLUDED.last_name ELSE users.last_name END,
-         updated_at = NOW()
-       RETURNING id, email, display_name, avatar_url`,
-      [userId, normalizedEmail, displayName, avatarUrl, suggestedFirstName, suggestedLastName],
-    );
-
-    const user = userRes.rows[0]!;
-
-    // One personal workspace per person, made through the shared helper (B-17, F-05, F-15).
-    await ensurePersonalWorkspace(client, user.id);
-
-    // Create session
-    const session = await createSession(user.id, 24 * 7, client);
-
+    const session = await signInWithGoogle(client, profile, linkingSessionHash);
     await client.query('COMMIT');
 
-    // Set session cookie
-    const cookieOpts = getSessionCookieOptions(host);
-    setCookie(c, SESSION_COOKIE_NAME, session.id, {
-      path: cookieOpts.path,
-      httpOnly: cookieOpts.httpOnly,
-      sameSite: cookieOpts.sameSite,
-      secure: cookieOpts.secure,
-      maxAge: cookieOpts.maxAge,
-    });
-
-    // Redirect to web application home
-    const envObj = c.env as { FRONTEND_URL?: string } | undefined;
-    const frontendUrl =
-      envObj?.FRONTEND_URL ||
-      (typeof process !== 'undefined' ? process.env?.['FRONTEND_URL'] : undefined);
-    // Validate again here: the cookie is only as trustworthy as the browser that holds it.
-    const safeNext = encodedNext ? sanitizeNextPath(decodeNextCookie(encodedNext)) : null;
-    const landingPath = safeNext ?? '/projects';
-    const redirectTarget = frontendUrl ? `${frontendUrl.replace(/\/$/, '')}${landingPath}` : landingPath;
-    return c.redirect(redirectTarget, 302);
+    setCookie(c, SESSION_COOKIE_NAME, session.id, getSessionCookieOptions(new URL(c.req.url).hostname));
+    return c.redirect(`${frontendOrigin(c)}${landing}`, 302);
   } catch (err) {
     await client.query('ROLLBACK').catch(() => {});
     throw err;
@@ -258,42 +205,55 @@ async function completeGoogleSignIn(c: import('hono').Context): Promise<Response
   }
 }
 
-
-/**
- * ERR-R1 S10. The callback is a top-level navigation, so a JSON error page is the wrong answer. Every failure
- * (the provider's denial, a bad or expired state, a missing email, an unexpected error) becomes a 302 to the
- * sign-in page with a state value. The provider's error text is never reflected, and only the error code is logged.
- */
 const SIGNIN_STATE_BY_CODE: Record<string, string> = {
   OAUTH_ERROR: 'denied',
   CSRF_MISMATCH: 'expired',
   EMAIL_NOT_VERIFIED: 'email_unverified',
   EMAIL_REQUIRED: 'email_missing',
+  GOOGLE_RECOVERY_REQUIRED: 'google_recovery',
 };
 
-function frontendOrigin(c: import('hono').Context): string {
-  const envObj = c.env as { FRONTEND_URL?: string } | undefined;
-  const frontendUrl = envObj?.FRONTEND_URL || (typeof process !== 'undefined' ? process.env?.['FRONTEND_URL'] : undefined);
-  return frontendUrl ? frontendUrl.replace(/\/$/, '') : '';
+function frontendOrigin(c: Context): string {
+  const env = c.env as { FRONTEND_URL?: string } | undefined;
+  return (env?.FRONTEND_URL || process.env['FRONTEND_URL'] || '').replace(/\/$/, '');
 }
 
 googleAuthRoutes.get('/google/callback', async (c) => {
-  // Capture only a state-bound consent handle before completion may clear its cookie.
-  // Provider errors and query parameters never choose a return destination themselves.
-  const [savedState, encodedNext] = (getCookie(c, OAUTH_STATE_COOKIE) ?? '').split('.', 2);
-  let consentNext: string | null = null;
-  if (savedState && savedState === c.req.query('state') && encodedNext && /^[A-Za-z0-9_-]{1,400}$/.test(encodedNext)) {
-    const candidate = sanitizeNextPath(decodeNextCookie(encodedNext));
-    if (candidate && /^\/connect\?request=[A-Za-z0-9_-]{43}$/.test(candidate)) consentNext = candidate;
-  }
+  const link = readAttempt(c, true);
+  const signIn = readAttempt(c, false);
+  const attempt = link ?? signIn;
+  const consentNext = signIn && /^[A-Za-z0-9_-]{1,400}$/.test(signIn.context)
+    ? sanitizeNextPath(Buffer.from(signIn.context, 'base64url').toString('utf8'))
+    : null;
+  // Clear only the matching flow, so a malformed callback cannot cancel a different pending attempt.
+  if (attempt) deleteCookie(c, flowCookie(c, link !== null), { path: '/', secure: secureCookie(c) });
+
   try {
-    return await completeGoogleSignIn(c);
+    if (c.req.query('error')) throw HttpError.badRequest('Google sign-in was denied.', 'OAUTH_ERROR');
+    const code = c.req.query('code');
+    if (!code || !c.req.query('state')) throw HttpError.badRequest('Missing authorization code or state.', 'INVALID_CALLBACK');
+    if (!attempt) throw HttpError.forbidden('Invalid or expired OAuth state session.', 'CSRF_MISMATCH');
+
+    let sessionHash: string | null = null;
+    if (link) {
+      const token = browserSession(c);
+      if (!token || !BASE64URL_256.test(link.context) ||
+          !crypto.timingSafeEqual(Buffer.from(link.context), Buffer.from(linkProof(token, link)))) {
+        throw HttpError.forbidden('Invalid or expired OAuth state session.', 'CSRF_MISMATCH');
+      }
+      sessionHash = hashSessionToken(token);
+    }
+    const landing = link ? `${ACCOUNT_SETTINGS}&google=linked` : (consentNext ?? '/projects');
+    return await completeGoogleSignIn(c, code, attempt.verifier, sessionHash, landing);
   } catch (err) {
     const code = (err as { code?: unknown } | null)?.code;
     const codeText = typeof code === 'string' && /^[A-Z_]{1,40}$/.test(code) ? code : 'UNEXPECTED';
     console.error(JSON.stringify({ event: 'google_callback_failed', code: codeText }));
+    if (link) return c.redirect(`${frontendOrigin(c)}${ACCOUNT_SETTINGS}&google=failed`, 302);
+
     const state = SIGNIN_STATE_BY_CODE[codeText] ?? 'failed';
-    const resume = consentNext ? `&next=${encodeURIComponent(consentNext)}` : '';
+    const resume = consentNext && /^\/connect\?request=[A-Za-z0-9_-]{43}$/.test(consentNext)
+      ? `&next=${encodeURIComponent(consentNext)}` : '';
     return c.redirect(`${frontendOrigin(c)}/signin?state=${state}${resume}`, 302);
   }
 });

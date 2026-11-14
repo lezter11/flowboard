@@ -55,7 +55,7 @@ test('backstops count archived items and session exposes effective limits', asyn
       }
     });
     await t.test('Worker handler applies environment overrides to session limits', async () => {
-      const response = await worker.fetch(new Request('http://localhost/api/v1/session', { headers: { cookie } }), {
+      const response = await worker.fetch(new Request('https://localhost/api/v1/session', { headers: { cookie } }), {
         HYPERDRIVE: { connectionString: localDatabaseUrl(process.env['DATABASE_URL']) },
         FB_LIMIT_OWNED_PROJECTS: '2',
       } as never);

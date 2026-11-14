@@ -161,20 +161,20 @@ cardsRoutes.get('/api/v1/cards/:cardId', authMiddleware, async (c) => {
   }
 
   const cardId = c.req.param('cardId');
-  const pool = getPool();
-  // Drive resource keys are available to board members through a browser session.
-  const result = await getCard(pool, cardId, actor.id, c.get('authType') === 'session');
-
-  return c.json(
-    {
-      data: {
-        ...result.card,
-        people: result.people,
-      },
-      people: result.people,
-    },
-    200,
-  );
+  const client = await getPool().connect();
+  try {
+    await client.query('BEGIN ISOLATION LEVEL READ COMMITTED');
+    // Drive resource keys are available to board members through a browser session.
+    const { card, people } = await getCard(client, cardId, actor.id, c.get('authType') === 'session');
+    const response = c.json({ data: { ...card, people }, people }, 200);
+    await client.query('COMMIT');
+    return response;
+  } catch (error) {
+    await client.query('ROLLBACK').catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
 });
 
 // 3. PATCH /api/v1/cards/:cardId: Update card fields, including Drive document links (CRD-04, CRD-05, CRD-06, CRD-10, CRD-11)

@@ -1,5 +1,6 @@
 import {
   type GetSessionResponse,
+  type GoogleLinkStartResponse,
   type LogoutResponse,
   type ProjectResponse,
   type ProjectOverviewResponse,
@@ -165,6 +166,9 @@ function putBytes(path: string, blob: Blob, opts: { onProgress?: (fraction: numb
 }
 
 export const api = {
+  async startGoogleAccountLink(): Promise<GoogleLinkStartResponse> {
+    return request<GoogleLinkStartResponse>('/api/v1/auth/google/link', { method: 'POST' });
+  },
   /** First and last name (B-16). Setting a value is idempotent, so no Idempotency-Key. */
   async saveName(input: SaveNameInput): Promise<SaveNameResponse> {
     return request<SaveNameResponse>('/api/v1/session/name', { method: 'PATCH', body: JSON.stringify(input) });

@@ -1,6 +1,9 @@
 {
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "flowboard-api",
+  // Public access goes through the Pages service binding.
+  "workers_dev": false,
+  "preview_urls": false,
   "main": "src/runtime/worker.ts",
   "compatibility_date": "2026-10-19",
   "compatibility_flags": ["nodejs_compat"],
@@ -41,6 +44,8 @@
   "env": {
     "uat": {
       "name": "flowboard-api-uat",
+      "workers_dev": false,
+      "preview_urls": false,
       "hyperdrive": [{ "binding": "HYPERDRIVE", "id": "7a1e3a69f51e41b1a8c46e0be263b814" }],
       "ratelimits": [
         { "name": "FB_RL_WRITES", "namespace_id": "2002", "simple": { "limit": 60, "period": 60 } }

@@ -28,12 +28,12 @@ DATABASE_URL='<local PostgreSQL URL from database/compose.local.yaml>' npm run d
 
 `dev:worker` refuses to start without `DATABASE_URL`. It passes that URL to wrangler as `CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE`, which wrangler requires for the Hyperdrive binding in local mode. The URL is not written to any file. Use only a local database here.
 
-Node listens only on `127.0.0.1:3000`; Worker development listens on `127.0.0.1:8787`. Request examples:
+Node listens only on `127.0.0.1:3000`; Worker development listens on `https://127.0.0.1:8787` with a local self-signed certificate. Request examples:
 
 ```sh
 curl -i http://127.0.0.1:3000/health/live
 curl -i http://127.0.0.1:3000/health/ready
-curl -i http://127.0.0.1:8787/health/ready
+curl -ki https://127.0.0.1:8787/health/ready # local self-signed certificate only
 ```
 
 `/health/live` returns `200 {"data":{"status":"ok"}}` without querying PostgreSQL. `/health/ready` runs a parameterized `SELECT 1`, returning `200 {"data":{"status":"ready"}}` or a safe 503 error with a request ID. Unknown routes, including unimplemented `/api/v1/*`, return JSON 404. These local health routes contain no private application data and have no authentication; do not treat them as an implemented product API.

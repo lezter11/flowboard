@@ -73,7 +73,7 @@ test('import repair: real workerd preserves blank/200-row/max-text XLSX and boun
   try {
     await harness.listen();
     const worker = harness.getWorker('flowboard-import-template-test');
-    const response = await worker.fetch('http://localhost/api/v1/import/template', {
+    const response = await worker.fetch('https://localhost/api/v1/import/template', {
       headers: {
         cookie: `flowboard_session=${actor.session.id}`
       }
@@ -83,11 +83,11 @@ test('import repair: real workerd preserves blank/200-row/max-text XLSX and boun
     assert.deepEqual(Buffer.from(await response.arrayBuffer()), supplied);
     const headers = {
       cookie: `flowboard_session=${actor.session.id}`,
-      origin: 'http://localhost',
+      origin: 'https://localhost',
       'content-type': 'application/octet-stream',
       'cf-connecting-ip': '127.0.0.1'
     };
-    const blank = await worker.fetch('http://localhost/api/v1/boards/brd/imports?defaultColumnId=col', {
+    const blank = await worker.fetch('https://localhost/api/v1/boards/brd/imports?defaultColumnId=col', {
       method: 'POST',
       headers,
       body: new Uint8Array(supplied).buffer
@@ -106,7 +106,7 @@ test('import repair: real workerd preserves blank/200-row/max-text XLSX and boun
       dateStyle: true
     });
     const started = performance.now();
-    const full = await worker.fetch('http://localhost/api/v1/boards/brd/imports?defaultColumnId=col', {
+    const full = await worker.fetch('https://localhost/api/v1/boards/brd/imports?defaultColumnId=col', {
       method: 'POST',
       headers,
       body: new Uint8Array(bytes).buffer
@@ -116,7 +116,7 @@ test('import repair: real workerd preserves blank/200-row/max-text XLSX and boun
     assert.equal(preview.counts.new, 200);
     assert.equal(preview.rows[0].description, 'Literal worker description');
     assert.equal(preview.rows[0].dueDate, '2023-03-15');
-    const commit = await worker.fetch(`http://localhost/api/v1/imports/${preview.id}/commit`, {
+    const commit = await worker.fetch(`https://localhost/api/v1/imports/${preview.id}/commit`, {
       method: 'POST',
       headers: {
         ...headers,
@@ -145,12 +145,12 @@ test('import repair: real workerd preserves blank/200-row/max-text XLSX and boun
         parts['xl/worksheets/sheet1.xml'] = Buffer.from(`<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${xml}</worksheet>`);
       });
       const before = performance.now();
-      const rejected = await worker.fetch('http://localhost/api/v1/boards/brd/imports?defaultColumnId=col', { method: 'POST', headers: { ...headers, 'cf-connecting-ip': `127.0.0.${resourceCase++}` }, body: new Uint8Array(malicious).buffer });
+      const rejected = await worker.fetch('https://localhost/api/v1/boards/brd/imports?defaultColumnId=col', { method: 'POST', headers: { ...headers, 'cf-connecting-ip': `127.0.0.${resourceCase++}` }, body: new Uint8Array(malicious).buffer });
       assert.equal(rejected.status, 422, name + ': ' + await rejected.clone().text());
       t.diagnostic(`actual local workerd resource rejection ${name} compressed_bytes=${malicious.length} elapsed_ms=${(performance.now()-before).toFixed(2)}`);
     }
     const rich = workbook([{ externalId:'0001-worker-literal', title:'Literal &#65;', description:'  Keep &amp;#x41;  ' }], { inlineStrings:true });
-    const literalPreview=await worker.fetch('http://localhost/api/v1/boards/brd/imports?defaultColumnId=col',{method:'POST',headers:{...headers,'cf-connecting-ip':'127.0.0.25'},body:new Uint8Array(rich).buffer});
+    const literalPreview=await worker.fetch('https://localhost/api/v1/boards/brd/imports?defaultColumnId=col',{method:'POST',headers:{...headers,'cf-connecting-ip':'127.0.0.25'},body:new Uint8Array(rich).buffer});
     assert.equal(literalPreview.status,201,await literalPreview.clone().text());
     const literalData=(await literalPreview.json() as any).data;
     assert.equal(literalData.rows[0].externalId,'0001-worker-literal');assert.equal(literalData.rows[0].title,'Literal &#65;');assert.equal(literalData.rows[0].description,'  Keep &amp;#x41;  ');
@@ -158,26 +158,26 @@ test('import repair: real workerd preserves blank/200-row/max-text XLSX and boun
     // escaped ampersands stress string processing while staying inside all caps.
     const maxTextBytes=workbook(Array.from({length:200},(_,i)=>({externalId:`max-text-${i}`,title:'Maximum description',description:'&'.repeat(20_000)})),{inlineStrings:true});
     const maxStarted=performance.now();
-    const maxPreview=await worker.fetch('http://localhost/api/v1/boards/brd/imports?defaultColumnId=col',{method:'POST',headers:{...headers,'cf-connecting-ip':'127.0.0.26'},body:new Uint8Array(maxTextBytes).buffer});
+    const maxPreview=await worker.fetch('https://localhost/api/v1/boards/brd/imports?defaultColumnId=col',{method:'POST',headers:{...headers,'cf-connecting-ip':'127.0.0.26'},body:new Uint8Array(maxTextBytes).buffer});
     assert.equal(maxPreview.status,201,await maxPreview.clone().text());
     const maxData=(await maxPreview.json() as any).data;assert.equal(maxData.counts.new,200);assert.equal(maxData.counts.invalid,0);assert.equal(maxData.rows.length,200);
     for(const [i,row] of maxData.rows.entries()) {assert.equal(row.externalId,`max-text-${i}`);assert.equal(row.description,'&'.repeat(20_000));}
     t.diagnostic(`actual local workerd200x20k escaped-description preview compressed_bytes=${maxTextBytes.length} elapsed_ms=${(performance.now()-maxStarted).toFixed(2)}; no hosted memory/CPU measurement`);
-    const page=await worker.fetch('http://localhost/api/v1/boards/brd/cards?columnId=col&limit=100',{headers:{cookie:headers.cookie}});
+    const page=await worker.fetch('https://localhost/api/v1/boards/brd/cards?columnId=col&limit=100',{headers:{cookie:headers.cookie}});
     assert.equal(page.status,200);const firstPage=(await page.json()as any);assert.equal(firstPage.data.length,100);assert.ok(firstPage.nextCursor);assert.equal(typeof firstPage.data[0].key,'string');assert.equal(typeof firstPage.data[0].descriptionExcerpt,'string');
-    const nextPage=await worker.fetch('http://localhost/api/v1/boards/brd/cards?columnId=col&limit=100&cursor='+encodeURIComponent(firstPage.nextCursor),{headers:{cookie:headers.cookie}});
+    const nextPage=await worker.fetch('https://localhost/api/v1/boards/brd/cards?columnId=col&limit=100&cursor='+encodeURIComponent(firstPage.nextCursor),{headers:{cookie:headers.cookie}});
     assert.equal(nextPage.status,200);assert.equal((await nextPage.json()as any).data.length,100);
     const boardState=async()=>((await pool.query("SELECT structure_version,snapshot_version FROM boards WHERE id='brd'")).rows[0]);
     const jsonHeaders={...headers,'content-type':'application/json','idempotency-key':crypto.randomUUID()};
-    const column=await worker.fetch('http://localhost/api/v1/boards/brd/columns',{method:'POST',headers:jsonHeaders,body:JSON.stringify({name:'Historical worker column',color:'#64748b',category:'todo',expectedBoardVersion:(await boardState()).structure_version})});
+    const column=await worker.fetch('https://localhost/api/v1/boards/brd/columns',{method:'POST',headers:jsonHeaders,body:JSON.stringify({name:'Historical worker column',color:'#64748b',category:'todo',expectedBoardVersion:(await boardState()).structure_version})});
     assert.equal(column.status,201,await column.clone().text());const columnId=(await column.json()as any).data.id;
     await pool.query(`INSERT INTO cards(id,workspace_id,project_id,board_id,column_id,title,priority,position,state,created_at,updated_at) VALUES('worker_history','ws','prj','brd',$1,'Historical worker source','none',1000,'purged',NOW(),NOW())`,[columnId]);
-    const retired=await worker.fetch('http://localhost/api/v1/boards/brd/columns/'+columnId+'?expectedBoardVersion='+(await boardState()).structure_version,{method:'DELETE',headers:{...jsonHeaders,'idempotency-key':crypto.randomUUID()}});
+    const retired=await worker.fetch('https://localhost/api/v1/boards/brd/columns/'+columnId+'?expectedBoardVersion='+(await boardState()).structure_version,{method:'DELETE',headers:{...jsonHeaders,'idempotency-key':crypto.randomUUID()}});
     assert.equal(retired.status,200,await retired.clone().text());assert.ok((await pool.query('SELECT deleted_at FROM columns WHERE id=$1',[columnId])).rows[0].deleted_at);
-    const metadata=await worker.fetch('http://localhost/api/v1/boards/brd/metadata',{headers:{cookie:headers.cookie}});assert.equal(JSON.stringify(await metadata.json()).includes('Historical worker column'),false);
-    const archived=await worker.fetch('http://localhost/api/v1/boards/brd/archive',{method:'POST',headers:{...jsonHeaders,'idempotency-key':crypto.randomUUID()},body:JSON.stringify({expectedVersion:(await boardState()).snapshot_version})});assert.equal(archived.status,200,await archived.clone().text());
-    const discovery=await worker.fetch('http://localhost/api/v1/projects/prj/boards?includeArchived=true',{headers:{cookie:headers.cookie}});assert.equal(discovery.status,200);assert.equal((await discovery.json()as any).data[0].isArchived,true);
-    const reopened=await worker.fetch('http://localhost/api/v1/boards/brd/reopen',{method:'POST',headers:{...jsonHeaders,'idempotency-key':crypto.randomUUID()},body:JSON.stringify({expectedVersion:(await boardState()).snapshot_version})});assert.equal(reopened.status,200,await reopened.clone().text());
+    const metadata=await worker.fetch('https://localhost/api/v1/boards/brd/metadata',{headers:{cookie:headers.cookie}});assert.equal(JSON.stringify(await metadata.json()).includes('Historical worker column'),false);
+    const archived=await worker.fetch('https://localhost/api/v1/boards/brd/archive',{method:'POST',headers:{...jsonHeaders,'idempotency-key':crypto.randomUUID()},body:JSON.stringify({expectedVersion:(await boardState()).snapshot_version})});assert.equal(archived.status,200,await archived.clone().text());
+    const discovery=await worker.fetch('https://localhost/api/v1/projects/prj/boards?includeArchived=true',{headers:{cookie:headers.cookie}});assert.equal(discovery.status,200);assert.equal((await discovery.json()as any).data[0].isArchived,true);
+    const reopened=await worker.fetch('https://localhost/api/v1/boards/brd/reopen',{method:'POST',headers:{...jsonHeaders,'idempotency-key':crypto.randomUUID()},body:JSON.stringify({expectedVersion:(await boardState()).snapshot_version})});assert.equal(reopened.status,200,await reopened.clone().text());
 
   } finally {
     await harness.close();

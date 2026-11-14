@@ -53,7 +53,7 @@ test('Image integrity: actual workerd validates complete containers and private 
     await harness.listen();
     const worker = harness.getWorker('flowboard-image-integrity-test');
     let address = 1;
-    const emptyGallery = await worker.fetch('http://localhost/api/v1/cards/card/images', {
+    const emptyGallery = await worker.fetch('https://localhost/api/v1/cards/card/images', {
       headers: {
         cookie: `flowboard_session=${f.actors.owner!.session.id}`
       }
@@ -83,11 +83,11 @@ test('Image integrity: actual workerd validates complete containers and private 
     for (const row of cases) {
       const headers = {
         cookie: `flowboard_session=${f.actors.owner!.session.id}`,
-        origin: 'http://localhost',
+        origin: 'https://localhost',
         'content-type': 'application/json',
         'cf-connecting-ip': `192.0.2.${address++}`
       };
-      const stage = await worker.fetch('http://localhost/api/v1/cards/card/image-uploads', {
+      const stage = await worker.fetch('https://localhost/api/v1/cards/card/image-uploads', {
         method: 'POST',
         headers: {
           ...headers,
@@ -102,7 +102,7 @@ test('Image integrity: actual workerd validates complete containers and private 
       });
       assert.equal(stage.status, 201, row.name + ': ' + (await stage.clone().text()));
       const id = ((await stage.json()) as any).data.id;
-      const upload = await worker.fetch('http://localhost/api/v1/image-uploads/' + id + '/content', {
+      const upload = await worker.fetch('https://localhost/api/v1/image-uploads/' + id + '/content', {
         method: 'PUT',
         headers: {
           ...headers,
@@ -112,14 +112,14 @@ test('Image integrity: actual workerd validates complete containers and private 
       });
       assert.equal(upload.status, row.valid ? 200 : 422, row.name + ': ' + (await upload.clone().text()));
       if (!row.valid) {
-        const cancel = await worker.fetch('http://localhost/api/v1/image-uploads/' + id, {
+        const cancel = await worker.fetch('https://localhost/api/v1/image-uploads/' + id, {
           method: 'DELETE',
           headers
         });
         assert.equal(cancel.status, 200);
         continue;
       }
-      const finalize = await worker.fetch('http://localhost/api/v1/image-uploads/' + id + '/finalize', {
+      const finalize = await worker.fetch('https://localhost/api/v1/image-uploads/' + id + '/finalize', {
         method: 'POST',
         headers: {
           ...headers,
@@ -129,7 +129,7 @@ test('Image integrity: actual workerd validates complete containers and private 
       assert.equal(finalize.status, 200, row.name + ': ' + (await finalize.clone().text()));
       const image = ((await finalize.json()) as any).data;
       for (const suffix of ['content', 'thumbnail']) {
-        const read = await worker.fetch('http://localhost/api/v1/images/' + image.id + '/' + suffix, {
+        const read = await worker.fetch('https://localhost/api/v1/images/' + image.id + '/' + suffix, {
           headers
         });
         assert.equal(read.status, 200);
@@ -138,7 +138,7 @@ test('Image integrity: actual workerd validates complete containers and private 
         assert.equal(read.headers.get('x-content-type-options'), 'nosniff');
         assert.deepEqual(Buffer.from(await read.arrayBuffer()), row.bytes);
       }
-      const hidden = await worker.fetch('http://localhost/api/v1/images/' + image.id + '/content', {
+      const hidden = await worker.fetch('https://localhost/api/v1/images/' + image.id + '/content', {
         headers: {
           ...headers,
           cookie: `flowboard_session=${f.actors.outsider!.session.id}`
@@ -146,7 +146,7 @@ test('Image integrity: actual workerd validates complete containers and private 
       });
       assert.equal(hidden.status, 404);
     }
-    const gallery = await worker.fetch('http://localhost/api/v1/cards/card/images', {
+    const gallery = await worker.fetch('https://localhost/api/v1/cards/card/images', {
       headers: {
         cookie: `flowboard_session=${f.actors.owner!.session.id}`
       }
@@ -165,12 +165,12 @@ test('Image integrity: actual workerd validates complete containers and private 
     for await (const row of additionalFixtures()) {
       const headers = {
         cookie: `flowboard_session=${f.actors.owner!.session.id}`,
-        origin: 'http://localhost',
+        origin: 'https://localhost',
         'content-type': 'application/json',
         'cf-connecting-ip': `192.0.2.${address++}`
       };
       const started = performance.now();
-      const stage = await worker.fetch('http://localhost/api/v1/cards/card_maximum/image-uploads', {
+      const stage = await worker.fetch('https://localhost/api/v1/cards/card_maximum/image-uploads', {
         method: 'POST',
         headers: {
           ...headers,
@@ -185,7 +185,7 @@ test('Image integrity: actual workerd validates complete containers and private 
       });
       assert.equal(stage.status, 201, row.name + ': ' + (await stage.clone().text()));
       const id = ((await stage.json()) as any).data.id;
-      const put = await worker.fetch('http://localhost/api/v1/image-uploads/' + id + '/content', {
+      const put = await worker.fetch('https://localhost/api/v1/image-uploads/' + id + '/content', {
         method: 'PUT',
         headers,
         body: new Uint8Array(row.bytes).buffer
@@ -193,14 +193,14 @@ test('Image integrity: actual workerd validates complete containers and private 
       if (row.name.includes('cmyk')) {
         assert.equal(put.status, 422, row.name + ': ' + (await put.clone().text()));
         assert.equal(((await put.json()) as any).error.code, 'JPEG_COLOR_MODEL_UNSUPPORTED');
-        assert.equal((await worker.fetch('http://localhost/api/v1/image-uploads/' + id, {
+        assert.equal((await worker.fetch('https://localhost/api/v1/image-uploads/' + id, {
           method: 'DELETE',
           headers
         })).status, 200);
         continue;
       }
       assert.equal(put.status, 200, row.name + ': ' + (await put.clone().text()));
-      const finish = await worker.fetch('http://localhost/api/v1/image-uploads/' + id + '/finalize', {
+      const finish = await worker.fetch('https://localhost/api/v1/image-uploads/' + id + '/finalize', {
         method: 'POST',
         headers: {
           ...headers,
@@ -211,10 +211,10 @@ test('Image integrity: actual workerd validates complete containers and private 
       const image = ((await finish.json()) as any).data;
       assert.equal(image.width, row.width);
       assert.equal(image.height, row.height);
-      const original = await worker.fetch('http://localhost/api/v1/images/' + image.id + '/content', { headers });
+      const original = await worker.fetch('https://localhost/api/v1/images/' + image.id + '/content', { headers });
       assert.equal(original.status,200);
       assert.equal(crypto.createHash('sha256').update(Buffer.from(await original.arrayBuffer())).digest('hex'),crypto.createHash('sha256').update(row.bytes).digest('hex'),row.name + ': stored source bytes must be unchanged');
-      const removed = await worker.fetch('http://localhost/api/v1/images/' + image.id, {
+      const removed = await worker.fetch('https://localhost/api/v1/images/' + image.id, {
         method: 'DELETE',
         headers: {
           ...headers,

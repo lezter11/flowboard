@@ -70,15 +70,15 @@ test('Google ?next= round trip, tampering and fallback', async (t) => {
     for (const payload of hostile) {
       const { state, cookie } = await start('?next=' + encodeURIComponent(payload));
       // Start drops the value, so no next is stored in the cookie.
-      assert.equal(cookie.includes('.'), false, `no next stored for ${payload}`);
+      assert.equal(cookie.split('.')[3], '', `no next stored for ${payload}`);
       const res = await callback(state, cookie, `hostile.${crypto.randomUUID()}@flowboard.example`);
       assert.equal(res.headers.get('location'), '/projects', `fallback for ${payload}`);
     }
   });
 
   await t.test('a forged cookie with a hostile next is revalidated and ignored at the callback', async () => {
-    const { state } = await start('');
-    const forged = `${OAUTH_STATE_COOKIE}=${state}.${encodeCookieNext('//evil.test')}`;
+    const { state, cookie } = await start('');
+    const forged = cookie + encodeCookieNext('//evil.test');
     const res = await callback(state, forged, `forged.${crypto.randomUUID()}@flowboard.example`);
     assert.equal(res.status, 302);
     assert.equal(res.headers.get('location'), '/projects');
@@ -102,7 +102,7 @@ test('Google ?next= round trip, tampering and fallback', async (t) => {
 
   await t.test('a missing next keeps the existing behaviour', async () => {
     const { state, cookie } = await start('');
-    assert.equal(cookie.includes('.'), false);
+    assert.equal(cookie.split('.')[3], '');
     const res = await callback(state, cookie, `plain.${crypto.randomUUID()}@flowboard.example`);
     assert.equal(res.headers.get('location'), '/projects');
   });

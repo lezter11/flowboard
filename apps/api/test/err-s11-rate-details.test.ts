@@ -68,7 +68,7 @@ test('ERR-R1 S11: the edge limiter refusal names the scope and the 60-second hin
     DATABASE_URL: localDatabaseUrl(process.env['DATABASE_URL']),
     FB_RL_WRITES: { limit: async () => ({ success: false }) },
   };
-  const res = await worker.fetch(new Request('http://localhost/api/v1/projects/prj_x/invitations', {
+  const res = await worker.fetch(new Request('https://localhost/api/v1/projects/prj_x/invitations', {
     method: 'POST',
     headers: { origin: ORIGIN, 'content-type': 'application/json', 'cf-connecting-ip': '198.51.100.7' },
     body: '{}',

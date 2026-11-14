@@ -340,17 +340,17 @@ try {
         return response;
       };
       const input = { operationId: crypto.randomUUID(), boardId: ba, column: ca, title: 'Local workerd logical operation' };
-      try { await new FlowboardClient({ apiUrl: 'http://localhost', apiToken: second.token }).createCard(input); }
+      try { await new FlowboardClient({ apiUrl: 'https://localhost', apiToken: second.token }).createCard(input); }
       catch { failed = true; }
-      const replay = await new FlowboardClient({ apiUrl: 'http://localhost', apiToken: second.token }).createCard(input);
+      const replay = await new FlowboardClient({ apiUrl: 'https://localhost', apiToken: second.token }).createCard(input);
       assert.ok(failed);
       assert.equal(replay.replayed, true);
       assert.equal(await cardCount(input.title), 1);
       const activity = await pool.query('SELECT actor_id,safe_changes FROM activity_log WHERE card_id=$1', [replay.id]);
       assert.equal(activity.rows[0].actor_id, owner);
       assert.equal(activity.rows[0].safe_changes.source.credentialId, second.tokenDetails.id);
-      assert.equal((await worker.fetch('http://localhost/api/v1/session', { headers: { authorization: `Bearer ${second.token}` } })).status, 403);
-      assert.equal((await worker.fetch(`http://localhost/api/v1/boards/${ba}`, { headers: { authorization: `Bearer ${second.token}` } })).status, 403);
+      assert.equal((await worker.fetch('https://localhost/api/v1/session', { headers: { authorization: `Bearer ${second.token}` } })).status, 403);
+      assert.equal((await worker.fetch(`https://localhost/api/v1/boards/${ba}`, { headers: { authorization: `Bearer ${second.token}` } })).status, 403);
     } finally {
       globalThis.fetch = originalFetch;
       await harness.close();

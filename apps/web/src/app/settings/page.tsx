@@ -47,6 +47,23 @@ function SettingsScreen() {
   const role = normalizeRole(project?.role);
   const editable = can(role, 'manageBoard') && !project?.isArchived;
   const actor = state.status === 'ready' ? state.session.actor : null;
+  const googleAccount = state.status === 'ready' ? state.session.googleAccountStatus : undefined;
+  const [googleBusy, setGoogleBusy] = useState(false);
+  const [googleError, setGoogleError] = useState(false);
+
+  const linkGoogleAccount = async () => {
+    setGoogleBusy(true);
+    setGoogleError(false);
+    try {
+      const { data } = await api.startGoogleAccountLink();
+      const url = new URL(data.authorizationUrl);
+      if (url.origin !== 'https://accounts.google.com' || url.pathname !== '/o/oauth2/v2/auth') throw new Error();
+      window.location.assign(url.href);
+    } catch {
+      setGoogleError(true);
+      setGoogleBusy(false);
+    }
+  };
 
   const scope=['settings',state.status==='ready'?state.session.actor.id:'',project?.id??''];
   const [name, setName] = useMemoryValue([...scope,'name'],'');
@@ -331,6 +348,16 @@ function SettingsScreen() {
                   </form>
                   <div className="field"><label className="field-label" htmlFor="accountEmailField">Email</label><input className="control" id="accountEmailField" type="email" value={actor?.email ?? ''} disabled readOnly /><p className="field-help">Your email and avatar come from Google and refresh when you sign in.</p></div>
                 </div>
+                {googleAccount === 'unlinked' && (
+                  <div className="stack-xs">
+                    <h3 className="settings-section-title">Link your Google account</h3>
+                    <p className="settings-section-sub">While you’re still signed in to Flowboard, confirm the Google account with the email shown above so you can use it to sign in again.</p>
+                    <button className="btn" type="button" onClick={() => void linkGoogleAccount()} disabled={googleBusy}>{googleBusy ? 'Opening Google…' : 'Link Google account'}</button>
+                  </div>
+                )}
+                {googleAccount === 'email_conflict' && <p className="note warn" role="status">Your Google email is already in use on another Flowboard account. Contact Flowboard support to update your email and accept invitations.</p>}
+                {googleAccount === 'linked' && params.get('google') === 'linked' && <p role="status">Your Google account is linked.</p>}
+                {(googleError || params.get('google') === 'failed') && <p className="field-error" role="alert">Google linking did not finish. Use the Google account with the email shown above or contact Flowboard support.</p>}
                 <div className="divider" />
                 <div className="stack-sm">
                   <h3 className="settings-section-title">Project access</h3>

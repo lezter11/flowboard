@@ -9,10 +9,10 @@
 // Redirects are Cache-Control: no-store. The client gate in components/shell/session-gate.tsx
 // covers in-app navigation, where no page request reaches this file.
 
-import { APP_ROUTES, signinPathFor } from '../src/lib/return-path';
-import { chooseLanding } from '../src/lib/landing-rule';
-import { connectReturnPath } from '../src/lib/hosted-mcp-state';
-import { OAUTH_METADATA_PATHS } from '../src/lib/pages-api-proxy';
+import { APP_ROUTES, signinPathFor } from '../src/lib/return-path.ts';
+import { chooseLanding } from '../src/lib/landing-rule.ts';
+import { connectReturnPath } from '../src/lib/hosted-mcp-state.ts';
+import { OAUTH_METADATA_PATHS } from '../src/lib/pages-api-proxy.ts';
 
 interface ApiFetcher {
   fetch(request: Request): Promise<Response>;
@@ -23,11 +23,19 @@ interface Env {
   API_ORIGIN?: string;
 }
 
+interface RequestContext {
+  request: Request;
+  env: Env;
+  next: () => Promise<Response>;
+}
+
 /** The API accepts both names (apps/api/src/http/middleware/auth.ts). */
 const SESSION_COOKIES = ['flowboard_session=', 'session='];
 
 /** Legacy path-style links; the functions in projects/[id].ts and boards/[id].ts redirect them. */
 const LEGACY = /^\/(projects|boards)\/[^/]+$/;
+const HEALTH_PATHS = new Set(['/health/live', '/health/ready']);
+
 /** Pages that handle a signed-out visitor themselves (an invitation link must keep its token). */
 const SELF_GUARDED = new Set(['/invitation', '/invitations/accept', '/connect']);
 
@@ -72,9 +80,27 @@ async function landingPath(env: Env, request: Request, cookie: string, projects:
   return `/project?id=${encodeURIComponent(projectId)}`;
 }
 
-export const onRequest = async (context: { request: Request; env: Env; next: () => Promise<Response> }): Promise<Response> => {
+async function routeRequest(context: RequestContext): Promise<Response> {
   const { request, env } = context;
   const url = new URL(request.url);
+
+  // Health is public and reaches the Worker via the service binding without browser credentials.
+  if (HEALTH_PATHS.has(url.pathname)) {
+    const headers = { 'Cache-Control': 'no-store' };
+    if (request.method !== 'GET' && request.method !== 'HEAD') {
+      return new Response(null, { status: 405, headers: { ...headers, Allow: 'GET, HEAD' } });
+    }
+    if (!env.API) return new Response(null, { status: 503, headers });
+    url.search = '';
+    try {
+      const response = await env.API.fetch(new Request(url, { method: request.method, redirect: 'manual' }));
+      const forwarded = new Response(response.body, response);
+      forwarded.headers.set('Cache-Control', 'no-store');
+      return forwarded;
+    } catch {
+      return new Response(null, { status: 503, headers });
+    }
+  }
 
   // Cheap exits first: nothing below may cost an API call for assets or API traffic.
   if (request.method !== 'GET' && request.method !== 'HEAD') return context.next();
@@ -117,4 +143,14 @@ export const onRequest = async (context: { request: Request; env: Env; next: () 
     if (consentNext) return redirect(consentNext);
   }
   return redirect(await landingPath(env, request, cookie, projects, lastLoc));
-};
+}
+
+export async function onRequest(context: RequestContext): Promise<Response> {
+  const response = await routeRequest(context);
+  if (new URL(context.request.url).protocol !== 'https:' ||
+      response.headers.get('Strict-Transport-Security') === 'max-age=31536000') return response;
+  // Pages' static _headers file does not apply to responses from Functions.
+  const secured = new Response(response.body, response);
+  secured.headers.set('Strict-Transport-Security', 'max-age=31536000');
+  return secured;
+}

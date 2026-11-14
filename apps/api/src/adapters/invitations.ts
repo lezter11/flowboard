@@ -127,7 +127,7 @@ export async function createInvitation(
 
   // 3. Fencing: Ensure recipient email is not workspace owner or an active project member
   const ownerUserRes = await client.query<{ id: string }>(
-    `SELECT id FROM users WHERE id = $1 AND LOWER(email) = LOWER($2)`,
+    `SELECT id FROM users WHERE id = $1 AND NOT google_email_conflict AND LOWER(BTRIM(email)) = $2`,
     [project.owner_id, normalizedEmail],
   );
   if (ownerUserRes.rows.length > 0) {
@@ -141,7 +141,8 @@ export async function createInvitation(
     `SELECT pm.id
      FROM project_memberships pm
      JOIN users u ON pm.user_id = u.id
-     WHERE pm.project_id = $1 AND LOWER(u.email) = LOWER($2) AND pm.status = 'active'`,
+     WHERE pm.project_id = $1 AND NOT u.google_email_conflict
+       AND LOWER(BTRIM(u.email)) = $2 AND pm.status = 'active'`,
     [projectId, normalizedEmail],
   );
 
@@ -285,7 +286,7 @@ export async function createInvitation(
  */
 export async function acceptInvitation(
   client: pg.ClientBase,
-  actor: { id: string; email?: string },
+  actor: { id: string },
   rawToken: string,
   limits: Limits = { ...DEFAULT_LIMITS },
 ): Promise<AcceptInvitationResult> {
@@ -338,16 +339,14 @@ export async function acceptInvitation(
     throw HttpError.badRequest('Invitation has expired.', 'INVITATION_EXPIRED');
   }
 
-  // 4. Email verification
-  let actorEmail = actor.email;
-  if (!actorEmail) {
-    const userRes = await client.query<{ email: string }>('SELECT email FROM users WHERE id = $1', [
-      actor.id,
-    ]);
-    actorEmail = userRes.rows[0]?.email;
-  }
-
-  if (!actorEmail || invitation.email.toLowerCase() !== actorEmail.toLowerCase()) {
+  // Re-read while holding a row lock. Google sign-in can change the contact address
+  // after authentication middleware, and a known address collision disables invites.
+  const recipient = (await client.query<{ email: string; google_email_conflict: boolean }>(
+    'SELECT email, google_email_conflict FROM users WHERE id = $1 FOR SHARE',
+    [actor.id],
+  )).rows[0];
+  if (!recipient || recipient.google_email_conflict ||
+      invitation.email.toLowerCase() !== recipient.email.trim().toLowerCase()) {
     throw HttpError.forbidden(
       'Authenticated email does not match invitation recipient.',
       'EMAIL_MISMATCH',
@@ -1022,9 +1021,9 @@ export async function leaveProject(
     safeChanges: { userId: actor.id, role: membership.role },
   });
 
-  // 3b. Look up user's email and atomically revoke pending invitations for that email in this project
+  // 3b. Lock the current usable email so a concurrent Google refresh cannot change recipient authority.
   const userRes = await client.query<{ email: string }>(
-    'SELECT email FROM users WHERE id = $1',
+    'SELECT BTRIM(email) AS email FROM users WHERE id = $1 AND NOT google_email_conflict FOR SHARE',
     [actor.id],
   );
   const actorEmail = userRes.rows[0]?.email;
