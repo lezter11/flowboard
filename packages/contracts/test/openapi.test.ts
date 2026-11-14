@@ -106,12 +106,14 @@ test('retired paths, session/PAT variants, empty logout and binary reports are e
 
 test('generated card document link responses are limited to session detail and fresh PATCH', () => {
   const paths = generated.paths;
-  const schemas = generated.components.schemas;
-  assert.equal(Object.hasOwn(schemas.CardResponse!.properties!.data.properties, 'documentLinks'), false);
-  assert.equal(Object.hasOwn(schemas.CardResponseWithReplayFlag!.properties!.data.properties, 'documentLinks'), false);
-  assert.equal(Object.hasOwn(schemas.PatCardDetailResponse!.properties!.data.properties, 'documentLinks'), false);
-  assert.equal(Object.hasOwn(schemas.CardDetailResponse!.properties!.data.properties, 'documentLinks'), true);
-  assert.equal(Object.hasOwn(schemas.CardPatchResponse!.properties!.data.properties, 'documentLinks'), true);
+  const dataEnvelope = z.object({ properties: z.object({ data: z.object({ properties: z.record(z.string(), z.unknown()) }) }) });
+  for (const [name, hasLinks] of [
+    ['CardResponse', false], ['CardResponseWithReplayFlag', false], ['PatCardDetailResponse', false],
+    ['CardDetailResponse', true], ['CardPatchResponse', true],
+  ] as const) {
+    const { properties } = dataEnvelope.parse(generated.components.schemas[name]);
+    assert.equal(Object.hasOwn(properties.data.properties, 'documentLinks'), hasLinks, name);
+  }
   assert.deepEqual((paths['/api/v1/cards/{cardId}']!.get as any)['x-auth-response-variants'], {
     session: 'CardDetailResponse', personalAccessToken: 'PatCardDetailResponse',
   });
