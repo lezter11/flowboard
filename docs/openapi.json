@@ -3012,8 +3012,8 @@
     "/api/v1/cards/{cardId}": {
       "get": {
         "operationId": "get_api_v1_cards_cardId",
-        "summary": "Read card detail and public referenced people under current project/board access",
-        "description": "Read card detail and public referenced people under current project/board access",
+        "summary": "Read card detail and public referenced people under current project/board access; Drive document links require a browser session",
+        "description": "Read card detail and public referenced people under current project/board access; Drive document links require a browser session",
         "security": [
           {
             "sessionCookie": []
@@ -3035,7 +3035,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Read card detail and public referenced people under current project/board access",
+            "description": "Read card detail and public referenced people under current project/board access; Drive document links require a browser session",
             "headers": {
               "X-Request-Id": {
                 "schema": {
@@ -3047,7 +3047,14 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/CardDetailResponse"
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/CardDetailResponse"
+                    },
+                    {
+                      "$ref": "#/components/schemas/PatCardDetailResponse"
+                    }
+                  ]
                 }
               }
             }
@@ -3088,12 +3095,16 @@
         "x-runtime-source": "apps/api/src/http/routes/cards.ts",
         "x-lifecycle": "active",
         "x-required-token-scope": "cards:read",
-        "x-token-project-binding": "A project-limited PAT cannot read/write another project; current project/board grants remain mandatory."
+        "x-token-project-binding": "A project-limited PAT cannot read/write another project; current project/board grants remain mandatory.",
+        "x-auth-response-variants": {
+          "session": "CardDetailResponse",
+          "personalAccessToken": "PatCardDetailResponse"
+        }
       },
       "patch": {
         "operationId": "patch_api_v1_cards_cardId",
-        "summary": "Save card fields with expectedVersion",
-        "description": "Save card fields with expectedVersion",
+        "summary": "Save card fields with expectedVersion, optionally replacing the Google Drive document link list",
+        "description": "Save card fields with expectedVersion, optionally replacing the Google Drive document link list",
         "security": [
           {
             "sessionCookie": []
@@ -3121,7 +3132,7 @@
         ],
         "responses": {
           "200": {
-            "description": "Save card fields with expectedVersion",
+            "description": "Save card fields with expectedVersion, optionally replacing the Google Drive document link list",
             "headers": {
               "X-Request-Id": {
                 "schema": {
@@ -3135,7 +3146,7 @@
                 "schema": {
                   "anyOf": [
                     {
-                      "$ref": "#/components/schemas/CardResponseWithReplayFlag"
+                      "$ref": "#/components/schemas/CardPatchResponseWithReplayFlag"
                     },
                     {
                       "$ref": "#/components/schemas/MinimalReplayResponse"
@@ -14387,6 +14398,29 @@
             "type": "string",
             "maxLength": 20000
           },
+          "documentLinks": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "url": {
+                  "type": "string",
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "title",
+                "url"
+              ],
+              "additionalProperties": false
+            }
+          },
           "priority": {
             "type": "string",
             "enum": [
@@ -14625,6 +14659,29 @@
               "description": {
                 "type": "string",
                 "maxLength": 20000
+              },
+              "documentLinks": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "url": {
+                      "type": "string",
+                      "maxLength": 2000
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
               },
               "priority": {
                 "type": "string",
@@ -14874,6 +14931,53 @@
         ],
         "additionalProperties": false,
         "x-zod-source": "apps/api/src/http/routes/cards.ts:GET cards/:cardId",
+        "description": "The optional documentLinks field is only returned to authorized browser sessions. Personal access tokens and other machine credentials never receive it.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "CardDocumentLink": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "url": {
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "required": [
+          "title",
+          "url"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:cardDocumentLinkSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "CardDocumentLinks": {
+        "maxItems": 10,
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 100
+            },
+            "url": {
+              "type": "string",
+              "maxLength": 2000
+            }
+          },
+          "required": [
+            "title",
+            "url"
+          ],
+          "additionalProperties": false
+        },
+        "x-zod-source": "packages/contracts/src/index.ts:cardDocumentLinksSchema",
         "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
       },
       "CardDueFilter": {
@@ -15006,6 +15110,509 @@
         ],
         "additionalProperties": false,
         "x-zod-source": "packages/contracts/src/index.ts:cardListResponseSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "CardPatchResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "createdBy": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "avatarUrl": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "activeInProject": {
+                        "type": "boolean"
+                      },
+                      "scopedRole": {
+                        "type": "string",
+                        "enum": [
+                          "owner",
+                          "manager",
+                          "member",
+                          "viewer"
+                        ]
+                      },
+                      "assignable": {
+                        "type": "boolean"
+                      },
+                      "mentionable": {
+                        "type": "boolean"
+                      },
+                      "nameSuffix": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 2,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "displayName",
+                      "avatarUrl",
+                      "activeInProject"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "workspaceId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "projectId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "boardId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "columnId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 20000
+              },
+              "documentLinks": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "url": {
+                      "type": "string",
+                      "maxLength": 2000
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "priority": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "low",
+                  "medium",
+                  "high",
+                  "urgent"
+                ]
+              },
+              "dueDate": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "assigneeIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "position": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "trashed",
+                  "purged"
+                ]
+              },
+              "deletedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "deletedBy": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "restoreUntil": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "commentCount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "imageCount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "workspaceId",
+              "projectId",
+              "boardId",
+              "columnId",
+              "title",
+              "description",
+              "priority",
+              "dueDate",
+              "assigneeIds",
+              "position",
+              "version",
+              "state",
+              "deletedAt",
+              "deletedBy",
+              "restoreUntil",
+              "commentCount",
+              "imageCount",
+              "createdAt",
+              "updatedAt"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "apps/api/src/http/routes/cards.ts:PATCH cards/:cardId",
+        "description": "A fresh authorized browser save includes the link list. A replay returns only safe identifiers and versions in MinimalReplayResponse.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "CardPatchResponseWithReplayFlag": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "createdBy": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "avatarUrl": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "activeInProject": {
+                        "type": "boolean"
+                      },
+                      "scopedRole": {
+                        "type": "string",
+                        "enum": [
+                          "owner",
+                          "manager",
+                          "member",
+                          "viewer"
+                        ]
+                      },
+                      "assignable": {
+                        "type": "boolean"
+                      },
+                      "mentionable": {
+                        "type": "boolean"
+                      },
+                      "nameSuffix": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 2,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "displayName",
+                      "avatarUrl",
+                      "activeInProject"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "workspaceId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "projectId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "boardId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "columnId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 20000
+              },
+              "documentLinks": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "title": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "url": {
+                      "type": "string",
+                      "maxLength": 2000
+                    }
+                  },
+                  "required": [
+                    "title",
+                    "url"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "priority": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "low",
+                  "medium",
+                  "high",
+                  "urgent"
+                ]
+              },
+              "dueDate": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "assigneeIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "position": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "trashed",
+                  "purged"
+                ]
+              },
+              "deletedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "deletedBy": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "restoreUntil": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "commentCount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "imageCount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "workspaceId",
+              "projectId",
+              "boardId",
+              "columnId",
+              "title",
+              "description",
+              "priority",
+              "dueDate",
+              "assigneeIds",
+              "position",
+              "version",
+              "state",
+              "deletedAt",
+              "deletedBy",
+              "restoreUntil",
+              "commentCount",
+              "imageCount",
+              "createdAt",
+              "updatedAt"
+            ],
+            "additionalProperties": false
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "apps/api/src/http/routes/cards.ts:PATCH cards/:cardId; apps/api/src/http/routes/*:optional replayed envelope flag",
+        "description": "A fresh authorized browser save includes the link list. A replay returns only safe identifiers and versions in MinimalReplayResponse.",
         "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
       },
       "CardResponse": {
@@ -15231,7 +15838,8 @@
           "data"
         ],
         "additionalProperties": false,
-        "x-zod-source": "packages/contracts/src/index.ts:cardResponseSchema",
+        "x-zod-source": "apps/api/src/http/routes/cards.ts; routes/trash.ts",
+        "description": "Create, move, undo, trash and restore do not return Drive document links.",
         "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
       },
       "CardResponseWithReplayFlag": {
@@ -15460,7 +16068,8 @@
           "data"
         ],
         "additionalProperties": false,
-        "x-zod-source": "packages/contracts/src/index.ts:cardResponseSchema; apps/api/src/http/routes/*:optional replayed envelope flag",
+        "x-zod-source": "apps/api/src/http/routes/cards.ts; routes/trash.ts; apps/api/src/http/routes/*:optional replayed envelope flag",
+        "description": "Create, move, undo, trash and restore do not return Drive document links.",
         "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
       },
       "CardSearchResponse": {
@@ -24319,6 +24928,365 @@
         "description": "Bearer board discovery excludes descriptions, columns, cards and counts.",
         "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
       },
+      "PatCardDetailResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "createdBy": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "displayName": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "avatarUrl": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "uri"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "activeInProject": {
+                        "type": "boolean"
+                      },
+                      "scopedRole": {
+                        "type": "string",
+                        "enum": [
+                          "owner",
+                          "manager",
+                          "member",
+                          "viewer"
+                        ]
+                      },
+                      "assignable": {
+                        "type": "boolean"
+                      },
+                      "mentionable": {
+                        "type": "boolean"
+                      },
+                      "nameSuffix": {
+                        "anyOf": [
+                          {
+                            "type": "integer",
+                            "minimum": 2,
+                            "maximum": 9007199254740991
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "displayName",
+                      "avatarUrl",
+                      "activeInProject"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "workspaceId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "projectId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "boardId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "columnId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "title": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200
+              },
+              "description": {
+                "type": "string",
+                "maxLength": 20000
+              },
+              "priority": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "low",
+                  "medium",
+                  "high",
+                  "urgent"
+                ]
+              },
+              "dueDate": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "assigneeIds": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 1
+                }
+              },
+              "position": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "version": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "active",
+                  "trashed",
+                  "purged"
+                ]
+              },
+              "deletedAt": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "deletedBy": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "restoreUntil": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "commentCount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "imageCount": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "updatedAt": {
+                "type": "string"
+              },
+              "people": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "displayName": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 100
+                    },
+                    "avatarUrl": {
+                      "anyOf": [
+                        {
+                          "type": "string",
+                          "format": "uri"
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    },
+                    "activeInProject": {
+                      "type": "boolean"
+                    },
+                    "scopedRole": {
+                      "type": "string",
+                      "enum": [
+                        "owner",
+                        "manager",
+                        "member",
+                        "viewer"
+                      ]
+                    },
+                    "assignable": {
+                      "type": "boolean"
+                    },
+                    "mentionable": {
+                      "type": "boolean"
+                    },
+                    "nameSuffix": {
+                      "anyOf": [
+                        {
+                          "type": "integer",
+                          "minimum": 2,
+                          "maximum": 9007199254740991
+                        },
+                        {
+                          "type": "null"
+                        }
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "displayName",
+                    "avatarUrl",
+                    "activeInProject"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "id",
+              "workspaceId",
+              "projectId",
+              "boardId",
+              "columnId",
+              "title",
+              "description",
+              "priority",
+              "dueDate",
+              "assigneeIds",
+              "position",
+              "version",
+              "state",
+              "deletedAt",
+              "deletedBy",
+              "restoreUntil",
+              "commentCount",
+              "imageCount",
+              "createdAt",
+              "updatedAt",
+              "people"
+            ],
+            "additionalProperties": false
+          },
+          "people": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "displayName": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "avatarUrl": {
+                  "anyOf": [
+                    {
+                      "type": "string",
+                      "format": "uri"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "activeInProject": {
+                  "type": "boolean"
+                },
+                "scopedRole": {
+                  "type": "string",
+                  "enum": [
+                    "owner",
+                    "manager",
+                    "member",
+                    "viewer"
+                  ]
+                },
+                "assignable": {
+                  "type": "boolean"
+                },
+                "mentionable": {
+                  "type": "boolean"
+                },
+                "nameSuffix": {
+                  "anyOf": [
+                    {
+                      "type": "integer",
+                      "minimum": 2,
+                      "maximum": 9007199254740991
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "displayName",
+                "avatarUrl",
+                "activeInProject"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "data",
+          "people"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "apps/api/src/http/routes/cards.ts:GET cards/:cardId PAT projection",
+        "description": "Machine responses omit Drive document links.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
       "PersonDisplay": {
         "type": "object",
         "properties": {
@@ -28662,6 +29630,29 @@
               }
             ]
           },
+          "documentLinks": {
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 100
+                },
+                "url": {
+                  "type": "string",
+                  "maxLength": 2000
+                }
+              },
+              "required": [
+                "title",
+                "url"
+              ],
+              "additionalProperties": false
+            }
+          },
           "priority": {
             "type": "string",
             "enum": [
@@ -28702,6 +29693,7 @@
         ],
         "additionalProperties": false,
         "x-zod-source": "packages/contracts/src/index.ts:updateCardInputSchema",
+        "description": "Optional documentLinks replaces the ordered list of up to 10 unique HTTPS Drive, Docs or Sheets sharing links. Omit to preserve the list or send [] to clear it. Runtime validation checks hosts, sharing paths and supported parameters.",
         "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
       },
       "UpdateColumnInput": {

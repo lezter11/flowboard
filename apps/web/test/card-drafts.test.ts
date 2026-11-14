@@ -32,3 +32,33 @@ test('known create receipt survives failed detail read and cannot be mistaken fo
 test('unknown undo command and original versions survive view remount without crossing actors',async()=>{
   const {createUndoSessions}=await import('../src/lib/move-undo-state.ts');const {createRetainedCommand}=await import('../src/lib/retained-command.ts');const sessions=createUndoSessions();const current=sessions.forBoards('actor',['board']);const command=createRetainedCommand<{expectedVersion:number;expectedBoardVersion:number}>(()=>'undo-original');const input={expectedVersion:3,expectedBoardVersion:8};await assert.rejects(command.run(input,async()=>{throw new TypeError('lost undo');}));current.set({cardId:'card',boardId:'board',input,command});let sent:unknown;await sessions.forBoards('actor',['board']).get()!.command.run({expectedVersion:99,expectedBoardVersion:99},async(body,key)=>{sent={body,key};});assert.deepEqual(sent,{body:input,key:'undo-original'});assert.equal(sessions.forBoards('other',['board']).get(),null);
 });
+
+test('document links are optional on existing saves and an explicit empty list removes them', () => {
+  const links = [{ title: 'Schedule', url: 'https://docs.google.com/spreadsheets/d/schedule/edit' }];
+  const session = createCardDraftSessions().forCard('actor', { ...card, documentLinks: links });
+  assert.equal('documentLinks' in cardFieldsInput(session.get().draft, 2), false);
+  session.edit({ documentLinks: [] });
+  assert.equal(cardFieldsDirty(session.get().draft, session.get().base), true);
+  const payload = cardFieldsInput(session.get().draft, 2, undefined, session.get().base);
+  assert.deepEqual(payload.documentLinks, []);
+  session.intent({ fieldInput: payload });
+  session.fieldsSaved(3);
+  assert.deepEqual(session.get().base.documentLinks, []);
+  assert.equal(cardFieldsDirty(session.get().draft, session.get().base), false);
+});
+
+test('document link drafts follow polling and retain concurrent edits for conflict review', () => {
+  const original = [{ title: 'Checklist', url: 'https://docs.google.com/document/d/checklist/edit' }];
+  const fromServer = [{ title: 'Teammate', url: 'https://drive.google.com/file/d/teammate/view' }];
+  const local = [{ title: 'My checklist', url: original[0]!.url }];
+  const session = createCardDraftSessions().forCard('actor', card);
+  session.observe({ ...card, documentLinks: original, version: 3 });
+  assert.deepEqual(session.get().draft.documentLinks, original);
+  session.edit({ documentLinks: local });
+  session.observe({ ...card, documentLinks: fromServer, version: 4 });
+  assert.equal(session.get().conflict, true);
+  assert.deepEqual(session.get().draft.documentLinks, local);
+  assert.deepEqual(session.get().base.documentLinks, fromServer);
+  session.discard();
+  assert.deepEqual(session.get().draft.documentLinks, fromServer);
+});

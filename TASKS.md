@@ -1,5 +1,10 @@
 # Flowboard ordered tasks
 
+## Card document links, November 14
+
+1. Verify the Documents link editor and its authorization, version checks and Google-only URLs. [Acceptance criteria](docs/reviews/CARD-DRIVE-LINKS-20261114/CRITERIA.md).
+2. Accept the reviewed links build in UAT before any production rollout. Native file uploads are deferred. [Archived source](https://github.com/lezter11/flowboard/tree/codex/deferred-document-uploads).
+
 2026-11-06 **PRODUCTION LIVE / BANNER CLEARED**: exact applicationD6 (d6e36744da584579dbd99203eb4607dafe60e22b), CI42173052691 all22pass, finalWorkercc432/9BC andPagesd050/D6/APIprod verified. Requestedbanneractive duringverification andsame-pageoffclearPASS;15minuteobserved15ok/2scheduled/0CPU/0exceptions/oneknownidlePGlabel unresolved(strictneeds-inspectionkept). Exactapprovedoldbackupdeleted+freshbr-misty-band snapshotready, ledger27readonlypre/post/no migrations.98Backend/74UI/98localIntegration review8.945current; productionOwnerGoogle/Claudetestdeferred. GitHubmetadata-onlypromotion is finaloperatorstep. [Release summary](docs/reviews/PROD-MCP-20261106/SUMMARY.md). Earlierstateshistorical.
 
 Current2026-11-06 authorized work: finish rolloutbanner, freshUIreview/relevantlocalchecks/onefinalCI, verifyUAT, executeONLYnewlyapprovedexactOct29backupdeletion+freshproductionbackup, deployproductionwithbanner, monitor/clearflag. OwnerUATreport recorded; actualproductionacceptance remainsdeferred. [Current checklist](docs/reviews/PROD-MCP-20261106/CHECKLIST.md). Earlier pending-permission states below are historical; do not ask exactapproval again.

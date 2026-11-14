@@ -79,8 +79,7 @@ export function CardComments({ cardId, projectId, boardId, people, role, onChang
     <>
       <div className="comment-list" aria-busy={feed.isFetching}>
         {feed.isPending && <p className="comment-empty" role="status">Loading comments…</p>}
-        {feed.isError && <ErrorNote text={staleCursor ? 'The comment list changed. Reload this list; your drafts are kept.' : undefined} error={feed.error} onRetry={() => { if (feed.isFetchNextPageError && !staleCursor) void feed.fetchNextPage(); else if (!staleCursor) void feed.refetch(); }} />}
-        {staleCursor && <p className="hint">The list changed. Your draft is kept. <button className="btn sm" type="button" onClick={reload}>Reload comments</button></p>}
+        {staleCursor ? <ErrorNote text="The comment list changed. Your drafts are kept."><button className="btn sm" type="button" onClick={reload}>Reload comments</button></ErrorNote> : feed.isError && <ErrorNote error={feed.error} onRetry={() => void (feed.isFetchNextPageError ? feed.fetchNextPage() : feed.refetch())} />}
         {feed.isSuccess && !comments.length && <p className="comment-empty">No comments yet.{writable ? ' Start the discussion below.' : ''}</p>}
         {comments.map((comment) => {
           const author = formatPersonName(comment.author ?? people.get(comment.authorId), 'Former member');
@@ -97,8 +96,8 @@ export function CardComments({ cardId, projectId, boardId, people, role, onChang
             </div>
           </article>;
         })}
-        {!unavailable && feed.data && <p className="hint" role="status">{comments.length} comment {comments.length === 1 ? 'entry' : 'entries'} loaded{feed.hasNextPage ? ' · More comments available' : ' · All entries loaded'}.</p>}
-        {!unavailable && feed.hasNextPage && <button className="btn sm" type="button" disabled={feed.isFetching || staleCursor} onClick={() => void feed.fetchNextPage()}>{feed.isFetchingNextPage ? 'Loading comments…' : 'Load more comments'}</button>}
+        {!unavailable && comments.length > 0 && <p className="hint" role="status">{comments.length} comment {comments.length === 1 ? 'entry' : 'entries'} loaded{feed.hasNextPage ? ' · More comments available' : ' · All entries loaded'}.</p>}
+        {!unavailable && !staleCursor && feed.hasNextPage && <button className="btn sm" type="button" disabled={feed.isFetching} onClick={() => void feed.fetchNextPage()}>{feed.isFetchingNextPage ? 'Loading comments…' : 'Load more comments'}</button>}
       </div>
 
       {!drafts.edit && session.edit.unresolved() && <section aria-label="Pending comment edit">

@@ -1,5 +1,9 @@
 # Flowboard design direction
 
+## Card document links, November 14
+
+Place Documents below Images and above Comments. Show named rows with the Google file type, an external-link icon and an editor-only remove control. Add link opens a short name-and-URL form. Use the existing card Save changes control to persist changes.
+
 ## Deployment notice — 2026-11-06
 
 Use fixed copy **Update in progress** / **We’re updating Flowboard. You can keep this page open.** A global in-flow sticky notice uses existing surface, ink and line tokens, wraps at narrow widths and exposes a polite status region without stealing focus. Its measured height offsets the sticky header, navigation rail and card drawer so Close and Save remain reachable; dialogs keep their existing foreground order. It covers sign-in, consent and name entry as well as the main shell. Never force refresh, erase a draft, disable controls or present this notice as an authorization/maintenance barrier. Default is inactive; current release-stage status controls visibility. [Acceptance and evidence](docs/reviews/PROD-MCP-20261106/CHECKLIST.md) distinguish synthetic presentation from live provider behavior.

@@ -162,7 +162,8 @@ cardsRoutes.get('/api/v1/cards/:cardId', authMiddleware, async (c) => {
 
   const cardId = c.req.param('cardId');
   const pool = getPool();
-  const result = await getCard(pool, cardId, actor.id);
+  // Drive resource keys are available to board members through a browser session.
+  const result = await getCard(pool, cardId, actor.id, c.get('authType') === 'session');
 
   return c.json(
     {
@@ -176,7 +177,7 @@ cardsRoutes.get('/api/v1/cards/:cardId', authMiddleware, async (c) => {
   );
 });
 
-// 3. PATCH /api/v1/cards/:cardId: Update title, description, priority, due date, assignees (CRD-04, CRD-05, CRD-06, CRD-10, CRD-11)
+// 3. PATCH /api/v1/cards/:cardId: Update card fields, including Drive document links (CRD-04, CRD-05, CRD-06, CRD-10, CRD-11)
 cardsRoutes.patch('/api/v1/cards/:cardId', authMiddleware, async (c) => {
   const actor = c.get('actor');
   if (!actor) {

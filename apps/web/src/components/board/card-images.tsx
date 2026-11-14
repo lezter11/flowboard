@@ -104,7 +104,7 @@ function Lightbox({ images, index, onIndex, onClose }: { images: FinalizedImage[
           {!url && <p role="status">{error ? 'This image could not be loaded.' : loading ? 'Loading…' : ''}</p>}
           {images.length > 1 && <button className="lightbox-nav next" type="button" onClick={() => go(1)} aria-label="Next image"><Icon name="arrow-right" /></button>}
         </div>
-        <div className="lightbox-foot">{url && <a className="btn sm" href={url} download={image.filename}><Icon name="download" />Download</a>}<span className="hint"><Icon name="lock" />Private to this project. Use the arrow keys to move between images.</span></div>
+        <div className="lightbox-foot">{url && <a className="btn sm" href={url} download={image.filename}><Icon name="download" />Download</a>}<span className="hint"><Icon name="lock" />Private to this project.{images.length > 1 && ' Use the arrow keys to move between images.'}</span></div>
       </div>
     </DialogLayer>
   );
@@ -180,6 +180,7 @@ export function CardImages({ cardId, role, count }: { cardId: string; role: Role
   };
 
   const shownCount = list.isSuccess ? images.length : count;
+  if (list.isSuccess && !canUpload && images.length === 0 && uploads.length === 0) return null;
   return (
     <section className="detail-section" aria-labelledby="imagesHeading">
       <div className="section-head"><h2 id="imagesHeading">Images</h2><span className="count" aria-label={`${shownCount} of ${MAX_IMAGES} images`}>{shownCount} / {MAX_IMAGES}</span></div>
@@ -209,9 +210,6 @@ export function CardImages({ cardId, role, count }: { cardId: string; role: Role
 
       {list.isPending && <p className="hint" role="status">Loading images…</p>}
       {list.isError && <p className="hint" role="alert"><Icon name="alert" />{unavailable ? 'Image uploads are not available right now.' : describeError(list.error)} {!unavailable && <button className="btn sm" type="button" onClick={() => void list.refetch()}>Try again</button>}</p>}
-      {list.isSuccess && images.length === 0 && uploads.length === 0 && (
-        <div className="image-empty"><Icon name="image" /><strong>No images yet</strong><span>{canUpload ? 'Add screenshots or photos for this card. They stay private to the project.' : 'Nothing has been attached to this card.'}</span></div>
-      )}
       {images.length > 0 && (
         <ul className="image-grid" aria-label="Card images">
           {images.map((image, i) => (
@@ -224,7 +222,7 @@ export function CardImages({ cardId, role, count }: { cardId: string; role: Role
       <DialogLayer open={!!removing} onClose={() => { if (!removeBusy) setRemoving(null); }} labelledBy="removeImageTitle" describedBy="removeImageCopy" role="alertdialog">
         <div className="dialog-head"><div className="dialog-head-copy"><h2 id="removeImageTitle">Remove this image?</h2></div></div>
         <div className="dialog-body">
-          <p id="removeImageCopy" className="confirm-copy">“{removing ? labelOf(removing.filename) : ''}” is deleted from this card and from storage. This cannot be undone.</p>
+          <p id="removeImageCopy" className="confirm-copy">“{removing ? labelOf(removing.filename) : ''}” will be removed from this card. This cannot be undone.</p>
           {removeError && <p className="form-error" role="alert">{removeError}</p>}
         </div>
         <footer className="dialog-foot"><span className="spacer" /><button className="btn" type="button" data-autofocus onClick={() => setRemoving(null)} disabled={removeBusy}>Keep image</button><button className="btn danger" type="button" onClick={() => void confirmRemove()} disabled={removeBusy}>{removeBusy ? 'Removing…' : 'Remove image'}</button></footer>

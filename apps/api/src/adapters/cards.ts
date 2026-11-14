@@ -4,6 +4,7 @@ import crypto from 'node:crypto';
 import type pg from 'pg';
 import {
   type Card,
+  type CardDocumentLink,
   type CardSummary,
   type CreateCardInput,
   type UpdateCardInput,
@@ -31,6 +32,7 @@ export interface CardRow {
   column_id: string;
   title: string;
   description: string | null;
+  document_links?: CardDocumentLink[];
   priority: Priority;
   due_date: string | null;
   position: string | number;
@@ -82,6 +84,7 @@ export function toCard(
     columnId: row.column_id,
     title: row.title,
     description: row.description ?? '',
+    ...(row.document_links !== undefined ? { documentLinks: row.document_links } : {}),
     priority: row.priority,
     dueDate: row.due_date,
     assigneeIds,
@@ -380,6 +383,7 @@ export async function getCard(
   poolOrClient: pg.Pool | pg.ClientBase,
   cardId: string,
   actorId: string,
+  includeDocumentLinks = true,
 ): Promise<{ card: Card; people: PersonDisplay[] }> {
   // 1. Fetch active card
   const cardRes = await poolOrClient.query<CardRow>(
@@ -388,7 +392,7 @@ export async function getCard(
        title, description, priority, to_char(due_date, 'YYYY-MM-DD') AS due_date, position,
        version, state, deleted_at, deleted_by, restore_until,
        created_at, updated_at,
-       ${CARD_KEY_SQL}
+       ${CARD_KEY_SQL}${includeDocumentLinks ? ', document_links' : ''}
      FROM cards
      WHERE id = $1`,
     [cardId],
@@ -497,7 +501,7 @@ export async function updateCard(
   const cardRes = await client.query<CardRow>(
     `SELECT 
        id, workspace_id, project_id, board_id, column_id,
-       title, description, priority, to_char(due_date, 'YYYY-MM-DD') AS due_date, position,
+       title, description, document_links, priority, to_char(due_date, 'YYYY-MM-DD') AS due_date, position,
        version, state, deleted_at, deleted_by, restore_until,
        created_at, updated_at
      FROM cards
@@ -611,6 +615,16 @@ export async function updateCard(
     changes.dueDate = { old: card.due_date, new: nextDueDate };
   }
 
+  const previousLinks = card.document_links ?? [];
+  const nextLinks = input.documentLinks;
+  if (nextLinks !== undefined && (
+    previousLinks.length !== nextLinks.length
+    || nextLinks.some((link, index) =>
+      link.title !== previousLinks[index]?.title || link.url !== previousLinks[index]?.url)
+  )) {
+    changes.documentLinks = { old: previousLinks.length, new: nextLinks.length };
+  }
+
   // 6. Update card row
   const updateRes = await client.query<CardRow>(
     `UPDATE cards
@@ -618,15 +632,16 @@ export async function updateCard(
          description = $2,
          priority = $3,
          due_date = $4,
+         document_links = COALESCE($5::JSONB, document_links),
          version = version + 1,
          updated_at = NOW()
-     WHERE id = $5
+     WHERE id = $6
      RETURNING 
        id, workspace_id, project_id, board_id, column_id,
-       title, description, priority, to_char(due_date, 'YYYY-MM-DD') AS due_date, position,
+       title, description, document_links, priority, to_char(due_date, 'YYYY-MM-DD') AS due_date, position,
        version, state, deleted_at, deleted_by, restore_until,
        created_at, updated_at`,
-    [nextTitle, nextDescription, nextPriority, nextDueDate, cardId],
+    [nextTitle, nextDescription, nextPriority, nextDueDate, nextLinks === undefined ? null : JSON.stringify(nextLinks), cardId],
   );
 
   // 7. Increment board snapshot_version

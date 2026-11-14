@@ -1,9 +1,9 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
+import { useCallback, useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, type FormEvent } from 'react';
 import Link from 'next/link';
 import { createPortal } from 'react-dom';
-import { cardDraftSessions, cardFieldsDirty, cardFieldsInput } from '@/lib/card-drafts';
+import { cardDraftSessions, cardFieldsDirty, cardFieldsInput, type CardDraft } from '@/lib/card-drafts';
 import { discardRefusedRows } from '@/lib/feed-state';
 import { pageInertLock, pickFocusTarget } from '@/lib/inert-lock';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -21,6 +21,7 @@ import { useAssignablePeople, useProjectPeople } from '@/lib/assignee-people';
 import { EMPTY_ASSIGNEES, MAX_ASSIGNEES, NO_ACCESS_HINT, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, peopleLoadError, ineligibleIds, namesFor, noBoardAccess, pickerState, saveBarText } from '@/lib/assignees';
 import { Icon } from '@/components/ui/icon';
 import { CardImages } from './card-images';
+import { CardDocumentLinks } from './card-document-links';
 import { formatPersonName } from '@/lib/person-name';
 import { useSession } from '@/lib/session';
 import { Avatar } from '@/components/ui/avatar';
@@ -45,7 +46,7 @@ interface Props {
   onRequestMove: (card: CardSummary) => void;
 }
 
-interface Draft { title: string; description: string; priority: Card['priority']; dueDate: string; assigneeIds: string[]; columnId: string }
+type Draft = CardDraft;
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
@@ -103,20 +104,20 @@ export function CardDetailDrawer(props: Props) {
 
   const denied=cardQuery.error instanceof ApiError&&[401,403,404].includes(cardQuery.error.status);
   const wrongBoard = !!cardQuery.data && cardQuery.data.boardId !== props.expectedBoardId;
-  const card = draftActorId&&!denied&&!wrongBoard?cardQuery.data:undefined;
-  // Trashed or no longer visible while open: say so and close, instead of leaving a stale or blank drawer.
-  const goneStatus = cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status) ? cardQuery.error.status : 0;
-  const trashed = !!card && (card.state !== 'active' || card.deletedAt !== null);
+  const visibleCard = draftActorId && !denied && !wrongBoard ? cardQuery.data : undefined;
+  const gone = wrongBoard || (cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status));
+  const trashed = !!visibleCard && (visibleCard.state !== 'active' || visibleCard.deletedAt !== null);
+  const card = trashed ? undefined : visibleCard;
   const toast = useToast();
   const leftRef = useRef(false);
   useEffect(() => {
-    if (leftRef.current || !card || !(goneStatus || trashed)) return;
+    if (leftRef.current || !open || !(gone || trashed) || dirtyRef.current || commentDirty) return;
     leftRef.current = true;
+    setConfirm(null);
     toast(trashed ? 'This card was moved to the trash.' : 'This card was removed or you no longer have access to it.', { icon: 'alert' });
-    dirtyRef.current = false;
     onChanged();
     finishClose();
-  }, [card, goneStatus, trashed, toast, onChanged, finishClose]);
+  }, [gone, trashed, open, commentDirty, toast, onChanged, finishClose]);
 
   if(typeof document==='undefined')return null;
   return createPortal(
@@ -128,7 +129,7 @@ export function CardDetailDrawer(props: Props) {
         id="cardDrawer"
         role="dialog"
         aria-modal="true"
-        aria-label={`Card details: ${card?.title ?? props.summary?.title ?? ''}`}
+        aria-label={card ? `Card details: ${card.title}` : 'Card details'}
         aria-hidden={!open}
         tabIndex={-1}
         onKeyDown={onKeyDown}
@@ -159,8 +160,7 @@ export function CardDetailDrawer(props: Props) {
             </header>
             <div className="drawer-scroll">
               {cardQuery.isPending && <p role="status" className="hint">Loading card…</p>}
-              {wrongBoard && <p role="alert" className="field-error">This card is not available on this board.</p>}
-              {cardQuery.isError && <p role="alert" className="field-error">{cardQuery.error instanceof ApiError && [403, 404].includes(cardQuery.error.status) ? 'This card does not exist or you cannot open it.' : describeError(cardQuery.error)}</p>}
+              {gone || trashed ? <p role="alert" className="field-error">{trashed ? 'This card was moved to the trash.' : 'This card is no longer available on this board.'}{(dirtyRef.current || commentDirty) && ' Your drafts are kept in this tab.'}</p> : cardQuery.isError && <p role="alert" className="field-error">{describeError(cardQuery.error)}</p>}
             </div>
           </>
         )}
@@ -201,7 +201,7 @@ function DiscardDeleteDialog({ kind, onCancel, card, structureVersion, onDiscard
         <div className="dialog-head-copy">
           <div className="confirm-icon"><Icon name="alert" /></div>
           <h2 id="confirmTitle">{isDelete ? 'Delete this card?' : 'Close this card?'}</h2>
-          <p className="confirm-copy" id="confirmCopy">{isDelete ? `“${card?.title ?? 'This card'}” moves to the trash and can be restored for 24 hours. Comments and images stay with it.` : 'Your unsaved card fields and comment drafts stay in this tab when you reopen the card. Reloading or closing the tab can lose them.'}</p>
+          <p className="confirm-copy" id="confirmCopy">{isDelete ? `“${card?.title ?? 'This card'}” moves to the trash and can be restored for 24 hours. Comments, images and document links stay with it.` : 'Your unsaved card fields and comment drafts stay in this tab when you reopen the card. Reloading or closing the tab can lose them.'}</p>
         </div>
       </div>
       <footer className="dialog-foot">
@@ -229,6 +229,24 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
   const [error, setError] = useState('');
   const [tab, setTab] = useState<'comments' | 'activity'>('comments');
   const editable = !!actorId&&can(role, 'edit')&&!unresolved;
+  const [assignOpen, setAssignOpen] = useState(false);
+  const [assigneeFilter, setAssigneeFilter] = useState('');
+  const assignButton = useRef<HTMLButtonElement>(null);
+  const assignSearch = useRef<HTMLInputElement>(null);
+  const assignPanel = useRef<HTMLDivElement>(null);
+  const assignPanelId = useId();
+  const closeAssignees = useCallback(() => { setAssignOpen(false); setAssigneeFilter(''); }, []);
+  useEffect(() => {
+    if (!assignOpen || !editable) return;
+    assignSearch.current?.focus({ preventScroll: true });
+    const dismiss = (event: PointerEvent) => {
+      const path = event.composedPath();
+      if (!path.some((item) => item === assignPanel.current || item === assignButton.current)) closeAssignees();
+    };
+    document.addEventListener('pointerdown', dismiss, true);
+    return () => document.removeEventListener('pointerdown', dismiss, true);
+  }, [assignOpen, editable, closeAssignees]);
+  useEffect(() => { if (!editable) closeAssignees(); }, [editable, closeAssignees]);
   const fieldsDirty=cardFieldsDirty(draft,base);
   const statusDirty=draft.columnId!==base.columnId;
   const dirty=fieldsDirty||statusDirty||unresolved;
@@ -244,9 +262,13 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
   // Owners and Managers also see who is blocked only by a missing board grant (the project-wide list minus the board's).
   const canSeeBlocked = editable && (role === 'owner' || role === 'manager');
   const projectWide = useProjectPeople(card.projectId, canSeeBlocked);
-  const blocked = useMemo(() => (canSeeBlocked && projectPeople.isSuccess ? noBoardAccess(projectWide.data, projectPeople.data) : []), [canSeeBlocked, projectWide.data, projectPeople.data, projectPeople.isSuccess]);
+  const blocked = useMemo(() => (canSeeBlocked && projectPeople.isSuccess && projectWide.isSuccess ? noBoardAccess(projectWide.data, projectPeople.data) : []), [canSeeBlocked, projectWide.data, projectWide.isSuccess, projectPeople.data, projectPeople.isSuccess]);
   const assignable = useMemo(() => assignableList(projectPeople.data), [projectPeople.data]);
   const picker = pickerState(projectPeople, assignable);
+  const normalizedFilter = assigneeFilter.trim().toLocaleLowerCase();
+  const matchesFilter = (person: PersonDisplay) => formatPersonName(person).toLocaleLowerCase().includes(normalizedFilter);
+  const shownAssignable = assignable.filter(matchesFilter);
+  const shownBlocked = blocked.filter(matchesFilter);
   const names = useMemo(() => namesFor(namesFor(people, projectWide.data), projectPeople.data), [people, projectWide.data, projectPeople.data]);
   // Cards saved before viewers were refused may still list one (or someone since removed). The server rejects them on save, so say so up front.
   const ineligible = ineligibleIds(draft.assigneeIds, assignable, projectPeople.isSuccess, people);
@@ -256,11 +278,12 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
   const save = useMutation({
     // Status movement is deliberately a separate operation; a field save never performs a hidden move.
     mutationFn: async (override?: string[]) => {
-      const input=session.get().fieldInput??cardFieldsInput(session.get().draft,session.get().version,override);
+      const { fieldInput, draft, version, base } = session.get();
+      const input = fieldInput ?? cardFieldsInput(draft, version, override, base);
       session.intent({fieldInput:input});
       return session.fields.run(input,(original,key)=>api.updateCard(card.id,original,key));
     },
-    onSuccess: (res) => {session.fieldsSaved(res.data.version);setError('');setSaveFailure(null);setAssigneeFailure(null);toast('Card fields saved',{icon:'check'});onSaved();},
+    onSuccess: (res) => {session.fieldsSaved(res.data.version, res.data.documentLinks);setError('');setSaveFailure(null);setAssigneeFailure(null);toast('Card fields saved',{icon:'check'});onSaved();},
     onError: (err) => {
       if(!session.fields.unresolved())session.intent({fieldInput:null});
       const refused = err instanceof ApiError ? ineligibleFromFailure(err) : null;
@@ -339,7 +362,12 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
               <option value="none">None</option><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="urgent">Urgent</option>
             </select>
           </div>
-          <div className="field">
+          <div className="field assignee-field" onBlur={(event) => {
+            if (event.relatedTarget instanceof Node && event.relatedTarget !== assignButton.current && !assignPanel.current?.contains(event.relatedTarget)) closeAssignees();
+          }} onKeyDown={(event) => {
+            if (event.key !== 'Escape' || !assignOpen) return;
+            event.preventDefault(); event.stopPropagation(); closeAssignees(); assignButton.current?.focus();
+          }}>
             <span className="field-label">Assignees</span>
             <div className="assignee-control">
               <div className="assignee-chips">
@@ -356,40 +384,47 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
                 })}
               </div>
               {editable && (
-                <details className="assignee-picker">
-                  <summary className="add-assignee"><Icon name="plus" />Assign</summary>
-                  <div className="assignee-menu">
-                    <div className="menu-title">Assignable project people</div>
-                    {picker === 'loading' && <div className="menu-note" role="status">Loading people…</div>}
-                    {picker === 'error' && <div className="menu-note" role="alert">{peopleLoadError(projectPeople.error as { code?: string } | null)} {(projectPeople.error as { code?: string } | null)?.code === 'BOARD_REQUIRED' ? <button className="btn sm" type="button" onClick={() => window.location.reload()}>Reload</button> : <button className="btn sm" type="button" onClick={() => void projectPeople.refetch()}>Try again</button>}</div>}
-                    {picker === 'empty' && <div className="menu-note" role="status">{EMPTY_ASSIGNEES}</div>}
-                    {assignable.map((person) => {
-                      const checked = draft.assigneeIds.includes(person.id);
-                      return (
-                        <label key={person.id} className="assignee-option">
-                          <input type="checkbox" checked={checked} disabled={!checked && !canAddAssignee(draft.assigneeIds.length)} onChange={(event) => set('assigneeIds', event.target.checked ? [...draft.assigneeIds, person.id] : draft.assigneeIds.filter((a) => a !== person.id))} />
-                          <Avatar id={person.id} name={formatPersonName(person)} avatarUrl={person.avatarUrl} />
-                          {formatPersonName(person)}
-                          {person.scopedRole && <span className="role-mini">{person.scopedRole}</span>}
-                        </label>
-                      );
-                    })}
-                    {blocked.length > 0 && (
-                      <div className="assignee-blocked" aria-label="No access to this board">
-                        <div className="menu-title">No access to this board</div>
-                        {blocked.map((person) => (
-                          <div key={person.id} className="assignee-option is-disabled" aria-disabled="true">
+                <>
+                  <button ref={assignButton} className="add-assignee" type="button" aria-expanded={assignOpen} aria-controls={assignPanelId} onClick={() => assignOpen ? closeAssignees() : setAssignOpen(true)}><Icon name="plus" />Assign</button>
+                  {assignOpen && <div ref={assignPanel} className="assignee-menu" id={assignPanelId} role="group" aria-labelledby={`${assignPanelId}-title`}>
+                    <div className="assignee-menu-head">
+                      <div className="menu-title" id={`${assignPanelId}-title`}>Assign people</div>
+                      <span className="assignee-selection-count">{draft.assigneeIds.length} of {MAX_ASSIGNEES} selected</span>
+                    </div>
+                    <input ref={assignSearch} type="search" className="control assignee-search" placeholder="Search by name" aria-label="Search people by name" value={assigneeFilter} onChange={(event) => setAssigneeFilter(event.target.value)} />
+                    <div className="assignee-results">
+                      {picker === 'loading' && <div className="menu-note" role="status">Loading people…</div>}
+                      {picker === 'error' && <div className="menu-note" role="alert">{peopleLoadError(projectPeople.error as { code?: string } | null)} {(projectPeople.error as { code?: string } | null)?.code === 'BOARD_REQUIRED' ? <button className="btn sm" type="button" onClick={() => window.location.reload()}>Reload</button> : <button className="btn sm" type="button" onClick={() => void projectPeople.refetch()}>Try again</button>}</div>}
+                      {picker === 'empty' && <div className="menu-note" role="status">{EMPTY_ASSIGNEES}</div>}
+                      {picker === 'ready' && shownAssignable.length === 0 && shownBlocked.length === 0 && <div className="menu-note" role="status">No matching people.</div>}
+                      {picker === 'ready' && shownAssignable.map((person) => {
+                        const checked = draft.assigneeIds.includes(person.id);
+                        return (
+                          <label key={person.id} className={`assignee-option${checked ? ' is-selected' : ''}`}>
+                            <input type="checkbox" checked={checked} disabled={!checked && !canAddAssignee(draft.assigneeIds.length)} onChange={(event) => set('assigneeIds', event.target.checked ? [...draft.assigneeIds, person.id] : draft.assigneeIds.filter((a) => a !== person.id))} />
                             <Avatar id={person.id} name={formatPersonName(person)} avatarUrl={person.avatarUrl} />
-                            {formatPersonName(person)}
+                            <span className="assignee-option-name" title={formatPersonName(person)}>{formatPersonName(person)}</span>
                             {person.scopedRole && <span className="role-mini">{person.scopedRole}</span>}
-                          </div>
-                        ))}
-                        <div className="menu-note">{NO_ACCESS_HINT} {role === 'owner' ? <Link href="/people">Open board access</Link> : 'Ask the project Owner.'}</div>
-                      </div>
-                    )}
-                    <div className="menu-note">Viewers can read and be mentioned but cannot be assigned. Up to {MAX_ASSIGNEES} assignees.</div>
-                  </div>
-                </details>
+                          </label>
+                        );
+                      })}
+                      {shownBlocked.length > 0 && (
+                        <div className="assignee-blocked" aria-label="No access to this board">
+                          <div className="menu-title">No access to this board</div>
+                          {shownBlocked.map((person) => (
+                            <div key={person.id} className="assignee-option is-disabled" aria-disabled="true">
+                              <Avatar id={person.id} name={formatPersonName(person)} avatarUrl={person.avatarUrl} />
+                              <span className="assignee-option-name" title={formatPersonName(person)}>{formatPersonName(person)}</span>
+                              {person.scopedRole && <span className="role-mini">{person.scopedRole}</span>}
+                            </div>
+                          ))}
+                          <div className="menu-note">{NO_ACCESS_HINT} {role === 'owner' ? <Link href={`/people?project=${encodeURIComponent(card.projectId)}`}>Open People for this project</Link> : 'Ask the project Owner.'}</div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="menu-note assignee-menu-foot">Viewer roles can’t be assigned. Apply selections with Save changes.</div>
+                  </div>}
+                </>
               )}
             </div>
             {assigneeFailure && (
@@ -402,9 +437,9 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
             <label className="field-label" htmlFor="detailDue">Due date</label>
             <div className="date-row">
               <input className="control" id="detailDue" type="date" value={draft.dueDate} disabled={!editable} onChange={(event) => set('dueDate', event.target.value)} />
-              {editable && <button className="icon-btn" type="button" aria-label="Clear due date" title="Clear due date" onClick={() => set('dueDate', '')}><Icon name="x" className="icon-sm" /></button>}
+              {editable && draft.dueDate && <button className="icon-btn" type="button" aria-label="Clear due date" title="Clear due date" onClick={() => set('dueDate', '')}><Icon name="x" className="icon-sm" /></button>}
             </div>
-            <span className={`due-flag${!draft.dueDate || (due && due.state === 'overdue') ? '' : ' ok'}`}>
+            <span className={`due-flag${due?.state === 'overdue' ? '' : ' ok'}`}>
               {!draft.dueDate ? 'No due date' : due?.state === 'overdue' ? due.detail ?? 'Overdue' : due?.state === 'done' ? 'Completed column · date kept for history' : 'Calendar date only · no time zone'}
             </span>
           </div>
@@ -414,10 +449,16 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
           <div className="section-head"><h2>Description</h2></div>
           <label className="sr-only" htmlFor="detailDescription">Description</label>
           <textarea className="detail-desc" id="detailDescription" maxLength={20000} placeholder="Add context, links or acceptance notes…" value={draft.description} readOnly={!editable} onChange={(event) => set('description', event.target.value)} />
-          <p className="hint"><Icon name="info" /><span>Plain text. Due dates are calendar dates, not times.</span></p>
         </section>
 
         <CardImages cardId={card.id} role={role} count={card.imageCount} />
+
+        {card.documentLinks !== undefined && <CardDocumentLinks
+          links={can(role, 'edit') ? draft.documentLinks : base.documentLinks}
+          editable={!!actorId && can(role, 'edit')}
+          disabled={!editable || save.isPending || statusMove.isPending}
+          onChange={(links) => set('documentLinks', links)}
+        />}
 
         <section className="detail-section" aria-label="Discussion and activity">
           <div className="tabs" role="tablist" aria-label="Card discussion" onKeyDown={(event) => {
@@ -436,7 +477,7 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
               <CardActivity cardId={card.id} people={people} />
             </div>
         </section>
-        {conflict && <div role="status" className="field-note conflict-note"><p>Updated by someone else. Your edits are kept; review the current values before saving.</p><p>Current title: {base.title} · priority: {base.priority} · due: {base.dueDate||'none'} · status: {columns.find((c)=>c.id===base.columnId)?.name??'unavailable'}</p><details><summary>Current saved description and assignees</summary><p style={{whiteSpace:'pre-wrap'}}>{base.description||'No description'}</p><p>{base.assigneeIds.map((id)=>formatPersonName(names.get(id),'Unknown member')).join(', ')||'Unassigned'}</p></details><button className="btn sm" type="button" disabled={unresolved} onClick={()=>session.review()}>Use latest version, keep my edits</button></div>}
+        {conflict && <div role="status" className="field-note conflict-note"><p>Updated by someone else. Your edits are kept; review the current values before saving.</p><p>Current title: {base.title} · priority: {base.priority} · due: {base.dueDate||'none'} · status: {columns.find((c)=>c.id===base.columnId)?.name??'unavailable'}</p><details><summary>Current saved description, assignees and documents</summary><p style={{whiteSpace:'pre-wrap'}}>{base.description||'No description'}</p><p>{base.assigneeIds.map((id)=>formatPersonName(names.get(id),'Unknown member')).join(', ')||'Unassigned'}</p><p>{base.documentLinks.map((link) => link.title).join(', ') || 'No document links'}</p></details><button className="btn sm" type="button" disabled={unresolved} onClick={()=>session.review()}>Use latest version, keep my edits</button></div>}
         {error && <ErrorNote text={error} />}
         {saveFailure != null && <ErrorNote error={saveFailure} ctx={noteCtx} focusOnMount onRetry={() => submit()} />}
       </div>
@@ -471,8 +512,7 @@ function CardActivity({ cardId, people }: { cardId: string; people: Map<string, 
   return (
     <div className="activity-list" aria-busy={feed.isFetching}>
       {feed.isPending && <p className="hint" role="status">Loading history…</p>}
-      {feed.isError && <ErrorNote text={stale ? 'The history list changed. Reload this list; your drafts are kept.' : undefined} error={feed.error} onRetry={() => { if (!stale) void (feed.isFetchNextPageError ? feed.fetchNextPage() : feed.refetch()); }} />}
-      {stale && <p className="hint">History changed. Your drafts are kept. <button className="btn sm" type="button" onClick={() => void queryClient.resetQueries({ queryKey, exact: true })}>Reload history</button></p>}
+      {stale ? <ErrorNote text="The history list changed. Your drafts are kept."><button className="btn sm" type="button" onClick={() => void queryClient.resetQueries({ queryKey, exact: true })}>Reload history</button></ErrorNote> : feed.isError && <ErrorNote error={feed.error} onRetry={() => void (feed.isFetchNextPageError ? feed.fetchNextPage() : feed.refetch())} />}
       {feed.isSuccess && !items.length && <p className="hint"><Icon name="info" />No recorded history for this card yet.</p>}
       {items.map((event) => {
         const view = describeActivity(event);
@@ -482,8 +522,8 @@ function CardActivity({ cardId, people }: { cardId: string; people: Map<string, 
           <div className="activity-main"><div className="activity-text"><strong>{name}</strong> {view.text}</div><ActivityDetails item={event} /><time className="activity-time" dateTime={event.createdAt}>{relativeTime(event.createdAt)}</time></div>
         </article>;
       })}
-      {!unavailable && feed.data && <p className="hint" role="status">{items.length} history entries loaded{feed.hasNextPage ? ' · More history available' : ' · All entries loaded'}.</p>}
-      {!unavailable && feed.hasNextPage && <button className="btn sm" type="button" disabled={feed.isFetching || !!stale} onClick={() => void feed.fetchNextPage()}>{feed.isFetchingNextPage ? 'Loading history…' : 'Load more history'}</button>}
+      {!unavailable && items.length > 0 && <p className="hint" role="status">{items.length} history entries loaded{feed.hasNextPage ? ' · More history available' : ' · All entries loaded'}.</p>}
+      {!unavailable && !stale && feed.hasNextPage && <button className="btn sm" type="button" disabled={feed.isFetching} onClick={() => void feed.fetchNextPage()}>{feed.isFetchingNextPage ? 'Loading history…' : 'Load more history'}</button>}
     </div>
   );
 }

@@ -45,6 +45,14 @@ wire('ColumnResponse', data(shared.columnSchema), 'apps/api/src/adapters/boards.
 wire('BoardRevisionResponse', data(z.object({ id, structureVersion: revision, snapshotVersion: revision })), 'apps/api/src/adapters/boards.ts:reorderColumns/deleteColumn');
 wire('DeleteColumnQuery', z.object({ expectedBoardVersion: z.coerce.number().nonnegative().optional() }), 'apps/api/src/http/routes/boards.ts:DELETE columns', 'Version may be supplied in query or JSON body; current route uses parseInt/query fallback.');
 wire('CardDetailResponse', z.object({ data: shared.cardSchema.extend({ people: z.array(shared.personDisplaySchema) }), people: z.array(shared.personDisplaySchema) }), 'apps/api/src/http/routes/cards.ts:GET cards/:cardId');
+wire('PatCardDetailResponse', z.object({
+  data: shared.cardSchema.omit({ documentLinks: true }).extend({ people: z.array(shared.personDisplaySchema) }),
+  people: z.array(shared.personDisplaySchema),
+}), 'apps/api/src/http/routes/cards.ts:GET cards/:cardId PAT projection', 'Machine responses omit Drive document links.');
+wire('CardResponse', data(shared.cardSchema.omit({ documentLinks: true })), 'apps/api/src/http/routes/cards.ts; routes/trash.ts',
+  'Create, move, undo, trash and restore do not return Drive document links.');
+wire('CardPatchResponse', shared.cardResponseSchema, 'apps/api/src/http/routes/cards.ts:PATCH cards/:cardId',
+  'A fresh authorized browser save includes the link list. A replay returns only safe identifiers and versions in MinimalReplayResponse.');
 wire('CardSearchResponse', shared.cardListResponseSchema.extend({ activeCardCount: revision, matchingCardCount: revision }), 'apps/api/src/adapters/cards.ts:searchProjectCards');
 wire('MoveUndoInput', shared.moveUndoInputSchema, 'packages/contracts/src/cards.ts:moveUndoInputSchema');
 wire('SuccessResponse', data(z.object({ success: z.literal(true) })), 'apps/api/src/http/routes/members.ts:DELETE; routes/tokens.ts:DELETE; routes/invitations.ts:leave');
@@ -73,6 +81,8 @@ wire('WorkspaceMyTasksQuery', (OPENAPI_SCHEMAS.MyTasksQuery!.schema as z.ZodObje
 
 OPENAPI_SCHEMAS.SaveNameInput!.notes = 'Both first/last parts normalize whitespace (including tabs) and must contain1..60 Unicode code points. Shared normalizeNamePart rejects disallowed control/format/line/paragraph separators; custom refinements/transforms are validated by Zod, not fully compiled into structural JSON Schema.';
 OPENAPI_SCHEMAS.MentionsList!.notes = 'At most20 UTF-16 spans. Shared refinements enforce start<end and nonoverlapping spans; handler checks verify actual body slices/current eligible recipient authority.';
+OPENAPI_SCHEMAS.CardDetailResponse!.notes = 'The optional documentLinks field is only returned to authorized browser sessions. Personal access tokens and other machine credentials never receive it.';
+OPENAPI_SCHEMAS.UpdateCardInput!.notes = 'Optional documentLinks replaces the ordered list of up to 10 unique HTTPS Drive, Docs or Sheets sharing links. Omit to preserve the list or send [] to clear it. Runtime validation checks hosts, sharing paths and supported parameters.';
 OPENAPI_SCHEMAS.DateOnly!.notes = 'Date-only YYYY-MM-DD; shared Gregorian-day refinement rejects impossible/leap-day dates beyond the structural regex.';
 
 Object.assign(OPENAPI_SCHEMAS, HOSTED_MCP_OPENAPI_SCHEMAS);

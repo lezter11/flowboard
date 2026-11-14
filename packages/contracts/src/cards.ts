@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { cardDocumentLinksSchema } from './card-document-links.ts';
 import {
   createDataEnvelopeSchema,
   createPaginatedEnvelopeSchema,
@@ -47,6 +48,7 @@ export const updateCardInputSchema = z
       .max(200, 'Card title cannot exceed 200 characters')
       .optional(),
     description: z.string().max(20000, 'Description cannot exceed 20,000 characters').nullable().optional(),
+    documentLinks: cardDocumentLinksSchema.optional(),
     priority: prioritySchema.optional(),
     dueDate: nullableDateOnlySchema.optional(),
     assigneeIds: z
@@ -63,6 +65,7 @@ export const updateCardInputSchema = z
     (data) =>
       data.title !== undefined ||
       data.description !== undefined ||
+      data.documentLinks !== undefined ||
       data.priority !== undefined ||
       data.dueDate !== undefined ||
       data.assigneeIds !== undefined,
@@ -117,6 +120,7 @@ export const cardSchema = z.object({
   columnId: z.string().min(1),
   title: z.string().trim().min(1).max(200),
   description: z.string().max(20000),
+  documentLinks: cardDocumentLinksSchema.optional(),
   priority: prioritySchema,
   dueDate: nullableDateOnlySchema,
   assigneeIds: z.array(z.string().min(1)),

@@ -1,5 +1,7 @@
 # Engineering checklist: 50 concerns
 
+Card document links, November 14. Verify existing grant and card locking (01, 06, 07), additive migration and old Worker compatibility (15, 16), retry receipts (25), and input limits and safe logging (30, 47). Google owns access to documents. Flowboard persists labels and links through the normal card save and excludes them from activity and retry receipts. [Acceptance criteria](reviews/CARD-DRIVE-LINKS-20261114/CRITERIA.md).
+
 Rollout notice scope2026-11-06: concerns21(cache invalidation),47(bounded work) and49(operational visibility) apply to the static no-store status asset and bounded visible-tab client polling. It introduces no Redis, API/database route or maintenance lock. Failure retention, explicitlegacy404/410 retirement and no-cookie/no-referrer requests require scoped frontend/runtime evidence; none of the50 delivery boxes closes merely because this notice exists. [Plan](reviews/PROD-MCP-20261106/PLAN.md).
 
 Linux XLSX repair, 2026-11-04: concerns 03 (atomic import) and 47 (backpressure, time and resource bounds) remain unchanged; equivalent scans and pinned ESM backports address measured parser CPU/GC work. [Frozen repair acceptance](reviews/HOSTED-MCP-20261104/linux-xlsx-repair/CRITERIA.md) separates diagnostic pressure evidence from actual product/Linux/review/hosted proof. No engineering delivery box is closed by a benchmark or dependency patch alone.

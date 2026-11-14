@@ -1,5 +1,9 @@
 # Flowboard PRD v0.3
 
+## Card documents, November 14
+
+Saved cards have a Documents section for named Google Docs, Sheets and Drive file links. Card editors manage links with Save changes. Card viewers can open saved links, with file access controlled by Google. Native PDF, Word and Excel uploads are deferred.
+
 ## Hosted colleague connection — current extension, 2026-11-04
 
 A colleague can connect Claude to Flowboard using a hosted URL, browser Google sign-in and explicit permission for one project. No Terminal, repository checkout or copied token is required. Existing project membership, role and board grants still apply; approving a connection adds no access. The first version supports discovering projects/boards/columns, searching cards and creating cards. Personal Connections allows the same person to disconnect access. Website logout and connector revocation are distinct actions.

@@ -5,7 +5,7 @@ import { formatPersonName } from './person-name.ts';
 export interface ActivityView { icon: string; text: string; category: string }
 
 const FIELD_LABELS: Record<string, string> = {
-  title: 'the title', description: 'the description', priority: 'the priority', dueDate: 'the due date', assigneeIds: 'the assignees', assignees: 'the assignees',
+  title: 'the title', description: 'the description', priority: 'the priority', dueDate: 'the due date', assigneeIds: 'the assignees', assignees: 'the assignees', documentLinks: 'the document links',
 };
 
 const str = (v: unknown): string | null => (typeof v === 'string' && v.trim() ? v.trim() : null);

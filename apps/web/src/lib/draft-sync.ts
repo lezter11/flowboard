@@ -1,8 +1,10 @@
-/** Keeps a user's unsaved card edits when the card changes on the server (polling, a colleague's save). */
-export interface CardFields { title: string; description: string; priority: string; dueDate: string; assigneeIds: string[]; columnId: string }
+import type { CardDocumentLink } from '@flowboard/contracts';
 
-const FIELDS = ['title', 'description', 'priority', 'dueDate', 'assigneeIds', 'columnId'] as const;
-const same = (a: unknown, b: unknown) => (Array.isArray(a) && Array.isArray(b) ? a.join(',') === b.join(',') : a === b);
+/** Keeps a user's unsaved card edits when the card changes on the server (polling, a colleague's save). */
+export interface CardFields { title: string; description: string; priority: string; dueDate: string; assigneeIds: string[]; columnId: string; documentLinks?: CardDocumentLink[] }
+
+const FIELDS = ['title', 'description', 'priority', 'dueDate', 'assigneeIds', 'columnId', 'documentLinks'] as const;
+const same = (a: unknown, b: unknown) => (Array.isArray(a) && Array.isArray(b) ? JSON.stringify(a) === JSON.stringify(b) : a === b);
 
 /**
  * Field by field: a field the user has not touched follows the server; a field they edited keeps their text.

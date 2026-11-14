@@ -39,6 +39,7 @@ import {
   type CardListResponse,
   type PlacementInput,
   type PlacementResponse,
+  type Card,
   type CardResponse,
   type CardSummary,
   type CreateCardInput,
@@ -64,6 +65,10 @@ import {
 } from '@flowboard/contracts';
 
 import { isNetworkFailure, NETWORK_MESSAGE } from './error-codes.ts';
+
+type CardUpdateResponse = Omit<MutationResponse, 'data'> & {
+  data: MutationResponse['data'] & Pick<Card, 'documentLinks'>;
+};
 
 export class ApiError extends Error {
   readonly status: number;
@@ -445,8 +450,8 @@ export const api = {
     return request<CardResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}`,{signal});
   },
 
-  async updateCard(cardId: string, input: UpdateCardInput, idempotencyKey?: string): Promise<MutationResponse> {
-    return request<MutationResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}`, {
+  async updateCard(cardId: string, input: UpdateCardInput, idempotencyKey?: string): Promise<CardUpdateResponse> {
+    return request<CardUpdateResponse>(`/api/v1/cards/${encodeURIComponent(cardId)}`, {
       method: 'PATCH',
       headers: {
         'Idempotency-Key': idempotencyKey || generateIdempotencyKey(),

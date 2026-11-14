@@ -1,5 +1,12 @@
 # Flowboard UAT testing
 
+## Card document links once deployed
+
+1. Use a synthetic test card. In **Documents**, select **Add link**, name the file, and paste a restricted Drive, Docs or Sheets link. Select **Add to card**, then **Save changes**.
+2. Reopen the card and check the link appears above Comments. Open it in a new tab. Google decides who can open the file.
+3. Try the same card as a Viewer. Check that the saved link is readable without Add or Remove controls. A teammate without access to the board should be unable to open the card.
+4. Remove the link as an editor and save. Reopen the card and confirm it is gone.
+
 Current deployed application: **dce1a67dedb1de8f5f7aae9b99fcbcb2b875d105**. [Required CI41877634812](https://github.com/lezter11/flowboard/actions/runs/41877634812) passes all 22 steps, including API1,926/1,926 and hosted browser24. Current independent review **8.955** and 98 Backend / 74 UI / 98 local Integration handoffs are source-bound; retained executions keep their original provenance. UAT migration0027, exact Worker bytes, Pages source/binding and final anonymous smoke15/15 plus health2/2 are verified. [Release evidence](reviews/HOSTED-MCP-20261104/release-dce1a67/SUMMARY.md). **Real signed-in/provider acceptance remains separate and pending.**
 
 For colleagues, use [the hosted Claude quickstart](HOSTED_MCP_QUICKSTART.md): browser Google sign-in and project approval, with no Terminal or copied token.

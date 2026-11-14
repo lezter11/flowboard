@@ -107,7 +107,9 @@ export async function fetchCardWithCounts(
     assignee_ids: string[] | null;
   }>(
     `SELECT 
-       c.*,
+       c.id, c.workspace_id, c.project_id, c.board_id, c.column_id,
+       c.title, c.description, c.priority, c.due_date, c.position, c.version, c.state,
+       c.deleted_at, c.deleted_by, c.restore_until, c.created_at, c.updated_at,
        (SELECT COUNT(*)::text FROM comments cm WHERE cm.card_id = c.id AND cm.deleted_at IS NULL) AS comment_count,
        (SELECT COUNT(*)::text FROM card_images ci WHERE ci.card_id = c.id) AS image_count,
        (SELECT COALESCE(array_agg(ca.user_id), '{}') FROM card_assignees ca WHERE ca.card_id = c.id) AS assignee_ids

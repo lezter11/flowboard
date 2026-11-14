@@ -6,6 +6,7 @@ export * from './workspaces.ts';
 export * from './projects.ts';
 export * from './invitations.ts';
 export * from './cards.ts';
+export * from './card-document-links.ts';
 export * from './boards.ts';
 export * from './discussion.ts';
 export * from './activity-actions.ts';

@@ -1,5 +1,9 @@
 # Flowboard architecture v0.3
 
+## Card document links, November 14
+
+Card detail reads and versioned saves carry up to ten named Drive links stored in a dedicated PostgreSQL JSONB column. The existing board grant, card version and retry checks govern the list. Flowboard stores link text only and opens the approved Google URL on user action. Activity retains counts, and machine reads and retry receipts omit the links. Migration `0029` is independent of the deferred upload migration `0028`.
+
 ## Rollout status notice — 2026-11-06
 
 A global client notice reads the public same-origin `/release-status.json` static asset (`active` boolean only). It polls while the tab is visible, with30-second spacing, a5-second timeout and1KiB response cap; it sends no cookies or referrer and does not call the API or database. The asset uses no-store caching. Release packaging produces reviewed active/inactive configuration variants of the same frontend so the notice can clear in open clients without rebuilding code or reloading their drafts.404/410 explicitly retires the feature for legacy rollback; other errors retain the last valid state. This is an informational notice, not a maintenance lock or access-control boundary. Old clients acquire it only on their next full page load. [Scope and acceptance](docs/reviews/PROD-MCP-20261106/PLAN.md); source/tests alone do not establish deployment.

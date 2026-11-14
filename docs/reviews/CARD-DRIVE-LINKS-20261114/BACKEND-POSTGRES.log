@@ -1,0 +1,35 @@
+✔ Drive links migrate independently, follow card access, save atomically and keep receipts private (341.688625ms)
+✔ Drive links remain across moves and restore and are wiped on final purge (224.930084ms)
+✔ strict command boundaries reject unknown fields without writes or receipts (265.887375ms)
+✔ strict card and comment query boundaries reject malformed and ignored values (313.544875ms)
+✔ delete comment body/query alternatives reject conflicts, unknown query and malformed JSON before mutation (207.597ms)
+✔ restore retains nearest surviving gap after normal moves exhaust rank spacing (404.196042ms)
+✔ restore placement control: both (202.282625ms)
+✔ restore placement control: previous-only (207.070333ms)
+✔ restore placement control: next-only (212.904292ms)
+✔ restore placement control: neither (268.46825ms)
+✔ restore placement control: head (201.072417ms)
+✔ restore placement control: tail (202.456333ms)
+✔ restore placement control: empty (219.190958ms)
+✔ restore preserves head insertion when normal moves exhaust the first rank (331.879541ms)
+✔ restore replay is exactly once and stale/forbidden requests leave order and events unchanged (206.335375ms)
+✔ legacy missing destination requires explicit active same-board choice and retains the same card content (219.4685ms)
+✔ legacy destination cannot bypass project context (183.262583ms)
+✔ legacy destination cannot bypass board context (181.935542ms)
+✔ legacy destination cannot bypass revoked context (187.703375ms)
+✔ restore exact cutoff control at deadline -1ms (193.801292ms)
+✔ restore exact cutoff control at deadline 0ms (206.593833ms)
+✔ real mounted restore and purge overlap: restore wins the card lock (234.122292ms)
+purge-first wait graph [{"pid":253,"wait_event":"ClientRead","blockers":[],"query":"SELECT pg_advisory_xact_lock($1)"},{"pid":254,"wait_event":"advisory","blockers":[253],"query":"UPDATE cards\n         SET state = 'purged',\n             title = '[Purged card]',\n             description = NULL,\n             version = version + 1,\n             updated_at = NOW()\n         WHERE id = $1 AND state = 'trashed'\n         RETURNING id"},{"pid":256,"wait_event":"transactionid","blockers":[254],"query":"SELECT c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.title, c.position, c.version, c.state,\n            c.restore_until,\n            b.structure_version AS board_structure_version,\n            b.snapshot_version AS board_snapshot_version,\n            b.archived AS board_archived,\n            p.archived AS project_archived\n     FROM cards c\n     JOIN boards b ON c.board_id = b.id\n     JOIN projects p ON c.project_id = p.id\n     WHERE c.id = $1\n     FOR UPDATE"}]
+purge-first actual cycle [{"pid":253,"wait_event":"ClientRead","blockers":[],"query":"COMMIT"},{"pid":254,"wait_event":"transactionid","blockers":[256],"query":"INSERT INTO activity_log (\n           id, workspace_id, project_id, board_id, visibility_scope, card_id, actor_id, action, safe_changes, created_at\n         ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9::jsonb, NOW())"},{"pid":256,"wait_event":"transactionid","blockers":[254],"query":"SELECT c.id, c.workspace_id, c.project_id, c.board_id, c.column_id, c.title, c.position, c.version, c.state,\n            c.restore_until,\n            b.structure_version AS board_structure_version,\n            b.snapshot_version AS board_snapshot_version,\n            b.archived AS board_archived,\n            p.archived AS project_archived\n     FROM cards c\n     JOIN boards b ON c.board_id = b.id\n     JOIN projects p ON c.project_id = p.id\n     WHERE c.id = $1\n     FOR UPDATE"}]
+purge-first recovery {"firstStatus":503,"firstError":"SERVICE_UNAVAILABLE","firstMessage":"The request conflicted with another update. Retry shortly.","retryStatus":404,"identicalCommandAndKey":true,"losingRestoreReceipts":0}
+✔ real mounted restore and purge overlap: purge wins the card lock (1262.147334ms)
+✔ failed restore commit rolls back compaction, lifecycle, board version, receipt and activity together (359.677125ms)
+ℹ tests 24
+ℹ suites 0
+ℹ pass 24
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 7474.054542

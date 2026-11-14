@@ -104,6 +104,23 @@ test('retired paths, session/PAT variants, empty logout and binary reports are e
 });
 
 
+test('generated card document link responses are limited to session detail and fresh PATCH', () => {
+  const paths = generated.paths;
+  const schemas = generated.components.schemas;
+  assert.equal(Object.hasOwn(schemas.CardResponse!.properties!.data.properties, 'documentLinks'), false);
+  assert.equal(Object.hasOwn(schemas.CardResponseWithReplayFlag!.properties!.data.properties, 'documentLinks'), false);
+  assert.equal(Object.hasOwn(schemas.PatCardDetailResponse!.properties!.data.properties, 'documentLinks'), false);
+  assert.equal(Object.hasOwn(schemas.CardDetailResponse!.properties!.data.properties, 'documentLinks'), true);
+  assert.equal(Object.hasOwn(schemas.CardPatchResponse!.properties!.data.properties, 'documentLinks'), true);
+  assert.deepEqual((paths['/api/v1/cards/{cardId}']!.get as any)['x-auth-response-variants'], {
+    session: 'CardDetailResponse', personalAccessToken: 'PatCardDetailResponse',
+  });
+  assert.deepEqual((paths['/api/v1/cards/{cardId}']!.patch as any).responses['200'].content['application/json'].schema.anyOf, [
+    { $ref: '#/components/schemas/CardPatchResponseWithReplayFlag' }, { $ref: '#/components/schemas/MinimalReplayResponse' },
+  ]);
+});
+
+
 test('board archive query uses explicit literal false input rather than truthy string coercion',()=>{
   const schema=OPENAPI_SCHEMAS.ProjectBoardsListQuery!.schema;
   assert.deepEqual(schema.parse({includeArchived:'false'}),{includeArchived:false});

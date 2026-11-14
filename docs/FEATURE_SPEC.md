@@ -68,7 +68,7 @@ Drag within/across columns shows destination and pending state. Server owns rank
 
 ## 5. Card detail and Save
 
-Selecting a card opens a named dialog/drawer and shareable link. Header: title, project/board context, column, close and permitted menu. Form: description, priority, date-only due date, assignees. Sections/tabs: discussion, images and activity. Footer: Save, Cancel, Delete if owner/manager. Narrow views keep actions reachable without obscuring content.
+Selecting a card opens a named dialog/drawer and shareable link. Header: title, project/board context, column, close and permitted menu. Form: description, priority, date-only due date, assignees. Sections/tabs: images, a separate Documents section, discussion and activity. Card editors can save up to ten named Google Docs, Sheets and Drive file links. Readers open saved links in a new tab. Google grants access to the actual files. Footer: Save, Cancel, Delete if owner/manager. Narrow views keep actions reachable without obscuring content.
 
 Save changes form fields only; Post comment is separate; Upload image is separate. New cards must be saved before comments/images attach to a real ID. Field draft changes, comment draft and upload state are independent. Success applies canonical versions; field errors are attached to controls; pending action prevents duplicate submissions. Cancel/close/Escape with unsaved work offers keep editing/discard. Escape first dismisses any nested picker. Focus returns to the source card or nearest valid control.
 
