@@ -117,6 +117,7 @@ test('B-9 profile: a Google sign-in keeps an edited name and refreshes only Goog
     }
     if (url.startsWith('https://www.googleapis.com/oauth2/v3/userinfo')) {
       return new Response(JSON.stringify({
+        sub: `profile-${fx.s}`,
         email: fx.email,
         email_verified: true,
         name: 'Google Given Name',
@@ -126,12 +127,31 @@ test('B-9 profile: a Google sign-in keeps an edited name and refreshes only Goog
     throw new Error(`unexpected fetch ${url}`);
   }) as typeof fetch;
   try {
+    const env = { GOOGLE_CLIENT_ID: 'client-id-b9', GOOGLE_CLIENT_SECRET: 'client-secret-b9' };
+    const cookie = `flowboard_session=${fx.viewer.session.id}`;
+    const link = await app.request('http://localhost/api/v1/auth/google/link', {
+      method: 'POST', headers: { origin: 'http://localhost', cookie },
+    }, env);
+    assert.equal(link.status, 200);
+    const { data } = await link.json() as { data: { authorizationUrl: string } };
+    const linkState = new URL(data.authorizationUrl).searchParams.get('state');
+    const linkCookie = link.headers.getSetCookie()[0]!.split(';')[0]!;
+    const linked = await app.request(`http://localhost/api/v1/auth/google/callback?code=link&state=${linkState}`, {
+      headers: { cookie: `${cookie}; ${linkCookie}` },
+    }, env);
+    assert.match(linked.headers.get('location') ?? '', /google=linked$/);
+    await pool.query('UPDATE users SET avatar_url = NULL WHERE id = $1', [fx.viewer.user.id]);
+
+    const start = await app.request('http://localhost/api/v1/auth/google/start', undefined, env);
+    assert.equal(start.status, 302);
+    const state = new URL(start.headers.get('location')!).searchParams.get('state');
+    const stateCookie = start.headers.getSetCookie()[0]!.split(';')[0]!;
     const res = await app.request(
-      'http://localhost/api/v1/auth/google/callback?code=abc&state=st_b9',
-      { headers: { cookie: 'flowboard_oauth_state=st_b9' } },
-      { GOOGLE_CLIENT_ID: 'client-id-b9', GOOGLE_CLIENT_SECRET: 'client-secret-b9' } as never,
+      `http://localhost/api/v1/auth/google/callback?code=abc&state=${state}`,
+      { headers: { cookie: stateCookie } }, env,
     );
-    assert.ok(res.status < 400, `sign-in succeeds, got ${res.status}`);
+    assert.equal(res.status, 302);
+    assert.ok(res.headers.getSetCookie().some(value => value.startsWith('flowboard_session=')));
   } finally {
     globalThis.fetch = realFetch;
   }

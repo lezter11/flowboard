@@ -114,13 +114,17 @@ test('B-7 Google token exchange: a failure logs the status only, never the provi
   }) as typeof fetch;
   try {
     await t.test('the response is a 302 to sign-in with state=failed, and the log holds no provider text', async () => {
+      const env = { GOOGLE_CLIENT_ID: 'client-id-cap', GOOGLE_CLIENT_SECRET: 'client-secret-cap' };
+      const start = await app.request('http://localhost/api/v1/auth/google/start', undefined, env);
+      assert.equal(start.status, 302);
+      const state = new URL(start.headers.get('location')!).searchParams.get('state');
+      const stateCookie = start.headers.getSetCookie()[0]!.split(';')[0]!;
       const res = await app.request(
-        'http://localhost/api/v1/auth/google/callback?code=abc&state=st_cap',
-        { headers: { cookie: 'flowboard_oauth_state=st_cap' } },
-        { GOOGLE_CLIENT_ID: 'client-id-cap', GOOGLE_CLIENT_SECRET: 'client-secret-cap' } as never,
+        `http://localhost/api/v1/auth/google/callback?code=abc&state=${state}`,
+        { headers: { cookie: stateCookie } }, env,
       );
       assert.equal(res.status, 302, 'a failure redirects to sign-in');
-    assert.match(res.headers.get('location') ?? '', /\/signin\?state=failed$/);
+      assert.match(res.headers.get('location') ?? '', /\/signin\?state=failed$/);
       const line = logged.find((l) => l.includes('google_token_exchange_failed'));
       assert.ok(line, 'a failure line is logged');
       assert.ok(!line.includes('provider-secret'), 'no provider body in the log');
