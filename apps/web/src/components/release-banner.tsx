@@ -1,15 +1,20 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { createReleaseStatusController } from '@/lib/release-status';
+import { createReleaseStatusController, type ReleaseNotice } from '@/lib/release-status';
+
+const copy = {
+  update: ['Update in progress', 'We’re updating Flowboard. You can keep this page open.'],
+  'planned-maintenance': ['Planned maintenance', 'Flowboard will be unavailable for about 2 hours. Timing to be announced.'],
+};
 
 /** Public release notice, independent of identity and the application shell. */
 export function ReleaseBanner() {
-  const [active, setActive] = useState(false);
+  const [notice, setNotice] = useState<ReleaseNotice>(null);
   const banner = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const controller = createReleaseStatusController({ fetcher: window.fetch.bind(window),
-      isVisible: () => document.visibilityState === 'visible', onActive: setActive });
+      isVisible: () => document.visibilityState === 'visible', onNotice: setNotice });
     document.addEventListener('visibilitychange', controller.visibilityChanged);
     controller.start();
     return () => { document.removeEventListener('visibilitychange', controller.visibilityChanged); controller.stop(); };
@@ -22,8 +27,8 @@ export function ReleaseBanner() {
     const observer = new ResizeObserver(measure);
     observer.observe(node);
     return () => { observer.disconnect(); document.documentElement.style.removeProperty('--release-banner-height'); };
-  }, [active]);
+  }, [notice]);
   return <div ref={banner} className="release-banner" role="status" aria-live="polite" aria-atomic="true">
-    {active && <><strong>Update in progress</strong><span>We’re updating Flowboard. You can keep this page open.</span></>}
+    {notice && <><strong>{copy[notice][0]}</strong><span>{copy[notice][1]}</span></>}
   </div>;
 }

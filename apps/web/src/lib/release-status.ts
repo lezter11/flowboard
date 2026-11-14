@@ -2,12 +2,14 @@ const POLL_MS = 30_000;
 const TIMEOUT_MS = 5_000;
 const MAX_BYTES = 1024;
 
-/** Only the public boolean is accepted; response text never becomes UI or logging. */
-export async function readReleaseStatus(response: Response, signal: AbortSignal): Promise<boolean> {
+export type ReleaseNotice = 'update' | 'planned-maintenance' | null;
+
+/** Accept a boolean and an approved notice name. Text comes from the component. */
+export async function readReleaseStatus(response: Response, signal: AbortSignal): Promise<ReleaseNotice> {
   const refuse = () => { void response.body?.cancel().catch(() => {}); return new Error('Invalid release status'); };
   // Explicit retirement contract: legacy Pages without this asset returns404.
   // Only absence/retirement ends the notice; HTML fallbacks and other errors do not.
-  if (response.status === 404 || response.status === 410) { void response.body?.cancel().catch(() => {}); return false; }
+  if (response.status === 404 || response.status === 410) { void response.body?.cancel().catch(() => {}); return null; }
   if (!response.ok || response.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase() !== 'application/json') throw refuse();
   const declared = response.headers.get('content-length');
   if (declared !== null && (!/^\d+$/.test(declared) || Number(declared) > MAX_BYTES)) throw refuse();
@@ -32,8 +34,11 @@ export async function readReleaseStatus(response: Response, signal: AbortSignal)
     let offset = 0;
     for (const chunk of chunks) { body.set(chunk, offset); offset += chunk.byteLength; }
     const value: unknown = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(body));
-    if (value === null || typeof value !== 'object' || Array.isArray(value) || Object.keys(value).length !== 1 || !('active' in value) || typeof value.active !== 'boolean') throw new Error('Invalid release status');
-    return value.active;
+    if (value === null || typeof value !== 'object' || Array.isArray(value) || !('active' in value) || typeof value.active !== 'boolean') throw new Error('Invalid release status');
+    const keys = Object.keys(value).length;
+    if (keys === 1) return value.active ? 'update' : null;
+    if (keys === 2 && value.active && 'notice' in value && value.notice === 'planned-maintenance') return value.notice;
+    throw new Error('Invalid release status');
   } finally {
     signal.removeEventListener('abort', abort);
     void reader.cancel().catch(() => {});
@@ -44,7 +49,7 @@ export async function readReleaseStatus(response: Response, signal: AbortSignal)
 export function createReleaseStatusController(options: {
   fetcher: (url: string, init: RequestInit) => Promise<Response>;
   isVisible: () => boolean;
-  onActive: (active: boolean) => void;
+  onNotice: (notice: ReleaseNotice) => void;
 }) {
   let started = false, stopped = false, running = false, refreshOnReturn = false;
   let wasVisible = options.isVisible();
@@ -68,8 +73,8 @@ export function createReleaseStatusController(options: {
       const response = await options.fetcher('/release-status.json', {
         method: 'GET', credentials: 'omit', cache: 'no-store', redirect: 'error', referrerPolicy: 'no-referrer', signal: current.signal,
       });
-      const active = await readReleaseStatus(response, current.signal);
-      if (!stopped && !current.signal.aborted && options.isVisible()) options.onActive(active);
+      const notice = await readReleaseStatus(response, current.signal);
+      if (!stopped && !current.signal.aborted && options.isVisible()) options.onNotice(notice);
     } catch {
       // Keep the last valid state; an error cannot announce that an update ended.
     } finally {
