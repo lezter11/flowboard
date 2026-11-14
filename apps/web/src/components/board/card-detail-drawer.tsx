@@ -21,6 +21,7 @@ import { useAssignablePeople, useProjectPeople } from '@/lib/assignee-people';
 import { EMPTY_ASSIGNEES, MAX_ASSIGNEES, NO_ACCESS_HINT, assignableList, canAddAssignee, describeIneligible, ineligibleFromFailure, peopleLoadError, ineligibleIds, namesFor, noBoardAccess, pickerState, saveBarText } from '@/lib/assignees';
 import { Icon } from '@/components/ui/icon';
 import { CardImages } from './card-images';
+import { CardDocuments } from './card-documents';
 import { formatPersonName } from '@/lib/person-name';
 import { useSession } from '@/lib/session';
 import { Avatar } from '@/components/ui/avatar';
@@ -418,6 +419,7 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, structur
         </section>
 
         <CardImages cardId={card.id} role={role} count={card.imageCount} />
+        {process.env.NEXT_PUBLIC_FLOWBOARD_DOCUMENTS === 'true' && <CardDocuments cardId={card.id} />}
 
         <section className="detail-section" aria-label="Discussion and activity">
           <div className="tabs" role="tablist" aria-label="Card discussion" onKeyDown={(event) => {

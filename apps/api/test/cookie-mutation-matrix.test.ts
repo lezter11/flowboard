@@ -9,7 +9,7 @@ const key=(op:(typeof OPENAPI_ROUTES)[number])=>op.method+' '+(op.basePath??'/ap
 const normalize=(path:string)=>path.replace(/:([A-Za-z][A-Za-z0-9]*)/g,'{$1}');
 const selected=(op:(typeof OPENAPI_ROUTES)[number])=>op.method!=='GET'&&(op.path.includes('{')||['/session/last-location','/tokens'].includes(op.path));
 const retired=(op:(typeof OPENAPI_ROUTES)[number])=>op.path.endsWith('/transfer-ownership');
-const boardScoped=(op:(typeof OPENAPI_ROUTES)[number])=>/^\/(boards|cards|comments|images|image-uploads|imports|card-imports)\//.test(op.path)||op.path==='/session/last-location';
+const boardScoped=(op:(typeof OPENAPI_ROUTES)[number])=>/^\/(boards|cards|comments|images|image-uploads|documents|imports|card-imports)\//.test(op.path)||op.path==='/session/last-location';
 const consentDecision=(op:(typeof OPENAPI_ROUTES)[number])=>op.path==='/mcp/authorization-requests/{requestId}/decision';
 const ownConnection=(op:(typeof OPENAPI_ROUTES)[number])=>op.path==='/mcp/connections/{connectionId}';
 const output=process.env['FLOWBOARD_COOKIE_MATRIX_EVIDENCE_PATH'];

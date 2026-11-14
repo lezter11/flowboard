@@ -6,7 +6,20 @@ Hosted MCP uses `POST /api/v1/mcp` with a project-restricted OAuth access creden
 
 OAuth registration/authorize/token/revoke live under `/api/v1/mcp/oauth/`. Cookie-session browser APIs are GET `/api/v1/mcp/authorization-requests/:requestId`, POST the same plus `/decision`, GET `/api/v1/mcp/connections`, and DELETE `/api/v1/mcp/connections/:connectionId`. Consent GET rotates CSRF on each project page; submit the latest value. Explicit allow requires a project; deny does not. Connection summaries contain no raw credentials. Both ordinary API and standard OAuth wire errors are documented separately in generated OpenAPI. Discovery/consent/credential responses are no-store.
 
-Canonical payloads and bounds are in [HOSTED_MCP_SPEC](HOSTED_MCP_SPEC.md) and `packages/contracts/src/hosted-mcp.ts`; generated OpenAPI now inventories118operations. The six PAT capability routes remain unchanged. [Backend API review](reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md) is a local UI handoff, not proof of Google/Claude or deployment acceptance. UI sign-in continuation requires final affected-source review; current release status is tracked in [PROGRESS](../PROGRESS.md).
+Canonical payloads and bounds are in [HOSTED_MCP_SPEC](HOSTED_MCP_SPEC.md) and `packages/contracts/src/hosted-mcp.ts`. The six PAT capability routes remain unchanged. [Backend API review](reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md) is a local UI handoff, not proof of Google/Claude or deployment acceptance. UI sign-in continuation requires final affected-source review; current release status is tracked in [PROGRESS](../PROGRESS.md).
+
+## Private card documents, local candidate
+
+The four document routes require a browser session. Local tests explicitly inject private storage and a scanner. A runtime without those dependencies returns `503 CONFIG_ERROR` after authentication. This candidate has no hosted document configuration.
+
+| Method and path | Request and result |
+| --- | --- |
+| GET `/api/v1/cards/:cardId/documents` | Returns `{data:{items,count,canUpload}}`. `canUpload` is current write permission. The card holds up to ten documents, and each item includes its own `canRemove`. |
+| POST `/api/v1/cards/:cardId/documents` | Raw PDF, `.docx`, or `.xlsx` up to 1 MiB with matching `Content-Type`, percent-encoded `X-Document-Filename`, and `Idempotency-Key`. Returns `201` with the accepted media type and both file sizes. Retry an uncertain response with the exact same bytes, name and key. |
+| GET `/api/v1/documents/:documentId/content` | Downloads the verified bytes with the matching media type, attachment filename, SHA-256 digest, and `Cache-Control: private, no-store`. Access is checked again after the private storage read. |
+| DELETE `/api/v1/documents/:documentId` | Requires `Idempotency-Key`. The uploader or a project administrator with current write access can remove the document. Returns `{data:{id,success:true}}`. |
+
+Failures include `413 DOCUMENT_TOO_LARGE`, `415 UNSUPPORTED_DOCUMENT`, `422 DOCUMENT_REJECTED`, `409 DOCUMENT_UPLOAD_IN_PROGRESS` or `DOCUMENT_LIMIT_REACHED`, and `503 DOCUMENT_PROCESSOR_UNAVAILABLE`. See the [generated API contract](openapi.json) and [document rollout checks](CARD_DOCUMENTS_SPEC.md).
 
 ## MCP / personal access tokens — repair contract, 2026-11-03
 

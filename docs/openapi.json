@@ -3601,6 +3601,211 @@
         "x-response-validation": "Documented wire projection; not a claim all handlers execute output-schema parsing."
       }
     },
+    "/api/v1/cards/{cardId}/documents": {
+      "get": {
+        "operationId": "get_api_v1_cards_cardId_documents",
+        "summary": "List private document attachments when the scanner and private storage are configured",
+        "description": "List private document attachments when the scanner and private storage are configured",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List private document attachments when the scanner and private storage are configured",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardDocumentsResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-minimum-project-role": "viewer",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/documents.ts",
+        "x-lifecycle": "local-only",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
+      },
+      "post": {
+        "operationId": "post_api_v1_cards_cardId_documents",
+        "summary": "Scan a bounded PDF, Word, or Excel file and publish a private, verified attachment",
+        "description": "Scan a bounded PDF, Word, or Excel file and publish a private, verified attachment",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cardId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdempotencyKey"
+            },
+            "description": "Stable identity of one command. Reuse across retry; current authority is rechecked. An authorized replay returns the normal response and an Idempotency-Replayed header."
+          },
+          {
+            "name": "X-Document-Filename",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Percent-encoded .pdf, .docx, or .xlsx filename (up to 160 decoded characters). The extension must match Content-Type."
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Scan a bounded PDF, Word, or Excel file and publish a private, verified attachment",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Idempotency-Replayed": {
+                "schema": {
+                  "type": "string",
+                  "const": "true"
+                },
+                "description": "Present on an authorized replay."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardDocumentResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/pdf": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "x-max-request-bytes": 1048576,
+        "x-minimum-project-role": "member",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/documents.ts",
+        "x-lifecycle": "local-only",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations.",
+        "x-replay-schema": "CardDocumentResponse",
+        "x-response-validation": "Documented wire projection; not a claim all handlers execute output-schema parsing."
+      }
+    },
     "/api/v1/cards/{cardId}/image-uploads": {
       "post": {
         "operationId": "post_api_v1_cards_cardId_image_uploads",
@@ -4320,6 +4525,219 @@
         "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations.",
         "x-replay-schema": "MinimalReplayResponse",
         "x-response-validation": "Documented wire projection; not a claim all handlers execute output-schema parsing."
+      }
+    },
+    "/api/v1/documents/{documentId}": {
+      "delete": {
+        "operationId": "delete_api_v1_documents_documentId",
+        "summary": "Remove a private document attachment as its uploader or an authorized moderator",
+        "description": "Remove a private document attachment as its uploader or an authorized moderator",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/IdempotencyKey"
+            },
+            "description": "Stable identity of one command. Reuse across retry; current authority is rechecked. An authorized replay returns the normal response and an Idempotency-Replayed header."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Remove a private document attachment as its uploader or an authorized moderator",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Idempotency-Replayed": {
+                "schema": {
+                  "type": "string",
+                  "const": "true"
+                },
+                "description": "Present on an authorized replay."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CardDocumentDeleteResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-minimum-project-role": "member",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/documents.ts",
+        "x-lifecycle": "local-only",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations.",
+        "x-replay-schema": "CardDocumentDeleteResponse",
+        "x-response-validation": "Documented wire projection; not a claim all handlers execute output-schema parsing."
+      }
+    },
+    "/api/v1/documents/{documentId}/content": {
+      "get": {
+        "operationId": "get_api_v1_documents_documentId_content",
+        "summary": "Download private verified document bytes",
+        "description": "Download private verified document bytes",
+        "security": [
+          {
+            "sessionCookie": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verified PDF, Word, or Excel bytes with attachment disposition.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Assigned by shared middleware when app initialization succeeds."
+              },
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "Attachment-only with encoded UTF-8 filename."
+              },
+              "X-Content-SHA256": {
+                "schema": {
+                  "type": "string",
+                  "pattern": "^[a-f0-9]{64}$"
+                },
+                "description": "Digest of the delivered bytes."
+              },
+              "Content-Length": {
+                "schema": {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                "description": "Length of the delivered bytes."
+              },
+              "Cache-Control": {
+                "schema": {
+                  "type": "string",
+                  "const": "private, no-store"
+                }
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Route/global validation, authentication, authorization, quota, lifecycle, rate, body, storage and availability errors. Machine codes and known statuses are in x-error-catalog. Worker bootstrap CONFIG_ERROR is a separate pre-middleware shape.",
+            "headers": {
+              "X-Request-Id": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "Retry-After": {
+                "schema": {
+                  "type": "string"
+                },
+                "description": "429 and retryable conflicts when supplied."
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorEnvelope"
+                    },
+                    {
+                      "$ref": "#/components/schemas/WorkerBootstrapError"
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        "x-minimum-project-role": "viewer",
+        "x-authority-note": "Owner is implicit only in owned workspace. Board-derived paths require current project membership plus board grant for non-Owners; role alone is insufficient. Resource ancestry, actor ownership and lifecycle rules apply.",
+        "x-runtime-source": "apps/api/src/http/routes/documents.ts",
+        "x-lifecycle": "local-only",
+        "x-personal-access-token": "Forbidden, including explicit bearer credentials on otherwise public/session operations."
       }
     },
     "/api/v1/image-uploads/{uploadId}": {
@@ -14876,6 +15294,364 @@
         "x-zod-source": "apps/api/src/http/routes/cards.ts:GET cards/:cardId",
         "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
       },
+      "CardDocument": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "cardId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "filename": {
+            "type": "string",
+            "minLength": 5,
+            "maxLength": 160,
+            "pattern": "^[^\\\\/]+\\.(?:[pP][dD][fF]|[dD][oO][cC][xX]|[xX][lL][sS][xX])$"
+          },
+          "mediaType": {
+            "type": "string",
+            "enum": [
+              "application/pdf",
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            ]
+          },
+          "byteLength": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1048576
+          },
+          "originalByteLength": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1048576
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "uploaderId": {
+            "type": "string",
+            "minLength": 1
+          },
+          "canRemove": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "cardId",
+          "filename",
+          "mediaType",
+          "byteLength",
+          "originalByteLength",
+          "createdAt",
+          "uploaderId",
+          "canRemove"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:cardDocumentSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "CardDocumentDeleteResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "success": {
+                "type": "boolean",
+                "const": true
+              }
+            },
+            "required": [
+              "id",
+              "success"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:cardDocumentDeleteResponseSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "CardDocumentDeleteResponseWithReplayFlag": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "success": {
+                "type": "boolean",
+                "const": true
+              }
+            },
+            "required": [
+              "id",
+              "success"
+            ],
+            "additionalProperties": false
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:cardDocumentDeleteResponseSchema; apps/api/src/http/routes/*:optional replayed envelope flag",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "CardDocumentResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "cardId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "filename": {
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 160,
+                "pattern": "^[^\\\\/]+\\.(?:[pP][dD][fF]|[dD][oO][cC][xX]|[xX][lL][sS][xX])$"
+              },
+              "mediaType": {
+                "type": "string",
+                "enum": [
+                  "application/pdf",
+                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                ]
+              },
+              "byteLength": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1048576
+              },
+              "originalByteLength": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1048576
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "uploaderId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "canRemove": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "cardId",
+              "filename",
+              "mediaType",
+              "byteLength",
+              "originalByteLength",
+              "createdAt",
+              "uploaderId",
+              "canRemove"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:cardDocumentResponseSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "CardDocumentResponseWithReplayFlag": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "cardId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "filename": {
+                "type": "string",
+                "minLength": 5,
+                "maxLength": 160,
+                "pattern": "^[^\\\\/]+\\.(?:[pP][dD][fF]|[dD][oO][cC][xX]|[xX][lL][sS][xX])$"
+              },
+              "mediaType": {
+                "type": "string",
+                "enum": [
+                  "application/pdf",
+                  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                ]
+              },
+              "byteLength": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1048576
+              },
+              "originalByteLength": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 1048576
+              },
+              "createdAt": {
+                "type": "string"
+              },
+              "uploaderId": {
+                "type": "string",
+                "minLength": 1
+              },
+              "canRemove": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "cardId",
+              "filename",
+              "mediaType",
+              "byteLength",
+              "originalByteLength",
+              "createdAt",
+              "uploaderId",
+              "canRemove"
+            ],
+            "additionalProperties": false
+          },
+          "replayed": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:cardDocumentResponseSchema; apps/api/src/http/routes/*:optional replayed envelope flag",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "CardDocumentsResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "object",
+            "properties": {
+              "items": {
+                "maxItems": 10,
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "cardId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "filename": {
+                      "type": "string",
+                      "minLength": 5,
+                      "maxLength": 160,
+                      "pattern": "^[^\\\\/]+\\.(?:[pP][dD][fF]|[dD][oO][cC][xX]|[xX][lL][sS][xX])$"
+                    },
+                    "mediaType": {
+                      "type": "string",
+                      "enum": [
+                        "application/pdf",
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                      ]
+                    },
+                    "byteLength": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 1048576
+                    },
+                    "originalByteLength": {
+                      "type": "integer",
+                      "minimum": 1,
+                      "maximum": 1048576
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "uploaderId": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "canRemove": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "cardId",
+                    "filename",
+                    "mediaType",
+                    "byteLength",
+                    "originalByteLength",
+                    "createdAt",
+                    "uploaderId",
+                    "canRemove"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "count": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 10
+              },
+              "canUpload": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "items",
+              "count",
+              "canUpload"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "additionalProperties": false,
+        "x-zod-source": "packages/contracts/src/index.ts:cardDocumentsResponseSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
       "CardDueFilter": {
         "type": "string",
         "enum": [
@@ -17607,6 +18383,24 @@
         "additionalProperties": false,
         "x-zod-source": "apps/api/src/http/routes/session.ts:dev-login",
         "description": "Local/test-only raw session token; never a supported deployed login.",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "DocumentFilename": {
+        "type": "string",
+        "minLength": 5,
+        "maxLength": 160,
+        "pattern": "^[^\\\\/]+\\.(?:[pP][dD][fF]|[dD][oO][cC][xX]|[xX][lL][sS][xX])$",
+        "x-zod-source": "packages/contracts/src/index.ts:documentFilenameSchema",
+        "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
+      },
+      "DocumentMediaType": {
+        "type": "string",
+        "enum": [
+          "application/pdf",
+          "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        ],
+        "x-zod-source": "packages/contracts/src/index.ts:documentMediaTypeSchema",
         "x-validation-limit": "JSON Schema preserves structural/native constraints. JavaScript refinements, transforms and database/authorization rules still require the shared Zod validator and mounted handler."
       },
       "EditCommentInput": {
@@ -27841,6 +28635,11 @@
           "DECOMPRESSION_FAILED",
           "DESTINATION_COLUMN_MISSING",
           "DIGEST_MISMATCH",
+          "DOCUMENT_LIMIT_REACHED",
+          "DOCUMENT_PROCESSOR_UNAVAILABLE",
+          "DOCUMENT_REJECTED",
+          "DOCUMENT_TOO_LARGE",
+          "DOCUMENT_UPLOAD_IN_PROGRESS",
           "DUPLICATE_COLUMN_NAME",
           "DUPLICATE_HEADER",
           "DUPLICATE_IN_BATCH",
@@ -27930,6 +28729,7 @@
           "UPLOAD_EXPIRED",
           "USERINFO_FAILED",
           "VALIDATION_ERROR",
+          "UNSUPPORTED_DOCUMENT",
           "WORKSHEET_NOT_FOUND",
           "WORKSPACE_CREATE_RETIRED",
           "XXE_DETECTED",
@@ -29363,6 +30163,26 @@
       "status": 400,
       "hasDetails": true
     },
+    "DOCUMENT_LIMIT_REACHED": {
+      "status": 409,
+      "hasDetails": false
+    },
+    "DOCUMENT_PROCESSOR_UNAVAILABLE": {
+      "status": 503,
+      "hasDetails": false
+    },
+    "DOCUMENT_REJECTED": {
+      "status": 422,
+      "hasDetails": false
+    },
+    "DOCUMENT_TOO_LARGE": {
+      "status": 413,
+      "hasDetails": false
+    },
+    "DOCUMENT_UPLOAD_IN_PROGRESS": {
+      "status": 409,
+      "hasDetails": false
+    },
     "DUPLICATE_COLUMN_NAME": {
       "status": 409,
       "hasDetails": false
@@ -29718,6 +30538,10 @@
     "VALIDATION_ERROR": {
       "status": 422,
       "hasDetails": true
+    },
+    "UNSUPPORTED_DOCUMENT": {
+      "status": 415,
+      "hasDetails": false
     },
     "WORKSHEET_NOT_FOUND": {
       "status": 422,

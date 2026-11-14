@@ -33,6 +33,7 @@ import { cardsRoutes } from './routes/cards.ts';
 import { commentsRoutes } from './routes/comments.ts';
 import { trashRoutes } from './routes/trash.ts';
 import { imagesRoutes } from './routes/images.ts';
+import { createDocumentRoutes, documentRequestDeadline, isDocumentRequest, isDocumentUploadRequest, type CardDocumentDependencies } from './routes/documents.ts';
 import { importsRoutes } from './routes/imports.ts';
 import { activityRoutes } from './routes/activity.ts';
 import { notificationsRoutes } from './routes/notifications.ts';
@@ -61,6 +62,7 @@ export interface CreateAppOptions {
   // Runtime cleanup follows real retained work, even after a caller timeout.
   onImageWorkLifetime?: (work: Promise<void>) => void;
   onMcpWorkLifetime?: (work: Promise<void>) => void;
+  onDocumentWorkLifetime?: (work: Promise<void>) => void;
   mcpPublicOrigin?: string;
   pool?: pg.Pool;
   // Defaults to the Cloudflare binding lookup; tests inject a fake limiter.
@@ -73,6 +75,8 @@ export interface CreateAppOptions {
   // Omit to use the process default (tests set MemoryStorageDriver).
   storage?: StorageDriver | null;
   imageVerifier?: ImageVerifier | null;
+  // Deliberate local injection only until the hosted scanner and private storage lifecycle pass review.
+  documents?: CardDocumentDependencies;
   // Own-projects limits (B-17). Pass limitsFromEnv(env) on the Worker. Omit for the defaults.
   limits?: Limits;
 }
@@ -103,8 +107,9 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
       'Idempotency-Key',
       'If-Match',
       'X-Dev-Secret',
+      'X-Document-Filename',
     ],
-    exposeHeaders: ['X-Request-Id', 'Server-Timing', 'Content-Disposition', 'ETag'],
+    exposeHeaders: ['X-Request-Id', 'Server-Timing', 'Content-Disposition', 'ETag', 'X-Content-SHA256', 'Idempotency-Replayed'],
     maxAge: 86400,
   });
   app.use('*', (c, next) => c.req.path === HOSTED_MCP_PATH ? next() : browserCors(c, next));
@@ -185,10 +190,11 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
   const ordinaryRateLimit = rateLimitMiddleware(options?.rateLimiter ?? cloudflareRateLimiter, rateLimitOptions);
   app.use('*', (c, next) => c.get('machineCredentialKind') === 'mcp_oauth' ? next() : ordinaryRateLimit(c, next));
   // Exact limits on sign-in, invitations, imports and uploads: counted in PostgreSQL, fail closed.
-  app.use('*', windowRateLimitMiddleware(
+  const exactRateLimit = windowRateLimitMiddleware(
     options?.windowCounter ?? ((c) => postgresWindowCounter(getPool(c))),
     rateLimitOptions,
-  ));
+  );
+  app.use('*', (c, next) => !options?.documents && isDocumentUploadRequest(c.req.method,c.req.path) ? next() : exactRateLimit(c,next));
 
   // 2. Timing middleware: measures request duration and attaches Server-Timing header
   app.use('*', timingMiddleware);
@@ -200,14 +206,17 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
   // 3. Body limit middleware: 1 MiB by default; 5 MiB XLSX imports and 10 MiB image content only for
   // a signed-in request on those routes (B-7). Refused with 413 PAYLOAD_TOO_LARGE.
   const ordinaryBodyLimit = routeBodyLimitMiddleware(options?.bodyLimitBytes ?? DEFAULT_BODY_LIMIT_BYTES);
-  app.use('*', (c, next) => isHostedOAuthBodyRequest(c.req.method, c.req.path) ? next() : ordinaryBodyLimit(c, next));
+  app.use('*', (c, next) => isHostedOAuthBodyRequest(c.req.method, c.req.path) || isDocumentUploadRequest(c.req.method, c.req.path)
+    ? next() : ordinaryBodyLimit(c, next));
 
   // 4. Full image verification has a bounded10s HTTP budget; ordinary Node
   // requests keep5s. Explicit deadlineMs remains a focused-test override unless
   // imageDeadlineMs is supplied (Worker ordinary25s/image10s are explicit).
   const ordinaryDeadline=deadlineMiddleware(options?.deadlineMs??DEFAULT_DEADLINE_MS);
   const imageDeadline=deadlineMiddleware(options?.imageDeadlineMs??options?.deadlineMs??10_000);
+  const documentDeadline = documentRequestDeadline(options?.deadlineMs ?? DEFAULT_DEADLINE_MS, options?.onDocumentWorkLifetime);
   app.use('*',(c,next)=>c.get('machineCredentialKind') === 'mcp_oauth' || isHostedOAuthBodyRequest(c.req.method,c.req.path) ? next()
+    : options?.documents && isDocumentRequest(c.req.method,c.req.path) ? documentDeadline(c,next)
     : isImageMemoryWrite(c.req.method,c.req.path)?imageDeadline(c,next):ordinaryDeadline(c,next));
 
   // Default no-store cache policy for private application endpoints
@@ -251,6 +260,7 @@ export function createApp(probeDatabase: () => Promise<void> = async () => {}, o
   app.route('/api/v1', commentsRoutes);
   app.route('/api/v1', trashRoutes);
   app.route('', imagesRoutes);
+  app.route('', createDocumentRoutes(options?.documents));
   app.route('/api/v1', importsRoutes);
   app.route('/api/v1', activityRoutes);
   app.route('/api/v1', notificationsRoutes);

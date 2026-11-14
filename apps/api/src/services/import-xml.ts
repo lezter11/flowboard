@@ -81,9 +81,10 @@ export function requireRoot(node: XmlElement, name: string, namespaces: string[]
  * counts markup delimiters conservatively before either builds its structures.
  * CDATA is explicit so literal '&amp;' within it never enters entity decoding.
  */
-export function parseXmlPart(bytes: Buffer, checkBudget: () => void, budget = { markup: 0 }): XmlElement {
+export function parseXmlPart(bytes: Buffer, checkBudget: () => void, budget = { markup: 0 }, inspectSource?: (xml: string) => void): XmlElement {
   const xml = decodeXmlBytes(bytes);
   checkBudget();
+  inspectSource?.(xml);
   if (/<!\s*(?:DOCTYPE|ENTITY)\b/iu.test(xml)) throw HttpError.unprocessable('XXE_DETECTED', 'DTD and entity declarations are disallowed in every workbook part.');
   let previous = -1;
   for (let i = xml.indexOf('<'); i !== -1; i = xml.indexOf('<', previous + 1)) {

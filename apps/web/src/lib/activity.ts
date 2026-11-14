@@ -38,6 +38,8 @@ export function describeActivity(item: Pick<ActivityItem, 'action' | 'safeChange
     case 'card_import_committed': return { icon: 'upload', category: 'Cards', text: 'imported cards from a spreadsheet' };
     case 'image_attached': return { icon: 'image', category: 'Cards', text: `added an image to ${subject}` };
     case 'image_removed': return { icon: 'image', category: 'Cards', text: `removed an image from ${subject}` };
+    case 'document_attached': return { icon: 'upload', category: 'Cards', text: `attached a document to ${subject}` };
+    case 'document_removed': return { icon: 'trash', category: 'Cards', text: `removed a document from ${subject}` };
     case 'board_access_granted': return { icon: 'user-check', category: 'People', text: 'gave someone access to a board' };
     case 'board_access_revoked': return { icon: 'user-check', category: 'People', text: 'removed someone’s access to a board' };
     // Boards

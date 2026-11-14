@@ -59,7 +59,7 @@ export async function routeAuthFixture(t:TestContext){
   const fingerprintSql='SELECT '+tables.map(table=>`(SELECT md5(COALESCE(jsonb_agg(to_jsonb(x) ORDER BY to_jsonb(x)::text)::text,'')) FROM "${schema}"."${table}" x) AS "${table}"`).join(',');
   const sequences=(await pool.query('SELECT sequencename FROM pg_sequences WHERE schemaname=current_schema() ORDER BY sequencename')).rows.map(r=>r.sequencename as string);
   const fingerprint=async()=>{const state={...((await pool.query(fingerprintSql)).rows[0]),__storageMutations:String(storageMutations)};for(const sequence of sequences){const row=(await pool.query(`SELECT last_value::text,is_called FROM \"${schema}\".\"${sequence}\"`)).rows[0];state['__sequence_'+sequence]=JSON.stringify(row);}return state;};
-  const ids:Record<string,string>={workspaceId:'ws',projectId:'prj',boardId:'brd',cardId:'card',columnId:'col',commentId:'comment',imageId:'image',uploadId:'upload',importId:'imp',invitationId:'inv',notificationId:'notif',id:'notif',userId:actors.target!.user.id,tokenId:pat.tokenDetails.id};
+  const ids:Record<string,string>={workspaceId:'ws',projectId:'prj',boardId:'brd',cardId:'card',columnId:'col',commentId:'comment',imageId:'image',uploadId:'upload',importId:'imp',invitationId:'inv',notificationId:'notif',id:'notif',userId:actors.target!.user.id,tokenId:pat.tokenDetails.id,documentId:'doc_local_only'};
   async function requestFixture(op:OpenApiOperationDefinition){
     const oauth=op.path.startsWith('/mcp')?await hosted():undefined;
     if(oauth){ids.requestId=oauth.pending.requestId;ids.connectionId=oauth.connectionId;}
@@ -94,6 +94,7 @@ export async function routeAuthFixture(t:TestContext){
     let bytes:BodyInit|undefined;
     if(op.requestKind==='xlsx'){headers['Content-Type']='application/octet-stream';bytes=getImportTemplateBytes();}
     else if(op.requestKind==='image'){headers['Content-Type']='image/png';bytes=new Uint8Array(png).buffer;}
+    else if(op.requestKind==='document'){headers['Content-Type']='application/pdf';headers['X-Document-Filename']='matrix.pdf';bytes='%PDF-1.7\nsynthetic fixture\n%%EOF';}
     else if(op.requestKind==='form'&&body!==undefined){headers['Content-Type']='application/x-www-form-urlencoded';bytes=new URLSearchParams(body as Record<string,string>);}
     else if(body!==undefined){headers['Content-Type']='application/json';bytes=JSON.stringify(body);}
     if(op.path==='/mcp'){headers.Accept='application/json, text/event-stream';headers['MCP-Protocol-Version']='2025-11-25';}

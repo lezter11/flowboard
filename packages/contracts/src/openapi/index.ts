@@ -1,5 +1,7 @@
+import { DOCUMENT_MEDIA_TYPES, MAX_DOCUMENT_BYTES } from '../documents.ts';
+
 /** Lightweight operation metadata. Schema generation is build-time in scripts/generate-openapi.ts. */
-export interface OpenApiResponseDefinition { schema?: string; contentType?: string; description: string; empty?: boolean; }
+export interface OpenApiResponseDefinition { schema?: string; contentType?: string | readonly string[]; description: string; empty?: boolean; attachment?: boolean; }
 export interface OpenApiRouteDefinition {
   method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' | 'OPTIONS';
   path: string;
@@ -15,11 +17,12 @@ export interface OpenApiOperationDefinition extends OpenApiRouteDefinition {
   patScope?: 'projects:read' | 'boards:read' | 'cards:read' | 'cards:create';
   requestSchema?: string;
   querySchema?: string;
-  requestKind?: 'json' | 'image' | 'xlsx' | 'form';
+  requestKind?: 'json' | 'image' | 'xlsx' | 'form' | 'document';
   requestOptional?: boolean;
   errorKind?: 'oauth' | 'jsonrpc';
   maxRequestBytes?: number;
   replay?: boolean;
+  replayProjection?: 'current';
   source: string;
   responses: Record<string, OpenApiResponseDefinition>;
   variants?: Record<string, string>;
@@ -120,6 +123,10 @@ add('DELETE','/image-uploads/{uploadId}','member','Cancel staged image and sched
 add('GET','/cards/{cardId}/images','viewer','Read nested image gallery items and saved count','ImageGalleryResponse',{source:source('images')});
 for(const suffix of ['content','thumbnail']) add('GET',`/images/{imageId}/${suffix}`,'viewer','Authenticated private image delivery; current board access checked',undefined,{contentType:'image/*',source:source('images')});
 add('DELETE','/images/{imageId}','member','Uploader or authorized moderator removes image','ImageDeleteResponse',mutation('DeleteImageInput',{source:source('images')}));
+add('GET','/cards/{cardId}/documents','viewer','List private document attachments when the scanner and private storage are configured','CardDocumentsResponse',{source:source('documents'),lifecycle:'local-only'});
+add('POST','/cards/{cardId}/documents','member','Scan a bounded PDF, Word, or Excel file and publish a private, verified attachment','CardDocumentResponse',mutation(undefined,{status:201,requestKind:'document',maxRequestBytes:MAX_DOCUMENT_BYTES,source:source('documents'),lifecycle:'local-only',replayProjection:'current'}));
+add('GET','/documents/{documentId}/content','viewer','Download private verified document bytes',undefined,{source:source('documents'),lifecycle:'local-only',responses:{200:{contentType:Object.values(DOCUMENT_MEDIA_TYPES),attachment:true,description:'Verified PDF, Word, or Excel bytes with attachment disposition.'}}});
+add('DELETE','/documents/{documentId}','member','Remove a private document attachment as its uploader or an authorized moderator','CardDocumentDeleteResponse',mutation(undefined,{source:source('documents'),lifecycle:'local-only',replayProjection:'current'}));
 add('POST','/cards/{cardId}/delete','manager','Move card to exact24-hour trash','CardResponse',mutation('SoftDeleteCardInput',{source:source('trash')}));
 add('POST','/cards/{cardId}/restore','manager','Restore before exact server cutoff; reauthorize destination','CardResponse',mutation('RestoreCardInput',{source:source('trash')}));
 add('GET','/projects/{projectId}/trash','manager','Read authorized trash deadlines and restore actions','TrashListResponse',{querySchema:'TrashQuery',source:source('trash')});

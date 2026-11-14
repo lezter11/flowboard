@@ -4,7 +4,7 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
-import { ERROR_CATALOG } from '../packages/contracts/src/index.ts';
+import { DOCUMENT_MEDIA_TYPES, ERROR_CATALOG } from '../packages/contracts/src/index.ts';
 import { OPENAPI_ROUTES, OPENAPI_SPEC_METADATA, type OpenApiRouteDefinition } from '../packages/contracts/src/openapi/index.ts';
 import { OPENAPI_SCHEMAS } from '../packages/contracts/src/openapi/schemas.ts';
 
@@ -50,11 +50,18 @@ export function generateOpenApiDocument() {
       const required = schema['required'] as string[] | undefined;
       for (const [name, property] of Object.entries(schema['properties'] as Record<string, unknown> ?? {})) parameters.push({ name, in: 'query', required: required?.includes(name) ?? false, schema: property });
     }
-    if (route.requiresIdempotencyKey) parameters.push({ name: 'Idempotency-Key', in: 'header', required: true, schema: ref('IdempotencyKey'), description: 'Stable identity of one command. Reuse across retry; current authority is rechecked. Replay contains only minimal safe outcome markers.' });
+    if (route.requiresIdempotencyKey) parameters.push({ name: 'Idempotency-Key', in: 'header', required: true, schema: ref('IdempotencyKey'), description: 'Stable identity of one command. Reuse across retry; current authority is rechecked. ' + (route.replayProjection === 'current' ? 'An authorized replay returns the normal response and an Idempotency-Replayed header.' : 'Replay contains only minimal safe outcome markers.') });
     if (route.requestKind === 'xlsx') parameters.push({ name: 'X-Default-Column-Id', in: 'header', required: false, schema: { type:'string', minLength:1 }, description: 'Alternative to defaultColumnId query for raw XLSX; multipart carries the field.' });
     const responses: Record<string, unknown> = {};
     for (const [status, response] of Object.entries(route.responses)) {
       const headers: Record<string, unknown> = { 'X-Request-Id': { schema: { type:'string' }, description: 'Assigned by shared middleware when app initialization succeeds.' } };
+      if (route.replayProjection === 'current') headers['Idempotency-Replayed'] = { schema:{type:'string',const:'true'}, description:'Present on an authorized replay.' };
+      if (response.attachment) {
+        headers['Content-Disposition'] = { schema:{type:'string'}, description:'Attachment-only with encoded UTF-8 filename.' };
+        headers['X-Content-SHA256'] = { schema:{type:'string',pattern:'^[a-f0-9]{64}$'}, description:'Digest of the delivered bytes.' };
+        headers['Content-Length'] = { schema:{type:'integer',minimum:1}, description:'Length of the delivered bytes.' };
+        headers['Cache-Control'] = { schema:{type:'string',const:'private, no-store'} };
+      }
       if (status === '302') headers['Location'] = { schema: { type:'string' }, description:'Authorization provider or safe frontend landing/sign-in destination.' };
       if (route.errorKind) headers['Cache-Control'] = { schema: { type:'string', const:'no-store' } };
       if (route.auth === 'oauth-mcp' && status === '401') headers['WWW-Authenticate'] = { schema:{type:'string'}, description:'Bearer resource_metadata="APP_ORIGIN/.well-known/oauth-protected-resource/api/v1/mcp". No cookie or PAT fallback.' };
@@ -62,12 +69,13 @@ export function generateOpenApiDocument() {
       if (response.empty || status === '204' || status === '302') { responses[status] = { description: response.description, headers }; continue; }
       let content: Record<string, unknown>;
       if (response.contentType) {
-        const types = response.contentType === 'image/*' ? ['image/png','image/jpeg','image/webp'] : [response.contentType];
+        const types = response.contentType === 'image/*' ? ['image/png','image/jpeg','image/webp']
+          : typeof response.contentType === 'string' ? [response.contentType] : response.contentType;
         content = Object.fromEntries(types.map((mime) => [mime, { schema: mime === 'text/csv' ? { type:'string', description:'Safe escaped CSV outcome report' } : binary }]));
       } else if (response.schema) {
-        const normal = route.replay ? `${response.schema}WithReplayFlag` : response.schema;
+        const normal = route.replay && !route.replayProjection ? `${response.schema}WithReplayFlag` : response.schema;
         const variants = route.variants ? Object.values(route.variants).map(ref) : [ref(normal)];
-        if (route.replay) variants.push(ref('MinimalReplayResponse'));
+        if (route.replay && !route.replayProjection) variants.push(ref('MinimalReplayResponse'));
         content = { 'application/json': { schema: variants.length === 1 ? variants[0] : { anyOf: variants } } };
       } else throw new Error(`Missing JSON schema or binary MIME for ${route.method} ${operationPath} response ${status}`);
       responses[status] = { description: response.description, headers, content };
@@ -86,7 +94,9 @@ export function generateOpenApiDocument() {
       parameters.push({name:'Accept',in:'header',required:true,schema:{type:'string'},description:'Must include both application/json and text/event-stream with positive quality.'});
       parameters.push({name:'MCP-Protocol-Version',in:'header',required:false,schema:{type:'string'},description:'Installed SDK-supported protocol version; future protocol support is not implied.'});
     }
-    const requestBody = route.requestKind === 'image' ? { required:true, content:{'application/octet-stream':{schema:binary}} }
+    if (route.requestKind === 'document') parameters.push({name:'X-Document-Filename',in:'header',required:true,schema:{type:'string'},description:'Percent-encoded .pdf, .docx, or .xlsx filename (up to 160 decoded characters). The extension must match Content-Type.'});
+    const requestBody = route.requestKind === 'document' ? { required:true, content:Object.fromEntries(Object.values(DOCUMENT_MEDIA_TYPES).map(mime => [mime,{schema:binary}])) }
+      : route.requestKind === 'image' ? { required:true, content:{'application/octet-stream':{schema:binary}} }
       : route.requestKind === 'xlsx' ? { required:true, content:{ 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':{schema:binary}, 'application/octet-stream':{schema:binary},
           'multipart/form-data':{schema:{type:'object',properties:{file:binary,defaultColumnId:{type:'string',minLength:1}},required:['file','defaultColumnId']}} } }
       : route.requestSchema ? { required:!route.requestOptional,content:{[route.requestKind === 'form' ? 'application/x-www-form-urlencoded' : 'application/json']:{schema:ref(route.requestSchema)}} } : undefined;
@@ -100,7 +110,7 @@ export function generateOpenApiDocument() {
       'x-runtime-source':route.source,'x-lifecycle':route.lifecycle ?? 'active',
       ...(route.patScope ? {'x-required-token-scope':route.patScope,'x-token-project-binding':'A project-limited PAT cannot read/write another project; current project/board grants remain mandatory.'} : {'x-personal-access-token':'Forbidden, including explicit bearer credentials on otherwise public/session operations.'}),
       ...(route.variants ? {'x-auth-response-variants':route.variants} : {}),
-      ...(route.replay ? {'x-replay-schema':'MinimalReplayResponse','x-response-validation':'Documented wire projection; not a claim all handlers execute output-schema parsing.'} : {}) };
+      ...(route.replay ? {'x-replay-schema':route.replayProjection === 'current' ? Object.values(route.responses)[0]?.schema : 'MinimalReplayResponse','x-response-validation':'Documented wire projection; not a claim all handlers execute output-schema parsing.'} : {}) };
   }
   return { ...OPENAPI_SPEC_METADATA, jsonSchemaDialect:'https://json-schema.org/draft/2020-12/schema', paths,
     components: { securitySchemes: { sessionCookie:{type:'apiKey',in:'cookie',name:'flowboard_session'}, oauthMcpBearer:{type:'http',scheme:'bearer',bearerFormat:'flw_mcp_access_<64 hex characters>',description:'OAuth resource credential accepted only by /api/v1/mcp, never ordinary REST operations.'}, personalAccessToken:{type:'http',scheme:'bearer',bearerFormat:'flw_pat_<64 hex characters>'}, adminSecret:{type:'apiKey',in:'header',name:'X-Dev-Secret'} },schemas },

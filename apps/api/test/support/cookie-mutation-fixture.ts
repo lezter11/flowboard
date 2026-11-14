@@ -3,6 +3,7 @@ import crypto from 'node:crypto';
 import type {TestContext} from 'node:test';
 import type {OpenApiOperationDefinition} from '@flowboard/contracts/openapi';
 import {OPENAPI_SCHEMAS} from '../../../../packages/contracts/src/openapi/schemas.ts';
+import {cardDocumentResponseSchema} from '@flowboard/contracts';
 import {createApp} from '../../src/http/app.ts';
 import {createDevUserAndSession} from '../../src/adapters/session.ts';
 import {MemoryStorageDriver} from '../../src/adapters/storage.ts';
@@ -28,7 +29,9 @@ export async function cookieMutationFixture(t:TestContext,op:OpenApiOperationDef
   const put=storage.put.bind(storage),remove=storage.delete.bind(storage);
   storage.put=async(...args)=>{mutations++;return put(...args);};storage.delete=async(...args)=>{mutations++;return remove(...args);};
   const png=imageFixture('png').bytes;await storage.put('matrix/private-image',png,'image/png');
-  const app=createApp(async()=>{},{pool:base.pool,storage,mcpPublicOrigin:'http://localhost',imageVerifier:new SharpImageVerifier(),rateLimiter:()=>({limit:async()=>({success:true})}),windowCounter:()=>({consume:async()=>({count:1,retryAfterSeconds:60})})});
+  const app=createApp(async()=>{},{pool:base.pool,storage,documents:{storage,processor:{async process(bytes){
+    return {bytes,mediaType:'application/pdf',originalByteLength:bytes.length,sha256:crypto.createHash('sha256').update(bytes).digest('hex')};
+  }}},mcpPublicOrigin:'http://localhost',imageVerifier:new SharpImageVerifier(),rateLimiter:()=>({limit:async()=>({success:true})}),windowCounter:()=>({consume:async()=>({count:1,retryAfterSeconds:60})})});
   const oauth=op.path.startsWith('/mcp')?await base.hosted():undefined;
   const headers=(actor:string)=>({Cookie:`flowboard_session=${actors[actor]!.session.id}${oauth&&op.path.includes('/authorization-requests/')?'; '+oauth.pending.bindingCookie:''}`,Origin:'http://localhost','Idempotency-Key':crypto.randomUUID()});
   const call=(actor:string,path:string,method='GET',body?:unknown)=>app.request('http://localhost/api/v1'+path,{method,headers:{...headers(actor),...(body===undefined?{}:{'Content-Type':'application/json'})},...(body===undefined?{}:{body:JSON.stringify(body)})});
@@ -50,6 +53,12 @@ export async function cookieMutationFixture(t:TestContext,op:OpenApiOperationDef
   if(op.path==='/image-uploads/{uploadId}/finalize'){
     const r=await app.request('http://localhost/api/v1/image-uploads/upload/content',{method:'PUT',headers:{...headers('ownerB'),'Content-Type':'image/png'},body:new Uint8Array(png).buffer});assert.equal(r.status,200,'Finalize requires real accepted PNG content');await r.arrayBuffer();setupProof.push('Real mounted image content PUT200 before full Sharp verification.');
   }
+  if(op.path==='/documents/{documentId}'){
+    const uploaded=await app.request('http://localhost/api/v1/cards/card/documents',{method:'POST',headers:{...headers('ownerB'),'Content-Type':'application/pdf','X-Document-Filename':'matrix.pdf'},body:'%PDF-1.7\nsynthetic fixture\n%%EOF'});
+    assert.equal(uploaded.status,201,'Remove requires a real published, scoped attachment');
+    base.ids.documentId=cardDocumentResponseSchema.parse(await uploaded.json()).data.id;
+    setupProof.push('Real mounted PDF POST201 with a deterministic test scanner and private memory storage.');
+  }
   let importId='imp',preview:any;
   if(op.path.startsWith('/imports/{importId}')||op.path.startsWith('/card-imports/{importId}')){
     const bytes=workbook([{externalId:'cookie-matrix-row',title:'Cookie mutation import',description:'A genuine import preview',priority:'medium',status:'Todo'}]);
@@ -57,7 +66,7 @@ export async function cookieMutationFixture(t:TestContext,op:OpenApiOperationDef
   }
   async function command(){
     const f=await base.requestFixture(op);let url=f.url,body:any;
-    if(typeof f.init.body==='string')body=JSON.parse(f.init.body);
+    if(typeof f.init.body==='string'&&op.requestKind!=='document')body=JSON.parse(f.init.body);
     url=url.replace('/imports/imp','/imports/'+importId).replace('/card-imports/imp','/card-imports/'+importId);
     if(op.method==='DELETE'&&op.path==='/boards/{boardId}/columns/{columnId}')url=url.replace('/columns/col','/columns/col2');
     if(op.path==='/boards/{boardId}/columns/reorder')body.columnIds=['col2','col'];

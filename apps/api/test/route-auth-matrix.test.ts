@@ -35,6 +35,7 @@ test('generated route auth matrix: mounted inventory, every bearer boundary, ses
     {name:'valid_oauth',expected:op.method==='POST'?200:405,headers:{Authorization:'Bearer '+(await f.hosted()).accessToken}},
   ]):[
     ...(op.auth==='session'||op.auth==='session-or-token'?[{name:'anonymous',expected:401,headers:{}},{name:'expired_session',expected:401,headers:{Cookie:cookie('expired')}}]:[]),
+    ...(op.lifecycle==='local-only'&&op.source.endsWith('/documents.ts')?[{name:'owner_with_no_document_storage_or_scanner',expected:503,headers:{Cookie:cookie('owner')}}]:[]),
     ...(op.path==='/session/logout'&&op.auth==='optional-session'?[{name:'anonymous_optional_logout',expected:204,headers:{}},{name:'expired_session_optional_logout',expected:204,headers:{Cookie:cookie('expired')}}]:[]),
     ...(op.auth==='admin-secret'?[{name:'anonymous_admin',expected:403,headers:{}},{name:'expired_session_admin',expected:403,headers:{Cookie:cookie('expired')}}]:[]),
     {name:'valid_pat_with_owner_cookie',expected:patAllowed.has(key(op))?(op.method==='POST'?201:200):403,headers:{Cookie:cookie('owner'),Authorization:'Bearer '+f.pat.token}},

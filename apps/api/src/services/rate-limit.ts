@@ -38,6 +38,7 @@ export const WINDOW_BUCKETS = {
   invite: { limit: 10, windowSeconds: 60 },
   import: { limit: 5, windowSeconds: 60 },
   upload: { limit: 10, windowSeconds: 60 },
+  'document-upload': { limit: 10, windowSeconds: 60 },
   // Invitation scope limits, counted per authenticated inviter and per project on top of the per-IP
   // 'invite' bucket (B-7, FB-AUD-05). Counted only after the actor is shown to hold the grant.
   'invite-inviter': { limit: 20, windowSeconds: 60 },
@@ -84,6 +85,7 @@ export function windowBucketsFor(method: string, path: string): WindowBucket[] {
   ) {
     buckets.push('upload');
   }
+  if (method === 'POST' && /^\/api\/v1\/cards\/[^/]+\/documents$/.test(path)) buckets.push('document-upload');
   return buckets;
 }
 

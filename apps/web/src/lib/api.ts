@@ -61,6 +61,10 @@ import {
   type FinalizedImageListResponse,
   type ImageGalleryResponse,
   type ActivityFeedQuery,
+  cardDocumentResponseSchema,
+  cardDocumentsResponseSchema,
+  cardDocumentDeleteResponseSchema,
+  documentMediaTypeForFilename,
 } from '@flowboard/contracts';
 
 import { isNetworkFailure, NETWORK_MESSAGE } from './error-codes.ts';
@@ -199,6 +203,23 @@ export const api = {
   },
   async deleteImage(imageId: string, expectedVersion: number, idempotencyKey?: string): Promise<void> {
     await request<unknown>(`/api/v1/images/${encodeURIComponent(imageId)}`, { method: 'DELETE', headers: { 'Idempotency-Key': idempotencyKey || generateIdempotencyKey() }, body: JSON.stringify({ expectedVersion }) });
+  },
+  async listCardDocuments(cardId: string, signal: AbortSignal) {
+    return cardDocumentsResponseSchema.parse(await request(`/api/v1/cards/${encodeURIComponent(cardId)}/documents`, { signal }));
+  },
+  async uploadCardDocument(cardId: string, file: File, key: string) {
+    const mediaType = documentMediaTypeForFilename(file.name);
+    if (!mediaType) throw new ApiError(415, 'UNSUPPORTED_DOCUMENT', 'Unsupported document type.');
+    // Encode header punctuation as well as Unicode so the server can strictly decode a filename.
+    const filename = encodeURIComponent(file.name).replace(/[!'()*]/g, char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`);
+    return cardDocumentResponseSchema.parse(await request(`/api/v1/cards/${encodeURIComponent(cardId)}/documents`, {
+      method: 'POST', headers: { 'Content-Type': mediaType, 'X-Document-Filename': filename, 'Idempotency-Key': key }, body: file,
+    }));
+  },
+  async removeCardDocument(documentId: string, key: string) {
+    return cardDocumentDeleteResponseSchema.parse(await request(`/api/v1/documents/${encodeURIComponent(documentId)}`, {
+      method: 'DELETE', headers: { 'Idempotency-Key': key },
+    }));
   },
   /** Leave a project you joined. One Idempotency-Key per confirmed attempt. */
   async leaveProject(projectId: string, idempotencyKey: string): Promise<void> {

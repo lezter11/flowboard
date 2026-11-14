@@ -87,6 +87,7 @@ export default {
     const pool = createPool(connectionString, 1);
     let imageWork: Promise<void> | undefined;
     let mcpWork: Promise<void> | undefined;
+    let documentWork: Promise<void> | undefined;
     const app = createApp(() => queryDatabase(pool), {
       pool,
       deadlineMs: 25_000,
@@ -96,12 +97,13 @@ export default {
       imageVerifier: env.IMAGE_VERIFIER ? new ImagesBindingVerifier(env.IMAGE_VERIFIER) : null,
       onImageWorkLifetime: work => { imageWork = work; },
       onMcpWorkLifetime: work => { mcpWork = work; },
+      onDocumentWorkLifetime: work => { documentWork = work; },
       limits: limitsFromEnv(env as unknown as Record<string, unknown>),
     });
     try {
       return await app.fetch(request, env, ctx);
     } finally {
-      const pending = [imageWork, mcpWork].filter((work): work is Promise<void> => work !== undefined);
+      const pending = [imageWork, mcpWork, documentWork].filter((work): work is Promise<void> => work !== undefined);
       await closePoolAfterWork(pool, pending, ctx);
     }
   },

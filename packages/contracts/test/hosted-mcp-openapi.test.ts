@@ -10,7 +10,15 @@ const operation = (path: string, method: string): any => document.paths[path]?.[
 const valid = (name: string, value: unknown) => z.fromJSONSchema(document.components.schemas[name]!).safeParse(value).success;
 
 test('hosted operation inventory adds discovery, OAuth, consent, connections and explicit transport methods', () => {
-  assert.equal(OPENAPI_ROUTES.length, 118);
+  const documentRoutes = OPENAPI_ROUTES.filter(route => route.source.endsWith('/documents.ts'));
+  assert.equal(OPENAPI_ROUTES.length - documentRoutes.length, 118);
+  assert.deepEqual(documentRoutes.map(route => `${route.method} ${route.path}`).sort(), [
+    'DELETE /documents/{documentId}', 'GET /cards/{cardId}/documents', 'GET /documents/{documentId}/content', 'POST /cards/{cardId}/documents',
+  ]);
+  for (const route of documentRoutes) {
+    assert.equal(route.lifecycle, 'local-only');
+    assert.equal(route.auth, 'session');
+  }
   for (const path of ['/.well-known/oauth-protected-resource', '/.well-known/oauth-protected-resource/api/v1/mcp', '/.well-known/oauth-authorization-server']) {
     assert.deepEqual(operation(path, 'get').security, []);
   }

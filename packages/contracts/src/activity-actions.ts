@@ -20,6 +20,8 @@ export const ACTIVITY_ACTIONS = [
   'card_import_committed',
   'image_attached',
   'image_removed',
+  'document_attached',
+  'document_removed',
   // Discussion (card scope)
   'comment_created',
   'comment_updated',

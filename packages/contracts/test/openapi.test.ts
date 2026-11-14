@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import test from 'node:test';
 import { z } from 'zod';
+import { DOCUMENT_MEDIA_TYPES, cardDocumentResponseSchema, documentMediaTypeForFilename } from '../src/index.ts';
 import { OPENAPI_ROUTES } from '../src/openapi/index.ts';
 import { OPENAPI_SCHEMAS } from '../src/openapi/schemas.ts';
 import { generateOpenApiDocument } from '../../../scripts/generate-openapi.ts';
@@ -21,6 +22,26 @@ test('generated OpenAPI artifact is deterministic and matches current schema/ope
       assert.ok(OPENAPI_SCHEMAS[name], `${route.method} ${route.path} missing ${name}`);
     }
   }
+});
+
+test('document routes publish the same Office and PDF media types, and metadata binds type to filename', () => {
+  const upload = generated.paths['/api/v1/cards/{cardId}/documents']!.post as { requestBody: { content: Record<string, unknown> } };
+  const download = generated.paths['/api/v1/documents/{documentId}/content']!.get as { responses: Record<string, { content: Record<string, unknown>; headers: Record<string, unknown> }> };
+  assert.deepEqual(Object.keys(upload.requestBody.content), Object.values(DOCUMENT_MEDIA_TYPES));
+  assert.deepEqual(Object.keys(download.responses['200']!.content), Object.values(DOCUMENT_MEDIA_TYPES));
+  assert.ok(download.responses['200']!.headers['Content-Disposition']);
+  assert.equal(documentMediaTypeForFilename('Résumé.DoCx'), DOCUMENT_MEDIA_TYPES.docx);
+  assert.equal(documentMediaTypeForFilename('Fleet.XLSX'), DOCUMENT_MEDIA_TYPES.xlsx);
+  assert.equal(documentMediaTypeForFilename('File.PDF'), DOCUMENT_MEDIA_TYPES.pdf);
+  for (const name of ['one.docm', 'one.xlsm', 'one.doc', 'one.xls', 'one.docx.exe', 'one.xlſx', 'dir/one.docx', 'bad\rname.xlsx']) {
+    assert.equal(documentMediaTypeForFilename(name), null, name);
+  }
+  const data = { id: 'doc_1', cardId: 'card_1', uploaderId: 'user_1', filename: 'Résumé.docx', mediaType: DOCUMENT_MEDIA_TYPES.docx,
+    byteLength: 500, originalByteLength: 500, createdAt: '2026-11-14T00:00:00.000Z', canRemove: false };
+  assert.equal(cardDocumentResponseSchema.safeParse({ data }).success, true);
+  assert.equal(validate('CardDocumentResponse', { data }).success, true);
+  assert.equal(validate('CardDocumentResponse', { data: { ...data, mediaType: 'text/html' } }).success, false);
+  assert.equal(cardDocumentResponseSchema.safeParse({ data: { ...data, mediaType: DOCUMENT_MEDIA_TYPES.xlsx } }).success, false);
 });
 
 test('request fixtures are checked by shared Zod and the emitted structural JSON Schema', () => {

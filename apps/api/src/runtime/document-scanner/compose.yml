@@ -1,0 +1,52 @@
+name: flowboard-document-scanner
+
+x-isolation: &isolation
+  image: ${SCANNER_IMAGE:-flowboard-document-scanner:local}
+  init: true
+  read_only: true
+  cap_drop: [ALL]
+  security_opt: [no-new-privileges:true]
+  restart: unless-stopped
+  logging:
+    driver: local
+  tmpfs:
+    - /tmp:rw,nosuid,nodev,noexec,size=32m
+
+services:
+  scanner:
+    <<: *isolation
+    command: scanner
+    network_mode: none
+    user: '10001:10004'
+    group_add: ['10003']
+    cpus: 1.0
+    mem_limit: 384m
+    pids_limit: 32
+    environment:
+      FB_DOCUMENT_HTTP_SOCKET: /run/flowboard-http/scanner.sock
+      FB_DOCUMENT_SCANNER_KEY_FILE: /run/secrets/scanner_key
+      FB_DOCUMENT_CLAMD_SOCKET: /run/flowboard-scanner/clamd.sock
+    volumes:
+      - ${SCANNER_STATE_DIR:?Set SCANNER_STATE_DIR}/http:/run/flowboard-http
+      - ${SCANNER_STATE_DIR:?Set SCANNER_STATE_DIR}/antivirus:/run/flowboard-scanner:ro
+      - ${SCANNER_STATE_DIR:?Set SCANNER_STATE_DIR}/scanner_key:/run/secrets/scanner_key:ro
+  antivirus:
+    <<: *isolation
+    command: antivirus
+    network_mode: none
+    user: '10002:10003'
+    cpus: 2.0
+    mem_limit: 3g
+    pids_limit: 32
+    volumes:
+      - ${SCANNER_STATE_DIR:?Set SCANNER_STATE_DIR}/antivirus:/run/flowboard-scanner
+      - ${SCANNER_STATE_DIR:?Set SCANNER_STATE_DIR}/definitions:/var/lib/clamav:ro
+  definitions:
+    <<: *isolation
+    command: definitions
+    user: '10002:10003'
+    cpus: 1.0
+    mem_limit: 3g
+    pids_limit: 32
+    volumes:
+      - ${SCANNER_STATE_DIR:?Set SCANNER_STATE_DIR}/definitions:/var/lib/clamav
