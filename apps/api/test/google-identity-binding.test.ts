@@ -229,7 +229,7 @@ test('mounted Google identity, legacy continuity and invitations with real Postg
     const { client_id } = await registered.json() as { client_id: string };
     const mintRequest = (token: string) => app.request(origin + '/api/v1/tokens', { method: 'POST',
         headers: { ...type, origin, cookie: sessionCookie(token) },
-        body: JSON.stringify({ name: 'Synthetic API token', scopes: ['boards:read'], projectId: 'prj' }) }, env);
+        body: JSON.stringify({ name: 'Synthetic API token', scopes: ['boards:read', 'cards:create'], projectId: 'prj' }) }, env);
     async function mint(token: string) {
       const r = await mintRequest(token);
       assert.equal(r.status, 201);
@@ -237,7 +237,7 @@ test('mounted Google identity, legacy continuity and invitations with real Postg
     }
     async function prepareConsent(token: string) {
       const query = new URLSearchParams({ client_id, redirect_uri: redirectUri, resource: root,
-        response_type: 'code', code_challenge: challenge, code_challenge_method: 'S256', scope: 'boards:read offline_access' });
+        response_type: 'code', code_challenge: challenge, code_challenge_method: 'S256', scope: 'boards:read cards:create offline_access' });
       const begin = await request('/oauth/authorize?' + query);
       assert.equal(begin.status, 302);
       const id = new URL(begin.headers.get('location')!).searchParams.get('request');
@@ -297,28 +297,40 @@ test('mounted Google identity, legacy continuity and invitations with real Postg
     const memberPat = await mint(memberFallback.token);
     const memberClaude = await issue(memberFallback.token);
     const memberConsent = await prepareConsent(memberFallback.token);
+    const patWrite = () => app.request(origin + '/api/v1/boards/brd/cards', { method: 'POST',
+      headers: { ...type, ...bearer(memberPat), 'idempotency-key': crypto.randomUUID() },
+      body: JSON.stringify({ title: 'Race PAT', columnId: 'col', priority: 'medium', expectedBoardVersion: 1 }) }, env);
+    const claudeWrite = () => request('', { method: 'POST',
+      headers: { ...type, ...bearer(memberClaude.access_token), accept: 'application/json, text/event-stream', 'mcp-protocol-version': '2025-11-25' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 2, method: 'tools/call', params: { name: 'flowboard_create_card',
+        arguments: { operationId: crypto.randomUUID(), boardId: 'brd', column: 'col', title: 'Race Claude' } } }) });
     const binding = await pool.connect();
     let racing: Promise<Response>[] = [];
     try {
       await binding.query('BEGIN');
-      await binding.query('SELECT 1 FROM users WHERE id=$1 FOR NO KEY UPDATE', [member.user.id]);
-      racing = [Promise.resolve(mintRequest(memberFallback.token)), Promise.resolve(memberConsent())];
-      // Wait for both mounted routes to authenticate the cookie and reach the row lock.
+      await binding.query('SELECT 1 FROM users WHERE id=$1 FOR UPDATE', [member.user.id]);
+      racing = [mintRequest(memberFallback.token), memberConsent(), patWrite(), claudeWrite()].map(result => Promise.resolve(result));
+      // Wait for each mounted route to finish authenticating and then reach the row lock.
       let waiting = 0;
-      for (let attempt = 0; attempt < 250 && waiting !== 2; attempt++) {
+      for (let attempt = 0; attempt < 250 && waiting !== 4; attempt++) {
         waiting = (await binding.query<{ count: number }>(`SELECT count(*)::int AS count FROM pg_stat_activity
-          WHERE application_name=$1 AND wait_event_type='Lock' AND query LIKE '%AND google_subject IS NULL FOR NO KEY UPDATE%'`, [f.schema])).rows[0]!.count;
-        if (waiting !== 2) await new Promise(resolve => setTimeout(resolve, 10));
+          WHERE application_name=$1 AND wait_event_type='Lock' AND
+            (query LIKE '%AND google_subject IS NULL FOR NO KEY UPDATE%' OR query LIKE 'SELECT id FROM users%FOR KEY SHARE')`, [f.schema])).rows[0]!.count;
+        if (waiting !== 4) await new Promise(resolve => setTimeout(resolve, 10));
         await binding.query('SELECT pg_stat_clear_snapshot()');
       }
-      assert.equal(waiting, 2);
+      assert.equal(waiting, 4);
       await binding.query('UPDATE users SET google_issuer=$2, google_subject=$3 WHERE id=$1', [member.user.id, GOOGLE_ISSUER, 'actual-member']);
       await binding.query('COMMIT');
     } finally {
       await binding.query('ROLLBACK');
       binding.release();
     }
-    assert.deepEqual((await Promise.all(racing)).map(result => result.status), [401, 401]);
+    const raced = await Promise.all(racing);
+    assert.deepEqual(raced.slice(0, 3).map(result => result.status), [401, 401, 401]);
+    // Authenticated MCP tools report a downstream denial in the JSON-RPC tool result.
+    assert.equal((await raced[3]!.json() as { result: { isError: boolean } }).result.isError, true);
+    assert.equal((await pool.query("SELECT 1 FROM cards WHERE title IN ('Race PAT', 'Race Claude')")).rowCount, 0);
     assert.equal((await board(memberPat)).status, 401);
     assert.equal((await tools(memberClaude.access_token)).status, 401);
   });

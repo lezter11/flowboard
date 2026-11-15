@@ -75,6 +75,11 @@ cardsRoutes.post('/api/v1/boards/:boardId/cards', authMiddleware, requireTokenSc
 
     const tokenId = c.get('tokenId');
     const oauth = c.get('machineCredentialKind') === 'mcp_oauth';
+    if (tokenId) {
+      // Google confirmation takes the user row before revoking credentials.
+      // Acquire the actor FK lock in the same order before writing activity/receipts.
+      await client.query('SELECT id FROM users WHERE id = $1 FOR KEY SHARE', [actor.id]);
+    }
     if (oauth) {
       const accessTokenId = c.get('oauthAccessTokenId');
       const resource = c.get('oauthResource');
