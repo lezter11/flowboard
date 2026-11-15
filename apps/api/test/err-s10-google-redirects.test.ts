@@ -71,11 +71,15 @@ test('ERR-R1 S10: a missing code or state redirects with state=failed', async ()
   expectRedirect(res, 'failed');
 });
 
-test('ERR-R1 S10: a network failure while exchanging the code redirects with state=failed, not a 500 JSON', async () => {
-  const res = await callback((state) => `code=abc&state=${state}`, () => {
-    throw new TypeError('fetch failed');
-  });
+test('ERR-R1 S10: a network failure redirects safely and logs only the fixed callback stage', async (t) => {
+  const output = t.mock.method(console, 'error', () => {});
+  const privateText = 'synthetic-sensitive-provider-failure';
+  const res = await callback((state) => `code=abc&state=${state}`, () => { throw new TypeError(privateText); });
   expectRedirect(res, 'failed');
+  assert.ok(!JSON.stringify(output.mock.calls.map(call => call.arguments)).includes(privateText));
+  assert.deepEqual(output.mock.calls.map(call => JSON.parse(String(call.arguments[0]))), [
+    { event: 'google_callback_failed', code: 'UNEXPECTED', stage: 'token-exchange', category: 'type' },
+  ]);
 });
 
 test('ERR-R1 S10: a profile with no email redirects with state=email_missing', async () => {

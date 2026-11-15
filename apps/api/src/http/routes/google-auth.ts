@@ -124,7 +124,15 @@ function readAttempt(c: Context, link: boolean) {
   return { state, verifier, expiresAt, context };
 }
 
-async function verifiedGoogleProfile(c: Context, code: string, verifier: string): Promise<VerifiedGoogleProfile> {
+type CallbackStage = 'browser-session' | 'token-exchange' | 'userinfo-request' | 'profile-validation' |
+  'database-connection' | 'database-transaction' | 'session-response';
+
+interface CallbackDiagnostic {
+  stage: CallbackStage;
+}
+
+async function verifiedGoogleProfile(c: Context, code: string, verifier: string, diagnostic: CallbackDiagnostic): Promise<VerifiedGoogleProfile> {
+  diagnostic.stage = 'token-exchange';
   const { clientId, clientSecret } = getGoogleConfig(c);
   if (!clientId || !clientSecret) throw HttpError.internal('Google OAuth client configuration incomplete.');
 
@@ -153,6 +161,7 @@ async function verifiedGoogleProfile(c: Context, code: string, verifier: string)
     throw HttpError.badRequest('Invalid Google token response.', 'TOKEN_EXCHANGE_FAILED');
   }
   // Only this fixed Google TLS endpoint, authorized by the code exchange above, supplies the subject.
+  diagnostic.stage = 'userinfo-request';
   const userinfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { Authorization: `Bearer ${tokens.access_token}` },
     redirect: 'error',
@@ -162,6 +171,7 @@ async function verifiedGoogleProfile(c: Context, code: string, verifier: string)
     throw HttpError.badRequest('Failed to fetch user profile from Google.', 'USERINFO_FAILED');
   }
 
+  diagnostic.stage = 'profile-validation';
   const profile = await userinfoResponse.json() as Record<string, unknown> | null;
   const email = typeof profile?.['email'] === 'string' ? profile['email'].trim().toLowerCase() : '';
   if (email.length > 254 || !sessionActorSchema.shape.email.safeParse(email).success) {
@@ -185,16 +195,19 @@ async function verifiedGoogleProfile(c: Context, code: string, verifier: string)
   };
 }
 
-async function completeGoogleSignIn(c: Context, code: string, verifier: string, linkingSessionHash: string | null, landing: string) {
-  const profile = await verifiedGoogleProfile(c, code, verifier);
+async function completeGoogleSignIn(c: Context, code: string, verifier: string, linkingSessionHash: string | null, landing: string, diagnostic: CallbackDiagnostic) {
+  const profile = await verifiedGoogleProfile(c, code, verifier, diagnostic);
+  diagnostic.stage = 'database-connection';
   const pool = getPool(c);
   const client = await pool.connect();
 
   try {
+    diagnostic.stage = 'database-transaction';
     await client.query('BEGIN');
     const session = await signInWithGoogle(client, profile, linkingSessionHash);
     await client.query('COMMIT');
 
+    diagnostic.stage = 'session-response';
     setCookie(c, SESSION_COOKIE_NAME, session.id, getSessionCookieOptions(new URL(c.req.url).hostname));
     return c.redirect(`${frontendOrigin(c)}${landing}`, 302);
   } catch (err) {
@@ -228,6 +241,7 @@ googleAuthRoutes.get('/google/callback', async (c) => {
   // Clear only the matching flow, so a malformed callback cannot cancel a different pending attempt.
   if (attempt) deleteCookie(c, flowCookie(c, link !== null), { path: '/', secure: secureCookie(c) });
 
+  const diagnostic: CallbackDiagnostic = { stage: 'browser-session' };
   try {
     if (c.req.query('error')) throw HttpError.badRequest('Google sign-in was denied.', 'OAUTH_ERROR');
     const code = c.req.query('code');
@@ -244,11 +258,16 @@ googleAuthRoutes.get('/google/callback', async (c) => {
       sessionHash = hashSessionToken(token);
     }
     const landing = link ? `${ACCOUNT_SETTINGS}&google=linked` : (consentNext ?? '/projects');
-    return await completeGoogleSignIn(c, code, attempt.verifier, sessionHash, landing);
+    return await completeGoogleSignIn(c, code, attempt.verifier, sessionHash, landing, diagnostic);
   } catch (err) {
-    const code = (err as { code?: unknown } | null)?.code;
-    const codeText = typeof code === 'string' && /^[A-Z_]{1,40}$/.test(code) ? code : 'UNEXPECTED';
-    console.error(JSON.stringify({ event: 'google_callback_failed', code: codeText }));
+    const codeText = err instanceof HttpError ? err.code : 'UNEXPECTED';
+    const dbError = err as { code?: unknown; severity?: unknown } | null;
+    const database = diagnostic.stage === 'database-connection' || diagnostic.stage === 'database-transaction';
+    const sqlState = database && typeof dbError?.severity === 'string' && typeof dbError.code === 'string' &&
+      /^[0-9A-Z]{5}$/.test(dbError.code) ? dbError.code : undefined;
+    const category = err instanceof TypeError ? 'type' : err instanceof SyntaxError ? 'syntax' :
+      err instanceof RangeError ? 'range' : err instanceof HttpError ? 'http' : 'other';
+    console.error(JSON.stringify({ event: 'google_callback_failed', code: codeText, stage: diagnostic.stage, category, sqlState }));
     if (link) return c.redirect(`${frontendOrigin(c)}${ACCOUNT_SETTINGS}&google=failed`, 302);
 
     const state = SIGNIN_STATE_BY_CODE[codeText] ?? 'failed';
