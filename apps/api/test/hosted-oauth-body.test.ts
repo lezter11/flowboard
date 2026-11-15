@@ -113,7 +113,7 @@ test('mounted code exchange retains actual work past its HTTP deadline until the
   const pending = await startHostedAuthorization(pool, { clientId: 'mcp_client_body', clientName: 'Body client', redirectUri: callback, resource: origin + root, scopes: ['cards:read', 'offline_access'], state: null, codeChallenge: challenge });
   const input = { requestId: pending.requestId, binding: pending.browserBinding, userId: 'body_owner', sessionHash };
   const view = await describeHostedAuthorization(pool, input);
-  const redirect = await decideHostedAuthorization(pool, { ...input, csrfToken: view.csrfToken, decision: 'allow', projectId: 'body_project', issuer: origin });
+  const redirect = await decideHostedAuthorization(pool, { ...input, googleEmailSession: false, csrfToken: view.csrfToken, decision: 'allow', projectId: 'body_project', issuer: origin });
   const code = new URL(redirect).searchParams.get('code')!;
   const connectionId = (await pool.query('SELECT connection_id FROM mcp_oauth_authorization_codes WHERE code_hash=$1', [hashHostedSecret(code)])).rows[0].connection_id;
   const held = await pool.connect(); await held.query('BEGIN'); await held.query('SELECT id FROM mcp_oauth_connections WHERE id=$1 FOR UPDATE', [connectionId]);

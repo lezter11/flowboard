@@ -21,6 +21,7 @@ test('mounted Google identity, legacy continuity and invitations with real Postg
     GOOGLE_CLIENT_ID: 'synthetic-client',
     GOOGLE_CLIENT_SECRET: 'synthetic-secret',
     GOOGLE_REDIRECT_URI: authPath + '/callback',
+    APP_ORIGIN: origin,
     FRONTEND_URL: origin,
     CORS_ORIGIN: origin + ',https://trusted-but-other.example.test',
   };
@@ -116,7 +117,10 @@ test('mounted Google identity, legacy continuity and invitations with real Postg
   }
 
   await t.test('0030 upgrades legacy rows and sessions without inferring subjects', async () => {
-    assert.deepEqual((await runMigrations(pool)).applied, [{ version: '0030', name: '0030_google_account_subject.sql' }]);
+    assert.deepEqual((await runMigrations(pool)).applied, [
+      { version: '0030', name: '0030_google_account_subject.sql' },
+      { version: '0031', name: '0031_google_email_credential_provenance.sql' },
+    ]);
     assert.deepEqual((await runMigrations(pool)).applied, []);
     const row = (await pool.query('SELECT google_issuer, google_subject, google_email_conflict FROM users WHERE id = $1', [legacy.user.id])).rows[0];
     assert.deepEqual(row, { google_issuer: null, google_subject: null, google_email_conflict: false });
@@ -206,6 +210,117 @@ test('mounted Google identity, legacy continuity and invitations with real Postg
     const transplant = await start(f.actors.manager!.session.id);
     declined(await callback(transplant, transplant.issue('subject-legacy', f.actors.manager!.user.email), f.actors.manager!.session.id), settings + 'failed');
     assert.equal((await session(await signIn('subject-legacy', legacy.user.email))).data.actor.id, legacy.user.id);
+  });
+
+  await t.test('confirming Google revokes email-only API tokens and every stage of a Claude grant', async () => {
+    const actor = f.actors.manager!;
+    const trusted = actor.session.id;
+    const fallback = await session(await signIn('recycled-address', actor.user.email));
+    const root = origin + '/api/v1/mcp';
+    const redirectUri = 'https://claude.ai/api/mcp/auth_callback';
+    const verifier = 'a'.repeat(64);
+    const challenge = crypto.createHash('sha256').update(verifier).digest('base64url');
+    const request = (path: string, init?: RequestInit) => app.request(root + path, init, env);
+    const type = { 'content-type': 'application/json' };
+    const bearer = (token: string) => ({ authorization: `Bearer ${token}` });
+    const registered = await request('/oauth/register', { method: 'POST', headers: type,
+      body: JSON.stringify({ client_name: 'Synthetic Claude connector', redirect_uris: [redirectUri] }) });
+    assert.equal(registered.status, 201);
+    const { client_id } = await registered.json() as { client_id: string };
+    const mintRequest = (token: string) => app.request(origin + '/api/v1/tokens', { method: 'POST',
+        headers: { ...type, origin, cookie: sessionCookie(token) },
+        body: JSON.stringify({ name: 'Synthetic API token', scopes: ['boards:read'], projectId: 'prj' }) }, env);
+    async function mint(token: string) {
+      const r = await mintRequest(token);
+      assert.equal(r.status, 201);
+      return (await r.json() as { data: { token: string } }).data.token;
+    }
+    async function prepareConsent(token: string) {
+      const query = new URLSearchParams({ client_id, redirect_uri: redirectUri, resource: root,
+        response_type: 'code', code_challenge: challenge, code_challenge_method: 'S256', scope: 'boards:read offline_access' });
+      const begin = await request('/oauth/authorize?' + query);
+      assert.equal(begin.status, 302);
+      const id = new URL(begin.headers.get('location')!).searchParams.get('request');
+      const binding = begin.headers.getSetCookie()[0]!.split(';')[0];
+      const headers = { ...type, origin, cookie: `${sessionCookie(token)}; ${binding}` };
+      const view = await request(`/authorization-requests/${id}`, { headers });
+      assert.equal(view.status, 200);
+      const { data } = await view.json() as { data: { csrfToken: string } };
+      return () => request(`/authorization-requests/${id}/decision`, { method: 'POST', headers,
+        body: JSON.stringify({ decision: 'allow', projectId: 'prj', csrfToken: data.csrfToken }) });
+    }
+    async function approve(token: string) {
+      const reply = await (await prepareConsent(token))();
+      assert.equal(reply.status, 200);
+      const { data } = await reply.json() as { data: { redirectUrl: string } };
+      return new URL(data.redirectUrl).searchParams.get('code')!;
+    }
+    const tokenRequest = (fields: Record<string, string>) => request('/oauth/token', { method: 'POST',
+      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ client_id, resource: root, ...fields }) });
+    const exchange = (code: string) => tokenRequest({ grant_type: 'authorization_code', code,
+      redirect_uri: redirectUri, code_verifier: verifier });
+    const refresh = (refresh_token: string) => tokenRequest({ grant_type: 'refresh_token', refresh_token });
+    const tools = (token: string) => request('', { method: 'POST',
+      headers: { ...type, ...bearer(token), accept: 'application/json, text/event-stream', 'mcp-protocol-version': '2025-11-25' },
+      body: JSON.stringify({ jsonrpc: '2.0', id: 1, method: 'tools/list' }) });
+    const board = (token: string) => app.request(origin + '/api/v1/boards/brd/metadata', { headers: bearer(token) }, env);
+    async function issue(token: string) {
+      const response = await exchange(await approve(token));
+      assert.equal(response.status, 200);
+      return response.json() as Promise<{ access_token: string; refresh_token: string }>;
+    }
+
+    const weakPat = await mint(fallback.token);
+    const trustedPat = await mint(trusted);
+    const otherPat = await mint(f.actors.owner!.session.id);
+    const weakClaude = await issue(fallback.token);
+    const trustedClaude = await issue(trusted);
+    const weakUnexchangedCode = await approve(fallback.token);
+    const pendingConsent = await prepareConsent(fallback.token);
+    assert.equal((await board(weakPat)).status, 200);
+    assert.equal((await tools(weakClaude.access_token)).status, 200);
+
+    const confirmation = await start(trusted);
+    const linked = await session(await callback(confirmation, confirmation.issue('actual-manager', actor.user.email), trusted));
+    assert.equal(linked.data.googleAccountStatus, 'linked');
+    const results = await Promise.all([board(weakPat), tools(weakClaude.access_token), refresh(weakClaude.refresh_token),
+      exchange(weakUnexchangedCode), pendingConsent(), board(trustedPat), tools(trustedClaude.access_token),
+      refresh(trustedClaude.refresh_token), board(otherPat)]);
+    assert.deepEqual(results.map(result => result.status), [401, 401, 400, 400, 401, 200, 200, 200, 200]);
+    assert.deepEqual(await results[2]!.json(), { error: 'invalid_grant' });
+    assert.deepEqual(await results[3]!.json(), { error: 'invalid_grant' });
+
+    // Operator-assisted binding writes the same identity columns directly.
+    const member = f.actors.member!;
+    const memberFallback = await session(await signIn('recycled-member', member.user.email));
+    const memberPat = await mint(memberFallback.token);
+    const memberClaude = await issue(memberFallback.token);
+    const memberConsent = await prepareConsent(memberFallback.token);
+    const binding = await pool.connect();
+    let racing: Promise<Response>[] = [];
+    try {
+      await binding.query('BEGIN');
+      await binding.query('SELECT 1 FROM users WHERE id=$1 FOR NO KEY UPDATE', [member.user.id]);
+      racing = [Promise.resolve(mintRequest(memberFallback.token)), Promise.resolve(memberConsent())];
+      // Wait for both mounted routes to authenticate the cookie and reach the row lock.
+      let waiting = 0;
+      for (let attempt = 0; attempt < 250 && waiting !== 2; attempt++) {
+        waiting = (await binding.query<{ count: number }>(`SELECT count(*)::int AS count FROM pg_stat_activity
+          WHERE application_name=$1 AND wait_event_type='Lock' AND query LIKE '%AND google_subject IS NULL FOR NO KEY UPDATE%'`, [f.schema])).rows[0]!.count;
+        if (waiting !== 2) await new Promise(resolve => setTimeout(resolve, 10));
+        await binding.query('SELECT pg_stat_clear_snapshot()');
+      }
+      assert.equal(waiting, 2);
+      await binding.query('UPDATE users SET google_issuer=$2, google_subject=$3 WHERE id=$1', [member.user.id, GOOGLE_ISSUER, 'actual-member']);
+      await binding.query('COMMIT');
+    } finally {
+      await binding.query('ROLLBACK');
+      binding.release();
+    }
+    assert.deepEqual((await Promise.all(racing)).map(result => result.status), [401, 401]);
+    assert.equal((await board(memberPat)).status, 401);
+    assert.equal((await tools(memberClaude.access_token)).status, 401);
   });
 
   await t.test('parallel first callbacks create one account and workspace; email and subject are distinct keys', async () => {

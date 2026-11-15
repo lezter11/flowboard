@@ -5,6 +5,7 @@ import { TOKEN_SCOPES } from '@flowboard/contracts';
 import { lockProjectBoardReadScope } from './board-grants-foundation.ts';
 import { HttpError } from '../http/errors.ts';
 import { HOSTED_CLAUDE_CALLBACK } from '../services/hosted-mcp-config.ts';
+import { lockUnconfirmedGoogleAccount } from './session.ts';
 
 export class HostedOAuthError extends Error {
   readonly error:string;
@@ -120,8 +121,9 @@ async function lockActiveProject(client:pg.ClientBase,projectId:string,userId:st
   const project=await client.query('SELECT id FROM projects WHERE id=$1 AND NOT archived FOR SHARE',[projectId]);
   if(!project.rowCount)throw new HostedOAuthError('access_denied',403);
 }
-export async function decideHostedAuthorization(pool:pg.Pool,input:{requestId:string;binding:string;userId:string;sessionHash:string;csrfToken:string;decision:'allow'|'deny';projectId?:string;issuer:string}):Promise<string>{
+export async function decideHostedAuthorization(pool:pg.Pool,input:{requestId:string;binding:string;userId:string;sessionHash:string;googleEmailSession:boolean;csrfToken:string;decision:'allow'|'deny';projectId?:string;issuer:string}):Promise<string>{
   return transaction(pool,async client=>{
+    if(input.googleEmailSession && !await lockUnconfirmedGoogleAccount(client,input.userId))throw new HostedOAuthError('login_required',401);
     const row=await pendingRequest(client,input.requestId,input.binding);await lockSession(client,input.userId,input.sessionHash);
     if(row.user_id!==input.userId||row.session_hash!==input.sessionHash||!row.csrf_hash||row.csrf_hash!==hashHostedSecret(input.csrfToken))throw new HostedOAuthError('access_denied',403);
     const redirect=new URL(row.redirect_uri);redirect.searchParams.set('iss',input.issuer);if(row.state!==null)redirect.searchParams.set('state',row.state);
@@ -132,7 +134,7 @@ export async function decideHostedAuthorization(pool:pg.Pool,input:{requestId:st
     const count=await client.query<{count:string}>('SELECT count(*)::text AS count FROM mcp_oauth_connections WHERE user_id=$1 AND revoked_at IS NULL AND expires_at>clock_timestamp()',[input.userId]);
     if(Number(count.rows[0]!.count)>=20)throw new HostedOAuthError('connection_limit_reached',409);
     const connectionId=id('mcp_connection'),rawCode=newHostedSecret();
-    await client.query('INSERT INTO mcp_oauth_connections(id,user_id,project_id,client_id,client_name,resource,scopes) VALUES($1,$2,$3,$4,$5,$6,$7)',[connectionId,input.userId,input.projectId,row.client_id,row.client_name,row.resource,row.scopes]);
+    await client.query('INSERT INTO mcp_oauth_connections(id,user_id,project_id,client_id,client_name,resource,scopes,issued_from_google_email_session) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',[connectionId,input.userId,input.projectId,row.client_id,row.client_name,row.resource,row.scopes,input.googleEmailSession]);
     await client.query('INSERT INTO mcp_oauth_authorization_codes(id,code_hash,request_id,connection_id,client_id,redirect_uri,resource,code_challenge) VALUES($1,$2,$3,$4,$5,$6,$7,$8)',[id('mcp_code'),hashHostedSecret(rawCode),row.id,connectionId,row.client_id,row.redirect_uri,row.resource,row.code_challenge]);
     await client.query("UPDATE mcp_oauth_authorization_requests SET decided_at=clock_timestamp(),state=NULL,session_hash=NULL,csrf_hash=NULL,browser_binding_hash=repeat('0',64) WHERE id=$1",[row.id]);
     redirect.searchParams.set('code',rawCode);return redirect.href;

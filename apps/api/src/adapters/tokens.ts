@@ -3,6 +3,7 @@ import type pg from 'pg';
 import { createTokenInputSchema, type SessionActor, type TokenScope, type TokenSummary } from '@flowboard/contracts';
 import { HttpError } from '../http/errors.ts';
 import { lockProjectBoardReadScope } from './board-grants-foundation.ts';
+import { lockUnconfirmedGoogleAccount } from './session.ts';
 
 export const MAX_ACTIVE_PERSONAL_ACCESS_TOKENS = 20;
 
@@ -42,6 +43,7 @@ export async function createPersonalAccessToken(
     scopes: TokenScope[];
     projectId?: string | null | undefined;
     expiresInDays?: number | null | undefined;
+    googleEmailSessionHash?: string | undefined;
   },
 ): Promise<{ token: string; tokenDetails: TokenSummary }> {
   const parsed = createTokenInputSchema.parse({
@@ -50,14 +52,22 @@ export async function createPersonalAccessToken(
   });
   const ownsTransaction = typeof (clientOrPool as pg.Pool).connect === 'function'
     && typeof (clientOrPool as pg.Pool).totalCount === 'number';
-  const client = ownsTransaction ? await (clientOrPool as pg.Pool).connect() : clientOrPool;
+  const client = ownsTransaction ? await (clientOrPool as pg.Pool).connect() : clientOrPool as pg.ClientBase;
   // Passing a ClientBase requires an explicit caller-owned transaction, as with the other write adapters.
   try {
     if (ownsTransaction) await client.query('BEGIN');
+    if (input.googleEmailSessionHash !== undefined) {
+      const unconfirmed = await lockUnconfirmedGoogleAccount(client, input.userId);
+      const live = unconfirmed && (await client.query(
+        'SELECT 1 FROM sessions WHERE id = $1 AND user_id = $2 AND expires_at > clock_timestamp() FOR SHARE',
+        [input.googleEmailSessionHash, input.userId],
+      )).rowCount === 1;
+      if (!live) throw HttpError.unauthorized('Invalid or missing authentication session.');
+    }
     await client.query('SELECT pg_advisory_xact_lock(hashtext($1))', [`pat-issuance:${input.userId}`]);
     if (parsed.projectId) {
       // Canonical ownership inheritance and active membership locks, including real Owners with no membership row.
-      await lockProjectBoardReadScope(client as pg.ClientBase, parsed.projectId, input.userId);
+      await lockProjectBoardReadScope(client, parsed.projectId, input.userId);
     }
     const count = await client.query<{ count: string }>(
       `SELECT COUNT(*)::text AS count FROM personal_access_tokens
@@ -83,8 +93,8 @@ export async function createPersonalAccessToken(
       created_at: Date;
     }>(
       `INSERT INTO personal_access_tokens (
-        id, user_id, name, token_hash, token_prefix, scopes, project_id, expires_at, created_at, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        id, user_id, name, token_hash, token_prefix, scopes, project_id, expires_at, issued_from_google_email_session, created_at, updated_at
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
       RETURNING id, name, token_prefix, scopes, project_id, expires_at, last_used_at, created_at`,
       [
         id,
@@ -95,6 +105,7 @@ export async function createPersonalAccessToken(
         parsed.scopes,
         parsed.projectId ?? null,
         expiresAt,
+        input.googleEmailSessionHash !== undefined,
       ],
     );
 

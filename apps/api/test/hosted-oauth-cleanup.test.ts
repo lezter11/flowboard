@@ -31,7 +31,7 @@ after(async()=>{await pool.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);aw
 async function pending(){return startHostedAuthorization(pool,{clientId,clientName:'Cleanup client',redirectUri:callback,resource,scopes:['projects:read','boards:read','cards:read','cards:create','offline_access'],state:'synthetic-private-state',codeChallenge:challenge});}
 async function family(){
   const request=await pending();const input={...request,userId:'cleanup_owner',sessionHash,binding:request.browserBinding};
-  const view=await describeHostedAuthorization(pool,input);const redirect=await decideHostedAuthorization(pool,{...input,csrfToken:view.csrfToken,decision:'allow',projectId:'cleanup_project',issuer:origin});const code=new URL(redirect).searchParams.get('code')!;
+  const view=await describeHostedAuthorization(pool,input);const redirect=await decideHostedAuthorization(pool,{...input,googleEmailSession:false,csrfToken:view.csrfToken,decision:'allow',projectId:'cleanup_project',issuer:origin});const code=new URL(redirect).searchParams.get('code')!;
   const tokens=await exchangeHostedCode(pool,{code,clientId,redirectUri:callback,resource,verifier});assert.ok('access_token'in tokens);const principal=(await verifyHostedAccessToken(pool,tokens.access_token,resource))!;
   return {...request,code,tokens,principal};
 }

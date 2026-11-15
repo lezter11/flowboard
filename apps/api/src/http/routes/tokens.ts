@@ -30,6 +30,8 @@ tokensRoutes.post('/api/v1/tokens', authMiddleware, async (c) => {
   const input = parseOrThrow(createTokenInputSchema, rawBody);
 
   const pool = getPool();
+  const googleEmailSessionHash = c.get('legacyGoogleEmailSession') ? c.get('sessionId') : undefined;
+  if (c.get('legacyGoogleEmailSession') && !googleEmailSessionHash) throw HttpError.unauthorized('Invalid or missing authentication session.');
 
   // The adapter validates Owner inheritance/current project membership and the issuance cap atomically.
   const result = await createPersonalAccessToken(pool, {
@@ -38,6 +40,7 @@ tokensRoutes.post('/api/v1/tokens', authMiddleware, async (c) => {
     scopes: input.scopes,
     projectId: input.projectId,
     expiresInDays: input.expiresInDays,
+    googleEmailSessionHash,
   });
 
   return c.json({ data: result }, 201);

@@ -115,6 +115,15 @@ export function hashSessionToken(token: string): string {
 
 const LEGACY_GOOGLE_SESSION_PREFIX = 'legacy_google_';
 
+/** Caller owns the transaction. Serialize email-only credential issuance with the binding UPDATE,
+ * before taking other row locks. The database trigger revokes credentials issued before binding. */
+export async function lockUnconfirmedGoogleAccount(client: pg.ClientBase, userId: string): Promise<boolean> {
+  const result = await client.query(
+    'SELECT 1 FROM users WHERE id = $1 AND google_subject IS NULL FOR NO KEY UPDATE', [userId],
+  );
+  return result.rowCount === 1;
+}
+
 export function isLegacyGoogleEmailSession(token: string): boolean {
   return token.startsWith(LEGACY_GOOGLE_SESSION_PREFIX);
 }

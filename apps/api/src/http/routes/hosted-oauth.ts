@@ -4,7 +4,7 @@ import { getCookie,setCookie } from 'hono/cookie';
 import { readHostedOAuthBody } from '../middleware/hosted-oauth-body.ts';
 import { errorHandler } from '../middleware/error-handler.ts';
 import { getPool } from '../../adapters/postgres.ts';
-import { getSessionWithUser } from '../../adapters/session.ts';
+import { getSessionWithUser,isLegacyGoogleEmailSession } from '../../adapters/session.ts';
 import { consumeWindow } from '../../adapters/rate-limit-postgres.ts';
 import { clientKey,UNKNOWN_CLIENT_KEY,WINDOW_BUCKETS,type WindowBucket } from '../../services/rate-limit.ts';
 import { getHostedMcpConfig,HOSTED_CLAUDE_CALLBACK,HOSTED_MCP_PATH,HOSTED_OAUTH_PATH } from '../../services/hosted-mcp-config.ts';
@@ -45,7 +45,8 @@ async function body(c:Context,kind:'json'|'form'):Promise<unknown>{
 async function session(c:Context){
   if(c.req.header('authorization')!==undefined)throw new HostedOAuthError('login_required',401);
   const raw=getCookie(c,'flowboard_session')??getCookie(c,'session');if(!raw)throw new HostedOAuthError('login_required',401);
-  const value=await getSessionWithUser(raw,getPool(c));if(!value)throw new HostedOAuthError('login_required',401);return value;
+  const value=await getSessionWithUser(raw,getPool(c));if(!value)throw new HostedOAuthError('login_required',401);
+  return {...value,googleEmailSession:isLegacyGoogleEmailSession(raw)};
 }
 function sameOrigin(c:Context,origin:string){if(c.req.header('origin')!==origin)throw new HostedOAuthError('access_denied',403);}
 function forbidAuthorization(c:Context){if(c.req.header('authorization')!==undefined)throw new HostedOAuthError('invalid_client',401);}
@@ -99,7 +100,7 @@ export function createHostedOAuthRoutes(options:HostedOAuthRouteOptions={}){
     const config=getHostedMcpConfig(c,options.publicOrigin);sameOrigin(c,config.origin);const actor=await session(c);
     await enforceRate(c,['mcp-oauth-consent']);await enforceRate(c,['mcp-oauth-consent-user'],actor.user.id);
     const parsed=hostedMcpDecisionInputSchema.safeParse(await body(c,'json'));if(!parsed.success)throw new HostedOAuthError('invalid_request');const input=parsed.data;
-    const redirectUrl=await decideHostedAuthorization(getPool(c),{requestId:c.req.param('requestId'),binding:getCookie(c,BINDING_COOKIE)??'',userId:actor.user.id,sessionHash:actor.session.id,csrfToken:input.csrfToken,decision:input.decision,...(input.projectId?{projectId:input.projectId}:{}),issuer:config.issuer});
+    const redirectUrl=await decideHostedAuthorization(getPool(c),{requestId:c.req.param('requestId'),binding:getCookie(c,BINDING_COOKIE)??'',userId:actor.user.id,sessionHash:actor.session.id,googleEmailSession:actor.googleEmailSession,csrfToken:input.csrfToken,decision:input.decision,...(input.projectId?{projectId:input.projectId}:{}),issuer:config.issuer});
     return c.json(hostedMcpDecisionResponseSchema.parse({data:{redirectUrl}}));
   });
   routes.post(`${HOSTED_OAUTH_PATH}/token`,async c=>{

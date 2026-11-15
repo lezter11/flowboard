@@ -6,6 +6,8 @@ Hosted MCP uses `POST /api/v1/mcp` with a project-restricted OAuth access creden
 
 OAuth registration/authorize/token/revoke live under `/api/v1/mcp/oauth/`. Cookie-session browser APIs are GET `/api/v1/mcp/authorization-requests/:requestId`, POST the same plus `/decision`, GET `/api/v1/mcp/connections`, and DELETE `/api/v1/mcp/connections/:connectionId`. Consent GET rotates CSRF on each project page; submit the latest value. Explicit allow requires a project; deny does not. Connection summaries contain no raw credentials. Both ordinary API and standard OAuth wire errors are documented separately in generated OpenAPI. Discovery/consent/credential responses are no-store.
 
+Optional Google confirmation preserves ordinary access for unconfirmed legacy accounts. When an account confirms its Google identity, Flowboard revokes the API tokens and Claude connections created using email-only sign-in for that account. This also invalidates those connections' OAuth codes, access tokens and refresh tokens. Credentials created from trusted sessions keep working. Migration `0031` records how credentials were issued and makes revocation atomic with confirmation.
+
 Canonical payloads and bounds are in [HOSTED_MCP_SPEC](HOSTED_MCP_SPEC.md) and `packages/contracts/src/hosted-mcp.ts`; generated OpenAPI now inventories118operations. The six PAT capability routes remain unchanged. [Backend API review](reviews/HOSTED-MCP-20261104/independent-backend-review/BACKEND-API-PASS.md) is a local UI handoff, not proof of Google/Claude or deployment acceptance. UI sign-in continuation requires final affected-source review; current release status is tracked in [PROGRESS](../PROGRESS.md).
 
 ## MCP / personal access tokens — repair contract, 2026-11-03
