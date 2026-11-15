@@ -274,16 +274,22 @@ try {
     try {
       const t = await tab(fixture, 'manager');
       await t.page.goto(webOrigin + '/settings?tab=account', { waitUntil: 'networkidle' });
-      await t.page.getByRole('button', { name: 'Link Google account', exact: true }).click();
+      await expect(t.page.getByRole('heading', { name: 'Confirm your Google sign-in', exact: true })).toBeVisible();
+      const confirmSignIn = t.page.getByRole('button', { name: 'Confirm Google sign-in', exact: true });
+      await confirmSignIn.click();
       await expect(t.page.getByRole('heading', { name: 'Synthetic Google sign-in', exact: true })).toBeVisible();
       await t.page.getByRole('link', { name: 'Continue as synthetic teammate', exact: true }).click();
-      await expect(t.page.getByText('Your Google account is linked.', { exact: true })).toBeVisible();
+      const confirmed = t.page.getByText('Google sign-in confirmed. Keep using the same Google account to sign in.', { exact: true });
+      await expect(confirmed).toBeVisible();
       const account = await t.context.request.get(webOrigin + '/api/v1/session');
       assert.equal(account.status(), 200);
       const { data } = await account.json();
       assert.equal(data.actor.id, googlePerson.id);
       assert.equal(data.googleAccountStatus, 'linked');
       assert.ok(data.accessibleProjects.some(item => item.id === fixture.project.id));
+      await t.page.goto(webOrigin + '/settings?tab=account', { waitUntil: 'networkidle' });
+      await expect(confirmed).toBeVisible();
+      await expect(confirmSignIn).toHaveCount(0);
     } finally {
       googlePerson = returningPerson;
     }

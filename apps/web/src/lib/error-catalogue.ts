@@ -205,7 +205,7 @@ export const CATALOGUE: Record<string, Entry> = {
   USERINFO_FAILED: e('Google sign-in did not finish', 'Try again.', 'signin'),
   EMAIL_REQUIRED: e('Your Google account has no email', 'Flowboard needs an email address to sign you in.', 'signin'),
   EMAIL_NOT_VERIFIED: e('Verify your Google email first', 'Google says your email is not verified. Verify it in your Google account, then sign in again.', 'signin'),
-  GOOGLE_RECOVERY_REQUIRED: e('Verify your Flowboard account', 'Use a browser where you are already signed in to link your Google account in Settings, or contact Flowboard support.'),
+  GOOGLE_RECOVERY_REQUIRED: e('Verify your Flowboard account', 'In a browser where you are already signed in, go to Settings → Account and choose Confirm Google sign-in. If you are signed out, contact Flowboard support.'),
   GOOGLE_SUBJECT_INVALID: e('Google sign-in did not finish', 'Start again from the sign-in page.', 'signin'),
   HTTPS_REQUIRED: e('Open Flowboard over HTTPS', 'Use the secure Flowboard URL to continue.'),
   // Cards, boards, columns

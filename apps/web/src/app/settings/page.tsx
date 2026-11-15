@@ -350,14 +350,14 @@ function SettingsScreen() {
                 </div>
                 {googleAccount === 'unlinked' && (
                   <div className="stack-xs">
-                    <h3 className="settings-section-title">Link your Google account</h3>
-                    <p className="settings-section-sub">While you’re still signed in to Flowboard, confirm the Google account with the email shown above so you can use it to sign in again.</p>
-                    <button className="btn" type="button" onClick={() => void linkGoogleAccount()} disabled={googleBusy}>{googleBusy ? 'Opening Google…' : 'Link Google account'}</button>
+                    <h3 className="settings-section-title">Confirm your Google sign-in</h3>
+                    <p className="settings-section-sub">We’ve updated how Flowboard recognizes your Google account. Confirm the account shown above once while you’re still signed in. You’ll keep your existing boards and permissions.</p>
+                    <button className="btn" type="button" onClick={() => void linkGoogleAccount()} disabled={googleBusy}>{googleBusy ? 'Opening Google…' : 'Confirm Google sign-in'}</button>
+                    {(googleError || params.get('google') === 'failed') && <p className="field-error" role="alert">We couldn’t confirm your Google sign-in. Try again with the account shown above. If that still fails, contact Flowboard support while you’re signed in.</p>}
                   </div>
                 )}
                 {googleAccount === 'email_conflict' && <p className="note warn" role="status">Your Google email is already in use on another Flowboard account. Contact Flowboard support to update your email and accept invitations.</p>}
-                {googleAccount === 'linked' && params.get('google') === 'linked' && <p role="status">Your Google account is linked.</p>}
-                {(googleError || params.get('google') === 'failed') && <p className="field-error" role="alert">Google linking did not finish. Use the Google account with the email shown above or contact Flowboard support.</p>}
+                {googleAccount === 'linked' && <p className="settings-section-sub" role="status">Google sign-in confirmed. Keep using the same Google account to sign in.</p>}
                 <div className="divider" />
                 <div className="stack-sm">
                   <h3 className="settings-section-title">Project access</h3>
