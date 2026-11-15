@@ -111,14 +111,22 @@ export function hashSessionToken(token: string): string {
   return crypto.createHash('sha256').update(token).digest('hex');
 }
 
+const LEGACY_GOOGLE_SESSION_PREFIX = 'legacy_google_';
+
+export function isLegacyGoogleEmailSession(token: string): boolean {
+  return token.startsWith(LEGACY_GOOGLE_SESSION_PREFIX);
+}
+
 export async function createSession(
   userId: string,
   ttlHours = 24 * 7,
   clientOrPool?: pg.Pool | pg.ClientBase,
+  legacyGoogleEmail = false,
 ): Promise<SessionRecord> {
   const pool = clientOrPool ?? getPool();
-  // 32 cryptographically secure random bytes as hex string (64 characters)
-  const rawToken = crypto.randomBytes(32).toString('hex');
+  // The hash covers the whole token, including the marker for lower-trust Google sign-ins.
+  const randomToken = crypto.randomBytes(32).toString('hex');
+  const rawToken = legacyGoogleEmail ? LEGACY_GOOGLE_SESSION_PREFIX + randomToken : randomToken;
   const tokenHash = hashSessionToken(rawToken);
   const now = new Date();
   const expiresAt = new Date(now.getTime() + ttlHours * 60 * 60 * 1000);
@@ -154,6 +162,7 @@ export async function getSessionWithUser(
 ): Promise<SessionWithUser | null> {
   const pool = clientOrPool ?? getPool();
   const tokenHash = hashSessionToken(sessionIdOrToken);
+  const legacyEmail = isLegacyGoogleEmailSession(sessionIdOrToken);
   const res = await pool.query<{
     session_id: string;
     user_id: string;
@@ -173,7 +182,8 @@ export async function getSessionWithUser(
        u.avatar_url
      FROM sessions s
      JOIN users u ON s.user_id = u.id
-     WHERE s.id = $1 AND s.expires_at > NOW()`,
+     WHERE s.id = $1 AND s.expires_at > NOW()
+       ${legacyEmail ? 'AND u.google_subject IS NULL' : ''}`,
     [tokenHash],
   );
 

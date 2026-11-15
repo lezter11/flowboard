@@ -73,6 +73,7 @@ sessionRoutes.get('/', authMiddleware, async (c) => {
       suggestedFirstName: names.suggestedFirstName,
       suggestedLastName: names.suggestedLastName,
       googleAccountStatus: names.googleAccountStatus,
+      googleConfirmationAvailable: names.googleAccountStatus === 'unlinked' && !c.get('legacyGoogleEmailSession'),
     },
   });
 

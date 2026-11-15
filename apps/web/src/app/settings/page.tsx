@@ -48,6 +48,7 @@ function SettingsScreen() {
   const editable = can(role, 'manageBoard') && !project?.isArchived;
   const actor = state.status === 'ready' ? state.session.actor : null;
   const googleAccount = state.status === 'ready' ? state.session.googleAccountStatus : undefined;
+  const canConfirmGoogle = state.status === 'ready' && state.session.googleConfirmationAvailable !== false;
   const [googleBusy, setGoogleBusy] = useState(false);
   const [googleError, setGoogleError] = useState(false);
 
@@ -348,13 +349,16 @@ function SettingsScreen() {
                   </form>
                   <div className="field"><label className="field-label" htmlFor="accountEmailField">Email</label><input className="control" id="accountEmailField" type="email" value={actor?.email ?? ''} disabled readOnly /><p className="field-help">Your email and avatar come from Google and refresh when you sign in.</p></div>
                 </div>
-                {googleAccount === 'unlinked' && (
+                {googleAccount === 'unlinked' && canConfirmGoogle && (
                   <div className="stack-xs">
                     <h3 className="settings-section-title">Confirm your Google sign-in</h3>
-                    <p className="settings-section-sub">We’ve updated how Flowboard recognizes your Google account. Confirm the account shown above once while you’re still signed in. You’ll keep your existing boards and permissions.</p>
+                    <p className="settings-section-sub">Confirmation is optional. Confirm the Google account shown above once to protect your existing boards and permissions if your email changes.</p>
                     <button className="btn" type="button" onClick={() => void linkGoogleAccount()} disabled={googleBusy}>{googleBusy ? 'Opening Google…' : 'Confirm Google sign-in'}</button>
                     {(googleError || params.get('google') === 'failed') && <p className="field-error" role="alert">We couldn’t confirm your Google sign-in. Try again with the account shown above. If that still fails, contact Flowboard support while you’re signed in.</p>}
                   </div>
+                )}
+                {googleAccount === 'unlinked' && !canConfirmGoogle && (
+                  <p className="settings-section-sub">Google sign-in confirmation is optional. You can keep using Flowboard as usual. Contact Flowboard support if you’d like to confirm this account.</p>
                 )}
                 {googleAccount === 'email_conflict' && <p className="note warn" role="status">Your Google email is already in use on another Flowboard account. Contact Flowboard support to update your email and accept invitations.</p>}
                 {googleAccount === 'linked' && <p className="settings-section-sub" role="status">Google sign-in confirmed. Keep using the same Google account to sign in.</p>}

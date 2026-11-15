@@ -1,7 +1,7 @@
 import type { MiddlewareHandler } from 'hono';
 import { getCookie } from 'hono/cookie';
 import { HttpError } from '../errors.ts';
-import { getSessionWithUser } from '../../adapters/session.ts';
+import { getSessionWithUser, isLegacyGoogleEmailSession } from '../../adapters/session.ts';
 import { verifyPersonalAccessToken } from '../../adapters/tokens.ts';
 import { getPool } from '../../adapters/postgres.ts';
 import type { SessionActor, TokenScope } from '@flowboard/contracts';
@@ -12,6 +12,7 @@ declare module 'hono' {
   interface ContextVariableMap {
     actor?: SessionActor;
     sessionId?: string;
+    legacyGoogleEmailSession?: boolean;
     tokenScopes?: TokenScope[];
     tokenId?: string;
     tokenProjectId?: string | null;
@@ -82,6 +83,7 @@ export const authMiddleware: MiddlewareHandler = async (c, next) => {
   c.set('actor', sessionData.user);
   c.set('sessionId', sessionData.session.id);
   c.set('authType', 'session');
+  c.set('legacyGoogleEmailSession', isLegacyGoogleEmailSession(sessionId));
   await next();
 };
 

@@ -128,6 +128,7 @@ export const sessionDataSchema = z.object({
   needsName: z.boolean(),
   // Newer servers expose the binding status without exposing Google's subject identifier.
   googleAccountStatus: z.enum(['linked', 'unlinked', 'email_conflict']).optional(),
+  googleConfirmationAvailable: z.boolean().optional(),
   suggestedFirstName: z.string().min(1).max(NAME_PART_MAX).nullable(),
   suggestedLastName: z.string().min(1).max(NAME_PART_MAX).nullable(),
 });

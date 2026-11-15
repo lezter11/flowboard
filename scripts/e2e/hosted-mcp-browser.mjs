@@ -268,6 +268,28 @@ try {
     await expect(t.page.getByLabel('Choose one project', { exact: true })).toBeVisible();
     assert.equal(new URL(t.page.url()).searchParams.get('request'), t.requestId);
   });
+  await check('HUI-01-legacy-user-can-skip-confirmation', async () => {
+    const returningPerson = googlePerson;
+    googlePerson = fixture.people.manager.user;
+    try {
+      const t = await tab(fixture, 'manager', false);
+      t.state.expectedStatuses.add(401);
+      await t.page.goto(webOrigin + '/signin?next=/settings?tab=account', { waitUntil: 'networkidle' });
+      await t.page.locator('#googleSignIn').click();
+      await t.page.getByRole('link', { name: 'Open synthetic Google sign-in', exact: true }).click();
+      await t.page.getByRole('link', { name: 'Continue as synthetic teammate', exact: true }).click();
+      await expect(t.page.getByText('Google sign-in confirmation is optional.', { exact: false })).toBeVisible();
+      await expect(t.page.getByRole('button', { name: 'Confirm Google sign-in', exact: true })).toHaveCount(0);
+      const account = await t.context.request.get(webOrigin + '/api/v1/session');
+      assert.equal(account.status(), 200);
+      const { data } = await account.json();
+      assert.equal(data.actor.id, googlePerson.id);
+      assert.equal(data.googleAccountStatus, 'unlinked');
+      assert.ok(data.accessibleProjects.some(item => item.id === fixture.project.id));
+    } finally {
+      googlePerson = returningPerson;
+    }
+  });
   await check('HUI-01-legacy-user-links-from-Account-settings', async () => {
     const returningPerson = googlePerson;
     googlePerson = fixture.people.manager.user;
@@ -275,6 +297,7 @@ try {
       const t = await tab(fixture, 'manager');
       await t.page.goto(webOrigin + '/settings?tab=account', { waitUntil: 'networkidle' });
       await expect(t.page.getByRole('heading', { name: 'Confirm your Google sign-in', exact: true })).toBeVisible();
+      await expect(t.page.getByText('Confirmation is optional.', { exact: false })).toBeVisible();
       const confirmSignIn = t.page.getByRole('button', { name: 'Confirm Google sign-in', exact: true });
       await confirmSignIn.click();
       await expect(t.page.getByRole('heading', { name: 'Synthetic Google sign-in', exact: true })).toBeVisible();

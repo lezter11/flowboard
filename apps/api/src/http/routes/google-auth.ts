@@ -3,7 +3,7 @@ import { Hono, type Context } from 'hono';
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie';
 import { normalizeNamePart, sessionActorSchema } from '@flowboard/contracts';
 import { getPool } from '../../adapters/postgres.ts';
-import { getSessionCookieOptions, hashSessionToken, isLocalhost } from '../../adapters/session.ts';
+import { getSessionCookieOptions, isLegacyGoogleEmailSession, isLocalhost } from '../../adapters/session.ts';
 import { GOOGLE_ISSUER, signInWithGoogle, type VerifiedGoogleProfile } from '../../adapters/google-identity.ts';
 import { authMiddleware, SESSION_COOKIE_NAME } from '../middleware/auth.ts';
 import { HttpError } from '../errors.ts';
@@ -110,6 +110,9 @@ googleAuthRoutes.post('/google/link', authMiddleware, (c) => {
   }
   const session = browserSession(c);
   if (!session || c.get('authType') !== 'session') throw HttpError.unauthorized();
+  if (isLegacyGoogleEmailSession(session)) {
+    throw HttpError.forbidden('Confirming this account requires verification.', 'GOOGLE_RECOVERY_REQUIRED');
+  }
   // The UI navigates after reading the URL, so the existing form-action CSP can stay same-origin.
   return c.json({ data: { authorizationUrl: beginGoogleOAuth(c, session).href } });
 });
@@ -197,7 +200,7 @@ async function verifiedGoogleProfile(c: Context, code: string, verifier: string,
   };
 }
 
-async function completeGoogleSignIn(c: Context, code: string, verifier: string, linkingSessionHash: string | null, landing: string, diagnostic: CallbackDiagnostic) {
+async function completeGoogleSignIn(c: Context, code: string, verifier: string, linkingSessionToken: string | null, landing: string, diagnostic: CallbackDiagnostic) {
   const profile = await verifiedGoogleProfile(c, code, verifier, diagnostic);
   diagnostic.stage = 'database-connection';
   const pool = getPool(c);
@@ -206,7 +209,7 @@ async function completeGoogleSignIn(c: Context, code: string, verifier: string, 
   try {
     diagnostic.stage = 'database-transaction';
     await client.query('BEGIN');
-    const session = await signInWithGoogle(client, profile, linkingSessionHash);
+    const session = await signInWithGoogle(client, profile, linkingSessionToken);
     await client.query('COMMIT');
 
     diagnostic.stage = 'session-response';
@@ -250,17 +253,17 @@ googleAuthRoutes.get('/google/callback', async (c) => {
     if (!code || !c.req.query('state')) throw HttpError.badRequest('Missing authorization code or state.', 'INVALID_CALLBACK');
     if (!attempt) throw HttpError.forbidden('Invalid or expired OAuth state session.', 'CSRF_MISMATCH');
 
-    let sessionHash: string | null = null;
+    let linkingSessionToken: string | null = null;
     if (link) {
       const token = browserSession(c);
-      if (!token || !BASE64URL_256.test(link.context) ||
+      if (!token || isLegacyGoogleEmailSession(token) || !BASE64URL_256.test(link.context) ||
           !crypto.timingSafeEqual(Buffer.from(link.context), Buffer.from(linkProof(token, link)))) {
         throw HttpError.forbidden('Invalid or expired OAuth state session.', 'CSRF_MISMATCH');
       }
-      sessionHash = hashSessionToken(token);
+      linkingSessionToken = token;
     }
     const landing = link ? `${ACCOUNT_SETTINGS}&google=linked` : (consentNext ?? '/projects');
-    return await completeGoogleSignIn(c, code, attempt.verifier, sessionHash, landing, diagnostic);
+    return await completeGoogleSignIn(c, code, attempt.verifier, linkingSessionToken, landing, diagnostic);
   } catch (err) {
     const codeText = err instanceof HttpError ? err.code : 'UNEXPECTED';
     const dbError = err as { code?: unknown; severity?: unknown } | null;

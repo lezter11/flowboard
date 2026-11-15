@@ -3,7 +3,7 @@ import type pg from 'pg';
 import { HttpError } from '../http/errors.ts';
 import { ensurePersonalWorkspace } from './personal-workspace.ts';
 import { lockUserQuota } from './quotas.ts';
-import { createSession, type SessionRecord } from './session.ts';
+import { createSession, hashSessionToken, isLegacyGoogleEmailSession, type SessionRecord } from './session.ts';
 
 export const GOOGLE_ISSUER = 'https://accounts.google.com';
 
@@ -28,7 +28,7 @@ function recoveryRequired(): HttpError {
 export async function signInWithGoogle(
   client: pg.ClientBase,
   profile: VerifiedGoogleProfile,
-  linkingSessionHash: string | null,
+  linkingSessionToken: string | null,
 ): Promise<SessionRecord> {
   await client.query(`SELECT pg_advisory_xact_lock(hashtext('fb:google:subject'), hashtext($1))`, [profile.subject]);
   await client.query(`SELECT pg_advisory_xact_lock(hashtext('fb:google:email'), hashtext($1))`, [profile.email]);
@@ -40,7 +40,10 @@ export async function signInWithGoogle(
 
   let userId: string;
   let emailConflict = false;
-  if (linkingSessionHash) {
+  let legacyGoogleEmail = false;
+  if (linkingSessionToken) {
+    if (isLegacyGoogleEmailSession(linkingSessionToken)) throw recoveryRequired();
+    const linkingSessionHash = hashSessionToken(linkingSessionToken);
     // Only a live copy of the same Flowboard browser session can authorize linking.
     const candidate = (await client.query<{ user_id: string }>(
       'SELECT user_id FROM sessions WHERE id = $1 AND expires_at > clock_timestamp()',
@@ -74,23 +77,35 @@ export async function signInWithGoogle(
     );
     emailConflict = conflict.rows.length > 0;
   } else {
-    userId = `usr_${crypto.randomUUID()}`;
+    const candidates = (await client.query<{ id: string; google_subject: string | null }>(
+      'SELECT id, google_subject FROM users WHERE LOWER(BTRIM(email)) = $1 LIMIT 2',
+      [profile.email],
+    )).rows;
+    const legacy = candidates[0];
+    if (legacy && (candidates.length !== 1 || legacy.google_subject !== null)) throw recoveryRequired();
+
+    userId = legacy?.id ?? `usr_${crypto.randomUUID()}`;
     await lockUserQuota(client, userId);
-    const inserted = await client.query(
-      `INSERT INTO users (
-         id, email, display_name, avatar_url, first_name, last_name, google_issuer, google_subject, created_at, updated_at
-       )
-       SELECT $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()
-       WHERE NOT EXISTS (SELECT 1 FROM users WHERE LOWER(BTRIM(email)) = $2)
-       ON CONFLICT DO NOTHING RETURNING id`,
-      [userId, profile.email, profile.displayName, profile.avatarUrl, profile.firstName, profile.lastName,
-        GOOGLE_ISSUER, profile.subject],
-    );
-    if (!inserted.rows[0]) throw recoveryRequired();
+    if (legacy) legacyGoogleEmail = true;
+    else {
+      const inserted = await client.query(
+        `INSERT INTO users (
+           id, email, display_name, avatar_url, first_name, last_name, google_issuer, google_subject, created_at, updated_at
+         )
+         SELECT $1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()
+         WHERE NOT EXISTS (SELECT 1 FROM users WHERE LOWER(BTRIM(email)) = $2)
+         ON CONFLICT DO NOTHING RETURNING id`,
+        [userId, profile.email, profile.displayName, profile.avatarUrl, profile.firstName, profile.lastName,
+          GOOGLE_ISSUER, profile.subject],
+      );
+      if (!inserted.rows[0]) throw recoveryRequired();
+    }
   }
 
-  if (bound || linkingSessionHash) {
-    await client.query(
+  if (bound || linkingSessionToken || legacyGoogleEmail) {
+    // Recheck after acquiring the account lock. An operator may have confirmed it
+    // after the email lookup, or a concurrent Google sign-in may have moved the address.
+    const updated = await client.query(
       `UPDATE users SET
          email = CASE WHEN $7 THEN email ELSE $2 END,
          google_email_conflict = $7,
@@ -99,11 +114,12 @@ export async function signInWithGoogle(
          first_name = CASE WHEN name_confirmed_at IS NULL THEN $5 ELSE first_name END,
          last_name = CASE WHEN name_confirmed_at IS NULL THEN $6 ELSE last_name END,
          updated_at = NOW()
-       WHERE id = $1`,
-      [userId, profile.email, profile.displayName, profile.avatarUrl, profile.firstName, profile.lastName, emailConflict],
+       WHERE id = $1 AND (NOT $8 OR (google_subject IS NULL AND LOWER(BTRIM(email)) = $2))`,
+      [userId, profile.email, profile.displayName, profile.avatarUrl, profile.firstName, profile.lastName, emailConflict, legacyGoogleEmail],
     );
+    if (!updated.rowCount) throw recoveryRequired();
   }
 
   await ensurePersonalWorkspace(client, userId);
-  return createSession(userId, 24 * 7, client);
+  return createSession(userId, 24 * 7, client, legacyGoogleEmail);
 }

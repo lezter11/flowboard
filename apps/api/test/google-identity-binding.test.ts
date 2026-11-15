@@ -103,6 +103,7 @@ test('mounted Google identity, legacy continuity and invitations with real Postg
       data: (await result.json() as { data: {
         actor: { id: string; email: string };
         googleAccountStatus: string;
+        googleConfirmationAvailable?: boolean;
         accessibleProjects: { id: string }[];
       } }).data,
     };
@@ -136,7 +137,18 @@ test('mounted Google identity, legacy continuity and invitations with real Postg
 
   await t.test('legacy address claims need explicit same-origin intent and exact session continuity', async () => {
     const first = await start(undefined, '?link=true');
-    declined(await callback(first, first.issue('subject-legacy', legacy.user.email.toUpperCase()), legacy.session.id));
+    const ordinary = await session(await callback(first, first.issue('subject-legacy', legacy.user.email.toUpperCase()), legacy.session.id));
+    assert.equal(ordinary.data.actor.id, legacy.user.id);
+    assert.equal(ordinary.data.googleAccountStatus, 'unlinked');
+    assert.equal(ordinary.data.googleConfirmationAvailable, false);
+    assert.ok(ordinary.data.accessibleProjects.some(project => project.id === 'prj'));
+    const board = await app.request(origin + '/api/v1/boards/brd', { headers: { cookie: sessionCookie(ordinary.token) } }, env);
+    assert.equal(board.status, 200);
+    const freshRecovery = await app.request(authPath + '/link', {
+      method: 'POST', headers: { origin, cookie: sessionCookie(ordinary.token) },
+    }, env);
+    assert.equal(freshRecovery.status, 403);
+    assert.deepEqual(freshRecovery.headers.getSetCookie(), []);
     const linkHeaders = { cookie: sessionCookie(legacy.session.id) };
     const wrongStarts = [
       { method: 'GET', headers: linkHeaders, status: 404 },
@@ -178,6 +190,8 @@ test('mounted Google identity, legacy continuity and invitations with real Postg
     assert.equal(data.actor.id, legacy.user.id);
     assert.equal(data.googleAccountStatus, 'linked');
     assert.ok(data.accessibleProjects.some(project => project.id === 'prj'));
+    const superseded = await app.request(origin + '/api/v1/session', { headers: { cookie: sessionCookie(ordinary.token) } }, env);
+    assert.equal(superseded.status, 401, 'a prior email-only session cannot access the newly confirmed account');
     declined(await callback(attempt, code, legacy.session.id), settings + 'failed');
     declined(await signIn('recycled-address-subject', legacy.user.email));
     const theft = await start(legacy.session.id);
