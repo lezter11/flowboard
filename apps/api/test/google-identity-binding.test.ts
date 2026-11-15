@@ -141,6 +141,13 @@ test('mounted Google identity, legacy continuity and invitations with real Postg
     assert.equal(ordinary.data.actor.id, legacy.user.id);
     assert.equal(ordinary.data.googleAccountStatus, 'unlinked');
     assert.equal(ordinary.data.googleConfirmationAvailable, false);
+    const strictBaselineHash = crypto.createHash('sha256').update(ordinary.token).digest('hex');
+    const strippedCookie = ordinary.token.replace(/^legacy_google_/, '');
+    assert.notEqual(strippedCookie, ordinary.token);
+    const legacySessionRows = await pool.query(
+      'SELECT 1 FROM sessions WHERE id IN ($1, $2)', [strictBaselineHash, hashSessionToken(strippedCookie)],
+    );
+    assert.equal(legacySessionRows.rowCount, 0, 'older builds and stripped markers cannot resolve this session');
     assert.ok(ordinary.data.accessibleProjects.some(project => project.id === 'prj'));
     const board = await app.request(origin + '/api/v1/boards/brd', { headers: { cookie: sessionCookie(ordinary.token) } }, env);
     assert.equal(board.status, 200);

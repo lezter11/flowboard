@@ -108,7 +108,9 @@ export async function getUserByEmail(
 }
 
 export function hashSessionToken(token: string): string {
-  return crypto.createHash('sha256').update(token).digest('hex');
+  const hash = crypto.createHash('sha256');
+  if (isLegacyGoogleEmailSession(token)) hash.update('flowboard:legacy-google-session:v1\0');
+  return hash.update(token).digest('hex');
 }
 
 const LEGACY_GOOGLE_SESSION_PREFIX = 'legacy_google_';
@@ -124,7 +126,7 @@ export async function createSession(
   legacyGoogleEmail = false,
 ): Promise<SessionRecord> {
   const pool = clientOrPool ?? getPool();
-  // The hash covers the whole token, including the marker for lower-trust Google sign-ins.
+  // Older application builds cannot look up the separate digest used for email-only sessions.
   const randomToken = crypto.randomBytes(32).toString('hex');
   const rawToken = legacyGoogleEmail ? LEGACY_GOOGLE_SESSION_PREFIX + randomToken : randomToken;
   const tokenHash = hashSessionToken(rawToken);
