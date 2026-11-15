@@ -138,7 +138,9 @@ async function verifiedGoogleProfile(c: Context, code: string, verifier: string,
 
   const tokenResponse = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST',
-    redirect: 'error',
+    // Workers support manual redirects. The !ok check below rejects every 3xx
+    // before the code, the client secret, or any returned credentials can be forwarded.
+    redirect: 'manual',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
     body: new URLSearchParams({
       code,
@@ -164,7 +166,7 @@ async function verifiedGoogleProfile(c: Context, code: string, verifier: string,
   diagnostic.stage = 'userinfo-request';
   const userinfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
     headers: { Authorization: `Bearer ${tokens.access_token}` },
-    redirect: 'error',
+    redirect: 'manual',
   });
   if (!userinfoResponse.ok) {
     await userinfoResponse.body?.cancel();

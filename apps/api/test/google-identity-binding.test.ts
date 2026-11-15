@@ -37,14 +37,14 @@ test('mounted Google identity, legacy continuity and invitations with real Postg
       const request = codes.get(code);
       const verifier = params.get('code_verifier');
       const challenge = verifier && crypto.createHash('sha256').update(verifier).digest('base64url');
-      assert.equal(init?.redirect, 'error');
+      assert.equal(init?.redirect, 'manual');
       assert.equal(params.get('redirect_uri'), env.GOOGLE_REDIRECT_URI);
       assert.equal(params.get('client_id'), env.GOOGLE_CLIENT_ID);
       if (!request || request.challenge !== challenge) return new Response(null, { status: 400 });
       return Response.json({ access_token: code });
     }
     assert.equal(input, 'https://www.googleapis.com/oauth2/v3/userinfo');
-    assert.equal(init?.redirect, 'error');
+    assert.equal(init?.redirect, 'manual');
     const code = new Headers(init?.headers).get('authorization')!.slice('Bearer '.length);
     const request = codes.get(code);
     codes.delete(code);

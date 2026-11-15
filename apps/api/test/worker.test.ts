@@ -199,6 +199,58 @@ test('local workerd: shared HTTP routes, real pg/Kysely query, transaction rollb
     }
   });
 
+test('local workerd: Google account linking uses native requests and refuses provider redirects', { timeout: 30_000 }, async () => {
+  const setupPool = getPool();
+  await runMigrations(setupPool);
+  const connection = localDatabaseUrl(process.env['DATABASE_URL']);
+  process.env['CLOUDFLARE_HYPERDRIVE_LOCAL_CONNECTION_STRING_HYPERDRIVE'] = connection;
+  const origin = 'https://flowboard-app-uat.pages.dev';
+  const auth = origin + '/api/v1/auth/google';
+  const harness = createTestHarness({ workers: [{ configPath, vars: {
+    GOOGLE_CLIENT_ID: 'synthetic-worker-client', GOOGLE_CLIENT_SECRET: 'synthetic-worker-secret',
+    GOOGLE_REDIRECT_URI: auth + '/callback', FRONTEND_URL: origin, CORS_ORIGIN: origin,
+  } }] });
+  try {
+    await harness.listen();
+    const runtime = harness.getWorker('flowboard-api-test');
+    const id = crypto.randomUUID().replaceAll('-', '');
+    const fixture = await createDevUserAndSession(`worker-google-${id}@flowboard.example`, 'Synthetic Worker', setupPool);
+    const oldSession = `flowboard_session=${fixture.session.id}`;
+    async function callback(mode: string) {
+      const start = await runtime.fetch(auth + '/link', { method: 'POST', headers: { Origin: origin, Cookie: oldSession } });
+      assert.equal(start.status, 200);
+      const { data } = await start.json() as { data: { authorizationUrl: string } };
+      const state = new URL(data.authorizationUrl).searchParams.get('state')!;
+      const attemptCookie = start.headers.getSetCookie().find(cookie => cookie.startsWith('__Host-flowboard_oauth_link='))?.split(';')[0];
+      assert.ok(attemptCookie);
+      return runtime.fetch(auth + '/callback?' + new URLSearchParams({ state, code: `${mode}-${id}` }), {
+        redirect: 'manual', headers: { Cookie: `${oldSession}; ${attemptCookie}` },
+      });
+    }
+    for (const [mode, code] of [['token-redirect', 'TOKEN_EXCHANGE_FAILED'], ['profile-redirect', 'USERINFO_FAILED']] as const) {
+      harness.clearLogs();
+      const result = await callback(mode);
+      assert.equal(result.status, 302);
+      assert.equal(result.headers.get('location'), origin + '/settings?tab=account&google=failed');
+      assert.ok(!result.headers.getSetCookie().some(cookie => cookie.startsWith('flowboard_session=')));
+      assert.ok(JSON.stringify(harness.getLogs()).includes(code), `Provider redirect must fail at ${code}`);
+      assert.equal((await setupPool.query('SELECT google_subject FROM users WHERE id = $1', [fixture.user.id])).rows[0].google_subject, null);
+    }
+    const linked = await callback('success');
+    assert.equal(linked.status, 302);
+    assert.equal(linked.headers.get('location'), origin + '/settings?tab=account&google=linked');
+    const session = linked.headers.getSetCookie().find(cookie => cookie.startsWith('flowboard_session='))?.split(';')[0];
+    assert.ok(session);
+    const me = await runtime.fetch(origin + '/api/v1/session', { headers: { Cookie: session } });
+    assert.equal(me.status, 200);
+    const { data } = await me.json() as { data: { actor: { id: string }; googleAccountStatus: string } };
+    assert.equal(data.actor.id, fixture.user.id);
+    assert.equal(data.googleAccountStatus, 'linked');
+  } finally {
+    await harness.close();
+  }
+});
+
 test('local workerd: scheduled callback runs purge and outbox jobs against the isolated DB binding',
   { timeout: 30_000 }, async () => {
     const setupPool = getPool();
