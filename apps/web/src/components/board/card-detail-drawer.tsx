@@ -65,8 +65,9 @@ export function CardDetailDrawer(props: Props) {
   usePollKeys([cardKey],!!draftActorId);
   useEffect(()=>{discardRefusedRows(client,cardKey,cardQuery.error);},[client,cardKey,cardQuery.error]);
   const panelRef = useRef<HTMLElement>(null);
+  const closeTimer = useRef<number | undefined>(undefined);
   const [open, setOpen] = useState(false);
-  const dirtyRef = useRef(false);
+  const hasUnsavedFields = useCallback(() => cardDraftSessions.hasUnsaved(draftActorId, cardId), [draftActorId, cardId]);
   const commentSession = useMemo(() => commentSessions.forCard(draftActorId, cardId), [draftActorId, cardId]);
   const commentDirty = useSyncExternalStore(commentSession.subscribe, commentSession.hasUnsaved, commentSession.hasUnsaved);
   const [confirm, setConfirm] = useState<null | 'discard' | 'delete'>(null);
@@ -80,13 +81,15 @@ export function CardDetailDrawer(props: Props) {
   }, []);
 
   useEffect(()=>{if(!open)return;const frame=requestAnimationFrame(()=>panelRef.current?.focus({preventScroll:true}));return()=>cancelAnimationFrame(frame);},[open]);
+  useEffect(() => () => window.clearTimeout(closeTimer.current), []);
 
   const finishClose = useCallback(() => {
+    window.clearTimeout(closeTimer.current);
     commentSession.close();
     setOpen(false);
-    window.setTimeout(onClose, 200);
+    closeTimer.current = window.setTimeout(onClose, 200);
   }, [commentSession, onClose]);
-  const requestClose = useCallback(() => { if (dirtyRef.current || commentSession.hasUnsaved()) setConfirm('discard'); else finishClose(); }, [finishClose, commentSession]);
+  const requestClose = useCallback(() => { if (hasUnsavedFields() || commentSession.hasUnsaved()) setConfirm('discard'); else finishClose(); }, [finishClose, commentSession, hasUnsavedFields]);
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLElement>) => {
     if (event.key === 'Escape' && !confirm && !event.defaultPrevented) { event.preventDefault(); requestClose(); return; }
@@ -110,13 +113,13 @@ export function CardDetailDrawer(props: Props) {
   const toast = useToast();
   const leftRef = useRef(false);
   useEffect(() => {
-    if (leftRef.current || !open || !(gone || trashed) || dirtyRef.current || commentDirty) return;
+    if (leftRef.current || !open || !(gone || trashed) || hasUnsavedFields() || commentDirty) return;
     leftRef.current = true;
     setConfirm(null);
     toast(trashed ? 'This card was moved to the trash.' : 'This card was removed or you no longer have access to it.', { icon: 'alert' });
     onChanged();
     finishClose();
-  }, [gone, trashed, open, commentDirty, toast, onChanged, finishClose]);
+  }, [gone, trashed, open, commentDirty, toast, onChanged, finishClose, hasUnsavedFields]);
 
   if(typeof document==='undefined')return null;
   return createPortal(
@@ -142,7 +145,6 @@ export function CardDetailDrawer(props: Props) {
             people={people}
             role={role}
             boardName={boardName}
-            dirtyRef={dirtyRef}
             requestClose={requestClose}
             requestDelete={() => setConfirm('delete')}
             onRequestMove={props.onRequestMove}
@@ -158,7 +160,7 @@ export function CardDetailDrawer(props: Props) {
             </header>
             <div className="drawer-scroll">
               {cardQuery.isPending && <p role="status" className="hint">Loading card…</p>}
-              {gone || trashed ? <p role="alert" className="field-error">{trashed ? 'This card was moved to the trash.' : 'This card is no longer available on this board.'}{(dirtyRef.current || commentDirty) && ' Your drafts are kept in this tab.'}</p> : cardQuery.isError && <p role="alert" className="field-error">{describeError(cardQuery.error)}</p>}
+              {gone || trashed ? <p role="alert" className="field-error">{trashed ? 'This card was moved to the trash.' : 'This card is no longer available on this board.'}{(hasUnsavedFields() || commentDirty) && ' Your drafts are kept in this tab.'}</p> : cardQuery.isError && <p role="alert" className="field-error">{describeError(cardQuery.error)}</p>}
             </div>
           </>
         )}
@@ -172,11 +174,10 @@ export function CardDetailDrawer(props: Props) {
         onDiscard={() => {
           cardDraftSessions.acknowledge(draftActorId, cardId);
           commentSession.acknowledge();
-          dirtyRef.current = false;
           setConfirm(null);
           finishClose();
         }}
-        onDeleted={() => { setConfirm(null); dirtyRef.current = false; onChanged(); finishClose(); }}
+        onDeleted={() => { setConfirm(null); onChanged(); finishClose(); }}
       />
     </>, document.body
   );
@@ -217,9 +218,9 @@ function DiscardDeleteDialog({ kind, onCancel, card, structureVersion, onDiscard
   );
 }
 
-function DrawerBody({ card, asOfDate, columns, people, role, boardName, dirtyRef, requestClose, requestDelete, onRequestMove, onSaved }: {
+function DrawerBody({ card, asOfDate, columns, people, role, boardName, requestClose, requestDelete, onRequestMove, onSaved }: {
   card: Card; asOfDate:string|null; columns: ColumnSummary[]; people: Map<string, PersonDisplay>; role: Role; boardName: string;
-  dirtyRef: React.MutableRefObject<boolean>; requestClose: () => void; requestDelete: () => void; onRequestMove: (card: CardSummary) => void; onSaved: () => void;
+  requestClose: () => void; requestDelete: () => void; onRequestMove: (card: CardSummary) => void; onSaved: () => void;
 }) {
   const toast = useToast();
   const {state}=useSession();const actorId=state.status==='ready'?state.session.actor.id:'';
@@ -252,7 +253,6 @@ function DrawerBody({ card, asOfDate, columns, people, role, boardName, dirtyRef
   useEffect(() => { if (!editable) closeAssignees(); }, [editable, closeAssignees]);
   const fieldsDirty=cardFieldsDirty(draft,base);
   const dirty=fieldsDirty||session.fields.unresolved()||session.move.unresolved()&&!snapshot.movingTo;
-  useEffect(() => { dirtyRef.current = dirty; }, [dirty, dirtyRef]);
   const set = <K extends keyof Omit<Draft, 'columnId'>>(key: K, value: Draft[K]) => setDraft({ [key]: value });
 
   const status = snapshot.movingTo ?? snapshot.moveInput?.toColumnId ?? base.columnId;

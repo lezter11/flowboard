@@ -103,6 +103,24 @@ try {
 
   await expect(title).toHaveValue('Regression card 01');
   await closeCleanly();
+  const switchBoard = async (name, id) => {
+    await page.locator('.board-switcher-btn').click();
+    await page.getByRole('group', { name: 'Boards in this project' }).getByRole('button', { name, exact: true }).click();
+    await expect(page).toHaveURL(new RegExp(`[?&]id=${id}(?:&|$)`));
+    await expect(alertDialog).toHaveCount(0);
+    await expect(drawer).toHaveCount(0);
+  };
+  await switchBoard(fixture.hiddenBoard.name, fixture.hiddenBoard.id);
+  await switchBoard(fixture.board.name, fixture.board.id);
+  await openCard();
+  await expect(title).toHaveValue('Regression card 01');
+  await title.fill('Temporary draft');
+  await expect(save).toBeEnabled();
+  await title.fill('Regression card 01');
+  await closeCleanly();
+  await switchBoard(fixture.hiddenBoard.name, fixture.hiddenBoard.id);
+  await switchBoard(fixture.board.name, fixture.board.id);
+  proof.push('Switching between boards after closing an untouched or reverted card shows no draft prompt');
   await projects();
   await expect(page).toHaveURL(/\/projects(?:[/?]|$)/);
   await expect(unsaved).toHaveCount(0);
