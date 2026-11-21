@@ -14,7 +14,7 @@ export interface Limits {
 
 export const DEFAULT_LIMITS: Readonly<Limits> = Object.freeze({
   ownedProjects: 3,
-  boardsPerProject: 5,
+  boardsPerProject: 10,
   membersPerProject: 50,
   pendingInvitesPerProject: 50,
   ownedProjectsTotal: 20,

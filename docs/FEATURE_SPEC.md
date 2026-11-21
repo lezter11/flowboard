@@ -58,6 +58,8 @@ Project archive is owner-only, makes its boards read-only, hides it from ordinar
 
 ## 4. Board and workflow
 
+Owners and project managers can create boards up to the shared limit of ten active boards per project. Reopening an archived board uses an active slot. The total cap is 25 boards per project, including archived boards.
+
 Board header: project/board name, accessible member avatars, title search, filters, New card, Import (owner/manager), board name and description edit (owner only; B-3). Any summary shows defined counts of active/matching cards, not invented business progress percentages.
 
 Columns: stable ID, label, color, category todo/active/done, manual order and total/matching counts. Default labels Not started, In progress, Testing, Blocked, Completed (new boards only; existing boards keep their columns). Owner/manager adds/renames/reorders; category is separate from label. Duplicate names after trim/case-normalization are rejected so import mapping is unambiguous. Removing final column or a column referenced by active/restorable cards is blocked with explanation; no silent card cascade. Initial maximum 12 columns is a proposed performance bound.
