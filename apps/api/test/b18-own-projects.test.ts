@@ -101,19 +101,19 @@ test('B-18: owned project and shared board permissions', async (t) => {
       assert.equal((await windows()).rows[0]!.n, before, 'replays spend no rate-limit tokens');
     });
     await t.test('board limit applies across creators and hides the count from a manager', async () => {
-      for (let index = 3; index <= 5; index++) {
+      for (let index = 3; index <= 10; index++) {
         const response = await create('owner', `/api/v1/projects/${project.id}/boards`, { name: `Board ${index}` }, `b18-board-${index}-${suffix}`);
         assert.equal(response.status, 201, await response.clone().text());
       }
-      const rejected = await create('manager', `/api/v1/projects/${project.id}/boards`, { name: 'Board 6' }, `b18-board-6-${suffix}`);
+      const rejected = await create('manager', `/api/v1/projects/${project.id}/boards`, { name: 'Board 11' }, `b18-board-11-${suffix}`);
       assert.equal(rejected.status, 409, await rejected.clone().text());
       const error = (await rejected.json() as any).error;
       assert.equal(error.code, 'QUOTA_EXCEEDED');
       assert.equal(error.details.scope, 'boards_per_project');
       assert.equal(error.details.current, undefined);
-      const ownerRejected = await create('owner', `/api/v1/projects/${project.id}/boards`, { name: 'Owner board 6' }, `b18-owner-board-6-${suffix}`);
+      const ownerRejected = await create('owner', `/api/v1/projects/${project.id}/boards`, { name: 'Owner board 11' }, `b18-owner-board-11-${suffix}`);
       assert.equal(ownerRejected.status, 409, await ownerRejected.clone().text());
-      assert.equal((await ownerRejected.json() as any).error.details.current, 5);
+      assert.equal((await ownerRejected.json() as any).error.details.current, 10);
       const replay = await create('manager', `/api/v1/projects/${project.id}/boards`, { name: 'Manager board' }, `b18-manager-${suffix}`);
       assert.equal(replay.status, 201, await replay.clone().text());
       assert.equal((await replay.json() as any).replayed, true);
@@ -177,6 +177,8 @@ test('B-18: owned project and shared board permissions', async (t) => {
     await t.test('two board creates waiting at the project quota lock cannot exceed the cap', async () => {
       const archived = await create('owner', `/api/v1/boards/${managerBoardId}/archive`, {}, `b18-race-archive-${suffix}`);
       assert.equal(archived.status, 200, await archived.clone().text());
+      // The previous quota tests use the same actor and fill its per-minute create window.
+      await pool.query("DELETE FROM rate_limit_windows WHERE client_key=$1 AND bucket='board-create'", [users[0]!.id]);
       const blocker = await pool.connect();
       let waiting: Promise<Response>[] = [];
       try {
@@ -199,7 +201,7 @@ test('B-18: owned project and shared board permissions', async (t) => {
       const responses = await Promise.all(waiting);
       assert.deepEqual(responses.map((response) => response.status).sort(), [201, 409]);
       const count = await pool.query<{ n: number }>('SELECT count(*)::int AS n FROM boards WHERE project_id=$1 AND NOT archived', [project.id]);
-      assert.equal(count.rows[0]?.n, 5);
+      assert.equal(count.rows[0]?.n, 10);
     });
     await t.test('project archive frees a slot and reopening at the cap is rejected', async () => {
       const archived = await create('owner', `/api/v1/projects/${project.id}/archive`, {}, `b18-project-archive-${suffix}`);

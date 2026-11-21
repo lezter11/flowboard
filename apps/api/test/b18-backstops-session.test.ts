@@ -113,7 +113,7 @@ test('backstops count archived items and session exposes effective limits', asyn
       assert.equal(sessionResponse.status, 200, await sessionResponse.clone().text());
       const data = (await sessionResponse.json() as any).data;
       assert.deepEqual(data.limits.ownedProjects, { limit: 3, used: 0 });
-      assert.equal(data.limits.boardsPerProject.limit, 5);
+      assert.equal(data.limits.boardsPerProject.limit, 10);
       assert.equal(data.accessibleProjects.find((item: any) => item.id === project.id).isOwned, true);
     });
     await t.test('invalid overrides fall back and valid overrides apply', () => {
