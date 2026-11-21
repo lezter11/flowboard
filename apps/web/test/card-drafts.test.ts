@@ -4,6 +4,18 @@ import type { Card } from '@flowboard/contracts';
 import { api } from '../src/lib/api.ts';
 import { cardFieldsInput, cardFieldsDirty, createCardDraftSessions, originalUndoInput } from '../src/lib/card-drafts.ts';
 const card:Card={id:'card',workspaceId:'workspace',projectId:'project',boardId:'board',title:'Original',description:'',priority:'high',dueDate:null,assigneeIds:[],columnId:'first',position:0,version:2,state:'active',deletedAt:null,deletedBy:null,restoreUntil:null,commentCount:0,imageCount:0,createdAt:'2026-11-03T00:00:00Z',updatedAt:'2026-11-03T00:00:00Z'};
+test('drawer close reads the latest draft for its own actor and card', () => {
+  const store = createCardDraftSessions();
+  const first = store.forCard('actor', card);
+  const second = { ...card, id: 'second', boardId: 'other-board' };
+  store.forCard('actor', second);
+  first.edit({ title: 'Unsaved title' });
+  assert.equal(store.hasUnsaved('actor', card.id), true);
+  assert.equal(store.hasUnsaved('actor', second.id), false);
+  assert.equal(store.hasUnsaved('other', card.id), false);
+  first.edit({ title: card.title });
+  assert.equal(store.hasUnsaved('actor', card.id), false);
+});
 test('field Save excludes status and leaves the committed column unchanged',()=>{
   const store=createCardDraftSessions();const session=store.forCard('actor',card);session.edit({title:'Saved title'});const input=cardFieldsInput(session.get().draft,session.get().version);assert.equal('columnId' in input,false);assert.equal('toColumnId' in input,false);session.intent({fieldInput:input});session.fieldsSaved(3);assert.equal(cardFieldsDirty(session.get().draft,session.get().base),false);assert.equal(session.get().draft.columnId,'first');assert.equal(session.get().base.columnId,'first');assert.equal(session.get().version,3);
 });
